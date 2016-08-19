@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.EntityConfiguration;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -10,7 +10,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Dictionary;
 import java.util.Map;
-import java.util.function.Supplier;
+
+import static com.bytex.snamp.MapUtils.getValue;
 
 /**
  * Abstract configuration parser.
@@ -29,7 +30,7 @@ abstract class AbstractConfigurationParser<E extends EntityConfiguration> implem
                                                                         final Class<E> entityType,
                                                                         final Dictionary<String, ?> properties,
                                                                         final ClassLoader caller) throws IOException {
-        final byte[] serializedConfig = Utils.getProperty(properties, itemName, byte[].class, (Supplier<byte[]>) () -> new byte[0]);
+        final byte[] serializedConfig = getValue(properties, itemName, byte[].class, ArrayUtils::emptyByteArray);
         return IOUtils.deserialize(serializedConfig, entityType, caller);
     }
 

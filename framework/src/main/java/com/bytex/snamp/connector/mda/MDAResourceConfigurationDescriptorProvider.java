@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 /**
  * Represents basic configuration schema for all MDA connector.
@@ -94,10 +95,7 @@ public abstract class MDAResourceConfigurationDescriptorProvider extends Configu
         else return null;
     }
 
-    static long parseExpireTime(final Map<String, String> parameters){
-        final long MAX_EXPIRE_TIME = Duration.ofNanos(Long.MAX_VALUE).toMillis();
-        if(parameters.containsKey(EXPIRE_TIME_PARAM))
-            return Math.min(MAX_EXPIRE_TIME, Long.parseLong(parameters.get(EXPIRE_TIME_PARAM)));
-        else return MAX_EXPIRE_TIME;
+    static long parseExpireTime(final Map<String, String> parameters) {
+        return getValueAsLong(parameters, EXPIRE_TIME_PARAM, Long::parseLong, Duration.ofNanos(Long.MAX_VALUE)::toMillis);
     }
 }

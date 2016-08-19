@@ -43,7 +43,7 @@ public class ResourceReader implements Closeable, SafeCloseable {
      * @param defval The default value of the resource string if it is not available.
      * @return The string loaded from the resource.
      */
-    public final String getString(final String key, final Locale loc, final String defval) {
+    protected final String getString(final String key, final Locale loc, final String defval) {
         final ResourceBundle bnd = getBundle(loc);
         try {
             return bnd != null && bnd.containsKey(key) ? bnd.getString(key) : defval;
@@ -52,33 +52,8 @@ public class ResourceReader implements Closeable, SafeCloseable {
         }
     }
 
-    public final boolean getBoolean(final String key, final Locale loc, final boolean defval) {
+    protected final boolean getBoolean(final String key, final Locale loc, final boolean defval) {
         return Boolean.valueOf(getString(key, loc, Boolean.toString(defval)));
-    }
-
-    public final byte getByte(final String key, final Locale loc, final byte defval){
-        return Byte.parseByte(getString(key, loc, Byte.toString(defval)));
-    }
-
-    public final int getInt(final String key, final Locale loc, final int defval){
-        return Integer.parseInt(getString(key, loc, Integer.toString(defval)));
-    }
-
-    public final long getLong(final String key, final Locale loc, final long defval){
-        return Long.parseLong(getString(key, loc, Long.toString(defval)));
-    }
-
-    public final float getFloat(final String key, final Locale loc, final float defval){
-        return Float.parseFloat(getString(key, loc, Float.toString(defval)));
-    }
-
-    public final double getDouble(final String key, final Locale loc, final double defval){
-        return Double.parseDouble(getString(key, loc, Double.toString(defval)));
-    }
-
-    public final char getChar(final String key, final Locale loc, final char defval) {
-        final String str = getString(key, loc, new String(new char[]{defval}));
-        return str.isEmpty() ? defval : str.charAt(0);
     }
 
     /**

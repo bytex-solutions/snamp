@@ -11,9 +11,6 @@ import org.osgi.framework.ServiceReference;
 import java.lang.invoke.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -79,122 +76,6 @@ public final class Utils {
         return isInstanceOf(serviceRef, serviceType.getName());
     }
 
-    /**
-     * Gets value from the map in type-safe manner.
-     * @param map The map to read. Cannot be {@literal null}.
-     * @param propertyKey The key in the map to get.
-     * @param propertyType The expected value type.
-     * @param <K> Type of the map key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value obtained from the map.
-     * @throws ClassCastException Unable to cast property value to the specified propertyType.
-     * @throws IndexOutOfBoundsException The specified key doesn't exist.
-     * @throws IllegalArgumentException map is {@literal null}.
-     */
-    public static <K, V> V getProperty(final Map<K, ?> map,
-                                       final K propertyKey,
-                                       final Class<V> propertyType)
-            throws ClassCastException,
-                IndexOutOfBoundsException,
-                IllegalArgumentException{
-        if(map == null) throw new IllegalArgumentException("map is null.");
-        else if(map.containsKey(propertyKey)){
-            final Object value = map.get(propertyKey);
-            if(propertyType.isInstance(value)) return propertyType.cast(value);
-            else throw new ClassCastException(String.format("Unable to cast %s value to %s type.", value, propertyType));
-        }
-        else throw new IndexOutOfBoundsException(String.format("Key %s doesn't exist.", propertyKey));
-    }
-
-    /**
-     * Gets value from the map in type-safe manner.
-     * @param map The map to read.
-     * @param propertyKey The key in the map to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the map key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the map.
-     */
-    public static <K, V> V getProperty(final Map<K, ?> map,
-                                       final K propertyKey,
-                                       final Class<V> propertyType,
-                                       final V defaultValue){
-        return getProperty(map, propertyKey, propertyType, (Supplier<V>) () -> defaultValue);
-    }
-
-    /**
-     * Gets value from the map in type-safe manner.
-     * @param map The map to read.
-     * @param propertyKey The key in the map to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the map key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the map.
-     */
-    public static <K, V> V getProperty(final Map<K, ?> map,
-                                       final K propertyKey,
-                                       final Class<V> propertyType,
-                                       final Supplier<V> defaultValue){
-        if(defaultValue == null) return getProperty(map, propertyKey, propertyType, (Supplier<V>) () -> null);
-        else if(map == null) return defaultValue.get();
-        else if(map.containsKey(propertyKey)){
-            final Object value = map.get(propertyKey);
-            return propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
-        }
-        else return defaultValue.get();
-    }
-
-    /**
-     * Gets value from the dictionary in type-safe manner.
-     * @param dict The dictionary to read.
-     * @param propertyKey The key in the dictionary to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the dictionary key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the dictionary.
-     */
-    public static <K, V> V getProperty(final Dictionary<K, ?> dict,
-                                       final K propertyKey,
-                                       final Class<V> propertyType,
-                                       final Supplier<V> defaultValue){
-        if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, (Supplier<V>) () -> null);
-        else if(dict == null) return defaultValue.get();
-        final Object value = dict.get(propertyKey);
-        return value != null && propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
-    }
-
-    public static <K, V> boolean setProperty(final Dictionary<K, ? super V> dict,
-                                     final K propertyKey,
-                                     final V value) {
-        if (dict == null) return false;
-        dict.put(propertyKey, value);
-        return true;
-    }
-
-    /**
-     * Gets value from the dictionary in type-safe manner.
-     * @param dict The dictionary to read.
-     * @param propertyKey The key in the dictionary to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the dictionary key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the dictionary.
-     */
-    public static <K, V> V getProperty(final Dictionary<K, ?> dict,
-                                     final K propertyKey,
-                                     final Class<V> propertyType,
-                                     final V defaultValue){
-        return getProperty(dict, propertyKey, propertyType, (Supplier<V>) () -> defaultValue);
-    }
-
     public static <V> V withContextClassLoader(final ClassLoader loader, final Supplier<? extends V> action) {
         try {
             return withContextClassLoader(loader, (Callable<V>)action::get);
@@ -253,12 +134,6 @@ public final class Utils {
         } catch (final Exception e) {
             throw new ExceptionInInitializerError(e);
         }
-    }
-
-    public static Properties toProperties(final Map<String, String> params){
-        final Properties props = new Properties();
-        props.putAll(params);
-        return props;
     }
 
     private static java.util.function.Supplier reflectGetter(final MethodHandles.Lookup lookup,

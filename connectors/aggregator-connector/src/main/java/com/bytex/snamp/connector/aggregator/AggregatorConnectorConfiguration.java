@@ -6,6 +6,7 @@ import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 
 import java.time.Duration;
 import java.util.Map;
+import static com.bytex.snamp.MapUtils.*;
 
 /**
  * Provides configuration schema of this resource connector.
@@ -125,8 +126,7 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
     }
 
     static Duration getNotificationFrequency(final Map<String, String> parameters){
-        return parameters.containsKey(NOTIFICATION_FREQUENCY_PARAM) ?
-                Duration.ofMillis(Long.parseLong(parameters.get(NOTIFICATION_FREQUENCY_PARAM))) :
-                Duration.ofSeconds(5);
+        final long frequency = getValueAsLong(parameters, NOTIFICATION_FREQUENCY_PARAM, Long::parseLong, () -> 5000);
+        return Duration.ofMillis(frequency);
     }
 }

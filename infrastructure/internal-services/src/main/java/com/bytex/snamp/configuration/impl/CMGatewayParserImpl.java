@@ -1,20 +1,18 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.MutableBoolean;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
-import com.bytex.snamp.MutableBoolean;
-import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.*;
+
+import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.gateway.Gateway.CAPABILITY_NAMESPACE;
 
 /**
@@ -51,7 +49,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
 
     @Override
     public String getInstanceName(final Dictionary<String, ?> gatewayInstanceConfig) {
-        return Utils.getProperty(gatewayInstanceConfig, GATEWAY_INSTANCE_NAME_PROPERTY, String.class, "");
+        return getValue(gatewayInstanceConfig, GATEWAY_INSTANCE_NAME_PROPERTY, Objects::toString, () -> "");
     }
 
     private static void fillGatewayInstanceParameters(final Dictionary<String, ?> instanceConfig,
@@ -118,7 +116,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
                                   final SerializableGatewayConfiguration gatewayInstance,
                                   final Configuration output) throws IOException{
         final Dictionary<String, String> configuration = serialize(gatewayInstance);
-        Utils.setProperty(configuration, GATEWAY_INSTANCE_NAME_PROPERTY, gatewayInstanceName);
+        configuration.put(GATEWAY_INSTANCE_NAME_PROPERTY, gatewayInstanceName);
         output.update(configuration);
     }
 

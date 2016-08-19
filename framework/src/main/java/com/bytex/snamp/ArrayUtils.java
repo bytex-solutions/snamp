@@ -19,7 +19,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * Represents advanced routines to work with arrays.
@@ -107,6 +106,15 @@ public final class ArrayUtils {
         if (arrayType.isArray())
             return arrayType.cast(emptyArrayImpl(arrayType.getComponentType()));
         else throw new IllegalArgumentException("Invalid array type: " + arrayType);
+    }
+
+    /**
+     * Gets cached empty array of bytes.
+     * @return Cached empty array of bytes.
+     * @since 2.0
+     */
+    public static byte[] emptyByteArray(){
+        return emptyArray(byte[].class);
     }
 
     /**

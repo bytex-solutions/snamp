@@ -5,6 +5,7 @@ import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.connector.mda.MDAResourceConfigurationDescriptorProvider;
 
 import java.util.Map;
+import static com.bytex.snamp.MapUtils.getValueAsInt;
 
 /**
  * @author Roman Sakno
@@ -51,8 +52,6 @@ public final class MDAConnectorDescriptionProvider extends MDAResourceConfigurat
     }
 
     public int parseSocketTimeout(final Map<String, String> parameters){
-        if(parameters.containsKey(SOCKET_TIMEOUT_PARAM))
-            return Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM));
-        else return 4000;
+        return getValueAsInt(parameters, SOCKET_TIMEOUT_PARAM, Integer::parseInt, () -> 4000);
     }
 }

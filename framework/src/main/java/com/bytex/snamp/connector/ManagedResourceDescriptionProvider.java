@@ -6,12 +6,12 @@ import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.internal.Utils;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
 
+import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.SMART_MODE_KEY;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.THREAD_POOL_KEY;
-import static com.bytex.snamp.internal.Utils.getProperty;
 
 /**
  * Provides parser of connector-related configuration parameters.
@@ -40,12 +40,8 @@ public interface ManagedResourceDescriptionProvider extends ConfigurationEntityD
      * @return {@literal true} if SmartMode={@literal true} in the specified configuration parameters.
      * @see #DEFAULT_SMART_MODE_VALUE
      */
-    default boolean isSmartModeEnabled(final Map<String, ?> parameters) {
-        if(parameters.containsKey(SMART_MODE_KEY)){
-            final Object smartMode = parameters.get(SMART_MODE_KEY);
-            return Objects.equals(smartMode, Boolean.TRUE) || Objects.equals(smartMode, Boolean.TRUE.toString());
-        }
-        else return DEFAULT_SMART_MODE_VALUE;
+    default boolean isSmartModeEnabled(final Map<String, String> parameters) {
+        return getValue(parameters, SMART_MODE_KEY, Boolean::parseBoolean, () -> DEFAULT_SMART_MODE_VALUE);
     }
 
     /**
@@ -53,8 +49,8 @@ public interface ManagedResourceDescriptionProvider extends ConfigurationEntityD
      * @param parameters Configuration parameters of the managed resource. Cannot be {@literal null}.
      * @return Thread pool specified in configuration parameters; or {@literal null} if {@link ThreadPoolRepository} service was not registered.
      */
-    default ExecutorService parseThreadPool(final Map<String, ?> parameters) {
-        final String poolName = getProperty(parameters, THREAD_POOL_KEY, String.class, DEFAULT_THREAD_POOL_VALUE);
+    default ExecutorService parseThreadPool(final Map<String, String> parameters) {
+        final String poolName = getValue(parameters, THREAD_POOL_KEY, Function.identity(), () -> DEFAULT_THREAD_POOL_VALUE);
         return ThreadPoolRepository.getThreadPool(Utils.getBundleContextOfObject(this), poolName, true);
     }
 }

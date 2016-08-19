@@ -25,4 +25,14 @@ enum KeyPairProviderFactory {
     };
 
     abstract KeyPairProvider loadPair(final String fileName);
+
+    static KeyPairProviderFactory parse(final String format) {
+        switch (format) {
+            case "pem":
+            case "PEM":
+                return KeyPairProviderFactory.PEM_KEY;
+            default:
+                return KeyPairProviderFactory.JAVA_KEY;
+        }
+    }
 }

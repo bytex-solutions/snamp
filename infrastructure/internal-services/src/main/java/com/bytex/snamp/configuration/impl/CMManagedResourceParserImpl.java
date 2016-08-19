@@ -2,11 +2,11 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.SerializableMap;
-import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.MutableBoolean;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.SerializableMap;
+import com.bytex.snamp.configuration.FeatureConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -16,12 +16,10 @@ import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.*;
 
+import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.MapUtils.putValue;
 import static com.bytex.snamp.configuration.impl.SerializableManagedResourceConfiguration.*;
 import static com.bytex.snamp.connector.ManagedResourceConnector.CAPABILITY_NAMESPACE;
 
@@ -73,12 +71,12 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
 
 
     private String getConnectionString(final Dictionary<String, ?> resourceConfig) {
-        return Utils.getProperty(resourceConfig, CONNECTION_STRING_PROPERTY, String.class, "");
+        return getValue(resourceConfig, CONNECTION_STRING_PROPERTY, Objects::toString, () -> "");
     }
 
     @Override
     public String getResourceName(final Dictionary<String, ?> resourceConfig) {
-        return Utils.getProperty(resourceConfig, RESOURCE_NAME_PROPERTY, String.class, "");
+        return getValue(resourceConfig, RESOURCE_NAME_PROPERTY, String.class, () -> "");
     }
 
     private static void fillConnectionOptions(final Dictionary<String, ?> resourceConfig,
@@ -105,13 +103,10 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
 
     private <F extends FeatureConfiguration> Map<String, F> getFeatures(final Dictionary<String, ?> resourceConfig,
                                                                         final String featureHolder,
-                                                                        final TypeToken<SerializableMap<String, F>> featureType) throws IOException{
-        byte[] serializedForm = Utils.getProperty(resourceConfig,
-                featureHolder,
-                byte[].class,
-                ArrayUtils.emptyArray(byte[].class));
-        return serializedForm != null && serializedForm.length > 0 ?
-                IOUtils.deserialize(serializedForm, featureType, getClass().getClassLoader()):
+                                                                        final TypeToken<SerializableMap<String, F>> featureType) throws IOException {
+        final byte[] serializedForm = getValue(resourceConfig, featureHolder, byte[].class, ArrayUtils::emptyByteArray);
+        return serializedForm.length > 0 ?
+                IOUtils.deserialize(serializedForm, featureType, getClass().getClassLoader()) :
                 ImmutableMap.of();
     }
 
@@ -180,33 +175,26 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
                    final SerializableManagedResourceConfiguration resource,
                    final Configuration output) throws IOException {
         final Dictionary<String, Object> configuration = serialize(resource);
-        Utils.setProperty(configuration, RESOURCE_NAME_PROPERTY, resourceName);
+        configuration.put(RESOURCE_NAME_PROPERTY, resourceName);
         output.update(configuration);
     }
 
     private static Dictionary<String, Object> serialize(final SerializableManagedResourceConfiguration resource) throws IOException {
         final Dictionary<String, Object> result = new Hashtable<>(4);
-        Utils.setProperty(result, CONNECTION_STRING_PROPERTY, resource.getConnectionString());
-        final Map<String, ? extends AttributeConfiguration> attributes = resource.getFeatures(AttributeConfiguration.class);
-        //serialize attributes
-        if (attributes != null)
-            Utils.setProperty(result, ATTRIBUTES_PROPERTY, IOUtils.serialize((Serializable)attributes));
-        final Map<String, ? extends EventConfiguration> events = resource.getFeatures(EventConfiguration.class);
-        //serialize events
-        if (events != null)
-            Utils.setProperty(result, EVENTS_PROPERTY, IOUtils.serialize((Serializable)events));
-        //serialize operations
-        final Map<String, ? extends OperationConfiguration> operations = resource.getFeatures(OperationConfiguration.class);
-        if(operations != null)
-            Utils.setProperty(result, OPERATIONS_PROPERTY, IOUtils.serialize((Serializable)operations));
+        putValue(result, CONNECTION_STRING_PROPERTY, resource, SerializableManagedResourceConfiguration::getConnectionString);
+        result.put(ATTRIBUTES_PROPERTY, IOUtils.serialize(resource.getAttributes()));
+        result.put(EVENTS_PROPERTY, IOUtils.serialize(resource.getEvents()));
+        result.put(OPERATIONS_PROPERTY, IOUtils.serialize(resource.getOperations()));
         //serialize properties
-        for(final Map.Entry<String, String> entry: resource.getParameters().entrySet())
+        resource.getParameters().entrySet().forEach(entry -> {
             switch (entry.getKey()) {
-                default: result.put(entry.getKey(), entry.getValue());
+                default:
+                    result.put(entry.getKey(), entry.getValue());
                 case Constants.SERVICE_PID:
                 case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
                 case ConfigurationAdmin.SERVICE_FACTORYPID:
             }
+        });
         return result;
     }
 

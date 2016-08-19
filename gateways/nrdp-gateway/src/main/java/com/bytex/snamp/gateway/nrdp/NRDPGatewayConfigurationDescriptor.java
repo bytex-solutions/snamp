@@ -1,16 +1,18 @@
 package com.bytex.snamp.gateway.nrdp;
 
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
+import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
-import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.jmx.DescriptorUtils;
 
 import javax.management.Descriptor;
 import java.time.Duration;
 import java.util.Map;
+import java.util.function.Function;
 
+import static com.bytex.snamp.MapUtils.*;
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -80,18 +82,9 @@ final class NRDPGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     NRDPServerConnectionSettings parseSettings(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {
-        final String serverURL;
-        final int connectionTimeout;
-        final String token;
-        if(parameters.containsKey(NRDP_SERVER_URL_PARAM))
-            serverURL = parameters.get(NRDP_SERVER_URL_PARAM);
-        else throw new AbsentNRDPConfigurationParameterException(NRDP_SERVER_URL_PARAM);
-        if(parameters.containsKey(CONNECTION_TIMEOUT_PARAM))
-            connectionTimeout = Integer.parseInt(parameters.get(CONNECTION_TIMEOUT_PARAM));
-        else connectionTimeout = 4000;
-        if(parameters.containsKey(TOKEN_PARAM))
-            token = parameters.get(TOKEN_PARAM);
-        else throw new AbsentNRDPConfigurationParameterException(TOKEN_PARAM);
+        final String serverURL = getIfPresent(parameters, NRDP_SERVER_URL_PARAM, Function.identity(), AbsentNRDPConfigurationParameterException::new);
+        final int connectionTimeout = getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt, () -> 4000);
+        final String token = getIfPresent(parameters, TOKEN_PARAM, Function.identity(), AbsentNRDPConfigurationParameterException::new);
         return new NRDPServerConnectionSettings(serverURL, token, connectionTimeout);
     }
 
@@ -102,9 +95,8 @@ final class NRDPGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
-        if(parameters.containsKey(PASSIVE_CHECK_SEND_PERIOD_PARAM))
-            return Duration.ofMillis(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
-        else return Duration.ofSeconds(1L);
+        final long period = getValueAsLong(parameters, PASSIVE_CHECK_SEND_PERIOD_PARAM, Long::parseLong, () -> 1000L);
+        return Duration.ofMillis(period);
     }
 
     static String getUnitOfMeasurement(final Descriptor descr){

@@ -16,9 +16,11 @@ import java.net.NetworkInterface;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
+import static com.bytex.snamp.MapUtils.*;
 
 /**
  * @author Roman Sakno
@@ -95,34 +97,16 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
     }
 
     String getHost(final Map<String, String> parameters){
-        return parameters.containsKey(HOST_PARAM) ?
-                parameters.get(HOST_PARAM) :
-                DEFAULT_HOST;
+        return getValue(parameters, HOST_PARAM, Function.identity(), () -> DEFAULT_HOST);
     }
 
     int getPort(final Map<String, String> parameters) {
-        return parameters.containsKey(PORT_PARAM) ?
-                Integer.parseInt(parameters.get(PORT_PARAM)) :
-                DEFAULT_PORT;
+        return getValueAsInt(parameters, PORT_PARAM, Integer::parseInt, () -> DEFAULT_PORT);
     }
 
-    KeyPairProvider getKeyPairProvider(final Map<String, String> parameters){
-        final KeyPairProviderFactory factory;
-        switch (parameters.containsKey(HOST_KEY_FORMAT_PARAM) ?
-                parameters.get(HOST_KEY_FORMAT_PARAM) :
-                ""){
-            case "pem":
-            case "PEM":
-                factory = KeyPairProviderFactory.PEM_KEY;
-                break;
-            default:
-                factory = KeyPairProviderFactory.JAVA_KEY;
-                break;
-        }
-
-        final String hostKeyFile = parameters.containsKey(HOST_KEY_FILE_PARAM) ?
-                parameters.get(HOST_KEY_FILE_PARAM) :
-                DEFAULT_HOST_KEY;
+    KeyPairProvider getKeyPairProvider(final Map<String, String> parameters) {
+        final KeyPairProviderFactory factory = getValue(parameters, HOST_KEY_FORMAT_PARAM, KeyPairProviderFactory::parse, () -> KeyPairProviderFactory.JAVA_KEY);
+        final String hostKeyFile = getValue(parameters, HOST_KEY_FILE_PARAM, Function.identity(), () -> DEFAULT_HOST_KEY);
         return factory.loadPair(hostKeyFile);
     }
 
@@ -189,16 +173,18 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
 
             @Override
             public KeyFormat getClientPublicKeyFormat() {
-                if (parameters.containsKey(PUBLIC_KEY_FILE_FORMAT_PARAM))
-                    switch (parameters.get(PUBLIC_KEY_FILE_FORMAT_PARAM).toLowerCase()) {
+                return getValue(parameters, PUBLIC_KEY_FILE_FORMAT_PARAM, format -> {
+                    switch (format.toLowerCase()) {
                         case "pkcs8":
                             return KeyFormat.PKCS8;
                         case "openssh":
                             return KeyFormat.OpenSSH;
                         case "putty":
                             return KeyFormat.PuTTY;
+                        default:
+                            return KeyFormat.Unknown;
                     }
-                return KeyFormat.Unknown;
+                }, () -> KeyFormat.Unknown);
             }
         };
     }

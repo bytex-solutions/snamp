@@ -19,8 +19,10 @@ import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.bytex.snamp.MapUtils.*;
 
 /**
  * @author Roman Sakno
@@ -67,29 +69,21 @@ public final class XMPPGatewayConfigurationProvider extends ConfigurationEntityD
     }
 
     public static AbstractXMPPConnection createConnection(final Map<String, String> parameters) throws AbsentXMPPConfigurationParameterException, GeneralSecurityException, IOException {
-        if (!parameters.containsKey(USER_NAME_PARAM))
-            throw new AbsentXMPPConfigurationParameterException(USER_NAME_PARAM);
-        else if (!parameters.containsKey(PASSWORD_PARAM))
-            throw new AbsentXMPPConfigurationParameterException(PASSWORD_PARAM);
-        else if (!parameters.containsKey(HOST_PARAM))
-            throw new AbsentXMPPConfigurationParameterException(HOST_PARAM);
-        else if (!parameters.containsKey(DOMAIN_PARAM))
-            throw new AbsentXMPPConfigurationParameterException(DOMAIN_PARAM);
-        final int port = parameters.containsKey(PORT_PARAM) ?
-                Integer.parseInt(parameters.get(PORT_PARAM)) :
-                5222;
-        final int connectionTimeout = parameters.containsKey(CONNECTION_TIMEOUT_PARAM) ?
-                Integer.parseInt(parameters.get(CONNECTION_TIMEOUT_PARAM)) :
-                7000;
+        final String userName = getIfPresent(parameters, USER_NAME_PARAM, Function.identity(), AbsentXMPPConfigurationParameterException::new);
+        final String password = getIfPresent(parameters, PASSWORD_PARAM, Function.identity(), AbsentXMPPConfigurationParameterException::new);
+        final String host = getIfPresent(parameters, HOST_PARAM, Function.identity(), AbsentXMPPConfigurationParameterException::new);
+        final String domain = getIfPresent(parameters, DOMAIN_PARAM, Function.identity(), AbsentXMPPConfigurationParameterException::new);
+        final int port = getValueAsInt(parameters, PORT_PARAM, Integer::parseInt, () -> 5222);
+        final int connectionTimeout = getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt, () -> 7000);
         final XMPPTCPConnectionConfiguration.Builder builder =
                 XMPPTCPConnectionConfiguration.builder()
-                        .setUsernameAndPassword(parameters.get(USER_NAME_PARAM), parameters.get(PASSWORD_PARAM))
+                        .setUsernameAndPassword(userName, password)
                         .setResource("Work")
-                        .setServiceName(parameters.get(DOMAIN_PARAM))
+                        .setServiceName(domain)
                         .setPort(port)
                         .setConnectTimeout(connectionTimeout)
                         .setSendPresence(true)
-                        .setHost(parameters.get(HOST_PARAM));
+                        .setHost(host);
         //is security enabled?
         if(parameters.containsKey(KEYSTORE_PASSWORD_PARAM) ||
                 parameters.containsKey(KEYSTORE_PATH_PARAM) ||

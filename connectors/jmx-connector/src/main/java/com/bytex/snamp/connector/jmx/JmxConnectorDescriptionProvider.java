@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.configuration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
+import static com.bytex.snamp.MapUtils.getValueAsInt;
 
 /**
  * Represents JMX connector configuration descriptor.
@@ -168,9 +169,8 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
                 ), SimpleType.STRING);
     }
 
-    long parseWatchDogPeriod(final Map<String, String> parameters){
-        return parameters.containsKey(CONNECTION_CHECK_PERIOD) ?
-                Integer.parseInt(parameters.get(CONNECTION_CHECK_PERIOD)) : 3000L;
+    int parseWatchDogPeriod(final Map<String, String> parameters){
+        return getValueAsInt(parameters, CONNECTION_CHECK_PERIOD, Integer::parseInt, () -> 3000);
     }
 
     ObjectName parseRootObjectName(final Map<String, String> parameters) throws MalformedObjectNameException{

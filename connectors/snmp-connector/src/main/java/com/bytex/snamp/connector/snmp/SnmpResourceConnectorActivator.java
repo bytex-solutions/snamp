@@ -10,6 +10,7 @@ import org.snmp4j.log.OSGiLogFactory;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
+import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 
 /**
@@ -33,12 +34,12 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
                 });
     }
 
-    private static Duration getDiscoveryTimeout(final AgentConfiguration configuration){
-        if(configuration.getParameters().containsKey(AgentConfiguration.DISCOVERY_TIMEOUT_PROPERTY)){
-            final String timeout = configuration.getParameters().get(AgentConfiguration.DISCOVERY_TIMEOUT_PROPERTY);
-            return Duration.ofMillis(Long.parseLong(timeout));
-        } else
-            return Duration.ofSeconds(5);
+    private static Duration getDiscoveryTimeout(final AgentConfiguration configuration) {
+        final long timeout = getValueAsLong(configuration.getParameters(),
+                AgentConfiguration.DISCOVERY_TIMEOUT_PROPERTY,
+                Long::parseLong,
+                () -> 5000);
+        return Duration.ofMillis(timeout);
     }
 
     private static SnmpResourceConnector createConnector(final String resourceName,

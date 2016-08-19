@@ -14,11 +14,15 @@ import javax.management.DescriptorRead;
 import javax.naming.NamingException;
 import java.text.ParseException;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.MapUtils.getValueAsInt;
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
+import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 /**
  * Represents descriptor of SnmpAgent-specific configuration elements.
@@ -154,27 +158,19 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     }
 
     OctetString parseEngineID(final Map<String, String> parameters){
-        if(parameters.containsKey(ENGINE_ID_PARAM))
-            return OctetString.fromHexString(parameters.get(ENGINE_ID_PARAM));
-        else return new OctetString(MPv3.createLocalEngineID());
+        return getValue(parameters, ENGINE_ID_PARAM, OctetString::fromHexString, () -> new OctetString(MPv3.createLocalEngineID()));
     }
 
     int parsePort(final Map<String, String> parameters) {
-        return parameters.containsKey(PORT_PARAM_NAME) ?
-                Integer.parseInt(parameters.get(PORT_PARAM_NAME)) :
-                161;
+        return getValueAsInt(parameters, PORT_PARAM_NAME, Integer::parseInt, () -> 161);
     }
 
     String parseAddress(final Map<String, String> parameters){
-        return parameters.containsKey(HOST_PARAM_NAME) ?
-                parameters.get(HOST_PARAM_NAME) :
-                "127.0.0.1";
+        return getValue(parameters, HOST_PARAM_NAME, Function.identity(), () -> "127.0.0.1");
     }
 
     int parseSocketTimeout(final Map<String, String> parameters) {
-        return parameters.containsKey(SOCKET_TIMEOUT_PARAM) ?
-                Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM)) :
-                5000;
+        return getValueAsInt(parameters, SOCKET_TIMEOUT_PARAM, Integer::parseInt, () -> 5000);
     }
 
     SecurityConfiguration parseSecurityConfiguration(final Map<String, String> parameters,
@@ -215,8 +211,6 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     }
 
     long parseRestartTimeout(final Map<String, String> parameters){
-        return parameters.containsKey(RESTART_TIMEOUT_PARAM) ?
-                Long.parseLong(parameters.get(RESTART_TIMEOUT_PARAM)) :
-                10000L;
+        return getValueAsLong(parameters, RESTART_TIMEOUT_PARAM, Long::parseLong, () -> 10000L);
     }
 }

@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import static com.bytex.snamp.MapUtils.toProperties;
 
 /**
  * Represents Groovy Gateway.
@@ -95,7 +96,7 @@ final class GroovyGateway extends AbstractGateway {
     @Override
     protected synchronized void start(final Map<String, String> parameters) throws GroovyAbsentParameterConfigurationException, IOException, ResourceException, ScriptException {
         final GatewayScriptEngine engine = new GatewayScriptEngine(getClass().getClassLoader(),
-                Utils.toProperties(parameters),
+                toProperties(parameters),
                 GroovyGatewayConfigurationProvider.getScriptPath(parameters));
         engine.setGlobalVariable(GATEWAY_INSTANCE_NAME, getInstanceName());
         engine.setGlobalVariable(GatewayScript.MODEL_GLOBAL_VAR, repository);

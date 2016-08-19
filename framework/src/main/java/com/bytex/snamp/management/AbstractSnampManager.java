@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
+import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 /**
  * Represents partial implementation of {@link com.bytex.snamp.management.SnampManager} service.
@@ -35,7 +36,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
         }
 
         private long getBundleID(){
-            return Long.parseLong(get(BUNDLE_ID_PROPERTY));
+            return getValueAsLong(this, BUNDLE_ID_PROPERTY, Long::parseLong, () -> 0L);
         }
 
         private BundleContext getItselfContext() {

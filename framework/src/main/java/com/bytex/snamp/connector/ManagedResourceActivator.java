@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.bytex.snamp.MapUtils.getValue;
 
 /**
  * Represents a base class for management connector bundle.
@@ -576,11 +577,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     static String getConnectionString(final ServiceReference<ManagedResourceConnector> identity){
-        return Utils.getProperty(getProperties(identity), CONNECTOR_STRING_IDENTITY_PROPERTY, String.class, "");
+        return getValue(getProperties(identity), CONNECTOR_STRING_IDENTITY_PROPERTY, Objects::toString, () -> "");
     }
 
     private static String getManagedResourceName(final Map<String, ?> identity){
-        return Utils.getProperty(identity, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, String.class, "");
+        return getValue(identity, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, String.class, () -> "");
     }
 
     private static List<Bundle> getResourceConnectorBundles(final BundleContext context) {

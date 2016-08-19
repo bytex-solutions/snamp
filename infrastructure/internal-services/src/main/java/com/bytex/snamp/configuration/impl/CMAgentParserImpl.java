@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.configuration.EntityConfiguration;
-import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import org.osgi.service.cm.Configuration;
@@ -11,6 +10,9 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
+
+import static com.bytex.snamp.MapUtils.getValue;
 
 /**
  * Represents parser of SNAMP global configuration parameters.
@@ -30,11 +32,11 @@ final class CMAgentParserImpl {
         conf.update(new Hashtable<>(agentConfig.getParameters()));
     }
 
-    static void loadParameters(final ConfigurationAdmin admin, final EntityConfiguration agentConfig) throws IOException{
+    static void loadParameters(final ConfigurationAdmin admin, final EntityConfiguration agentConfig) throws IOException {
         final Configuration conf = getConfig(admin);
-        if(conf != null) {
+        if (conf != null) {
             final Iterator<String> keys = Iterators.forEnumeration(conf.getProperties().keys());
-            final Map<String, String> params = Maps.toMap(keys, key -> Utils.getProperty(conf.getProperties(), key, String.class, ""));
+            final Map<String, String> params = Maps.toMap(keys, key -> getValue(conf.getProperties(), key, Objects::toString, () -> ""));
             agentConfig.setParameters(params);
         }
     }

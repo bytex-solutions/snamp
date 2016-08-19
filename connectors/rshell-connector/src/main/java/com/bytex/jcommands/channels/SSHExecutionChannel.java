@@ -16,6 +16,9 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.function.Function;
+
+import static com.bytex.snamp.MapUtils.*;
 
 /**
  * Represents command execution channel that uses SSH connection for executing
@@ -60,8 +63,8 @@ public final class SSHExecutionChannel extends SSHClient implements CommandExecu
 
     private static Map<String, String> join(final URI connectionString, final Map<String, String> params){
         final Map<String, String> result = new HashMap<>(params);
-        result.put(HOST_NAME_PROPERTY, connectionString.getHost());
-        result.put(PORT_NAME_PROPERTY, Integer.toString(connectionString.getPort()));
+        putValue(params, HOST_NAME_PROPERTY, connectionString, URI::getHost);
+        putIntValue(params, PORT_NAME_PROPERTY, connectionString.getPort(), Integer::toString);
         return result;
     }
 
@@ -94,23 +97,23 @@ public final class SSHExecutionChannel extends SSHClient implements CommandExecu
         session = null;
         if (params.containsKey(KNOWN_HOSTS_PROPERTY))
             loadKnownHosts(this, params.get(KNOWN_HOSTS_PROPERTY));
-        remoteHost = Objects.toString(params.get(HOST_NAME_PROPERTY), DEFAULT_HOST_NAME);
-        remotePort = Integer.parseInt(Objects.toString(params.get(PORT_NAME_PROPERTY), Integer.toString(DEFAULT_PORT)));
+        remoteHost = getValue(params, HOST_NAME_PROPERTY, Function.identity(), () -> DEFAULT_HOST_NAME);
+        remotePort = getValueAsInt(params, PORT_NAME_PROPERTY, Integer::parseInt, () -> DEFAULT_PORT);
         if (params.containsKey(LOCAL_HOST_NAME_PROPERTY)) {
-            localHost = InetAddress.getByName(Objects.toString(params.get(LOCAL_HOST_NAME_PROPERTY)));
-            localPort = Integer.parseInt(Objects.toString(params.get(LOCAL_PORT_NAME_PROPERTY), "30000"));
+            localHost = InetAddress.getByName(getValue(params, LOCAL_HOST_NAME_PROPERTY, Function.identity(), () -> "localhost"));
+            localPort = getValueAsInt(params, LOCAL_PORT_NAME_PROPERTY, Integer::parseInt, () -> 30000);
         } else {
             localHost = null;
             localPort = -1;
         }
         if (params.containsKey(SOCKET_TIMEOUT_PROPERTY)) {
-            final int timeoutMillis = Integer.parseInt(Objects.toString(params.get(SOCKET_TIMEOUT_PROPERTY)));
+            final int timeoutMillis = getValueAsInt(params, SOCKET_TIMEOUT_PROPERTY, Integer::parseInt, () -> 0);
             setTimeout(timeoutMillis);
             setConnectTimeout(timeoutMillis);
         }
         if(params.containsKey(FINGERPRINT_PROPERTY))
             addHostKeyVerifier(params.get(FINGERPRINT_PROPERTY));
-        encoding = Objects.toString(params.get(ENCODING_PROPERTY), Charset.defaultCharset().name());
+        encoding = getValue(params, ENCODING_PROPERTY, Function.identity(), Charset.defaultCharset()::name);
         if (params.containsKey(USER_NAME_PROPERTY))
             if (params.containsKey(PASSWORD_PROPERTY))
                 auth = fromCredentials(params.get(USER_NAME_PROPERTY), params.get(PASSWORD_PROPERTY));

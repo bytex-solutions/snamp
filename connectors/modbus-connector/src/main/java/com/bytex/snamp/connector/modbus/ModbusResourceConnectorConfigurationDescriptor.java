@@ -7,6 +7,7 @@ import javax.management.Descriptor;
 import java.util.Map;
 
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
+import static com.bytex.snamp.MapUtils.getValueAsInt;
 
 /**
  * Provides configuration metadata of Modbus Connector.
@@ -63,15 +64,11 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseConnectionTimeout(final Map<String, String> parameters){
-        if(parameters.containsKey(CONNECTION_TIMEOUT_PARAM))
-            return Integer.parseInt(parameters.get(CONNECTION_TIMEOUT_PARAM));
-        else return 2000;
+        return getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt, () -> 2000);
     }
 
     static int parseRetryCount(final Map<String, String> parameters){
-        if(parameters.containsKey(RETRY_COUNT_PARAM))
-            return Integer.parseInt(parameters.get(RETRY_COUNT_PARAM));
-        else return 3;
+        return getValueAsInt(parameters, RETRY_COUNT_PARAM, Integer::parseInt, () -> 3);
     }
 
     static int parseRecordSize(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException {

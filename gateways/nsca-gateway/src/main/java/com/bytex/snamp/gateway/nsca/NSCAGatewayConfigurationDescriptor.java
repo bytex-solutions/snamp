@@ -11,10 +11,12 @@ import com.googlecode.jsendnsca.core.NagiosSettings;
 import javax.management.Descriptor;
 import java.time.Duration;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.bytex.snamp.MapUtils.*;
 
 /**
  * @author Roman Sakno
@@ -83,24 +85,19 @@ final class NSCAGatewayConfigurationDescriptor extends ConfigurationEntityDescri
 
     NagiosSettings parseSettings(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {
         final NagiosSettings result = new NagiosSettings();
-        if(parameters.containsKey(NAGIOS_HOST_PARAM))
-            result.setNagiosHost(parameters.get(NAGIOS_HOST_PARAM));
-        else throw new AbsentNSCAConfigurationParameterException(NAGIOS_HOST_PARAM);
-        if(parameters.containsKey(NAGIOS_PORT_PARAM))
-            result.setPort(Integer.parseInt(parameters.get(NAGIOS_PORT_PARAM)));
-        else throw new AbsentNSCAConfigurationParameterException(NAGIOS_PORT_PARAM);
-        if(parameters.containsKey(CONNECTION_TIMEOUT_PARAM))
-            result.setConnectTimeout(Integer.parseInt(parameters.get(CONNECTION_TIMEOUT_PARAM)));
-        if(parameters.containsKey(PASSWORD_PARAM))
-            result.setPassword(parameters.get(PASSWORD_PARAM));
-        if(parameters.containsKey(ENCRYPTION_PARAM))
-            switch (parameters.get(ENCRYPTION_PARAM)){
+        result.setNagiosHost(getIfPresent(parameters, NAGIOS_HOST_PARAM, Function.identity(), AbsentNSCAConfigurationParameterException::new));
+        result.setPort(getIfPresent(parameters, NAGIOS_PORT_PARAM, Integer::parseInt, AbsentNSCAConfigurationParameterException::new));
+        acceptIntIfPresent(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt, result::setConnectTimeout);
+        acceptIfPresent(parameters, PASSWORD_PARAM, Function.identity(), result::setPassword);
+        result.setEncryptionMethod(Encryption.NO_ENCRYPTION);
+        acceptIfPresent(parameters, ENCRYPTION_PARAM, Function.identity(), encryption -> {
+            switch (encryption){
                 case "XOR":
                 case "xor": result.setEncryptionMethod(Encryption.XOR_ENCRYPTION); break;
                 case "3DES":
-                case "3des": result.setEncryptionMethod(Encryption.TRIPLE_DES_ENCRYPTION); break;
-                default: result.setEncryptionMethod(Encryption.NO_ENCRYPTION); break;
+                case "3des": result.setEncryptionMethod(Encryption.TRIPLE_DES_ENCRYPTION);
             }
+        });
         return result;
     }
 
@@ -111,9 +108,8 @@ final class NSCAGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
-        if(parameters.containsKey(PASSIVE_CHECK_SEND_PERIOD_PARAM))
-            return Duration.ofMillis(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
-        else return Duration.ofSeconds(1L);
+        final long period = getValueAsLong(parameters, PASSIVE_CHECK_SEND_PERIOD_PARAM, Long::parseLong, () -> 1000L);
+        return Duration.ofMillis(period);
     }
 
     static String getUnitOfMeasurement(final Descriptor descr){

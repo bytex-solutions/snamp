@@ -9,8 +9,10 @@ import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import javax.management.Descriptor;
 import java.time.Duration;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
+import static com.bytex.snamp.MapUtils.*;
 
 /**
  * @author Roman Sakno
@@ -87,50 +89,46 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
         else return defaultValue;
     }
 
-    static SyslogMessageSender createSender(final Map<String, String> parameters) throws AbsentSysLogConfigurationParameterException{
-        if(!parameters.containsKey(PORT_PARAM))
-            throw new AbsentSysLogConfigurationParameterException(PORT_PARAM);
-        if(!parameters.containsKey(ADDRESS_PARAM))
-            throw new AbsentSysLogConfigurationParameterException(ADDRESS_PARAM);
-        if(!parameters.containsKey(PROTOCOL_PARAM))
-            throw new AbsentSysLogConfigurationParameterException(PROTOCOL_PARAM);
-        final int port = Integer.parseInt(parameters.get(PORT_PARAM));
-        final String address = parameters.get(ADDRESS_PARAM);
-        final boolean ssl;
-        final int connectionTimeout = parameters.containsKey(CONNECTION_TIMEOUT_PARAM) ?
-                Integer.parseInt(parameters.get(CONNECTION_TIMEOUT_PARAM)):
-                2000;
-        if(parameters.containsKey(USE_SSL_PARAM))
-            switch (parameters.get(USE_SSL_PARAM)){
+    static SyslogMessageSender createSender(final Map<String, String> parameters) throws AbsentSysLogConfigurationParameterException {
+        final int port = getIfPresent(parameters, PORT_PARAM, Integer::parseInt, AbsentSysLogConfigurationParameterException::new);
+        final String address = getIfPresent(parameters, ADDRESS_PARAM, Function.identity(), AbsentSysLogConfigurationParameterException::new);
+        final int connectionTimeout = getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt, () -> 2000);
+        final boolean ssl = getValue(parameters, USE_SSL_PARAM, useSSL -> {
+            switch (useSSL) {
                 case "yes":
                 case "true":
                 case "TRUE":
-                case "YES": ssl = true; break;
-                default: ssl = false; break;
+                case "YES":
+                    return true;
+                default:
+                    return false;
             }
-        else ssl = false;
-        final MessageFormat format;
-        if(parameters.containsKey(MESSAGE_FORMAT_PARAM))
-            switch (parameters.get(MESSAGE_FORMAT_PARAM)){
+        }, () -> false);
+        final MessageFormat format = getValue(parameters, MESSAGE_FORMAT_PARAM, formatName -> {
+            switch (formatName) {
                 case "RFC-3164":
                 case "rfc-3164":
                 case "BSD":
-                case "bsd": format = MessageFormat.RFC_3164;break;
-                default: format = MessageFormat.RFC_5424; break;
+                case "bsd":
+                    return MessageFormat.RFC_3164;
+                default:
+                    return MessageFormat.RFC_5424;
             }
-        else format = MessageFormat.RFC_5424;
-        final SyslogMessageSenderFactory factory;
-        switch (parameters.get(PROTOCOL_PARAM)){
-            case "tcp":
-            case "TCP": factory = SyslogMessageSenderFactory.TCP; break;
-            default: factory = SyslogMessageSenderFactory.UDP; break;
-        }
+        }, () -> MessageFormat.RFC_5424);
+        final SyslogMessageSenderFactory factory = getIfPresent(parameters, PROTOCOL_PARAM, protocol -> {
+            switch (protocol) {
+                case "tcp":
+                case "TCP":
+                    return SyslogMessageSenderFactory.TCP;
+                default:
+                    return SyslogMessageSenderFactory.UDP;
+            }
+        }, AbsentSysLogConfigurationParameterException::new);
         return factory.create(address, port, format, ssl, connectionTimeout);
     }
 
     static Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
-        if(parameters.containsKey(PASSIVE_CHECK_SEND_PERIOD_PARAM))
-            return Duration.ofMillis(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
-        else return Duration.ofSeconds(1L);
+        final long period = getValueAsLong(parameters, PASSIVE_CHECK_SEND_PERIOD_PARAM, Long::parseLong, () -> 1000L);
+        return Duration.ofMillis(period);
     }
 }
