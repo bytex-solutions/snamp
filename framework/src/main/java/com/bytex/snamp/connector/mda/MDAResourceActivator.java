@@ -21,7 +21,7 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
     /**
      * Represents factory of MDA connector.
      */
-    protected static abstract class MonitoringDataAcceptorFactory implements ManagedResourceConnectorLifecycleController<DataAcceptor>, Iterable<DataAcceptorFactory>{
+    protected static abstract class MonitoringDataAcceptorFactory implements ManagedResourceConnectorFactory<DataAcceptor>, Iterable<DataAcceptorFactory>{
         @Override
         public final DataAcceptor createConnector(final String resourceName, final String connectionString, final Map<String, String> connectionParameters, final RequiredService<?>... dependencies) throws Exception {
             final Duration expirationTime = Duration.ofMillis(parseExpireTime(connectionParameters));

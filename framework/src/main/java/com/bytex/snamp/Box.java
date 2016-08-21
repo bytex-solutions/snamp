@@ -29,7 +29,6 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, Consumer<T>, Acceptor<T,
      * Clones this container.
      * @return A new instance of this container.
      */
-    @SuppressWarnings({"CloneDoesntDeclareCloneNotSupportedException", "CloneDoesntCallSuperClone"})
     @Override
     public Box<T> clone() {
         return new Box<>(value);

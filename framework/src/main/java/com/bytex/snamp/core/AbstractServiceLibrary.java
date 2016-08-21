@@ -173,7 +173,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @return The value of the property.
          */
         protected final <V> V getActivationPropertyValue(final ActivationProperty<V> propertyDef){
-            return properties.getValue(propertyDef);
+            return properties.getProperty(propertyDef);
         }
 
         private synchronized void serviceChanged(final BundleContext context, final ServiceEvent event) {

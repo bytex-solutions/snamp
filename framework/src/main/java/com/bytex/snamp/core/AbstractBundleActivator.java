@@ -52,20 +52,20 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 2.0
      */
-    protected interface ActivationProperty<T> extends Attribute<T>{
+    protected interface ActivationProperty<T> {
         /**
          * Gets type of the activation property.
          * @return The type of the attribute value.
          */
-        @Override
         TypeToken<T> getType();
 
         /**
          * Gets default value of this property.
          * @return Default value of this property.
          */
-        @Override
-        T getDefaultValue();
+        default T getDefaultValue(){
+            return null;
+        }
     }
 
     /**
@@ -113,7 +113,9 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 2.0
      */
-    protected interface ActivationPropertyReader extends AttributeReader{
+    protected interface ActivationPropertyReader{
+        <T> T getProperty(final ActivationProperty<T> propertyDef);
+
         /**
          * Finds the property definition.
          * @param propertyType The type of the property definition.
@@ -121,7 +123,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @param <P> The type of the property definition.
          * @return The property definition; or {@literal null}, if porperty not found.
          */
-        <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<P> filter);
+        <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<? super P> filter);
     }
 
     /**
@@ -129,12 +131,12 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     protected static final ActivationPropertyReader emptyActivationPropertyReader = new ActivationPropertyReader() {
         @Override
-        public <T> T getValue(final Attribute<T> propertyDef) {
+        public <T> T getProperty(final ActivationProperty<T> propertyDef) {
             return null;
         }
 
         @Override
-        public <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<P> filter) {
+        public <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<? super P> filter) {
             return null;
         }
     };
@@ -172,7 +174,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @return The property value; or {@literal null}, if property doesn't exist.
          */
         @Override
-        public <T> T getValue(final Attribute<T> propertyDef) {
+        public <T> T getProperty(final ActivationProperty<T> propertyDef) {
             if (propertyDef == null) return null;
             else if (containsKey(propertyDef)) {
                 final Object value = get(propertyDef);
@@ -190,7 +192,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @return The property definition; or {@literal null}, if property not found.
          */
         @Override
-        public <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<P> filter) {
+        public <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<? super P> filter) {
             if(propertyType == null || filter == null) return null;
             for(final ActivationProperty<?> prop: keySet())
                 if(propertyType.isInstance(prop)){
@@ -563,8 +565,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> The type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType){
-        return defineActivationProperty(propertyType, null);
+    protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType) {
+        return () -> propertyType;
     }
 
     /**
@@ -607,17 +609,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
                 else return Objects.equals(propertyName, obj);
             }
         };
-    }
-
-    /**
-     * Defines named activation property without default value.
-     * @param propertyName The name of the property.
-     * @param propertyType The type of the property.
-     * @param <T> Type of the property.
-     * @return Named activation property definition.
-     */
-    protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType){
-        return defineActivationProperty(propertyName, propertyType, null);
     }
 
     /**
