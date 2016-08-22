@@ -8,7 +8,9 @@ import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
@@ -184,7 +186,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         private static void updateOperations(final OperationSupport connector,
                                       final Map<String, ? extends OperationConfiguration> operations){
             updateFeatures(
-                    (name, config) -> connector.enableOperation(name, config.getInvocationTimeout(), new ConfigParameters(config)),
+                    (name, config) -> connector.enableOperation(name, new OperationDescriptor(config)),
                     MBeanOperationInfo::getName,
                     connector::retainOperations,
                     operations
@@ -194,7 +196,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         private static void updateEvents(final NotificationSupport connector,
                                   final Map<String, ? extends EventConfiguration> events){
             updateFeatures(
-                    (name, config) -> connector.enableNotifications(name, new ConfigParameters(config)),
+                    (name, config) -> connector.enableNotifications(name, new NotificationDescriptor(config)),
                     metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()),
                     connector::retainNotifications,
                     events

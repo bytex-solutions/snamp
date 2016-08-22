@@ -2,14 +2,18 @@ package com.bytex.snamp.connector;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.gateway.modeling.AttributeValue;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.CustomAttributeInfo;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.operations.OperationDescriptor;
+import com.bytex.snamp.gateway.modeling.AttributeValue;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -18,7 +22,6 @@ import javax.management.*;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import java.beans.IntrospectionException;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Locale;
@@ -147,25 +150,25 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertEquals(1, events.size());
     }
 
-    private static ConfigParameters makeAttributeConfig(final String name){
+    private static AttributeDescriptor makeAttributeConfig(final String name){
         final AttributeConfiguration result = newEntityConfiguration(AttributeConfiguration.class);
         assertNotNull(result);
         result.setAlternativeName(name);
-        return new ConfigParameters(result);
+        return new AttributeDescriptor(result);
     }
 
-    private static ConfigParameters makeEventConfig(final String name){
+    private static NotificationDescriptor makeEventConfig(final String name){
         final EventConfiguration result = newEntityConfiguration(EventConfiguration.class);
         assertNotNull(result);
         result.setAlternativeName(name);
-        return new ConfigParameters(result);
+        return new NotificationDescriptor(result);
     }
 
-    private static ConfigParameters makeOperationConfig(final String name){
+    private static OperationDescriptor makeOperationConfig(final String name){
         final OperationConfiguration result = newEntityConfiguration(OperationConfiguration.class);
         assertNotNull(result);
         result.setAlternativeName(name);
-        return new ConfigParameters(result);
+        return new OperationDescriptor(result);
     }
 
     @Test
@@ -173,7 +176,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
-        assertNotNull(md = connector.getAttributeSupport().addAttribute("p1", Duration.ofSeconds(1), makeAttributeConfig("property1")));
+        assertNotNull(md = connector.getAttributeSupport().addAttribute("p1", makeAttributeConfig("property1")));
         //enables notifications
         assertNotNull(connector.getNotificationSupport().enableNotifications("propertyChanged", makeEventConfig("propertyChanged")));
         final Mailbox listener = MailboxFactory.newMailbox();
@@ -190,7 +193,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertEquals("p1", md.getName());
         assertEquals(SimpleType.STRING, AttributeDescriptor.getOpenType(md));
         //enables operations
-        assertNotNull(connector.getOperationSupport().enableOperation("cs", null, makeOperationConfig("computeSum")));
+        assertNotNull(connector.getOperationSupport().enableOperation("cs", makeOperationConfig("computeSum")));
         final Object result = connector.invoke("cs", new Object[]{4, 5}, ArrayUtils.emptyArray(String[].class));
         assertTrue(result instanceof Integer);
         assertEquals(9, result);

@@ -243,7 +243,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                 //remove notification
                 notificationRemoved(holder);
                 holder = notifications.remove(category);
-                disableNotifications(holder);
+                disconnectNotifications(holder);
                 //and register again
                 holder = connectAndAdd(category, descriptor);
             }
@@ -286,7 +286,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     public final M remove(final String category) {
         final M metadata = writeApply(this, category, AbstractNotificationRepository::removeImpl);
         if (metadata != null)
-            disableNotifications(metadata);
+            disconnectNotifications(metadata);
         return metadata;
     }
 
@@ -320,7 +320,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     @MethodStub
-    protected void disableNotifications(final M metadata){
+    protected void disconnectNotifications(final M metadata){
     }
 
     /**
@@ -408,7 +408,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private void removeAllImpl(final KeyedObjects<String, M> notifications){
         notifications.values().forEach(metadata -> {
             notificationRemoved(metadata);
-            disableNotifications(metadata);
+            disconnectNotifications(metadata);
         });
         notifications.clear();
     }

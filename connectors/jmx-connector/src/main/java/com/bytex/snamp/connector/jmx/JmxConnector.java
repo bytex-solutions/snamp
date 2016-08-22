@@ -4,6 +4,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
@@ -35,6 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 import static com.bytex.snamp.connector.jmx.JmxConnectorDescriptionProvider.*;
 import static com.google.common.base.MoreObjects.firstNonNull;
 
@@ -148,13 +150,13 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             this.connectionManager = connectionManager;
         }
 
-        private static JmxOperationInfo enableOperation(final JmxConnectionManager connectionManager,
-                                                        final String operationName,
-                                                        final OperationDescriptor descriptor,
-                                                        final ObjectName owner,
-                                                        final boolean useRegexp) throws Exception{
+        private static JmxOperationInfo connectOperation(final JmxConnectionManager connectionManager,
+                                                         final String operationName,
+                                                         final OperationDescriptor descriptor,
+                                                         final ObjectName owner,
+                                                         final boolean useRegexp) throws Exception{
             if(useRegexp)
-                return enableOperation(connectionManager, operationName, descriptor, connectionManager.resolveName(owner), false);
+                return connectOperation(connectionManager, operationName, descriptor, connectionManager.resolveName(owner), false);
             final MBeanOperationInfo metadata = connectionManager.handleConnection(connection -> {
                 for(final MBeanOperationInfo candidate: connection.getMBeanInfo(owner).getOperations())
                     if(Objects.equals(descriptor.getName(operationName), candidate.getName()) && checkSignature(descriptor, candidate.getSignature()))
@@ -167,23 +169,23 @@ final class JmxConnector extends AbstractManagedResourceConnector {
 
         }
 
-        private JmxOperationInfo enableOperation(final String userDefinedName,
-                                                 final OperationDescriptor descriptor,
-                                                 final ObjectName owner,
-                                                 final boolean useRegexp) throws Exception {
-            return enableOperation(connectionManager, userDefinedName, descriptor, owner, useRegexp);
+        private JmxOperationInfo connectOperation(final String userDefinedName,
+                                                  final OperationDescriptor descriptor,
+                                                  final ObjectName owner,
+                                                  final boolean useRegexp) throws Exception {
+            return connectOperation(connectionManager, userDefinedName, descriptor, owner, useRegexp);
         }
 
-        private JmxOperationInfo enableOperation(final String userDefinedName,
-                                                 final OperationDescriptor descriptor,
-                                                 final ObjectName owner) throws Exception{
-            return enableOperation(userDefinedName, descriptor, owner, useRegexpOption(descriptor));
+        private JmxOperationInfo connectOperation(final String userDefinedName,
+                                                  final OperationDescriptor descriptor,
+                                                  final ObjectName owner) throws Exception{
+            return connectOperation(userDefinedName, descriptor, owner, useRegexpOption(descriptor));
         }
 
         @Override
-        protected JmxOperationInfo enableOperation(final String userDefinedName,
-                                                   final OperationDescriptor descriptor) throws Exception {
-            return enableOperation(userDefinedName, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
+        protected JmxOperationInfo connectOperation(final String userDefinedName,
+                                                    final OperationDescriptor descriptor) throws Exception {
+            return connectOperation(userDefinedName, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
         }
 
         /**
@@ -205,30 +207,26 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             failedToEnableOperation(getLoggerImpl(), Level.WARNING, operationName, e);
         }
 
+        private List<JmxOperationInfo> expandOperations(final MBeanServerConnection connection) throws JMException, IOException {
+            return Arrays.stream(connection.getMBeanInfo(globalObjectName).getOperations())
+                    .map(operationInfo -> {
+                        final OperationConfiguration config = createEntityConfiguration(getClass().getClassLoader(), OperationConfiguration.class);
+                        assert config != null;
+                        config.setAutomaticallyAdded(true);
+                        config.getParameters().put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
+                        config.setInvocationTimeout(OperationConfiguration.TIMEOUT_FOR_SMART_MODE);
+                        return enableOperation(operationInfo.getName(), new OperationDescriptor(config));
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+
         @Override
         public Collection<JmxOperationInfo> expandOperations() {
             if (globalObjectName == null)
                 return Collections.emptyList();
             else try {
-                return connectionManager.handleConnection(new MBeanServerConnectionHandler<List<JmxOperationInfo>>() {
-                    private void fillOperations(final MBeanServerConnection connection,
-                                                final ObjectName objectName,
-                                                final Collection<JmxOperationInfo> output) throws JMException, IOException {
-                        for (final MBeanOperationInfo operationInfo : connection.getMBeanInfo(objectName).getOperations()) {
-                            final JmxOperationInfo op = enableOperation(operationInfo.getName(),
-                                    OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
-                                    toConfigurationParameters(globalObjectName));
-                            if (op != null) output.add(op);
-                        }
-                    }
-
-                    @Override
-                    public LinkedList<JmxOperationInfo> handle(final MBeanServerConnection connection) throws IOException, JMException {
-                        final LinkedList<JmxOperationInfo> result = new LinkedList<>();
-                        fillOperations(connection, globalObjectName, result);
-                        return result;
-                    }
-                });
+                return connectionManager.handleConnection(this::expandOperations);
             } catch (final Exception e) {
                 failedToExpand(getLoggerImpl(), Level.WARNING, e);
                 return Collections.emptyList();
@@ -367,30 +365,26 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             return connectAttribute(attributeName, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
         }
 
+        private List<JmxAttributeInfo> expandAttributes(final MBeanServerConnection connection) throws IOException, JMException{
+            return Arrays.stream(connection.getMBeanInfo(globalObjectName).getAttributes())
+                    .map(attributeInfo -> {
+                        final AttributeConfiguration config = createEntityConfiguration(getClass().getClassLoader(), AttributeConfiguration.class);
+                        assert config != null;
+                        config.setAutomaticallyAdded(true);
+                        config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
+                        config.getParameters().put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
+                        return addAttribute(attributeInfo.getName(), new AttributeDescriptor(config));
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+
         @Override
         public List<JmxAttributeInfo> expandAttributes() {
-            if(globalObjectName == null)
+            if (globalObjectName == null)
                 return Collections.emptyList();
             else try {
-                return connectionManager.handleConnection(new MBeanServerConnectionHandler<List<JmxAttributeInfo>>() {
-                    private void fillAttributes(final MBeanServerConnection connection,
-                                                final ObjectName objectName,
-                                                final Collection<JmxAttributeInfo> output) throws JMException, IOException{
-                        for(final MBeanAttributeInfo attributeInfo: connection.getMBeanInfo(objectName).getAttributes()){
-                            final JmxAttributeInfo attr = addAttribute(attributeInfo.getName(),
-                                    AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
-                                    toConfigurationParameters(globalObjectName));
-                            if(attr != null) output.add(attr);
-                        }
-                    }
-
-                    @Override
-                    public LinkedList<JmxAttributeInfo> handle(final MBeanServerConnection connection) throws IOException, JMException {
-                        final LinkedList<JmxAttributeInfo> result = new LinkedList<>();
-                        fillAttributes(connection, globalObjectName, result);
-                        return result;
-                    }
-                });
+                return connectionManager.handleConnection(this::expandAttributes);
             } catch (final Exception e) {
                 failedToExpand(getLoggerImpl(), Level.WARNING, e);
                 return Collections.emptyList();
@@ -500,7 +494,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected void disableNotifications(final JmxNotificationInfo metadata) {
+        protected void disconnectNotifications(final JmxNotificationInfo metadata) {
             final Set<ObjectName> targets = getNotificationTargets();
             if (!targets.contains(metadata.getOwner()))
                 try {
@@ -542,9 +536,23 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected JmxNotificationInfo enableNotifications(final String category,
+        protected JmxNotificationInfo connectNotifications(final String category,
                                                           final NotificationDescriptor metadata) throws Exception {
             return enableNotifications(category, metadata, globalObjectName == null ? getObjectName(metadata) : globalObjectName);
+        }
+
+        private List<JmxNotificationInfo> expandNotifications(final MBeanServerConnection connection) throws IOException, JMException{
+            return Arrays.stream(connection.getMBeanInfo(globalObjectName).getNotifications())
+                    .filter(notificationInfo -> notificationInfo.getNotifTypes().length > 0)
+                    .map(notificationInfo -> {
+                        final EventConfiguration config = createEntityConfiguration(getClass().getClassLoader(), EventConfiguration.class);
+                        assert config != null;
+                        config.setAutomaticallyAdded(true);
+                        config.getParameters().put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
+                        return enableNotifications(ArrayUtils.getFirst(notificationInfo.getNotifTypes()), new NotificationDescriptor(config));
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
 
         @Override
@@ -552,25 +560,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             if (globalObjectName == null)
                 return Collections.emptyList();
             else try {
-                return connectionManager.handleConnection(new MBeanServerConnectionHandler<List<JmxNotificationInfo>>() {
-                    private void fillNotifications(final MBeanServerConnection connection,
-                                                   final ObjectName objectName,
-                                                   final Collection<JmxNotificationInfo> output) throws JMException, IOException {
-                        for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(objectName).getNotifications()) {
-                            if (notificationInfo.getNotifTypes().length < 1) continue;
-                            final JmxNotificationInfo event = enableNotifications(ArrayUtils.getFirst(notificationInfo.getNotifTypes()),
-                                    toConfigurationParameters(globalObjectName));
-                            if (event != null) output.add(event);
-                        }
-                    }
-
-                    @Override
-                    public LinkedList<JmxNotificationInfo> handle(final MBeanServerConnection connection) throws IOException, JMException {
-                        final LinkedList<JmxNotificationInfo> result = new LinkedList<>();
-                        fillNotifications(connection, globalObjectName, result);
-                        return result;
-                    }
-                });
+                return connectionManager.handleConnection(this::expandNotifications);
             } catch (final Exception e) {
                 failedToExpand(getLoggerImpl(), Level.WARNING, e);
                 return Collections.emptyList();

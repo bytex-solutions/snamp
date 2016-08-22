@@ -77,8 +77,8 @@ public final class OpenAttributeSupportTest extends Assert {
         final AttributeConfiguration attributeConfig = newEntityConfiguration(AttributeConfiguration.class);
         assertNotNull(attributeConfig);
         attributeConfig.setAlternativeName("str");
-        support.addAttribute("a", null, new ConfigParameters(attributeConfig));
-        support.addAttribute("b", null, new ConfigParameters(attributeConfig));
+        support.addAttribute("a", new AttributeDescriptor(attributeConfig));
+        support.addAttribute("b", new AttributeDescriptor(attributeConfig));
         support.setAttribute(new Attribute("a", "1"));
         support.setAttribute(new Attribute("b", "2"));
         assertEquals("1", support.getAttribute("a"));

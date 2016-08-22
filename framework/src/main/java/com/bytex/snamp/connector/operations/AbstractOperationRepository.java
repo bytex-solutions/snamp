@@ -11,12 +11,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
 import javax.management.*;
-import javax.management.openmbean.CompositeData;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.math.BigInteger;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
@@ -201,33 +198,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
         }
     }
 
-    private static final class OperationHolder<M extends MBeanOperationInfo> extends FeatureHolder<M>{
-        private OperationHolder(final M metadata,
-                                final String operationName,
-                                final CompositeData options){
-            super(metadata, computeIdentity(operationName, options));
-        }
-
-        private String getOperationName(){
-            return getMetadata().getName();
-        }
-
-        private boolean equals(final String operationName,
-                               final CompositeData options){
-            return super.identity.equals(computeIdentity(operationName, options));
-        }
-
-        private static BigInteger computeIdentity(final String operationName,
-                                                  final CompositeData options) {
-            BigInteger result = toBigInteger(operationName);
-            for (final String propertyName : options.getCompositeType().keySet())
-                result = result.xor(toBigInteger(propertyName))
-                        .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
-            return result;
-        }
-    }
-
-    private final KeyedObjects<String, OperationHolder<M>> operations;
+    private final KeyedObjects<String, M> operations;
     private final OperationMetricsWriter metrics;
     private final boolean expandable;
 
@@ -235,7 +206,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
                                           final Class<M> metadataType,
                                           final boolean expandable) {
         super(resourceName, metadataType);
-        operations = AbstractKeyedObjects.create(OperationHolder::getOperationName);
+        operations = AbstractKeyedObjects.create(MBeanOperationInfo::getName);
         metrics = new OperationMetricsWriter();
         this.expandable = expandable;
     }
@@ -254,16 +225,14 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     }
 
     @MethodStub
-    protected void disableOperation(final M metadata){
+    protected void disconnectOperation(final M metadata){
     }
 
     private M removeImpl(final String operationID) {
-        final OperationHolder<M> holder = operations.get(operationID);
-        if (holder != null) {
-            operationRemoved(holder.getMetadata());
-            return operations.remove(operationID).getMetadata();
-        } else
-            return null;
+        final M holder = operations.get(operationID);
+        if (holder != null)
+            operationRemoved(holder);
+        return operations.remove(operationID);
     }
 
     /**
@@ -275,7 +244,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     public final M remove(final String operationID) {
         final M metadata = writeApply(operationID, this::removeImpl);
         if (metadata != null)
-            disableOperation(metadata);
+            disconnectOperation(metadata);
         return metadata;
     }
 
@@ -290,51 +259,49 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
         retainAll(operations);
     }
 
-    protected abstract M enableOperation(final String userDefinedName,
-                                         final OperationDescriptor descriptor) throws Exception;
+    protected abstract M connectOperation(final String userDefinedName,
+                                          final OperationDescriptor descriptor) throws Exception;
 
-    private M enableOperationImpl(final String operationName,
-                                                   final Duration invocationTimeout,
-                                                   final CompositeData options) throws Exception {
-        OperationHolder<M> holder = operations.get(operationName);
-        if (holder != null)
-            if (holder.equals(operationName, options))
-                return holder.getMetadata();
-            else { //remove operation
-                operationRemoved(holder.getMetadata());
-                holder = operations.remove(operationName);
-                //and register again
-                disableOperation(holder.getMetadata());
-                final M metadata = enableOperation(operationName, new OperationDescriptor(invocationTimeout, options));
-                if (metadata != null) {
-                    operations.put(holder = new OperationHolder<>(metadata, operationName, options));
-                    operationAdded(holder.getMetadata());
-                }
-            }
-        else {
-            final M metadata = enableOperation(operationName, new OperationDescriptor(invocationTimeout, options));
-            if (metadata != null) {
-                operations.put(holder = new OperationHolder<>(metadata, operationName, options));
-                operationAdded(holder.getMetadata());
-            } else
-                holder = null;
+    private M connectAndAdd(final String operationName, final OperationDescriptor descriptor) throws Exception{
+        final M metadata = connectOperation(operationName, descriptor);
+        if (metadata != null) {
+            operations.put(metadata);
+            operationAdded(metadata);
         }
-        return holder != null ? holder.getMetadata() : null;
+        return metadata;
+    }
+
+    private static boolean equals(final MBeanOperationInfo operation, final String name, final Descriptor descriptor){
+        return name.equals(operation.getName()) && descriptor.equals(operation.getDescriptor());
+    }
+
+    private M enableOperationImpl(final String operationName, final OperationDescriptor descriptor) throws Exception {
+        M holder = operations.get(operationName);
+        if (holder != null)
+            if (equals(holder, operationName, descriptor))
+                return holder;
+            else { //remove operation
+                operationRemoved(holder);
+                holder = operations.remove(operationName);
+                disconnectOperation(holder);
+                //and register again
+                holder = connectAndAdd(operationName, descriptor);
+            }
+        else
+            holder = connectAndAdd(operationName, descriptor);
+        return holder;
     }
 
     /**
      * Enables management operation.
      * @param operationName The name of the operation as it is declared in the resource.
-     * @param invocationTimeout Max duration operation invocation.
-     * @param options Operation execution options.
+     * @param descriptor Operation execution options.
      * @return Metadata of created operation.
      */
     @Override
-    public final M enableOperation(final String operationName,
-                                   final Duration invocationTimeout,
-                                   final CompositeData options) {
+    public final M enableOperation(final String operationName, final OperationDescriptor descriptor) {
         try{
-            return writeCallInterruptibly(() -> enableOperationImpl(operationName, invocationTimeout, options));
+            return writeCallInterruptibly(() -> enableOperationImpl(operationName, descriptor));
         } catch (final Exception e) {
             failedToEnableOperation(operationName, e);
             return null;
@@ -382,8 +349,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M getOperationInfo(final String operationID) {
-        final OperationHolder<M> holder = readApply(operationID, operations::get);
-        return holder != null ? holder.getMetadata() : null;
+        return readApply(operationID, operations::get);
     }
 
     /**
@@ -394,8 +360,8 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     protected abstract Object invoke(final OperationCallInfo<M> callInfo) throws Exception;
 
-    private Object invoke(final OperationHolder<M> holder, final Object[] params) throws Exception {
-        return invoke(new OperationCallInfo<>(holder.getMetadata(), params));
+    private Object invoke(final M holder, final Object[] params) throws Exception {
+        return invoke(new OperationCallInfo<>(holder, params));
     }
 
     /**
@@ -419,7 +385,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
                          final String[] signature) throws MBeanException, ReflectionException {
         try {
             return readCallInterruptibly(() -> {
-                final OperationHolder<M> holder = operations.get(operationName);
+                final M holder = operations.get(operationName);
                 if (holder != null)
                     return invoke(holder, params);
                 else
@@ -434,11 +400,11 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
         }
     }
 
-    private void removeAllImpl(final KeyedObjects<String, OperationHolder<M>> operations){
-        for (final OperationHolder<M> holder : operations.values()) {
-            operationRemoved(holder.getMetadata());
-            disableOperation(holder.getMetadata());
-        }
+    private void removeAllImpl(final KeyedObjects<String, M> operations) {
+        operations.values().forEach(metadata -> {
+            operationRemoved(metadata);
+            disconnectOperation(metadata);
+        });
         operations.clear();
     }
 
@@ -474,7 +440,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     @Override
     public final Iterator<M> iterator() {
-        return iterator(operations.values());
+        return readApply(operations.values(), Collection::iterator);
     }
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){

@@ -4,15 +4,18 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.attributes.*;
+import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.attributes.AttributeSpecifier;
+import com.bytex.snamp.connector.attributes.OpenMBeanAttributeInfoImpl;
 import com.bytex.snamp.connector.metrics.MetricsReader;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Buffers;
-import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -22,8 +25,13 @@ import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.*;
 
-import javax.management.*;
-import javax.management.openmbean.*;
+import javax.management.AttributeList;
+import javax.management.AttributeNotFoundException;
+import javax.management.InvalidAttributeValueException;
+import javax.management.openmbean.ArrayType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
@@ -35,8 +43,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-import static com.bytex.snamp.configuration.AttributeConfiguration.*;
+import static com.bytex.snamp.configuration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE;
+import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
 
 /**
@@ -112,7 +122,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected SnmpNotificationInfo enableNotifications(final String category,
+        protected SnmpNotificationInfo connectNotifications(final String category,
                                                            final NotificationDescriptor metadata) throws ParseException {
             final SnmpNotificationInfo result = new SnmpNotificationInfo(category, metadata);
             //enable for a first time only
@@ -125,7 +135,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected void disableNotifications(final SnmpNotificationInfo metadata) {
+        protected void disconnectNotifications(final SnmpNotificationInfo metadata) {
             if (hasNoNotifications())
                 try {
                     client.write(client -> {
@@ -683,18 +693,18 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
 
         private List<SnmpAttributeInfo> expandImpl(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
-            final LinkedList<SnmpAttributeInfo> result = new LinkedList<>();
-            for (final VariableBinding binding : client.walk(discoveryTimeout)) {
-                final Map<String, String> parameters = new HashMap<>(5);
-                parameters.put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
-                if (binding.getVariable() instanceof OctetString)
-                    parameters.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
-                final SnmpAttributeInfo attr = addAttribute(binding.getOid().toDottedString(),
-                        TIMEOUT_FOR_SMART_MODE,
-                        CompositeDataUtils.create(parameters, SimpleType.STRING));
-                if (attr != null) result.add(attr);
-            }
-            return result;
+            return client.walk(discoveryTimeout).stream()
+                    .map(binding -> {
+                        final AttributeConfiguration config = createEntityConfiguration(getClass().getClassLoader(), AttributeConfiguration.class);
+                        assert config != null;
+                        if (binding.getVariable() instanceof OctetString)
+                            config.getParameters().put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
+                        config.setReadWriteTimeout(TIMEOUT_FOR_SMART_MODE);
+                        config.setAutomaticallyAdded(true);
+                        return addAttribute(binding.getOid().toDottedString(), new AttributeDescriptor(config));
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
 
         @Override

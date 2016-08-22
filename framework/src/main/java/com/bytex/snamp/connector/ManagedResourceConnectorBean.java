@@ -20,6 +20,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
+import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -37,6 +38,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 /**
@@ -342,8 +344,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
-        protected JavaBeanOperationInfo enableOperation(final String operationName,
-                                                        final OperationDescriptor descriptor) throws ReflectionException, MBeanException {
+        protected JavaBeanOperationInfo connectOperation(final String operationName,
+                                                         final OperationDescriptor descriptor) throws ReflectionException, MBeanException {
             for(final MethodDescriptor method: operations)
                 if(Objects.equals(method.getName(), descriptor.getName(operationName)) &&
                         method.getMethod().isAnnotationPresent(ManagementOperation.class)){
@@ -358,22 +360,18 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         @Override
         public Collection<JavaBeanOperationInfo> expandOperations() {
-            final List<JavaBeanOperationInfo> result = new LinkedList<>();
-            operations.stream()
+            return operations.stream()
                     .filter(method -> method.getMethod().isAnnotationPresent(ManagementOperation.class))
-                    .forEach(method -> {
-                        final OperationConfiguration config =
-                                ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), OperationConfiguration.class);
-                        if(config != null) {
-                            config.setAlternativeName(method.getName());
-                            config.setAutomaticallyAdded(true);
-                            final JavaBeanOperationInfo operation = enableOperation(method.getName(),
-                                    OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
-                                    new ConfigParameters(config));
-                            if (operation != null) result.add(operation);
-                        }
-            });
-            return result;
+                    .map(method -> {
+                        final OperationConfiguration config = createEntityConfiguration(getConnectorClassLoader(), OperationConfiguration.class);
+                        assert config != null;
+                        config.setAlternativeName(method.getName());
+                        config.setAutomaticallyAdded(true);
+                        config.setInvocationTimeout(OperationConfiguration.TIMEOUT_FOR_SMART_MODE);
+                        return enableOperation(method.getName(), new OperationDescriptor(config));
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
 
         @Override
@@ -603,22 +601,18 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         @Override
         public Collection<JavaBeanAttributeInfo> expandAttributes() {
-            final List<JavaBeanAttributeInfo> result = new LinkedList<>();
-            properties.stream()
+            return properties.stream()
                     .filter(property -> !isReservedProperty(property))
-                    .forEach(property -> {
-                        final AttributeConfiguration config =
-                                ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
-                        if(config != null) {
-                            config.setAlternativeName(property.getName());
-                            config.setAutomaticallyAdded(true);
-                            config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
-                            final JavaBeanAttributeInfo attr =
-                                    addAttribute(property.getName(), new AttributeDescriptor(config));
-                            if (attr != null) result.add(attr);
-                        }
-            });
-            return result;
+                    .map(property -> {
+                        final AttributeConfiguration config = createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
+                        assert config != null;
+                        config.setAlternativeName(property.getName());
+                        config.setAutomaticallyAdded(true);
+                        config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
+                        return addAttribute(property.getName(), new AttributeDescriptor(config));
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
 
         @Override
@@ -682,7 +676,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
-        protected CustomNotificationInfo enableNotifications(final String category,
+        protected CustomNotificationInfo connectNotifications(final String category,
                                                              final NotificationDescriptor metadata) throws IllegalArgumentException {
             //find the suitable notification type
             final ManagementNotificationType<?> type = notifTypes.stream()
@@ -742,28 +736,26 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         private Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
-            final Collection<AttributeConfiguration> result = Lists.newArrayListWithExpectedSize(properties.length);
-            for (final PropertyDescriptor descriptor : properties)
-                if (!isReservedProperty(descriptor)) {
-                    final AttributeConfiguration attribute = ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
-                    if(attribute != null) {
+            return Arrays.stream(properties)
+                    .filter(descriptor -> !isReservedProperty(descriptor))
+                    .map(descriptor -> {
+                        final AttributeConfiguration attribute = ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
+                        assert attribute != null;
                         attribute.setAlternativeName(descriptor.getName());
-                        result.add(attribute);
-                    }
-                }
-            return result;
+                        return attribute;
+                    })
+                    .collect(Collectors.toList());
         }
 
-        private Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications){
-            final Collection<EventConfiguration> result = Lists.newArrayListWithExpectedSize(notifications.size());
-            for(final ManagementNotificationType<?> notifType: notifications) {
-                final EventConfiguration event = ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), EventConfiguration.class);
-                if(event != null) {
-                    event.setAlternativeName(notifType.getCategory());
-                    result.add(event);
-                }
-            }
-            return result;
+        private Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications) {
+            return notifications.stream()
+                    .map(notificationType -> {
+                        final EventConfiguration event = createEntityConfiguration(getConnectorClassLoader(), EventConfiguration.class);
+                        assert event != null;
+                        event.setAlternativeName(notificationType.getCategory());
+                        return event;
+                    })
+                    .collect(Collectors.toList());
         }
 
         @SuppressWarnings("unchecked")

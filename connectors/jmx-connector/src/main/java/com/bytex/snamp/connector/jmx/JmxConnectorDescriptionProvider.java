@@ -6,14 +6,9 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.SelectableConnectorParameterDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
 
 import javax.management.*;
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.SimpleType;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
 import java.util.List;
@@ -22,9 +17,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
-import static com.bytex.snamp.configuration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
 import static com.bytex.snamp.MapUtils.getValueAsInt;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.SMART_MODE_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
@@ -155,16 +149,6 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
     static ObjectName getObjectName(final Descriptor descriptor) throws MalformedObjectNameException, JmxAbsentConfigurationParameterException {
         final String objectName = getFieldIfPresent(descriptor, OBJECT_NAME_PROPERTY, Objects::toString, JmxAbsentConfigurationParameterException::new);
         return new ObjectName(objectName);
-    }
-
-
-
-    static CompositeData toConfigurationParameters(final ObjectName name) throws OpenDataException {
-        return CompositeDataUtils.create(
-                ImmutableMap.of(
-                        OBJECT_NAME_PROPERTY, name.getCanonicalName(),
-                        AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString()
-                ), SimpleType.STRING);
     }
 
     int parseWatchDogPeriod(final Map<String, String> parameters){

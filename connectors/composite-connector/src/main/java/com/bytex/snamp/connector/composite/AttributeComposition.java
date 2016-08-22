@@ -31,7 +31,7 @@ final class AttributeComposition extends AbstractAttributeRepository<CompositeAt
         final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType);
         if(support == null)
             throw CompositeAttribute.attributeNotFound(connectorType, attributeName);
-        final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor.getReadWriteTimeout(), null);
+        final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor);
         return new CompositeAttribute(connectorType, underlyingAttribute);
     }
 

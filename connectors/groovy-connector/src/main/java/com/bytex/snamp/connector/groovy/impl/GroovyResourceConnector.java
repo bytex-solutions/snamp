@@ -121,14 +121,14 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected GroovyNotificationInfo enableNotifications(final String notifType,
+        protected GroovyNotificationInfo connectNotifications(final String notifType,
                                                              final NotificationDescriptor metadata) throws ResourceException, ScriptException {
             final NotificationEmitter emitter = connector.loadEvent(notifType, metadata, new NotificationEmitterSlim(metadata.getName(notifType)));
             return new GroovyNotificationInfo(notifType, metadata, emitter);
         }
 
         @Override
-        protected void disableNotifications(final GroovyNotificationInfo metadata) {
+        protected void disconnectNotifications(final GroovyNotificationInfo metadata) {
             try {
                 metadata.close();
             } catch (final Exception ignored) {

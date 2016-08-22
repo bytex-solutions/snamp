@@ -66,7 +66,7 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
                                                     final NotificationDescriptor metadata) throws Exception;
 
     @Override
-    protected final M enableNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
+    protected final M connectNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
         final OpenType<?> attachmentType = parseType(metadata);
         final M result = createNotificationMetadata(notifType, metadata.setUserDataType(attachmentType));
         result.init(attachmentType);
