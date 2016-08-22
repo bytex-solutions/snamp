@@ -1,23 +1,21 @@
 package com.bytex.snamp.connector.notifications;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanNotificationInfo;
-import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenType;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.connector.notifications.NotificationSupport.*;
-import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 
 /**
  * Represents notification descriptor.
@@ -34,22 +32,21 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     private static final long serialVersionUID = 6447489441284228878L;
     public static final NotificationDescriptor EMPTY_DESCRIPTOR = new NotificationDescriptor(ImmutableMap.<String, String>of());
 
-    private NotificationDescriptor(final Map<String, ?> fields){
+    private NotificationDescriptor(final boolean dummy, final Map<String, ?> fields){
         super(fields);
     }
 
     public NotificationDescriptor(final EventConfiguration eventConfig){
-        this((CompositeData) new ConfigParameters(eventConfig));
+        this(eventConfig.getParameters());
     }
 
-    public NotificationDescriptor(final CompositeData options){
-        this(getFields(options));
+    public NotificationDescriptor(final Map<String, String> options){
+        this(false, getFields(options));
     }
 
-    private static Map<String, ?> getFields(final CompositeData options){
-        final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 1);
-        fields.put(SEVERITY_FIELD, getSeverity(options));
-        fillMap(options, fields);
+    private static Map<String, ?> getFields(final Map<String, String> options){
+        final Map<String, Object> fields = new HashMap<>(options);
+        fields.put(SEVERITY_FIELD, getValue(options, SEVERITY_PARAM, Severity::resolve, () -> Severity.UNKNOWN));
         return fields;
     }
 
@@ -58,7 +55,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         if(values == null || values.isEmpty()) return this;
         final Map<String, Object> newFields = DescriptorUtils.toMap(this, Object.class, false);
         newFields.putAll(values);
-        return new NotificationDescriptor(newFields);
+        return new NotificationDescriptor(false, newFields);
     }
 
     @Override
@@ -68,19 +65,6 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
 
     public final NotificationDescriptor setUserDataType(final OpenType<?> type){
         return type != null ? setFields(ImmutableMap.of(USER_DATA_TYPE, type)) : this;
-    }
-
-    private static Severity getSeverity(final CompositeData parameters){
-        if(parameters.containsKey(SEVERITY_PARAM)){
-            final Object result = parameters.get(SEVERITY_PARAM);
-            if(result instanceof String)
-                return Severity.resolve((String)result);
-            else if(result instanceof Integer)
-                return Severity.resolve((Integer)result);
-            else if(result instanceof Severity)
-                return (Severity)result;
-        }
-        return Severity.UNKNOWN;
     }
 
     /**

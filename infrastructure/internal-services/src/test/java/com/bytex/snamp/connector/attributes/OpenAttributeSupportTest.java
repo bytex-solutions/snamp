@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.attributes;
 
 import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ConfigParameters;
 import org.junit.Assert;
 import org.junit.Test;
 

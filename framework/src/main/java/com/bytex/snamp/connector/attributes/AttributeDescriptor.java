@@ -1,24 +1,25 @@
 package com.bytex.snamp.connector.attributes;
 
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanAttributeInfo;
-import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import static com.bytex.snamp.connector.attributes.AttributeSupport.*;
-import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -37,8 +38,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * @param attributeConfig The attribute configuration used to create descriptor. Cannot be {@literal null}.
      */
     public AttributeDescriptor(final AttributeConfiguration attributeConfig){
-        this(attributeConfig.getReadWriteTimeout(),
-                new ConfigParameters(attributeConfig));
+        this(attributeConfig.getReadWriteTimeout(), attributeConfig.getParameters());
     }
 
     /**
@@ -47,7 +47,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * @param options Attribute connection options.
      */
     public AttributeDescriptor(final Duration readWriteTimeout,
-                               final CompositeData options){
+                               final Map<String, String> options){
         this(getFields(readWriteTimeout, options));
     }
 
@@ -56,10 +56,9 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     }
 
     private static Map<String, ?> getFields(final Duration readWriteTimeout,
-                                            final CompositeData options){
-        final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 1);
+                                            final Map<String, String> options){
+        final Map<String, Object> fields = new HashMap<>(options);
         fields.put(READ_WRITE_TIMEOUT_FIELD, readWriteTimeout);
-        fillMap(options, fields);
         return fields;
     }
 

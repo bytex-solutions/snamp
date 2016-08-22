@@ -1,24 +1,21 @@
 package com.bytex.snamp.connector.operations;
 
-import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanOperationInfo;
-import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenMBeanOperationInfo;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import static com.bytex.snamp.connector.operations.OperationSupport.*;
-import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 
 /**
  * Represents descriptor of the managed resource operation.
@@ -35,19 +32,18 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public OperationDescriptor(final OperationConfiguration config){
-        this(config.getInvocationTimeout(), new ConfigParameters(config));
+        this(config.getInvocationTimeout(), config.getParameters());
     }
 
     public OperationDescriptor(final Duration invocationTimeout,
-                               final CompositeData options){
+                               final Map<String, String> options){
         this(getFields(invocationTimeout, options));
     }
 
     private static Map<String, ?> getFields(final Duration invocationTimeout,
-                                            final CompositeData options){
-        final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 1);
+                                            final Map<String, String> options){
+        final Map<String, Object> fields = new HashMap<>(options);
         fields.put(INVOCATION_TIMEOUT_FIELD, invocationTimeout);
-        fillMap(options, fields);
         return fields;
     }
 
