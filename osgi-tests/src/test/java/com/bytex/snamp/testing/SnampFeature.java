@@ -16,7 +16,6 @@ public enum SnampFeature {
     SSH_GATEWAY("ssh-gateway-feature", "2.0.0"),
     WRAPPED_LIBS("wrapped-libs-for-tests", "2.0.0"),
     HTTP_GATEWAY("http-gateway-feature", "2.0.0"),
-    RESOURCE_AGGREGATOR("aggregator-connector-feature", "2.0.0"),
     NSCA_GATEWAY("nsca-gateway-feature", "2.0.0"),
     NRDP_GATEWAY("nrdp-gateway-feature", "2.0.0"),
     NAGIOS_GATEWAY("nagios-gateway-feature", "2.0.0"),

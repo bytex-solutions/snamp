@@ -91,8 +91,8 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.bytex.snamp</groupId>
-                                    <artifactId>aggregator-connector-feature</artifactId>
-                                    <version>${snamp.connector.aggregator.version}</version>
+                                    <artifactId>composite-connector-feature</artifactId>
+                                    <version>${snamp.connector.composite.version}</version>
                                     <type>kar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>

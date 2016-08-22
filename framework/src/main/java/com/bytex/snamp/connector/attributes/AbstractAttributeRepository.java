@@ -7,24 +7,17 @@ import com.bytex.snamp.connector.metrics.AttributeMetrics;
 import com.bytex.snamp.connector.metrics.AttributeMetricsWriter;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 import javax.management.*;
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.CompositeType;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenType;
-import java.math.BigInteger;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,35 +29,8 @@ import java.util.logging.Logger;
  * @version 2.0
  */
 public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport, SafeCloseable {
-    private static final class AttributeHolder<M extends MBeanAttributeInfo> extends FeatureHolder<M> {
-        private AttributeHolder(final M metadata,
-                                final String attributeName,
-                                final Duration readWriteTimeout,
-                                final CompositeData options) {
-            super(metadata, computeIdentity(attributeName, readWriteTimeout, options));
-        }
 
-        private boolean equals(final String attributeName,
-                               final Duration readWriteTimeout,
-                               final CompositeData options) {
-            return identity.equals(computeIdentity(attributeName, readWriteTimeout, options));
-        }
-
-        private static BigInteger computeIdentity(final String attributeName,
-                                                  final Duration readWriteTimeout,
-                                                  final CompositeData options) {
-            BigInteger result = toBigInteger(attributeName);
-            if (readWriteTimeout != null)
-                result = result.xor(BigInteger.valueOf(readWriteTimeout.toNanos()));
-            for (final String propertyName : options.getCompositeType().keySet())
-                result = result
-                        .xor(toBigInteger(propertyName))
-                        .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
-            return result;
-        }
-    }
-
-    private final KeyedObjects<String, AttributeHolder<M>> attributes;
+    private final KeyedObjects<String, M> attributes;
     private final AttributeMetricsWriter metrics;
     private final boolean expandable;
 
@@ -79,7 +45,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                                           final Class<M> attributeMetadataType,
                                           final boolean expandable) {
         super(resourceName, attributeMetadataType);
-        attributes = AbstractKeyedObjects.create(holder -> holder.getMetadata().getName());
+        attributes = AbstractKeyedObjects.create(MBeanAttributeInfo::getName);
         metrics = new AttributeMetricsWriter();
         this.expandable = expandable;
     }
@@ -112,7 +78,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M[] getAttributeInfo() {
-        return readSupply(() -> toArray(attributes.values()));
+        return readApply(attributes.values(), this::toArray);
     }
 
     /**
@@ -123,8 +89,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M getAttributeInfo(final String attributeName) {
-        final AttributeHolder<M> holder = readApply(attributes, attributeName, Map::get);
-        return holder != null ? holder.getMetadata() : null;
+        return readApply(attributes, attributeName, Map::get);
     }
 
     /**
@@ -273,53 +238,59 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     protected abstract M connectAttribute(final String attributeName,
                                           final AttributeDescriptor descriptor) throws Exception;
 
+    private static boolean equals(final MBeanAttributeInfo metadata,
+                                  final String attributeName,
+                                  final Descriptor descriptor){
+        return attributeName.equals(metadata.getName()) && descriptor.equals(metadata.getDescriptor());
+    }
+
+    private M connectAndAdd(final String attributeName,
+                            final AttributeDescriptor descriptor) throws Exception{
+        final M result = connectAttribute(attributeName, descriptor);
+        if (result != null) {
+            attributes.put(result);
+            attributeAdded(result);
+        }
+        return result;
+    }
+
     private M addAttributeImpl(final String attributeName,
-                            final Duration readWriteTimeout,
-                            final CompositeData options) throws Exception {
-        AttributeHolder<M> holder = attributes.get(attributeName);
+                               final AttributeDescriptor descriptor) throws Exception {
+        M holder = attributes.get(attributeName);
         //if attribute exists then we should check whether the input arguments
         //are equal to the existing attribute options
         if (holder != null) {
-            if (holder.equals(attributeName, readWriteTimeout, options))
-                return holder.getMetadata();
+            if (equals(holder, attributeName, descriptor))
+                return holder;
             else {
                 //remove attribute
-                attributeRemoved(holder.getMetadata());
+                attributeRemoved(holder);
                 holder = attributes.remove(attributeName);
+                disconnectAttribute(holder);
                 //...and register again
-                disconnectAttribute(holder.getMetadata());
-                final M metadata = connectAttribute(attributeName, new AttributeDescriptor(readWriteTimeout, options));
-                if (metadata != null) {
-                    attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
-                    attributeAdded(holder.getMetadata());
-                }
+                holder = connectAndAdd(attributeName, descriptor);
             }
         }
         //this is a new attribute, just connect it
         else {
-            final M metadata = connectAttribute(attributeName, new AttributeDescriptor(readWriteTimeout, options));
-            if (metadata != null) {
-                attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
-                attributeAdded(holder.getMetadata());
-            } else throw JMExceptionUtils.attributeNotFound(attributeName);
+            holder = connectAndAdd(attributeName, descriptor);
+            if (holder == null) throw JMExceptionUtils.attributeNotFound(attributeName);
         }
-        return holder.getMetadata();
+        return holder;
     }
 
     /**
      * Registers a new attribute in this manager.
      *
      * @param attributeName    The name of the attribute.
-     * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
-     * @param options          The attribute discovery options.
+     * @param descriptor Descriptor for created attribute.
      * @return Metadata of created attribute.
      */
     @Override
     public final M addAttribute(final String attributeName,
-                                final Duration readWriteTimeout,
-                                final CompositeData options) {
+                                final AttributeDescriptor descriptor) {
         try {
-            return writeCallInterruptibly(() -> addAttributeImpl(attributeName, readWriteTimeout, options));
+            return writeCallInterruptibly(() -> addAttributeImpl(attributeName, descriptor));
         } catch (final Exception e) {
             failedToConnectAttribute(attributeName, e);
             return null;
@@ -362,7 +333,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     private Object getAttributeImpl(final String attributeName) throws Exception {
         if (attributes.containsKey(attributeName))
-            return getAttribute(attributes.get(attributeName).getMetadata());
+            return getAttribute(attributes.get(attributeName));
         else
             throw JMExceptionUtils.attributeNotFound(attributeName);
     }
@@ -432,7 +403,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     private void setAttributeImpl(final Attribute attribute) throws Exception{
         if (attributes.containsKey(attribute.getName()))
-            setAttribute(attributes.get(attribute.getName()).getMetadata(), attribute.getValue());
+            setAttribute(attributes.get(attribute.getName()), attribute.getValue());
         else throw JMExceptionUtils.attributeNotFound(attribute.getName());
     }
 
@@ -502,12 +473,10 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     }
 
     private M removeImpl(final String attributeID) {
-        final AttributeHolder<M> holder = attributes.get(attributeID);
-        if (holder != null) {
-            attributeRemoved(holder.getMetadata());
-            return attributes.remove(attributeID).getMetadata();
-        } else
-            return null;
+        final M holder = attributes.get(attributeID);
+        if (holder != null)
+            attributeRemoved(holder);
+        return attributes.remove(attributeID);
     }
 
     /**
@@ -535,11 +504,11 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         retainAll(attributes);
     }
 
-    private void removeAllImpl(final KeyedObjects<String, AttributeHolder<M>> attributes){
-        for (final AttributeHolder<M> holder : attributes.values()) {
-            attributeRemoved(holder.getMetadata());
-            disconnectAttribute(holder.getMetadata());
-        }
+    private void removeAllImpl(final Map<String, M> attributes){
+        attributes.values().forEach(metadata -> {
+            attributeRemoved(metadata);
+            disconnectAttribute(metadata);
+        });
         attributes.clear();
     }
 
@@ -581,28 +550,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     @Override
     public final Iterator<M> iterator() {
-        return iterator(attributes.values());
-    }
-
-    /**
-     * Composes a set of scalar attributes into a single container.
-     * @param typeName The name of the composite type. Cannot be {@literal null} or empty.
-     * @param typeDescription The description of the composite type. Cannot be {@literal null} or empty.
-     * @param selector Filter for attribute types. Cannot be {@literal null}.
-     * @param attributes A set of attributes to compose.
-     * @return Composite type with scalar attributes.
-     */
-    public static CompositeType compose(final String typeName,
-                                        final String typeDescription,
-                                        final Predicate<? super OpenType<?>> selector,
-                                        final MBeanAttributeInfo... attributes) throws OpenDataException {
-        final CompositeTypeBuilder result = new CompositeTypeBuilder(typeName, typeDescription);
-        for (final MBeanAttributeInfo attributeInfo : attributes) {
-            final OpenType<?> attributeType = AttributeDescriptor.getOpenType(attributeInfo);
-            if (selector.test(attributeType))
-                result.addItem(attributeInfo.getName(), attributeInfo.getDescription(), attributeType);
-        }
-        return result.build();
+        return readApply(attributes.values(), Collection::iterator);
     }
 
     /**

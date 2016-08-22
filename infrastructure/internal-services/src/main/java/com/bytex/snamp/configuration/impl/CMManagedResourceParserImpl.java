@@ -186,10 +186,10 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         result.put(EVENTS_PROPERTY, IOUtils.serialize(resource.getEvents()));
         result.put(OPERATIONS_PROPERTY, IOUtils.serialize(resource.getOperations()));
         //serialize properties
-        resource.getParameters().entrySet().forEach(entry -> {
-            switch (entry.getKey()) {
+        resource.getParameters().forEach((name, value) -> {
+            switch (name) {
                 default:
-                    result.put(entry.getKey(), entry.getValue());
+                    result.put(name, value);
                 case Constants.SERVICE_PID:
                 case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
                 case ConfigurationAdmin.SERVICE_FACTORYPID:

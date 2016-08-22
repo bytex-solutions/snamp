@@ -3,7 +3,6 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
-import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.management.Maintainable;
@@ -21,7 +20,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
-
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 
 /**
@@ -81,7 +79,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @return A reference to the service; or {@literal null}, if service is not available.
      * @throws org.osgi.framework.InvalidSyntaxException Invalid filter.
      */
-    public static <S extends FrameworkService> ServiceReference<S> getServiceReference(final BundleContext context,
+    public static <S extends SupportService> ServiceReference<S> getServiceReference(final BundleContext context,
                                                                                 final String connectorType,
                                                                                 String filter,
                                                                                 final Class<S> serviceType) throws InvalidSyntaxException {
@@ -158,8 +156,35 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
             final ConfigurationEntityDescriptionProvider provider = context.getService(ref);
             return provider.getDescription(configurationEntity);
         } catch (final InvalidSyntaxException ignored) {
-            ref = null;
-            return null;
+            throw unsupportedServiceRequest(connectorType, ConfigurationEntityDescriptionProvider.class);
+        } finally {
+            if (ref != null) context.ungetService(ref);
+        }
+    }
+
+    /**
+     * Creates a new instance of the specified connector using service {@link ManagedResourceConnectorFactoryService}.
+     * @param context The context of the caller bundle.
+     * @param connectorType Type of connector to instantiate.
+     * @param instantiationParams Instantiation parameters. See method {@link ManagedResourceConnectorFactoryService#instantiationParameters(String, String, Map)}.
+     * @return A new instance of resource connector.
+     * @throws Exception An exception occurred by {@link ManagedResourceConnector} constructor.
+     * @throws InstantiationException Not enough parameters to instantiate {@link ManagedResourceConnector}.
+     * @throws UnsupportedOperationException The specified connector type doesn't provide a factory.
+     * @since 2.0
+     */
+    public static ManagedResourceConnector createConnector(final BundleContext context,
+                                                           final String connectorType,
+                                                           final Map<String, ?> instantiationParams) throws Exception {
+        ServiceReference<ManagedResourceConnectorFactoryService> ref = null;
+        try {
+            ref = getServiceReference(context, connectorType, null, ManagedResourceConnectorFactoryService.class);
+            if (ref == null)
+                throw unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class);
+            final ManagedResourceConnectorFactoryService service = context.getService(ref);
+            return service.createConnector(instantiationParams);
+        } catch (final InvalidSyntaxException ignored) {
+            throw unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class);
         } finally {
             if (ref != null) context.ungetService(ref);
         }
@@ -193,7 +218,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
             return service.discover(connectionString, connectionOptions, entityType);
         }
         catch (final InvalidSyntaxException ignored) {
-            return Collections.emptyList();
+            throw unsupportedServiceRequest(connectorType, DiscoveryService.class);
         }
         finally {
             if(ref != null) context.ungetService(ref);
@@ -224,8 +249,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                     .collect(Collectors.toMap(Function.identity(), actionName -> service.getActionDescription(actionName, loc)));
         }
         catch (final InvalidSyntaxException ignored) {
-            ref = null;
-            return Collections.emptyMap();
+            throw unsupportedServiceRequest(connectorType, Maintainable.class);
         }
         finally {
             if(ref != null) context.ungetService(ref);

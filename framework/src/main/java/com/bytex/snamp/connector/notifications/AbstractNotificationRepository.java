@@ -14,8 +14,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 import javax.management.*;
-import javax.management.openmbean.CompositeData;
-import java.math.BigInteger;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,32 +27,6 @@ import java.util.stream.Collectors;
  * @version 2.0
  */
 public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport, SafeCloseable {
-    private static final class NotificationHolder<M extends MBeanNotificationInfo> extends FeatureHolder<M>{
-        private NotificationHolder(final M metadata,
-                                   final String category,
-                                   final CompositeData options) {
-            super(metadata, computeIdentity(category, options));
-        }
-
-        private String getNotifType(){
-            return ArrayUtils.getFirst(getMetadata().getNotifTypes());
-        }
-
-        private boolean equals(final String category, final CompositeData options){
-            return super.identity.equals(computeIdentity(category, options));
-        }
-
-        private static BigInteger computeIdentity(final String category,
-                                                  final CompositeData options) {
-            BigInteger result = toBigInteger(category);
-            for (final String propertyName : options.getCompositeType().keySet())
-                result = result
-                        .xor(toBigInteger(propertyName))
-                        .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
-            return result;
-        }
-    }
-
     /**
      * Represents batch notification sender.
      */
@@ -109,7 +81,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         }
     }
 
-    private final KeyedObjects<String, NotificationHolder<M>> notifications;
+    private final KeyedObjects<String, M> notifications;
     private final NotificationListenerList listeners;
     private final LongCounter sequenceNumberGenerator;
     private final NotificationMetricsWriter metrics;
@@ -140,7 +112,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                                              final LongCounter sequenceNumberGenerator,
                                              final boolean expandable) {
         super(resourceName, notifMetadataType);
-        notifications = AbstractKeyedObjects.create(NotificationHolder::getNotifType);
+        notifications = AbstractKeyedObjects.create(metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()));
         listeners = new NotificationListenerList();
         this.sequenceNumberGenerator = Objects.requireNonNull(sequenceNumberGenerator);
         metrics = new NotificationMetricsWriter();
@@ -178,9 +150,8 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected final void fire(final NotificationCollector sender) {
         //collect notifications
-        readApply(notifications, sender, (n, s) -> {
-            n.values().forEach(holder -> s.process(holder.getMetadata()));
-            return null;
+        readAccept(notifications, sender, (n, s) -> {
+            n.values().forEach(s::process);
         });
         //send notifications
         fireListeners(sender);
@@ -206,11 +177,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         if (isSuspended()) return; //check if events are suspended
 
         final Collection<Notification> notifs = readApply(notifications, n -> n.values().stream()
-                .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder.getMetadata()), category))
+                .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder), category))
                 .map(holder -> new NotificationBuilder()
                         .setTimeStamp(timeStamp)
                         .setSequenceNumber(sequenceNumber)
-                        .setType(holder.getNotifType())
+                        .setType(ArrayUtils.getFirst(holder.getNotifTypes()))
                         .setSource(this)
                         .setMessage(message)
                         .setUserData(userData)
@@ -247,48 +218,51 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         fireResourceEvent(new NotificationRemovingEvent(this, getResourceName(), metadata));
     }
 
-    protected abstract M enableNotifications(final String notifType,
+    protected abstract M connectNotifications(final String notifType,
                                             final NotificationDescriptor metadata) throws Exception;
 
-    private M enableNotificationsImpl(final String category, final CompositeData options) throws Exception {
-        NotificationHolder<M> holder = notifications.get(category);
+    private static boolean equals(final MBeanNotificationInfo info, final String category, final Descriptor descriptor){
+        return ArrayUtils.containsAny(info.getNotifTypes(), category) && descriptor.equals(info.getDescriptor());
+    }
+
+    private M connectAndAdd(final String category, final NotificationDescriptor descriptor) throws Exception{
+        final M metadata = connectNotifications(category, descriptor);
+        if (metadata != null) {
+            notifications.put(metadata);
+            notificationAdded(metadata);
+        }
+        return metadata;
+    }
+
+    private M enableNotificationsImpl(final String category, final NotificationDescriptor descriptor) throws Exception {
+        M holder = notifications.get(category);
         if (holder != null) {
-            if (holder.equals(category, options))
-                return holder.getMetadata();
+            if (equals(holder, category, descriptor))
+                return holder;
             else {
                 //remove notification
-                notificationRemoved(holder.getMetadata());
+                notificationRemoved(holder);
                 holder = notifications.remove(category);
+                disableNotifications(holder);
                 //and register again
-                disableNotifications(holder.getMetadata());
-                final M metadata = enableNotifications(category, new NotificationDescriptor(options));
-                if (metadata != null) {
-                    notifications.put(holder = new NotificationHolder<>(metadata, category, options));
-                    notificationAdded(holder.getMetadata());
-                }
+                holder = connectAndAdd(category, descriptor);
             }
-        } else {
-            final M metadata = enableNotifications(category, new NotificationDescriptor(options));
-            if (metadata != null) {
-                notifications.put(holder = new NotificationHolder<>(metadata, category, options));
-                notificationAdded(holder.getMetadata());
-            } else
-                holder = null;
-        }
-        return holder != null ? holder.getMetadata() : null;
+        } else
+            holder = connectAndAdd(category, descriptor);
+        return holder;
     }
 
     /**
      * Enables event listening for the specified category of events.
      *
      * @param category The name of the event category to listen.
-     * @param options  Event discovery options.
+     * @param descriptor  Event discovery options.
      * @return Metadata of created notification.
      */
     @Override
-    public final M enableNotifications(final String category, final CompositeData options) {
+    public final M enableNotifications(final String category, final NotificationDescriptor descriptor) {
         try {
-            return writeCallInterruptibly(() -> enableNotificationsImpl(category, options));
+            return writeCallInterruptibly(() -> enableNotificationsImpl(category, descriptor));
         } catch (final Exception e) {
             failedToEnableNotifications(category, e);
             return null;
@@ -296,12 +270,10 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     private M removeImpl(final String category) {
-        final NotificationHolder<M> holder = notifications.get(category);
-        if (holder != null) {
-            notificationRemoved(holder.getMetadata());
-            return notifications.remove(category).getMetadata();
-        } else
-            return null;
+        final M holder = notifications.get(category);
+        if (holder != null)
+            notificationRemoved(holder);
+        return notifications.remove(category);
     }
 
     /**
@@ -402,13 +374,12 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final M[] getNotificationInfo() {
-        return readSupply(() -> toArray(notifications.values()));
+        return readApply(notifications.values(), this::toArray);
     }
 
     @Override
     public final M getNotificationInfo(final String category) {
-        final NotificationHolder<M> holder = readApply(notifications, category, Map::get);
-        return holder != null ? holder.getMetadata() : null;
+        return readApply(notifications, category, Map::get);
     }
 
     /**
@@ -434,11 +405,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     protected abstract void failedToEnableNotifications(final String category,
                                                         final Exception e);
 
-    private void removeAllImpl(final KeyedObjects<String, NotificationHolder<M>> notifications){
-        for (final NotificationHolder<M> holder : notifications.values()) {
-            notificationRemoved(holder.getMetadata());
-            disableNotifications(holder.getMetadata());
-        }
+    private void removeAllImpl(final KeyedObjects<String, M> notifications){
+        notifications.values().forEach(metadata -> {
+            notificationRemoved(metadata);
+            disableNotifications(metadata);
+        });
         notifications.clear();
     }
 
@@ -489,7 +460,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     @Override
     public final Iterator<M> iterator() {
-        return iterator(notifications.values());
+        return readApply(notifications.values(), Collection::iterator);
     }
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){

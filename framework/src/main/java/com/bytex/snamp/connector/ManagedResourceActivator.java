@@ -5,6 +5,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
@@ -173,7 +174,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         private static void updateAttributes(final AttributeSupport connector,
                                       final Map<String, ? extends AttributeConfiguration> attributes) {
             updateFeatures(
-                    (name, config) -> connector.addAttribute(name, config.getReadWriteTimeout(), new ConfigParameters(config)),
+                    (name, config) -> connector.addAttribute(name, new AttributeDescriptor(config)),
                     MBeanAttributeInfo::getName,
                     connector::retainAttributes,
                     attributes
@@ -343,7 +344,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
     }
 
-    private static final class ManagedResourceConnectorFactoryServiceImpl<TConnector extends ManagedResourceConnector> extends AbstractFrameworkService implements ManagedResourceConnectorFactoryService {
+    private static class ManagedResourceConnectorFactoryServiceImpl<TConnector extends ManagedResourceConnector> extends AbstractFrameworkService implements ManagedResourceConnectorFactoryService {
         private final Logger logger;
         private final ManagedResourceConnectorFactory<TConnector> connectorFactory;
         private final RequiredService<?>[] dependencies;
@@ -413,10 +414,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         /**
          * Gets name of the underlying resource connector.
-         * <p>
-         *     This property is available when this manager is in {@link com.bytex.snamp.core.AbstractBundleActivator.ActivationState#ACTIVATED}
-         *     state only.
-         * </p>
          * @return The name of the underlying resource connector.
          * @see #getState()
          */

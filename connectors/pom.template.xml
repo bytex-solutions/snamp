@@ -15,7 +15,7 @@
       <module>jmx-connector</module>
       <module>snmp-connector</module>
       <module>rshell-connector</module>
-      <module>aggregator-connector</module>
+      <module>composite-connector</module>
       <module>groovy-connector</module>
       <module>modbus-connector</module>
       <module>mda-connector</module>

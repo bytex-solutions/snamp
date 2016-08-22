@@ -3,8 +3,8 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.Localizable;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.metrics.Metrics;
@@ -13,12 +13,13 @@ import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractFrameworkService;
-import com.bytex.snamp.internal.IllegalStateFlag;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
@@ -37,20 +38,10 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @version 2.0
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Localizable {
-    private final IllegalStateFlag closed = createConnectorStateFlag();
     private final LazyValue<MetricsReader> metrics;
 
     protected AbstractManagedResourceConnector() {
         metrics = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(this::createMetricsReader);
-    }
-
-    private static IllegalStateFlag createConnectorStateFlag(){
-        return new IllegalStateFlag() {
-            @Override
-            public IllegalStateException create() {
-                return new IllegalStateException("Management connector is closed.");
-            }
-        };
     }
 
     /**
@@ -88,25 +79,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     }
 
     /**
-     *  Throws an {@link IllegalStateException} if the connector is closed.
-     *  <p>
-     *      You should call the base implementation from the overridden method.
-     *  </p>
-     *  @throws IllegalStateException Connector is closed.
-     */
-    protected void verifyClosedState() throws IllegalStateException{
-        closed.verify();
-    }
-
-    private void verifyClosedStateChecked() throws MBeanException{
-        try{
-            verifyClosedState();
-        }
-        catch (final Exception e){
-            throw new MBeanException(e);
-        }
-    }
-    /**
      * Releases all resources associated with this connector.
      * @throws Exception Unable to release resources associated with this connector.
      */
@@ -114,7 +86,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     @ThreadSafe(false)
     public void close() throws Exception {
         //change state of the connector
-        closed.set();
         metrics.reset();
         clearCache();
     }
@@ -131,7 +102,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        verifyClosedStateChecked();
         final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
         if(attributeSupport != null)
             return attributeSupport.getAttribute(attribute);
@@ -151,7 +121,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        verifyClosedStateChecked();
         final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
         if(attributeSupport != null)
             attributeSupport.setAttribute(attribute);
@@ -167,7 +136,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public AttributeList getAttributes(final String[] attributes) {
-        verifyClosedState();
         final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
         return attributeSupport != null ? attributeSupport.getAttributes(attributes) : new AttributeList();
     }
@@ -182,7 +150,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public AttributeList setAttributes(final AttributeList attributes) {
-        verifyClosedState();
         final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
         return attributeSupport != null ? attributeSupport.setAttributes(attributes) : new AttributeList();
     }
@@ -271,7 +238,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     @Aggregation(cached = true)
     @SpecialUse
     public final MetricsReader getMetrics(){
-        verifyClosedState();
         return metrics.get();
     }
 

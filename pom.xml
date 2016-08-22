@@ -28,62 +28,62 @@
   </modules>
   <properties>
     <aries.jndi.url.version>1.1.0</aries.jndi.url.version>
-    <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
     <decanter.version>1.1.0</decanter.version>
-    <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <snamp.connector.mq.version>2.0.0</snamp.connector.mq.version>
+    <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
     <junit.version>4.12</junit.version>
     <snmp4j.version>2.5.0</snmp4j.version>
     <gson.version>2.7</gson.version>
-    <snamp.connector.aggregator.version>2.0.0</snamp.connector.aggregator.version>
+    <snamp.connector.mq.version>2.0.0</snamp.connector.mq.version>
+    <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
     <karaf.version>3.0.7</karaf.version>
+    <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
     <aries.util.version>1.1.1</aries.util.version>
     <hawtio.version>1.4.55</hawtio.version>
+    <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
+    <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
+    <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
     <atmosphere.version>2.2.9</atmosphere.version>
     <aries.jndi.version>1.0.0</aries.jndi.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
+    <snamp.gateway.snmp.version>2.0.0</snamp.gateway.snmp.version>
+    <snamp.gateway.nsca.version>2.0.0</snamp.gateway.nsca.version>
+    <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
-    <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
+    <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
     <snmp4j.agent.version>2.5.1</snmp4j.agent.version>
     <sshj.version>0.10.0</sshj.version>
     <aries.jndi.core.version>1.0.2</aries.jndi.core.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <karaf.maxVersion>4</karaf.maxVersion>
-    <aries.jmx.api.version>1.1.1</aries.jmx.api.version>
-    <jetty.version>8.1.17.v20150415</jetty.version>
-    <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
-    <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
-    <cellar.version>3.0.3</cellar.version>
     <snamp.connector.snmp.version>2.0.0</snamp.connector.snmp.version>
+    <aries.jmx.api.version>1.1.1</aries.jmx.api.version>
+    <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
+    <jetty.version>8.1.17.v20150415</jetty.version>
+    <snamp.gateway.syslog.version>2.0.0</snamp.gateway.syslog.version>
+    <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
+    <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
+    <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
+    <cellar.version>3.0.3</cellar.version>
     <aries.jndi.api.version>1.1.0</aries.jndi.api.version>
-    <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
     <osgi.version>5.0.0</osgi.version>
     <hazelcast.version>3.4.2</hazelcast.version>
     <qpid.version>0.6.0</qpid.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
-    <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
     <jline.version>2.13</jline.version>
-    <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
-    <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
+    <snamp.connector.mda.version>2.0.0</snamp.connector.mda.version>
     <jersey.version>1.18.1</jersey.version>
-    <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
-    <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
     <snamp.services.version>2.0.0</snamp.services.version>
     <snamp.framework.maxVersion>3</snamp.framework.maxVersion>
     <groovy.version>2.4.7</groovy.version>
-    <snamp.gateway.snmp.version>2.0.0</snamp.gateway.snmp.version>
     <sshd.version>0.14.0</sshd.version>
-    <snamp.gateway.nsca.version>2.0.0</snamp.gateway.nsca.version>
     <thrift.version>0.9.3</thrift.version>
     <guava.version>19.0</guava.version>
     <aries.proxy.api.version>1.0.1</aries.proxy.api.version>
     <activemq.version>5.13.3</activemq.version>
-    <snamp.gateway.syslog.version>2.0.0</snamp.gateway.syslog.version>
+    <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
     <snamp.framework.version>2.0.0</snamp.framework.version>
-    <snamp.connector.mda.version>2.0.0</snamp.connector.mda.version>
     <bouncycastle.version>1.54</bouncycastle.version>
   </properties>
   <dependencyManagement>

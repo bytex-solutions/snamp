@@ -612,8 +612,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                         if(config != null) {
                             config.setAlternativeName(property.getName());
                             config.setAutomaticallyAdded(true);
+                            config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
                             final JavaBeanAttributeInfo attr =
-                                    addAttribute(property.getName(), AttributeConfiguration.TIMEOUT_FOR_SMART_MODE, new ConfigParameters(config));
+                                    addAttribute(property.getName(), new AttributeDescriptor(config));
                             if (attr != null) result.add(attr);
                         }
             });
@@ -859,107 +860,16 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         removeResourceEventListener(listener, attributes, notifications, operations);
     }
 
-    /**
-     * Disables event listening for the specified category of events.
-     * <p>
-     * This method removes all listeners associated with the specified subscription list.
-     * </p>
-     *
-     * @param category The identifier of the subscription list.
-     * @return Metadata of deleted notification.
-     */
-    public final MBeanNotificationInfo disableNotifications(final String category) {
-        verifyClosedState();
-        return notifications.remove(category);
+    final AttributeSupport getAttributeSupport(){
+        return attributes;
     }
 
-    /**
-     * Enables event listening for the specified category of events.
-     *
-     * @param category The name of the event category to listen.
-     * @param options  Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-     */
-    public final MBeanNotificationInfo enableNotifications(final String category,
-                                                           final CompositeData options) {
-        verifyClosedState();
-        return notifications.enableNotifications(category, options);
+    final NotificationSupport getNotificationSupport(){
+        return notifications;
     }
 
-    /**
-     * Removes the attribute from the connector.
-     *
-     * @param attributeName The unique identifier of the attribute.
-     * @return The metadata of deleted attribute.
-     */
-    public final MBeanAttributeInfo removeAttribute(final String attributeName) {
-        return attributes.remove(attributeName);
-    }
-
-    /**
-     * Connects to the specified attribute.
-     *
-     * @param attributeName    The name of the attribute.
-     * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
-     * @param options          The attribute discovery options.
-     * @return The description of the attribute.
-     */
-    public final MBeanAttributeInfo addAttribute(final String attributeName,
-                                                 final Duration readWriteTimeout,
-                                                 final CompositeData options) {
-        verifyClosedState();
-        return attributes.addAttribute(attributeName, readWriteTimeout, options);
-    }
-
-    public final MBeanOperationInfo enableOperation(final String operationName,
-                                                    final Duration invocationTimeout,
-                                                    final CompositeData options){
-        verifyClosedState();
-        return operations.enableOperation(operationName, invocationTimeout, options);
-    }
-
-    public final MBeanOperationInfo disableOperation(final String operationName){
-        verifyClosedState();
-        return operations.remove(operationName);
-    }
-
-    /**
-     * Removes all operations from this connector.
-     */
-    public final void removeAllOperations(){
-        verifyClosedState();
-        operations.removeAll(false);
-    }
-
-    public final Collection<? extends MBeanOperationInfo> disableOperationsExcept(final Set<String> operations){
-        verifyClosedState();
-        return this.operations.retainAll(operations);
-    }
-
-    /**
-     * Removes all attributes from this connector.
-     */
-    public final void removeAllAttributes(){
-        verifyClosedState();
-        attributes.removeAll(false);
-    }
-
-    public final Collection<? extends MBeanAttributeInfo> removeAttributesExcept(final Set<String> attributes){
-        verifyClosedState();
-        return this.attributes.retainAll(attributes);
-    }
-
-    /**
-     * Removes all notifications and listeners from this connector.
-     */
-    public final void removeAllNotifications(){
-        verifyClosedState();
-        notifications.removeAll(true, false);
-    }
-
-    public final Collection<? extends MBeanNotificationInfo> disableNotificationsExcept(final Set<String> events){
-        verifyClosedState();
-        return this.notifications.retainAll(events);
+    final OperationSupport getOperationSupport(){
+        return operations;
     }
 
     private boolean emitNotificationImpl(final ManagementNotificationType<?> category,

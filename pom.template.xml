@@ -63,7 +63,7 @@
     <snamp.services.version>2.0.0</snamp.services.version>
 
     <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
-    <snamp.connector.aggregator.version>2.0.0</snamp.connector.aggregator.version>
+    <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
     <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
     <snamp.connector.mda.version>2.0.0</snamp.connector.mda.version>

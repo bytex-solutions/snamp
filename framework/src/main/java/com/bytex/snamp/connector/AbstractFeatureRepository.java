@@ -1,18 +1,20 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.metrics.Metrics;
-import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.Sets;
 
 import javax.management.MBeanFeatureInfo;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.bytex.snamp.ArrayUtils.arrayConstructor;
 
 /**
  * Represents repository of resource features such as attributes, notification, operations and etc.
@@ -42,67 +44,6 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
         @Override
         protected WeakResourceEventListener createWeakEventListener(final ResourceEventListener listener) {
             return new WeakResourceEventListener(listener);
-        }
-    }
-
-    /**
-     * Represents a container for metadata element and its identity.
-     * @param <F> Type of the managed resource feature.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    protected static abstract class FeatureHolder<F extends MBeanFeatureInfo>{
-        private final F metadata;
-        /**
-         * The identity of this feature.
-         */
-        protected final BigInteger identity;
-
-        /**
-         * Initializes a new container of the managed resource feature.
-         * @param metadata The metadata of the managed resource feature.
-         * @param identity The identity of the feature.
-         */
-        protected FeatureHolder(final F metadata,
-                              final BigInteger identity){
-            this.metadata = Objects.requireNonNull(metadata);
-            this.identity = Objects.requireNonNull(identity);
-        }
-
-        public final boolean equals(final FeatureHolder<?> other){
-            return other != null &&
-                    Objects.equals(getClass(), other.getClass()) &&
-                    Objects.equals(identity, other.identity);
-        }
-
-        /**
-         * Gets metadata of the managed resource feature.
-         * @return The metadata of the managed resource feature.
-         */
-        public final F getMetadata(){
-            return metadata;
-        }
-
-        @Override
-        public final boolean equals(final Object other) {
-            return other instanceof FeatureHolder<?> && equals((FeatureHolder<?>)other);
-        }
-
-        protected static BigInteger toBigInteger(final String value){
-            return value == null || value.isEmpty() ?
-                    BigInteger.ZERO:
-                    new BigInteger(value.getBytes(IOUtils.DEFAULT_CHARSET));
-        }
-
-        @Override
-        public final int hashCode() {
-            return identity.hashCode();
-        }
-
-        @Override
-        public final String toString() {
-            return metadata.toString();
         }
     }
 
@@ -159,10 +100,6 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
         resourceEventListeners.fire(event);
     }
 
-    protected final F[] toArray(final Collection<? extends FeatureHolder<F>> features) {
-        return features.stream().map(FeatureHolder::getMetadata).toArray(ArrayUtils.arrayConstructor(metadataType));
-    }
-
     protected final void removeAllResourceEventListeners() {
         resourceEventListeners.clear();
     }
@@ -212,7 +149,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      */
     public abstract Metrics getMetrics();
 
-    protected static  <F extends MBeanFeatureInfo> Iterator<F> iterator(final Collection<? extends FeatureHolder<F>> holders){
-        return holders.stream().map(FeatureHolder::getMetadata).iterator();
+    protected final F[] toArray(final Collection<F> features){
+        return features.stream().toArray(arrayConstructor(metadataType));
     }
 }

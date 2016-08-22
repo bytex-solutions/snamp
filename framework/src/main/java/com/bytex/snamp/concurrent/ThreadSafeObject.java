@@ -508,6 +508,16 @@ public abstract class ThreadSafeObject {
 
     //</editor-fold>
 
+    protected final <I1, I2> void readAccept(final Enum<?> resourceGroup, final I1 input1, final I2 input2, final BiConsumer<? super I1, ? super I2> action){
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
+            action.accept(input1, input2);
+        }
+    }
+
+    protected final <I1, I2> void readAccept(final I1 input1, final I2 input2, final BiConsumer<? super I1, ? super I2> action){
+        readAccept(SingleResourceGroup.INSTANCE, input1, input2, action);
+    }
+
     //<editor-fold desc="read Consumer">
 
     protected final <I, E extends Throwable> void readAccept(final Enum<?> resourceGroup, final I input, final Acceptor<? super I, E> action) throws E {

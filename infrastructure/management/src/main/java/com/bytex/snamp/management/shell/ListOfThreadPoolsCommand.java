@@ -27,8 +27,8 @@ public final class ListOfThreadPoolsCommand extends AbstractThreadPoolCommand {
     @Override
     boolean doExecute(final EntityMap<? extends ThreadPoolConfiguration> configuration, final StringBuilder output) {
         output.append(System.lineSeparator());
-        configuration.entrySet().forEach(entry -> {
-            printThreadPoolConfig(entry.getKey(), entry.getValue(), output);
+        configuration.forEach((name, value) -> {
+            printThreadPoolConfig(name, value, output);
             output.append(System.lineSeparator());
         });
         return false;

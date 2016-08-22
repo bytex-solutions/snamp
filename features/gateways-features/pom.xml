@@ -10,7 +10,7 @@
   </parent>
   <artifactId>gateways-features</artifactId>
   <packaging>pom</packaging>
-  <name>Collection of ready-to-use gateways</name>
+  <name>Collection of read-to-use gateways</name>
   <modules>
     <module>jmx-gateway-feature</module>
     <module>snmp-gateway-feature</module>

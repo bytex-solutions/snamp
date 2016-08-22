@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import java.util.Collection;
 import java.util.function.Function;
 
 /**
@@ -21,5 +22,10 @@ public interface Acceptor<T, E extends Throwable> {
 
     default <I> Acceptor<? super I, E> changeConsumingType(final Function<? super I, ? extends T> transformation) throws E{
         return inp -> accept(transformation.apply(inp));
+    }
+
+    static <T, E extends Throwable> void forEachAccept(final Collection<T> c, final Acceptor<T, E> acceptor) throws E{
+        for(final T item: c)
+            acceptor.accept(item);
     }
 }

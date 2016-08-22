@@ -173,9 +173,9 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
-        assertNotNull(md = connector.addAttribute("p1", Duration.ofSeconds(1), makeAttributeConfig("property1")));
+        assertNotNull(md = connector.getAttributeSupport().addAttribute("p1", Duration.ofSeconds(1), makeAttributeConfig("property1")));
         //enables notifications
-        assertNotNull(connector.enableNotifications("propertyChanged", makeEventConfig("propertyChanged")));
+        assertNotNull(connector.getNotificationSupport().enableNotifications("propertyChanged", makeEventConfig("propertyChanged")));
         final Mailbox listener = MailboxFactory.newMailbox();
         connector.queryObject(NotificationSupport.class).addNotificationListener(listener, listener, null);
         assertEquals(connector.getProperty1(), connector.getAttribute("p1"));
@@ -190,7 +190,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertEquals("p1", md.getName());
         assertEquals(SimpleType.STRING, AttributeDescriptor.getOpenType(md));
         //enables operations
-        assertNotNull(connector.enableOperation("cs", null, makeOperationConfig("computeSum")));
+        assertNotNull(connector.getOperationSupport().enableOperation("cs", null, makeOperationConfig("computeSum")));
         final Object result = connector.invoke("cs", new Object[]{4, 5}, ArrayUtils.emptyArray(String[].class));
         assertTrue(result instanceof Integer);
         assertEquals(9, result);
