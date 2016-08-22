@@ -356,13 +356,13 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     private static List<Bundle> getGatewayBundles(final BundleContext context){
         return Arrays.stream(context.getBundles())
                 .filter(Gateway::isGatewayBundle)
-                .collect(Collectors.toCollection(LinkedList::new));
+                .collect(Collectors.toList());
     }
 
     static List<Bundle> getGatewayBundles(final BundleContext context, final String gatewayType) {
         return Arrays.stream(context.getBundles())
                 .filter(bnd -> Gateway.getGatewayType(bnd).equals(gatewayType))
-                .collect(Collectors.toCollection(LinkedList::new));
+                .collect(Collectors.toList());
     }
 
     /**
@@ -446,7 +446,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         return candidates.stream()
                 .map(Gateway::getGatewayType)
                 .filter(name -> !isNullOrEmpty(name))
-                .collect(Collectors.toCollection(HashSet::new));
+                .collect(Collectors.toSet());
     }
 
     static String createFilter(final String gatewayType, final String filter){

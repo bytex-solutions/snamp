@@ -58,6 +58,15 @@ public interface AttributeSupport {
      * @since 2.0
      */
     MBeanAttributeInfo addAttribute(final String attributeName, final AttributeDescriptor descriptor);
+
+    /**
+     * Removes attribute from the managed resource.
+     * @param attributeName Name of the attribute to remove.
+     * @return An instance of removed attribute; or {@literal null}, if attribute with the specified name doesn't exist.
+     * @since 2.0
+     */
+    MBeanAttributeInfo removeAttribute(final String attributeName);
+
     /**
      * Removes all attributes except specified in the collection.
      * @param attributes A set of attributes which should not be deleted.

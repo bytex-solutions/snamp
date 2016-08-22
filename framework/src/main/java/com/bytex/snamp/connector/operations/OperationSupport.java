@@ -42,6 +42,14 @@ public interface OperationSupport {
     MBeanOperationInfo enableOperation(final String operationName, final OperationDescriptor descriptor);
 
     /**
+     * Removes operation from the managed resource.
+     * @param operationName Name of the operation to remove.
+     * @return An instance of removed operation; or {@literal null}, if operation with the specified name doesn't exist.
+     * @since 2.0
+     */
+    MBeanOperationInfo removeOperation(final String operationName);
+
+    /**
      * Disables all operations except specified in the collection.
      * @param operations A set of operations which should not be disabled.
      * @since 2.0

@@ -11,13 +11,18 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-final class CompositeAttribute extends MBeanAttributeInfo implements ConnectorTypeSplit {
+final class CompositeAttribute extends MBeanAttributeInfo implements CompositeFeature {
     private static final long serialVersionUID = 8395290268605454780L;
     private final String connectorType;
 
     CompositeAttribute(final String connectorType, final MBeanAttributeInfo info){
         super(info.getName(), info.getType(), info.getDescription(), info.isReadable(), info.isWritable(), info.isIs(), info.getDescriptor());
         this.connectorType = Objects.requireNonNull(connectorType);
+    }
+
+    @Override
+    public String getConnectorType() {
+        return connectorType;
     }
 
     Object getValue(final AttributeSupportProvider provider) throws AttributeNotFoundException, MBeanException, ReflectionException {

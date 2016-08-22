@@ -19,5 +19,6 @@
     <module>modbus-connector-feature</module>
     <module>mda-connector-feature</module>
     <module>mq-connector-feature</module>
+    <module>composite-connector-feature</module>
   </modules>
 </project>

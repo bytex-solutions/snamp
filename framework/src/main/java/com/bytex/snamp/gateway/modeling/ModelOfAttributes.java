@@ -148,7 +148,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
         if (resource != null) {
             return resource.values().stream()
                     .map(FeatureAccessor::getMetadata)
-                    .collect(Collectors.toCollection(LinkedList::new));
+                    .collect(Collectors.toList());
         } else return ImmutableList.of();
     }
 

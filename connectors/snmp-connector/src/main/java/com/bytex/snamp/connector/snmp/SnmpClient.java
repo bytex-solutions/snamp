@@ -303,7 +303,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
     final void set(final Map<OID, Variable> variables, final Duration timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         final Collection<VariableBinding> bindings = variables.entrySet().stream()
                 .map(entry -> new VariableBinding(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toCollection(LinkedList::new));
+                .collect(Collectors.toList());
         set(bindings.stream().toArray(VariableBinding[]::new), timeout);
     }
 }

@@ -355,7 +355,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<? extends ResourceConnectorDescriptor> getInstalledResourceConnectors() {
         final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(getBundleContextOfObject(this));
-        return systemNames.stream().map(this::createResourceConnectorDescriptor).collect(Collectors.toCollection(LinkedList::new));
+        return systemNames.stream().map(this::createResourceConnectorDescriptor).collect(Collectors.toList());
     }
 
     /**
@@ -373,7 +373,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<? extends GatewayDescriptor> getInstalledGateways() {
         final Collection<String> systemNames = GatewayActivator.getInstalledGateways(getBundleContextOfObject(this));
-        return systemNames.stream().map(this::createGatewayDescriptor).collect(Collectors.toCollection(LinkedList::new));
+        return systemNames.stream().map(this::createGatewayDescriptor).collect(Collectors.toList());
     }
 
     /**
@@ -401,6 +401,6 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
         return Arrays.stream(context.getBundles())
                 .filter(AbstractSnampManager::isSnampComponent)
                 .map(bnd -> new InternalSnampComponentDescriptor(bnd.getBundleId()))
-                .collect(Collectors.toCollection(LinkedList::new));
+                .collect(Collectors.toList());
     }
 }

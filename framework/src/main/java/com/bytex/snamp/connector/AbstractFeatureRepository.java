@@ -8,10 +8,7 @@ import com.bytex.snamp.connector.metrics.Metrics;
 import com.google.common.collect.Sets;
 
 import javax.management.MBeanFeatureInfo;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.arrayConstructor;
@@ -140,7 +137,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
         return Sets.difference(getIDs(), featureIDs).stream()
                 .map(this::remove)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .collect(Collectors.toSet());
     }
 
     /**

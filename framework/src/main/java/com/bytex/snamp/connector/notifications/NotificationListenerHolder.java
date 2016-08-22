@@ -3,6 +3,9 @@ package com.bytex.snamp.connector.notifications;
 import javax.management.Notification;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Represents notification listener holder in association with filter.
@@ -10,23 +13,19 @@ import javax.management.NotificationListener;
  * @version 2.0
  * @since 1.0
  */
-public final class NotificationListenerHolder implements NotificationListener, NotificationFilter {
+final class NotificationListenerHolder implements NotificationListener, NotificationFilter {
     private static final long serialVersionUID = 4627857440844836452L;
     private final NotificationListener listener;
     private final NotificationFilter filter;
     private final Object handback;
 
-    public NotificationListenerHolder(final NotificationListener listener,
-                                      final NotificationFilter filter,
-                                      final Object handback) throws IllegalArgumentException{
+    NotificationListenerHolder(final NotificationListener listener,
+                               final NotificationFilter filter,
+                               final Object handback) throws IllegalArgumentException{
         if(listener == null) throw new IllegalArgumentException("listener is null.");
         this.listener = listener;
         this.filter = filter;
         this.handback = handback;
-    }
-
-    public NotificationListenerHolder(final NotificationListener listener){
-        this(listener, null, null);
     }
 
     /**
@@ -53,11 +52,11 @@ public final class NotificationListenerHolder implements NotificationListener, N
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
         if (isNotificationEnabled(notification))
-            listener.handleNotification(notification, handback == null ? this.handback : handback);
+            listener.handleNotification(notification, firstNonNull(handback, this.handback));
     }
 
-    public boolean equals(final NotificationListener listener){
-        return listener == this.listener || this == listener;
+    private boolean equals(final NotificationListener listener) {
+        return this == listener || Objects.equals(this.listener, listener);
     }
 
     @Override

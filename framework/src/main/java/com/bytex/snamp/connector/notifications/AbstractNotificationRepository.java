@@ -7,14 +7,13 @@ import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.NotificationMetrics;
 import com.bytex.snamp.connector.metrics.NotificationMetricsWriter;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 
 import javax.management.*;
 import java.util.*;
+import java.util.function.LongSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -83,7 +82,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     private final KeyedObjects<String, M> notifications;
     private final NotificationListenerList listeners;
-    private final LongCounter sequenceNumberGenerator;
+    private final LongSupplier sequenceNumberGenerator;
     private final NotificationMetricsWriter metrics;
     private volatile boolean suspended;
     private final boolean expandable;
@@ -109,7 +108,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType,
-                                             final LongCounter sequenceNumberGenerator,
+                                             final LongSupplier sequenceNumberGenerator,
                                              final boolean expandable) {
         super(resourceName, notifMetadataType);
         notifications = AbstractKeyedObjects.create(metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()));
@@ -135,7 +134,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return A new unique sequence number.
      */
     protected final long generateSequenceNumber(){
-        return sequenceNumberGenerator.increment();
+        return sequenceNumberGenerator.getAsLong();
     }
 
     /**
@@ -187,7 +186,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                         .setUserData(userData)
                         .get()
                 ).
-                        collect(Collectors.toCollection(() -> Lists.newArrayListWithExpectedSize(n.size()))));
+                        collect(Collectors.toList()));
         //fire listeners
         fireListeners(notifs);
     }
@@ -202,11 +201,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     }
 
-    private void fireListeners(final Iterable<? extends Notification> notifications){
-        for (final Notification n : notifications) {
+    private void fireListeners(final Iterable<? extends Notification> notifications) {
+        notifications.forEach(n -> {
             listeners.handleNotification(getListenerInvoker(), n, null);
             metrics.update();
-        }
+        });
         interceptFire();
     }
 
@@ -288,6 +287,17 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         if (metadata != null)
             disconnectNotifications(metadata);
         return metadata;
+    }
+
+    /**
+     * Disables notifications of the specified category.
+     * @param category Category of notifications to disable.
+     * @return An instance of disabled notification category; or {@literal null}, if notification with the specified category doesn't exist.
+     * @since 2.0
+     */
+    @Override
+    public final M disableNotifications(final String category) {
+        return remove(category);
     }
 
     /**

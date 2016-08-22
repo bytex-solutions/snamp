@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.composite;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -14,7 +15,7 @@ import static com.bytex.snamp.MapUtils.getValue;
  * @version 1.0
  * @since 1.0
  */
-final class CompositeResourceConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+final class CompositeResourceConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     private static final String SPLITTER_PARAM = "splitter";
 
     private static final LazyValue<CompositeResourceConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(CompositeResourceConfigurationDescriptor::new);

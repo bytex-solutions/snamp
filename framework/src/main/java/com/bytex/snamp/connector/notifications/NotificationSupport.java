@@ -19,11 +19,6 @@ import java.util.Set;
  * @since 1.0
  */
 public interface NotificationSupport extends NotificationBroadcaster {
-    /**
-     * The name of the field in {@link javax.management.Descriptor}
-     * which contains the name of the enabled category.
-     */
-    String NOTIFICATION_CATEGORY_FIELD = "notificationCategory";
 
     /**
      * The name of the field in {@link javax.management.Descriptor}
@@ -54,6 +49,13 @@ public interface NotificationSupport extends NotificationBroadcaster {
      */
     MBeanNotificationInfo enableNotifications(final String category, final NotificationDescriptor descriptor);
 
+    /**
+     * Disables notifications of the specified category.
+     * @param category Category of notifications to disable.
+     * @return An instance of disabled notification category; or {@literal null}, if notification with the specified category doesn't exist.
+     * @since 2.0
+     */
+    MBeanNotificationInfo disableNotifications(final String category);
 
     /**
      * Disables all notifications except specified in the collection.

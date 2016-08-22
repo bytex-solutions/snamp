@@ -4,11 +4,13 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,20 +37,23 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     private final Composition connectors;
     @Aggregation(cached = true)
     private final AttributeComposition attributes;
+    @Aggregation(cached = true)
+    private final NotificationComposition notifications;
 
-    CompositeResourceConnector(final String resourceName){
+    CompositeResourceConnector(final String resourceName, final ExecutorService threadPool) {
         connectors = new Composition(resourceName);
         attributes = new AttributeComposition(resourceName, connectors, getLogger());
+        notifications = new NotificationComposition(resourceName, connectors, threadPool, getLogger(), Utils.getBundleContextOfObject(this));
     }
 
     @Override
     public void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes);
+        addResourceEventListener(listener, attributes, notifications);
     }
 
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes);
+        removeResourceEventListener(listener, attributes, notifications);
     }
 
     private void update(final Map<String, String> connectionStrings, final Function<String, ? extends Map<String, String>> connectionParameters) throws Exception{
@@ -99,7 +104,8 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
      */
     @Override
     public void close() throws Exception {
-        attributes.close();
         connectors.close();
+        attributes.close();
+        notifications.close();
     }
 }

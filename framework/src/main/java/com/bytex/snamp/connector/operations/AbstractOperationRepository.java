@@ -249,6 +249,18 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     }
 
     /**
+     * Removes operation from the managed resource.
+     *
+     * @param operationName Name of the operation to remove.
+     * @return An instance of removed operation; or {@literal null}, if operation with the specified name doesn't exist.
+     * @since 2.0
+     */
+    @Override
+    public final M removeOperation(final String operationName) {
+        return remove(operationName);
+    }
+
+    /**
      * Disables all operations except specified in the collection.
      *
      * @param operations A set of operations which should not be disabled.

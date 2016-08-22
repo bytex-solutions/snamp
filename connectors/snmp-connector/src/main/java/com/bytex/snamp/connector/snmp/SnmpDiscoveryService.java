@@ -50,7 +50,7 @@ final class SnmpDiscoveryService extends AbstractDiscoveryService<SnmpClient> {
                     return config;
                 })
                 .filter(Objects::nonNull)
-                .collect(Collectors.toCollection(LinkedList::new));
+                .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")

@@ -27,12 +27,26 @@ final class AttributeComposition extends AbstractAttributeRepository<CompositeAt
         this.logger = Objects.requireNonNull(logger);
     }
 
-    private CompositeAttribute connectAttribute(final String connectorType, final String attributeName, final AttributeDescriptor descriptor) throws Exception{
+    private CompositeAttribute connectAttribute(final String connectorType, final String attributeName, final AttributeDescriptor descriptor) throws Exception {
         final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType);
-        if(support == null)
-            throw CompositeAttribute.attributeNotFound(connectorType, attributeName);
+        if (support == null)
+            throw new MBeanException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support attributes", connectorType)));
         final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor);
+        if (underlyingAttribute == null)
+            throw CompositeAttribute.attributeNotFound(connectorType, attributeName);
         return new CompositeAttribute(connectorType, underlyingAttribute);
+    }
+
+    /**
+     * Removes the attribute from the connector.
+     *
+     * @param attributeInfo An attribute metadata.
+     */
+    @Override
+    protected void disconnectAttribute(final CompositeAttribute attributeInfo) {
+        final AttributeSupport support = attributeSupportProvider.getAttributeSupport(attributeInfo.getConnectorType());
+        if (support != null)
+            support.removeAttribute(attributeInfo.getName());
     }
 
     /**

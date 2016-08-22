@@ -36,7 +36,7 @@ public final class DistributedServices {
         }
 
         @Override
-        public long increment() {
+        public long getAsLong() {
             return getAndIncrement();
         }
     }

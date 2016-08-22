@@ -494,6 +494,18 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     }
 
     /**
+     * Removes attribute from the managed resource.
+     *
+     * @param attributeName Name of the attribute to remove.
+     * @return An instance of removed attribute; or {@literal null}, if attribute with the specified name doesn't exist.
+     * @since 2.0
+     */
+    @Override
+    public final M removeAttribute(final String attributeName) {
+        return remove(attributeName);
+    }
+
+    /**
      * Removes all attributes except specified in the collection.
      *
      * @param attributes A set of attributes which should not be deleted.

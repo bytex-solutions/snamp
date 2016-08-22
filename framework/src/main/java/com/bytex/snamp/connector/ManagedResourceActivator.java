@@ -644,13 +644,13 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     private static List<Bundle> getResourceConnectorBundles(final BundleContext context) {
         return Arrays.stream(context.getBundles())
                 .filter(ManagedResourceConnector::isResourceConnectorBundle)
-                .collect(Collectors.toCollection(LinkedList::new));
+                .collect(Collectors.toList());
     }
 
     static List<Bundle> getResourceConnectorBundles(final BundleContext context, final String connectorName){
         return Arrays.stream(context.getBundles())
                 .filter(bnd -> ManagedResourceConnector.getResourceConnectorType(bnd).equals(connectorName))
-                .collect(Collectors.toCollection(LinkedList::new));
+                .collect(Collectors.toList());
     }
 
     /**
@@ -732,7 +732,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return candidates.stream()
                 .filter(ManagedResourceConnector::isResourceConnectorBundle)
                 .map(ManagedResourceConnector::getResourceConnectorType)
-                .collect(Collectors.toCollection(LinkedList::new));
+                .collect(Collectors.toList());
     }
 
     static String createFilter(final String connectorType, final String filter){
