@@ -15,9 +15,13 @@ final class CompositeAttribute extends MBeanAttributeInfo implements CompositeFe
     private static final long serialVersionUID = 8395290268605454780L;
     private final String connectorType;
 
-    CompositeAttribute(final String connectorType, final MBeanAttributeInfo info){
-        super(info.getName(), info.getType(), info.getDescription(), info.isReadable(), info.isWritable(), info.isIs(), info.getDescriptor());
+    CompositeAttribute(final String connectorType, final MBeanAttributeInfo info) {
+        super(attachPrefix(connectorType, info.getName()), info.getType(), info.getDescription(), info.isReadable(), info.isWritable(), info.isIs(), info.getDescriptor());
         this.connectorType = Objects.requireNonNull(connectorType);
+    }
+
+    private static String attachPrefix(final String connectorType, final String name){
+        return connectorType + ':' + name;
     }
 
     @Override

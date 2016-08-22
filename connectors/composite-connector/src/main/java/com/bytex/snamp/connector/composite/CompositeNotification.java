@@ -14,8 +14,15 @@ final class CompositeNotification extends MBeanNotificationInfo implements Compo
     private final String connectorType;
 
     CompositeNotification(final String connectorType, final MBeanNotificationInfo info){
-        super(info.getNotifTypes(), info.getName(), info.getDescription(), info.getDescriptor());
+        super(attachPrefix(connectorType, info.getNotifTypes()), info.getName(), info.getDescription(), info.getDescriptor());
         this.connectorType = connectorType;
+    }
+
+    private static String[] attachPrefix(final String connectorType, String[] notifTypes){
+        notifTypes = notifTypes.clone();
+        for(int i = 0; i < notifTypes.length; i++)
+            notifTypes[i] = connectorType + ':' + notifTypes[i];
+        return notifTypes;
     }
 
     String getNotifType(){

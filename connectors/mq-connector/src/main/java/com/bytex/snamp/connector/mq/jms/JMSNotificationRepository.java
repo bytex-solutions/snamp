@@ -44,24 +44,19 @@ final class JMSNotificationRepository extends MDANotificationRepository<MDANotif
     }
 
     void fire(final Message message) throws JMSException{
-        fire(new NotificationCollector() {
-            private static final long serialVersionUID = -2162156378136601297L;
-            private final String category = converter.getCategory(message);
-            private final String notifMessage = converter.getMessage(message);
-            private final long sequenceNumber = converter.getSequenceNumber(message);
-            private final long timeStamp = message.getJMSTimestamp();
-
-            @Override
-            protected void process(final MDANotificationInfo metadata) {
-                if(Objects.equals(category, metadata.getDescriptor().getName(ArrayUtils.getFirst(metadata.getNotifTypes()))))
-                    if(metadata.getAttachmentType() == null)
-                        enqueue(metadata, notifMessage, sequenceNumber, timeStamp, null);
-                    else try{
-                        enqueue(metadata, notifMessage, sequenceNumber, timeStamp, converter.deserialize(message, metadata.getAttachmentType()));
-                    } catch (final JMSException | OpenDataException e){
-                        getLogger().log(Level.WARNING, "Unable to send notification");
-                    }
-            }
+        final String category = converter.getCategory(message);
+        final String notifMessage = converter.getMessage(message);
+        final long sequenceNumber = converter.getSequenceNumber(message);
+        final long timeStamp = message.getJMSTimestamp();
+        fire((metadata, collector) -> {
+            if(Objects.equals(category, metadata.getDescriptor().getName(ArrayUtils.getFirst(metadata.getNotifTypes()))))
+                if(metadata.getAttachmentType() == null)
+                    collector.enqueue(metadata, notifMessage, sequenceNumber, timeStamp, null);
+                else try{
+                    collector.enqueue(metadata, notifMessage, sequenceNumber, timeStamp, converter.deserialize(message, metadata.getAttachmentType()));
+                } catch (final JMSException | OpenDataException e){
+                    getLogger().log(Level.WARNING, "Unable to send notification");
+                }
         });
     }
 

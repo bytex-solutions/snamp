@@ -44,24 +44,18 @@ final class HttpNotificationRepository extends MDANotificationRepository<HttpNot
         return new HttpNotificationAccessor(notifType, metadata);
     }
 
-    void fire(final String category, final JsonObject notification, final Gson formatter) throws JsonParseException {
-
-        fire(new NotificationCollector() {
-            private static final long serialVersionUID = -8644675346771522318L;
-
-            @Override
-            protected void process(final HttpNotificationAccessor metadata) {
-                if (category.equals(metadata.getDescriptor().getName(ArrayUtils.getFirst(metadata.getNotifTypes()))))
-                    try {
-                        enqueue(metadata,
-                                HttpNotificationAccessor.getMessage(notification),
-                                metadata.getSequenceNumber(notification),
-                                HttpNotificationAccessor.getTimeStamp(notification),
-                                metadata.getUserData(notification, formatter));
-                    } catch (final OpenDataException e) {
-                        getLogger().log(Level.SEVERE, "Unable to process notification " + notification, e);
-                    }
-            }
+    private void fire(final String category, final JsonObject notification, final Gson formatter) throws JsonParseException {
+        fire((metadata, collector) -> {
+            if (category.equals(metadata.getDescriptor().getName(ArrayUtils.getFirst(metadata.getNotifTypes()))))
+                try {
+                    collector.enqueue(metadata,
+                            HttpNotificationAccessor.getMessage(notification),
+                            metadata.getSequenceNumber(notification),
+                            HttpNotificationAccessor.getTimeStamp(notification),
+                            metadata.getUserData(notification, formatter));
+                } catch (final OpenDataException e) {
+                    getLogger().log(Level.SEVERE, "Unable to process notification " + notification, e);
+                }
         });
     }
 

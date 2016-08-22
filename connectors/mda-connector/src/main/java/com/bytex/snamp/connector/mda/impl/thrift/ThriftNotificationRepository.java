@@ -14,6 +14,7 @@ import org.osgi.framework.BundleContext;
 import javax.management.openmbean.OpenDataException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,8 +50,7 @@ final class ThriftNotificationRepository extends MDANotificationRepository<Thrif
     }
 
     boolean fire(final String category, final TProtocol input) throws TException {
-        fire(new NotificationCollector() {
-            private static final long serialVersionUID = -251554281456696460L;
+        fire(new BiConsumer<ThriftNotificationAccessor, NotificationCollector>() {
             private Object userData = null;
             private long sequenceNumber = 0L;
             private long timeStamp = 0L;
@@ -93,7 +93,7 @@ final class ThriftNotificationRepository extends MDANotificationRepository<Thrif
             }
 
             @Override
-            protected void process(final ThriftNotificationAccessor metadata) {
+            public void accept(final ThriftNotificationAccessor metadata, final NotificationCollector collector) {
                 if (category.equals(metadata.getDescriptor().getName(ArrayUtils.getFirst(metadata.getNotifTypes())))) {
                     if (!dataAvailable)
                         try {
@@ -102,7 +102,7 @@ final class ThriftNotificationRepository extends MDANotificationRepository<Thrif
                             logger.log(Level.SEVERE, "Unable to parse user data from notification " + sequenceNumber, e);
                         }
                     if (dataAvailable)
-                        enqueue(metadata, message, sequenceNumber, timeStamp, userData);
+                        collector.enqueue(metadata, message, sequenceNumber, timeStamp, userData);
                 }
             }
         });

@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableSet;
 
 import javax.management.*;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.LongSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,16 +29,14 @@ import java.util.stream.Collectors;
 public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport, SafeCloseable {
     /**
      * Represents batch notification sender.
+     * This class cannot be inherited or instantiated directly from your code.
      */
-    protected abstract class NotificationCollector extends LinkedList<Notification>{
-        private static final long serialVersionUID = -7783660559033012643L;
+    protected final class NotificationCollector{
+        private final Collection<Notification> notifications;
 
-        /**
-         * Processes enabled notification.
-         * @param metadata Notification metadata.
-         * @see #enqueue(MBeanNotificationInfo, String, Object)
-         */
-        protected abstract void process(final M metadata);
+        private NotificationCollector(){
+            this.notifications = new LinkedList<>();
+        }
 
         /**
          * Enqueues a notification to sent in future.
@@ -45,9 +44,9 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
          * @param message Notification message.
          * @param userData Advanced data to be associated with the notification.
          */
-        protected final void enqueue(final MBeanNotificationInfo metadata,
-                                     final String message,
-                                     final Object userData){
+        public void enqueue(final MBeanNotificationInfo metadata,
+                               final String message,
+                               final Object userData){
             enqueue(metadata,
                     message,
                     generateSequenceNumber(),
@@ -63,13 +62,13 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
          * @param timeStamp Time stamp of notification.
          * @param userData Advanced data to be associated with the notification.
          */
-        protected final void enqueue(final MBeanNotificationInfo metadata,
-                                     final String message,
-                                     final long sequenceNumber,
-                                     final long timeStamp,
-                                     final Object userData){
+        public void enqueue(final MBeanNotificationInfo metadata,
+                               final String message,
+                               final long sequenceNumber,
+                               final long timeStamp,
+                               final Object userData){
             for(final String category: metadata.getNotifTypes())
-                add(new NotificationBuilder()
+                notifications.add(new NotificationBuilder()
                         .setTimeStamp(timeStamp)
                         .setSequenceNumber(sequenceNumber)
                         .setType(category)
@@ -143,17 +142,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected abstract NotificationListenerInvoker getListenerInvoker();
 
-    /**
-     * Collects notifications in batch manner.
-     * @param sender An object used to collect notifications
-     */
-    protected final void fire(final NotificationCollector sender) {
-        //collect notifications
-        readAccept(notifications, sender, (n, s) -> {
-            n.values().forEach(s::process);
-        });
-        //send notifications
-        fireListeners(sender);
+    protected final void fire(final BiConsumer<? super M, ? super NotificationCollector> sender){
+        final NotificationCollector collector = new NotificationCollector();
+        readAccept(notifications.values(), collector, (notifications, collector1) -> notifications.forEach(n -> sender.accept(n, collector1)));
+        fireListeners(collector.notifications);
+        collector.notifications.clear();    //help GC
     }
 
     /**
@@ -189,10 +182,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                         collect(Collectors.toList()));
         //fire listeners
         fireListeners(notifs);
+        notifs.clear();     //help GC
     }
 
     /**
-     * Aspect called after invocation of {@link #fire(NotificationCollector)},
+     * Aspect called after invocation of {@link #fire(BiConsumer)},
      * {@link #fire(String, String, long, long, Object)} or
      * {@link #fire(String, String, Object)}.
      */
