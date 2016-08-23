@@ -1,4 +1,5 @@
 package com.bytex.snamp.configuration;
+import static com.bytex.snamp.MapUtils.*;
 
 /**
  * Represents a feature of the managed resource.
@@ -25,13 +26,13 @@ public interface FeatureConfiguration extends EntityConfiguration {
         return getParameters().get(NAME_KEY);
     }
 
-    default boolean isAutomaticallyAdded(){
-        return getParameters().containsKey(AUTOMATICALLY_ADDED_KEY);
+    default boolean isAutomaticallyAdded() {
+        return getValue(getParameters(), AUTOMATICALLY_ADDED_KEY, Boolean::parseBoolean, () -> false);
     }
 
     default void setAutomaticallyAdded(final boolean value){
         if(value)
-            getParameters().put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
+            putValue(getParameters(), AUTOMATICALLY_ADDED_KEY, Boolean.TRUE, Object::toString);
         else
             getParameters().remove(AUTOMATICALLY_ADDED_KEY);
     }
