@@ -581,7 +581,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             try {
                 userData = UserDataExtractor.getUserData(notification);
             } catch (final OpenDataException | IllegalArgumentException e) {
-                getLoggerImpl().log(Level.WARNING, String.format("Unable to process user data %s in notification %s",
+                getLoggerImpl().log(Level.SEVERE, String.format("Unable to process user data %s in notification %s",
                         notification.getUserData(),
                         notification.getType()), e);
             }
