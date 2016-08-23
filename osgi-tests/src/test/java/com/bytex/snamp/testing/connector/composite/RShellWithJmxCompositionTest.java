@@ -22,13 +22,10 @@ import java.lang.management.ManagementFactory;
 @SnampDependencies({SnampFeature.RSHELL_CONNECTOR, SnampFeature.JMX_CONNECTOR})
 public final class RShellWithJmxCompositionTest extends AbstractCompositeConnectorTest {
     private static String buildConnectionString() {
-        return new StringBuilder()
-                .append("jmx:=")
-                .append(AbstractJmxConnectorTest.getConnectionString())
-                .append(';')
-                .append("rshell:=process")
-                .toString();
-
+        return "jmx:=" +
+                AbstractJmxConnectorTest.getConnectionString() +
+                ';' +
+                "rshell:=process";
     }
 
     private final ObjectName beanName;
@@ -66,7 +63,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
-        events.addAndConsume("19.1", event -> {
+        events.addAndConsume("attributeChange", event -> {
             event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
             event.getParameters().put("severity", "notice");
             event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);

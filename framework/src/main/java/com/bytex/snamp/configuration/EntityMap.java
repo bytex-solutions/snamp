@@ -20,7 +20,7 @@ public interface EntityMap<E extends EntityConfiguration> extends Map<String, E>
      * Processes entity configuration contained in this collection.
      * @param entityID Unique identifier of entity to process. Cannot be {@literal null}.
      * @param handler A function used to process configuration. Cannot be {@literal null}.
-     * @return {@literal true} if entity was added; {@literal false} if entity was exist.
+     * @return {@literal true} if entity was added; {@literal false} if entity already exists.
      * @since 2.0
      */
     default boolean addAndConsume(final String entityID, final Consumer<? super E> handler) {
