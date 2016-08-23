@@ -69,7 +69,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     private void testJmxAttribute(final Attribute attr) throws BundleException, JMException, IOException{
-            final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
+            final String connectionString = AbstractJmxConnectorTest.getConnectionString();
             try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
                 final MBeanServerConnection connection = connector.getMBeanServerConnection();
                 final ObjectName resourceObjectName = createObjectName();
@@ -144,7 +144,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
     @Test
     public void notificationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException, ExecutionException {
         final Attribute attr = new Attribute("1.0", "Garry Oldman");
-        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
+        final String connectionString = AbstractJmxConnectorTest.getConnectionString();
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName resourceObjectName = createObjectName();
@@ -245,17 +245,17 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("19.1");
-        setFeatureName(event, AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
 
         event = events.getOrAdd("20.1");
-        setFeatureName(event, "com.bytex.snamp.connector.tests.impl.testnotif");
+        event.setAlternativeName("com.bytex.snamp.connector.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
 
         event = events.getOrAdd("21.1");
-        setFeatureName(event, "com.bytex.snamp.connector.tests.impl.plainnotif");
+        event.setAlternativeName("com.bytex.snamp.connector.tests.impl.plainnotif");
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
     }
@@ -263,41 +263,41 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
-        setFeatureName(attribute, "string");
+        attribute.setAlternativeName("string");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("2.0");
-        setFeatureName(attribute, "boolean");
+        attribute.setAlternativeName("boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("3.0");
-        setFeatureName(attribute, "int32");
+        attribute.setAlternativeName("int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("4.0");
-        setFeatureName(attribute, "bigint");
+        attribute.setAlternativeName("bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("5.1");
-        setFeatureName(attribute, "array");
+        attribute.setAlternativeName("array");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("6.1");
-        setFeatureName(attribute, "dictionary");
+        attribute.setAlternativeName("dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("typeName", "dict");
 
         attribute = attributes.getOrAdd("7.1");
-        setFeatureName(attribute, "table");
+        attribute.setAlternativeName("table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("typeName", "table");
 
         attribute = attributes.getOrAdd("8.0");
-        setFeatureName(attribute, "float");
+        attribute.setAlternativeName("float");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("9.0");
-        setFeatureName(attribute, "date");
+        attribute.setAlternativeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
     }
 }

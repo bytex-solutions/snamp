@@ -1,6 +1,7 @@
 package com.bytex.snamp.testing.connector.jmx;
 
 import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.google.common.reflect.TypeToken;
@@ -16,8 +17,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.util.Objects;
 
-import com.bytex.snamp.configuration.EntityMap;
-
 /**
  * @author Roman Sakno
  * @version 2.0
@@ -32,18 +31,18 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
     @Override
     protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
         OperationConfiguration operation = operations.getOrAdd("forceGC");
-        setFeatureName(operation, "gc");
+        operation.setAlternativeName("gc");
         operation.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1");
-        setFeatureName(attribute, "ObjectPendingFinalizationCount");
+        attribute.setAlternativeName("ObjectPendingFinalizationCount");
         attribute.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
 
         attribute = attributes.getOrAdd("2");
-        setFeatureName(attribute, "HeapMemoryUsage");
+        attribute.setAlternativeName("HeapMemoryUsage");
         attribute.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
     }
 

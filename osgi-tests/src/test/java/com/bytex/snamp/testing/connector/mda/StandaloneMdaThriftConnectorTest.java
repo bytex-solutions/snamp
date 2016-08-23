@@ -2,6 +2,7 @@ package com.bytex.snamp.testing.connector.mda;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
@@ -22,8 +23,6 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import com.bytex.snamp.configuration.EntityMap;
 
 import static com.bytex.snamp.testing.connector.mda.MonitoringDataAcceptor.Client;
 
@@ -175,49 +174,49 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("e1");
-        setFeatureName(event, "testEvent");
+        event.setAlternativeName("testEvent");
         event.getParameters().put("expectedType", "int64");
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attr = attributes.getOrAdd("attr1");
-        setFeatureName(attr, "short");
+        attr.setAlternativeName("short");
         attr.getParameters().put("expectedType", "int16");
 
         attr = attributes.getOrAdd("attr2");
-        setFeatureName(attr, "date");
+        attr.setAlternativeName("date");
         attr.getParameters().put("expectedType", "datetime");
 
         attr = attributes.getOrAdd("attr3");
-        setFeatureName(attr, "biginteger");
+        attr.setAlternativeName("biginteger");
         attr.getParameters().put("expectedType", "bigint");
 
         attr = attributes.getOrAdd("attr4");
-        setFeatureName(attr, "str");
+        attr.setAlternativeName("str");
         attr.getParameters().put("expectedType", "string");
 
         attr = attributes.getOrAdd("attr5");
-        setFeatureName(attr, "array");
+        attr.setAlternativeName("array");
         attr.getParameters().put("expectedType", "array(int8)");
 
         attr = attributes.getOrAdd("attr6");
-        setFeatureName(attr, "boolean");
+        attr.setAlternativeName("boolean");
         attr.getParameters().put("expectedType", "bool");
 
         attr = attributes.getOrAdd("attr7");
-        setFeatureName(attr, "long");
+        attr.setAlternativeName("long");
         attr.getParameters().put("expectedType", "int64");
 
         attr = attributes.getOrAdd("attr8");
-        setFeatureName(attr, "dict");
+        attr.setAlternativeName("dict");
         attr.getParameters().put("expectedType", "dictionary");
         attr.getParameters().put("dictionaryName", "MemoryStatus");
         attr.getParameters().put("dictionaryItemNames", "free, total");
         attr.getParameters().put("dictionaryItemTypes", "int32, int64");
 
         attr = attributes.getOrAdd("attr9");
-        setFeatureName(attr, "longArray");
+        attr.setAlternativeName("longArray");
         attr.getParameters().put("expectedType", "array(int64)");
     }
 }

@@ -280,31 +280,31 @@ public final class HttpToJmxGateway extends AbstractJmxConnectorTest<TestOpenMBe
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
-        setFeatureName(attribute, "string");
+        attribute.setAlternativeName("string");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("2.0");
-        setFeatureName(attribute, "boolean");
+        attribute.setAlternativeName("boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("3.0");
-        setFeatureName(attribute, "int32");
+        attribute.setAlternativeName("int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("5.1");
-        setFeatureName(attribute, "array");
+        attribute.setAlternativeName("array");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("6.1");
-        setFeatureName(attribute, "dictionary");
+        attribute.setAlternativeName("dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("typeName", "dict");
 
         attribute = attributes.getOrAdd("7.1");
-        setFeatureName(attribute, "table");
+        attribute.setAlternativeName("table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("typeName", "table");
     }

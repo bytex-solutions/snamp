@@ -19,17 +19,25 @@ import java.lang.management.PlatformManagedObject;
 @SnampDependencies(SnampFeature.JMX_CONNECTOR)
 public abstract class AbstractJmxConnectorTest<MBean> extends AbstractResourceConnectorTest {
     private final ObjectName beanName;
-    protected final MBean beanInstance;
-    public static final String CONNECTOR_NAME = "jmx";
+    private final MBean beanInstance;
+    static final String CONNECTOR_NAME = "jmx";
     public static final String JMX_LOGIN = "karaf";
     public static final String JMX_PASSWORD = "karaf";
-    public static final int JMX_KARAF_PORT = 1099; // Located in KARAF_ROOT/etc/org.apache.karaf.management.cfg; property name is rmiRegistryPort
-    public static final String JMX_RMI_CONNECTION_STRING = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
+    private static final int JMX_KARAF_PORT = 1099; // Located in KARAF_ROOT/etc/org.apache.karaf.management.cfg; property name is rmiRegistryPort
+    private static final String JMX_RMI_CONNECTION_STRING = "service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root";
 
     protected AbstractJmxConnectorTest(final MBean beanInstance, final ObjectName beanName){
-        super(CONNECTOR_NAME, JMX_RMI_CONNECTION_STRING, ImmutableMap.of("login", JMX_LOGIN, "password", JMX_PASSWORD));
+        super(CONNECTOR_NAME, getConnectionString(), ImmutableMap.of("login", JMX_LOGIN, "password", JMX_PASSWORD));
         this.beanName = beanName;
         this.beanInstance = beanInstance;
+    }
+
+    public static String getConnectionString(){
+        return getConnectionString(JMX_KARAF_PORT);
+    }
+
+    public static String getConnectionString(final int port){
+        return String.format(JMX_RMI_CONNECTION_STRING, port);
     }
 
     public static void beforeStartTest(final ObjectName beanName,

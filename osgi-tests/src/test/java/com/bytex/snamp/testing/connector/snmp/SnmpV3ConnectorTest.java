@@ -3,6 +3,7 @@ package com.bytex.snamp.testing.connector.snmp;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
@@ -33,8 +34,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-
-import com.bytex.snamp.configuration.EntityMap;
 
 /**
  * Represents SNMPv3 connector test.
@@ -260,61 +259,61 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("snmp-notif");
-        setFeatureName(event, "1.7.1");
+        event.setAlternativeName("1.7.1");
         event.getParameters().put("messageTemplate", "{1.0} - {2.0}");
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("opaqueAttr");
-        setFeatureName(attribute, "1.6.10.0");
+        attribute.setAlternativeName("1.6.10.0");
 
         attribute = attributes.getOrAdd("ipAddressAsByte");
-        setFeatureName(attribute, "1.6.9.0");
+        attribute.setAlternativeName("1.6.9.0");
 
         attribute = attributes.getOrAdd("ipAddressAsString");
-        setFeatureName(attribute, "1.6.9.0");
+        attribute.setAlternativeName("1.6.9.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
 
         attribute = attributes.getOrAdd("oidAsIntArray");
-        setFeatureName(attribute, "1.6.8.0");
+        attribute.setAlternativeName("1.6.8.0");
 
         attribute = attributes.getOrAdd("oidAsString");
-        setFeatureName(attribute, "1.6.8.0");
+        attribute.setAlternativeName("1.6.8.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
 
         attribute = attributes.getOrAdd("gauge");
-        setFeatureName(attribute, "1.6.7.0");
+        attribute.setAlternativeName("1.6.7.0");
 
         attribute = attributes.getOrAdd("counter64");
-        setFeatureName(attribute, "1.6.6.0");
+        attribute.setAlternativeName("1.6.6.0");
 
         attribute = attributes.getOrAdd("counter32");
-        setFeatureName(attribute, "1.6.5.0");
+        attribute.setAlternativeName("1.6.5.0");
 
         attribute = attributes.getOrAdd("timeTicksAsLong");
-        setFeatureName(attribute, "1.6.4.0");
+        attribute.setAlternativeName("1.6.4.0");
 
         attribute = attributes.getOrAdd("timeTicksAsString");
-        setFeatureName(attribute, "1.6.4.0");
+        attribute.setAlternativeName("1.6.4.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
 
         attribute = attributes.getOrAdd("uint32");
-        setFeatureName(attribute, "1.6.3.0");
+        attribute.setAlternativeName("1.6.3.0");
 
         attribute = attributes.getOrAdd("int32");
-        setFeatureName(attribute, "1.6.2.0");
+        attribute.setAlternativeName("1.6.2.0");
 
         attribute = attributes.getOrAdd("octetstring");
-        setFeatureName(attribute, "1.6.1.0");
+        attribute.setAlternativeName("1.6.1.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
 
         attribute = attributes.getOrAdd("hexstring");
-        setFeatureName(attribute, "1.6.1.0");
+        attribute.setAlternativeName("1.6.1.0");
         attribute.getParameters().put("snmpConversionFormat", "hex");
 
         attribute = attributes.getOrAdd("octetstringAsByteArray");
-        setFeatureName(attribute, "1.6.1.0");
+        attribute.setAlternativeName("1.6.1.0");
         attribute.getParameters().put("snmpConversionFormat", "raw");
     }
 

@@ -10,6 +10,7 @@ import com.bytex.snamp.scripting.OSGiScriptEngineManager;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
+import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.rshell.AbstractRShellConnectorTest;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
@@ -102,12 +103,12 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         final AttributeConfiguration attr = attributes.getOrAdd("ms");
-        setFeatureName(attr, getPathToFileInProjectRoot("freemem-tool-profile.xml"));
+        attr.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
         attr.getParameters().put("format", "-m");
     }
 
     private Object readAttribute(final String attributeName) throws IOException, JMException {
-        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
+        final String connectionString = AbstractJmxConnectorTest.getConnectionString();
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName resourceObjectName = createObjectName();

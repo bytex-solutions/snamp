@@ -1,10 +1,9 @@
 package com.bytex.snamp.testing;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.FeatureConfiguration;
-import com.bytex.snamp.gateway.*;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.gateway.*;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
@@ -170,9 +169,5 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         finally {
             GatewayClient.removeEventListener(gatewayType, synchronizer);
         }
-    }
-
-    protected static void setFeatureName(final FeatureConfiguration feature, final String name){
-        feature.setAlternativeName(name);
     }
 }

@@ -1,6 +1,7 @@
 package com.bytex.snamp.testing.connector.mq;
 
 import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.google.common.collect.ImmutableMap;
@@ -12,8 +13,6 @@ import javax.jms.*;
 import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
 import java.time.Duration;
-
-import com.bytex.snamp.configuration.EntityMap;
 
 /**
  * Before running this test you need to install RabbitMQ locally. On Debian use the following steps:
@@ -105,45 +104,45 @@ public final class AMQPTest extends AbstractMQConnectorTest {
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
-        setFeatureName(attribute, "string");
+        attribute.setAlternativeName("string");
         attribute.getParameters().put("expectedType", "string");
 
         attribute = attributes.getOrAdd("2.0");
-        setFeatureName(attribute, "boolean");
+        attribute.setAlternativeName("boolean");
         attribute.getParameters().put("expectedType", "bool");
 
         attribute = attributes.getOrAdd("3.0");
-        setFeatureName(attribute, "int32");
+        attribute.setAlternativeName("int32");
         attribute.getParameters().put("expectedType", "int32");
 
         attribute = attributes.getOrAdd("4.0");
-        setFeatureName(attribute, "bigint");
+        attribute.setAlternativeName("bigint");
         attribute.getParameters().put("expectedType", "bigint");
 
         attribute = attributes.getOrAdd("5.1");
-        setFeatureName(attribute, "array");
+        attribute.setAlternativeName("array");
         attribute.getParameters().put("expectedType", "array(int32)");
 
         attribute = attributes.getOrAdd("6.1");
-        setFeatureName(attribute, "dictionary");
+        attribute.setAlternativeName("dictionary");
         attribute.getParameters().put("expectedType", "dictionary");
         attribute.getParameters().put("dictionaryName", "MemoryStatus");
         attribute.getParameters().put("dictionaryItemNames", "free, total");
         attribute.getParameters().put("dictionaryItemTypes", "int32, int32");
 
         attribute = attributes.getOrAdd("8.0");
-        setFeatureName(attribute, "float");
+        attribute.setAlternativeName("float");
         attribute.getParameters().put("expectedType", "float32");
 
         attribute = attributes.getOrAdd("9.0");
-        setFeatureName(attribute, "date");
+        attribute.setAlternativeName("date");
         attribute.getParameters().put("expectedType", "datetime");
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("mqn");
-        setFeatureName(event, "mq-notification");
+        event.setAlternativeName("mq-notification");
         event.getParameters().put("severity", "notice");
         event.getParameters().put("expectedType", "string");
     }

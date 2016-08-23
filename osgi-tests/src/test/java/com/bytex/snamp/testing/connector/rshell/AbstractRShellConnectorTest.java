@@ -18,7 +18,7 @@ import java.util.Objects;
  */
 @SnampDependencies(SnampFeature.RSHELL_CONNECTOR)
 public abstract class AbstractRShellConnectorTest extends AbstractResourceConnectorTest {
-    protected static final String CONNECTOR_NAME = "rshell";
+    private static final String CONNECTOR_NAME = "rshell";
     private SshServer server;
     private final int port;
     private final String certificateFile;
@@ -43,12 +43,8 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
         this.password = password;
     }
 
-    protected static String getConnectionString(final int port){
+    public static String getConnectionString(final int port){
         return String.format("ssh://localhost:%s", port);
-    }
-
-    protected final String getConnectionString(){
-        return getConnectionString(port);
     }
 
     /*@Override

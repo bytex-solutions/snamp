@@ -431,7 +431,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("19.1");
-        setFeatureName(event, AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
         event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
@@ -439,7 +439,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         event.getParameters().put("oid", "1.1.19.1");
 
         event = events.getOrAdd("20.1");
-        setFeatureName(event, "com.bytex.snamp.connector.tests.impl.testnotif");
+        event.setAlternativeName("com.bytex.snamp.connector.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
         event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
@@ -447,7 +447,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         event.getParameters().put("oid", "1.1.20.1");
 
         event = events.getOrAdd("21.1");
-        setFeatureName(event, "com.bytex.snamp.connector.tests.impl.plainnotif");
+        event.setAlternativeName("com.bytex.snamp.connector.tests.impl.plainnotif");
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
         event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
@@ -458,59 +458,59 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
-        setFeatureName(attribute, "string");
+        attribute.setAlternativeName("string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.1.0");
 
         attribute = attributes.getOrAdd("2.0");
-        setFeatureName(attribute, "boolean");
+        attribute.setAlternativeName("boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.2.0");
 
         attribute = attributes.getOrAdd("3.0");
-        setFeatureName(attribute, "int32");
+        attribute.setAlternativeName("int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.3.0");
 
         attribute = attributes.getOrAdd("4.0");
-        setFeatureName(attribute, "bigint");
+        attribute.setAlternativeName("bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.4.0");
 
         attribute = attributes.getOrAdd("5.1");
-        setFeatureName(attribute, "array");
+        attribute.setAlternativeName("array");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.5.1");
 
         attribute = attributes.getOrAdd("6.1");
-        setFeatureName(attribute, "dictionary");
+        attribute.setAlternativeName("dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.6.1");
 
         attribute = attributes.getOrAdd("7.1");
-        setFeatureName(attribute, "table");
+        attribute.setAlternativeName("table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.7.1");
 
         attribute = attributes.getOrAdd("8.0");
-        setFeatureName(attribute, "float");
+        attribute.setAlternativeName("float");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.8.0");
 
         attribute = attributes.getOrAdd("9.0");
-        setFeatureName(attribute, "date");
+        attribute.setAlternativeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         attribute.getParameters().put("oid", "1.1.9.0");
 
         attribute = attributes.getOrAdd("10.0");
-        setFeatureName(attribute, "date");
+        attribute.setAlternativeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
         attribute.getParameters().put("oid", "1.1.10.0");
 
         attribute = attributes.getOrAdd("11.0");
-        setFeatureName(attribute, "date");
+        attribute.setAlternativeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903");
         attribute.getParameters().put("oid", "1.1.11.0");

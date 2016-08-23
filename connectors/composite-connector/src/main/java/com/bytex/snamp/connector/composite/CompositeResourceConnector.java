@@ -79,7 +79,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
 
     @Override
     protected MetricsReader createMetricsReader() {
-        return null;
+        return assembleMetricsReader(attributes, operations, notifications);
     }
 
     private static Map<String, String> parseConnectionString(final String connectionString, final Pattern splitter) {

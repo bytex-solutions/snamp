@@ -61,7 +61,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void metricsTest() throws JMException, IOException {
-        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(getConnectionString()), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
             assertTrue(connection.getAttribute(commonsObj, "SummaryMetrics") instanceof CompositeData);
@@ -79,7 +79,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
      */
     @Test
     public void jmxMonitoringTest() throws Exception {
-        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))){
+        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(getConnectionString()), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))){
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
             assertNotNull(connection.getMBeanInfo(commonsObj));
@@ -135,7 +135,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void adapterSnmpRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
-        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(getConnectionString()), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
@@ -149,7 +149,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void connectorJmxRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
-        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(getConnectionString()), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
@@ -175,7 +175,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void gatewayManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
-        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(getConnectionString()), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
@@ -217,7 +217,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
      */
     @Test
     public void connectorsManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
-        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(getConnectionString()), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
@@ -255,7 +255,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     @Ignore
     @Test
     public void restartTest() throws IOException, JMException, InterruptedException, TimeoutException {
-        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(getConnectionString()), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
             Object voidReturn = connection.invoke(commonsObj, "restart", null, null);
@@ -297,59 +297,59 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
-        setFeatureName(attribute, "string");
+        attribute.setAlternativeName("string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.1.0");
 
         attribute = attributes.getOrAdd("2.0");
-        setFeatureName(attribute, "boolean");
+        attribute.setAlternativeName("boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.2.0");
 
         attribute = attributes.getOrAdd("3.0");
-        setFeatureName(attribute, "int32");
+        attribute.setAlternativeName("int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.3.0");
 
         attribute = attributes.getOrAdd("4.0");
-        setFeatureName(attribute, "bigint");
+        attribute.setAlternativeName("bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.4.0");
 
         attribute = attributes.getOrAdd("5.1");
-        setFeatureName(attribute, "array");
+        attribute.setAlternativeName("array");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.5.1");
 
         attribute = attributes.getOrAdd("6.1");
-        setFeatureName(attribute, "dictionary");
+        attribute.setAlternativeName("dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.6.1");
 
         attribute = attributes.getOrAdd("7.1");
-        setFeatureName(attribute, "table");
+        attribute.setAlternativeName("table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.7.1");
 
         attribute = attributes.getOrAdd("8.0");
-        setFeatureName(attribute, "float");
+        attribute.setAlternativeName("float");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.8.0");
 
         attribute = attributes.getOrAdd("9.0");
-        setFeatureName(attribute, "date");
+        attribute.setAlternativeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         attribute.getParameters().put("oid", "1.1.9.0");
 
         attribute = attributes.getOrAdd("10.0");
-        setFeatureName(attribute, "date");
+        attribute.setAlternativeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
         attribute.getParameters().put("oid", "1.1.10.0");
 
         attribute = attributes.getOrAdd("11.0");
-        setFeatureName(attribute, "date");
+        attribute.setAlternativeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903");
         attribute.getParameters().put("oid", "1.1.11.0");
