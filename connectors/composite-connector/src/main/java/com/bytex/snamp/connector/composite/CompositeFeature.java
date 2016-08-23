@@ -10,4 +10,5 @@ import javax.management.DescriptorRead;
  */
 interface CompositeFeature extends DescriptorRead, Cloneable, ConnectorTypeSplit {
     String getConnectorType();
+    String getShortName();
 }

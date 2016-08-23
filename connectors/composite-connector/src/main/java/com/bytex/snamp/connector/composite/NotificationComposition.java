@@ -20,7 +20,7 @@ import static com.bytex.snamp.core.DistributedServices.getDistributedCounter;
  * @version 1.0
  * @since 1.0
  */
-final class NotificationComposition extends AbstractNotificationRepository<CompositeNotification> implements ConnectorTypeSplit, NotificationListener{
+final class NotificationComposition extends AbstractNotificationRepository<CompositeNotification> implements NotificationListener{
     private final NotificationSupportProvider provider;
     /*
         State of current subscription.
@@ -54,35 +54,36 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
         return listenerInvoker;
     }
 
-    private CompositeNotification connectNotifications(final String connectorType, final String notifType, final NotificationDescriptor descriptor) throws MBeanException, ReflectionException {
-        final NotificationSupport support = provider.getNotificationSupport(connectorType);
-        if (support == null)
-            throw new MBeanException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support notifications", connectorType)));
-        final MBeanNotificationInfo underlyingNotif = support.enableNotifications(notifType, descriptor);
-        if (underlyingNotif == null)
-            throw new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable notification '%s'", connectorType, notifType)));
-        //update state of subscription
-        if(subscription.get(connectorType).isEmpty()){
-            support.addNotificationListener(this, null, null);
-        }
-        subscription.put(connectorType, notifType);
-        return new CompositeNotification(connectorType, underlyingNotif);
-    }
 
     @Override
     protected CompositeNotification connectNotifications(final String notifType, final NotificationDescriptor metadata) throws MBeanException, ReflectionException {
         final Box<String> connectorType = new Box<>();
-        final Box<String> type = new Box<>();
-        return ConnectorTypeSplit.split(notifType, connectorType, type) ? connectNotifications(connectorType.get(), type.get(), metadata) : null;
+        final Box<String> shortName = new Box<>();
+        if (ConnectorTypeSplit.split(notifType, connectorType, shortName)) {
+            final NotificationSupport support = provider.getNotificationSupport(connectorType.get());
+            if (support == null)
+                throw new MBeanException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support notifications", connectorType)));
+            final MBeanNotificationInfo underlyingNotif = support.enableNotifications(shortName.get(), metadata);
+            if (underlyingNotif == null)
+                throw new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable notification '%s'", connectorType, shortName)));
+            final CompositeNotification result = new CompositeNotification(notifType, underlyingNotif);
+            //update state of subscription
+            if (subscription.get(result.getConnectorType()).isEmpty()) {
+                support.addNotificationListener(this, null, null);
+            }
+            subscription.put(result.getConnectorType(), result.getShortName());
+            return result;
+        } else
+            throw new MBeanException(CompositeNotification.invalidNotificationType(notifType));
     }
 
     @Override
     protected void disconnectNotifications(final CompositeNotification metadata) {
         final NotificationSupport support = provider.getNotificationSupport(metadata.getConnectorType());
         if (support != null)
-            support.disableNotifications(metadata.getNotifType());
+            support.disableNotifications(metadata.getShortName());
         //update state of subscription
-        subscription.remove(metadata.getConnectorType(), metadata.getNotifType());
+        subscription.remove(metadata.getConnectorType(), metadata.getShortName());
         if (support != null && subscription.get(metadata.getConnectorType()).isEmpty())
             try {
                 support.removeNotificationListener(this);

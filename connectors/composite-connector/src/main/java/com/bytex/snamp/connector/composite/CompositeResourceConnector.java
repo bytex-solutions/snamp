@@ -39,21 +39,24 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     private final AttributeComposition attributes;
     @Aggregation(cached = true)
     private final NotificationComposition notifications;
+    @Aggregation(cached = true)
+    private final OperationComposition operations;
 
     CompositeResourceConnector(final String resourceName, final ExecutorService threadPool) {
         connectors = new Composition(resourceName);
         attributes = new AttributeComposition(resourceName, connectors, getLogger());
         notifications = new NotificationComposition(resourceName, connectors, threadPool, getLogger(), Utils.getBundleContextOfObject(this));
+        operations = new OperationComposition(resourceName, connectors, getLogger());
     }
 
     @Override
     public void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes, notifications);
+        addResourceEventListener(listener, attributes, notifications, operations);
     }
 
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes, notifications);
+        removeResourceEventListener(listener, attributes, notifications, operations);
     }
 
     private void update(final Map<String, String> connectionStrings, final Function<String, ? extends Map<String, String>> connectionParameters) throws Exception{
@@ -107,5 +110,6 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
         connectors.close();
         attributes.close();
         notifications.close();
+        operations.close();
     }
 }

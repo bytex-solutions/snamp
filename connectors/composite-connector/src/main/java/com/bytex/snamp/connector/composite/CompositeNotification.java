@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.Box;
 
 import javax.management.MBeanNotificationInfo;
 
@@ -12,21 +13,26 @@ import javax.management.MBeanNotificationInfo;
 final class CompositeNotification extends MBeanNotificationInfo implements CompositeFeature {
     private static final long serialVersionUID = -5930820122739652304L;
     private final String connectorType;
+    private final String shortName;
 
-    CompositeNotification(final String connectorType, final MBeanNotificationInfo info){
-        super(attachPrefix(connectorType, info.getNotifTypes()), info.getName(), info.getDescription(), info.getDescriptor());
-        this.connectorType = connectorType;
+    CompositeNotification(final String notifType, final MBeanNotificationInfo info) {
+        super(new String[]{notifType}, info.getName(), info.getDescription(), info.getDescriptor());
+        final Box<String> connectorType = new Box<>();
+        final Box<String> type = new Box<>();
+        if (ConnectorTypeSplit.split(notifType, connectorType, type)) {
+            this.connectorType = connectorType.get();
+            this.shortName = type.get();
+        } else
+            throw invalidNotificationType(notifType);
     }
 
-    private static String[] attachPrefix(final String connectorType, String[] notifTypes){
-        notifTypes = notifTypes.clone();
-        for(int i = 0; i < notifTypes.length; i++)
-            notifTypes[i] = connectorType + ':' + notifTypes[i];
-        return notifTypes;
+    static IllegalArgumentException invalidNotificationType(final String notifType){
+        return new IllegalArgumentException("Invalid notification type " + notifType);
     }
 
-    String getNotifType(){
-        return ArrayUtils.getFirst(getNotifTypes());
+    @Override
+    public String getShortName() {
+        return shortName;
     }
 
     @Override

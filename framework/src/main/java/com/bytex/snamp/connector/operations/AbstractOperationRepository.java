@@ -9,6 +9,7 @@ import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.ObjectArrays;
 
 import javax.management.*;
 import java.lang.invoke.MethodHandle;
@@ -37,11 +38,18 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     protected static final class OperationCallInfo<M extends MBeanOperationInfo> extends AbstractList<Object> implements DescriptorRead, Supplier<Map<String, ?>> {
         private final M metadata;
         private final Object[] arguments;
+        private final String[] signature;
 
         private OperationCallInfo(final M metadata,
-                                  final Object[] args){
+                                  final Object[] args,
+                                  final String[] signature){
             this.metadata = Objects.requireNonNull(metadata);
             this.arguments = args != null ? args : emptyArray(Object[].class);
+            this.signature = signature != null ? signature : emptyArray(String[].class);
+        }
+
+        public String[] getSignature(){
+            return signature.clone();
         }
 
         /**
@@ -50,12 +58,13 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
          */
         @Override
         public Object[] toArray() {
-            return Arrays.copyOf(arguments, arguments.length);
+            return arguments.clone();
         }
 
-        @SuppressWarnings({"NullableProblems", "SuspiciousSystemArraycopy"})
         @Override
-        public <T> T[] toArray(final T[] a) {
+        public <T> T[] toArray(T[] a) {
+            if (a == null) throw new NullPointerException();
+            else if (a.length == 0) a = ObjectArrays.newArray(a, arguments.length);
             System.arraycopy(arguments, 0, a, 0, a.length);
             return a;
         }
@@ -271,7 +280,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
         retainAll(operations);
     }
 
-    protected abstract M connectOperation(final String userDefinedName,
+    protected abstract M connectOperation(final String operationName,
                                           final OperationDescriptor descriptor) throws Exception;
 
     private M connectAndAdd(final String operationName, final OperationDescriptor descriptor) throws Exception{
@@ -372,8 +381,8 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     protected abstract Object invoke(final OperationCallInfo<M> callInfo) throws Exception;
 
-    private Object invoke(final M holder, final Object[] params) throws Exception {
-        return invoke(new OperationCallInfo<>(holder, params));
+    private Object invoke(final M holder, final Object[] params, final String[] signature) throws Exception {
+        return invoke(new OperationCallInfo<>(holder, params, signature));
     }
 
     /**
@@ -399,7 +408,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
             return readCallInterruptibly(() -> {
                 final M holder = operations.get(operationName);
                 if (holder != null)
-                    return invoke(holder, params);
+                    return invoke(holder, params, signature);
                 else
                     throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", operationName)));
             });
