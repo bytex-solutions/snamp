@@ -4,17 +4,26 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.metrics.AttributeMetrics;
+import com.bytex.snamp.connector.metrics.MetricsInterval;
+import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
+import org.junit.Assume;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
+import javax.management.openmbean.CompositeData;
 import java.lang.management.ManagementFactory;
+
+import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
 
 /**
  * @author Roman Sakno
@@ -46,12 +55,49 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
     public void stringAttributeTest() throws JMException {
         testAttribute("jmx:str", TypeToken.of(String.class), "Frank Underwood");
+    }
+
+    @Test
+    public void booleanAttributeTest() throws JMException{
+        testAttribute("jmx:bool", TypeToken.of(Boolean.class), Boolean.TRUE);
+    }
+
+    @Test
+    public void memoryStatusTest() throws JMException{
+        Assume.assumeTrue("Linux test only", OperatingSystem.isLinux());
+        testAttribute("rshell:ms", TypeToken.of(CompositeData.class), null, (value1, value2) -> {
+            assertNull(value1);
+            assertNotNull(value2);
+            assertTrue(getLong(value2, "total", 0L) > 0);
+            assertTrue(getLong(value2, "used", 0L) > 0);
+            assertTrue(getLong(value2, "free", 0L) > 0);
+            return true;
+        }, true);
+    }
+
+    @Test
+    public void testForMetrics() throws Exception {
+        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
+        try{
+            final MetricsReader metrics = client.queryObject(MetricsReader.class);
+            assertNotNull(metrics);
+            assertTrue(metrics.getMetrics(MBeanAttributeInfo.class) instanceof AttributeMetrics);
+            assertNotNull(metrics.queryObject(AttributeMetrics.class));
+            //read and write attributes
+            booleanAttributeTest();
+            //verify metrics
+            final AttributeMetrics attrMetrics = metrics.queryObject(AttributeMetrics.class);
+            assertTrue(attrMetrics.getNumberOfReads(MetricsInterval.HOUR) > 0);
+            assertTrue(attrMetrics.getNumberOfReads() > 0);
+        } finally {
+            client.release(getTestBundleContext());
+        }
     }
 
     @Override
