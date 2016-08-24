@@ -9,6 +9,8 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
+import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
@@ -43,6 +45,16 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     }
 
     @Override
+    protected boolean enableRemoteDebugging() {
+        return true;
+    }
+
+    @Test
+    public void stringAttributeTest() throws JMException {
+        testAttribute("jmx:str", TypeToken.of(String.class), "Frank Underwood");
+    }
+
+    @Override
     protected void beforeStartTest(final BundleContext context) throws JMException {
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         if(mbs.isRegistered(beanName))
@@ -63,7 +75,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
-        events.addAndConsume("attributeChange", event -> {
+        events.addAndConsume("jmx:attributeChange", event -> {
             event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
             event.getParameters().put("severity", "notice");
             event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
@@ -72,12 +84,12 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
-        attributes.addAndConsume("1.0", attribute -> {
+        attributes.addAndConsume("jmx:str", attribute -> {
             attribute.setAlternativeName("string");
             attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         });
 
-        attributes.addAndConsume("2.0", attribute -> {
+        attributes.addAndConsume("jmx:bool", attribute -> {
             attribute.setAlternativeName("boolean");
             attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         });

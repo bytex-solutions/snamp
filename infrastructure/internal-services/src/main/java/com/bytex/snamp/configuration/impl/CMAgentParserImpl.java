@@ -34,7 +34,7 @@ final class CMAgentParserImpl {
 
     static void loadParameters(final ConfigurationAdmin admin, final EntityConfiguration agentConfig) throws IOException {
         final Configuration conf = getConfig(admin);
-        if (conf != null) {
+        if (conf.getProperties() != null) {
             final Iterator<String> keys = Iterators.forEnumeration(conf.getProperties().keys());
             final Map<String, String> params = Maps.toMap(keys, key -> getValue(conf.getProperties(), key, Objects::toString, () -> ""));
             agentConfig.setParameters(params);
