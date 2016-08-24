@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.Box;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationSupport;
@@ -45,7 +44,7 @@ final class OperationComposition extends AbstractOperationRepository<CompositeOp
     }
 
     private static ReflectionException operationsNotSupported(final Object connectorType){
-        return new ReflectionException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support attributes", connectorType)));
+        return new ReflectionException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support operations", connectorType)));
     }
 
     @Override
@@ -56,7 +55,7 @@ final class OperationComposition extends AbstractOperationRepository<CompositeOp
 
     @Override
     protected Object invoke(final OperationCallInfo<CompositeOperation> callInfo) throws Exception {
-        final OperationSupport support = provider.getOperationSupport(callInfo.getMetadata().getShortName());
+        final OperationSupport support = provider.getOperationSupport(callInfo.getMetadata().getConnectorType());
         if (support == null)
             throw operationsNotSupported(callInfo.getMetadata().getConnectorType());
         return support.invoke(callInfo.getMetadata().getShortName(), callInfo.toArray(), callInfo.getSignature());

@@ -5,8 +5,6 @@ import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-
 /**
  * Represents notification listener holder in association with filter.
  * @author Roman Sakno
@@ -52,7 +50,7 @@ final class NotificationListenerHolder implements NotificationListener, Notifica
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
         if (isNotificationEnabled(notification))
-            listener.handleNotification(notification, firstNonNull(handback, this.handback));
+            listener.handleNotification(notification, handback == null ? this.handback : handback);
     }
 
     private boolean equals(final NotificationListener listener) {

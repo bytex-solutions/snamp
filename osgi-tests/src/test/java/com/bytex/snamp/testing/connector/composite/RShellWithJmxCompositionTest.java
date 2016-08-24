@@ -8,6 +8,10 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.metrics.AttributeMetrics;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
 import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.notifications.Mailbox;
+import com.bytex.snamp.connector.notifications.MailboxFactory;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -22,6 +26,7 @@ import org.osgi.framework.BundleContext;
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.lang.management.ManagementFactory;
+import java.util.concurrent.TimeUnit;
 
 import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
 
@@ -55,7 +60,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Test
@@ -100,6 +105,36 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
         }
     }
 
+    @Test
+    public void operationTest() throws ReflectionException, MBeanException {
+        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext())
+                .queryObject(OperationSupport.class);
+        try{
+            final Object result = operationSupport.invoke("jmx:rev", new Object[]{new byte[]{1, 2, 3}}, new String[0]);
+            assertTrue(result instanceof byte[]);
+            assertArrayEquals(new byte[]{3, 2, 1}, (byte[])result);
+        }
+        finally {
+            releaseManagementConnector();
+        }
+    }
+
+    @Test
+    public void notificationTest() throws JMException, InterruptedException {
+        final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext())
+                .queryObject(NotificationSupport.class);
+        try{
+            final Mailbox mailbox = MailboxFactory.newMailbox();
+            notificationSupport.addNotificationListener(mailbox, null, null);
+            stringAttributeTest();
+            final Notification n = mailbox.poll(1, TimeUnit.SECONDS);
+            assertNotNull(n);
+        }
+        finally {
+            releaseManagementConnector();
+        }
+    }
+
     @Override
     protected void beforeStartTest(final BundleContext context) throws JMException {
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
@@ -116,7 +151,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Override
     protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
-        operations.addAndConsume("jmx:forceGC", operation -> operation.setAlternativeName("gc"));
+        operations.addAndConsume("jmx:rev", operation -> operation.setAlternativeName("reverse"));
     }
 
     @Override
