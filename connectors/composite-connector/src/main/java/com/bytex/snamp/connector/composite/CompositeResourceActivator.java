@@ -14,7 +14,8 @@ public final class CompositeResourceActivator extends ManagedResourceActivator<C
 
     @SpecialUse
     public CompositeResourceActivator(){
-        super(CompositeResourceActivator::newResourceConnector);
+        super(CompositeResourceActivator::newResourceConnector,
+                configurationDescriptor(CompositeResourceConfigurationDescriptor::getInstance));
     }
 
     private static CompositeResourceConnector newResourceConnector(final String resourceName,

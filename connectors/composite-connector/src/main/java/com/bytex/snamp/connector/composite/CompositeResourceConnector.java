@@ -70,7 +70,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
         final CompositeResourceConfigurationDescriptor parser = CompositeResourceConfigurationDescriptor.getInstance();
         //extract connection strings of each connector
-        final Map<String, String> connectionStrings = parseConnectionString(connectionString, parser.parseSplitter(connectionParameters));
+        final Map<String, String> connectionStrings = parseConnectionString(connectionString, parser.parseSeparator(connectionParameters));
         //extract connection parameters for each connector
         final ConnectionParametersMap parsedParams = ConnectionParametersMap.parse(connectionParameters);
         //do update

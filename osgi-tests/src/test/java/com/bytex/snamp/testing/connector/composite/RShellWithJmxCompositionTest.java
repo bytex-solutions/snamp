@@ -1,9 +1,6 @@
 package com.bytex.snamp.testing.connector.composite;
 
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.EventConfiguration;
-import com.bytex.snamp.configuration.OperationConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.metrics.AttributeMetrics;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
@@ -18,6 +15,7 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.Assume;
 import org.junit.Test;
@@ -60,7 +58,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
@@ -133,6 +131,13 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
         finally {
             releaseManagementConnector();
         }
+    }
+
+    @Test
+    public void configurationTest(){
+        testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
+                "separator"
+        ));
     }
 
     @Override
