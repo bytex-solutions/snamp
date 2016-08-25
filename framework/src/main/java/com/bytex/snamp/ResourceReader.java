@@ -1,7 +1,6 @@
 package com.bytex.snamp;
 
 import com.google.common.base.MoreObjects;
-import com.bytex.snamp.internal.Utils;
 
 import java.io.Closeable;
 import java.util.Locale;
@@ -21,8 +20,26 @@ public class ResourceReader implements Closeable, SafeCloseable {
     public final String resourceName;
 
     public ResourceReader(final String baseName){
-        resourceName = Utils.getFullyQualifiedResourceName(getClass(), baseName);
+        resourceName = getFullyQualifiedResourceName(getClass(), baseName);
     }
+
+    protected ResourceReader(final Class<?> resourceLocator, final String baseName){
+        resourceName = getFullyQualifiedResourceName(resourceLocator, baseName);
+    }
+
+    private static String getFullyQualifiedResourceName(final Class<?> locator, String name){
+        if(locator.isArray())
+            return getFullyQualifiedResourceName(locator.getComponentType(), name);
+        else if (!name.startsWith("/")) {
+            final String baseName = locator.getName();
+            final int index = baseName.lastIndexOf('.');
+            if (index != -1)
+                name = String.format("%s/%s", baseName.substring(0, index).replace('.', '/'), name);
+        }
+        else name = name.substring(1);
+        return name;
+    }
+
 
     /**
      * Gets resource bundle associated with this reader.

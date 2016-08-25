@@ -63,18 +63,18 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Test
     public void stringAttributeTest() throws JMException {
-        testAttribute("jmx:str", TypeToken.of(String.class), "Frank Underwood");
+        testAttribute("str", TypeToken.of(String.class), "Frank Underwood");
     }
 
     @Test
     public void booleanAttributeTest() throws JMException{
-        testAttribute("jmx:bool", TypeToken.of(Boolean.class), Boolean.TRUE);
+        testAttribute("bool", TypeToken.of(Boolean.class), Boolean.TRUE);
     }
 
     @Test
     public void memoryStatusTest() throws JMException{
         Assume.assumeTrue("Linux test only", OperatingSystem.isLinux());
-        testAttribute("rshell:ms", TypeToken.of(CompositeData.class), null, (value1, value2) -> {
+        testAttribute("ms", TypeToken.of(CompositeData.class), null, (value1, value2) -> {
             assertNull(value1);
             assertNotNull(value2);
             assertTrue(getLong(value2, "total", 0L) > 0);
@@ -108,7 +108,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
         final OperationSupport operationSupport = getManagementConnector(getTestBundleContext())
                 .queryObject(OperationSupport.class);
         try{
-            final Object result = operationSupport.invoke("jmx:rev", new Object[]{new byte[]{1, 2, 3}}, new String[0]);
+            final Object result = operationSupport.invoke("rev", new Object[]{new byte[]{1, 2, 3}}, new String[0]);
             assertTrue(result instanceof byte[]);
             assertArrayEquals(new byte[]{3, 2, 1}, (byte[])result);
         }
@@ -127,6 +127,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
             stringAttributeTest();
             final Notification n = mailbox.poll(1, TimeUnit.SECONDS);
             assertNotNull(n);
+            assertEquals("attributeChange", n.getType());
         }
         finally {
             releaseManagementConnector();
@@ -137,6 +138,15 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     public void configurationTest(){
         testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
                 "separator"
+        ));
+        testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
+                "source"
+        ));
+        testConfigurationDescriptor(EventConfiguration.class, ImmutableSet.of(
+                "source"
+        ));
+        testConfigurationDescriptor(OperationConfiguration.class, ImmutableSet.of(
+                "source"
         ));
     }
 
@@ -156,33 +166,40 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Override
     protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
-        operations.addAndConsume("jmx:rev", operation -> operation.setAlternativeName("reverse"));
+        operations.addAndConsume("rev", operation -> {
+            operation.setAlternativeName("reverse");
+            operation.getParameters().put("source", "jmx");
+        });
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
-        events.addAndConsume("jmx:attributeChange", event -> {
+        events.addAndConsume("attributeChange", event -> {
             event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
             event.getParameters().put("severity", "notice");
             event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+            event.getParameters().put("source", "jmx");
         });
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
-        attributes.addAndConsume("jmx:str", attribute -> {
+        attributes.addAndConsume("str", attribute -> {
             attribute.setAlternativeName("string");
             attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+            attribute.getParameters().put("source", "jmx");
         });
 
-        attributes.addAndConsume("jmx:bool", attribute -> {
+        attributes.addAndConsume("bool", attribute -> {
             attribute.setAlternativeName("boolean");
             attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+            attribute.getParameters().put("source", "jmx");
         });
 
-        attributes.addAndConsume("rshell:ms", attribute -> {
+        attributes.addAndConsume("ms", attribute -> {
             attribute.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
             attribute.getParameters().put("format", "-m");
+            attribute.getParameters().put("source", "rshell");
         });
     }
 }

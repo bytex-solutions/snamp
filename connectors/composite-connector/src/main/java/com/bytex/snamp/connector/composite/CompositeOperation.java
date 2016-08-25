@@ -1,34 +1,18 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.Box;
-
 import javax.management.MBeanOperationInfo;
+import java.util.Objects;
 
 /**
  * Represents operation as a part of composition.
  */
 final class CompositeOperation extends MBeanOperationInfo implements CompositeFeature {
+    private static final long serialVersionUID = -1323239811164296145L;
     private final String connectorType;
-    private final String shortName;
 
-    CompositeOperation(final String operationName, final MBeanOperationInfo operation){
-        super(operationName, operation.getDescription(), operation.getSignature(), operation.getReturnType(), operation.getImpact(), operation.getDescriptor());
-        final Box<String> connectorType = new Box<>();
-        final Box<String> shortName = new Box<>();
-        if(ConnectorTypeSplit.split(operationName, connectorType, shortName)){
-            this.connectorType = connectorType.get();
-            this.shortName = shortName.get();
-        } else
-            throw invalidName(operationName);
-    }
-
-    static IllegalArgumentException invalidName(final String operationName){
-        return new IllegalArgumentException("Invalid operation name: " + operationName);
-    }
-
-    @Override
-    public String getShortName() {
-        return shortName;
+    CompositeOperation(final String connectorType, final MBeanOperationInfo operation){
+        super(operation.getName(), operation.getDescription(), operation.getSignature(), operation.getReturnType(), operation.getImpact(), operation.getDescriptor());
+        this.connectorType = Objects.requireNonNull(connectorType);
     }
 
     @Override

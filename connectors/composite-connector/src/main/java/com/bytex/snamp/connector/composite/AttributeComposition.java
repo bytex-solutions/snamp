@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.Box;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -36,24 +35,19 @@ final class AttributeComposition extends AbstractAttributeRepository<CompositeAt
     protected void disconnectAttribute(final CompositeAttribute attributeInfo) {
         final AttributeSupport support = attributeSupportProvider.getAttributeSupport(attributeInfo.getConnectorType());
         if (support != null)
-            support.removeAttribute(attributeInfo.getShortName());
+            support.removeAttribute(attributeInfo.getName());
     }
 
     @Override
-    protected CompositeAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws ReflectionException, AttributeNotFoundException, MBeanException {
-        final Box<String> connectorType = new Box<>();
-        final Box<String> shortName = new Box<>();
-        if(ConnectorTypeSplit.split(attributeName, connectorType, shortName)){
-            final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType.get());
-            if (support == null)
-                throw new ReflectionException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support attributes", connectorType)));
-            final MBeanAttributeInfo underlyingAttribute = support.addAttribute(shortName.get(), descriptor);
-            if (underlyingAttribute == null)
-                throw CompositeAttribute.attributeNotFound(connectorType.get(), attributeName);
-            return new CompositeAttribute(attributeName, underlyingAttribute);
-        }
-        else
-            throw new MBeanException(CompositeAttribute.invalidName(attributeName));
+    protected CompositeAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws ReflectionException, AttributeNotFoundException, MBeanException, AbsentCompositeConfigurationParameterException {
+        final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(descriptor);
+        final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType);
+        if (support == null)
+            throw new ReflectionException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support attributes", connectorType)));
+        final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor);
+        if (underlyingAttribute == null)
+            throw CompositeAttribute.attributeNotFound(connectorType, attributeName);
+        return new CompositeAttribute(connectorType, underlyingAttribute);
     }
 
     @Override

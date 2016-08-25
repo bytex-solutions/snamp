@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.Box;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 
 import javax.management.*;
@@ -15,21 +14,10 @@ import java.util.Objects;
 final class CompositeAttribute extends MBeanAttributeInfo implements CompositeFeature {
     private static final long serialVersionUID = 8395290268605454780L;
     private final String connectorType;
-    private final String shortName;
 
-    CompositeAttribute(final String attributeName, final MBeanAttributeInfo info) {
-        super(attributeName, info.getType(), info.getDescription(), info.isReadable(), info.isWritable(), info.isIs(), info.getDescriptor());
-        final Box<String> connectorType = new Box<>();
-        final Box<String> name = new Box<>();
-        if (ConnectorTypeSplit.split(attributeName, connectorType, name)) {
-            this.connectorType = connectorType.get();
-            this.shortName = name.get();
-        } else
-            throw invalidName(attributeName);
-    }
-
-    static IllegalArgumentException invalidName(final String attributeName){
-        return new IllegalArgumentException("Invalid attribute name: " + attributeName);
+    CompositeAttribute(final String connectorType, final MBeanAttributeInfo info) {
+        super(info.getName(), info.getType(), info.getDescription(), info.isReadable(), info.isWritable(), info.isIs(), info.getDescriptor());
+        this.connectorType = Objects.requireNonNull(connectorType);
     }
 
     @Override
@@ -37,25 +25,20 @@ final class CompositeAttribute extends MBeanAttributeInfo implements CompositeFe
         return connectorType;
     }
 
-    @Override
-    public String getShortName() {
-        return shortName;
-    }
-
     Object getValue(final AttributeSupportProvider provider) throws AttributeNotFoundException, MBeanException, ReflectionException {
         final AttributeSupport support = provider.getAttributeSupport(connectorType);
         if(support == null)
-            throw attributeNotFound(connectorType, shortName);
+            throw attributeNotFound(connectorType, getName());
         else
-            return support.getAttribute(shortName);
+            return support.getAttribute(getName());
     }
 
     void setValue(final AttributeSupportProvider provider, final Object value) throws AttributeNotFoundException, MBeanException, InvalidAttributeValueException, ReflectionException {
         final AttributeSupport support = provider.getAttributeSupport(connectorType);
         if (support == null)
-            throw attributeNotFound(connectorType, shortName);
+            throw attributeNotFound(connectorType, getName());
         else
-            support.setAttribute(new Attribute(shortName, value));
+            support.setAttribute(new Attribute(getName(), value));
     }
 
     static AttributeNotFoundException attributeNotFound(final String connectorType, final String attributeName) {

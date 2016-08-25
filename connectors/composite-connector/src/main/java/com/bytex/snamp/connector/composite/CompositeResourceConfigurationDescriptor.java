@@ -2,9 +2,7 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 
 import javax.management.Descriptor;
@@ -22,18 +20,39 @@ import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
  */
 final class CompositeResourceConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     private static final String SEPARATOR_PARAM = "separator";
-    private static final String CONNECTOR_TYPE_PARAM = "connectorType";
+    private static final String SOURCE_PARAM = "source";
 
     private static final LazyValue<CompositeResourceConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(CompositeResourceConfigurationDescriptor::new);
 
-    private static final class ResourceDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
-        private ResourceDescription(){
+    private static final class ResourceConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
+        private ResourceConfigurationDescription(){
             super("ConnectorParameters", ManagedResourceConfiguration.class, SEPARATOR_PARAM);
         }
     }
 
-    private CompositeResourceConfigurationDescriptor(){
-        super(new ResourceDescription());
+    private static final class AttributeConfigurationDescription extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
+        private AttributeConfigurationDescription(){
+            super("AttributeParameters", AttributeConfiguration.class, SOURCE_PARAM);
+        }
+    }
+
+    private static final class EventConfigurationDescription extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
+        private EventConfigurationDescription(){
+            super("EventParameters", EventConfiguration.class, SOURCE_PARAM);
+        }
+    }
+
+    private static final class OperationConfigurationDescription extends ResourceBasedConfigurationEntityDescription<OperationConfiguration>{
+        private OperationConfigurationDescription(){
+            super("OperationParameters", OperationConfiguration.class, SOURCE_PARAM);
+        }
+    }
+
+    private CompositeResourceConfigurationDescriptor() {
+        super(new ResourceConfigurationDescription(),
+                new AttributeConfigurationDescription(),
+                new EventConfigurationDescription(),
+                new OperationConfigurationDescription());
     }
 
     static CompositeResourceConfigurationDescriptor getInstance(){
@@ -44,7 +63,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
         return getValue(parameters, SEPARATOR_PARAM, Function.identity(), () -> ";");
     }
 
-    String parseConnectorType(final Descriptor descriptor) throws AbsentCompositeConfigurationParameterException {
-        return getFieldIfPresent(descriptor, CONNECTOR_TYPE_PARAM, Objects::toString, AbsentCompositeConfigurationParameterException::new);
+    static String parseSource(final Descriptor descriptor) throws AbsentCompositeConfigurationParameterException {
+        return getFieldIfPresent(descriptor, SOURCE_PARAM, Objects::toString, AbsentCompositeConfigurationParameterException::new);
     }
 }

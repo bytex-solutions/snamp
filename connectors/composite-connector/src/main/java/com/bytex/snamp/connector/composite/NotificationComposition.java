@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.Box;
 import com.bytex.snamp.connector.notifications.*;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -46,7 +45,9 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        fire(notification.getType(), notification.getMessage(), generateSequenceNumber(), notification.getTimeStamp(), notification.getUserData());
+        final CompositeNotification compositeNotification = getNotificationInfo(notification.getType());
+        if (compositeNotification != null)
+            fire(NotificationDescriptor.getName(compositeNotification), notification.getMessage(), generateSequenceNumber(), notification.getTimeStamp(), notification.getUserData());
     }
 
     @Override
@@ -56,34 +57,31 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
 
 
     @Override
-    protected CompositeNotification connectNotifications(final String notifType, final NotificationDescriptor metadata) throws MBeanException, ReflectionException {
-        final Box<String> connectorType = new Box<>();
-        final Box<String> shortName = new Box<>();
-        if (ConnectorTypeSplit.split(notifType, connectorType, shortName)) {
-            final NotificationSupport support = provider.getNotificationSupport(connectorType.get());
-            if (support == null)
-                throw new MBeanException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support notifications", connectorType)));
-            final MBeanNotificationInfo underlyingNotif = support.enableNotifications(shortName.get(), metadata);
-            if (underlyingNotif == null)
-                throw new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable notification '%s'", connectorType, shortName)));
-            final CompositeNotification result = new CompositeNotification(notifType, underlyingNotif);
-            //update state of subscription
-            if (subscription.get(result.getConnectorType()).isEmpty()) {
-                support.addNotificationListener(this, null, null);
-            }
-            subscription.put(result.getConnectorType(), result.getShortName());
-            return result;
-        } else
-            throw new MBeanException(CompositeNotification.invalidNotificationType(notifType));
+    protected CompositeNotification connectNotifications(final String notifType, final NotificationDescriptor metadata) throws MBeanException, ReflectionException, AbsentCompositeConfigurationParameterException {
+        final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(metadata);
+        final NotificationSupport support = provider.getNotificationSupport(connectorType);
+        if (support == null)
+            throw new MBeanException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support notifications", connectorType)));
+        final MBeanNotificationInfo underlyingNotif = support.enableNotifications(notifType, metadata);
+        if (underlyingNotif == null)
+            throw new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable notification '%s'", connectorType, notifType)));
+        //update state of subscription
+        if (subscription.get(connectorType).isEmpty()) {
+            support.addNotificationListener(this, null, null);
+        }
+        subscription.put(connectorType, notifType);
+        return new CompositeNotification(connectorType, underlyingNotif);
     }
 
     @Override
     protected void disconnectNotifications(final CompositeNotification metadata) {
         final NotificationSupport support = provider.getNotificationSupport(metadata.getConnectorType());
         if (support != null)
-            support.disableNotifications(metadata.getShortName());
+            for (final String notifType : metadata.getNotifTypes())
+                support.disableNotifications(notifType);
         //update state of subscription
-        subscription.remove(metadata.getConnectorType(), metadata.getShortName());
+        for (final String notifType : metadata.getNotifTypes())
+            subscription.remove(metadata.getConnectorType(), notifType);
         if (support != null && subscription.get(metadata.getConnectorType()).isEmpty())
             try {
                 support.removeNotificationListener(this);
