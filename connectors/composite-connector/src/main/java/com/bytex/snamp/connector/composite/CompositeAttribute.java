@@ -11,7 +11,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-final class CompositeAttribute extends MBeanAttributeInfo implements CompositeFeature {
+class CompositeAttribute extends MBeanAttributeInfo implements CompositeFeature {
     private static final long serialVersionUID = 8395290268605454780L;
     private final String connectorType;
 

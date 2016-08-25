@@ -8,6 +8,6 @@ import javax.management.DescriptorRead;
  * @version 2.0
  * @since 2.0
  */
-interface CompositeFeature extends DescriptorRead, Cloneable, ConnectorTypeSplit {
+interface CompositeFeature extends DescriptorRead, Cloneable {
     String getConnectorType();
 }
