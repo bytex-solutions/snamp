@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SerializableMap;
+import com.bytex.snamp.Stateful;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -10,7 +11,7 @@ import java.util.Map;
 /**
  * Represents abstract class for all serializable configuration entities.
  */
-abstract class AbstractEntityConfiguration implements Resettable, SerializableEntityConfiguration {
+abstract class AbstractEntityConfiguration implements Stateful, SerializableEntityConfiguration {
     private static final long serialVersionUID = -8455277079119895844L;
     private transient boolean modified;
     private final ModifiableParameters parameters;

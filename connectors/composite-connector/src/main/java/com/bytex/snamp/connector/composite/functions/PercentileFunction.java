@@ -1,5 +1,8 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import com.bytex.snamp.math.StatefulDoubleUnaryFunction;
+import com.bytex.snamp.math.UnaryFunctions;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -11,48 +14,21 @@ import java.util.concurrent.TimeUnit;
  */
 final class PercentileFunction extends ToDoubleFunction {
     private final long intervalNanos;
-    private final double quantile;
     private long checkpointNanos;
-    private final ArrayList<Double> series; //array list is always sorted
+    private final StatefulDoubleUnaryFunction percentile;
 
-    PercentileFunction(final long quantile, final long interval, final TimeUnit unit){
+    PercentileFunction(final long percentile, final long interval, final TimeUnit unit){
         intervalNanos = unit.toNanos(interval);
-        this.quantile = quantile / 100.0;
         checkpointNanos = System.nanoTime();
-        series = new ArrayList<>();
+        this.percentile = UnaryFunctions.percentile(100, percentile / 100F);
     }
 
     @Override
     synchronized double compute(final double input) {
         if (System.nanoTime() - checkpointNanos > intervalNanos) {
-            series.clear();
+            percentile.reset();
             checkpointNanos = System.nanoTime();
         }
-        switch (series.size()){
-            case 0:
-                series.add(input);
-                return input;
-            case 1:
-                final double other = series.get(0);
-                series.add(input);
-                return Math.min(input, other);
-            default:
-        }
-        int low = 0;
-        int high = series.size() - 1;
-        while (low <= high){
-            int midIndex = (high - low) >>> 1;   //(high - low) / 2
-            final double midValue = series.get(midIndex);
-            final int comparisonResult = Double.compare(input, midValue);
-            if(comparisonResult > 0)    //input > midValue
-                low = midIndex + 1;
-            else
-                if(comparisonResult < 1)
-                    high = midIndex - 1;
-            else {
-                series.add(midIndex, input);
-                }
-        }
-        final int index = series.
+        return percentile.applyAsDouble(input);
     }
 }

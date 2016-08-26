@@ -35,8 +35,4 @@ final class ToDoubleUnaryFunction extends ToDoubleFunction {
     static ToDoubleUnaryFunction max(){
         return new ToDoubleUnaryFunction(Double.MIN_VALUE, Math::max);
     }
-
-    static ToDoubleUnaryFunction sum(){
-        return new ToDoubleUnaryFunction(0, (x, y) -> x + y);
-    }
 }

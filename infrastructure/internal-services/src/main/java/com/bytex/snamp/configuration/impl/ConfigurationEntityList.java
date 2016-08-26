@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.Stateful;
 import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 
@@ -12,7 +13,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 
-abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiable & Resettable> extends ModifiableMap<String, E> implements EntityMap<E> {
+abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiable & Stateful> extends ModifiableMap<String, E> implements EntityMap<E> {
     private static final long serialVersionUID = -3859844548619883398L;
     private final HashMap<String, E> entities;
 
@@ -83,7 +84,7 @@ abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiabl
         return false;
     }
 
-    private static void reset(final Resettable r){
+    private static void reset(final Stateful r){
         r.reset();
     }
 

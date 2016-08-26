@@ -17,6 +17,7 @@ final class IntegerToken extends Token implements LongSupplier {
         return Long.parseLong(toString());
     }
 
+
     static boolean isValidCharacter(final char ch){
         return Character.isDigit(ch);
     }

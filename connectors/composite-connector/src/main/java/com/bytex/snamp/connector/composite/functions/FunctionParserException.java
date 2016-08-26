@@ -35,4 +35,8 @@ public final class FunctionParserException extends Exception {
     static FunctionParserException unknownTimeUnit(final String unitName) {
         return new FunctionParserException(String.format("Unknown time measurement unit '%s'", unitName));
     }
+
+    static FunctionParserException invalidReference(final String ref){
+        return new FunctionParserException(String.format("Reference '%s' could not be resolved", ref));
+    }
 }

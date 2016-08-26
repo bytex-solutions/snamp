@@ -6,28 +6,25 @@ import com.bytex.snamp.math.UnaryFunctions;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Represents function that computes average value in time interval.
- * @author Roman Sakno
- * @version 2.0
- * @since 2.0
+ * Computes sum of values in the specified interval of time.
  */
-final class AverageFunction extends ToDoubleFunction {
+final class SumFunction extends ToDoubleFunction {
     private final long intervalNanos;
     private long checkpointNanos;
-    private final StatefulDoubleUnaryFunction avg;
+    private final StatefulDoubleUnaryFunction sum;
 
-    AverageFunction(final long interval, final TimeUnit unit){
+    SumFunction(final long interval, final TimeUnit unit){
         intervalNanos = unit.toNanos(interval);
         checkpointNanos = System.nanoTime();
-        avg = UnaryFunctions.average();
+        sum = UnaryFunctions.sum();
     }
 
     @Override
     synchronized double compute(final double input) {
         if(System.nanoTime() - checkpointNanos > intervalNanos){
             checkpointNanos = System.nanoTime();
-            avg.reset();
+            sum.reset();
         }
-        return avg.applyAsDouble(input);
+        return sum.applyAsDouble(input);
     }
 }
