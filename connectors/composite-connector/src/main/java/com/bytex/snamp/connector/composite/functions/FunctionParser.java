@@ -13,41 +13,49 @@ public final class FunctionParser {
         throw new InstantiationError();
     }
 
-    private static AverageFunction parseAvgFunction(final Tokenizer lexer) throws FunctionParserException{
-        lexer.nextToken(LeftBracketToken.class);
-        final long interval = lexer.nextToken(IntegerToken.class).getAsLong();
-        final TimeUnit unit;
+    private static TimeUnit parseTimeUnit(final Tokenizer lexer) throws FunctionParserException{
         final String unitName;
         switch (unitName = lexer.nextToken(NameToken.class).toString()){
             case "s":
             case "sec":
             case "seconds":
-                unit = TimeUnit.SECONDS;
-                break;
+                return TimeUnit.SECONDS;
             case "ms":
             case "millis":
-                unit = TimeUnit.MILLISECONDS;
-                break;
+                return TimeUnit.MILLISECONDS;
             case "ns":
             case "nanos":
-                unit = TimeUnit.NANOSECONDS;
-                break;
+                return TimeUnit.NANOSECONDS;
             case "m":
             case "minutes":
-                unit = TimeUnit.MINUTES;
-                break;
+                return TimeUnit.MINUTES;
             case "h":
             case "hours":
-                unit = TimeUnit.HOURS;
-                break;
+                return TimeUnit.HOURS;
             case "d":
             case "days":
-                unit = TimeUnit.DAYS;
-                break;
+                return TimeUnit.DAYS;
             default:
                 throw FunctionParserException.unknownTimeUnit(unitName);
         }
+    }
+
+    private static AverageFunction parseAvgFunction(final Tokenizer lexer) throws FunctionParserException{
+        lexer.nextToken(LeftBracketToken.class);
+        final long interval = lexer.nextToken(IntegerToken.class).getAsLong();
+        final TimeUnit unit = parseTimeUnit(lexer);
+        lexer.nextToken(RightBracketToken.class);
         return new AverageFunction(interval, unit);
+    }
+
+    private static PercentileFunction parsePercentileFunction(final Tokenizer lexer) throws FunctionParserException{
+        lexer.nextToken(LeftBracketToken.class);
+        final long percentile = lexer.nextToken(IntegerToken.class).getAsLong();
+        lexer.nextToken(CommaToken.class);
+        final long interval = lexer.nextToken(IntegerToken.class).getAsLong();
+        final TimeUnit unit = parseTimeUnit(lexer);
+        lexer.nextToken(RightBracketToken.class);
+        return new PercentileFunction(percentile, interval, unit);
     }
 
     private static AggregationFunction<?> parseFunction(final String functionName, final Tokenizer lexer) throws FunctionParserException{
@@ -60,8 +68,14 @@ public final class FunctionParser {
                 lexer.nextToken(LeftBracketToken.class);
                 lexer.nextToken(RightBracketToken.class);
                 return ToDoubleUnaryFunction.min();
+            case "sum":
+                lexer.nextToken(LeftBracketToken.class);
+                lexer.nextToken(RightBracketToken.class);
+                return ToDoubleUnaryFunction.sum();
             case "avg":
                 return parseAvgFunction(lexer);
+            case "percentile":
+                return parsePercentileFunction(lexer);
             default:
                 throw FunctionParserException.unknownFunctionName(functionName);
         }

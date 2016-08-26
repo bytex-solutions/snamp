@@ -11,11 +11,12 @@ import java.util.function.DoubleBinaryOperator;
  * @since 2.0
  */
 final class ToDoubleUnaryFunction extends ToDoubleFunction {
-    private final AtomicDouble value = new AtomicDouble(0F);
+    private final AtomicDouble value;
     private final DoubleBinaryOperator operator;
 
-    private ToDoubleUnaryFunction(final DoubleBinaryOperator operator){
+    private ToDoubleUnaryFunction(final double initialValue, final DoubleBinaryOperator operator){
         this.operator = Objects.requireNonNull(operator);
+        this.value = new AtomicDouble(initialValue);
     }
 
     @Override
@@ -28,10 +29,14 @@ final class ToDoubleUnaryFunction extends ToDoubleFunction {
     }
 
     static ToDoubleUnaryFunction min(){
-        return new ToDoubleUnaryFunction(Math::min);
+        return new ToDoubleUnaryFunction(Double.MAX_VALUE, Math::min);
     }
 
     static ToDoubleUnaryFunction max(){
-        return new ToDoubleUnaryFunction(Math::max);
+        return new ToDoubleUnaryFunction(Double.MIN_VALUE, Math::max);
+    }
+
+    static ToDoubleUnaryFunction sum(){
+        return new ToDoubleUnaryFunction(0, (x, y) -> x + y);
     }
 }
