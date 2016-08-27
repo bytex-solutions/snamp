@@ -72,6 +72,21 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     }
 
     @Test
+    public void intAttributeTest() throws JMException{
+        testAttribute("int", TypeToken.of(Integer.class), 100);
+        testAttribute("maxInt", TypeToken.of(Double.class), 100D, true);
+        testAttribute("avgInt", TypeToken.of(Double.class), 100D, true);
+
+        testAttribute("int", TypeToken.of(Integer.class), 50);
+        testAttribute("maxInt", TypeToken.of(Double.class), 100D, true);
+        testAttribute("avgInt", TypeToken.of(Double.class), (100D + 50D) / 2D, true);
+
+        testAttribute("int", TypeToken.of(Integer.class), 30);
+        testAttribute("maxInt", TypeToken.of(Double.class), 100D, true);
+        testAttribute("avgInt", TypeToken.of(Double.class), (100D + 50D + 30D) / 3D, true);
+    }
+
+    @Test
     public void memoryStatusTest() throws JMException{
         Assume.assumeTrue("Linux test only", OperatingSystem.isLinux());
         testAttribute("ms", TypeToken.of(CompositeData.class), null, (value1, value2) -> {
@@ -140,7 +155,8 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
                 "separator"
         ));
         testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
-                "source"
+                "source",
+                "formula"
         ));
         testConfigurationDescriptor(EventConfiguration.class, ImmutableSet.of(
                 "source"
@@ -200,6 +216,26 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
             attribute.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
             attribute.getParameters().put("format", "-m");
             attribute.getParameters().put("source", "rshell");
+        });
+
+        attributes.addAndConsume("int", attribute -> {
+            attribute.setAlternativeName("int32");
+            attribute.getParameters().put("source", "jmx");
+            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        });
+
+        attributes.addAndConsume("maxInt", attribute -> {
+            attribute.setAlternativeName("int32");
+            attribute.getParameters().put("formula", "max()");
+            attribute.getParameters().put("source", "jmx");
+            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        });
+
+        attributes.addAndConsume("avgInt", attribute -> {
+            attribute.setAlternativeName("int32");
+            attribute.getParameters().put("source", "jmx");
+            attribute.getParameters().put("formula", "avg(10s)");
+            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         });
     }
 }

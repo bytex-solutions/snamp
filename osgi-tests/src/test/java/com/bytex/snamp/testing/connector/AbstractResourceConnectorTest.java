@@ -206,7 +206,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                 connector.setAttribute(new Attribute(attributeName, attributeValue));
             final T newValue = TypeTokens.cast(connector.getAttribute(attributeName), attributeType);
             assertNotNull(newValue);
-            assertTrue(comparator.equate(attributeValue, newValue));
+            assertTrue(String.format("%s != %s", attributeValue, newValue), comparator.equate(attributeValue, newValue));
         }
         finally {
             releaseManagementConnector();
