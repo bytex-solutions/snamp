@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  * @version 2.0
  * @since 2.0
  */
-final class AverageFunction extends ToDoubleFunction {
+final class AverageFunction extends NumericFunction {
     private final long intervalNanos;
     private long checkpointNanos;
     private final StatefulDoubleUnaryFunction avg;
@@ -23,11 +23,11 @@ final class AverageFunction extends ToDoubleFunction {
     }
 
     @Override
-    synchronized double compute(final double input) {
+    double compute(final Number input, final OperandResolver resolver) {
         if(System.nanoTime() - checkpointNanos > intervalNanos){
             checkpointNanos = System.nanoTime();
             avg.reset();
         }
-        return avg.applyAsDouble(input);
+        return avg.applyAsDouble(input.doubleValue());
     }
 }

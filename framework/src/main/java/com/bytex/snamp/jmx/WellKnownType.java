@@ -4,13 +4,14 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.Internal;
 
 import javax.management.openmbean.*;
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.nio.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -629,9 +630,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
         return getItemType(type.getRowType(), itemName);
     }
 
-    @Internal
-    static long cacheSize(){
-        return cache.size();
+    public Object cast(final Object value){
+        return getJavaType().cast(value);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.Stateful;
 import com.bytex.snamp.configuration.*;
 
 import java.io.Externalizable;
@@ -17,7 +18,7 @@ import static com.bytex.snamp.configuration.impl.AbstractManagedResourceTemplate
  * @since 1.2
  * @version 2.0
  */
-public final class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable, Modifiable, Resettable {
+public final class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable, Modifiable, Stateful {
     private final static byte FORMAT_VERSION = 3;
     private static final long serialVersionUID = 8461144056430141155L;
 

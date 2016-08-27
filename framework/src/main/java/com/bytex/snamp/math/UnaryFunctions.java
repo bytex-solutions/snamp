@@ -26,7 +26,10 @@ public final class UnaryFunctions {
 
             @Override
             public double applyAsDouble(final double operand) {
-                return value += operand;
+                value += operand;
+                if (Double.isInfinite(value))
+                    value = operand;
+                return value;
             }
         };
     }

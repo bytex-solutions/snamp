@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SerializableMap;
+import com.bytex.snamp.Stateful;
 import com.google.common.collect.ForwardingMap;
 
 import java.io.Externalizable;
@@ -11,7 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 
 
-abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Externalizable, Modifiable, Resettable, SerializableMap<K, V> {
+abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Externalizable, Modifiable, Stateful, SerializableMap<K, V> {
     private static final long serialVersionUID = -8689048750446731607L;
     private transient boolean modified = false;
 

@@ -10,29 +10,29 @@ import java.util.function.DoubleBinaryOperator;
  * @version 2.0
  * @since 2.0
  */
-final class ToDoubleUnaryFunction extends ToDoubleFunction {
+final class NumericUnaryFunction extends NumericFunction {
     private final AtomicDouble value;
     private final DoubleBinaryOperator operator;
 
-    private ToDoubleUnaryFunction(final double initialValue, final DoubleBinaryOperator operator){
+    private NumericUnaryFunction(final double initialValue, final DoubleBinaryOperator operator){
         this.operator = Objects.requireNonNull(operator);
         this.value = new AtomicDouble(initialValue);
     }
 
     @Override
-    double compute(final double input) {
+    double compute(final Number input, final OperandResolver resolver) {
         double current, newValue;
         do {
-            newValue = operator.applyAsDouble(current = value.get(), input);
+            newValue = operator.applyAsDouble(current = value.get(), input.doubleValue());
         } while (!(value.compareAndSet(current, newValue)));
         return newValue;
     }
 
-    static ToDoubleUnaryFunction min(){
-        return new ToDoubleUnaryFunction(Double.MAX_VALUE, Math::min);
+    static NumericUnaryFunction min(){
+        return new NumericUnaryFunction(Double.MAX_VALUE, Math::min);
     }
 
-    static ToDoubleUnaryFunction max(){
-        return new ToDoubleUnaryFunction(Double.MIN_VALUE, Math::max);
+    static NumericUnaryFunction max(){
+        return new NumericUnaryFunction(Double.MIN_VALUE, Math::max);
     }
 }

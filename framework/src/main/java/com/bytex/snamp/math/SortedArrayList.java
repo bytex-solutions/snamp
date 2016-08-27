@@ -10,6 +10,7 @@ import java.util.Objects;
  * @version 2.0
  */
 class SortedArrayList<T> extends ArrayList<T> {
+    private static final long serialVersionUID = -2304623947524466011L;
     private final Comparator<T> comparator;
 
     SortedArrayList(final int capacity, final Comparator<T> cmp){
@@ -21,8 +22,7 @@ class SortedArrayList<T> extends ArrayList<T> {
         this(10, cmp);
     }
 
-    @Override
-    public boolean add(final T item) {
+    private int computeIndex(final T item){
         int low = 0;
         int high = size() - 1;
         while (low <= high) {
@@ -36,7 +36,16 @@ class SortedArrayList<T> extends ArrayList<T> {
             else
                 break;
         }
-        add(Math.max(low, high), item);
+        return Math.max(low, high);
+    }
+
+    @Override
+    public final boolean add(final T item) {
+        add(computeIndex(item), item);
         return true;
+    }
+
+    public final void set(final T item){
+        set(computeIndex(item), item);
     }
 }

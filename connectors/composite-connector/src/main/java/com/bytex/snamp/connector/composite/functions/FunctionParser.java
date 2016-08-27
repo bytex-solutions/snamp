@@ -1,11 +1,6 @@
 package com.bytex.snamp.connector.composite.functions;
 
-import com.bytex.snamp.gateway.modeling.AttributeAccessor;
-
-import java.util.Objects;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 /**
  * Represents parser for function expressiong.
@@ -71,28 +66,25 @@ public final class FunctionParser {
         return new SumFunction(interval, unit);
     }
 
-    private static CorrelationFunction parseCorrelationFunction(final Tokenizer lexer, final ReferenceResolver resolver) throws FunctionParserException{
+    private static CorrelationFunction parseCorrelationFunction(final Tokenizer lexer) throws FunctionParserException{
         lexer.nextToken(LeftBracketToken.class);
         //parse reference
         lexer.nextToken(DollarToken.class);
-        final String ref = lexer.nextToken(NameToken.class).toString();
-        final Callable<?> valueProvider = resolver.resolve(ref);
-        if(valueProvider == null)
-            throw FunctionParserException.invalidReference(ref);
+        final String operand = lexer.nextToken(NameToken.class).toString();
         lexer.nextToken(RightBracketToken.class);
-        return new CorrelationFunction(valueProvider);
+        return new CorrelationFunction(operand);
     }
 
-    private static AggregationFunction<?> parseFunction(final String functionName, final Tokenizer lexer, final ReferenceResolver resolver) throws FunctionParserException{
+    private static AggregationFunction<?> parseFunction(final String functionName, final Tokenizer lexer) throws FunctionParserException{
         switch (functionName){
             case "max":
                 lexer.nextToken(LeftBracketToken.class);
                 lexer.nextToken(RightBracketToken.class);
-                return ToDoubleUnaryFunction.max();
+                return NumericUnaryFunction.max();
             case "min":
                 lexer.nextToken(LeftBracketToken.class);
                 lexer.nextToken(RightBracketToken.class);
-                return ToDoubleUnaryFunction.min();
+                return NumericUnaryFunction.min();
             case "sum":
                 return parseSumFunction(lexer);
             case "avg":
@@ -100,18 +92,18 @@ public final class FunctionParser {
             case "percentile":
                 return parsePercentileFunction(lexer);
             case "correl":
-                return parseCorrelationFunction(lexer, resolver);
+                return parseCorrelationFunction(lexer);
             default:
                 throw FunctionParserException.unknownFunctionName(functionName);
         }
     }
 
-    private static Expression parse(final Tokenizer lexer, final ReferenceResolver resolver) throws FunctionParserException {
+    private static Expression parse(final Tokenizer lexer) throws FunctionParserException {
         final Token token = lexer.nextToken();
         if (token == null)
             throw new FunctionParserException();
         else if (token instanceof NameToken)
-            return parseFunction(token.toString(), lexer, resolver);
+            return parseFunction(token.toString(), lexer);
         else
             throw new FunctionParserException(token, lexer.get());
     }
@@ -119,12 +111,11 @@ public final class FunctionParser {
     /**
      * Parses formula expression.
      * @param input An expression to parse.
-     * @param referenceResolver A function used to resolve references.
      * @return Parsed function.
      * @throws FunctionParserException Invalid formula expression.
      */
-    public static AggregationFunction<?> parse(final CharSequence input, final ReferenceResolver referenceResolver) throws FunctionParserException{
-        final Expression result = parse(new Tokenizer(input), Objects.requireNonNull(referenceResolver));
+    public static AggregationFunction<?> parse(final CharSequence input) throws FunctionParserException{
+        final Expression result = parse(new Tokenizer(input));
         if(result instanceof AggregationFunction<?>)
             return (AggregationFunction<?>)result;
         else

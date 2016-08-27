@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.composite.functions;
 import com.bytex.snamp.math.StatefulDoubleUnaryFunction;
 import com.bytex.snamp.math.UnaryFunctions;
 
-import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -12,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  * @version 2.0
  * @since 2.0
  */
-final class PercentileFunction extends ToDoubleFunction {
+final class PercentileFunction extends NumericFunction {
     private final long intervalNanos;
     private long checkpointNanos;
     private final StatefulDoubleUnaryFunction percentile;
@@ -24,11 +23,11 @@ final class PercentileFunction extends ToDoubleFunction {
     }
 
     @Override
-    synchronized double compute(final double input) {
+    synchronized double compute(final Number input, final OperandResolver resolver) {
         if (System.nanoTime() - checkpointNanos > intervalNanos) {
             percentile.reset();
             checkpointNanos = System.nanoTime();
         }
-        return percentile.applyAsDouble(input);
+        return percentile.applyAsDouble(input.doubleValue());
     }
 }

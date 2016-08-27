@@ -4,6 +4,9 @@ import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
+import com.bytex.snamp.connector.composite.functions.AggregationFunction;
+import com.bytex.snamp.connector.composite.functions.FunctionParser;
+import com.bytex.snamp.connector.composite.functions.FunctionParserException;
 
 import javax.management.Descriptor;
 import java.util.Map;
@@ -11,7 +14,9 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
@@ -21,6 +26,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
 final class CompositeResourceConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     private static final String SEPARATOR_PARAM = "separator";
     private static final String SOURCE_PARAM = "source";
+    private static final String FORMULA_PARAM = "formula";
 
     private static final LazyValue<CompositeResourceConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(CompositeResourceConfigurationDescriptor::new);
 
@@ -32,7 +38,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
 
     private static final class AttributeConfigurationDescription extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
         private AttributeConfigurationDescription(){
-            super("AttributeParameters", AttributeConfiguration.class, SOURCE_PARAM);
+            super("AttributeParameters", AttributeConfiguration.class, SOURCE_PARAM, FORMULA_PARAM);
         }
     }
 
@@ -65,5 +71,12 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
 
     static String parseSource(final Descriptor descriptor) throws AbsentCompositeConfigurationParameterException {
         return getFieldIfPresent(descriptor, SOURCE_PARAM, Objects::toString, AbsentCompositeConfigurationParameterException::new);
+    }
+
+    static AggregationFunction<?> parseFormula(final Descriptor descriptor) throws FunctionParserException {
+        final String formula = getField(descriptor, FORMULA_PARAM, Objects::toString, () -> "");
+        if(isNullOrEmpty(formula))
+            return null;
+        return FunctionParser.parse(formula);
     }
 }

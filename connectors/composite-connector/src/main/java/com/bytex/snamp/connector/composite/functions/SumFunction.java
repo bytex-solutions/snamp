@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Computes sum of values in the specified interval of time.
  */
-final class SumFunction extends ToDoubleFunction {
+final class SumFunction extends NumericFunction {
     private final long intervalNanos;
     private long checkpointNanos;
     private final StatefulDoubleUnaryFunction sum;
@@ -20,11 +20,11 @@ final class SumFunction extends ToDoubleFunction {
     }
 
     @Override
-    synchronized double compute(final double input) {
+    synchronized double compute(final Number input, final OperandResolver resolver) throws Exception {
         if(System.nanoTime() - checkpointNanos > intervalNanos){
             checkpointNanos = System.nanoTime();
             sum.reset();
         }
-        return sum.applyAsDouble(input);
+        return sum.applyAsDouble(input.doubleValue());
     }
 }
