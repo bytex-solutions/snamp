@@ -7,18 +7,23 @@ package com.bytex.snamp.configuration;
  * @version 2.0
  */
 public interface ManagedResourceConfiguration extends ManagedResourceTemplate {
+    String GROUP_NAME_PROPERTY = "group";
 
     /**
      * Sets resource group for this resource.
      * @param value The name of the resource group. Cannot be {@literal null}.
      */
-    void setGroupName(final String value);
+    default void setGroupName(final String value){
+        getParameters().put(GROUP_NAME_PROPERTY, value);
+    }
 
     /**
      * Gets name of resource group.
      * @return Name of resource group; or empty string, if group is not assigned.
      */
-    String getGroupName();
+    default String getGroupName(){
+        return getParameters().get(GROUP_NAME_PROPERTY);
+    }
 
     /**
      * Gets the management target connection string.

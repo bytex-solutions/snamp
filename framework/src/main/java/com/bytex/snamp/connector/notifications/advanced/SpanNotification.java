@@ -1,10 +1,9 @@
-package com.bytex.snamp.connector.notifications;
+package com.bytex.snamp.connector.notifications.advanced;
 
 import com.bytex.snamp.SerializableMap;
 import com.bytex.snamp.TypeTokens;
 import com.google.common.reflect.TypeToken;
 
-import javax.management.Notification;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -17,7 +16,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class SpanNotification extends Notification {
+public final class SpanNotification extends MonitoringNotification {
     private static final TypeToken<Map<String, String>> USER_DATA_TYPE = new TypeToken<Map<String, String>>() {};
 
     private static final class SpanContext extends HashMap<String, String> implements SerializableMap<String, String>{
@@ -47,34 +46,11 @@ public final class SpanNotification extends Notification {
                             final String instanceName,
                             final String message,
                             final long stopTimeMillis){
-        super(TYPE, new SpanSource(componentName, instanceName), 0L, message);
+        super(TYPE, componentName, instanceName, 0L, message);
         this.spanID = Objects.requireNonNull(spanID);
         this.duration = Duration.ZERO;
         setTimeStamp(stopTimeMillis);
         setUserData(new SpanContext());
-    }
-
-    /**
-     * Gets the source of this span.
-     *
-     * @return The source of this span.
-     */
-    @Override
-    public final SpanSource getSource() {
-        return (SpanSource) super.getSource();
-    }
-
-    private void setSource(final SpanSource value){
-        super.setSource(value);
-    }
-
-    public final void setSource(final String componentName, final String instanceName){
-        setSource(new SpanSource(componentName, instanceName));
-    }
-
-    @Override
-    public final void setSource(final Object value) {
-        setSource((SpanSource) value);
     }
 
     /**

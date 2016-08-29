@@ -1,4 +1,4 @@
-package com.bytex.snamp.connector.notifications;
+package com.bytex.snamp.connector.notifications.advanced;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -9,13 +9,13 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class SpanSource implements Serializable {
+public final class MonitoringNotificationSource implements Serializable {
     private static final long serialVersionUID = -3632338167739067932L;
 
     private final String componentName;
     private final String instanceName;
 
-    SpanSource(final String componentName, final String instanceName){
+    public MonitoringNotificationSource(final String componentName, final String instanceName){
         this.componentName = Objects.requireNonNull(componentName);
         this.instanceName = Objects.requireNonNull(instanceName);
     }
@@ -33,17 +33,17 @@ public final class SpanSource implements Serializable {
         return Objects.hash(componentName, instanceName);
     }
 
-    private boolean equals(final SpanSource other){
+    private boolean equals(final MonitoringNotificationSource other){
         return componentName.equals(other.getComponentName()) && instanceName.equals(other.getInstanceName());
     }
 
     @Override
     public boolean equals(final Object other) {
-        return other instanceof SpanSource && equals((SpanSource)other);
+        return other instanceof MonitoringNotificationSource && equals((MonitoringNotificationSource)other);
     }
 
     @Override
     public String toString() {
-        return String.format("SpanSource: {%s:%s}", componentName, instanceName);
+        return String.format("MonitoringNotificationSource: {%s:%s}", componentName, instanceName);
     }
 }

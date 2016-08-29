@@ -68,7 +68,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @version 2.0
      */
     protected interface ManagedResourceConnectorFactory<TConnector extends ManagedResourceConnector> {
-
         /**
          * Creates a new instance of the managed resource connector.
          * @param resourceName The name of the managed resource.

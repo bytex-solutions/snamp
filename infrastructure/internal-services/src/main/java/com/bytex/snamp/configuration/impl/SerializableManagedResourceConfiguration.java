@@ -23,14 +23,13 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     private static final long serialVersionUID = 5044050385424748355L;
 
     private String connectionString;
-    private String resourceGroup;
 
     /**
      * Initializes a new empty configuration of the management information source.
      */
     @SpecialUse
     public SerializableManagedResourceConfiguration(){
-        connectionString = resourceGroup = "";
+        connectionString = "";
     }
 
     /**
@@ -50,7 +49,6 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeUTF(connectionString);
-        out.writeUTF(resourceGroup);
         super.writeExternal(out);
     }
 
@@ -69,7 +67,6 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         connectionString = in.readUTF();
-        resourceGroup = in.readUTF();
         super.readExternal(in);
     }
 
@@ -101,8 +98,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
      */
     @Override
     public void setGroupName(final String value) {
-        markAsModified();
-        resourceGroup = firstNonNull(value, "");
+        getParameters().put(GROUP_NAME_PROPERTY, firstNonNull(value, ""));
     }
 
     /**
@@ -112,7 +108,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
      */
     @Override
     public String getGroupName() {
-        return resourceGroup;
+        return firstNonNull(getParameters().get(GROUP_NAME_PROPERTY), "");
     }
 
     private boolean equals(final ManagedResourceConfiguration other){
