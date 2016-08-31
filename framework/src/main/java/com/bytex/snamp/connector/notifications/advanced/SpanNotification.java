@@ -46,7 +46,7 @@ public final class SpanNotification extends MonitoringNotification {
                             final String instanceName,
                             final String message,
                             final long stopTimeMillis){
-        super(TYPE, componentName, instanceName, 0L, message);
+        super(TYPE, componentName, instanceName, message);
         this.spanID = Objects.requireNonNull(spanID);
         this.duration = Duration.ZERO;
         setTimeStamp(stopTimeMillis);

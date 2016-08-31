@@ -11,9 +11,8 @@ public abstract class MonitoringNotification extends Notification {
     MonitoringNotification(final String type,
                            final String componentName,
                            final String instanceName,
-                           final long sequenceNumber,
                            final String message) {
-        super(type, new MonitoringNotificationSource(componentName, instanceName), sequenceNumber, message);
+        super(type, new MonitoringNotificationSource(componentName, instanceName), 0L, message);
     }
 
     /**

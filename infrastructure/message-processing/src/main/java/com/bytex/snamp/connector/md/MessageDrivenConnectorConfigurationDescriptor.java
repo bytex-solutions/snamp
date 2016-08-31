@@ -21,6 +21,8 @@ import static com.bytex.snamp.MapUtils.getValue;
 public abstract class MessageDrivenConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     protected static final String COMPONENT_INSTANCE_PARAM = "componentInstance";
     protected static final String COMPONENT_NAME_PARAM = "componentName";
+    protected static final String PARSER_LANGUAGE_PARAM = "parserLanguage";
+    protected static final String PARSER_SCRIPT_PARAM = "parserScript";
 
     protected MessageDrivenConnectorConfigurationDescriptor(final ConfigurationEntityDescription<AttributeConfiguration> attributeDescriptor,
                                                             final ConfigurationEntityDescription<EventConfiguration> eventDescription){
@@ -33,5 +35,12 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
 
     final String parseComponentName(final Map<String, String> parameters) {
         return getValue(parameters, COMPONENT_NAME_PARAM, Function.identity(), () -> firstNonNull(parameters.get(GROUP_NAME_PROPERTY), "DEFAULT"));
+    }
+
+    final NotificationParser createNotificationParser(final Map<String, String> parameters){
+        if(parameters.containsKey(PARSER_LANGUAGE_PARAM) && parameters.containsKey(PARSER_SCRIPT_PARAM)){
+            return null;
+        } else
+            return new DefaultNotificationParser();
     }
 }

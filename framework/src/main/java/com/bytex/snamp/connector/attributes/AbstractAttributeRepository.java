@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -563,6 +564,15 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @Override
     public final Iterator<M> iterator() {
         return readApply(attributes.values(), Collection::iterator);
+    }
+
+    @Override
+    public final void forEach(final Consumer<? super M> action) {
+        readAccept(attributes.values(), attributes -> attributes.forEach(action));
+    }
+
+    protected final void parallelForEach(final Consumer<? super M> action, final ExecutorService threadPool) {
+        readAccept(attributes.values(), attributes -> parallelForEach(attributes.spliterator(), action, threadPool));
     }
 
     /**

@@ -17,6 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -462,6 +463,11 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     @Override
     public final Iterator<M> iterator() {
         return readApply(operations.values(), Collection::iterator);
+    }
+
+    @Override
+    public final void forEach(final Consumer<? super M> action) {
+        readAccept(operations.values(), operations -> operations.forEach(action));
     }
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){

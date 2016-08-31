@@ -8,7 +8,12 @@ import com.bytex.snamp.connector.metrics.Metrics;
 import com.google.common.collect.Sets;
 
 import javax.management.MBeanFeatureInfo;
-import java.util.*;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.arrayConstructor;
@@ -139,6 +144,19 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
+
+    protected static <F extends MBeanFeatureInfo> void parallelForEach(final Spliterator<F> spliterator,
+                                                                       final Consumer<? super F> action,
+                                                                       final ExecutorService threadPool) {
+        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
+            final Spliterator<F> subset = spliterator.trySplit();
+            if (subset == null) return;
+            threadPool.submit(() -> subset.forEachRemaining(action::accept));
+        }
+    }
+
+    @Override
+    public abstract void forEach(final Consumer<? super F> action);
 
     /**
      * Gets metrics associated with activity of the features in this repository.

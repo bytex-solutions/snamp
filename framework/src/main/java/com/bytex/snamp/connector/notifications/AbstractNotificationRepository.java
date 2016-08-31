@@ -14,6 +14,7 @@ import com.google.common.collect.ImmutableSet;
 import javax.management.*;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -465,6 +466,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     @Override
     public final Iterator<M> iterator() {
         return readApply(notifications.values(), Collection::iterator);
+    }
+
+    @Override
+    public final void forEach(final Consumer<? super M> action) {
+        readAccept(notifications.values(), notifications -> notifications.forEach(action));
     }
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){
