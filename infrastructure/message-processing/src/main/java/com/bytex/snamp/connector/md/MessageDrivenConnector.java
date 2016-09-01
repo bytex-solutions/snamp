@@ -2,11 +2,8 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.notifications.advanced.InstantValueNotification;
-import com.bytex.snamp.connector.notifications.advanced.MonitoringNotification;
-import com.bytex.snamp.connector.notifications.advanced.MonitoringNotificationSource;
-import com.bytex.snamp.connector.notifications.advanced.SpanNotification;
-import com.google.common.collect.ImmutableMap;
+import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
+import com.bytex.snamp.connector.notifications.measurement.MeasurementSource;
 
 import javax.management.Notification;
 import java.util.Map;
@@ -19,7 +16,7 @@ import java.util.concurrent.ExecutorService;
  */
 public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector {
 
-    private final MonitoringNotificationSource source;
+    private final MeasurementSource source;
     private final MessageDrivenAttributeRepository attributes;
     private final ExecutorService threadPool;
 
@@ -29,7 +26,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
         final String componentInstance = descriptor.parseComponentInstance(parameters, resourceName);
         final String componentName = descriptor.parseComponentName(parameters);
-        source = new MonitoringNotificationSource(componentName, componentInstance);
+        source = new MeasurementSource(componentName, componentInstance);
         attributes = new MessageDrivenAttributeRepository(resourceName);
         threadPool = descriptor.parseThreadPool(parameters);
     }
@@ -39,7 +36,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     }
 
-    private void postMessage(final MonitoringNotification notification){
+    private void postMessage(final MeasurementNotification notification){
         attributes.post(notification, threadPool);
     }
 
@@ -47,8 +44,8 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
                                      final Object body){
         final Notification notification = parseNotification(headers, body);
         //dispatching notification
-        if(notification instanceof MonitoringNotification)
-            postMessage((MonitoringNotification)notification);
+        if(notification instanceof MeasurementNotification)
+            postMessage((MeasurementNotification)notification);
     }
 
     @Override

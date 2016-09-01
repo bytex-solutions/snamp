@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.OpenAttributeRepository;
-import com.bytex.snamp.connector.notifications.advanced.MonitoringNotification;
+import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 import com.bytex.snamp.core.DistributedServices;
 
 import java.util.Objects;
@@ -46,7 +46,7 @@ final class MessageDrivenAttributeRepository extends OpenAttributeRepository<Mes
 
     }
 
-    void post(final MonitoringNotification notification) {
+    void post(final MeasurementNotification notification) {
         parallelForEach(attribute -> attribute.accept(notification), threadPool);
     }
 }

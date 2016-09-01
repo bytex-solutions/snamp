@@ -9,7 +9,16 @@ import java.io.Serializable;
  * @since 2.0
  */
 public enum HealthCheckStatus implements Serializable {
+    /**
+     * Service is online
+     */
     ONLINE,
+    /**
+     * Service is not available.
+     */
     OFFLINE,
+    /**
+     * Service status is unknown.
+     */
     UNKNOWN
 }

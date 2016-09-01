@@ -1,11 +1,9 @@
-package com.bytex.snamp.connector.notifications.advanced;
+package com.bytex.snamp.connector.notifications.measurement;
 
 import com.bytex.snamp.SerializableMap;
 import com.bytex.snamp.TypeTokens;
 import com.google.common.reflect.TypeToken;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -16,7 +14,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class SpanNotification extends MonitoringNotification {
+public final class SpanNotification extends StopwatchNotification {
     private static final TypeToken<Map<String, String>> USER_DATA_TYPE = new TypeToken<Map<String, String>>() {};
 
     private static final class SpanContext extends HashMap<String, String> implements SerializableMap<String, String>{
@@ -33,23 +31,19 @@ public final class SpanNotification extends MonitoringNotification {
     /**
      * Represents type of this notification.
      */
-    public static final String TYPE = "com.bytex.notifications.span";
+    public static final String TYPE = "com.bytex.measurement.span";
 
     private static final long serialVersionUID = 6986676615521377795L;
 
     private final Comparable<?> spanID;
     private Comparable<?> parentSpan;
-    private Duration duration;
 
     public SpanNotification(final Comparable<?> spanID,
                             final String componentName,
                             final String instanceName,
-                            final String message,
-                            final long stopTimeMillis){
+                            final String message){
         super(TYPE, componentName, instanceName, message);
         this.spanID = Objects.requireNonNull(spanID);
-        this.duration = Duration.ZERO;
-        setTimeStamp(stopTimeMillis);
         setUserData(new SpanContext());
     }
 
@@ -101,29 +95,5 @@ public final class SpanNotification extends MonitoringNotification {
      */
     public final Comparable<?> getIdentifier(){
         return spanID;
-    }
-
-    /**
-     * Gets duration of this span.
-     * @return The duration of this span.
-     */
-    public final Duration getDuration(){
-        return duration;
-    }
-
-    /**
-     * Sets duration of this span.
-     * @param value A new duration of this span.
-     */
-    public final void setDuration(final Duration value){
-        this.duration = Objects.requireNonNull(value);
-    }
-
-    /**
-     * Gets start time of this span.
-     * @return The start time of this span.
-     */
-    public final Instant getStartTime() {
-        return Instant.ofEpochMilli(Duration.ofMillis(getTimeStamp()).minus(duration).toMillis());
     }
 }

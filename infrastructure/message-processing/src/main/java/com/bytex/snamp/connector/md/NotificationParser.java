@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.connector.notifications.advanced.MonitoringNotification;
+import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
 import java.util.Map;
 
@@ -11,5 +11,5 @@ import java.util.Map;
  * @since 2.0
  */
 interface NotificationParser {
-    MonitoringNotification parse(final Map<String, ?> headers, final Object body);
+    MeasurementNotification parse(final Map<String, ?> headers, final Object body);
 }
