@@ -17,7 +17,7 @@ public final class NotificationMetricsWriter implements NotificationMetrics {
 
     public NotificationMetricsWriter(){
         for(final MetricsInterval interval: MetricsInterval.values())
-            statOfEmitted.put(interval, interval.createAccumulator());
+            statOfEmitted.put(interval, interval.createdAdder());
     }
 
     public void update(){
@@ -37,7 +37,7 @@ public final class NotificationMetricsWriter implements NotificationMetrics {
 
     @Override
     public long getNumberOfEmitted(final MetricsInterval interval) {
-        return statOfEmitted.get(interval).longValue();
+        return statOfEmitted.get(interval).getAsLong();
     }
 
     /**

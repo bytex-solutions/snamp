@@ -18,7 +18,6 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     private final MeasurementSource source;
     private final MessageDrivenAttributeRepository attributes;
-    private final ExecutorService threadPool;
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
@@ -27,17 +26,17 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         final String componentInstance = descriptor.parseComponentInstance(parameters, resourceName);
         final String componentName = descriptor.parseComponentName(parameters);
         source = new MeasurementSource(componentName, componentInstance);
-        attributes = new MessageDrivenAttributeRepository(resourceName);
-        threadPool = descriptor.parseThreadPool(parameters);
+        final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
+        attributes = new MessageDrivenAttributeRepository(resourceName, threadPool);
     }
 
     protected Notification parseNotification(final Map<String, ?> headers,
                                              final Object body){
-
+        return null;
     }
 
     private void postMessage(final MeasurementNotification notification){
-        attributes.post(notification, threadPool);
+        attributes.post(notification);
     }
 
     public final void postMessage(final Map<String, ?> headers,

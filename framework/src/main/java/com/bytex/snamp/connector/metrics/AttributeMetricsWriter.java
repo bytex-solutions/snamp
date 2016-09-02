@@ -19,8 +19,8 @@ public final class AttributeMetricsWriter implements AttributeMetrics {
 
     public AttributeMetricsWriter(){
         for(final MetricsInterval interval: MetricsInterval.values()) {
-            statForReads.put(interval, interval.createAccumulator());
-            statForWrites.put(interval, interval.createAccumulator());
+            statForReads.put(interval, interval.createdAdder());
+            statForWrites.put(interval, interval.createdAdder());
         }
     }
 

@@ -22,7 +22,12 @@ public enum MetricsInterval {
         this.timeToLive = unit.toMillis(amount);
     }
 
-    final LongAccumulator createAccumulator(){
+    double fromMillis(final double millis){
+        return millis / timeToLive;
+    }
+
+    LongAccumulator createdAdder(){
         return LongAccumulator.adder(0L, timeToLive);
     }
+
 }

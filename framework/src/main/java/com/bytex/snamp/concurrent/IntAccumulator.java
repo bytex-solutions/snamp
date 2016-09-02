@@ -35,7 +35,7 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
     }
 
     @Override
-    public final synchronized void reset(){
+    public synchronized void reset(){
         super.reset();
         CURRENT_VALUE_ACCESSOR.set(this, initialValue);
     }

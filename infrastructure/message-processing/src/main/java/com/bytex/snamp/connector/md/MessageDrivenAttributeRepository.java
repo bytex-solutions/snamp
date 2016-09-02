@@ -1,13 +1,14 @@
 package com.bytex.snamp.connector.md;
 
+import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.OpenAttributeRepository;
 import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 import com.bytex.snamp.core.DistributedServices;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
+
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
@@ -15,7 +16,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 1.0
  * @since 1.0
  */
-final class MessageDrivenAttributeRepository extends OpenAttributeRepository<MessageDrivenAttribute> {
+final class MessageDrivenAttributeRepository extends AbstractAttributeRepository<MessageDrivenAttribute> {
     private final ExecutorService threadPool;
     private final ConcurrentMap<String, Object> storage;
 
@@ -36,8 +37,25 @@ final class MessageDrivenAttributeRepository extends OpenAttributeRepository<Mes
 
     }
 
+    /**
+     * Obtains the value of a specific attribute of the managed resource.
+     *
+     * @param metadata The metadata of the attribute.
+     * @return The value of the attribute retrieved.
+     * @throws Exception Internal connector error.
+     */
+    @Override
+    protected Object getAttribute(final MessageDrivenAttribute metadata) throws Exception {
+        return null;
+    }
+
     @Override
     protected void failedToGetAttribute(final String attributeID, final Exception e) {
+
+    }
+
+    @Override
+    protected void setAttribute(final MessageDrivenAttribute attribute, final Object value) throws Exception {
 
     }
 

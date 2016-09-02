@@ -17,7 +17,7 @@ public final class OperationMetricsWriter implements OperationMetrics {
 
     public OperationMetricsWriter(){
         for(final MetricsInterval interval: MetricsInterval.values())
-            statOfInvocations.put(interval, interval.createAccumulator());
+            statOfInvocations.put(interval, interval.createdAdder());
     }
 
     public void update(){

@@ -36,14 +36,16 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
     }
 
     @Override
-    public final synchronized void reset(){
+    public synchronized void reset(){
         super.reset();
         CURRENT_VALUE_ACCESSOR.set(this, initialValue);
     }
 
-    private synchronized void resetIfExpired() {
-        if (isExpired())
+    private synchronized boolean resetIfExpired() {
+        final boolean expired;
+        if (expired = isExpired())
             reset();
+        return expired;
     }
 
     /**
@@ -166,6 +168,10 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
 
     public static LongAccumulator peak(final long initialValue, final long ttl){
         return create(initialValue, ttl, Math::max);
+    }
+
+    public static LongAccumulator min(final long initialValue, final long ttl){
+        return create(initialValue, ttl, Math::min);
     }
 
     public static LongAccumulator adder(final long initialValue, final long ttl) {
