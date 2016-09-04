@@ -109,6 +109,7 @@ public final class TaskProcessingMetricWriter extends AbstractMetric implements 
     }
 
     public void update(final Instant eventStart, final Instant eventEnd) {
+        setStartTime(eventStart);
         update(Duration.between(eventStart, eventEnd));
     }
 
