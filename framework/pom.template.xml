@@ -63,6 +63,12 @@
           <artifactId>org.osgi.compendium</artifactId>
       </dependency>
       <dependency>
+          <groupId>io.dropwizard.metrics</groupId>
+          <artifactId>metrics-core</artifactId>
+          <version>3.1.2</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
           <groupId>junit</groupId>
           <artifactId>junit</artifactId>
       </dependency>

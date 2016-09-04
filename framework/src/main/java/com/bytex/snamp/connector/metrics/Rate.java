@@ -1,23 +1,45 @@
 package com.bytex.snamp.connector.metrics;
 
 /**
- * Provides measurement of events rate.
+ * Provides rate of actions.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
 public interface Rate extends Metric {
+    /**
+     * Gets the total rate.
+     * @return The total rate.
+     */
     long getTotalRate();
 
     /**
-     * Gets the last measured count of events per unit of time.
+     * Gets the last measured rate of actions.
      *
-     * @param interval Unit of time.
-     * @return The last measured count of events.
+     * @param interval Measurement interval.
+     * @return The last measured rate of actions.
      */
     long getLastRate(final MetricsInterval interval);
 
+    /**
+     * Gets the mean rate of actions received for the last time.
+     * @param interval Measurement interval.
+     * @return The mean rate of actions received for the last time.
+     */
+    double getLastMeanRate(final MetricsInterval interval);
+
+    /**
+     * Gets the mean rate of actions per unit time from the historical perspective.
+     * @param interval Measurement interval.
+     * @return Mean rate of actions per unit time from the historical perspective.
+     */
     double getMeanRate(final MetricsInterval interval);
 
-    long getMaxRate(final MetricsInterval interval);
+    long getLastMaxRate(final MetricsInterval interval);
+
+    /**
+     * Gets the maximum rate ever happened.
+     * @return The maximum rate ever happened.
+     */
+    long getMaxRate();
 }

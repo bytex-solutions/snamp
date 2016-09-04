@@ -2,11 +2,13 @@ package com.bytex.snamp.connector.metrics;
 
 
 import com.bytex.snamp.concurrent.LongAccumulator;
+import com.bytex.snamp.math.ExponentiallyMovingAverage;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -64,7 +66,9 @@ public final class TaskProcessingMetricWriter extends AbstractMetric implements 
     private final AtomicReference<TimingAndRate> summary;
     private final AtomicReference<Duration> lastTiming;
     private final EnumMap<MetricsInterval, LongAccumulator> lastRate;
-    private final EnumMap<MetricsInterval, LongAccumulator> maxRate;
+    private final EnumMap<MetricsInterval, LongAccumulator> maxRateInInterval;
+    private final EnumMap<MetricsInterval, ExponentiallyMovingAverage> meanRate;
+    private final AtomicLong maxRate;
     private final AtomicReference<Instant> startTime;
 
     public TaskProcessingMetricWriter(final String name) {
@@ -75,10 +79,13 @@ public final class TaskProcessingMetricWriter extends AbstractMetric implements 
         startTime = new AtomicReference<>(Instant.now());
         lastTiming = new AtomicReference<>(Duration.ZERO);
         lastRate = new EnumMap<>(MetricsInterval.class);
-        maxRate = new EnumMap<>(MetricsInterval.class);
+        maxRateInInterval = new EnumMap<>(MetricsInterval.class);
+        maxRate = new AtomicLong(0L);
+        meanRate = new EnumMap<>(MetricsInterval.class);
         for(final MetricsInterval interval: MetricsInterval.values()){
             lastRate.put(interval, interval.createdAdder(0L));
-            maxRate.put(interval, interval.createPeakCounter(0L));
+            maxRateInInterval.put(interval, interval.createPeakCounter(0L));
+            meanRate.put(interval, interval.createEMA());
         }
     }
 
@@ -104,8 +111,21 @@ public final class TaskProcessingMetricWriter extends AbstractMetric implements 
         lastTiming.set(eventDuration);
         for(final MetricsInterval interval: MetricsInterval.values()){
             final long lastRate = this.lastRate.get(interval).update(1L);
-            maxRate.get(interval).update(lastRate);
+            maxRateInInterval.get(interval).update(lastRate);
+            maxRate.accumulateAndGet(lastRate, Math::max);
+            meanRate.get(interval).accept(1D);
         }
+    }
+
+    /**
+     * Gets the mean rate of actions per unit time from the historical perspective.
+     *
+     * @param interval Measurement interval.
+     * @return Mean rate of actions per unit time from the historical perspective.
+     */
+    @Override
+    public double getMeanRate(final MetricsInterval interval) {
+        return meanRate.get(interval).getAsDouble();
     }
 
     public void update(final Instant eventStart, final Instant eventEnd) {
@@ -115,6 +135,10 @@ public final class TaskProcessingMetricWriter extends AbstractMetric implements 
 
     public void setStartTime(final Instant value){
         startTime.accumulateAndGet(value, TaskProcessingMetricWriter::minInstant);
+    }
+
+    public long getMaxRate() {
+        return maxRate.get();
     }
 
     @Override
@@ -128,14 +152,14 @@ public final class TaskProcessingMetricWriter extends AbstractMetric implements 
     }
 
     @Override
-    public double getMeanRate(final MetricsInterval interval) {
+    public double getLastMeanRate(final MetricsInterval interval) {
         final Duration timeline = Duration.between(startTime.get(), Instant.now());
         return getTotalRate() / interval.divideFP(timeline);
     }
 
     @Override
-    public long getMaxRate(final MetricsInterval interval) {
-        return maxRate.get(interval).getAsLong();
+    public long getLastMaxRate(final MetricsInterval interval) {
+        return maxRateInInterval.get(interval).getAsLong();
     }
 
     @Override
@@ -172,9 +196,11 @@ public final class TaskProcessingMetricWriter extends AbstractMetric implements 
         maxTiming.set(Duration.ZERO);
         summary.set(new TimingAndRate());
         lastTiming.set(Duration.ZERO);
+        maxRate.set(0L);
         for(final MetricsInterval interval: MetricsInterval.values()){
             lastRate.get(interval).reset();
-            maxRate.get(interval).reset();
+            maxRateInInterval.get(interval).reset();
+            meanRate.get(interval).reset();
         }
     }
 }

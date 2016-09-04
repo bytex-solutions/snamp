@@ -108,8 +108,9 @@ public final class MetricTest extends Assert {
         //rate
         assertEquals(3, writer.getLastRate(MetricsInterval.SECOND));
         assertEquals(3, writer.getTotalRate());
-        assertTrue(writer.getMeanRate(MetricsInterval.SECOND) > 50D);
-        assertEquals(3, writer.getMaxRate(MetricsInterval.SECOND));
+        assertEquals(3, writer.getMaxRate());
+        assertTrue(writer.getLastMeanRate(MetricsInterval.SECOND) > 50D);
+        assertEquals(3, writer.getLastMaxRate(MetricsInterval.SECOND));
         //timing
         assertEquals(Duration.ofMillis(1500), writer.getLastDuration());
         assertEquals(816, writer.getMeanDuration().toMillis());

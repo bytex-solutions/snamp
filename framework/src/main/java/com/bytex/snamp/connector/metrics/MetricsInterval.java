@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.LongAccumulator;
+import com.bytex.snamp.math.ExponentiallyMovingAverage;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -30,8 +31,8 @@ public enum MetricsInterval {
         return LongAccumulator.adder(initialValue, timeToLive);
     }
 
-    final Duration divide(final Duration value) {
-        return value.dividedBy(timeToLive);
+    final ExponentiallyMovingAverage createEMA(){
+        return new ExponentiallyMovingAverage(Duration.ofMillis(timeToLive));
     }
 
     final double divideFP(final Duration value) {
