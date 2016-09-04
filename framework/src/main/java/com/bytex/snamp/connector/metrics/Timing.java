@@ -8,27 +8,20 @@ import java.time.Duration;
  * @version 2.0
  * @since 2.0
  */
-public interface Timing extends Metric {
+public interface Timing extends Gauge<Duration>, Statistic {
     /**
-     * Gets minimum duration of task processing.
-     * @return The minimum duration of task processing.
+     * Gets quantile of durations, in seconds.
+     * @param quantile Quantile value.
+     * @return
      */
-    Duration getMinDuration();
+    @Override
+    double getQuantile(final double quantile);
 
-    /**
-     * Gets maximal timing.
-     * @return The maximal timing.
-     */
-    Duration getMaxDuration();
-
-    /**
-     * Gets average timing.
-     * @return The average timing.
-     */
-    Duration getMeanDuration();
+    @Override
+    double getDeviation();
 
     default double getMeanNumberOfCompletedTasks(final MetricsInterval interval) {
-        return 1D / interval.divideFP(getMeanDuration());
+        return 1D / interval.divideFP(getMean());
     }
 
     default double getMaxNumberOfCompletedTasks(final MetricsInterval interval){
@@ -40,14 +33,8 @@ public interface Timing extends Metric {
     }
 
     /**
-     * Gets the last timing.
-     * @return The last timing.
-     */
-    Duration getLastDuration();
-
-    /**
      * Gets summary duration of all events.
      * @return The summary duration of all events.
      */
-    Duration getSummaryDuration();
+    Duration getSummaryValue();
 }
