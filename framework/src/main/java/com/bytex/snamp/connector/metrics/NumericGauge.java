@@ -6,5 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 2.0
  */
-interface NumericGauge<V extends Number & Comparable<V>> extends Gauge<V>, Statistic {
+interface NumericGauge extends Metric {
+    double getQuantile(final double quantile);
+    double getDeviation();
 }

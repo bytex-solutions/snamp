@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.concurrent.LongAccumulator;
-import com.bytex.snamp.math.ExponentiallyMovingAverage;
+import com.bytex.snamp.concurrent.TimeLimitedLong;
+import com.bytex.snamp.math.ExponentialMovingAverage;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -15,15 +15,15 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version 2.0
  * @since 2.0
  */
-public final class RateWriter extends AbstractMetric implements Rate {
-    private final EnumMap<MetricsInterval, LongAccumulator> lastRate;
-    private final EnumMap<MetricsInterval, LongAccumulator> maxRateInInterval;
-    private final EnumMap<MetricsInterval, ExponentiallyMovingAverage> meanRate;
+public final class RateRecorder extends AbstractMetric implements Rate {
+    private final EnumMap<MetricsInterval, TimeLimitedLong> lastRate;
+    private final EnumMap<MetricsInterval, TimeLimitedLong> maxRateInInterval;
+    private final EnumMap<MetricsInterval, ExponentialMovingAverage> meanRate;
     private final AtomicLong maxRate;
     private final AtomicLong totalRate;
     private final AtomicReference<Instant> startTime;
 
-    public RateWriter(final String name){
+    public RateRecorder(final String name){
         super(name);
         totalRate = new AtomicLong(0L);
         maxRate = new AtomicLong(0L);
@@ -53,7 +53,7 @@ public final class RateWriter extends AbstractMetric implements Rate {
     }
 
     public void setStartTime(final Instant value) {
-        startTime.accumulateAndGet(value, RateWriter::minInstant);
+        startTime.accumulateAndGet(value, RateRecorder::minInstant);
     }
 
     /**

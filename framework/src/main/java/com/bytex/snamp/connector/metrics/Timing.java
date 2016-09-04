@@ -3,33 +3,36 @@ package com.bytex.snamp.connector.metrics;
 import java.time.Duration;
 
 /**
- * Measures timing of some event.
+ * Measures timing of actions.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public interface Timing extends Gauge<Duration>, Statistic {
-    /**
-     * Gets quantile of durations, in seconds.
-     * @param quantile Quantile value.
-     * @return
-     */
-    @Override
-    double getQuantile(final double quantile);
+public interface Timing extends Gauge<Duration>, Metric {
 
-    @Override
-    double getDeviation();
+    /**
+     * Gets duration at the specified quantile.
+     * @param quantile The quantile value.
+     * @return Duration at the specified quantile.
+     */
+    Duration getQuantile(final double quantile);
+
+    /**
+     * Gets standard deviation of all durations.
+     * @return The standard deviation of all durations.
+     */
+    Duration getDeviation();
 
     default double getMeanNumberOfCompletedTasks(final MetricsInterval interval) {
-        return 1D / interval.divideFP(getMean());
+        return 1D / interval.divideFP(getQuantile(0.5));
     }
 
     default double getMaxNumberOfCompletedTasks(final MetricsInterval interval){
-        return 1D / interval.divideFP(getMinDuration());
+        return 1D / interval.divideFP(getMinValue());
     }
 
     default double getMinNumberOfCompletedTasks(final MetricsInterval interval){
-        return 1D / interval.divideFP(getMaxDuration());
+        return 1D / interval.divideFP(getMaxValue());
     }
 
     /**

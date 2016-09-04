@@ -1,42 +1,41 @@
 package com.bytex.snamp.connector.metrics;
 
 /**
- * Represents generic gauge.
+ * Represents specialized version of 64-bit signed gauge.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-interface Gauge<V extends Comparable<V>> extends Metric {
-
+public interface Gauge64 extends NumericGauge {
     /**
      * Gets maximum value ever presented.
      * @return Maximum value ever presented.
      */
-    V getMaxValue();
+    long getMaxValue();
 
     /**
      * Gets maximum value for the last period of time.
      * @param interval Period of time.
      * @return Maximum value of the last period of time.
      */
-    V getLastMaxValue(final MetricsInterval interval);
+    long getLastMaxValue(final MetricsInterval interval);
 
     /**
      * The minimum value ever presented.
      * @return The minimum value ever presented.
      */
-    V getMinValue();
+    long getMinValue();
 
     /**
      * Gets minimum value for the last period of time.
      * @param interval Period of time.
      * @return Minimum value for the last period of time.
      */
-    V getLastMinValue(final MetricsInterval interval);
+    long getLastMinValue(final MetricsInterval interval);
 
     /**
      * The last presented value.
      * @return The last presented value.
      */
-    V getLastValue();
+    long getLastValue();
 }

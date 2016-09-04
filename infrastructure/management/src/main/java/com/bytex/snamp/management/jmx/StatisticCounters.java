@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.concurrent.LongAccumulator;
+import com.bytex.snamp.concurrent.TimeLimitedLong;
 import org.osgi.service.log.LogService;
 
 import java.time.Duration;
@@ -14,7 +14,7 @@ import java.util.function.LongConsumer;
  * @since 1.0
  */
 final class StatisticCounters {
-    private static final class LogEventCounter extends LongAccumulator {
+    private static final class LogEventCounter extends TimeLimitedLong {
         private LogEventCounter(final AtomicLong timeout){
             super(0L, timeout::get);
         }

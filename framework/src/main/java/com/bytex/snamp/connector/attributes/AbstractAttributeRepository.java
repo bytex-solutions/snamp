@@ -4,7 +4,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.AttributeMetric;
-import com.bytex.snamp.connector.metrics.AttributeMetricWriter;
+import com.bytex.snamp.connector.metrics.AttributeMetricRecorder;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport, SafeCloseable {
 
     private final KeyedObjects<String, M> attributes;
-    private final AttributeMetricWriter metrics;
+    private final AttributeMetricRecorder metrics;
     private final boolean expandable;
 
     /**
@@ -47,7 +47,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                                           final boolean expandable) {
         super(resourceName, attributeMetadataType);
         attributes = AbstractKeyedObjects.create(MBeanAttributeInfo::getName);
-        metrics = new AttributeMetricWriter();
+        metrics = new AttributeMetricRecorder();
         this.expandable = expandable;
     }
 

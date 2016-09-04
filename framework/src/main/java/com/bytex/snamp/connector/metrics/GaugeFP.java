@@ -1,42 +1,41 @@
 package com.bytex.snamp.connector.metrics;
 
 /**
- * Represents generic gauge.
+ * Represents specialized version of floating-point gauge with double precision.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-interface Gauge<V extends Comparable<V>> extends Metric {
-
+public interface GaugeFP extends NumericGauge {
     /**
      * Gets maximum value ever presented.
      * @return Maximum value ever presented.
      */
-    V getMaxValue();
+    double getMaxValue();
 
     /**
      * Gets maximum value for the last period of time.
      * @param interval Period of time.
      * @return Maximum value of the last period of time.
      */
-    V getLastMaxValue(final MetricsInterval interval);
+    double getLastMaxValue(final MetricsInterval interval);
 
     /**
      * The minimum value ever presented.
      * @return The minimum value ever presented.
      */
-    V getMinValue();
+    double getMinValue();
 
     /**
      * Gets minimum value for the last period of time.
      * @param interval Period of time.
      * @return Minimum value for the last period of time.
      */
-    V getLastMinValue(final MetricsInterval interval);
+    double getLastMinValue(final MetricsInterval interval);
 
     /**
      * The last presented value.
      * @return The last presented value.
      */
-    V getLastValue();
+    double getLastValue();
 }

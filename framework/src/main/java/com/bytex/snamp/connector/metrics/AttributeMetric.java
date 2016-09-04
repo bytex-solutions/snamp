@@ -11,25 +11,25 @@ public interface AttributeMetric extends Metric {
      * Gets total number of reads for all attributes.
      * @return A number of reads for all attributes.
      */
-    long getNumberOfReads();
+    long getTotalNumberOfReads();
 
     /**
      * Gets number of reads for all attributes for the last time.
      * @param interval Interval of time.
      * @return A number of reads for all attributes.
      */
-    long getNumberOfReads(final MetricsInterval interval);
+    long getLastNumberOfReads(final MetricsInterval interval);
 
     /**
      * Gets total number of writes for all attributes.
      * @return A number of writes for all attributes.
      */
-    long getNumberOfWrites();
+    long getTotalNumberOfWrites();
 
     /**
      * Gets total number of writes for all attributes for the last time.
      * @param interval Interval of time.
      * @return A number of writes for all attributes.
      */
-    long getNumberOfWrites(final MetricsInterval interval);
+    long getLastNumberOfWrites(final MetricsInterval interval);
 }

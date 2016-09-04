@@ -69,15 +69,15 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
             output.put(NUM_OF_READS_HOUR, 0L);
             output.put(NUM_OF_READS_DAY, 0L);
         } else {
-            output.put(NUM_OF_WRITES, metrics.getNumberOfWrites());
-            output.put(NUM_OF_WRITES_MINUTE, metrics.getNumberOfWrites(MetricsInterval.MINUTE));
-            output.put(NUM_OF_WRITES_HOUR, metrics.getNumberOfWrites(MetricsInterval.HOUR));
-            output.put(NUM_OF_WRITES_DAY, metrics.getNumberOfWrites(MetricsInterval.DAY));
+            output.put(NUM_OF_WRITES, metrics.getTotalNumberOfWrites());
+            output.put(NUM_OF_WRITES_MINUTE, metrics.getLastNumberOfWrites(MetricsInterval.MINUTE));
+            output.put(NUM_OF_WRITES_HOUR, metrics.getLastNumberOfWrites(MetricsInterval.HOUR));
+            output.put(NUM_OF_WRITES_DAY, metrics.getLastNumberOfWrites(MetricsInterval.DAY));
 
-            output.put(NUM_OF_READS, metrics.getNumberOfReads());
-            output.put(NUM_OF_READS_MINUTE, metrics.getNumberOfWrites(MetricsInterval.MINUTE));
-            output.put(NUM_OF_READS_HOUR, metrics.getNumberOfWrites(MetricsInterval.HOUR));
-            output.put(NUM_OF_READS_DAY, metrics.getNumberOfWrites(MetricsInterval.DAY));
+            output.put(NUM_OF_READS, metrics.getTotalNumberOfReads());
+            output.put(NUM_OF_READS_MINUTE, metrics.getLastNumberOfWrites(MetricsInterval.MINUTE));
+            output.put(NUM_OF_READS_HOUR, metrics.getLastNumberOfWrites(MetricsInterval.HOUR));
+            output.put(NUM_OF_READS_DAY, metrics.getLastNumberOfWrites(MetricsInterval.DAY));
         }
     }
 
@@ -88,10 +88,10 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
             output.put(NUM_OF_EMITTED_HOUR, 0L);
             output.put(NUM_OF_EMITTED_DAY, 0L);
         } else {
-            output.put(NUM_OF_EMITTED, metrics.getNumberOfEmitted());
-            output.put(NUM_OF_EMITTED_MINUTE, metrics.getNumberOfEmitted(MetricsInterval.MINUTE));
-            output.put(NUM_OF_EMITTED_HOUR, metrics.getNumberOfEmitted(MetricsInterval.HOUR));
-            output.put(NUM_OF_EMITTED_DAY, metrics.getNumberOfEmitted(MetricsInterval.DAY));
+            output.put(NUM_OF_EMITTED, metrics.getTotalNumberOfNotifications());
+            output.put(NUM_OF_EMITTED_MINUTE, metrics.getLastNumberOfEmitted(MetricsInterval.MINUTE));
+            output.put(NUM_OF_EMITTED_HOUR, metrics.getLastNumberOfEmitted(MetricsInterval.HOUR));
+            output.put(NUM_OF_EMITTED_DAY, metrics.getLastNumberOfEmitted(MetricsInterval.DAY));
         }
     }
 
@@ -102,10 +102,10 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
             output.put(NUM_OF_INVOKED_HOUR, 0L);
             output.put(NUM_OF_INVOKED_DAY, 0L);
         } else {
-            output.put(NUM_OF_INVOKED, metrics.getNumberOfInvocations());
-            output.put(NUM_OF_INVOKED_MINUTE, metrics.getNumberOfInvocations(MetricsInterval.MINUTE));
-            output.put(NUM_OF_INVOKED_HOUR, metrics.getNumberOfInvocations(MetricsInterval.HOUR));
-            output.put(NUM_OF_INVOKED_DAY, metrics.getNumberOfInvocations(MetricsInterval.DAY));
+            output.put(NUM_OF_INVOKED, metrics.getTotalNumberOfInvocations());
+            output.put(NUM_OF_INVOKED_MINUTE, metrics.getLastNumberOfInvocations(MetricsInterval.MINUTE));
+            output.put(NUM_OF_INVOKED_HOUR, metrics.getLastNumberOfInvocations(MetricsInterval.HOUR));
+            output.put(NUM_OF_INVOKED_DAY, metrics.getLastNumberOfInvocations(MetricsInterval.DAY));
         }
     }
 

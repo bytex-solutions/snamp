@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.concurrent.LongAccumulator;
+import com.bytex.snamp.concurrent.TimeLimitedLong;
 
 import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -11,18 +11,18 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 2.0
  * @since 1.0
  */
-public final class OperationMetricWriter extends AbstractMetric implements OperationMetric {
+public final class OperationMetricRecorder extends AbstractMetric implements OperationMetric {
     public static final String DEFAULT_NAME = "operations";
     private final AtomicLong totalInvocations = new AtomicLong(0L);
-    private final EnumMap<MetricsInterval, LongAccumulator> statOfInvocations = new EnumMap<>(MetricsInterval.class);
+    private final EnumMap<MetricsInterval, TimeLimitedLong> statOfInvocations = new EnumMap<>(MetricsInterval.class);
 
-    public OperationMetricWriter(final String name){
+    public OperationMetricRecorder(final String name){
         super(name);
         for(final MetricsInterval interval: MetricsInterval.values())
             statOfInvocations.put(interval, interval.createdAdder(0L));
     }
 
-    public OperationMetricWriter(){
+    public OperationMetricRecorder(){
         this(DEFAULT_NAME);
     }
 
@@ -32,13 +32,13 @@ public final class OperationMetricWriter extends AbstractMetric implements Opera
     }
 
     @Override
-    public long getNumberOfInvocations() {
+    public long getTotalNumberOfInvocations() {
         return totalInvocations.get();
     }
 
     @Override
-    public long getNumberOfInvocations(final MetricsInterval interval) {
-        return statOfInvocations.get(interval).longValue();
+    public long getLastNumberOfInvocations(final MetricsInterval interval) {
+        return statOfInvocations.get(interval).getAsLong();
     }
 
     /**

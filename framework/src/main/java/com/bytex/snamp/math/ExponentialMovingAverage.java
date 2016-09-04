@@ -15,8 +15,9 @@ import java.util.function.LongSupplier;
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
+ * @see <a href="https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average">Exponential moving average</a>
  */
-public final class ExponentiallyMovingAverage extends AtomicDouble implements DoubleConsumer, DoubleSupplier, LongSupplier, Stateful {
+public final class ExponentialMovingAverage extends AtomicDouble implements DoubleConsumer, DoubleSupplier, LongSupplier, Stateful {
     private static final Duration PRECISION = Duration.ofSeconds(1L);
     private static final Duration INTERVAL = PRECISION.multipliedBy(1L);
     private static final long serialVersionUID = -8885874345563930420L;
@@ -30,16 +31,16 @@ public final class ExponentiallyMovingAverage extends AtomicDouble implements Do
      * Initializes a new average calculator.
      * @param interval Period of time in minutes over which the reading is said to be averaged
      */
-    public ExponentiallyMovingAverage(final Duration interval){
+    public ExponentialMovingAverage(final Duration interval){
         super(0D);
         isSet = new AtomicBoolean(false);
         startTime = new AtomicLong(System.nanoTime());
         alpha = 1 - Math.exp(-INTERVAL.getSeconds() / (double)interval.getSeconds());
     }
 
-    private double recalc(final double counter) {
+    private double recalc(final double sample) {
         final double instantCount = getAndSet(0D) / INTERVAL.toNanos();
-        return isSet.compareAndSet(false, true) ? instantCount : counter + (alpha * (instantCount - counter));
+        return isSet.compareAndSet(false, true) ? instantCount : sample + (alpha * (instantCount - sample));
     }
 
     /**

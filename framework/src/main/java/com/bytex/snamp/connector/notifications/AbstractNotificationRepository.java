@@ -5,7 +5,7 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.NotificationMetric;
-import com.bytex.snamp.connector.metrics.NotificationMetricWriter;
+import com.bytex.snamp.connector.metrics.NotificationMetricRecorder;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
@@ -83,7 +83,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final KeyedObjects<String, M> notifications;
     private final NotificationListenerList listeners;
     private final LongSupplier sequenceNumberGenerator;
-    private final NotificationMetricWriter metrics;
+    private final NotificationMetricRecorder metrics;
     private volatile boolean suspended;
     private final boolean expandable;
 
@@ -114,7 +114,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         notifications = AbstractKeyedObjects.create(metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()));
         listeners = new NotificationListenerList();
         this.sequenceNumberGenerator = Objects.requireNonNull(sequenceNumberGenerator);
-        metrics = new NotificationMetricWriter();
+        metrics = new NotificationMetricRecorder();
         suspended = false;
         this.expandable = expandable;
     }

@@ -88,8 +88,8 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
             readMemStatusAttribute();
             //verify metrics
             final AttributeMetric attrMetrics = metrics.getMetrics(AttributeMetric.class).iterator().next();
-            assertTrue(attrMetrics.getNumberOfReads(MetricsInterval.HOUR) > 0);
-            assertTrue(attrMetrics.getNumberOfReads() > 0);
+            assertTrue(attrMetrics.getLastNumberOfReads(MetricsInterval.HOUR) > 0);
+            assertTrue(attrMetrics.getTotalNumberOfReads() > 0);
         } finally {
             client.release(getTestBundleContext());
         }

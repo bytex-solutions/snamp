@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.time.Duration;
 
 /**
- * Represents tests for {@link ExponentiallyMovingAverage}.
+ * Represents tests for {@link ExponentialMovingAverage}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
@@ -14,7 +14,7 @@ import java.time.Duration;
 public final class EMATest extends Assert {
     @Test
     public void basicTest() throws InterruptedException {
-        final ExponentiallyMovingAverage ema = new ExponentiallyMovingAverage(Duration.ofSeconds(2));
+        final ExponentialMovingAverage ema = new ExponentialMovingAverage(Duration.ofSeconds(2));
         ema.accept(10);
         ema.accept(20);
         Thread.sleep(2001);

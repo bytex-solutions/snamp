@@ -4,7 +4,7 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.OperationMetric;
-import com.bytex.snamp.connector.metrics.OperationMetricWriter;
+import com.bytex.snamp.connector.metrics.OperationMetricRecorder;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableSet;
@@ -209,7 +209,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     }
 
     private final KeyedObjects<String, M> operations;
-    private final OperationMetricWriter metrics;
+    private final OperationMetricRecorder metrics;
     private final boolean expandable;
 
     protected AbstractOperationRepository(final String resourceName,
@@ -217,7 +217,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
                                           final boolean expandable) {
         super(resourceName, metadataType);
         operations = AbstractKeyedObjects.create(MBeanOperationInfo::getName);
-        metrics = new OperationMetricWriter();
+        metrics = new OperationMetricRecorder();
         this.expandable = expandable;
     }
 

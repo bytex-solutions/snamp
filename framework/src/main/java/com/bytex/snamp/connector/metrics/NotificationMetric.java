@@ -11,7 +11,7 @@ public interface NotificationMetric extends Metric {
      * Gets total number of all emitted notifications.
      * @return A number of all emitted notifications.
      */
-    long getNumberOfEmitted();
+    long getTotalNumberOfNotifications();
 
-    long getNumberOfEmitted(final MetricsInterval interval);
+    long getLastNumberOfEmitted(final MetricsInterval interval);
 }

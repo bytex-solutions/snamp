@@ -16,8 +16,7 @@ import java.util.function.LongSupplier;
  * @since 1.0
  */
 @ThreadSafe
-public abstract class LongAccumulator extends AbstractAccumulator implements LongSupplier, LongConsumer {
-    private static final long serialVersionUID = -8909745382790738723L;
+public abstract class TimeLimitedLong extends TimeLimited implements LongSupplier, LongConsumer {
     @SpecialUse
     private final AtomicLong current;
     private final long initialValue;
@@ -27,7 +26,7 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
      * @param initialValue The initial value of this accumulator.
      * @param ttl Time-to-live of the value in this accumulator, in millis.
      */
-    protected LongAccumulator(final long initialValue,
+    protected TimeLimitedLong(final long initialValue,
                               final LongSupplier ttl){
         super(ttl);
         current = new AtomicLong(this.initialValue = initialValue);
@@ -48,7 +47,7 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
     }
 
     private void resetIfExpired() {
-        acceptIfExpired(this, LongAccumulator::setInitialValue);
+        acceptIfExpired(this, TimeLimitedLong::setInitialValue);
     }
 
     /**
@@ -93,7 +92,7 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
     }
 
     public final long update(final long value, final LongConsumer callback){
-        acceptIfExpired(this, callback, LongAccumulator::setInitialValue);
+        acceptIfExpired(this, callback, TimeLimitedLong::setInitialValue);
         return accumulate(value);
     }
 
@@ -106,15 +105,6 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
         update(value);
     }
 
-    /**
-     * Gets value of this accumulator.
-     * @return Value of this accumulator
-     */
-    @Override
-    public final long longValue() {
-        resetIfExpired();
-        return current.get();
-    }
 
     /**
      * Gets value of this accumulator.
@@ -122,48 +112,17 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
      */
     @Override
     public final long getAsLong() {
-        return longValue();
+        resetIfExpired();
+        return current.get();
     }
 
-    /**
-     * Returns the value of the specified number as an <code>int</code>.
-     * This may involve rounding or truncation.
-     *
-     * @return the numeric value represented by this object after conversion
-     * to type <code>int</code>.
-     */
     @Override
-    public final int intValue() {
-        return (int)longValue();
+    public final String toString() {
+        return Long.toString(current.get());
     }
 
-    /**
-     * Returns the value of the specified number as a <code>float</code>.
-     * This may involve rounding.
-     *
-     * @return the numeric value represented by this object after conversion
-     * to type <code>float</code>.
-     */
-    @Override
-    public final float floatValue() {
-        return longValue();
-    }
-
-    /**
-     * Returns the value of the specified number as a <code>double</code>.
-     * This may involve rounding.
-     *
-     * @return the numeric value represented by this object after conversion
-     * to type <code>double</code>.
-     */
-    @Override
-    public final double doubleValue() {
-        return longValue();
-    }
-
-    public static LongAccumulator create(final long initialValue, final long ttl, final LongBinaryOperator accumulator){
-        return new LongAccumulator(initialValue, () -> ttl) {
-            private static final long serialVersionUID = 3896687805468634111L;
+    public static TimeLimitedLong create(final long initialValue, final long ttl, final LongBinaryOperator accumulator){
+        return new TimeLimitedLong(initialValue, () -> ttl) {
 
             @Override
             protected long accumulate(final long value) {
@@ -172,17 +131,16 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
         };
     }
 
-    public static LongAccumulator peak(final long initialValue, final long ttl){
+    public static TimeLimitedLong peak(final long initialValue, final long ttl){
         return create(initialValue, ttl, Math::max);
     }
 
-    public static LongAccumulator min(final long initialValue, final long ttl){
+    public static TimeLimitedLong min(final long initialValue, final long ttl){
         return create(initialValue, ttl, Math::min);
     }
 
-    public static LongAccumulator adder(final long initialValue, final long ttl) {
-        final class Adder extends LongAccumulator{
-            private static final long serialVersionUID = 8583924012634668053L;
+    public static TimeLimitedLong adder(final long initialValue, final long ttl) {
+        final class Adder extends TimeLimitedLong {
 
             private Adder(final long initialValue, final long ttl){
                 super(initialValue, () -> ttl);

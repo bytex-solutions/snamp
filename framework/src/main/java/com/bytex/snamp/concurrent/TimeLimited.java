@@ -13,8 +13,7 @@ import java.util.function.LongSupplier;
  * @version 2.0
  * @since 1.0
  */
-abstract class AbstractAccumulator extends Number implements Stateful {
-    private static final long serialVersionUID = 2991679442787059338L;
+abstract class TimeLimited implements Stateful {
     private final AtomicLong timer;
 
     /**
@@ -22,7 +21,7 @@ abstract class AbstractAccumulator extends Number implements Stateful {
      */
     private final LongSupplier timeToLive;
 
-    AbstractAccumulator(final LongSupplier ttl){
+    TimeLimited(final LongSupplier ttl){
         timer = new AtomicLong(System.currentTimeMillis());
         this.timeToLive = ttl;
     }

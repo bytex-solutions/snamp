@@ -45,13 +45,13 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "No metrics for attributes");
             return;
         }
-        appendln(output, "Total number of writes: %s", metrics.getNumberOfWrites());
+        appendln(output, "Total number of writes: %s", metrics.getTotalNumberOfWrites());
         for (final MetricsInterval interval : MetricsInterval.values())
-            appendln(output, "Number of writes(%s): %s", interval, metrics.getNumberOfWrites(interval));
+            appendln(output, "Number of writes(%s): %s", interval, metrics.getLastNumberOfWrites(interval));
 
-        appendln(output, "Total number of reads: %s", metrics.getNumberOfReads());
+        appendln(output, "Total number of reads: %s", metrics.getTotalNumberOfReads());
         for (final MetricsInterval interval : MetricsInterval.values())
-            appendln(output, "Number of reads(%s): %s", interval, metrics.getNumberOfReads(interval));
+            appendln(output, "Number of reads(%s): %s", interval, metrics.getLastNumberOfReads(interval));
     }
 
     private static void collectMetrics(final NotificationMetric metrics, final StringBuilder output) {
@@ -59,9 +59,9 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "No metrics for notifications");
             return;
         }
-        appendln(output, "Total number of emitted notifications: %s", metrics.getNumberOfEmitted());
+        appendln(output, "Total number of emitted notifications: %s", metrics.getTotalNumberOfNotifications());
         for (final MetricsInterval interval : MetricsInterval.values())
-            appendln(output, "Number of emitted notifications(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfEmitted(interval));
+            appendln(output, "Number of emitted notifications(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getLastNumberOfEmitted(interval));
     }
 
     private static void collectMetrics(final OperationMetric metrics, final StringBuilder output) {
@@ -69,9 +69,9 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "No metrics for operations");
             return;
         }
-        appendln(output, "Total number of invocations: %s", metrics.getNumberOfInvocations());
+        appendln(output, "Total number of invocations: %s", metrics.getTotalNumberOfInvocations());
         for (final MetricsInterval interval : MetricsInterval.values())
-            appendln(output, "Number of invocations(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfInvocations(interval));
+            appendln(output, "Number of invocations(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getLastNumberOfInvocations(interval));
     }
 
     private boolean showAll(){

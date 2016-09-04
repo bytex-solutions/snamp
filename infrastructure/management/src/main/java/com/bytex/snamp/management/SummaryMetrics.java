@@ -20,11 +20,11 @@ import java.util.function.ToLongFunction;
  */
 public final class SummaryMetrics extends ImmutableMetrics {
 
-    private static abstract class AbstractMetric<M extends Metric> implements Metric {
+    private static abstract class AbstractSummaryMetric<M extends Metric> implements Metric {
         private final Class<M> metricsType;
         private final BundleContext context;
 
-        private AbstractMetric(final Class<M> mt, final BundleContext context){
+        private AbstractSummaryMetric(final Class<M> mt, final BundleContext context){
             this.metricsType = mt;
             this.context = Objects.requireNonNull(context);
         }
@@ -59,7 +59,7 @@ public final class SummaryMetrics extends ImmutableMetrics {
         }
     }
 
-    private static final class SummaryAttributeMetric extends AbstractMetric<AttributeMetric> implements AttributeMetric {
+    private static final class SummaryAttributeMetric extends AbstractSummaryMetric<AttributeMetric> implements AttributeMetric {
         private static final String NAME = "summaryAttributes";
 
         private SummaryAttributeMetric(final BundleContext context) {
@@ -67,23 +67,23 @@ public final class SummaryMetrics extends ImmutableMetrics {
         }
 
         @Override
-        public long getNumberOfReads() {
-            return aggregateMetrics(AttributeMetric::getNumberOfReads);
+        public long getTotalNumberOfReads() {
+            return aggregateMetrics(AttributeMetric::getTotalNumberOfReads);
         }
 
         @Override
-        public long getNumberOfReads(final MetricsInterval interval) {
-            return aggregateMetrics(metrics -> metrics.getNumberOfReads(interval));
+        public long getLastNumberOfReads(final MetricsInterval interval) {
+            return aggregateMetrics(metrics -> metrics.getLastNumberOfReads(interval));
         }
 
         @Override
-        public long getNumberOfWrites() {
-            return aggregateMetrics(AttributeMetric::getNumberOfWrites);
+        public long getTotalNumberOfWrites() {
+            return aggregateMetrics(AttributeMetric::getTotalNumberOfWrites);
         }
 
         @Override
-        public long getNumberOfWrites(final MetricsInterval interval) {
-            return aggregateMetrics(metrics -> metrics.getNumberOfWrites(interval));
+        public long getLastNumberOfWrites(final MetricsInterval interval) {
+            return aggregateMetrics(metrics -> metrics.getLastNumberOfWrites(interval));
         }
 
         /**
@@ -97,7 +97,7 @@ public final class SummaryMetrics extends ImmutableMetrics {
         }
     }
 
-    private static final class SummaryNotificationMetric extends AbstractMetric<NotificationMetric> implements NotificationMetric {
+    private static final class SummaryNotificationMetric extends AbstractSummaryMetric<NotificationMetric> implements NotificationMetric {
         private static final String NAME = "summaryNotifications";
 
         private SummaryNotificationMetric(final BundleContext context) {
@@ -105,13 +105,13 @@ public final class SummaryMetrics extends ImmutableMetrics {
         }
 
         @Override
-        public long getNumberOfEmitted() {
-            return aggregateMetrics(NotificationMetric::getNumberOfEmitted);
+        public long getTotalNumberOfNotifications() {
+            return aggregateMetrics(NotificationMetric::getTotalNumberOfNotifications);
         }
 
         @Override
-        public long getNumberOfEmitted(final MetricsInterval interval) {
-            return aggregateMetrics(metrics -> metrics.getNumberOfEmitted(interval));
+        public long getLastNumberOfEmitted(final MetricsInterval interval) {
+            return aggregateMetrics(metrics -> metrics.getLastNumberOfEmitted(interval));
         }
 
         /**
@@ -125,7 +125,7 @@ public final class SummaryMetrics extends ImmutableMetrics {
         }
     }
 
-    private static final class SummaryOperationMetric extends AbstractMetric<OperationMetric> implements OperationMetric {
+    private static final class SummaryOperationMetric extends AbstractSummaryMetric<OperationMetric> implements OperationMetric {
         private static final String NAME = "summaryOperations";
 
         private SummaryOperationMetric(final BundleContext context) {
@@ -133,13 +133,13 @@ public final class SummaryMetrics extends ImmutableMetrics {
         }
 
         @Override
-        public long getNumberOfInvocations() {
-            return aggregateMetrics(OperationMetric::getNumberOfInvocations);
+        public long getTotalNumberOfInvocations() {
+            return aggregateMetrics(OperationMetric::getTotalNumberOfInvocations);
         }
 
         @Override
-        public long getNumberOfInvocations(final MetricsInterval interval) {
-            return aggregateMetrics(metrics -> metrics.getNumberOfInvocations(interval));
+        public long getLastNumberOfInvocations(final MetricsInterval interval) {
+            return aggregateMetrics(metrics -> metrics.getLastNumberOfInvocations(interval));
         }
 
         /**

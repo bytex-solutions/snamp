@@ -13,8 +13,7 @@ import java.util.function.LongSupplier;
  * @version 2.0
  * @since 1.0
  */
-public abstract class IntAccumulator extends AbstractAccumulator implements IntSupplier, IntConsumer {
-    private static final long serialVersionUID = 5460812167708036224L;
+public abstract class TimeLimitedInt extends TimeLimited implements IntSupplier, IntConsumer {
     private final AtomicInteger current;
     private final int initialValue;
 
@@ -23,7 +22,7 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
      * @param initialValue The initial value of this accumulator.
      * @param ttl Time-to-live of the value in this accumulator, in millis.
      */
-    protected IntAccumulator(final int initialValue,
+    protected TimeLimitedInt(final int initialValue,
                              final LongSupplier ttl){
         super(ttl);
         current = new AtomicInteger(this.initialValue = initialValue);
@@ -40,7 +39,7 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
     }
 
     private void resetIfExpired(){
-        acceptIfExpired(this, IntAccumulator::setInitialValue);
+        acceptIfExpired(this, TimeLimitedInt::setInitialValue);
     }
 
     /**
@@ -87,28 +86,6 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
     }
 
     /**
-     * Gets value of this accumulator.
-     * @return Value of this accumulator
-     */
-    @Override
-    public final long longValue() {
-        return intValue();
-    }
-
-    /**
-     * Returns the value of the specified number as an <code>int</code>.
-     * This may involve rounding or truncation.
-     *
-     * @return the numeric value represented by this object after conversion
-     * to type <code>int</code>.
-     */
-    @Override
-    public final int intValue() {
-        resetIfExpired();
-        return current.get();
-    }
-
-    /**
      * Returns the value of the specified number as an <code>int</code>.
      * This may involve rounding or truncation.
      *
@@ -117,36 +94,17 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
      */
     @Override
     public final int getAsInt() {
-        return intValue();
+        resetIfExpired();
+        return current.get();
     }
 
-    /**
-     * Returns the value of the specified number as a <code>float</code>.
-     * This may involve rounding.
-     *
-     * @return the numeric value represented by this object after conversion
-     * to type <code>float</code>.
-     */
     @Override
-    public final float floatValue() {
-        return intValue();
+    public final String toString() {
+        return Integer.toString(current.get());
     }
 
-    /**
-     * Returns the value of the specified number as a <code>double</code>.
-     * This may involve rounding.
-     *
-     * @return the numeric value represented by this object after conversion
-     * to type <code>double</code>.
-     */
-    @Override
-    public final double doubleValue() {
-        return intValue();
-    }
-
-    public static IntAccumulator create(final int initialValue, final long ttl, final IntBinaryOperator accumulator){
-        return new IntAccumulator(initialValue, () -> ttl) {
-            private static final long serialVersionUID = -3940528661924869135L;
+    public static TimeLimitedInt create(final int initialValue, final long ttl, final IntBinaryOperator accumulator){
+        return new TimeLimitedInt(initialValue, () -> ttl) {
 
             @Override
             protected int accumulate(final int value) {
@@ -155,13 +113,12 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
         };
     }
 
-    public static IntAccumulator peak(final int initialValue, final long ttl){
+    public static TimeLimitedInt peak(final int initialValue, final long ttl){
         return create(initialValue, ttl, Math::max);
     }
 
-    public static IntAccumulator adder(final int initialValue, final long ttl) {
-        final class Adder extends IntAccumulator{
-            private static final long serialVersionUID = 8155999174928846425L;
+    public static TimeLimitedInt adder(final int initialValue, final long ttl) {
+        final class Adder extends TimeLimitedInt {
 
             private Adder(final int initialValue, final long ttl){
                 super(initialValue, () -> ttl);

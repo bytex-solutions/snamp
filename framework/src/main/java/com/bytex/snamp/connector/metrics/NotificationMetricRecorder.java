@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.concurrent.LongAccumulator;
+import com.bytex.snamp.concurrent.TimeLimitedLong;
 
 import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -11,18 +11,18 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 2.0
  * @since 1.0
  */
-public final class NotificationMetricWriter extends AbstractMetric implements NotificationMetric {
+public final class NotificationMetricRecorder extends AbstractMetric implements NotificationMetric {
     public static final String DEFAULT_NAME = "notifications";
     private final AtomicLong totalEmitted = new AtomicLong(0L);
-    private final EnumMap<MetricsInterval, LongAccumulator> statOfEmitted = new EnumMap<>(MetricsInterval.class);
+    private final EnumMap<MetricsInterval, TimeLimitedLong> statOfEmitted = new EnumMap<>(MetricsInterval.class);
 
-    public NotificationMetricWriter(final String name){
+    public NotificationMetricRecorder(final String name){
         super(name);
         for(final MetricsInterval interval: MetricsInterval.values())
             statOfEmitted.put(interval, interval.createdAdder(0L));
     }
 
-    public NotificationMetricWriter(){
+    public NotificationMetricRecorder(){
         this(DEFAULT_NAME);
     }
 
@@ -37,12 +37,12 @@ public final class NotificationMetricWriter extends AbstractMetric implements No
      * @return A number of all emitted notifications.
      */
     @Override
-    public long getNumberOfEmitted() {
+    public long getTotalNumberOfNotifications() {
         return totalEmitted.get();
     }
 
     @Override
-    public long getNumberOfEmitted(final MetricsInterval interval) {
+    public long getLastNumberOfEmitted(final MetricsInterval interval) {
         return statOfEmitted.get(interval).getAsLong();
     }
 

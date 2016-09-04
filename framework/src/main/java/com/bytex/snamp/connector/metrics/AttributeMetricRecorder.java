@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.concurrent.LongAccumulator;
+import com.bytex.snamp.concurrent.TimeLimitedLong;
 
 import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -11,14 +11,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 2.0
  * @since 1.0
  */
-public final class AttributeMetricWriter extends AbstractMetric implements AttributeMetric {
+public final class AttributeMetricRecorder extends AbstractMetric implements AttributeMetric {
     public static final String DEFAULT_NAME = "attributes";
     private final AtomicLong totalReads = new AtomicLong(0L);
     private final AtomicLong totalWrites = new AtomicLong(0L);
-    private final EnumMap<MetricsInterval, LongAccumulator> statForReads = new EnumMap<>(MetricsInterval.class);
-    private final EnumMap<MetricsInterval, LongAccumulator> statForWrites = new EnumMap<>(MetricsInterval.class);
+    private final EnumMap<MetricsInterval, TimeLimitedLong> statForReads = new EnumMap<>(MetricsInterval.class);
+    private final EnumMap<MetricsInterval, TimeLimitedLong> statForWrites = new EnumMap<>(MetricsInterval.class);
 
-    public AttributeMetricWriter(final String name){
+    public AttributeMetricRecorder(final String name){
         super(name);
         for(final MetricsInterval interval: MetricsInterval.values()) {
             statForReads.put(interval, interval.createdAdder(0L));
@@ -26,7 +26,7 @@ public final class AttributeMetricWriter extends AbstractMetric implements Attri
         }
     }
 
-    public AttributeMetricWriter(){
+    public AttributeMetricRecorder(){
         this(DEFAULT_NAME);
     }
 
@@ -52,7 +52,7 @@ public final class AttributeMetricWriter extends AbstractMetric implements Attri
      * @return A number of reads for all attributes.
      */
     @Override
-    public long getNumberOfReads() {
+    public long getTotalNumberOfReads() {
         return totalReads.get();
     }
 
@@ -63,8 +63,8 @@ public final class AttributeMetricWriter extends AbstractMetric implements Attri
      * @return A number of reads for all attributes.
      */
     @Override
-    public long getNumberOfReads(final MetricsInterval interval) {
-        return statForReads.get(interval).longValue();
+    public long getLastNumberOfReads(final MetricsInterval interval) {
+        return statForReads.get(interval).getAsLong();
     }
 
     /**
@@ -73,7 +73,7 @@ public final class AttributeMetricWriter extends AbstractMetric implements Attri
      * @return A number of writes for all attributes.
      */
     @Override
-    public long getNumberOfWrites() {
+    public long getTotalNumberOfWrites() {
         return totalWrites.get();
     }
 
@@ -84,8 +84,8 @@ public final class AttributeMetricWriter extends AbstractMetric implements Attri
      * @return A number of writes for all attributes.
      */
     @Override
-    public long getNumberOfWrites(final MetricsInterval interval) {
-        return statForWrites.get(interval).longValue();
+    public long getLastNumberOfWrites(final MetricsInterval interval) {
+        return statForWrites.get(interval).getAsLong();
     }
 
     /**
