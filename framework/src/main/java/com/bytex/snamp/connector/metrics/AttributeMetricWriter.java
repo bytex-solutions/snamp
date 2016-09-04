@@ -21,8 +21,8 @@ public final class AttributeMetricWriter extends AbstractMetric implements Attri
     public AttributeMetricWriter(final String name){
         super(name);
         for(final MetricsInterval interval: MetricsInterval.values()) {
-            statForReads.put(interval, interval.createdAdder());
-            statForWrites.put(interval, interval.createdAdder());
+            statForReads.put(interval, interval.createdAdder(0L));
+            statForWrites.put(interval, interval.createdAdder(0L));
         }
     }
 

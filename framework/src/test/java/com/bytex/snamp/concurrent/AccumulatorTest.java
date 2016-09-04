@@ -54,15 +54,4 @@ public final class AccumulatorTest extends Assert {
         Thread.sleep(501L);
         assertEquals(5L, acc.update(5));
     }
-
-    @Test
-    public void avgDoubleAccumulator() throws InterruptedException {
-        final DoubleAccumulator acc = DoubleAccumulator.average(0D, 500L);
-        acc.update(10D);
-        acc.update(20D);
-        assertEquals(30D, acc.update(60D), 0.1D);
-        Thread.sleep(501L);
-        acc.update(3D);
-        assertEquals(6D, acc.update(9D), 0.1D);
-    }
 }

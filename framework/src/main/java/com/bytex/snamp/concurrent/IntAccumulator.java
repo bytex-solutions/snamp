@@ -1,8 +1,6 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.SpecialUse;
-
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
@@ -16,11 +14,8 @@ import java.util.function.LongSupplier;
  * @since 1.0
  */
 public abstract class IntAccumulator extends AbstractAccumulator implements IntSupplier, IntConsumer {
-    private static final AtomicIntegerFieldUpdater<IntAccumulator> CURRENT_VALUE_ACCESSOR =
-            AtomicIntegerFieldUpdater.newUpdater(IntAccumulator.class, "current");
     private static final long serialVersionUID = 5460812167708036224L;
-    @SpecialUse
-    private volatile int current;
+    private final AtomicInteger current;
     private final int initialValue;
 
     /**
@@ -31,18 +26,21 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
     protected IntAccumulator(final int initialValue,
                              final LongSupplier ttl){
         super(ttl);
-        this.current = this.initialValue = initialValue;
+        current = new AtomicInteger(this.initialValue = initialValue);
     }
 
     @Override
-    public synchronized void reset(){
+    public final void reset(){
         super.reset();
-        CURRENT_VALUE_ACCESSOR.set(this, initialValue);
+        setInitialValue();
     }
 
-    private synchronized void resetIfExpired(){
-        if(isExpired())
-            reset();
+    private void setInitialValue(){
+        current.set(initialValue);
+    }
+
+    private void resetIfExpired(){
+        acceptIfExpired(this, IntAccumulator::setInitialValue);
     }
 
     /**
@@ -53,7 +51,7 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
      * @since 1.2
      */
     protected final int addAndGet(final int delta){
-        return CURRENT_VALUE_ACCESSOR.addAndGet(this, delta);
+        return current.addAndGet(delta);
     }
 
     /**
@@ -64,7 +62,7 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
      * @since 1.2
      */
     protected final int accumulateAndGet(final IntBinaryOperator operator, final int newValue){
-        return CURRENT_VALUE_ACCESSOR.accumulateAndGet(this, newValue, operator);
+        return current.accumulateAndGet(newValue, operator);
     }
 
     protected abstract int accumulate(final int value);
@@ -75,8 +73,7 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
      * @return Modified accumulator value.
      */
     public final int update(final int value){
-        if(isExpired())
-            resetIfExpired();   //double check required
+        resetIfExpired();
         return accumulate(value);
     }
 
@@ -107,9 +104,8 @@ public abstract class IntAccumulator extends AbstractAccumulator implements IntS
      */
     @Override
     public final int intValue() {
-        if(isExpired())
-            resetIfExpired();   //double check required
-        return CURRENT_VALUE_ACCESSOR.get(this);
+        resetIfExpired();
+        return current.get();
     }
 
     /**

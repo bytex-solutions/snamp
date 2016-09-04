@@ -3,9 +3,11 @@ package com.bytex.snamp.metrics;
 import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.connector.metrics.AttributeMetricWriter;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
+import com.bytex.snamp.connector.metrics.TaskProcessingMetricWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -95,5 +97,23 @@ public final class MetricTest extends Assert {
         writer.reset();
         assertEquals(0, writer.getNumberOfWrites());
         assertEquals(0, writer.getNumberOfReads());
+    }
+
+    @Test
+    public void rateAndTimingTest(){
+        final TaskProcessingMetricWriter writer = new TaskProcessingMetricWriter("testMetrics");
+        writer.update(Duration.ofMillis(450));
+        writer.update(Duration.ofMillis(500));
+        writer.update(Duration.ofMillis(1500));
+        //rate
+        assertEquals(3, writer.getLastRate(MetricsInterval.SECOND));
+        assertEquals(3, writer.getTotalRate());
+        assertTrue(writer.getMeanRate(MetricsInterval.SECOND) > 50D);
+        assertEquals(3, writer.getMaxRate(MetricsInterval.SECOND));
+        //timing
+        assertEquals(Duration.ofMillis(1500), writer.getLastDuration());
+        assertEquals(816, writer.getMeanDuration().toMillis());
+        assertEquals(Duration.ofMillis(450), writer.getMinDuration());
+        assertEquals(Duration.ofMillis(1500), writer.getMaxDuration());
     }
 }

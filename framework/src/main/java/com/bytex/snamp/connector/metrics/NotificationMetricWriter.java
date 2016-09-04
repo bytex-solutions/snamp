@@ -19,7 +19,7 @@ public final class NotificationMetricWriter extends AbstractMetric implements No
     public NotificationMetricWriter(final String name){
         super(name);
         for(final MetricsInterval interval: MetricsInterval.values())
-            statOfEmitted.put(interval, interval.createdAdder());
+            statOfEmitted.put(interval, interval.createdAdder(0L));
     }
 
     public NotificationMetricWriter(){

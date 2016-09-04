@@ -10,32 +10,44 @@ import java.time.Duration;
  */
 public interface Timing extends Metric {
     /**
-     * Gets minimal timing.
-     * @return The minimal timing.
+     * Gets minimum duration of task processing.
+     * @return The minimum duration of task processing.
      */
-    Duration getMinimum();
+    Duration getMinDuration();
 
     /**
      * Gets maximal timing.
      * @return The maximal timing.
      */
-    Duration getMaximum();
+    Duration getMaxDuration();
 
     /**
      * Gets average timing.
      * @return The average timing.
      */
-    Duration getAverage();
+    Duration getMeanDuration();
+
+    default double getMeanNumberOfCompletedTasks(final MetricsInterval interval) {
+        return 1D / interval.divideFP(getMeanDuration());
+    }
+
+    default double getMaxNumberOfCompletedTasks(final MetricsInterval interval){
+        return 1D / interval.divideFP(getMinDuration());
+    }
+
+    default double getMinNumberOfCompletedTasks(final MetricsInterval interval){
+        return 1D / interval.divideFP(getMaxDuration());
+    }
 
     /**
      * Gets the last timing.
      * @return The last timing.
      */
-    Duration getLast();
+    Duration getLastDuration();
 
     /**
      * Gets summary duration of all events.
      * @return The summary duration of all events.
      */
-    Duration getSummary();
+    Duration getSummaryDuration();
 }

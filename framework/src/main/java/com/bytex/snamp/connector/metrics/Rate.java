@@ -7,7 +7,7 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public interface Rate extends Metric {
-    long getTotalCount();
+    long getTotalRate();
 
     /**
      * Gets the last measured count of events per unit of time.
@@ -15,11 +15,9 @@ public interface Rate extends Metric {
      * @param interval Unit of time.
      * @return The last measured count of events.
      */
-    long getLastCount(final MetricsInterval interval);
+    long getLastRate(final MetricsInterval interval);
 
-    double getAverageCount(final MetricsInterval interval);
+    double getMeanRate(final MetricsInterval interval);
 
-    long getMaxCount(final MetricsInterval interval);
-
-    long getMinCount(final MetricsInterval interval);
+    long getMaxRate(final MetricsInterval interval);
 }

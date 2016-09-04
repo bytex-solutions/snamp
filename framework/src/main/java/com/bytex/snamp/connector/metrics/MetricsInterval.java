@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.LongAccumulator;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -13,7 +14,10 @@ import java.util.concurrent.TimeUnit;
 public enum MetricsInterval {
     SECOND(1, TimeUnit.SECONDS),
     MINUTE(1, TimeUnit.MINUTES),
+    FIVE_MINUTES(5, TimeUnit.MINUTES),
+    FIFTEEN_MINUTES(15, TimeUnit.MINUTES),
     HOUR(1, TimeUnit.HOURS),
+    TWELVE_HOURS(12, TimeUnit.HOURS),
     DAY(1, TimeUnit.DAYS);
 
     private final long timeToLive;
@@ -22,12 +26,19 @@ public enum MetricsInterval {
         this.timeToLive = unit.toMillis(amount);
     }
 
-    double fromMillis(final double millis){
-        return millis / timeToLive;
+    final LongAccumulator createdAdder(final long initialValue){
+        return LongAccumulator.adder(initialValue, timeToLive);
     }
 
-    LongAccumulator createdAdder(){
-        return LongAccumulator.adder(0L, timeToLive);
+    final Duration divide(final Duration value) {
+        return value.dividedBy(timeToLive);
     }
 
+    final double divideFP(final Duration value) {
+        return value.toMillis() / (double) timeToLive;
+    }
+
+    final LongAccumulator createPeakCounter(final long initialValue) {
+        return LongAccumulator.peak(initialValue, timeToLive);
+    }
 }

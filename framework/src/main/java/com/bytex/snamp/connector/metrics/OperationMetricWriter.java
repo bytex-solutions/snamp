@@ -19,7 +19,7 @@ public final class OperationMetricWriter extends AbstractMetric implements Opera
     public OperationMetricWriter(final String name){
         super(name);
         for(final MetricsInterval interval: MetricsInterval.values())
-            statOfInvocations.put(interval, interval.createdAdder());
+            statOfInvocations.put(interval, interval.createdAdder(0L));
     }
 
     public OperationMetricWriter(){

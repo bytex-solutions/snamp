@@ -3,7 +3,7 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
 
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
@@ -18,10 +18,8 @@ import java.util.function.LongSupplier;
 @ThreadSafe
 public abstract class LongAccumulator extends AbstractAccumulator implements LongSupplier, LongConsumer {
     private static final long serialVersionUID = -8909745382790738723L;
-    private static final AtomicLongFieldUpdater<LongAccumulator> CURRENT_VALUE_ACCESSOR =
-            AtomicLongFieldUpdater.newUpdater(LongAccumulator.class, "current");
     @SpecialUse
-    private volatile long current;
+    private final AtomicLong current;
     private final long initialValue;
 
     /**
@@ -32,20 +30,25 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
     protected LongAccumulator(final long initialValue,
                               final LongSupplier ttl){
         super(ttl);
-        this.current = this.initialValue = initialValue;
+        current = new AtomicLong(this.initialValue = initialValue);
+    }
+
+    private void setInitialValue(){
+        current.set(initialValue);
+    }
+
+    private void setInitialValue(final LongConsumer callback){
+        callback.accept(current.getAndSet(initialValue));
     }
 
     @Override
-    public synchronized void reset(){
+    public final void reset(){
         super.reset();
-        CURRENT_VALUE_ACCESSOR.set(this, initialValue);
+        setInitialValue();
     }
 
-    private synchronized boolean resetIfExpired() {
-        final boolean expired;
-        if (expired = isExpired())
-            reset();
-        return expired;
+    private void resetIfExpired() {
+        acceptIfExpired(this, LongAccumulator::setInitialValue);
     }
 
     /**
@@ -56,7 +59,7 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
      * @since 1.2
      */
     protected final long addAndGet(final long delta){
-        return CURRENT_VALUE_ACCESSOR.addAndGet(this, delta);
+        return current.addAndGet(delta);
     }
 
     /**
@@ -67,7 +70,7 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
      * @since 1.2
      */
     protected final long accumulateAndGet(final LongBinaryOperator operator, final long newValue){
-        return CURRENT_VALUE_ACCESSOR.accumulateAndGet(this, newValue, operator);
+        return current.accumulateAndGet(newValue, operator);
     }
 
     /**
@@ -85,8 +88,12 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
      * @return Modified accumulator value.
      */
     public final long update(final long value) {
-        if (isExpired())
-            resetIfExpired();   //double check required
+        resetIfExpired();
+        return accumulate(value);
+    }
+
+    public final long update(final long value, final LongConsumer callback){
+        acceptIfExpired(this, callback, LongAccumulator::setInitialValue);
         return accumulate(value);
     }
 
@@ -105,9 +112,8 @@ public abstract class LongAccumulator extends AbstractAccumulator implements Lon
      */
     @Override
     public final long longValue() {
-        if(isExpired())
-            resetIfExpired();   //double check required
-        return CURRENT_VALUE_ACCESSOR.get(this);
+        resetIfExpired();
+        return current.get();
     }
 
     /**

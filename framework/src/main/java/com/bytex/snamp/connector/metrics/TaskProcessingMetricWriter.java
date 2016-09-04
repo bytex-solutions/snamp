@@ -17,7 +17,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  * @since 2.0
  */
-public final class TimingWriter extends AbstractMetric implements Timing, Rate {
+public final class TaskProcessingMetricWriter extends AbstractMetric implements Timing, Rate {
     //tuple with duration and rate
     private static final class TimingAndRate{
         private final Duration timing;
@@ -63,15 +63,23 @@ public final class TimingWriter extends AbstractMetric implements Timing, Rate {
     private final AtomicReference<Duration> minTiming;
     private final AtomicReference<TimingAndRate> summary;
     private final AtomicReference<Duration> lastTiming;
-    private final EnumMap<MetricsInterval, LongAccumulator> lastCount;
+    private final EnumMap<MetricsInterval, LongAccumulator> lastRate;
+    private final EnumMap<MetricsInterval, LongAccumulator> maxRate;
+    private final AtomicReference<Instant> startTime;
 
-    public TimingWriter(final String name) {
+    public TaskProcessingMetricWriter(final String name) {
         super(name);
         maxTiming = new AtomicReference<>(Duration.ZERO);
         minTiming = new AtomicReference<>(null);
         summary = new AtomicReference<>(new TimingAndRate());
+        startTime = new AtomicReference<>(Instant.now());
         lastTiming = new AtomicReference<>(Duration.ZERO);
-        lastCount = new EnumMap<>(MetricsInterval.class);
+        lastRate = new EnumMap<>(MetricsInterval.class);
+        maxRate = new EnumMap<>(MetricsInterval.class);
+        for(final MetricsInterval interval: MetricsInterval.values()){
+            lastRate.put(interval, interval.createdAdder(0L));
+            maxRate.put(interval, interval.createPeakCounter(0L));
+        }
     }
 
     private static Duration maxDuration(final Duration current, final Duration provided){
@@ -85,95 +93,72 @@ public final class TimingWriter extends AbstractMetric implements Timing, Rate {
             return current.compareTo(provider) < 0 ? current : provider;
     }
 
+    private static Instant minInstant(final Instant current, final Instant provided){
+        return current.compareTo(provided) < 0 ? current : provided;
+    }
+
     public void update(final Duration eventDuration) {
-        maxTiming.accumulateAndGet(eventDuration, TimingWriter::maxDuration);
-        minTiming.accumulateAndGet(eventDuration, TimingWriter::minDuration);
+        maxTiming.accumulateAndGet(eventDuration, TaskProcessingMetricWriter::maxDuration);
+        minTiming.accumulateAndGet(eventDuration, TaskProcessingMetricWriter::minDuration);
         summary.accumulateAndGet(new TimingAndRate(eventDuration, 1L), TimingAndRate::plus);
         lastTiming.set(eventDuration);
+        for(final MetricsInterval interval: MetricsInterval.values()){
+            final long lastRate = this.lastRate.get(interval).update(1L);
+            maxRate.get(interval).update(lastRate);
+        }
     }
 
     public void update(final Instant eventStart, final Instant eventEnd) {
         update(Duration.between(eventStart, eventEnd));
     }
 
+    public void setStartTime(final Instant value){
+        startTime.accumulateAndGet(value, TaskProcessingMetricWriter::minInstant);
+    }
+
     @Override
-    public long getTotalCount() {
+    public long getTotalRate() {
         return summary.get().count;
     }
 
-    /**
-     * Gets the last measured count of events per unit of time.
-     *
-     * @param interval Unit of time.
-     * @return The last measured count of events.
-     */
     @Override
-    public long getLastCount(final MetricsInterval interval) {
-        return 0;
+    public long getLastRate(final MetricsInterval interval) {
+        return lastRate.get(interval).getAsLong();
     }
 
     @Override
-    public double getAverageCount(final MetricsInterval interval) {
-        return 0;
+    public double getMeanRate(final MetricsInterval interval) {
+        final Duration timeline = Duration.between(startTime.get(), Instant.now());
+        return getTotalRate() / interval.divideFP(timeline);
     }
 
     @Override
-    public long getMaxCount(final MetricsInterval interval) {
-        return 0;
+    public long getMaxRate(final MetricsInterval interval) {
+        return maxRate.get(interval).getAsLong();
     }
 
     @Override
-    public long getMinCount(final MetricsInterval interval) {
-        return 0;
-    }
-
-    /**
-     * Gets minimal timing.
-     *
-     * @return The minimal timing.
-     */
-    @Override
-    public Duration getMinimum() {
+    public Duration getMinDuration() {
         return firstNonNull(minTiming.get(), Duration.ZERO);
     }
 
-    /**
-     * Gets maximal timing.
-     *
-     * @return The maximal timing.
-     */
     @Override
-    public Duration getMaximum() {
+    public Duration getMaxDuration() {
         return maxTiming.get();
     }
 
-    /**
-     * Gets average timing.
-     *
-     * @return The average timing.
-     */
     @Override
-    public Duration getAverage() {
+    public Duration getMeanDuration() {
         return summary.get().divide();
     }
 
-    /**
-     * Gets the last timing.
-     *
-     * @return The last timing.
-     */
     @Override
-    public Duration getLast() {
+    public Duration getLastDuration() {
         return lastTiming.get();
     }
 
-    /**
-     * Gets summary duration of all events.
-     *
-     * @return The summary duration of all events.
-     */
     @Override
-    public Duration getSummary() {
+    public Duration getSummaryDuration() {
         return summary.get().timing;
     }
 
@@ -186,5 +171,9 @@ public final class TimingWriter extends AbstractMetric implements Timing, Rate {
         maxTiming.set(Duration.ZERO);
         summary.set(new TimingAndRate());
         lastTiming.set(Duration.ZERO);
+        for(final MetricsInterval interval: MetricsInterval.values()){
+            lastRate.get(interval).reset();
+            maxRate.get(interval).reset();
+        }
     }
 }
