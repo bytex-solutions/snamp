@@ -6,7 +6,7 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.*;
 import com.bytex.snamp.connector.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
@@ -18,7 +18,6 @@ import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 
@@ -32,7 +31,6 @@ import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -822,7 +820,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     @Override
-    protected final MetricsReader createMetricsReader(){
+    protected final MetricsSupport createMetricsReader(){
         return assembleMetricsReader(attributes, notifications, operations);
     }
 

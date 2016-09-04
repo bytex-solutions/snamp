@@ -1,7 +1,7 @@
 package com.bytex.snamp.metrics;
 
 import com.bytex.snamp.concurrent.FutureThread;
-import com.bytex.snamp.connector.metrics.AttributeMetricsWriter;
+import com.bytex.snamp.connector.metrics.AttributeMetricWriter;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,10 +14,10 @@ import java.util.concurrent.Future;
  * @version 1.0
  * @since 1.0
  */
-public final class MetricsTest extends Assert {
+public final class MetricTest extends Assert {
     @Test
     public void numberOfReadsTest() throws InterruptedException {
-        final AttributeMetricsWriter writer = new AttributeMetricsWriter();
+        final AttributeMetricWriter writer = new AttributeMetricWriter();
         writer.updateReads();
         assertEquals(1, writer.getNumberOfReads());
         assertEquals(1, writer.getNumberOfReads(MetricsInterval.DAY));
@@ -40,7 +40,7 @@ public final class MetricsTest extends Assert {
 
     @Test
     public void numberOfWritesTest() throws InterruptedException {
-        final AttributeMetricsWriter writer = new AttributeMetricsWriter();
+        final AttributeMetricWriter writer = new AttributeMetricWriter();
         writer.updateWrites();
         assertEquals(1, writer.getNumberOfWrites());
         assertEquals(1, writer.getNumberOfWrites(MetricsInterval.DAY));
@@ -63,7 +63,7 @@ public final class MetricsTest extends Assert {
 
     @Test
     public void concurrentTest2() throws ExecutionException, InterruptedException {
-        final AttributeMetricsWriter writer = new AttributeMetricsWriter();
+        final AttributeMetricWriter writer = new AttributeMetricWriter();
         final int numOfThreads = Runtime.getRuntime().availableProcessors() + 1;
         final Future[] threads = new FutureThread[numOfThreads];
         for(int i = 0; i < numOfThreads; i++)
@@ -78,7 +78,7 @@ public final class MetricsTest extends Assert {
 
     @Test
     public void concurrentTest() throws ExecutionException, InterruptedException {
-        final AttributeMetricsWriter writer = new AttributeMetricsWriter();
+        final AttributeMetricWriter writer = new AttributeMetricWriter();
         final int numOfThreads = Runtime.getRuntime().availableProcessors() + 1;
         final Future[] threads = new FutureThread[numOfThreads];
         for(int i = 0; i < numOfThreads; i++)

@@ -2,9 +2,9 @@ package com.bytex.snamp.testing.connector.composite;
 
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.metrics.AttributeMetrics;
+import com.bytex.snamp.connector.metrics.AttributeMetric;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
@@ -103,14 +103,13 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     public void testForMetrics() throws Exception {
         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
         try{
-            final MetricsReader metrics = client.queryObject(MetricsReader.class);
+            final MetricsSupport metrics = client.queryObject(MetricsSupport.class);
             assertNotNull(metrics);
-            assertTrue(metrics.getMetrics(MBeanAttributeInfo.class) instanceof AttributeMetrics);
-            assertNotNull(metrics.queryObject(AttributeMetrics.class));
+            assertTrue(metrics.getMetrics(AttributeMetric.class).iterator().hasNext());
             //read and write attributes
             booleanAttributeTest();
             //verify metrics
-            final AttributeMetrics attrMetrics = metrics.queryObject(AttributeMetrics.class);
+            final AttributeMetric attrMetrics = metrics.getMetrics(AttributeMetric.class).iterator().next();
             assertTrue(attrMetrics.getNumberOfReads(MetricsInterval.HOUR) > 0);
             assertTrue(attrMetrics.getNumberOfReads() > 0);
         } finally {

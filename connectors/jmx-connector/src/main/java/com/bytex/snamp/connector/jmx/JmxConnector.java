@@ -11,7 +11,7 @@ import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeDescriptorRead;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
@@ -740,7 +740,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
     }
 
     @Override
-    protected MetricsReader createMetricsReader(){
+    protected MetricsSupport createMetricsReader(){
         return assembleMetricsReader(attributes, notifications, operations);
     }
 

@@ -6,9 +6,9 @@ import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.metrics.AttributeMetrics;
+import com.bytex.snamp.connector.metrics.AttributeMetric;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import org.junit.Assume;
@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
-import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.CompositeData;
 import java.util.concurrent.ExecutionException;
 
@@ -82,14 +81,13 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     public void testForMetrics() throws Exception {
         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
         try{
-            final MetricsReader metrics = client.queryObject(MetricsReader.class);
+            final MetricsSupport metrics = client.queryObject(MetricsSupport.class);
             assertNotNull(metrics);
-            assertTrue(metrics.getMetrics(MBeanAttributeInfo.class) instanceof AttributeMetrics);
-            assertNotNull(metrics.queryObject(AttributeMetrics.class));
+            assertTrue(metrics.getMetrics(AttributeMetric.class).iterator().hasNext());
             //read and write attributes
             readMemStatusAttribute();
             //verify metrics
-            final AttributeMetrics attrMetrics = metrics.queryObject(AttributeMetrics.class);
+            final AttributeMetric attrMetrics = metrics.getMetrics(AttributeMetric.class).iterator().next();
             assertTrue(attrMetrics.getNumberOfReads(MetricsInterval.HOUR) > 0);
             assertTrue(attrMetrics.getNumberOfReads() > 0);
         } finally {

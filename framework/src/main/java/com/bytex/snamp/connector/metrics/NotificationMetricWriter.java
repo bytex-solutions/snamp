@@ -6,18 +6,24 @@ import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Represents default implementation of interface {@link NotificationMetrics}.
+ * Represents default implementation of interface {@link NotificationMetric}.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
-public final class NotificationMetricsWriter implements NotificationMetrics {
+public final class NotificationMetricWriter extends AbstractMetric implements NotificationMetric {
+    public static final String DEFAULT_NAME = "notifications";
     private final AtomicLong totalEmitted = new AtomicLong(0L);
     private final EnumMap<MetricsInterval, LongAccumulator> statOfEmitted = new EnumMap<>(MetricsInterval.class);
 
-    public NotificationMetricsWriter(){
+    public NotificationMetricWriter(final String name){
+        super(name);
         for(final MetricsInterval interval: MetricsInterval.values())
             statOfEmitted.put(interval, interval.createdAdder());
+    }
+
+    public NotificationMetricWriter(){
+        this(DEFAULT_NAME);
     }
 
     public void update(){

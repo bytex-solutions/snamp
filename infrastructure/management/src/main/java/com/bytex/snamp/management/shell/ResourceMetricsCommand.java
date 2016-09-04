@@ -11,6 +11,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 import javax.management.InstanceNotFoundException;
 
 import static com.bytex.snamp.management.shell.Utils.appendln;
+import static com.google.common.collect.Iterables.getFirst;
 
 /**
  * Provides access to metrics.
@@ -39,7 +40,7 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
     @SpecialUse
     private boolean resetMetrics;
 
-    private static void collectMetrics(final AttributeMetrics metrics, final StringBuilder output) {
+    private static void collectMetrics(final AttributeMetric metrics, final StringBuilder output) {
         if(metrics == null){
             appendln(output, "No metrics for attributes");
             return;
@@ -53,7 +54,7 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "Number of reads(%s): %s", interval, metrics.getNumberOfReads(interval));
     }
 
-    private static void collectMetrics(final NotificationMetrics metrics, final StringBuilder output) {
+    private static void collectMetrics(final NotificationMetric metrics, final StringBuilder output) {
         if(metrics == null) {
             appendln(output, "No metrics for notifications");
             return;
@@ -63,7 +64,7 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "Number of emitted notifications(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfEmitted(interval));
     }
 
-    private static void collectMetrics(final OperationMetrics metrics, final StringBuilder output) {
+    private static void collectMetrics(final OperationMetric metrics, final StringBuilder output) {
         if(metrics == null) {
             appendln(output, "No metrics for operations");
             return;
@@ -77,35 +78,34 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
         return !(showAttributes | showNotifications | showOperations);
     }
 
-    private  CharSequence collectMetrics(final MetricsReader metrics) {
+    private  CharSequence collectMetrics(final MetricsSupport metrics) {
         final StringBuilder result = new StringBuilder();
         if (showAttributes | showAll())
-            collectMetrics(metrics.queryObject(AttributeMetrics.class), result);
+            collectMetrics(getFirst(metrics.getMetrics(AttributeMetric.class), (AttributeMetric)null), result);
         if (showNotifications | showAll())
-            collectMetrics(metrics.queryObject(NotificationMetrics.class), result);
+            collectMetrics(getFirst(metrics.getMetrics(NotificationMetric.class), (NotificationMetric)null), result);
         if (showOperations | showAll())
-            collectMetrics(metrics.queryObject(OperationMetrics.class), result);
+            collectMetrics(getFirst(metrics.getMetrics(OperationMetric.class), (OperationMetric)null), result);
         return result;
     }
 
-    private static void resetMetrics(final Metrics m){
-        if(m != null)
-            m.reset();
+    private static void resetMetrics(final Iterable<? extends Metric> m){
+        m.forEach(Metric::reset);
     }
 
-    private CharSequence resetMetrics(final MetricsReader metrics) {
+    private CharSequence resetMetrics(final MetricsSupport metrics) {
         if (showAttributes | showAll())
-            resetMetrics(metrics.queryObject(AttributeMetrics.class));
+            resetMetrics(metrics.getMetrics(AttributeMetric.class));
         if (showOperations | showAll())
-            resetMetrics(metrics.queryObject(OperationMetrics.class));
+            resetMetrics(metrics.getMetrics(OperationMetric.class));
         if (showNotifications | showAll())
-            resetMetrics(metrics.queryObject(NotificationMetrics.class));
+            resetMetrics(metrics.getMetrics(NotificationMetric.class));
         return "Metrics reset";
     }
 
     @Override
     protected CharSequence doExecute() throws InstanceNotFoundException {
-        final MetricsReader metrics = MetricsAttribute.getMetrics(resourceName, bundleContext);
+        final MetricsSupport metrics = MetricsAttribute.getMetrics(resourceName, bundleContext);
         if (metrics == null) return "Metrics are not supported";
         return resetMetrics ? resetMetrics(metrics) : collectMetrics(metrics);
     }

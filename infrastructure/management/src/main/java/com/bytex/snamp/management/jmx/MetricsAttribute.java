@@ -2,8 +2,8 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.metrics.MetricsReader;
-import com.bytex.snamp.connector.metrics.SummaryMetrics;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
+import com.bytex.snamp.management.SummaryMetrics;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
@@ -37,13 +37,13 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
         super("Metrics", TYPE);
     }
 
-    public static MetricsReader getMetrics(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
+    public static MetricsSupport getMetrics(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
         if (isNullOrEmpty(resourceName))
             return new SummaryMetrics(context);
         else {
             final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, resourceName);
             try {
-                return connector.queryObject(MetricsReader.class);
+                return connector.queryObject(MetricsSupport.class);
             } finally {
                 connector.release(context);
             }
@@ -57,7 +57,7 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
         for (final Map.Entry<String, ServiceReference<ManagedResourceConnector>> connectorRef : ManagedResourceConnectorClient.getConnectors(context).entrySet()) {
             final ServiceHolder<ManagedResourceConnector> connector = new ServiceHolder<>(context, connectorRef.getValue());
             try {
-                final MetricsReader metrics = connector.get().queryObject(MetricsReader.class);
+                final MetricsSupport metrics = connector.get().queryObject(MetricsSupport.class);
                 if (metrics == null) continue;
                 rows.newRow()
                         .cell(RESOURCE_NAME_CELL, connectorRef.getKey())

@@ -4,6 +4,7 @@ package com.bytex.snamp.connector.metrics;
 import com.bytex.snamp.concurrent.LongAccumulator;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -16,7 +17,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  * @since 2.0
  */
-public final class TimingWriter implements Timing, Rate {
+public final class TimingWriter extends AbstractMetric implements Timing, Rate {
     //tuple with duration and rate
     private static final class TimingAndRate{
         private final Duration timing;
@@ -64,7 +65,8 @@ public final class TimingWriter implements Timing, Rate {
     private final AtomicReference<Duration> lastTiming;
     private final EnumMap<MetricsInterval, LongAccumulator> lastCount;
 
-    public TimingWriter() {
+    public TimingWriter(final String name) {
+        super(name);
         maxTiming = new AtomicReference<>(Duration.ZERO);
         minTiming = new AtomicReference<>(null);
         summary = new AtomicReference<>(new TimingAndRate());
@@ -88,6 +90,10 @@ public final class TimingWriter implements Timing, Rate {
         minTiming.accumulateAndGet(eventDuration, TimingWriter::minDuration);
         summary.accumulateAndGet(new TimingAndRate(eventDuration, 1L), TimingAndRate::plus);
         lastTiming.set(eventDuration);
+    }
+
+    public void update(final Instant eventStart, final Instant eventEnd) {
+        update(Duration.between(eventStart, eventEnd));
     }
 
     @Override

@@ -6,7 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 2.0
  */
-public interface Rate extends Metrics {
+public interface Rate extends Metric {
     long getTotalCount();
 
     /**

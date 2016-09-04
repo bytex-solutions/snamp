@@ -2,7 +2,7 @@ package com.bytex.snamp.testing.gateway.jmx;
 
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
@@ -205,7 +205,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
     public void metricsTest(){
         final ManagedResourceConnector connector = getManagementConnector();
         try{
-            assertNotNull(connector.queryObject(MetricsReader.class));
+            assertNotNull(connector.queryObject(MetricsSupport.class));
         }
         finally {
             releaseManagementConnector();

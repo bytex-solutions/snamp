@@ -4,7 +4,7 @@ import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.OpenAttributeRepository;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.modbus.transport.ModbusMaster;
 import com.bytex.snamp.connector.modbus.transport.ModbusTransportType;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -104,7 +104,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     }
 
     @Override
-    protected MetricsReader createMetricsReader() {
+    protected MetricsSupport createMetricsReader() {
         return assembleMetricsReader(attributes);
     }
 

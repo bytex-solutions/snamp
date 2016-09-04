@@ -7,8 +7,9 @@ import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.metrics.Metrics;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.Metric;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
+import com.bytex.snamp.connector.metrics.ImmutableMetrics;
 import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
@@ -20,6 +21,7 @@ import javax.management.*;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
@@ -38,7 +40,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @version 2.0
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Localizable {
-    private final LazyValue<MetricsReader> metrics;
+    private final LazyValue<MetricsSupport> metrics;
 
     protected AbstractManagedResourceConnector() {
         metrics = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(this::createMetricsReader);
@@ -50,32 +52,13 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @return A new instance of metrics reader.
      */
     @SafeVarargs
-    protected static MetricsReader assembleMetricsReader(final AbstractFeatureRepository<? extends MBeanFeatureInfo>... repositories) {
-        return new MetricsReader() {
-            @Override
-            public Metrics getMetrics(final Class<? extends MBeanFeatureInfo> featureType) {
-                for (final AbstractFeatureRepository<?> repository : repositories)
-                    if (featureType.isAssignableFrom(repository.metadataType))
-                        return repository.getMetrics();
-                return null;
-            }
+    protected static MetricsSupport assembleMetricsReader(final AbstractFeatureRepository<? extends MBeanFeatureInfo>... repositories) {
+        return new ImmutableMetrics(repositories, AbstractFeatureRepository::getMetrics);
+    }
 
-            @Override
-            public void resetAll() {
-                for (final AbstractFeatureRepository<?> repository : repositories)
-                    repository.getMetrics().reset();
-            }
-
-            @Override
-            public <T> T queryObject(final Class<T> objectType) {
-                for (final AbstractFeatureRepository<?> repository : repositories) {
-                    final Metrics metrics = repository.getMetrics();
-                    if (objectType.isInstance(metrics))
-                        return objectType.cast(metrics);
-                }
-                return null;
-            }
-        };
+    @SafeVarargs
+    protected static MetricsSupport assembleMetricsReader(final Supplier<? extends Metric>... metrics) {
+        return new ImmutableMetrics(metrics, Supplier::get);
     }
 
     /**
@@ -228,7 +211,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      *     method is to call method {@link #assembleMetricsReader(AbstractFeatureRepository[])}.
      * @return A new reader of metrics provided by this resource connector.
      */
-    protected abstract MetricsReader createMetricsReader();
+    protected abstract MetricsSupport createMetricsReader();
 
     /**
      * Gets metrics associated with this instance of the resource connector.
@@ -237,7 +220,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Aggregation(cached = true)
     @SpecialUse
-    public final MetricsReader getMetrics(){
+    public final MetricsSupport getMetrics(){
         return metrics.get();
     }
 

@@ -11,7 +11,7 @@ import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.attributes.OpenMBeanAttributeInfoImpl;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
@@ -749,7 +749,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
     }
 
     @Override
-    protected MetricsReader createMetricsReader() {
+    protected MetricsSupport createMetricsReader() {
         return assembleMetricsReader(attributes, notifications);
     }
 

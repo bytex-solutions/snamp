@@ -3,6 +3,7 @@ package com.bytex.snamp.management.jmx;
 import com.bytex.snamp.connector.metrics.*;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
+import com.bytex.snamp.management.SummaryMetrics;
 import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
@@ -56,7 +57,7 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
             .addItem(NUM_OF_INVOKED_DAY, "Number of emitted notifications for the last day", SimpleType.LONG)
             .build());
 
-    private static void collectMetrics(final AttributeMetrics metrics, final Map<String, Long> output) {
+    private static void collectMetrics(final AttributeMetric metrics, final Map<String, Long> output) {
         if (metrics == null) {
             output.put(NUM_OF_WRITES, 0L);
             output.put(NUM_OF_WRITES_MINUTE, 0L);
@@ -80,7 +81,7 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
         }
     }
 
-    private static void collectMetrics(final NotificationMetrics metrics, final Map<String, Long> output) {
+    private static void collectMetrics(final NotificationMetric metrics, final Map<String, Long> output) {
         if (metrics == null) {
             output.put(NUM_OF_EMITTED, 0L);
             output.put(NUM_OF_EMITTED_MINUTE, 0L);
@@ -94,7 +95,7 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
         }
     }
 
-    private static void collectMetrics(final OperationMetrics metrics, final Map<String, Long> output) {
+    private static void collectMetrics(final OperationMetric metrics, final Map<String, Long> output) {
         if (metrics == null) {
             output.put(NUM_OF_INVOKED, 0L);
             output.put(NUM_OF_INVOKED_MINUTE, 0L);
@@ -108,11 +109,14 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
         }
     }
 
-    static CompositeData collectMetrics(final MetricsReader metrics) throws OpenDataException {
+    static CompositeData collectMetrics(final MetricsSupport metrics) throws OpenDataException {
         final Map<String, Long> entries = Maps.newHashMapWithExpectedSize(TYPE.keySet().size());
-        collectMetrics(metrics.queryObject(AttributeMetrics.class), entries);
-        collectMetrics(metrics.queryObject(NotificationMetrics.class), entries);
-        collectMetrics(metrics.queryObject(OperationMetrics.class), entries);
+        for(final AttributeMetric metric: metrics.getMetrics(AttributeMetric.class))
+            collectMetrics(metric, entries);
+        for(final NotificationMetric metric: metrics.getMetrics(NotificationMetric.class))
+            collectMetrics(metric, entries);
+        for(final OperationMetric metric: metrics.getMetrics(OperationMetric.class))
+            collectMetrics(metric, entries);
         return new CompositeDataSupport(TYPE, entries);
     }
 

@@ -10,7 +10,7 @@ import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.attributes.OpenMBeanAttributeInfoImpl;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -313,7 +313,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
     }
 
     @Override
-    protected MetricsReader createMetricsReader() {
+    protected MetricsSupport createMetricsReader() {
         return assembleMetricsReader(attributes);
     }
 

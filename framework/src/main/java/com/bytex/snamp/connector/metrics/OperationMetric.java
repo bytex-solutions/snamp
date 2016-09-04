@@ -6,7 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 1.0
  */
-public interface OperationMetrics extends Metrics {
+public interface OperationMetric extends Metric {
     long getNumberOfInvocations();
 
     long getNumberOfInvocations(final MetricsInterval interval);

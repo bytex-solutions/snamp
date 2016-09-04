@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.composite;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -78,7 +78,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     }
 
     @Override
-    protected MetricsReader createMetricsReader() {
+    protected MetricsSupport createMetricsReader() {
         return assembleMetricsReader(attributes, operations, notifications);
     }
 

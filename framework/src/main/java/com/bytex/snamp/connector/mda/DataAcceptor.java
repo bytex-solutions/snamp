@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.mda;
 
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -45,7 +45,7 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
     protected abstract MDANotificationRepository getNotifications();
 
     @Override
-    protected final MetricsReader createMetricsReader(){
+    protected final MetricsSupport createMetricsReader(){
         return assembleMetricsReader(getAttributes(), getNotifications());
     }
 

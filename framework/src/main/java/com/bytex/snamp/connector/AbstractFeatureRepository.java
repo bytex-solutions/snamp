@@ -4,7 +4,7 @@ import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
-import com.bytex.snamp.connector.metrics.Metrics;
+import com.bytex.snamp.connector.metrics.Metric;
 import com.google.common.collect.Sets;
 
 import javax.management.MBeanFeatureInfo;
@@ -162,7 +162,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      * Gets metrics associated with activity of the features in this repository.
      * @return Metrics associated with activity in this repository.
      */
-    public abstract Metrics getMetrics();
+    public abstract Metric getMetrics();
 
     protected final F[] toArray(final Collection<F> features){
         return features.stream().toArray(arrayConstructor(metadataType));

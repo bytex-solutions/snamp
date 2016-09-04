@@ -6,22 +6,28 @@ import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Represents default implementation of {@link AttributeMetrics} interface.
+ * Represents default implementation of {@link AttributeMetric} interface.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
-public final class AttributeMetricsWriter implements AttributeMetrics {
+public final class AttributeMetricWriter extends AbstractMetric implements AttributeMetric {
+    public static final String DEFAULT_NAME = "attributes";
     private final AtomicLong totalReads = new AtomicLong(0L);
     private final AtomicLong totalWrites = new AtomicLong(0L);
     private final EnumMap<MetricsInterval, LongAccumulator> statForReads = new EnumMap<>(MetricsInterval.class);
     private final EnumMap<MetricsInterval, LongAccumulator> statForWrites = new EnumMap<>(MetricsInterval.class);
 
-    public AttributeMetricsWriter(){
+    public AttributeMetricWriter(final String name){
+        super(name);
         for(final MetricsInterval interval: MetricsInterval.values()) {
             statForReads.put(interval, interval.createdAdder());
             statForWrites.put(interval, interval.createdAdder());
         }
+    }
+
+    public AttributeMetricWriter(){
+        this(DEFAULT_NAME);
     }
 
     /**

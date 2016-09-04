@@ -1,6 +1,6 @@
 package com.bytex.snamp;
 
-import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -63,7 +63,7 @@ public final class AggregationTest extends Assert {
         assertNotNull(provider.queryObject(SubInterface.class));
         assertNotNull(provider.queryObject(BigInteger.class));
         assertNotNull(provider.queryObject(BigDecimal.class));
-        assertNull(provider.queryObject(MetricsReader.class));
+        assertNull(provider.queryObject(MetricsSupport.class));
     }
 
     @Test

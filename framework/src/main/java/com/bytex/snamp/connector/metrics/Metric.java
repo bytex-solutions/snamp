@@ -8,7 +8,13 @@ import com.bytex.snamp.Stateful;
  * @version 2.0
  * @since 1.0
  */
-public interface Metrics extends Stateful {
+public interface Metric extends Stateful {
+    /**
+     * Gets name of this metric.
+     * @return Name of this metric.
+     */
+    String getName();
+
     /**
      * Resets all metrics.
      */

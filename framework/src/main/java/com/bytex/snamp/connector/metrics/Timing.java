@@ -8,7 +8,7 @@ import java.time.Duration;
  * @version 2.0
  * @since 2.0
  */
-public interface Timing extends Metrics {
+public interface Timing extends Metric {
     /**
      * Gets minimal timing.
      * @return The minimal timing.

@@ -6,7 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 1.0
  */
-public interface AttributeMetrics extends Metrics {
+public interface AttributeMetric extends Metric {
     /**
      * Gets total number of reads for all attributes.
      * @return A number of reads for all attributes.

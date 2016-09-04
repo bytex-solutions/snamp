@@ -212,18 +212,15 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     public void testForMetrics() throws Exception {
         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
         try{
-            final MetricsReader metrics = client.queryObject(MetricsReader.class);
+            final MetricsSupport metrics = client.queryObject(MetricsSupport.class);
             assertNotNull(metrics);
-            assertTrue(metrics.getMetrics(MBeanAttributeInfo.class) instanceof AttributeMetrics);
-            assertTrue(metrics.getMetrics(MBeanNotificationInfo.class) instanceof NotificationMetrics);
-            assertTrue(metrics.getMetrics(MBeanOperationInfo.class) instanceof OperationMetrics);
-            assertNotNull(metrics.queryObject(AttributeMetrics.class));
-            assertNotNull(metrics.queryObject(NotificationMetrics.class));
-            assertNotNull(metrics.queryObject(OperationMetrics.class));
+            assertTrue(metrics.getMetrics(AttributeMetric.class).iterator().hasNext());
+            assertTrue(metrics.getMetrics(NotificationMetric.class).iterator().hasNext());
+            assertTrue(metrics.getMetrics(OperationMetric.class).iterator().hasNext());
             //read and write attributes
             testForStringProperty();
             //verify metrics
-            final AttributeMetrics attrMetrics = metrics.queryObject(AttributeMetrics.class);
+            final AttributeMetric attrMetrics = metrics.getMetrics(AttributeMetric.class).iterator().next();
             assertTrue(attrMetrics.getNumberOfReads(MetricsInterval.HOUR) > 0);
             assertTrue(attrMetrics.getNumberOfWrites(MetricsInterval.HOUR) > 0);
             assertTrue(attrMetrics.getNumberOfReads() > 0);
