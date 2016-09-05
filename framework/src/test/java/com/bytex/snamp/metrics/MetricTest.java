@@ -2,6 +2,7 @@ package com.bytex.snamp.metrics;
 
 import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.connector.metrics.AttributeMetricRecorder;
+import com.bytex.snamp.connector.metrics.FlagRecorder;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
 import com.bytex.snamp.connector.metrics.TimingRecorder;
 import org.junit.Assert;
@@ -97,6 +98,13 @@ public final class MetricTest extends Assert {
         writer.reset();
         assertEquals(0, writer.getTotalNumberOfWrites());
         assertEquals(0, writer.getTotalNumberOfReads());
+    }
+
+    @Test
+    public void flagTest(){
+        final FlagRecorder writer = new FlagRecorder("testMetrics");
+        writer.update(true);
+
     }
 
     @Test
