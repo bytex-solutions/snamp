@@ -5,9 +5,9 @@ import com.bytex.snamp.math.ExponentialMovingAverage;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import static com.bytex.snamp.connector.metrics.StaticCache.INTERVALS;
 
 /**
  * Represents rate counter.
@@ -16,9 +16,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 2.0
  */
 public final class RateRecorder extends AbstractMetric implements Rate {
-    private final EnumMap<MetricsInterval, TimeLimitedLong> lastRate;
-    private final EnumMap<MetricsInterval, TimeLimitedLong> maxRateInInterval;
-    private final EnumMap<MetricsInterval, ExponentialMovingAverage> meanRate;
+    private final MetricsIntervalMap<TimeLimitedLong> lastRate;
+    private final MetricsIntervalMap<TimeLimitedLong> maxRateInInterval;
+    private final MetricsIntervalMap<ExponentialMovingAverage> meanRate;
     private final AtomicLong maxRate;
     private final AtomicLong totalRate;
     private final AtomicReference<Instant> startTime;
@@ -27,25 +27,20 @@ public final class RateRecorder extends AbstractMetric implements Rate {
         super(name);
         totalRate = new AtomicLong(0L);
         maxRate = new AtomicLong(0L);
-        lastRate = new EnumMap<>(MetricsInterval.class);
-        maxRateInInterval = new EnumMap<>(MetricsInterval.class);
-        meanRate = new EnumMap<>(MetricsInterval.class);
-        for(final MetricsInterval interval: MetricsInterval.values()){
-            lastRate.put(interval, interval.createdAdder(0L));
-            maxRateInInterval.put(interval, interval.createPeakCounter(Long.MIN_VALUE));
-            meanRate.put(interval, interval.createEMA());
-        }
+        lastRate = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
+        maxRateInInterval = new MetricsIntervalMap<>(interval -> interval.createPeakCounter(Long.MIN_VALUE));
+        meanRate = new MetricsIntervalMap<>(MetricsInterval::createEMA);
         startTime = new AtomicReference<>(Instant.now());
     }
 
-    public void update(){
+    public void update() {
         totalRate.incrementAndGet();
-        for(final MetricsInterval interval: MetricsInterval.values()){
-            final long lastRate = this.lastRate.get(interval).update(1L);
+        for (final MetricsInterval interval : INTERVALS) {
+            final long lastRate = this.lastRate.get(interval).updateByOne();
             maxRateInInterval.get(interval).update(lastRate);
             maxRate.accumulateAndGet(lastRate, Math::max);
-            meanRate.get(interval).accept(1D);
         }
+        meanRate.applyToAllIntervals(ema -> ema.accept(1D));
     }
 
     private static Instant minInstant(final Instant current, final Instant provided){
@@ -122,10 +117,8 @@ public final class RateRecorder extends AbstractMetric implements Rate {
     public void reset() {
         maxRate.set(0L);
         totalRate.set(0L);
-        for(final MetricsInterval interval: MetricsInterval.values()){
-            lastRate.get(interval).reset();
-            meanRate.get(interval).reset();
-            maxRateInInterval.get(interval).reset();
-        }
+        lastRate.applyToAllIntervals(TimeLimitedLong::reset);
+        meanRate.applyToAllIntervals(ExponentialMovingAverage::reset);
+        maxRateInInterval.applyToAllIntervals(TimeLimitedLong::reset);
     }
 }

@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 
-import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -15,15 +14,13 @@ public final class AttributeMetricRecorder extends AbstractMetric implements Att
     public static final String DEFAULT_NAME = "attributes";
     private final AtomicLong totalReads = new AtomicLong(0L);
     private final AtomicLong totalWrites = new AtomicLong(0L);
-    private final EnumMap<MetricsInterval, TimeLimitedLong> statForReads = new EnumMap<>(MetricsInterval.class);
-    private final EnumMap<MetricsInterval, TimeLimitedLong> statForWrites = new EnumMap<>(MetricsInterval.class);
+    private final MetricsIntervalMap<TimeLimitedLong> statForReads;
+    private final MetricsIntervalMap<TimeLimitedLong> statForWrites;
 
     public AttributeMetricRecorder(final String name){
         super(name);
-        for(final MetricsInterval interval: MetricsInterval.values()) {
-            statForReads.put(interval, interval.createdAdder(0L));
-            statForWrites.put(interval, interval.createdAdder(0L));
-        }
+        statForReads = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
+        statForWrites = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
     }
 
     public AttributeMetricRecorder(){
@@ -35,7 +32,7 @@ public final class AttributeMetricRecorder extends AbstractMetric implements Att
      */
     public void updateReads(){
         totalReads.incrementAndGet();
-        statForReads.values().forEach(accumulator -> accumulator.update(1L));
+        statForReads.values().forEach(TimeLimitedLong::updateByOne);
     }
 
     /**
@@ -43,7 +40,7 @@ public final class AttributeMetricRecorder extends AbstractMetric implements Att
      */
     public void updateWrites(){
         totalWrites.incrementAndGet();
-        statForWrites.values().forEach(accumulator -> accumulator.update(1L));
+        statForWrites.values().forEach(TimeLimitedLong::updateByOne);
     }
 
     /**
@@ -95,9 +92,7 @@ public final class AttributeMetricRecorder extends AbstractMetric implements Att
     public void reset() {
         totalReads.set(0L);
         totalWrites.set(0L);
-        for(final MetricsInterval interval: MetricsInterval.values()){
-            statForWrites.get(interval).reset();
-            statForReads.get(interval).reset();
-        }
+        statForWrites.applyToAllIntervals(TimeLimitedLong::reset);
+        statForReads.applyToAllIntervals(TimeLimitedLong::reset);
     }
 }

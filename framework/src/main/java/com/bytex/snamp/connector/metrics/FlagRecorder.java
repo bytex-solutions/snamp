@@ -3,9 +3,9 @@ package com.bytex.snamp.connector.metrics;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 import com.bytex.snamp.math.ExponentialMovingAverage;
 
-import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import static com.bytex.snamp.connector.metrics.StaticCache.INTERVALS;
 
 /**
  * Represents implementation of {@link Flag}.
@@ -21,45 +21,35 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
     private final AtomicBoolean value;
     private final AtomicLong totalTrueCount;
     private final AtomicLong totalFalseCount;
-    private final EnumMap<MetricsInterval, ExponentialMovingAverage> meanRatio;
-    private final EnumMap<MetricsInterval, TimeLimitedLong> lastTrueCount;
-    private final EnumMap<MetricsInterval, TimeLimitedLong> lastFalseCount;
+    private final MetricsIntervalMap<ExponentialMovingAverage> meanRatio;
+    private final MetricsIntervalMap<TimeLimitedLong> lastTrueCount;
+    private final MetricsIntervalMap<TimeLimitedLong> lastFalseCount;
 
     public FlagRecorder(final String name) {
         super(name);
         value = new AtomicBoolean(false);
         totalTrueCount = new AtomicLong(0L);
         totalFalseCount = new AtomicLong(0L);
-        meanRatio = new EnumMap<>(MetricsInterval.class);
-        lastFalseCount = new EnumMap<>(MetricsInterval.class);
-        lastTrueCount = new EnumMap<>(MetricsInterval.class);
-        for(final MetricsInterval interval: MetricsInterval.values()){
-            meanRatio.put(interval, interval.createEMA());
-            lastFalseCount.put(interval, interval.createdAdder(0L));
-            lastTrueCount.put(interval, interval.createdAdder(0L));
-        }
-    }
-
-    private void updateMeanRatio(final double trueCount, final double falseCount, final MetricsInterval interval) {
-        if (falseCount > 0D) //avoid divide by zero error
-            meanRatio.get(interval).accept(trueCount / falseCount);
+        meanRatio = new MetricsIntervalMap<>(MetricsInterval::createEMA);
+        lastFalseCount = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
+        lastTrueCount = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
     }
 
     private void updateRatio(final boolean value) {
+        final double trueCount, falseCount;
         if (value) {
-            final double trueCount = totalTrueCount.incrementAndGet();
-            final double falseCount = totalFalseCount.get();
-            for (final MetricsInterval interval : MetricsInterval.values()) {
-                updateMeanRatio(trueCount, falseCount, interval);
-                lastTrueCount.get(interval).update(1L);
-            }
+            trueCount = totalTrueCount.incrementAndGet();
+            falseCount = totalFalseCount.get();
+            lastTrueCount.applyToAllIntervals(TimeLimitedLong::updateByOne);
         } else {
-            final double falseCount = totalFalseCount.incrementAndGet();
-            final double trueCount = totalTrueCount.get();
-            for (final MetricsInterval interval : MetricsInterval.values()) {
-                updateMeanRatio(trueCount, falseCount, interval);
-                lastFalseCount.get(interval).update(1L);
-            }
+            falseCount = totalFalseCount.incrementAndGet();
+            trueCount = totalTrueCount.get();
+            lastFalseCount.applyToAllIntervals(TimeLimitedLong::updateByOne);
+        }
+        if (falseCount > 0D) { //avoid division by zero error
+            final double ratio = trueCount / falseCount;
+            for (final MetricsInterval interval : INTERVALS)
+                meanRatio.get(interval).accept(ratio);
         }
     }
 
@@ -107,6 +97,9 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
         this.value.set(false);
         totalFalseCount.set(0L);
         totalTrueCount.set(0L);
+        meanRatio.applyToAllIntervals(ExponentialMovingAverage::reset);
+        lastFalseCount.applyToAllIntervals(TimeLimitedLong::reset);
+        lastTrueCount.applyToAllIntervals(TimeLimitedLong::reset);
     }
 
     /**

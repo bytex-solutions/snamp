@@ -105,6 +105,9 @@ public abstract class TimeLimitedLong extends TimeLimited implements LongSupplie
         update(value);
     }
 
+    public long updateByOne(){
+        return update(1L);
+    }
 
     /**
      * Gets value of this accumulator.

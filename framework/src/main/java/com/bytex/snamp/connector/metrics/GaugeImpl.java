@@ -2,11 +2,11 @@ package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.TimeLimitedObject;
 
-import java.util.EnumMap;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.bytex.snamp.connector.metrics.StaticCache.INTERVALS;
 
 /**
  * Represents basic implementation of gauge.
@@ -18,8 +18,8 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
     private final AtomicReference<V> maxValue;
     private final AtomicReference<V> minValue;
     private final AtomicReference<V> lastValue;
-    private final EnumMap<MetricsInterval, TimeLimitedObject<V>> lastMaxValues;
-    private final EnumMap<MetricsInterval, TimeLimitedObject<V>> lastMinValues;
+    private final MetricsIntervalMap<TimeLimitedObject<V>> lastMaxValues;
+    private final MetricsIntervalMap<TimeLimitedObject<V>> lastMinValues;
     private final V initialValue;
 
     GaugeImpl(final String name,
@@ -29,12 +29,8 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
         maxValue = new AtomicReference<>();
         minValue = new AtomicReference<>();
         lastValue = new AtomicReference<>();
-        lastMinValues = new EnumMap<>(MetricsInterval.class);
-        lastMaxValues = new EnumMap<>(MetricsInterval.class);
-        for(final MetricsInterval interval: MetricsInterval.values()){
-            lastMaxValues.put(interval, interval.createTemporaryBox(null, GaugeImpl::maxValue));
-            lastMinValues.put(interval, interval.createTemporaryBox(null, GaugeImpl::minValue));
-        }
+        lastMinValues = new MetricsIntervalMap<>(interval -> interval.createTemporaryBox(null, GaugeImpl::minValue));
+        lastMaxValues = new MetricsIntervalMap<>(interval -> interval.createTemporaryBox(null, GaugeImpl::maxValue));
     }
 
     /**
@@ -77,7 +73,7 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
         maxValue.accumulateAndGet(value, GaugeImpl::maxValue);
         minValue.accumulateAndGet(value, GaugeImpl::minValue);
         lastValue.set(value);
-        for(final MetricsInterval interval: MetricsInterval.values()){
+        for(final MetricsInterval interval: INTERVALS){
             lastMaxValues.get(interval).accept(value);
             lastMinValues.get(interval).accept(value);
         }
@@ -100,10 +96,8 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
     public void reset() {
         maxValue.set(null);
         minValue.set(null);
-        for(final MetricsInterval interval: MetricsInterval.values()){
-            lastMaxValues.get(interval).reset();
-            lastMinValues.get(interval).reset();
-        }
+        lastMaxValues.applyToAllIntervals(TimeLimitedObject::reset);
+        lastMinValues.applyToAllIntervals(TimeLimitedObject::reset);
     }
 
     /**
