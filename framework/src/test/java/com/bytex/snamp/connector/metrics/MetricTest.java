@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.FutureThread;
+import com.codahale.metrics.Timer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,6 +30,7 @@ public final class MetricTest extends Assert {
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.HOUR));
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.MINUTE));
         assertEquals(0, writer.reads().getLastMaxRate(MetricsInterval.SECOND));
+        Timer t;
     }
 
     @Test
