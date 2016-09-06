@@ -5,7 +5,7 @@ import com.bytex.snamp.math.ExponentialMovingAverage;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import static com.bytex.snamp.connector.metrics.StaticCache.INTERVALS;
+import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
 
 /**
  * Represents implementation of {@link Flag}.
@@ -48,7 +48,7 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
         }
         if (falseCount > 0D) { //avoid division by zero error
             final double ratio = trueCount / falseCount;
-            for (final MetricsInterval interval : INTERVALS)
+            for (final MetricsInterval interval : ALL_INTERVALS)
                 meanRatio.get(interval).accept(ratio);
         }
     }

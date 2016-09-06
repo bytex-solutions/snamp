@@ -8,28 +8,14 @@ package com.bytex.snamp.connector.metrics;
  */
 public interface AttributeMetric extends Metric {
     /**
-     * Gets total number of reads for all attributes.
-     * @return A number of reads for all attributes.
+     * Gets rate of attribute writes.
+     * @return Rate of attribute writes.
      */
-    long getTotalNumberOfReads();
+    Rate writes();
 
     /**
-     * Gets number of reads for all attributes for the last time.
-     * @param interval Interval of time.
-     * @return A number of reads for all attributes.
+     * Gets rate of attribute reads.
+     * @return Rate of attribute reads.
      */
-    long getLastNumberOfReads(final MetricsInterval interval);
-
-    /**
-     * Gets total number of writes for all attributes.
-     * @return A number of writes for all attributes.
-     */
-    long getTotalNumberOfWrites();
-
-    /**
-     * Gets total number of writes for all attributes for the last time.
-     * @param interval Interval of time.
-     * @return A number of writes for all attributes.
-     */
-    long getLastNumberOfWrites(final MetricsInterval interval);
+    Rate reads();
 }

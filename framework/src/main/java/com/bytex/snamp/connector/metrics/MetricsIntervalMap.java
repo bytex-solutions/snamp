@@ -17,7 +17,7 @@ import static java.util.AbstractMap.SimpleImmutableEntry;
  * @since 2.0
  */
 final class MetricsIntervalMap<V> implements Map<MetricsInterval, V> {
-    private static final ImmutableSet<MetricsInterval> KEYS = ImmutableSet.copyOf(StaticCache.INTERVALS);
+    private static final ImmutableSet<MetricsInterval> KEYS = ImmutableSet.copyOf(MetricsInterval.ALL_INTERVALS);
 
     private final V secondValue;
     private final V minuteValue;
@@ -35,7 +35,7 @@ final class MetricsIntervalMap<V> implements Map<MetricsInterval, V> {
         hourValue = valueProvider.apply(MetricsInterval.HOUR);
         twelveHoursValue = valueProvider.apply(MetricsInterval.TWELVE_HOURS);
         dayValue = valueProvider.apply(MetricsInterval.DAY);
-        assert KEYS.size() == 7;    //self-protection and early detection of situation when somehow add a new element in enum
+        assert KEYS.size() == 7;    //self-protection for early detection of situation when somehow add a new element in enum
     }
 
     void applyToAllIntervals(final Consumer<? super V> action){

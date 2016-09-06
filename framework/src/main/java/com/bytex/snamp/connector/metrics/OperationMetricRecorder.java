@@ -1,10 +1,5 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.concurrent.TimeLimitedLong;
-
-import java.util.EnumMap;
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Represents default implementation of interface {@link OperationMetric}.
  * @author Roman Sakno
@@ -13,13 +8,11 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class OperationMetricRecorder extends AbstractMetric implements OperationMetric {
     public static final String DEFAULT_NAME = "operations";
-    private final AtomicLong totalInvocations = new AtomicLong(0L);
-    private final EnumMap<MetricsInterval, TimeLimitedLong> statOfInvocations = new EnumMap<>(MetricsInterval.class);
+    private final RateRecorder invocationsRate;
 
     public OperationMetricRecorder(final String name){
         super(name);
-        for(final MetricsInterval interval: MetricsInterval.values())
-            statOfInvocations.put(interval, interval.createdAdder(0L));
+        invocationsRate = new RateRecorder(name);
     }
 
     public OperationMetricRecorder(){
@@ -27,18 +20,17 @@ public final class OperationMetricRecorder extends AbstractMetric implements Ope
     }
 
     public void update(){
-        totalInvocations.incrementAndGet();
-        statOfInvocations.values().forEach(accumulator -> accumulator.update(1L));
+        invocationsRate.update();
     }
 
+    /**
+     * Gets rate of all invocations.
+     *
+     * @return Rate of all invocations.
+     */
     @Override
-    public long getTotalNumberOfInvocations() {
-        return totalInvocations.get();
-    }
-
-    @Override
-    public long getLastNumberOfInvocations(final MetricsInterval interval) {
-        return statOfInvocations.get(interval).getAsLong();
+    public Rate invocations() {
+        return invocationsRate;
     }
 
     /**
@@ -46,8 +38,6 @@ public final class OperationMetricRecorder extends AbstractMetric implements Ope
      */
     @Override
     public void reset() {
-        totalInvocations.set(0L);
-        for(final MetricsInterval interval: MetricsInterval.values())
-            statOfInvocations.get(interval).reset();
+        invocationsRate.reset();
     }
 }

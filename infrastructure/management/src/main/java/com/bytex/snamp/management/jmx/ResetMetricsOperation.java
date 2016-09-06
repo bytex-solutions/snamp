@@ -1,7 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.management.SummaryMetrics;
 import com.bytex.snamp.internal.Utils;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import org.osgi.framework.BundleContext;

@@ -7,7 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import static com.bytex.snamp.connector.metrics.StaticCache.INTERVALS;
+import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
 
 /**
  * Represents rate counter.
@@ -35,7 +35,7 @@ public final class RateRecorder extends AbstractMetric implements Rate {
 
     public void update() {
         totalRate.incrementAndGet();
-        for (final MetricsInterval interval : INTERVALS) {
+        for (final MetricsInterval interval : ALL_INTERVALS) {
             final long lastRate = this.lastRate.get(interval).updateByOne();
             maxRateInInterval.get(interval).update(lastRate);
             maxRate.accumulateAndGet(lastRate, Math::max);

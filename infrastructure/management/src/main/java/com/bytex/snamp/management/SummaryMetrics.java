@@ -5,11 +5,11 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.metrics.*;
 import com.bytex.snamp.core.ServiceHolder;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
-import java.util.Iterator;
 import java.util.Objects;
-import java.util.function.ToLongFunction;
+import java.util.function.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Provides metrics across all active resource connector.
@@ -19,134 +19,137 @@ import java.util.function.ToLongFunction;
  * @version 2.0
  */
 public final class SummaryMetrics extends ImmutableMetrics {
+    private static final class LongMetricConsumer<M extends Metric> implements Consumer<M>, LongSupplier{
+        private final ToLongFunction<? super M> longExtractor;
+        private final LongBinaryOperator aggregator;
+        private long value;
 
-    private static abstract class AbstractSummaryMetric<M extends Metric> implements Metric {
+        private LongMetricConsumer(final ToLongFunction<? super M> extractor,
+                                   final LongBinaryOperator aggregator){
+            this.longExtractor = extractor;
+            this.aggregator = aggregator;
+        }
+
+        @Override
+        public void accept(final M m) {
+            value = aggregator.applyAsLong(value, longExtractor.applyAsLong(m));
+        }
+
+        @Override
+        public long getAsLong() {
+            return value;
+        }
+    }
+
+    private static abstract class SummaryMetric<M extends Metric> implements Metric {
         private final Class<M> metricsType;
         private final BundleContext context;
 
-        private AbstractSummaryMetric(final Class<M> mt, final BundleContext context){
+        private SummaryMetric(final Class<M> mt, final BundleContext context){
             this.metricsType = mt;
             this.context = Objects.requireNonNull(context);
         }
 
-        private static <M extends Metric> long getMetric(final MetricsSupport reader,
-                                                         final Class<M> metricType,
-                                                         final ToLongFunction<? super M> fn) {
-            final Iterator<? extends M> iterator = reader.getMetrics(metricType).iterator();
-            return iterator.hasNext() ? fn.applyAsLong(iterator.next()) : 0L;
-        }
-
-        final long aggregateMetrics(final ToLongFunction<? super M> reader) {
-            long result = 0L;
-            for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(context).values()) {
-                final ServiceHolder<ManagedResourceConnector> connector = new ServiceHolder<>(context, connectorRef);
-                try {
-                    final MetricsSupport metrics = connector.get().queryObject(MetricsSupport.class);
-                    if (metrics != null) result += getMetric(metrics, metricsType, reader);
-                } finally {
-                    connector.release(context);
-                }
-            }
-            return result;
+        final <O> Stream<O> toStream(final Function<? super M, ? extends O> reader) {
+            return ManagedResourceConnectorClient.getConnectors(context).values().stream()
+                    .flatMap(connectorRef -> {
+                        final ServiceHolder<ManagedResourceConnector> connector = new ServiceHolder<>(context, connectorRef);
+                        try {
+                            final MetricsSupport metrics = connector.get().queryObject(MetricsSupport.class);
+                            return metrics == null ?
+                                    Stream.empty() :
+                                    StreamSupport.stream(metrics.getMetrics(metricsType).spliterator(), false).map(reader);
+                        } finally {
+                            connector.release(context);
+                        }
+                    });
         }
 
         @Override
         public final void reset() {
-            aggregateMetrics(metrics -> {
-                metrics.reset();
-                return 0L;
-            });
+            toStream(Function.identity()).forEach(Metric::reset);
         }
     }
 
-    private static final class SummaryAttributeMetric extends AbstractSummaryMetric<AttributeMetric> implements AttributeMetric {
+    private static final class SummaryAttributeMetric extends SummaryMetric<AttributeMetric> implements AttributeMetric {
         private static final String NAME = "summaryAttributes";
+        private final Rate readRate;
+        private final Rate writeRate;
 
         private SummaryAttributeMetric(final BundleContext context) {
             super(AttributeMetric.class, context);
+            readRate = Summary.summaryRate(NAME, this::readsStream);
+            writeRate = Summary.summaryRate(NAME, this::writesStream);
         }
 
-        @Override
-        public long getTotalNumberOfReads() {
-            return aggregateMetrics(AttributeMetric::getTotalNumberOfReads);
+        private Stream<Rate> readsStream() {
+            return toStream(AttributeMetric::reads);
         }
 
-        @Override
-        public long getLastNumberOfReads(final MetricsInterval interval) {
-            return aggregateMetrics(metrics -> metrics.getLastNumberOfReads(interval));
+        private Stream<Rate> writesStream(){
+            return toStream(AttributeMetric::writes);
         }
 
-        @Override
-        public long getTotalNumberOfWrites() {
-            return aggregateMetrics(AttributeMetric::getTotalNumberOfWrites);
-        }
-
-        @Override
-        public long getLastNumberOfWrites(final MetricsInterval interval) {
-            return aggregateMetrics(metrics -> metrics.getLastNumberOfWrites(interval));
-        }
-
-        /**
-         * Gets name of this metric.
-         *
-         * @return Name of this metric.
-         */
         @Override
         public String getName() {
             return NAME;
         }
+
+        @Override
+        public Rate writes() {
+            return writeRate;
+        }
+
+        @Override
+        public Rate reads() {
+            return readRate;
+        }
     }
 
-    private static final class SummaryNotificationMetric extends AbstractSummaryMetric<NotificationMetric> implements NotificationMetric {
+    private static final class SummaryNotificationMetric extends SummaryMetric<NotificationMetric> implements NotificationMetric, Supplier<Stream<Rate>> {
         private static final String NAME = "summaryNotifications";
+        private final Rate rate;
 
         private SummaryNotificationMetric(final BundleContext context) {
             super(NotificationMetric.class, context);
+            rate = Summary.summaryRate(NAME, this);
         }
 
         @Override
-        public long getTotalNumberOfNotifications() {
-            return aggregateMetrics(NotificationMetric::getTotalNumberOfNotifications);
+        public Stream<Rate> get() {
+            return toStream(NotificationMetric::notifications);
         }
 
-        @Override
-        public long getLastNumberOfEmitted(final MetricsInterval interval) {
-            return aggregateMetrics(metrics -> metrics.getLastNumberOfEmitted(interval));
-        }
-
-        /**
-         * Gets name of this metric.
-         *
-         * @return Name of this metric.
-         */
         @Override
         public String getName() {
             return NAME;
         }
+
+        @Override
+        public Rate notifications() {
+            return rate;
+        }
     }
 
-    private static final class SummaryOperationMetric extends AbstractSummaryMetric<OperationMetric> implements OperationMetric {
+    private static final class SummaryOperationMetric extends SummaryMetric<OperationMetric> implements OperationMetric, Supplier<Stream<Rate>> {
         private static final String NAME = "summaryOperations";
+        private final Rate rate;
 
         private SummaryOperationMetric(final BundleContext context) {
             super(OperationMetric.class, context);
+            rate = Summary.summaryRate(NAME, this);
         }
 
         @Override
-        public long getTotalNumberOfInvocations() {
-            return aggregateMetrics(OperationMetric::getTotalNumberOfInvocations);
+        public Rate invocations() {
+            return rate;
         }
 
         @Override
-        public long getLastNumberOfInvocations(final MetricsInterval interval) {
-            return aggregateMetrics(metrics -> metrics.getLastNumberOfInvocations(interval));
+        public Stream<Rate> get() {
+            return toStream(OperationMetric::invocations);
         }
 
-        /**
-         * Gets name of this metric.
-         *
-         * @return Name of this metric.
-         */
         @Override
         public String getName() {
             return NAME;

@@ -1,10 +1,5 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.concurrent.TimeLimitedLong;
-
-import java.util.EnumMap;
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Represents default implementation of interface {@link NotificationMetric}.
  * @author Roman Sakno
@@ -13,13 +8,11 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class NotificationMetricRecorder extends AbstractMetric implements NotificationMetric {
     public static final String DEFAULT_NAME = "notifications";
-    private final AtomicLong totalEmitted = new AtomicLong(0L);
-    private final EnumMap<MetricsInterval, TimeLimitedLong> statOfEmitted = new EnumMap<>(MetricsInterval.class);
+    private final RateRecorder notificationsRate;
 
     public NotificationMetricRecorder(final String name){
         super(name);
-        for(final MetricsInterval interval: MetricsInterval.values())
-            statOfEmitted.put(interval, interval.createdAdder(0L));
+        notificationsRate = new RateRecorder(name);
     }
 
     public NotificationMetricRecorder(){
@@ -27,23 +20,17 @@ public final class NotificationMetricRecorder extends AbstractMetric implements 
     }
 
     public void update(){
-        totalEmitted.incrementAndGet();
-        statOfEmitted.values().forEach(accumulator -> accumulator.update(1L));
+        notificationsRate.update();
     }
 
     /**
-     * Gets total number of all emitted notifications.
+     * Gets rate of all emitted notifications.
      *
-     * @return A number of all emitted notifications.
+     * @return Rate of all emitted notifications.
      */
     @Override
-    public long getTotalNumberOfNotifications() {
-        return totalEmitted.get();
-    }
-
-    @Override
-    public long getLastNumberOfEmitted(final MetricsInterval interval) {
-        return statOfEmitted.get(interval).getAsLong();
+    public Rate notifications() {
+        return notificationsRate;
     }
 
     /**
@@ -51,8 +38,6 @@ public final class NotificationMetricRecorder extends AbstractMetric implements 
      */
     @Override
     public void reset() {
-        totalEmitted.set(0L);
-        for(final MetricsInterval interval: MetricsInterval.values())
-            statOfEmitted.get(interval).reset();
+        notificationsRate.update();
     }
 }

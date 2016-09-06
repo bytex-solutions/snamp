@@ -23,6 +23,11 @@ public enum MetricsInterval {
     TWELVE_HOURS(12, TimeUnit.HOURS),
     DAY(1, TimeUnit.DAYS);
 
+    /**
+     * Cached array of available intervals for fast iteration.
+     */
+    static final MetricsInterval[] ALL_INTERVALS = values();
+
     private final long timeToLive;
 
     MetricsInterval(final long amount, final TimeUnit unit){

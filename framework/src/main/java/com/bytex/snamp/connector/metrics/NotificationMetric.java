@@ -8,10 +8,8 @@ package com.bytex.snamp.connector.metrics;
  */
 public interface NotificationMetric extends Metric {
     /**
-     * Gets total number of all emitted notifications.
-     * @return A number of all emitted notifications.
+     * Gets rate of all emitted notifications.
+     * @return Rate of all emitted notifications.
      */
-    long getTotalNumberOfNotifications();
-
-    long getLastNumberOfEmitted(final MetricsInterval interval);
+    Rate notifications();
 }
