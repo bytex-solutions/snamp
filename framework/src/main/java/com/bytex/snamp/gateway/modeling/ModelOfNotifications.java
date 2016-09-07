@@ -25,7 +25,7 @@ public abstract class ModelOfNotifications<TAccessor extends NotificationAccesso
      * Initializes a new thread-safe object in which all fields represents the single resource.
      */
     protected ModelOfNotifications() {
-        super();
+        super(SingleResourceGroup.class);
     }
 
     /**

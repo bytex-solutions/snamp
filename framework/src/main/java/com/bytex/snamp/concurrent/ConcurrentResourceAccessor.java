@@ -84,6 +84,6 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      */
     public final <E extends Throwable> void changeResource(final Action<R, R, E> newResource) throws E {
         if (newResource == null) throw new IllegalArgumentException("newResource is null.");
-        writeAccept(newResource, this::changeResourceImpl);
+        writeAccept(SingleResourceGroup.INSTANCE, newResource, this::changeResourceImpl);
     }
 }

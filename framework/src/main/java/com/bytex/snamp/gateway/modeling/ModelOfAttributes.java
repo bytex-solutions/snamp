@@ -25,6 +25,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      * Initializes a new storage.
      */
     protected ModelOfAttributes(){
+        super(SingleResourceGroup.class);
         attributes = new HashMap<>(10);
     }
 
@@ -61,7 +62,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     @ThreadSafe
     public final TAccessor addAttribute(final String resourceName,
                                   final MBeanAttributeInfo metadata) throws Exception{
-        return writeCallInterruptibly(() -> addAttributeImpl(resourceName, metadata));
+        return writeCallInterruptibly(SingleResourceGroup.INSTANCE, () -> addAttributeImpl(resourceName, metadata));
     }
 
     private TAccessor removeAttributeImpl(final String resourceName,
@@ -79,7 +80,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     @ThreadSafe
     public final TAccessor removeAttribute(final String resourceName,
                                            final MBeanAttributeInfo metadata){
-        return writeApply(resourceName, metadata, this::removeAttributeImpl);
+        return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeAttributeImpl);
     }
 
     protected final Object getAttributeValue(final String resourceName,
@@ -127,7 +128,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final Set<String> getHostedResources(){
-        return readApply(attributes, attrs -> ImmutableSet.copyOf(attrs.keySet()));
+        return readApply(SingleResourceGroup.INSTANCE, attributes, attrs -> ImmutableSet.copyOf(attrs.keySet()));
     }
 
     private static Set<String> getResourceAttributesImpl(final String resourceName,
@@ -139,7 +140,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
 
     @ThreadSafe
     public final Set<String> getResourceAttributes(final String resourceName) {
-        return readApply(resourceName, attributes, ModelOfAttributes::getResourceAttributesImpl);
+        return readApply(SingleResourceGroup.INSTANCE, resourceName, attributes, ModelOfAttributes::getResourceAttributesImpl);
     }
 
     private static <TAccessor extends AttributeAccessor> Collection<MBeanAttributeInfo> getResourceAttributesMetadataImpl(final String resourceName,
@@ -154,7 +155,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
 
     @ThreadSafe
     public final Collection<MBeanAttributeInfo> getResourceAttributesMetadata(final String resourceName){
-        return readApply(resourceName, attributes, ModelOfAttributes::getResourceAttributesMetadataImpl);
+        return readApply(SingleResourceGroup.INSTANCE, resourceName, attributes, ModelOfAttributes::getResourceAttributesMetadataImpl);
     }
 
     private static <TAccessor extends AttributeAccessor> Collection<TAccessor> clearImpl(final String resourceName,
@@ -171,7 +172,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final Collection<TAccessor> clear(final String resourceName) {
-        return writeApply(resourceName, attributes, ModelOfAttributes::clearImpl);
+        return writeApply(SingleResourceGroup.INSTANCE, resourceName, attributes, ModelOfAttributes::clearImpl);
     }
 
     private <E extends Exception> void forEachAttributeImpl(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E{
@@ -187,7 +188,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      * @throws E Unable to process attribute.
      */
     public final <E extends Exception> void forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E {
-        readAccept(attributeReader, this::forEachAttributeImpl);
+        readAccept(SingleResourceGroup.INSTANCE, attributeReader, this::forEachAttributeImpl);
     }
 
     private static void clearImpl(final Map<String, ? extends ResourceFeatureList<?, ?>> attributes){
@@ -200,6 +201,6 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final void clear(){
-        writeAccept(attributes, ModelOfAttributes::clearImpl);
+        writeAccept(SingleResourceGroup.INSTANCE, attributes, ModelOfAttributes::clearImpl);
     }
 }

@@ -7,7 +7,7 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 interface NumericGauge extends Metric {
-    double getQuantile(final double quantile);
     double getDeviation();
+    double getQuantile(final double quantile);
     double getMeanValue(final MetricsInterval interval);
 }

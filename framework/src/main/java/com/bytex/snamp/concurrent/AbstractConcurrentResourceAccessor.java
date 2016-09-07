@@ -43,6 +43,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      * Initializes a new concurrent access coordinator.
      */
     protected AbstractConcurrentResourceAccessor(){
+        super(SingleResourceGroup.class);
     }
 
     /**

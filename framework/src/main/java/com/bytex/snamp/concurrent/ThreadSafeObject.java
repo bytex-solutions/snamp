@@ -25,33 +25,80 @@ import java.util.function.*;
  * @since 1.0
  */
 public abstract class ThreadSafeObject {
+    private interface LockScope extends SafeCloseable, Lock {
+        @Override
+        void close();
+    }
+
+    private static final class ReadLockScope extends ReentrantReadWriteLock.ReadLock implements LockScope{
+        private static final long serialVersionUID = -4674488641147301623L;
+
+        private ReadLockScope(final ReentrantReadWriteLock lock) {
+            super(lock);
+        }
+
+        @Override
+        public void close() {
+            unlock();
+        }
+    }
+
+    private static final class WriteLockScope extends ReentrantReadWriteLock.WriteLock implements LockScope{
+        private static final long serialVersionUID = 8930001265056640152L;
+
+        private WriteLockScope(final ReentrantReadWriteLock lock) {
+            super(lock);
+        }
+
+        @Override
+        public void close() {
+            unlock();
+        }
+    }
+
+    private static final class ReentrantReadWriteLockSlim implements ReadWriteLock {
+        private final ReadLockScope readLock;
+        private final WriteLockScope writeLock;
+
+        private ReentrantReadWriteLockSlim(){
+            final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock();
+            readLock = new ReadLockScope(reentrantLock);
+            writeLock = new WriteLockScope(reentrantLock);
+        }
+
+        @Override
+        public ReadLockScope readLock() {
+            return readLock;
+        }
+
+        @Override
+        public WriteLockScope writeLock() {
+            return writeLock;
+        }
+    }
+
     /**
-     * Represents an enum that describes the single resource group.
-     *
-     * @author Roman Sakno
-     * @version 2.0
+     * Represents single resource group
      * @since 1.0
+     * @version 2.0
      */
     protected enum SingleResourceGroup {
-        /**
-         * Represents a single resource group.
-         */
         INSTANCE
     }
 
-    private final ImmutableMap<Enum<?>, ReadWriteLock> resourceGroups;
+    private final ImmutableMap<Enum<?>, ReentrantReadWriteLockSlim> resourceGroups;
 
     private ThreadSafeObject(final EnumSet<?> groups) {
         switch (groups.size()) {
             case 0:
                 throw new IllegalArgumentException("Empty resource groups");
             case 1:
-                resourceGroups = ImmutableMap.of(groups.iterator().next(), new ReentrantReadWriteLock());
+                resourceGroups = ImmutableMap.of(groups.iterator().next(), new ReentrantReadWriteLockSlim());
                 break;
             default:
-                final ImmutableMap.Builder<Enum<?>, ReadWriteLock> builder = ImmutableMap.builder();
+                final ImmutableMap.Builder<Enum<?>, ReentrantReadWriteLockSlim> builder = ImmutableMap.builder();
                 for (final Enum<?> g : groups)
-                    builder.put(g, new ReentrantReadWriteLock());
+                    builder.put(g, new ReentrantReadWriteLockSlim());
                 resourceGroups = builder.build();
         }
     }
@@ -66,21 +113,13 @@ public abstract class ThreadSafeObject {
         this(EnumSet.allOf(resourceGroupDef));
     }
 
-    /**
-     * Initializes a new thread-safe object in which all fields represents the single resource.
-     * @see SingleResourceGroup
-     */
-    protected ThreadSafeObject() {
-        this(SingleResourceGroup.class);
-    }
-
     private <E extends Throwable> SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Acceptor<? super Lock, E> locker) throws E {
-        final ReadWriteLock lockSupport = resourceGroups.get(resourceGroup);
+        final ReentrantReadWriteLockSlim lockSupport = resourceGroups.get(resourceGroup);
         if (lockSupport == null)
             throw new IllegalArgumentException(String.format("Resource group %s is not defined.", resourceGroup));
-        final Lock lock = writeLock ? lockSupport.writeLock() : lockSupport.readLock();
+        final LockScope lock = writeLock ? lockSupport.writeLock() : lockSupport.readLock();
         locker.accept(lock);
-        return lock::unlock;
+        return lock;
     }
 
     private SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Duration timeout) throws InterruptedException, TimeoutException {
@@ -164,17 +203,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    /**
-     * Executes action inside of exclusive lock on default resource group.
-     *
-     * @param action Action to execute inside of exclusive lock. Cannot be {@literal null}.
-     * @param <V>    Type of result produced by action.
-     * @return Result produced by action.
-     */
-    protected final <V> V writeSupply(final Supplier<? extends V> action) {
-        return writeSupply(SingleResourceGroup.INSTANCE, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="write BooleanSupplier">
@@ -185,10 +213,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    protected final boolean writeSupply(final BooleanSupplier action) {
-        return writeSupply(SingleResourceGroup.INSTANCE, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="write IntSupplier">
@@ -197,10 +221,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
             return action.getAsInt();
         }
-    }
-
-    protected final int writeSupply(final IntSupplier action) {
-        return writeSupply(SingleResourceGroup.INSTANCE, action);
     }
 
     //</editor-fold>
@@ -223,19 +243,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    /**
-     * Executes action inside of exclusive lock on default resource group.
-     *
-     * @param input  An object to be passed into the action.
-     * @param action Action to execute inside of exclusive lock. Cannot be {@literal null}.
-     * @param <I>    Type of input to be passed into the action.
-     * @param <O>    Type of result produced by action.
-     * @return Result produced by action.
-     */
-    protected final <I, O> O writeApply(final I input, final Function<? super I, ? extends O> action) {
-        return writeApply(SingleResourceGroup.INSTANCE, input, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="write Consumer">
@@ -244,10 +251,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
              action.accept(input);
         }
-    }
-
-    protected final <I, E extends Throwable> void writeAccept(final I input, final Acceptor<? super I, E> action) throws E {
-        writeAccept(SingleResourceGroup.INSTANCE, input, action);
     }
 
     //</editor-fold>
@@ -272,21 +275,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    /**
-     * Executes action inside of exclusive lock on default resource group.
-     *
-     * @param input1 The first object to be passed into the action.
-     * @param input2 The second object to be passed into the action.
-     * @param action Action to execute inside of exclusive lock. Cannot be {@literal null}.
-     * @param <I1>   Type of the first input to be passed into the action.
-     * @param <I2>   Type of the second input to be passed into the action.
-     * @param <O>    Type of result produced by action.
-     * @return Result produced by action.
-     */
-    protected final <I1, I2, O> O writeApply(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) {
-        return writeApply(SingleResourceGroup.INSTANCE, input1, input2, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="write Callable">
@@ -295,10 +283,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
             return action.call();
         }
-    }
-
-    protected final <V> V writeCall(final Callable<? extends V> action) throws Exception {
-        return writeCall(SingleResourceGroup.INSTANCE, action);
     }
 
     //</editor-fold>
@@ -320,18 +304,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    /**
-     * Executes action inside of exclusive lock on default resource group.
-     *
-     * @param action Action to execute inside of exclusive lock. Cannot be {@literal null}.
-     * @param <V>    Type of result produced by action.
-     * @return Result produced by action.
-     * @throws InterruptedException This method was interrupted by another thread.
-     */
-    protected final <V> V writeSupplyInterruptibly(final Supplier<? extends V> action) throws InterruptedException {
-        return writeSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="writeInterruptibly BooleanSupplier">
@@ -340,10 +312,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
             return action.getAsBoolean();
         }
-    }
-
-    protected final boolean writeSupplyInterruptibly(final BooleanSupplier action) throws InterruptedException {
-        return writeSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
     }
 
     //</editor-fold>
@@ -356,10 +324,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    protected final int writeSupplyInterruptibly(final IntSupplier action) throws InterruptedException {
-        return writeSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="writeInterruptibly Function">
@@ -368,10 +332,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
             return action.apply(input);
         }
-    }
-
-    protected final <I, O> O writeSupplyInterruptibly(final I input, final Function<? super I, ? extends O> action) throws InterruptedException {
-        return writeSupplyInterruptibly(SingleResourceGroup.INSTANCE, input, action);
     }
 
     //</editor-fold>
@@ -384,10 +344,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    protected final <I, E extends Throwable> void writeAcceptInterruptibly(final I input, final Acceptor<? super I, E> action) throws E, InterruptedException {
-        writeAcceptInterruptibly(SingleResourceGroup.INSTANCE, input, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="writeInterruptibly BiFunction">
@@ -398,10 +354,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    protected final <I1, I2, O> O writeApplyInterruptibly(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) throws InterruptedException {
-        return writeApplyInterruptibly(SingleResourceGroup.INSTANCE, input1, input2, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="writeInterruptibly Callable">
@@ -410,10 +362,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
             return action.call();
         }
-    }
-
-    protected final <V> V writeCallInterruptibly(final Callable<? extends V> action) throws Exception {
-        return writeCallInterruptibly(SingleResourceGroup.INSTANCE, action);
     }
 
     //</editor-fold>
@@ -434,17 +382,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    /**
-     * Executes action inside of read lock on default resource group.
-     *
-     * @param action Action to execute inside of exclusive lock. Cannot be {@literal null}.
-     * @param <V>    Type of result produced by action.
-     * @return Result produced by action.
-     */
-    protected final <V> V readSupply(final Supplier<? extends V> action) {
-        return readSupply(SingleResourceGroup.INSTANCE, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="read BooleanSupplier">
@@ -455,10 +392,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    protected final boolean readSupply(final BooleanSupplier action) {
-        return readSupply(SingleResourceGroup.INSTANCE, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="read IntSupplier">
@@ -467,10 +400,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
             return action.getAsInt();
         }
-    }
-
-    protected final int readSupply(final IntSupplier action) {
-        return readSupply(SingleResourceGroup.INSTANCE, action);
     }
 
     //</editor-fold>
@@ -493,29 +422,12 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    /**
-     * Executes action inside of read lock on default resource group.
-     *
-     * @param input  An object to be passed into the action.
-     * @param action Action to execute inside of read lock. Cannot be {@literal null}.
-     * @param <I>    Type of input to be passed into the action.
-     * @param <O>    Type of result produced by action.
-     * @return Result produced by action.
-     */
-    protected final <I, O> O readApply(final I input, final Function<? super I, ? extends O> action) {
-        return readApply(SingleResourceGroup.INSTANCE, input, action);
-    }
-
     //</editor-fold>
 
     protected final <I1, I2> void readAccept(final Enum<?> resourceGroup, final I1 input1, final I2 input2, final BiConsumer<? super I1, ? super I2> action){
         try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
             action.accept(input1, input2);
         }
-    }
-
-    protected final <I1, I2> void readAccept(final I1 input1, final I2 input2, final BiConsumer<? super I1, ? super I2> action){
-        readAccept(SingleResourceGroup.INSTANCE, input1, input2, action);
     }
 
     //<editor-fold desc="read Consumer">
@@ -526,10 +438,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    protected final <I, E extends Throwable> void readAccept(final I input, final Acceptor<? super I, E> action) throws E {
-        readAccept(SingleResourceGroup.INSTANCE, input, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="read Callable">
@@ -538,10 +446,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
             return action.call();
         }
-    }
-
-    protected final <V> V readCall(final Callable<? extends V> action) throws Exception {
-        return readCall(SingleResourceGroup.INSTANCE, action);
     }
 
     //</editor-fold>
@@ -566,21 +470,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    /**
-     * Executes action inside of read lock on default resource group.
-     *
-     * @param input1 The first object to be passed into the action.
-     * @param input2 The second object to be passed into the action.
-     * @param action Action to execute inside of read lock. Cannot be {@literal null}.
-     * @param <I1>   Type of the first input to be passed into the action.
-     * @param <I2>   Type of the second input to be passed into the action.
-     * @param <O>    Type of result produced by action.
-     * @return Result produced by action.
-     */
-    protected final <I1, I2, O> O readApply(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) {
-        return readApply(SingleResourceGroup.INSTANCE, input1, input2, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="readInterruptibly Supplier">
@@ -589,10 +478,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             return action.get();
         }
-    }
-
-    protected final <V> V readSupplyInterruptibly(final Supplier<? extends V> action) throws InterruptedException {
-        return readSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
     }
 
     //</editor-fold>
@@ -605,10 +490,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    protected final boolean readSupplyInterruptibly(final BooleanSupplier action) throws InterruptedException {
-        return readSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="readInterruptibly IntSupplier">
@@ -617,10 +498,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             return action.getAsInt();
         }
-    }
-
-    protected final int readSupplyInterruptibly(final IntSupplier action) throws InterruptedException {
-        return readSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
     }
 
     //</editor-fold>
@@ -633,10 +510,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    protected final <I, O> O readApplyInterruptibly(final I input, final Function<? super I, ? extends O> action) throws InterruptedException {
-        return readApplyInterruptibly(SingleResourceGroup.INSTANCE, input, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="readInterruptibly Consumer">
@@ -645,10 +518,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             action.accept(input);
         }
-    }
-
-    protected final <I, E extends Throwable> void readAcceptInterruptibly(final I input, final Acceptor<? super I, E> action) throws E, InterruptedException {
-        readAcceptInterruptibly(SingleResourceGroup.INSTANCE, input, action);
     }
 
     //</editor-fold>
@@ -661,10 +530,6 @@ public abstract class ThreadSafeObject {
         }
     }
 
-    protected final <V> V readCallInterruptibly(final Callable<? extends V> action) throws Exception {
-        return readCallInterruptibly(SingleResourceGroup.INSTANCE, action);
-    }
-
     //</editor-fold>
 
     //<editor-fold desc="readInterruptibly BiFunction">
@@ -673,10 +538,6 @@ public abstract class ThreadSafeObject {
         try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             return action.apply(input1, input2);
         }
-    }
-
-    protected final <I1, I2, O> O readApplyInterruptibly(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) throws InterruptedException {
-        return readApplyInterruptibly(SingleResourceGroup.INSTANCE, input1, input2, action);
     }
 
     //</editor-fold>

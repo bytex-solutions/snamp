@@ -32,13 +32,13 @@ public final class Correlation implements DoubleBinaryOperator, Stateful {
         prodXY.set(0D);
     }
 
-    private static double addAndGet(final AtomicDouble thiz, final double value){
+    private static double addAndGet(final AtomicDouble atomic, final double value){
         double prev, next;
         do {
-            prev = thiz.get();
+            prev = atomic.get();
             next = prev + value;
             if(Double.isInfinite(next)) next = value;
-        } while (!thiz.compareAndSet(prev, next));
+        } while (!atomic.compareAndSet(prev, next));
         return next;
     }
 

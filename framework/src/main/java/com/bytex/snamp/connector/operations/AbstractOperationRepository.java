@@ -252,7 +252,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M remove(final String operationID) {
-        final M metadata = writeApply(operationID, this::removeImpl);
+        final M metadata = writeApply(SingleResourceGroup.INSTANCE, operationID, this::removeImpl);
         if (metadata != null)
             disconnectOperation(metadata);
         return metadata;
@@ -323,7 +323,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     @Override
     public final M enableOperation(final String operationName, final OperationDescriptor descriptor) {
         try{
-            return writeCallInterruptibly(() -> enableOperationImpl(operationName, descriptor));
+            return writeCallInterruptibly(SingleResourceGroup.INSTANCE, () -> enableOperationImpl(operationName, descriptor));
         } catch (final Exception e) {
             failedToEnableOperation(operationName, e);
             return null;
@@ -360,7 +360,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M[] getOperationInfo() {
-        return readSupply(() -> toArray(operations.values()));
+        return readSupply(SingleResourceGroup.INSTANCE, () -> toArray(operations.values()));
     }
 
     /**
@@ -371,7 +371,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M getOperationInfo(final String operationID) {
-        return readApply(operationID, operations::get);
+        return readApply(SingleResourceGroup.INSTANCE, operationID, operations::get);
     }
 
     /**
@@ -406,7 +406,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
                          final Object[] params,
                          final String[] signature) throws MBeanException, ReflectionException {
         try {
-            return readCallInterruptibly(() -> {
+            return readCallInterruptibly(SingleResourceGroup.INSTANCE, () -> {
                 final M holder = operations.get(operationName);
                 if (holder != null)
                     return invoke(holder, params, signature);
@@ -435,7 +435,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @param removeResourceListeners {@literal true} to remove all resource listeners; otherwise, {@literal false}.
      */
     public final void removeAll(final boolean removeResourceListeners) {
-        writeAccept(operations, this::removeAllImpl);
+        writeAccept(SingleResourceGroup.INSTANCE, operations, this::removeAllImpl);
         if (removeResourceListeners)
             removeAllResourceEventListeners();
     }
@@ -447,7 +447,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        return readApply(operations, ops -> ImmutableSet.copyOf(ops.keySet()));
+        return readApply(SingleResourceGroup.INSTANCE, operations, ops -> ImmutableSet.copyOf(ops.keySet()));
     }
 
     @Override
@@ -457,17 +457,17 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     @Override
     public final int size() {
-        return readSupply(operations::size);
+        return readSupply(SingleResourceGroup.INSTANCE, operations::size);
     }
 
     @Override
     public final Iterator<M> iterator() {
-        return readApply(operations.values(), Collection::iterator);
+        return readApply(SingleResourceGroup.INSTANCE, operations.values(), Collection::iterator);
     }
 
     @Override
     public final void forEach(final Consumer<? super M> action) {
-        readAccept(operations.values(), operations -> operations.forEach(action));
+        readAccept(SingleResourceGroup.INSTANCE, operations.values(), operations -> operations.forEach(action));
     }
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){

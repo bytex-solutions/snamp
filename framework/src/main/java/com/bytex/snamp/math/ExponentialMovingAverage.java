@@ -38,9 +38,9 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
         alpha = 1 - Math.exp(-INTERVAL.getSeconds() / (double)interval.getSeconds());
     }
 
-    private double recalc(final double sample) {
+    private double addAndGetAverage(final double state) {
         final double instantCount = getAndSet(0D) / INTERVAL.toNanos();
-        return isSet.compareAndSet(false, true) ? instantCount : sample + (alpha * (instantCount - sample));
+        return isSet.compareAndSet(false, true) ? instantCount : state + (alpha * (instantCount - state));
     }
 
     /**
@@ -76,7 +76,7 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
             final long newStartTime = currentTime - age % INTERVAL.toNanos();
             if (this.startTime.compareAndSet(startTime, newStartTime)) {
                 for (int i = 0; i < age / INTERVAL.toNanos(); i++)
-                    result = recalc(result);
+                    result = addAndGetAverage(result);
                 counter = result;
             }
         }

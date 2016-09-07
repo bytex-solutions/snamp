@@ -24,6 +24,10 @@ import java.util.List;
 public class NotificationListenerList extends ThreadSafeObject implements NotificationListener {
     private final List<NotificationListenerHolder> listeners = new LinkedList<>();
 
+    public NotificationListenerList(){
+        super(SingleResourceGroup.class);
+    }
+
     /**
      * Adds a listener to this MBean.
      *
@@ -43,7 +47,7 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
     public final void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
                                         final Object handback) throws IllegalArgumentException {
-        writeAccept(new NotificationListenerHolder(listener, filter, handback), listeners::add);
+        writeAccept(SingleResourceGroup.INSTANCE, new NotificationListenerHolder(listener, filter, handback), listeners::add);
     }
 
     private void removeNotificationListenerImpl(final NotificationListener listener) throws ListenerNotFoundException{
@@ -73,7 +77,7 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
      */
     public final void removeNotificationListener(final NotificationListener listener)
             throws ListenerNotFoundException {
-        writeAccept(listener, this::removeNotificationListenerImpl);
+        writeAccept(SingleResourceGroup.INSTANCE, listener, this::removeNotificationListenerImpl);
     }
 
     /**
@@ -113,19 +117,19 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
      */
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
-        readAccept(listeners, l -> l.forEach(holder -> handleNotification(holder, intercept(notification), handback)));
+        readAccept(SingleResourceGroup.INSTANCE, listeners, l -> l.forEach(holder -> handleNotification(holder, intercept(notification), handback)));
     }
 
     public final void handleNotification(final NotificationListenerInvoker invoker,
                                       final Notification notification,
                                       final Object handback) {
-        readAccept(listeners, list -> invoker.invoke(notification, handback, list));
+        readAccept(SingleResourceGroup.INSTANCE, listeners, list -> invoker.invoke(notification, handback, list));
     }
 
     /**
      * Removes all listeners from this list.
      */
     public final void clear() {
-        writeAccept(listeners, List::clear);
+        writeAccept(SingleResourceGroup.INSTANCE, listeners, List::clear);
     }
 }
