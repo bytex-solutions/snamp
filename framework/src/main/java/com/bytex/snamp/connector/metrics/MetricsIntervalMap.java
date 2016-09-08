@@ -1,14 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import static java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.EnumMap;
+import java.util.function.*;
 
 /**
  * Represents highly optimized immutable map with {@link MetricsInterval} keys.
@@ -16,123 +9,46 @@ import static java.util.AbstractMap.SimpleImmutableEntry;
  * @version 2.0
  * @since 2.0
  */
-final class MetricsIntervalMap<V> implements Map<MetricsInterval, V> {
-    private static final ImmutableSet<MetricsInterval> KEYS = ImmutableSet.copyOf(MetricsInterval.ALL_INTERVALS);
-
-    private final V secondValue;
-    private final V minuteValue;
-    private final V fiveMinutesValue;
-    private final V fifteenMinutesValue;
-    private final V hourValue;
-    private final V twelveHoursValue;
-    private final V dayValue;
+final class MetricsIntervalMap<V> extends EnumMap<MetricsInterval, V> {
 
     MetricsIntervalMap(final Function<? super MetricsInterval, ? extends V> valueProvider){
-        secondValue = valueProvider.apply(MetricsInterval.SECOND);
-        minuteValue = valueProvider.apply(MetricsInterval.MINUTE);
-        fiveMinutesValue = valueProvider.apply(MetricsInterval.FIVE_MINUTES);
-        fifteenMinutesValue = valueProvider.apply(MetricsInterval.FIFTEEN_MINUTES);
-        hourValue = valueProvider.apply(MetricsInterval.HOUR);
-        twelveHoursValue = valueProvider.apply(MetricsInterval.TWELVE_HOURS);
-        dayValue = valueProvider.apply(MetricsInterval.DAY);
-        assert KEYS.size() == 7;    //self-protection for early detection of situation when somehow add a new element in enum
+        super(MetricsInterval.class);
+        for(final MetricsInterval interval: MetricsInterval.ALL_INTERVALS)
+            put(interval, valueProvider.apply(interval));
     }
 
-    void applyToAllIntervals(final Consumer<? super V> action){
-        action.accept(secondValue);
-        action.accept(minuteValue);
-        action.accept(fiveMinutesValue);
-        action.accept(fifteenMinutesValue);
-        action.accept(hourValue);
-        action.accept(twelveHoursValue);
-        action.accept(dayValue);
+    double getAsDouble(final MetricsInterval interval, final ToDoubleFunction<? super V> converter){
+        return converter.applyAsDouble(get(interval));
     }
 
-    @Override
-    public int size() {
-        return KEYS.size();
+    long getAsLong(final MetricsInterval interval, final ToLongFunction<? super V> converter){
+        return converter.applyAsLong(get(interval));
     }
 
-    @Override
-    public boolean isEmpty() {
-        return false;
+    <O> O get(final MetricsInterval interval, final Function<? super V, ? extends O> converter){
+        return converter.apply(get(interval));
     }
 
-    @Override
-    public boolean containsKey(final Object key) {
-        return key instanceof MetricsInterval;
+    void acceptAsLong(final MetricsInterval interval, final long value, final ObjLongConsumer<V> consumer){
+        consumer.accept(get(interval), value);
     }
 
-    @Override
-    public boolean containsValue(final Object value) {
-        return values().equals(value);
+    void acceptAsDouble(final MetricsInterval interval, final double value, final ObjDoubleConsumer<V> consumer){
+        consumer.accept(get(interval), value);
     }
 
-    V get(final MetricsInterval interval){
-        switch (interval){
-            case SECOND:
-                return secondValue;
-            case MINUTE:
-                return minuteValue;
-            case FIVE_MINUTES:
-                return fiveMinutesValue;
-            case FIFTEEN_MINUTES:
-                return fifteenMinutesValue;
-            case HOUR:
-                return hourValue;
-            case TWELVE_HOURS:
-                return twelveHoursValue;
-            case DAY:
-                return dayValue;
-            default:
-                throw new IllegalArgumentException("Unexpected key " + interval);
-        }
+    void forEachAccept(final long value, final ObjLongConsumer<V> consumer) {
+        for (final V v : values())
+            consumer.accept(v, value);
     }
 
-    @Override
-    public V get(final Object key) {
-        return key instanceof MetricsInterval ? get((MetricsInterval) key) : null;
+    void forEachAccept(final double value, final ObjDoubleConsumer<V> consumer){
+        for(final V v: values())
+            consumer.accept(v, value);
     }
 
-    @Override
-    public V put(final MetricsInterval key, final V value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public V remove(final Object key) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putAll(final Map<? extends MetricsInterval, ? extends V> m) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ImmutableSet<MetricsInterval> keySet() {
-        return KEYS;
-    }
-
-    @Override
-    public ImmutableList<V> values() {
-        return ImmutableList.of(secondValue, minuteValue);
-    }
-
-
-    private Entry<MetricsInterval, V> newEntry(final MetricsInterval key){
-        return new SimpleImmutableEntry<>(key, get(key));
-    }
-
-    @Override
-    public Set<Entry<MetricsInterval, V>> entrySet() {
-        return keySet().stream()
-                .map(this::newEntry)
-                .collect(Collectors.toSet());
+    <I> void forEachAccept(final I value, final BiConsumer<V, I> consumer){
+        for(final V v: values())
+            consumer.accept(v, value);
     }
 }

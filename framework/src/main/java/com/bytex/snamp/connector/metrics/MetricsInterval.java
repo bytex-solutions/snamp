@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import com.bytex.snamp.concurrent.TimeLimitedDouble;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 import com.bytex.snamp.concurrent.TimeLimitedObject;
 import com.bytex.snamp.math.ExponentialMovingAverage;
@@ -46,8 +47,16 @@ public enum MetricsInterval {
         return value.toMillis() / (double) timeToLive;
     }
 
-    final TimeLimitedLong createPeakCounter(final long initialValue) {
+    final TimeLimitedLong createLongPeakDetector(final long initialValue) {
         return TimeLimitedLong.peak(initialValue, timeToLive);
+    }
+
+    final TimeLimitedDouble createDoublePeakDetector(final double initialValue){
+        return TimeLimitedDouble.peak(initialValue, timeToLive);
+    }
+
+    final TimeLimitedDouble createDoubleMinDetector(final double initialValue){
+        return TimeLimitedDouble.min(initialValue, timeToLive);
     }
 
     final <V>TimeLimitedObject<V> createTemporaryBox(final V initialValue, final BinaryOperator<V> operator){

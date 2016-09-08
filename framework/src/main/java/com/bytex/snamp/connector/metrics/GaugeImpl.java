@@ -41,7 +41,7 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
      */
     @Override
     public final V getLastMaxValue(final MetricsInterval interval) {
-        return firstNonNull(lastMaxValues.get(interval).get(), initialValue);
+        return firstNonNull(lastMaxValues.get(interval, TimeLimitedObject::get), initialValue);
     }
 
     /**
@@ -52,7 +52,7 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
      */
     @Override
     public final V getLastMinValue(final MetricsInterval interval) {
-        return firstNonNull(lastMinValues.get(interval).get(), initialValue);
+        return firstNonNull(lastMinValues.get(interval, TimeLimitedObject::get), initialValue);
     }
 
     private static  <V extends Comparable<V>> V maxValue(final V current, final V provided){
@@ -73,10 +73,8 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
         maxValue.accumulateAndGet(value, GaugeImpl::maxValue);
         minValue.accumulateAndGet(value, GaugeImpl::minValue);
         lastValue.set(value);
-        for(final MetricsInterval interval: ALL_INTERVALS){
-            lastMaxValues.get(interval).accept(value);
-            lastMinValues.get(interval).accept(value);
-        }
+        lastMaxValues.forEachAccept(value, TimeLimitedObject::accept);
+        lastMinValues.forEachAccept(value, TimeLimitedObject::accept);
     }
 
     /**
@@ -96,8 +94,8 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
     public void reset() {
         maxValue.set(null);
         minValue.set(null);
-        lastMaxValues.applyToAllIntervals(TimeLimitedObject::reset);
-        lastMinValues.applyToAllIntervals(TimeLimitedObject::reset);
+        lastMaxValues.values().forEach(TimeLimitedObject::reset);
+        lastMinValues.values().forEach(TimeLimitedObject::reset);
     }
 
     /**

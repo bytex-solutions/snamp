@@ -40,11 +40,11 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
         if (value) {
             trueCount = totalTrueCount.incrementAndGet();
             falseCount = totalFalseCount.get();
-            lastTrueCount.applyToAllIntervals(TimeLimitedLong::updateByOne);
+            lastTrueCount.values().forEach(TimeLimitedLong::updateByOne);
         } else {
             falseCount = totalFalseCount.incrementAndGet();
             trueCount = totalTrueCount.get();
-            lastFalseCount.applyToAllIntervals(TimeLimitedLong::updateByOne);
+            lastFalseCount.values().forEach(TimeLimitedLong::updateByOne);
         }
         if (falseCount > 0D) { //avoid division by zero error
             final double ratio = trueCount / falseCount;
@@ -97,9 +97,9 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
         this.value.set(false);
         totalFalseCount.set(0L);
         totalTrueCount.set(0L);
-        meanRatio.applyToAllIntervals(ExponentialMovingAverage::reset);
-        lastFalseCount.applyToAllIntervals(TimeLimitedLong::reset);
-        lastTrueCount.applyToAllIntervals(TimeLimitedLong::reset);
+        meanRatio.values().forEach(ExponentialMovingAverage::reset);
+        lastFalseCount.values().forEach(TimeLimitedLong::reset);
+        lastTrueCount.values().forEach(TimeLimitedLong::reset);
     }
 
     /**

@@ -7,8 +7,7 @@ import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 
 /**
- * Represents time-based accumulator for {@code int} numbers.
- * This class cannot be inherited.
+ * Represents time-constrained accumulator for {@code int} numbers.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

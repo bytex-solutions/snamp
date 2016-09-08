@@ -6,6 +6,9 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 2.0
  */
-abstract class AbstractNumericGauge implements NumericGauge {
+abstract class AbstractNumericGauge extends AbstractMetric implements NumericGauge {
 
+    AbstractNumericGauge(String name) {
+        super(name);
+    }
 }
