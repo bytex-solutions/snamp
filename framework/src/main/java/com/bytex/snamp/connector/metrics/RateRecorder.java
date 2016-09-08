@@ -17,18 +17,16 @@ import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
  */
 public final class RateRecorder extends AbstractMetric implements Rate {
     private final MetricsIntervalMap<TimeLimitedLong> lastRate;
-    private final MetricsIntervalMap<TimeLimitedLong> maxRateInInterval;
+    private final MetricsIntervalMap<AtomicLong> maxRate;
     private final MetricsIntervalMap<ExponentialMovingAverage> meanRate;
-    private final AtomicLong maxRate;
     private final AtomicLong totalRate;
     private final AtomicReference<Instant> startTime;
 
     public RateRecorder(final String name){
         super(name);
         totalRate = new AtomicLong(0L);
-        maxRate = new AtomicLong(0L);
         lastRate = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
-        maxRateInInterval = new MetricsIntervalMap<>(interval -> interval.createLongPeakDetector(Long.MIN_VALUE));
+        maxRate = new MetricsIntervalMap<>(interval -> new AtomicLong(0L));
         meanRate = new MetricsIntervalMap<>(MetricsInterval::createEMA);
         startTime = new AtomicReference<>(Instant.now());
     }
@@ -37,8 +35,7 @@ public final class RateRecorder extends AbstractMetric implements Rate {
         totalRate.incrementAndGet();
         for (final MetricsInterval interval : ALL_INTERVALS) {
             final long lastRate = this.lastRate.getAsLong(interval, TimeLimitedLong::updateByOne);
-            maxRateInInterval.acceptAsLong(interval, lastRate, TimeLimitedLong::update);
-            maxRate.accumulateAndGet(lastRate, Math::max);
+            maxRate.acceptAsLong(interval, lastRate, (counter, lr) -> counter.accumulateAndGet(lr, Math::max));
             meanRate.acceptAsDouble(interval, 1D, ExponentialMovingAverage::accept);
         }
     }
@@ -96,18 +93,8 @@ public final class RateRecorder extends AbstractMetric implements Rate {
     }
 
     @Override
-    public long getLastMaxRate(final MetricsInterval interval) {
-        return Math.max(0L, maxRateInInterval.getAsLong(interval, TimeLimitedLong::getAsLong));
-    }
-
-    /**
-     * Gets the maximum rate ever happened.
-     *
-     * @return The maximum rate ever happened.
-     */
-    @Override
-    public long getMaxRate() {
-        return maxRate.get();
+    public long getMaxRate(final MetricsInterval interval) {
+        return maxRate.getAsLong(interval, AtomicLong::get);
     }
 
     /**
@@ -115,10 +102,9 @@ public final class RateRecorder extends AbstractMetric implements Rate {
      */
     @Override
     public void reset() {
-        maxRate.set(0L);
         totalRate.set(0L);
         lastRate.values().forEach(TimeLimitedLong::reset);
         meanRate.values().forEach(ExponentialMovingAverage::reset);
-        maxRateInInterval.values().forEach(TimeLimitedLong::reset);
+        maxRate.values().forEach(rate -> rate.set(0L));
     }
 }

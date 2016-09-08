@@ -22,13 +22,13 @@ public final class MetricTest extends Assert {
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.DAY));
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.HOUR));
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.MINUTE));
-        assertEquals(1, writer.reads().getLastMaxRate(MetricsInterval.SECOND));
+        assertEquals(1, writer.reads().getMaxRate(MetricsInterval.SECOND));
         Thread.sleep(1100);
         assertEquals(1, writer.reads().getTotalRate());
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.DAY));
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.HOUR));
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.MINUTE));
-        assertEquals(0, writer.reads().getLastMaxRate(MetricsInterval.SECOND));
+        assertEquals(0, writer.reads().getMaxRate(MetricsInterval.SECOND));
     }
 
     @Test
@@ -39,13 +39,13 @@ public final class MetricTest extends Assert {
         assertEquals(1, writer.writes().getLastRate(MetricsInterval.DAY));
         assertEquals(1, writer.writes().getLastRate(MetricsInterval.HOUR));
         assertEquals(1, writer.writes().getLastRate(MetricsInterval.MINUTE));
-        assertEquals(1, writer.writes().getLastMaxRate(MetricsInterval.SECOND));
+        assertEquals(1, writer.writes().getMaxRate(MetricsInterval.SECOND));
         Thread.sleep(1100);
         assertEquals(1, writer.writes().getTotalRate());
         assertEquals(1, writer.writes().getLastRate(MetricsInterval.DAY));
         assertEquals(1, writer.writes().getLastRate(MetricsInterval.HOUR));
         assertEquals(1, writer.writes().getLastRate(MetricsInterval.MINUTE));
-        assertEquals(0, writer.writes().getLastMaxRate(MetricsInterval.SECOND));
+        assertEquals(0, writer.writes().getMaxRate(MetricsInterval.SECOND));
     }
 
     @Test

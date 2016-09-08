@@ -40,11 +40,5 @@ public interface Rate extends Metric {
      * @param interval Measurement interval.
      * @return The max rate of actions received for the last time.
      */
-    long getLastMaxRate(final MetricsInterval interval);
-
-    /**
-     * Gets the maximum rate ever happened.
-     * @return The maximum rate ever happened.
-     */
-    long getMaxRate();
+    long getMaxRate(final MetricsInterval interval);
 }

@@ -2,7 +2,7 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.internal.Utils;
-import static com.google.common.base.Strings.isNullOrEmpty;
+import com.bytex.snamp.management.SummaryMetrics;
 import org.osgi.framework.BundleContext;
 
 import javax.management.InstanceNotFoundException;
@@ -10,6 +10,7 @@ import javax.management.openmbean.SimpleType;
 import java.util.Map;
 
 import static com.bytex.snamp.jmx.OpenMBean.OpenOperation;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Resets metrics.

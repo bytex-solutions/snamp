@@ -45,13 +45,20 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "No metrics for attributes");
             return;
         }
-        appendln(output, "Total number of writes: %s", metrics.getTotalNumberOfWrites());
-        for (final MetricsInterval interval : MetricsInterval.values())
-            appendln(output, "Number of writes(%s): %s", interval, metrics.getLastNumberOfWrites(interval));
+        appendln(output, "Total number of writes: %s", metrics.writes().getTotalRate());
 
-        appendln(output, "Total number of reads: %s", metrics.getTotalNumberOfReads());
-        for (final MetricsInterval interval : MetricsInterval.values())
-            appendln(output, "Number of reads(%s): %s", interval, metrics.getLastNumberOfReads(interval));
+        for (final MetricsInterval interval : MetricsInterval.values()) {
+            appendln(output, "Maximum number of writes / %s: %s", interval, metrics.writes().getMaxRate(interval));
+            appendln(output, "Mean number of writes / %s: %s", interval, metrics.writes().getMeanRate(interval));
+            appendln(output, "Number of last writes / %s: %s", interval, metrics.writes().getLastRate(interval));
+        }
+
+        appendln(output, "Total number of reads: %s", metrics.reads().getTotalRate());
+        for (final MetricsInterval interval : MetricsInterval.values()) {
+            appendln(output, "Maximum number of reads / %s: %s", interval, metrics.reads().getMaxRate(interval));
+            appendln(output, "Mean number of reads / %s: %s", interval, metrics.reads().getMeanRate(interval));
+            appendln(output, "Number of last reads / %s: %s", interval, metrics.reads().getLastRate(interval));
+        }
     }
 
     private static void collectMetrics(final NotificationMetric metrics, final StringBuilder output) {
@@ -59,9 +66,12 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "No metrics for notifications");
             return;
         }
-        appendln(output, "Total number of emitted notifications: %s", metrics.getTotalNumberOfNotifications());
-        for (final MetricsInterval interval : MetricsInterval.values())
-            appendln(output, "Number of emitted notifications(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getLastNumberOfEmitted(interval));
+        appendln(output, "Total number of notifications: %s", metrics.notifications().getTotalRate());
+        for (final MetricsInterval interval : MetricsInterval.values()) {
+            appendln(output, "Maximum number of notifications / %s: %s", interval, metrics.notifications().getMaxRate(interval));
+            appendln(output, "Mean number of notifications / %s: %s", interval, metrics.notifications().getMeanRate(interval));
+            appendln(output, "Number of last received notifications / %s: %s", interval, metrics.notifications().getLastRate(interval));
+        }
     }
 
     private static void collectMetrics(final OperationMetric metrics, final StringBuilder output) {
@@ -69,9 +79,12 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "No metrics for operations");
             return;
         }
-        appendln(output, "Total number of invocations: %s", metrics.getTotalNumberOfInvocations());
-        for (final MetricsInterval interval : MetricsInterval.values())
-            appendln(output, "Number of invocations(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getLastNumberOfInvocations(interval));
+        appendln(output, "Total number of invocations: %s", metrics.invocations().getTotalRate());
+        for (final MetricsInterval interval : MetricsInterval.values()) {
+            appendln(output, "Maximum number of invocations / %s: %s", interval, metrics.invocations().getMaxRate(interval));
+            appendln(output, "Mean number of invocations / %s: %s", interval, metrics.invocations().getMeanRate(interval));
+            appendln(output, "Number of last received invocations / %s: %s", interval, metrics.invocations().getLastRate(interval));
+        }
     }
 
     private boolean showAll(){

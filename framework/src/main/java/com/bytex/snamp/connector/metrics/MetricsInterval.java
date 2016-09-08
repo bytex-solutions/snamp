@@ -16,13 +16,48 @@ import java.util.function.BinaryOperator;
  * @since 1.0
  */
 public enum MetricsInterval {
-    SECOND(1, TimeUnit.SECONDS),
-    MINUTE(1, TimeUnit.MINUTES),
-    FIVE_MINUTES(5, TimeUnit.MINUTES),
-    FIFTEEN_MINUTES(15, TimeUnit.MINUTES),
-    HOUR(1, TimeUnit.HOURS),
-    TWELVE_HOURS(12, TimeUnit.HOURS),
-    DAY(1, TimeUnit.DAYS);
+    SECOND(1, TimeUnit.SECONDS){
+        @Override
+        public String toString() {
+            return "1 second";
+        }
+    },
+    MINUTE(1, TimeUnit.MINUTES){
+        @Override
+        public String toString() {
+            return "1 minute";
+        }
+    },
+    FIVE_MINUTES(5, TimeUnit.MINUTES){
+        @Override
+        public String toString() {
+            return "5 minutes";
+        }
+    },
+    FIFTEEN_MINUTES(15, TimeUnit.MINUTES){
+        @Override
+        public String toString() {
+            return "15 minutes";
+        }
+    },
+    HOUR(1, TimeUnit.HOURS){
+        @Override
+        public String toString() {
+            return "1 hour";
+        }
+    },
+    TWELVE_HOURS(12, TimeUnit.HOURS){
+        @Override
+        public String toString() {
+            return "12 hours";
+        }
+    },
+    DAY(1, TimeUnit.DAYS){
+        @Override
+        public String toString() {
+            return "1 day";
+        }
+    };
 
     /**
      * Cached array of available intervals for fast iteration.

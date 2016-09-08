@@ -38,6 +38,11 @@ final class MetricsIntervalMap<V> extends EnumMap<MetricsInterval, V> {
         consumer.accept(get(interval), value);
     }
 
+    void forEachAcceptLong(final long value, final ObjLongConsumer<V> consumer){
+        for(final V v: values())
+            consumer.accept(v, value);
+    }
+
     void forEachAcceptDouble(final double value, final ObjDoubleConsumer<V> consumer){
         for(final V v: values())
             consumer.accept(v, value);

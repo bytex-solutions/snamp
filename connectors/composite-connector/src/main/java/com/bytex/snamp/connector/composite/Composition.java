@@ -29,6 +29,7 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
     private final String resourceName;
 
     Composition(final String resourceName){
+        super(SingleResourceGroup.class);
         connectors = new HashMap<>();
         this.resourceName = Objects.requireNonNull(resourceName);
     }
@@ -68,7 +69,7 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
     void updateConnector(final String connectorType, final String connectionString, final Map<String, String> parameters) throws Exception {
         final String resourceName = this.resourceName;
         final BundleContext context = Utils.getBundleContextOfObject(this);
-        writeAcceptInterruptibly(connectors, connectors -> updateConnector(connectors, connectorType, connectionString, resourceName, parameters, context));
+        writeAcceptInterruptibly(SingleResourceGroup.INSTANCE, connectors, connectors -> updateConnector(connectors, connectorType, connectionString, resourceName, parameters, context));
     }
 
     private static void retainConnectors(final Map<String, ManagedResourceConnector> connectors, final Set<String> set) throws Exception {
@@ -85,11 +86,11 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
      * @throws Exception Unable to dispose one or more connectors.
      */
     void retainConnectors(final Set<String> set) throws Exception {
-        writeAcceptInterruptibly(connectors, connectors -> retainConnectors(connectors, set));
+        writeAcceptInterruptibly(SingleResourceGroup.INSTANCE, connectors, connectors -> retainConnectors(connectors, set));
     }
 
     private <T> T queryObject(final String connectorType, final Class<T> objectType){
-        final ManagedResourceConnector connector = readApply(connectors, connectorType, Map::get);
+        final ManagedResourceConnector connector = readApply(SingleResourceGroup.INSTANCE, connectors, connectorType, Map::get);
         return connector != null ? connector.queryObject(objectType) : null;
     }
 
@@ -119,6 +120,6 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
      */
     @Override
     public void close() throws Exception {
-        writeAcceptInterruptibly(connectors, Composition::releaseConnectors);
+        writeAcceptInterruptibly(SingleResourceGroup.INSTANCE, connectors, Composition::releaseConnectors);
     }
 }

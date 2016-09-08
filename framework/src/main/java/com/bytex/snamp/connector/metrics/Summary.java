@@ -53,13 +53,8 @@ public final class Summary {
             }
 
             @Override
-            public long getLastMaxRate(final MetricsInterval interval) {
-                return sum(rate -> rate.getLastMaxRate(interval));
-            }
-
-            @Override
-            public long getMaxRate() {
-                return sum(Rate::getMaxRate);
+            public long getMaxRate(final MetricsInterval interval) {
+                return sum(rate -> rate.getMaxRate(interval));
             }
 
             @Override

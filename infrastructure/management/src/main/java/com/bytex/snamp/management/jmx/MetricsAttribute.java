@@ -7,7 +7,7 @@ import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
-import static com.google.common.base.Strings.isNullOrEmpty;
+import com.bytex.snamp.management.SummaryMetrics;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -19,6 +19,7 @@ import javax.management.openmbean.TabularType;
 import java.util.Map;
 
 import static com.bytex.snamp.jmx.OpenMBean.OpenAttribute;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Provides detailed information about metrics.

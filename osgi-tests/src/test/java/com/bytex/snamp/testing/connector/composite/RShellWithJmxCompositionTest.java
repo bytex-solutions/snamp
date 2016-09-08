@@ -110,8 +110,8 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
             booleanAttributeTest();
             //verify metrics
             final AttributeMetric attrMetrics = metrics.getMetrics(AttributeMetric.class).iterator().next();
-            assertTrue(attrMetrics.getLastNumberOfReads(MetricsInterval.HOUR) > 0);
-            assertTrue(attrMetrics.getTotalNumberOfReads() > 0);
+            assertTrue(attrMetrics.reads().getLastRate(MetricsInterval.HOUR) > 0);
+            assertTrue(attrMetrics.reads().getTotalRate() > 0);
         } finally {
             client.release(getTestBundleContext());
         }

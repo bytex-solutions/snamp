@@ -49,14 +49,14 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
                 new HashMap<>(10);
 
         private Collection<ScriptNotificationAccessor> clear(final String resourceName) {
-            return writeApply(resourceName, notifications, (resName, notifs) -> {
+            return writeApply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
                 final ResourceNotificationList<ScriptNotificationAccessor> list = notifs.remove(resName);
                 return list != null ? list.values() : ImmutableList.of();
             });
         }
 
         private void clear() {
-            writeAccept(notifications, notifs -> {
+            writeAccept(SingleResourceGroup.INSTANCE, notifications, notifs -> {
                 notifs.values().forEach(ResourceFeatureList::clear);
                 notifs.clear();
             });
@@ -87,11 +87,11 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
 
         private ScriptNotificationAccessor remove(final String resourceName,
                                                   final MBeanNotificationInfo metadata) {
-            return writeApply(resourceName, metadata, this::removeImpl);
+            return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeImpl);
         }
 
         private Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
-            return readApply(resourceName, notifications, (resName, notifs) -> {
+            return readApply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
                 final ResourceNotificationList<?> list = notifs.get(resName);
                 if (list != null) {
                     return list.values().stream()
@@ -103,7 +103,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         }
 
         private Set<String> getResourceEvents(final String resourceName) {
-            return readApply(resourceName, notifications, (resName, notifs) -> {
+            return readApply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
                 if (notifs.containsKey(resName)) {
                     final Set<String> result = new HashSet<>(20);
                     for (final FeatureAccessor<MBeanNotificationInfo> accessor : notifs.get(resName).values())
@@ -128,7 +128,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
          */
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
-            readAccept(notificationReader, this::forEachNotificationImpl);
+            readAccept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
         }
     }
 

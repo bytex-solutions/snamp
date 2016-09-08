@@ -191,7 +191,7 @@ final class HttpGateway extends AbstractGateway {
 
         private NotificationRouter addNotification(final String resourceName,
                                     final MBeanNotificationInfo metadata) {
-            return writeApply(resourceName, metadata, this::addNotificationImpl);
+            return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::addNotificationImpl);
         }
 
         private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E{
@@ -203,12 +203,12 @@ final class HttpGateway extends AbstractGateway {
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
-            readAccept(notificationReader, this::forEachNotificationImpl);
+            readAccept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
         }
 
         @Override
         public NotificationBroadcaster getBroadcaster(final String resourceName) {
-            return readApply(notifications, resourceName, KeyedObjects::get);
+            return readApply(SingleResourceGroup.INSTANCE, notifications, resourceName, KeyedObjects::get);
         }
 
         private NotificationAccessor removeNotificationImpl(final String resourceName,
@@ -227,15 +227,15 @@ final class HttpGateway extends AbstractGateway {
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata) {
-            return writeApply(resourceName, metadata, this::removeNotificationImpl);
+            return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeNotificationImpl);
         }
 
         private void clear() {
-            writeAccept(notifications, KeyedObjects::clear);
+            writeAccept(SingleResourceGroup.INSTANCE, notifications, KeyedObjects::clear);
         }
 
         private Collection<? extends NotificationAccessor> clear(final String resourceName) {
-            return writeApply(resourceName, notifications, (resName, notifs) -> {
+            return writeApply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
                 if(notifs.containsKey(resName)){
                     final NotificationBroadcaster broadcaster = notifs.remove(resName);
                     broadcaster.destroy();

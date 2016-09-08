@@ -81,7 +81,7 @@ final class NSCAGateway extends AbstractGateway {
 
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata){
-            return writeApply(resourceName, metadata, this::addNotificationImpl);
+            return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::addNotificationImpl);
         }
 
         private NotificationAccessor removeNotificationImpl(final String resourceName,
@@ -97,16 +97,16 @@ final class NSCAGateway extends AbstractGateway {
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata){
-            return writeApply(resourceName, metadata, this::removeNotificationImpl);
+            return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeNotificationImpl);
         }
 
         private Collection<? extends NotificationAccessor> removeNotifications(final String resourceName) {
-            return writeApply(resourceName, notifications,
+            return writeApply(SingleResourceGroup.INSTANCE, resourceName, notifications,
                     (resName, notifs) -> notifs.containsKey(resName) ? notifs.remove(resName).values() : ImmutableList.of());
         }
 
         private void clear() {
-            writeAccept(notifications, notifs -> {
+            writeAccept(SingleResourceGroup.INSTANCE, notifications, notifs -> {
                 notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
                 notifs.clear();
             });
@@ -121,7 +121,7 @@ final class NSCAGateway extends AbstractGateway {
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super NSCANotificationAccessor, E> notificationReader) throws E {
-            readAccept(notificationReader, (Acceptor<EntryReader<String, ? super NSCANotificationAccessor,E>, E>) this::forEachNotificationImpl);
+            readAccept(SingleResourceGroup.INSTANCE, notificationReader, (Acceptor<EntryReader<String, ? super NSCANotificationAccessor,E>, E>) this::forEachNotificationImpl);
         }
     }
 
