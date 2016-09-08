@@ -1,7 +1,5 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.math.ExponentialMovingAverage;
-
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -13,15 +11,17 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge64 {
     private final AtomicLong maxValue;
     private final AtomicLong minValue;
-    private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;
     private final AtomicLong lastValue;
 
-    Gauge64Recorder(final String name, final int samplingSize) {
+    public Gauge64Recorder(final String name, final int samplingSize) {
         super(name, samplingSize);
         maxValue = new AtomicLong(Long.MIN_VALUE);
         minValue = new AtomicLong(Long.MAX_VALUE);
-        meanValues = new MetricsIntervalMap<>(MetricsInterval::createEMA);
         lastValue = new AtomicLong(0L);
+    }
+
+    public Gauge64Recorder(final String name){
+        this(name, DEFAULT_SAMPLING_SIZE);
     }
 
     public void update(final long value){
@@ -29,9 +29,6 @@ public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge
         maxValue.accumulateAndGet(value, Math::max);
         minValue.accumulateAndGet(value, Math::min);
         lastValue.set(value);
-        for(final MetricsInterval interval: MetricsInterval.ALL_INTERVALS){
-            meanValues.get(interval).accept(value);
-        }
     }
 
     /**
@@ -42,13 +39,7 @@ public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge
         super.reset();
         maxValue.set(Long.MIN_VALUE);
         minValue.set(Long.MAX_VALUE);
-        meanValues.applyToAllIntervals(ExponentialMovingAverage::reset);
         lastValue.set(0L);
-    }
-
-    @Override
-    public double getMeanValue(final MetricsInterval interval) {
-        return meanValues.get(interval).getAsDouble();
     }
 
     /**

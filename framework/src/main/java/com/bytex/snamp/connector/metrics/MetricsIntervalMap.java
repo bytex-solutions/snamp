@@ -10,6 +10,7 @@ import java.util.function.*;
  * @since 2.0
  */
 final class MetricsIntervalMap<V> extends EnumMap<MetricsInterval, V> {
+    private static final long serialVersionUID = 1743299463619063796L;
 
     MetricsIntervalMap(final Function<? super MetricsInterval, ? extends V> valueProvider){
         super(MetricsInterval.class);
@@ -37,12 +38,7 @@ final class MetricsIntervalMap<V> extends EnumMap<MetricsInterval, V> {
         consumer.accept(get(interval), value);
     }
 
-    void forEachAccept(final long value, final ObjLongConsumer<V> consumer) {
-        for (final V v : values())
-            consumer.accept(v, value);
-    }
-
-    void forEachAccept(final double value, final ObjDoubleConsumer<V> consumer){
+    void forEachAcceptDouble(final double value, final ObjDoubleConsumer<V> consumer){
         for(final V v: values())
             consumer.accept(v, value);
     }
