@@ -3,6 +3,8 @@ package com.bytex.snamp.math;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.OptionalInt;
+
 /**
  * Represents test for {@link DoubleReservoir}.
  * @author Roman Sakno
@@ -41,5 +43,19 @@ public final class DoubleReservoirTest extends Assert {
         assertEquals(15, reservoir.getCapacity());
         assertEquals(17.8D, reservoir.getMean(), 0.01D);
         assertEquals(24.2D, reservoir.getQuantile(0.7), 0.1D);
+    }
+
+    @Test
+    public void findTest(){
+        final DoubleReservoir reservoir = new DoubleReservoir(5);
+        reservoir.add(5D);//index 2
+        reservoir.add(3D);
+        reservoir.add(1D);//index 0
+        reservoir.add(9D);
+        final OptionalInt searchResult = reservoir.find(5D);
+        assertTrue(searchResult.isPresent());
+        assertEquals(2, searchResult.getAsInt());
+        assertEquals(0.25D, reservoir.greaterThanOrEqualValues(6D), 0.001D);
+        assertEquals(0.75D, reservoir.lessThanOrEqualValues(5D), 0.001D);
     }
 }

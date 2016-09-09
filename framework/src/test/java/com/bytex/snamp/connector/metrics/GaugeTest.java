@@ -33,10 +33,36 @@ public final class GaugeTest extends Assert {
         final GaugeFPRecorder writer = new GaugeFPRecorder("testGauge");
         final Random rnd = new Random(42L);
         final long nanos = System.nanoTime();
-        for(int i = 0; i < 10000; i++)
+        for(int i = 0; i < 100000; i++)
             writer.update(rnd.nextDouble());
         System.out.println(Duration.ofNanos(System.nanoTime() - nanos));
         System.out.println(writer.getMaxValue());
         System.out.println(writer.getMinValue());
+    }
+
+    @Test
+    public void gauge64Test(){
+        final Gauge64Recorder writer = new Gauge64Recorder("testGauge");
+        writer.update(10L);
+        writer.update(20L);
+        writer.update(30L);
+        writer.update(5L);
+        writer.update(15L);
+        writer.update(16L);
+        assertEquals(30L, writer.getMaxValue());
+        assertEquals(5L, writer.getMinValue());
+        assertEquals(16L, writer.getLastValue());
+        assertEquals(19.6D, writer.getQuantile(0.7), 0.1D);
+    }
+
+    @Test
+    public void stringGaugeTest(){
+        final StringGauge writer = new StringGauge("testGauge");
+        writer.update("a");
+        writer.update("b");
+        writer.update("ab");
+        assertEquals("ab", writer.getLastValue());
+        assertEquals("b", writer.getMaxValue());
+        assertEquals("a", writer.getMinValue());
     }
 }

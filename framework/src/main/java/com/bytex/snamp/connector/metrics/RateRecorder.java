@@ -44,6 +44,10 @@ public final class RateRecorder extends AbstractMetric implements Rate {
         return current.compareTo(provided) < 0 ? current : provided;
     }
 
+    Instant getStartTime(){
+        return startTime.get();
+    }
+
     public void setStartTime(final Instant value) {
         startTime.accumulateAndGet(value, RateRecorder::minInstant);
     }

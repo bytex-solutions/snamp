@@ -2,6 +2,8 @@ package com.bytex.snamp.math;
 
 import com.bytex.snamp.Stateful;
 
+import java.util.OptionalInt;
+
 /**
  * Represents reservoir of statistically distributed data.
  * @author Roman Sakno
@@ -29,6 +31,27 @@ public interface Reservoir extends Stateful {
      * @return Arithmetic mean.
      */
     double getMean();
+
+    /**
+     * Finds location of the value in this reservoir.
+     * @param value The value to find.
+     * @return The location of the value in this reservoir
+     */
+    OptionalInt find(final Number value);
+
+    /**
+     * Computes a percent of values that are greater than or equal to the specified value.
+     * @param value A value to compute.
+     * @return A percent of values that are greater that or equal to the specified value.
+     */
+    double greaterThanOrEqualValues(final Number value);
+
+    /**
+     * Computes a percent of values that are less than or equal to the specified value.
+     * @param value A value to compute.
+     * @return A percent of values that are less that or equal to the specified value.
+     */
+    double lessThanOrEqualValues(final Number value);
 
     /**
      * Gets standard deviation of the values in this reservoir.

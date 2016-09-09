@@ -4,6 +4,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 
 import java.util.Arrays;
+import java.util.OptionalInt;
 import java.util.function.DoubleConsumer;
 import java.util.function.IntToDoubleFunction;
 
@@ -220,6 +221,79 @@ public class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer,
     public final double getQuantile(final double quantile) {
         try(final SafeCloseable ignored = acquireReadLock()){
             return getQuantileImpl(quantile);
+        }
+    }
+
+    /**
+     * Finds location of the value in this reservoir.
+     *
+     * @param value The value to find.
+     * @return The location of the value in this reservoir
+     */
+    @Override
+    public OptionalInt find(final Number value) {
+        return find(value.doubleValue());
+    }
+
+    /**
+     * Finds location of the value in this reservoir.
+     *
+     * @param value The value to find.
+     * @return The location of the value in this reservoir
+     */
+    public OptionalInt find(final double value){
+        final int index;
+        try(final SafeCloseable ignored = acquireReadLock()){
+            index = Arrays.binarySearch(values, value);   //array is always sorted
+        }
+        return index < 0 ? OptionalInt.empty() : OptionalInt.of(index);
+    }
+
+    /**
+     * Computes a percent of values that are greater than or equal to the specified value.
+     *
+     * @param value A value to compute.
+     * @return A percent of values that are greater that or equal to the specified value.
+     */
+    @Override
+    public double greaterThanOrEqualValues(final Number value) {
+        return greaterThanOrEqualValues(value.doubleValue());
+    }
+
+    /**
+     * Computes a percent of values that are greater than or equal to the specified value.
+     *
+     * @param value A value to compute.
+     * @return A percent of values that are greater that or equal to the specified value.
+     */
+    public double greaterThanOrEqualValues(final double value) {
+        try(final SafeCloseable ignored = acquireReadLock()){
+            final double index = computeIndex(value);
+            return index >= actualSize ? 0D : ((actualSize - index) / actualSize);
+        }
+    }
+
+    /**
+     * Computes a percent of values that are less than or equal to the specified value.
+     *
+     * @param value A value to compute.
+     * @return A percent of values that are less that or equal to the specified value.
+     */
+    @Override
+    public double lessThanOrEqualValues(final Number value) {
+        return lessThanOrEqualValues(value.doubleValue());
+    }
+
+    /**
+     * Computes a percent of values that are less than or equal to the specified value.
+     *
+     * @param value A value to compute.
+     * @return A percent of values that are less that or equal to the specified value.
+     */
+    public double lessThanOrEqualValues(final double value) {
+        try(final SafeCloseable ignored = acquireReadLock()){
+            final double index = computeIndex(value);
+            return index >= actualSize ? 1D : index / actualSize;
         }
     }
 }
