@@ -31,6 +31,7 @@ public final class GaugeFPRecorder extends AbstractNumericGauge implements Gauge
     }
 
     public void update(final double value) {
+        updateReservoir(value);
         accumulate(maxValue, value, Math::max);
         accumulate(minValue, value, Math::min);
         lastValue.set(value);

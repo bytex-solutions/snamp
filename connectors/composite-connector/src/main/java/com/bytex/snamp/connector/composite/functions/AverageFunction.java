@@ -1,8 +1,5 @@
 package com.bytex.snamp.connector.composite.functions;
 
-import com.bytex.snamp.math.StatefulDoubleUnaryFunction;
-import com.bytex.snamp.math.UnaryFunctions;
-
 import java.util.concurrent.TimeUnit;
 
 /**

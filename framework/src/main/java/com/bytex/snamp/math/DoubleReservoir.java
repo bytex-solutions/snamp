@@ -23,6 +23,8 @@ public class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer,
      */
     public DoubleReservoir(final int samplingSize){
         super(SingleResourceGroup.class);
+        if(samplingSize < 2)
+            throw new IllegalArgumentException("Sampling size cannot be less than 2");
         this.values = new double[samplingSize];
         this.actualSize = 0;
     }
@@ -96,7 +98,9 @@ public class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer,
 
     //we use binarySearch-derived algorithm for value insertion
     //this is more efficient because insertion is O(log n) in comparison with O(1) insertion and O(n log n) quick sorting when reading reservoir
-    private int computeIndex(final double item){
+    private int computeIndex(final double item) {
+        if (actualSize == 0)
+            return 0;
         int low = 0;
         int high = actualSize - 1;
         while (low <= high) {
@@ -119,12 +123,14 @@ public class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer,
      */
     public final void add(final double value){
         try (final SafeCloseable ignored = acquireWriteLock()) {
-            final int index = computeIndex(value);
-            if (actualSize < values.length) { //shift array
-                if (index < actualSize)
+            int index = computeIndex(value);
+            if (actualSize < values.length) {  //buffer is not fully occupied
+                if (index < actualSize) //shift array to right and utilize more buffer space
                     System.arraycopy(values, index, values, index + 1, actualSize - index);
-                actualSize += 1;
-            }
+                actualSize += 1; //increase occupation factor
+            } else   //buffer is fully occupied
+                if(index == actualSize)
+                    index -= 1;
             values[index] = value;
         }
     }

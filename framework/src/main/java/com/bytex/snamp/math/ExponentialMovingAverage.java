@@ -23,7 +23,7 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
     private static final long serialVersionUID = -8885874345563930420L;
 
     private final AtomicBoolean isSet;
-    private volatile double counter;
+    private volatile double accumulator;
     private final double alpha;
     private final AtomicLong startTime;
 
@@ -71,13 +71,13 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
         final long currentTime = System.nanoTime();
         final long startTime = this.startTime.get();
         final long age = currentTime - startTime;
-        double result = counter;
+        double result = accumulator;
         if (age > INTERVAL.toNanos()) {
             final long newStartTime = currentTime - age % INTERVAL.toNanos();
             if (this.startTime.compareAndSet(startTime, newStartTime)) {
                 for (int i = 0; i < age / INTERVAL.toNanos(); i++)
                     result = addAndGetAverage(result);
-                counter = result;
+                accumulator = result;
             }
         }
         return result * PRECISION.toNanos();

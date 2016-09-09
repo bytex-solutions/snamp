@@ -6,6 +6,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleSupplier;
 
 /**
  * Computes linear correlation between numbers in thread safe manner.
@@ -14,7 +15,7 @@ import java.util.function.DoubleBinaryOperator;
  * @since 2.0
  */
 @ThreadSafe
-public final class Correlation implements DoubleBinaryOperator, Stateful {
+public final class Correlation implements DoubleBinaryOperator, Stateful, DoubleSupplier {
     private final AtomicDouble sumX = new AtomicDouble(0D);
     private final AtomicDouble sumY = new AtomicDouble(0D);
     private final AtomicDouble prodX = new AtomicDouble(0D);
@@ -37,19 +38,18 @@ public final class Correlation implements DoubleBinaryOperator, Stateful {
         do {
             prev = atomic.get();
             next = prev + value;
-            if(Double.isInfinite(next)) next = value;
+            if(Double.isInfinite(next))
+                next = value;
         } while (!atomic.compareAndSet(prev, next));
         return next;
     }
 
-    @Override
-    public double applyAsDouble(final double x, final double y) {
-        final long count = this.count.incrementAndGet();
-        final double sumX = addAndGet(this.sumX, x);
-        final double sumY = addAndGet(this.sumY, y);
-        final double prodX = addAndGet(this.prodX, x * x);
-        final double prodY = addAndGet(this.prodY, y * y);
-        final double prodXY = addAndGet(this.prodXY, x * y);
+    private static double compute(final long count,
+                                  final double sumX,
+                                  final double sumY,
+                                  final double prodX,
+                                  final double prodY,
+                                  final double prodXY){
         // covariation
         final double cov = prodXY / count - sumX * sumY / (count * count);
         // standard error of x
@@ -58,6 +58,32 @@ public final class Correlation implements DoubleBinaryOperator, Stateful {
         final double sigmaY = Math.sqrt(prodY / count - sumY * sumY / (count * count));
 
         // correlation is just a normalized covariation
-        return cov / sigmaX / sigmaY;
+        final double result = cov / sigmaX / sigmaY;
+        return Double.isNaN(result) ? 0D : result;
+    }
+
+    @Override
+    public double applyAsDouble(final double x, final double y) {
+        return compute(count.incrementAndGet(),
+                addAndGet(sumX, x),
+                addAndGet(sumY, y),
+                addAndGet(prodX, x * x),
+                addAndGet(prodY, y * y),
+                addAndGet(prodXY, x * y));
+    }
+
+    /**
+     * Gets a correlation.
+     *
+     * @return Correlation.
+     */
+    @Override
+    public double getAsDouble() {
+        return compute(count.get(),
+                sumX.get(),
+                sumY.get(),
+                prodX.get(),
+                prodY.get(),
+                prodXY.get());
     }
 }

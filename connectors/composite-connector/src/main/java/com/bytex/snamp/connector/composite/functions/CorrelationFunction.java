@@ -1,8 +1,5 @@
 package com.bytex.snamp.connector.composite.functions;
 
-import com.bytex.snamp.math.BinaryFunctions;
-import com.bytex.snamp.math.StatefulDoubleBinaryFunction;
-
 import javax.management.openmbean.SimpleType;
 
 /**

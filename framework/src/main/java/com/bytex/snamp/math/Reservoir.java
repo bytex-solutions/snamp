@@ -30,7 +30,6 @@ public interface Reservoir extends Stateful {
      */
     double getMean();
 
-
     /**
      * Gets standard deviation of the values in this reservoir.
      *
