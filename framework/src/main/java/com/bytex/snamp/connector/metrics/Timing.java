@@ -36,6 +36,20 @@ public interface Timing extends Gauge<Duration>, Metric {
     }
 
     /**
+     * Computes a percent of durations that are greater than or equal to the specified duration.
+     * @param value A value to compute.
+     * @return A percent of durations that are greater that or equal to the specified duration.
+     */
+    double lessThanOrEqualDuration(final Duration value);
+
+    /**
+     * Computes a percent of durations that are less than or equal to the specified duration.
+     * @param value A value to compute.
+     * @return A percent of durations that are greater that or less to the specified duration.
+     */
+    double greaterThanOrEqualDuration(final Duration value);
+
+    /**
      * Gets summary duration of all events.
      * @return The summary duration of all events.
      */

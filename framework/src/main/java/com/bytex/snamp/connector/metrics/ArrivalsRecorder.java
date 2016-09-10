@@ -4,25 +4,31 @@ import com.bytex.snamp.math.Correlation;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.function.Consumer;
 
 /**
- * Represents a counter for single-channel queuing system with denials where
+ * Represents a gauge for queuing system with denials where
  * arrivals are determined by a Poisson process and job service times have an exponential distribution.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/M/M/1_queue">M/M/1 queue</a>
  */
-public final class MM1Counter extends AbstractMetric {
+public final class ArrivalsRecorder extends AbstractMetric implements Consumer<Duration>, Arrivals {
+    private static final double NANOS_IN_SECOND = 1_000_000_000D;
     private final RateRecorder requestRate;
     private final TimingRecorder responseTime;
     private final Correlation rpsAndTimeCorrelation;  //correlation between rps and response time.
 
-    public MM1Counter(final String name, final int samplingSize){
+    public ArrivalsRecorder(final String name, final int samplingSize){
         super(name);
         requestRate = new RateRecorder(name);
-        responseTime = new TimingRecorder(name);
+        responseTime = new TimingRecorder(name, samplingSize, NANOS_IN_SECOND);
         rpsAndTimeCorrelation = new Correlation();
+    }
+
+    public ArrivalsRecorder(final String name){
+        this(name, AbstractNumericGauge.DEFAULT_SAMPLING_SIZE);
     }
 
     public void setStartTime(final Instant value){
@@ -30,19 +36,22 @@ public final class MM1Counter extends AbstractMetric {
     }
 
     private static double toSeconds(final Duration value){
-        //value.toMillis() may return 0 when duration is less than 1 millisecond
-        return value.toNanos() / 1_000_000_000D;
+        //value.toMillis() may return 0 when duration is less than 1 second
+        return value.toNanos() / NANOS_IN_SECOND;
     }
 
-    public void update(final Duration responseTime){
-        requestRate.update();
-        this.responseTime.update(responseTime);
+    @Override
+    public void accept(final Duration responseTime){
+        requestRate.mark();
+        this.responseTime.accept(responseTime);
         final double responseTimeInSeconds = toSeconds(responseTime);
         rpsAndTimeCorrelation.applyAsDouble(/*rps*/requestRate.getLastMeanRate(MetricsInterval.SECOND), /*response time*/responseTimeInSeconds);
     }
 
-    private static long fact(long i) {
-        long result = 1;
+    private static double fact(long i) {
+        if(i > 170)     //170! is the maximum factorial value for DOUBLE data type
+            return Double.POSITIVE_INFINITY;
+        double result = 1D;
         while (i > 1)
             result *= i--;
         return result;
@@ -62,10 +71,13 @@ public final class MM1Counter extends AbstractMetric {
                 denialProbability += (Math.pow(intensity, i) / fact(i));
             denialProbability = 1D / denialProbability;
             //http://latex.codecogs.com/gif.latex?P=1-\frac{\rho^{k}}{k!}\rho_{0}
-            return (1D - (Math.pow(intensity, channels) / channels) * denialProbability); //availability
+            return denialProbability == 0D ?
+                    1D :         //little optimization
+                    (1D - (Math.pow(intensity, channels) / channels) * denialProbability);  //availability
         }
     }
 
+    @Override
     public double getMeanAvailability(final MetricsInterval interval, final int channels){
         return getAvailability(requestRate.getMeanRate(interval), toSeconds(responseTime.getMeanValue(interval)), channels);
     }
@@ -74,22 +86,55 @@ public final class MM1Counter extends AbstractMetric {
         return getMeanAvailability(interval, 1);
     }
 
+    @Override
     public double getInstantAvailability(final int channels){
-        return getAvailability(requestRate.getLastMeanRate(MetricsInterval.SECOND), toSeconds(responseTime.getLastValue()), channels);
+        return getAvailability(requestRate.getLastRate(MetricsInterval.SECOND), toSeconds(responseTime.getLastValue()), channels);
     }
 
+    /**
+     * Gets instant availability of the single channel using characteristics of arrivals measured by this object.
+     * @return Instant availability.
+     */
     public double getInstantAvailability(){
         return getInstantAvailability(1);
     }
 
+    /**
+     * Gets ratio between summary duration of all requests and server uptime.
+     * @return Utilization of server uptime, in percents.
+     */
+    @Override
     public double getEfficiency(){
         final double summaryDuration = toSeconds(responseTime.getSummaryValue());
         final double uptime = toSeconds(Duration.between(requestRate.getStartTime(), Instant.now()));
         return summaryDuration / uptime;
     }
 
-    public Duration getResponseTimeQuantile(final double quantile){
-        return responseTime.getQuantile(quantile);
+    /**
+     * Gets rate of arrivals.
+     * @return Rate of arrivals.
+     */
+    @Override
+    public Rate getRequestRate(){
+        return requestRate;
+    }
+
+    /**
+     * Gets measurement of response time.
+     * @return Measurement of response time.
+     */
+    @Override
+    public Timing getResponseTiming(){
+        return responseTime;
+    }
+
+    /**
+     * Gets correlation between arrivals and response time.
+     * @return The correlation between arrivals and response time.
+     */
+    @Override
+    public double getCorrelation(){
+        return rpsAndTimeCorrelation.getAsDouble();
     }
 
     /**

@@ -25,14 +25,14 @@ public final class AttributeMetricRecorder extends AbstractMetric implements Att
      * Marks single read.
      */
     public void updateReads(){
-        readRate.update();
+        readRate.mark();
     }
 
     /**
      * Marks single write.
      */
     public void updateWrites(){
-        writeRate.update();
+        writeRate.mark();
     }
 
     /**

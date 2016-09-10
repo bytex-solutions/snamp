@@ -20,7 +20,7 @@ public final class NotificationMetricRecorder extends AbstractMetric implements 
     }
 
     public void update(){
-        notificationsRate.update();
+        notificationsRate.mark();
     }
 
     /**
@@ -38,6 +38,6 @@ public final class NotificationMetricRecorder extends AbstractMetric implements 
      */
     @Override
     public void reset() {
-        notificationsRate.update();
+        notificationsRate.mark();
     }
 }

@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import java.util.Collection;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToLongFunction;
@@ -67,5 +68,15 @@ public final class Summary {
                 rates.get().forEach(Rate::reset);
             }
         };
+    }
+
+    /**
+     * Aggregates {@link Rate} from a collection of other metrics.
+     * @param name The name of new metrics.
+     * @param rates A collection of rates to aggregate.
+     * @return A new aggregated {@link Rate}.
+     */
+    public static Rate summaryRate(final String name, final Collection<? extends Rate> rates){
+        return summaryRate(name, rates::stream);
     }
 }

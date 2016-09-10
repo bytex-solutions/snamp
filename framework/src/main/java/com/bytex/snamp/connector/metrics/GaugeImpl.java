@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
 
 /**
  * Represents basic implementation of gauge.
@@ -69,7 +68,8 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
             return current.compareTo(provided) < 0 ? current : provided;
     }
 
-    public void update(final V value){
+    @Override
+    public void accept(final V value) {
         maxValue.accumulateAndGet(value, GaugeImpl::maxValue);
         minValue.accumulateAndGet(value, GaugeImpl::minValue);
         lastValue.set(value);

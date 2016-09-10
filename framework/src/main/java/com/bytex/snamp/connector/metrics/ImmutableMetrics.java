@@ -35,7 +35,7 @@ public class ImmutableMetrics implements MetricsSupport {
     }
 
     public <I> ImmutableMetrics(final I[] metrics, final Function<? super I, ? extends Metric> converter){
-        this(Arrays.stream(metrics).map(converter::apply).iterator());
+        this(Arrays.stream(metrics).map(converter).iterator());
     }
 
     private <M extends Metric> Iterable<M> getMetrics(final Collection<? extends Metric> metrics, final Class<M> metricType) {

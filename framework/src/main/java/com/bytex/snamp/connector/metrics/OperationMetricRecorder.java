@@ -20,7 +20,7 @@ public final class OperationMetricRecorder extends AbstractMetric implements Ope
     }
 
     public void update(){
-        invocationsRate.update();
+        invocationsRate.mark();
     }
 
     /**

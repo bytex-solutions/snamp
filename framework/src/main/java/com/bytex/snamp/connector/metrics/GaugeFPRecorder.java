@@ -4,13 +4,14 @@ import com.bytex.snamp.concurrent.TimeLimitedDouble;
 import com.google.common.util.concurrent.AtomicDouble;
 
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleConsumer;
 
 /**
  * Represents implementation of {@link GaugeFP}.
  * @since 2.0
  * @version 2.0
  */
-public final class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP {
+public final class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, DoubleConsumer {
     private final AtomicDouble maxValue;
     private final AtomicDouble minValue;
     private final AtomicDouble lastValue;
@@ -30,7 +31,8 @@ public final class GaugeFPRecorder extends AbstractNumericGauge implements Gauge
         this(name, DEFAULT_SAMPLING_SIZE);
     }
 
-    public void update(final double value) {
+    @Override
+    public void accept(final double value) {
         updateReservoir(value);
         accumulate(maxValue, value, Math::max);
         accumulate(minValue, value, Math::min);
@@ -38,6 +40,8 @@ public final class GaugeFPRecorder extends AbstractNumericGauge implements Gauge
         lastMaxValues.forEachAcceptDouble(value, TimeLimitedDouble::accept);
         lastMinValues.forEachAcceptDouble(value, TimeLimitedDouble::accept);
     }
+
+
 
     private static void accumulate(final AtomicDouble thiz, final double value, final DoubleBinaryOperator operator) {
         double next, prev;

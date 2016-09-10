@@ -97,9 +97,9 @@ public final class MetricTest extends Assert {
     @Test
     public void timingTest(){
         final TimingRecorder writer = new TimingRecorder("testMetrics");
-        writer.update(Duration.ofMillis(450));
-        writer.update(Duration.ofMillis(500));
-        writer.update(Duration.ofMillis(1500));
+        writer.accept(Duration.ofMillis(450));
+        writer.accept(Duration.ofMillis(500));
+        writer.accept(Duration.ofMillis(1500));
         //timing
         assertEquals(Duration.ofMillis(1500), writer.getLastValue());
         assertEquals(816, writer.getQuantile(0.5D).toMillis());

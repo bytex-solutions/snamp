@@ -17,12 +17,22 @@ public final class TimingRecorder extends GaugeImpl<Duration> implements Timing 
     private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;
     private final DoubleReservoir reservoir;
     private final AtomicReference<Duration> summary;
+    private final double timeScaleFactor;
 
-    public TimingRecorder(final String name, final int samplingSize) {
+    TimingRecorder(final String name, final int samplingSize, final double scaleFactor){
         super(name, Duration.ZERO);
         meanValues = new MetricsIntervalMap<>(MetricsInterval::createEMA);
         reservoir = new DoubleReservoir(samplingSize);
         summary = new AtomicReference<>(Duration.ZERO);
+        timeScaleFactor = scaleFactor;
+    }
+
+    public TimingRecorder(final String name, final int samplingSize) {
+        this(name, samplingSize, 1000D);    //store duration in reservoir in microseconds
+    }
+
+    public TimingRecorder(final String name){
+        this(name, AbstractNumericGauge.DEFAULT_SAMPLING_SIZE);
     }
 
     /**
@@ -36,27 +46,23 @@ public final class TimingRecorder extends GaugeImpl<Duration> implements Timing 
         summary.set(Duration.ZERO);
     }
 
-    private static long toMicros(final Duration value){
-        return value.toNanos() / 1000;
+    private double toDouble(final Duration value){
+        return value.toNanos() / timeScaleFactor;
     }
 
-    private static Duration fromMicros(final long value){
-        return Duration.ofNanos(value * 1000);
-    }
-
-    public TimingRecorder(final String name){
-        this(name, AbstractNumericGauge.DEFAULT_SAMPLING_SIZE);
+    private Duration fromDouble(final double value) {
+        return Duration.ofNanos(Math.round(value * timeScaleFactor));
     }
 
     public Duration getMeanValue(final MetricsInterval interval) {
-        return meanValues.get(interval, avg -> fromMicros(avg.getAsLong()));
+        return meanValues.get(interval, avg -> fromDouble(avg.getAsDouble()));
     }
 
     @Override
-    public void update(final Duration value) {
-        super.update(value);
-        meanValues.forEachAcceptLong(toMicros(value), ExponentialMovingAverage::accept);
-        reservoir.accept(toMicros(value));
+    public void accept(final Duration value) {
+        super.accept(value);
+        meanValues.forEachAcceptDouble(toDouble(value), ExponentialMovingAverage::accept);
+        reservoir.accept(toDouble(value));
         summary.accumulateAndGet(value, Duration::plus);
     }
 
@@ -68,7 +74,7 @@ public final class TimingRecorder extends GaugeImpl<Duration> implements Timing 
      */
     @Override
     public Duration getQuantile(final double quantile) {
-        return fromMicros(Math.round(reservoir.getQuantile(quantile)));
+        return fromDouble(Math.round(reservoir.getQuantile(quantile)));
     }
 
     /**
@@ -78,7 +84,29 @@ public final class TimingRecorder extends GaugeImpl<Duration> implements Timing 
      */
     @Override
     public Duration getDeviation() {
-        return fromMicros(Math.round(reservoir.getDeviation()));
+        return fromDouble(Math.round(reservoir.getDeviation()));
+    }
+
+    /**
+     * Computes a percent of durations that are greater than or equal to the specified duration.
+     *
+     * @param value A value to compute.
+     * @return A percent of durations that are greater that or equal to the specified duration.
+     */
+    @Override
+    public double lessThanOrEqualDuration(final Duration value) {
+        return reservoir.lessThanOrEqualValues(toDouble(value));
+    }
+
+    /**
+     * Computes a percent of durations that are less than or equal to the specified duration.
+     *
+     * @param value A value to compute.
+     * @return A percent of durations that are greater that or less to the specified duration.
+     */
+    @Override
+    public double greaterThanOrEqualDuration(final Duration value) {
+        return reservoir.greaterThanOrEqualValues(toDouble(value));
     }
 
     /**

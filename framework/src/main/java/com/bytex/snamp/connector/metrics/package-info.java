@@ -1,5 +1,21 @@
 /**
  * Represents a set of metrics.
+ * Foundation metrics:
+ * <ul>
+ *     <li>{@link com.bytex.snamp.connector.metrics.Gauge64} for instant {@code long} values</li>
+ *     <li>{@link com.bytex.snamp.connector.metrics.GaugeFP} for instant {@code double values}</li>
+ *     <li>{@link com.bytex.snamp.connector.metrics.Flag} for instant {@code boolean} values</li>
+ *     <li>{@link com.bytex.snamp.connector.metrics.StringGauge} for instant {@link java.lang.String} values</li>
+ *     <li>{@link com.bytex.snamp.connector.metrics.Rate} for measurement of request rate</li>
+ *     <li>{@link com.bytex.snamp.connector.metrics.Timing} for measurement of response time</li>
+ * </ul>
+ * Complex metrics:
+ * <ul>
+ *     <li>{@link com.bytex.snamp.connector.metrics.Arrivals} for measurement of arrivals in terms of Queuing Theory</li>
+ *     <li>{@link com.bytex.snamp.connector.metrics.AttributeMetric} represents usage statistics of resource attributes</li>
+ *     <li>{@link com.bytex.snamp.connector.metrics.OperationMetric} represents usage statistics of resource operations</li>
+ *     <li>{@link com.bytex.snamp.connector.metrics.NotificationMetric} represents usage statistics of resource notifications</li>
+ * </ul>
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

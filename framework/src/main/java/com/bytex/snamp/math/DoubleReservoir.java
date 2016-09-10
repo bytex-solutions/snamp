@@ -98,7 +98,7 @@ public class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer,
     }
 
     //we use binarySearch-derived algorithm for value insertion
-    //this is more efficient because insertion is O(log n) in comparison with O(1) insertion and O(n log n) quick sorting when reading reservoir
+    //this is more efficient because insertion is O(log n) in contrast with O(1) insertion and O(n log n) quick sorting when reading reservoir
     private int computeIndex(final double item) {
         if (actualSize == 0)
             return 0;
@@ -106,14 +106,15 @@ public class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer,
         int high = actualSize - 1;
         while (low <= high) {
             final int midIndex = (high + low) >>> 1;   //(high + low) / 2
-            final double midValue = values[midIndex];
-            final int comparisonResult = Double.compare(item, midValue);
-            if (comparisonResult > 0)    //input > midValue
-                low = midIndex + 1;
-            else if (comparisonResult < 0)
-                high = midIndex - 1;
-            else
-                break;
+            switch (Double.compare(item, values[midIndex])) {
+                case 1:
+                    low = midIndex + 1;
+                    continue;
+                case -1:
+                    high = midIndex - 1;
+                    continue;
+            }
+            break;
         }
         return Math.max(low, high);
     }

@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongConsumer;
 
 /**
  * Represents implementation of {@link Gauge64}.
@@ -8,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 2.0
  * @since 2.0
  */
-public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge64 {
+public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, LongConsumer {
     private final AtomicLong maxValue;
     private final AtomicLong minValue;
     private final AtomicLong lastValue;
@@ -24,7 +25,8 @@ public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge
         this(name, DEFAULT_SAMPLING_SIZE);
     }
 
-    public void update(final long value){
+    @Override
+    public void accept(final long value){
         updateReservoir(value);
         maxValue.accumulateAndGet(value, Math::max);
         minValue.accumulateAndGet(value, Math::min);

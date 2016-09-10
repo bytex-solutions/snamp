@@ -31,7 +31,7 @@ public final class RateRecorder extends AbstractMetric implements Rate {
         startTime = new AtomicReference<>(Instant.now());
     }
 
-    public void update() {
+    public void mark() {
         totalRate.incrementAndGet();
         for (final MetricsInterval interval : ALL_INTERVALS) {
             final long lastRate = this.lastRate.getAsLong(interval, TimeLimitedLong::updateByOne);
