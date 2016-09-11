@@ -6,7 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 1.0
  */
-public final class OperationMetricRecorder extends AbstractMetric implements OperationMetric {
+public class OperationMetricRecorder extends AbstractMetric implements OperationMetric {
     public static final String DEFAULT_NAME = "operations";
     private final RateRecorder invocationsRate;
 
@@ -29,7 +29,7 @@ public final class OperationMetricRecorder extends AbstractMetric implements Ope
      * @return Rate of all invocations.
      */
     @Override
-    public Rate invocations() {
+    public final Rate invocations() {
         return invocationsRate;
     }
 

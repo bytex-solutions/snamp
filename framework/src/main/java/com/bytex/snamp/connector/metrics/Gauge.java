@@ -1,14 +1,12 @@
 package com.bytex.snamp.connector.metrics;
 
-import java.util.function.Consumer;
-
 /**
  * Represents generic gauge.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-interface Gauge<V extends Comparable<V>> extends Metric, Consumer<V> {
+interface Gauge<V extends Comparable<V>> extends Metric {
 
     /**
      * Gets maximum value ever presented.

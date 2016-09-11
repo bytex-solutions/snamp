@@ -10,6 +10,15 @@ import java.util.function.BooleanSupplier;
  */
 public interface Flag extends Metric, BooleanSupplier {
     /**
+     * Gets number of submitted values.
+     * @param value Submitted value.
+     * @return Number of submitted values.
+     */
+    long getTotalCount(final boolean value);
+
+    long getLastCount(final MetricsInterval interval, final boolean value);
+
+    /**
      * Gets ratio between true values and false values in historical perspective: count(true)/count(false)
      * @return The ratio between true values and false values.
      */

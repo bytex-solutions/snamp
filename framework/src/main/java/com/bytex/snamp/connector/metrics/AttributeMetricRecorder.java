@@ -6,7 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 1.0
  */
-public final class AttributeMetricRecorder extends AbstractMetric implements AttributeMetric {
+public class AttributeMetricRecorder extends AbstractMetric implements AttributeMetric {
     public static final String DEFAULT_NAME = "attributes";
     private final RateRecorder readRate;
     private final RateRecorder writeRate;
@@ -41,7 +41,7 @@ public final class AttributeMetricRecorder extends AbstractMetric implements Att
      * @return Rate of attribute writes.
      */
     @Override
-    public Rate writes() {
+    public final Rate writes() {
         return writeRate;
     }
 
@@ -51,7 +51,7 @@ public final class AttributeMetricRecorder extends AbstractMetric implements Att
      * @return Rate of attribute reads.
      */
     @Override
-    public Rate reads() {
+    public final Rate reads() {
         return readRate;
     }
 

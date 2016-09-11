@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version 2.0
  * @since 2.0
  */
-public final class TimingRecorder extends GaugeImpl<Duration> implements Timing {
+public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
     private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;
     private final DoubleReservoir reservoir;
     private final AtomicReference<Duration> summary;
@@ -54,7 +54,7 @@ public final class TimingRecorder extends GaugeImpl<Duration> implements Timing 
         return Duration.ofNanos(Math.round(value * timeScaleFactor));
     }
 
-    public Duration getMeanValue(final MetricsInterval interval) {
+    public final Duration getMeanValue(final MetricsInterval interval) {
         return meanValues.get(interval, avg -> fromDouble(avg.getAsDouble()));
     }
 
@@ -73,7 +73,7 @@ public final class TimingRecorder extends GaugeImpl<Duration> implements Timing 
      * @return Duration at the specified quantile.
      */
     @Override
-    public Duration getQuantile(final double quantile) {
+    public final Duration getQuantile(final double quantile) {
         return fromDouble(Math.round(reservoir.getQuantile(quantile)));
     }
 
@@ -83,7 +83,7 @@ public final class TimingRecorder extends GaugeImpl<Duration> implements Timing 
      * @return The standard deviation of all durations.
      */
     @Override
-    public Duration getDeviation() {
+    public final Duration getDeviation() {
         return fromDouble(Math.round(reservoir.getDeviation()));
     }
 
@@ -94,7 +94,7 @@ public final class TimingRecorder extends GaugeImpl<Duration> implements Timing 
      * @return A percent of durations that are greater that or equal to the specified duration.
      */
     @Override
-    public double lessThanOrEqualDuration(final Duration value) {
+    public final double lessThanOrEqualDuration(final Duration value) {
         return reservoir.lessThanOrEqualValues(toDouble(value));
     }
 
@@ -105,7 +105,7 @@ public final class TimingRecorder extends GaugeImpl<Duration> implements Timing 
      * @return A percent of durations that are greater that or less to the specified duration.
      */
     @Override
-    public double greaterThanOrEqualDuration(final Duration value) {
+    public final double greaterThanOrEqualDuration(final Duration value) {
         return reservoir.greaterThanOrEqualValues(toDouble(value));
     }
 
@@ -115,7 +115,7 @@ public final class TimingRecorder extends GaugeImpl<Duration> implements Timing 
      * @return The summary duration of all events.
      */
     @Override
-    public Duration getSummaryValue() {
+    public final Duration getSummaryValue() {
         return summary.get();
     }
 }

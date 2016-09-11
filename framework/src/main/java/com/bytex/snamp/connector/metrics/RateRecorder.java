@@ -15,7 +15,7 @@ import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
  * @version 2.0
  * @since 2.0
  */
-public final class RateRecorder extends AbstractMetric implements Rate {
+public class RateRecorder extends AbstractMetric implements Rate {
     private final MetricsIntervalMap<TimeLimitedLong> lastRate;
     private final MetricsIntervalMap<AtomicLong> maxRate;
     private final MetricsIntervalMap<ExponentialMovingAverage> meanRate;
@@ -44,11 +44,11 @@ public final class RateRecorder extends AbstractMetric implements Rate {
         return current.compareTo(provided) < 0 ? current : provided;
     }
 
-    Instant getStartTime(){
+    final Instant getStartTime(){
         return startTime.get();
     }
 
-    public void setStartTime(final Instant value) {
+    public final void setStartTime(final Instant value) {
         startTime.accumulateAndGet(value, RateRecorder::minInstant);
     }
 
@@ -58,7 +58,7 @@ public final class RateRecorder extends AbstractMetric implements Rate {
      * @return The total rate.
      */
     @Override
-    public long getTotalRate() {
+    public final long getTotalRate() {
         return totalRate.get();
     }
 
@@ -69,7 +69,7 @@ public final class RateRecorder extends AbstractMetric implements Rate {
      * @return The last measured rate of actions.
      */
     @Override
-    public long getLastRate(final MetricsInterval interval) {
+    public final long getLastRate(final MetricsInterval interval) {
         return lastRate.getAsLong(interval, TimeLimitedLong::getAsLong);
     }
 
@@ -80,7 +80,7 @@ public final class RateRecorder extends AbstractMetric implements Rate {
      * @return The mean rate of actions received for the last time.
      */
     @Override
-    public double getLastMeanRate(final MetricsInterval interval) {
+    public final double getLastMeanRate(final MetricsInterval interval) {
         final Duration timeline = Duration.between(startTime.get(), Instant.now());
         return getTotalRate() / interval.divideFP(timeline);
     }
@@ -92,12 +92,12 @@ public final class RateRecorder extends AbstractMetric implements Rate {
      * @return Mean rate of actions per unit time from the historical perspective.
      */
     @Override
-    public double getMeanRate(final MetricsInterval interval) {
+    public final double getMeanRate(final MetricsInterval interval) {
         return meanRate.getAsDouble(interval, ExponentialMovingAverage::getAsDouble);
     }
 
     @Override
-    public long getMaxRate(final MetricsInterval interval) {
+    public final long getMaxRate(final MetricsInterval interval) {
         return maxRate.getAsLong(interval, AtomicLong::get);
     }
 

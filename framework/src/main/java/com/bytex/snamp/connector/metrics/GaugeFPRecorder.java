@@ -11,7 +11,7 @@ import java.util.function.DoubleConsumer;
  * @since 2.0
  * @version 2.0
  */
-public final class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, DoubleConsumer {
+public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, DoubleConsumer {
     private final AtomicDouble maxValue;
     private final AtomicDouble minValue;
     private final AtomicDouble lastValue;
@@ -41,8 +41,6 @@ public final class GaugeFPRecorder extends AbstractNumericGauge implements Gauge
         lastMinValues.forEachAcceptDouble(value, TimeLimitedDouble::accept);
     }
 
-
-
     private static void accumulate(final AtomicDouble thiz, final double value, final DoubleBinaryOperator operator) {
         double next, prev;
         do {
@@ -59,27 +57,27 @@ public final class GaugeFPRecorder extends AbstractNumericGauge implements Gauge
     }
 
     @Override
-    public double getMaxValue() {
+    public final double getMaxValue() {
         return maxValue.get();
     }
 
     @Override
-    public double getLastMaxValue(final MetricsInterval interval) {
+    public final double getLastMaxValue(final MetricsInterval interval) {
         return lastMaxValues.getAsDouble(interval, TimeLimitedDouble::getAsDouble);
     }
 
     @Override
-    public double getMinValue() {
+    public final double getMinValue() {
         return minValue.get();
     }
 
     @Override
-    public double getLastMinValue(final MetricsInterval interval) {
+    public final double getLastMinValue(final MetricsInterval interval) {
         return lastMinValues.getAsDouble(interval, TimeLimitedDouble::getAsDouble);
     }
 
     @Override
-    public double getLastValue() {
+    public final double getLastValue() {
         return lastValue.get();
     }
 }

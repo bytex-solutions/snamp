@@ -4,6 +4,7 @@ import com.bytex.snamp.concurrent.TimeLimitedObject;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
@@ -13,7 +14,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  * @since 2.0
  */
-class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge<V> {
+class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge<V>, Consumer<V> {
     private final AtomicReference<V> maxValue;
     private final AtomicReference<V> minValue;
     private final AtomicReference<V> lastValue;

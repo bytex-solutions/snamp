@@ -87,9 +87,9 @@ public final class MetricTest extends Assert {
     @Test
     public void flagTest(){
         final FlagRecorder writer = new FlagRecorder("testMetrics");
-        writer.update(true);
+        writer.accept(true);
         writer.inverse();
-        writer.update(false);
+        writer.accept(false);
         assertFalse(writer.getAsBoolean());
         assertEquals(0.5D, writer.getLastRatio(MetricsInterval.SECOND), 0.01D);
     }

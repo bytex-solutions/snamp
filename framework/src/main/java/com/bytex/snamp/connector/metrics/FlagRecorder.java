@@ -5,6 +5,7 @@ import com.bytex.snamp.math.ExponentialMovingAverage;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+
 import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
 
 /**
@@ -13,7 +14,7 @@ import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
  * @version 2.0
  * @since 2.0
  */
-public final class FlagRecorder extends AbstractMetric implements Flag {
+public class FlagRecorder extends AbstractMetric implements Flag {
     private interface BooleanBinaryOperator{
         boolean applyAsBoolean(final boolean current, final boolean provided);
     }
@@ -57,7 +58,7 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
      * Updates this gauge with a new value.
      * @param value A new value to be placed into this gauge.
      */
-    public void update(final boolean value){
+    public void accept(final boolean value){
         this.value.set(value);
         updateRatio(value);
     }
@@ -73,19 +74,19 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
     /**
      * Inverses the value inside of this gauge.
      */
-    public void inverse() {
+    public final void inverse() {
         update(false, (current, provided) -> !current);
     }
 
-    public void or(final boolean value){
+    public final void or(final boolean value){
         update(value, (current, provided) -> current | provided);
     }
 
-    public void and(final boolean value){
+    public final void and(final boolean value){
         update(value, (current, provided) -> current & provided);
     }
 
-    public void xor(final boolean value){
+    public final void xor(final boolean value){
         update(value, (current, provided) -> current ^ provided);
     }
 
@@ -103,13 +104,26 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
     }
 
     /**
+     * Gets number of submitted values.
+     *
+     * @param value Submitted value.
+     * @return Number of submitted values.
+     */
+    @Override
+    public final long getTotalCount(final boolean value) {
+        return (value ? totalTrueCount : totalFalseCount).get();
+    }
+
+    /**
      * Gets ratio between true values and false values in historical perspective: count(true)/count(false)
      *
      * @return The ratio between true values and false values.
      */
     @Override
-    public double getTotalRatio() {
-        return (double) totalTrueCount.get() / totalFalseCount.get();
+    public final double getTotalRatio() {
+        final double trueCount = getTotalCount(true);
+        final double falseCount = getTotalCount(false);
+        return trueCount / falseCount;
     }
 
     /**
@@ -119,8 +133,13 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
      * @return Ratio between true values and false values
      */
     @Override
-    public double getLastRatio(final MetricsInterval interval) {
-        return (double) lastTrueCount.get(interval).getAsLong() / lastFalseCount.get(interval).getAsLong();
+    public final double getLastRatio(final MetricsInterval interval) {
+        return (double) getLastCount(interval, true) / getLastCount(interval, false);
+    }
+
+    @Override
+    public final long getLastCount(final MetricsInterval interval, final boolean value) {
+        return (value ? lastTrueCount : lastFalseCount).get(interval).getAsLong();
     }
 
     /**
@@ -130,7 +149,7 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
      * @return Ratio between true values and false values.
      */
     @Override
-    public double getMeanRatio(final MetricsInterval interval) {
+    public final double getMeanRatio(final MetricsInterval interval) {
         return meanRatio.get(interval).getAsDouble();
     }
 
@@ -140,7 +159,7 @@ public final class FlagRecorder extends AbstractMetric implements Flag {
      * @return a result
      */
     @Override
-    public boolean getAsBoolean() {
+    public final boolean getAsBoolean() {
         return this.value.get();
     }
 }

@@ -6,7 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 2.0
  */
-public final class StringGaugeRecorder extends GaugeImpl<String> implements StringGauge {
+public class StringGaugeRecorder extends GaugeImpl<String> implements StringGauge {
     /**
      * Initializes a new string gauge.
      * @param name The name of the gauge.

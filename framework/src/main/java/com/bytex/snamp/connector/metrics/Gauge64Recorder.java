@@ -9,7 +9,7 @@ import java.util.function.LongConsumer;
  * @version 2.0
  * @since 2.0
  */
-public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, LongConsumer {
+public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, LongConsumer {
     private final AtomicLong maxValue;
     private final AtomicLong minValue;
     private final AtomicLong lastValue;
@@ -50,7 +50,7 @@ public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge
      * @return Maximum value ever presented.
      */
     @Override
-    public long getMaxValue() {
+    public final long getMaxValue() {
         return maxValue.get();
     }
 
@@ -61,7 +61,7 @@ public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge
      * @return Maximum value of the last period of time.
      */
     @Override
-    public long getLastMaxValue(final MetricsInterval interval) {
+    public final long getLastMaxValue(final MetricsInterval interval) {
         return 0;
     }
 
@@ -71,7 +71,7 @@ public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge
      * @return The minimum value ever presented.
      */
     @Override
-    public long getMinValue() {
+    public final long getMinValue() {
         return minValue.get();
     }
 
@@ -82,7 +82,7 @@ public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge
      * @return Minimum value for the last period of time.
      */
     @Override
-    public long getLastMinValue(final MetricsInterval interval) {
+    public final long getLastMinValue(final MetricsInterval interval) {
         return 0;
     }
 
@@ -92,7 +92,7 @@ public final class Gauge64Recorder extends AbstractNumericGauge implements Gauge
      * @return The last presented value.
      */
     @Override
-    public long getLastValue() {
+    public final long getLastValue() {
         return lastValue.get();
     }
 }
