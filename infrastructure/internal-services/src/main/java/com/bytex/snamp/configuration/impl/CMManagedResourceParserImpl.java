@@ -105,9 +105,9 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
                                                                         final String featureHolder,
                                                                         final TypeToken<SerializableMap<String, F>> featureType) throws IOException {
         final byte[] serializedForm = getValue(resourceConfig, featureHolder, byte[].class, ArrayUtils::emptyByteArray);
-        return serializedForm.length > 0 ?
-                IOUtils.deserialize(serializedForm, featureType, getClass().getClassLoader()) :
-                ImmutableMap.of();
+        return ArrayUtils.isNullOrEmpty(serializedForm) ?
+                ImmutableMap.of() :
+                IOUtils.deserialize(serializedForm, featureType, getClass().getClassLoader());
     }
 
     private Map<String, SerializableAttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException {

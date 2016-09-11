@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.ArrayUtils.emptyByteArray;
 
 /**
  * Represents parser for command-line output result.
@@ -835,7 +835,8 @@ public class XmlParserDefinition {
                                     final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                format, emptyArray(byte[].class));
+                format,
+                emptyByteArray());
     }
 
     private static void runPlaceholder(final String fragment, final ScriptEngine engine) throws ScriptException {

@@ -26,5 +26,7 @@ public interface MetricsSupport extends Iterable<Metric> {
     /**
      * Resets all metrics.
      */
-    void resetAll();
+    default void resetAll(){
+        forEach(Metric::reset);
+    }
 }

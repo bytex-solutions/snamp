@@ -356,12 +356,16 @@ public final class ArrayUtils {
         return getFirst(array, null);
     }
 
-    private static boolean isNullOrEmptyArray(final Object array){
+    private static boolean isNullOrEmptyImpl(final Object array){
         return array == null || Array.getLength(array) == 0;
     }
 
     public static boolean isNullOrEmpty(final Object[] array) {
-        return isNullOrEmptyArray(array);
+        return isNullOrEmptyImpl(array);
+    }
+
+    public static boolean isNullOrEmpty(final byte[] array){
+        return isNullOrEmptyImpl(array);
     }
 
     private static <T extends Comparable<T> & Serializable> Object toArray(final byte[] array,
@@ -549,7 +553,8 @@ public final class ArrayUtils {
         return result.toByteArray();
     }
 
-    public static <T> IntFunction<T[]> arrayConstructor(final Class<T> elementType){
-        return length -> ObjectArrays.newArray(elementType, length);
+    @SuppressWarnings("unchecked")
+    public static <T> IntFunction<T[]> arrayConstructor(final Class<T> elementType) {
+        return length -> length == 0 ? (T[]) emptyArrayImpl(elementType) : ObjectArrays.newArray(elementType, length);
     }
 }

@@ -97,7 +97,7 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
         final Client client = createClient();
         final byte[] expectedValue = {3, 90, 50, 7};
         final ByteBuffer result = client.set_array(Buffers.wrap(expectedValue));
-        assertArrayEquals(ArrayUtils.emptyArray(byte[].class), Buffers.readRemaining(result));
+        assertArrayEquals(ArrayUtils.emptyByteArray(), Buffers.readRemaining(result));
         assertArrayEquals(expectedValue, Buffers.readRemaining(client.get_array()));
     }
 

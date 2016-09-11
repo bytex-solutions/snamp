@@ -98,7 +98,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
     public void arrayAttributeTest() throws IOException, JMException {
         final byte[] expectedValue = {1, 4, 10, 19};
         JsonElement result = setAttributeViaHttp("array", JsonUtils.toJsonArray(expectedValue));
-        assertArrayEquals(ArrayUtils.emptyArray(byte[].class), JsonUtils.parseByteArray(result.getAsJsonArray()));
+        assertArrayEquals(ArrayUtils.emptyByteArray(), JsonUtils.parseByteArray(result.getAsJsonArray()));
         result = getAttributeViaHttp("array");
         assertArrayEquals(expectedValue, JsonUtils.parseByteArray(result.getAsJsonArray()));
         testAttribute("attr5", TypeToken.of(byte[].class), expectedValue, ArrayUtils::strictEquals, true);
