@@ -28,7 +28,7 @@ import java.util.function.Predicate;
  */
 public final class ArrayUtils {
     @FunctionalInterface
-    private interface ByteArrayConverter<T>{
+    private interface ToByteArrayConverter<T>{
         byte[] convert(final T array, final int index);
     }
 
@@ -482,7 +482,7 @@ public final class ArrayUtils {
     }
 
     private static <T> byte[] toByteArray(final T array,
-                                          final ByteArrayConverter<T> converter,
+                                          final ToByteArrayConverter<T> converter,
                                           final int componentSize) {
         final byte[] result = new byte[Array.getLength(array) * componentSize];
         for (int sourcePosition = 0, destPosition = 0; sourcePosition < Array.getLength(array); sourcePosition++)
