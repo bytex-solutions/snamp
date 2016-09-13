@@ -5,6 +5,7 @@ import com.bytex.snamp.math.DoubleReservoir;
 import com.bytex.snamp.math.ExponentialMovingAverage;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -15,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
     private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;
+    private final AtomicLong count;
     private final DoubleReservoir reservoir;
     private final AtomicReference<Duration> summary;
     private final double timeScaleFactor;
@@ -25,6 +27,7 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
         reservoir = new DoubleReservoir(samplingSize);
         summary = new AtomicReference<>(Duration.ZERO);
         timeScaleFactor = scaleFactor;
+        count = new AtomicLong(0L);
     }
 
     public TimingRecorder(final String name, final int samplingSize) {
@@ -44,6 +47,7 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
         meanValues.values().forEach(ExponentialMovingAverage::reset);
         reservoir.reset();
         summary.set(Duration.ZERO);
+        count.set(0L);
     }
 
     private double toDouble(final Duration value){
@@ -54,7 +58,13 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
         return Duration.ofNanos(Math.round(value * timeScaleFactor));
     }
 
-    public final Duration getMeanValue(final MetricsInterval interval) {
+    @Override
+    public final Duration getMeanValue() {
+        return fromDouble(toDouble(getSummaryValue()) / count.get());
+    }
+
+    @Override
+    public Duration getLastMeanValue(final MetricsInterval interval) {
         return meanValues.get(interval, avg -> fromDouble(avg.getAsDouble()));
     }
 
@@ -64,6 +74,7 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
         meanValues.forEachAcceptDouble(toDouble(value), ExponentialMovingAverage::accept);
         reservoir.accept(toDouble(value));
         summary.accumulateAndGet(value, Duration::plus);
+        count.incrementAndGet();
     }
 
     /**

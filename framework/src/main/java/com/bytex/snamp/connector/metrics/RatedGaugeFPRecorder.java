@@ -66,12 +66,12 @@ public class RatedGaugeFPRecorder extends GaugeFPRecorder implements RatedGaugeF
     /**
      * Gets the mean rate of actions per unit time from the historical perspective.
      *
-     * @param interval Measurement interval.
+     * @param scale Measurement interval.
      * @return Mean rate of actions per unit time from the historical perspective.
      */
     @Override
-    public final double getMeanRate(final MetricsInterval interval) {
-        return rate.getMeanRate(interval);
+    public final double getMeanRate(final MetricsInterval scale) {
+        return rate.getMeanRate(scale);
     }
 
     /**

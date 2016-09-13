@@ -29,11 +29,11 @@ public interface Rate extends Metric {
     double getLastMeanRate(final MetricsInterval interval);
 
     /**
-     * Gets the mean rate of actions per unit time from the historical perspective.
-     * @param interval Measurement interval.
-     * @return Mean rate of actions per unit time from the historical perspective.
+     * Gets the mean rate of actions per unit of time from the historical perspective.
+     * @param scale Measurement interval.
+     * @return Mean rate of actions per unit of time from the historical perspective.
      */
-    double getMeanRate(final MetricsInterval interval);
+    double getMeanRate(final MetricsInterval scale);
 
     /**
      * Gets the max rate of actions received for the last time.

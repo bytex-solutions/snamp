@@ -74,25 +74,25 @@ public class RateRecorder extends AbstractMetric implements Rate {
     }
 
     /**
+     * Gets the mean rate of actions per unit time from the historical perspective.
+     *
+     * @param scale Measurement interval.
+     * @return Mean rate of actions per unit time from the historical perspective.
+     */
+    @Override
+    public final double getMeanRate(final MetricsInterval scale) {
+        final Duration timeline = Duration.between(startTime.get(), Instant.now());
+        return getTotalRate() / scale.divideFP(timeline);
+    }
+
+    /**
      * Gets the mean rate of actions received for the last time.
      *
      * @param interval Measurement interval.
      * @return The mean rate of actions received for the last time.
      */
     @Override
-    public final double getLastMeanRate(final MetricsInterval interval) {
-        final Duration timeline = Duration.between(startTime.get(), Instant.now());
-        return getTotalRate() / interval.divideFP(timeline);
-    }
-
-    /**
-     * Gets the mean rate of actions per unit time from the historical perspective.
-     *
-     * @param interval Measurement interval.
-     * @return Mean rate of actions per unit time from the historical perspective.
-     */
-    @Override
-    public final double getMeanRate(final MetricsInterval interval) {
+    public double getLastMeanRate(final MetricsInterval interval) {
         return meanRate.getAsDouble(interval, ExponentialMovingAverage::getAsDouble);
     }
 

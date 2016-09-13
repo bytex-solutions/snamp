@@ -54,4 +54,8 @@ public interface Timing extends Gauge<Duration>, Metric {
      * @return The summary duration of all events.
      */
     Duration getSummaryValue();
+
+    Duration getLastMeanValue(final MetricsInterval interval);
+
+    Duration getMeanValue();
 }

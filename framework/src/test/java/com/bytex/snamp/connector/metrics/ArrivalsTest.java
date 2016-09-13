@@ -28,6 +28,6 @@ public final class ArrivalsTest extends Assert {
         recorder.accept(Duration.ofSeconds(3L));
         recorder.accept(Duration.ofSeconds(3L));
         Thread.sleep(1001);
-        System.out.println(recorder.getCorrelation());
+        assertEquals(0.93D, recorder.getCorrelation(), 0.01D);
     }
 }

@@ -41,11 +41,12 @@ public final class ArrivalsRecorder extends AbstractMetric implements Consumer<D
     }
 
     @Override
-    public void accept(final Duration responseTime){
+    public void accept(final Duration rt){
         requestRate.mark();
-        this.responseTime.accept(responseTime);
-        final double responseTimeInSeconds = toSeconds(responseTime);
-        rpsAndTimeCorrelation.applyAsDouble(/*rps*/requestRate.getLastMeanRate(MetricsInterval.SECOND), /*response time*/responseTimeInSeconds);
+        responseTime.accept(rt);
+        final double lastMeanRate = requestRate.getLastMeanRate(MetricsInterval.SECOND);
+        final double lastMeanResponseTime = toSeconds(responseTime.getLastMeanValue(MetricsInterval.SECOND));
+        rpsAndTimeCorrelation.applyAsDouble(/*rps*/lastMeanRate, /*response time*/lastMeanResponseTime);
     }
 
     private static double fact(long i) {
@@ -79,7 +80,7 @@ public final class ArrivalsRecorder extends AbstractMetric implements Consumer<D
 
     @Override
     public double getMeanAvailability(final MetricsInterval interval, final int channels){
-        return getAvailability(requestRate.getMeanRate(interval), toSeconds(responseTime.getMeanValue(interval)), channels);
+        return getAvailability(requestRate.getMeanRate(interval), toSeconds(responseTime.getMeanValue()), channels);
     }
 
     public double getMeanAvailability(final MetricsInterval interval){
