@@ -78,13 +78,17 @@ public final class ArrivalsRecorder extends AbstractMetric implements Consumer<D
         }
     }
 
-    @Override
     public double getMeanAvailability(final MetricsInterval interval, final int channels){
         return getAvailability(requestRate.getMeanRate(interval), toSeconds(responseTime.getMeanValue()), channels);
     }
 
     public double getMeanAvailability(final MetricsInterval interval){
         return getMeanAvailability(interval, 1);
+    }
+
+    @Override
+    public double getMeanAvailability(final int channels){
+        return getMeanAvailability(MetricsInterval.SECOND, channels);
     }
 
     @Override

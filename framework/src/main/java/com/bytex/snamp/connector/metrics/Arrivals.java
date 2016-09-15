@@ -7,7 +7,7 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public interface Arrivals extends Metric {
-    double getMeanAvailability(final MetricsInterval interval, final int channels);
+    double getMeanAvailability(final int channels);
 
     double getInstantAvailability(final int channels);
 
