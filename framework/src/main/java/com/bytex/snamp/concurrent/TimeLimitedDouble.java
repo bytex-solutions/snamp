@@ -29,6 +29,10 @@ public abstract class TimeLimitedDouble extends TimeLimited implements DoubleSup
         acceptIfExpired(this, TimeLimitedDouble::setInitialValue);
     }
 
+    protected final double addAndGet(final double value){
+        return current.addAndGet(value);
+    }
+
     protected final double accumulateAndGet(final double value, final DoubleBinaryOperator operator){
         double prev, next;
         do{
@@ -60,6 +64,15 @@ public abstract class TimeLimitedDouble extends TimeLimited implements DoubleSup
             @Override
             protected double accumulate(final double value) {
                 return accumulateAndGet(value, operator);
+            }
+        };
+    }
+
+    public static TimeLimitedDouble adder(final double initialValue, final long ttl) {
+        return new TimeLimitedDouble(initialValue, () -> ttl) {
+            @Override
+            protected double accumulate(final double value) {
+                return addAndGet(value);
             }
         };
     }

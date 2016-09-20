@@ -1,6 +1,9 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import com.bytex.snamp.math.ExponentialMovingAverage;
+
 import java.util.concurrent.TimeUnit;
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * Represents function that computes average value in time interval.
@@ -9,22 +12,14 @@ import java.util.concurrent.TimeUnit;
  * @since 2.0
  */
 final class AverageFunction extends NumericFunction {
-    private final long intervalNanos;
-    private long checkpointNanos;
-    private final StatefulDoubleUnaryFunction avg;
+    private final DoubleUnaryOperator avg;
 
     AverageFunction(final long interval, final TimeUnit unit){
-        intervalNanos = unit.toNanos(interval);
-        checkpointNanos = System.nanoTime();
-        avg = UnaryFunctions.average();
+        avg = new ExponentialMovingAverage(interval, unit);
     }
 
     @Override
-    double compute(final Number input, final OperandResolver resolver) {
-        if(System.nanoTime() - checkpointNanos > intervalNanos){
-            checkpointNanos = System.nanoTime();
-            avg.reset();
-        }
+    double invoke(final NameResolver resolver, final Number input) {
         return avg.applyAsDouble(input.doubleValue());
     }
 }

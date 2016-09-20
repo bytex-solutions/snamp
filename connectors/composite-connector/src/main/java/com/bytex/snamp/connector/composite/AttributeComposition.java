@@ -5,7 +5,7 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.FunctionParserException;
-import com.bytex.snamp.connector.composite.functions.OperandResolver;
+import com.bytex.snamp.connector.composite.functions.NameResolver;
 import com.bytex.snamp.jmx.WellKnownType;
 
 import javax.management.*;
@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-final class AttributeComposition extends AbstractAttributeRepository<AbstractCompositeAttribute> implements OperandResolver {
+final class AttributeComposition extends AbstractAttributeRepository<AbstractCompositeAttribute> implements NameResolver {
     private final AttributeSupportProvider attributeSupportProvider;
     private final Logger logger;
 
@@ -70,8 +70,8 @@ final class AttributeComposition extends AbstractAttributeRepository<AbstractCom
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T resolveAs(final String operand, final SimpleType<T> expectedType) throws Exception {
-        return (T)resolveAs(operand, WellKnownType.getType(expectedType));
+    public <T> T resolveAs(final String name, final SimpleType<T> expectedType) throws Exception {
+        return (T)resolveAs(name, WellKnownType.getType(expectedType));
     }
 
     /**
@@ -101,7 +101,7 @@ final class AttributeComposition extends AbstractAttributeRepository<AbstractCom
             return new CompositeAttribute(connectorType, underlyingAttribute);
         else {
             final OpenType<?> attributeType = AttributeDescriptor.getOpenType(underlyingAttribute);
-            if(function.canAccept(attributeType))
+            if(function.canAccept(0, attributeType))
                 return new AggregationAttribute(connectorType, function, this, underlyingAttribute);
             else
                 throw new MBeanException(new IllegalStateException(String.format("Function '%s' cannot be applied to attribute '%s'", function, underlyingAttribute)));

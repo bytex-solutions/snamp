@@ -12,29 +12,37 @@ import javax.management.openmbean.SimpleType;
  * @since 2.0
  */
 abstract class NumericFunction extends AggregationFunction<Double> {
-    NumericFunction(final String... operands){
-        super(SimpleType.DOUBLE, operands);
+    NumericFunction(){
+        super(SimpleType.DOUBLE);
     }
+
+    @Override
+    public final boolean canAccept(final int index, final OpenType<?> inputType) {
+        switch (index) {
+            case 0:
+                final WellKnownType type = WellKnownType.getType(inputType);
+                return type != null && type.isNumber();
+            default:
+                return false;
+        }
+    }
+
+    abstract double invoke(final NameResolver resolver, final Number input) throws Exception;
 
     /**
-     * Detects valid input type for this function.
+     * Invokes aggregation function.
      *
-     * @param inputType Input type to check.
-     * @return {@literal true}, if this function can accept a value of the specified type; otherwise, {@literal false}.
+     * @param resolver A function used to resolve operands.
+     * @param args     Arguments of the function.
+     * @return Function result.
+     * @throws IllegalArgumentException Unsupported input value.
+     * @throws IllegalStateException    Unresolved operand.
      */
     @Override
-    public final boolean canAccept(final OpenType<?> inputType) {
-        final WellKnownType type = WellKnownType.getType(inputType);
-        return type != null && type.isNumber();
-    }
-
-    abstract double compute(final Number input, final OperandResolver resolver) throws Exception;
-
-    @Override
-    public final Double compute(final Object input, final OperandResolver resolver) throws Exception {
-        if(input instanceof Number)
-            return compute(((Number)input).doubleValue(), resolver);
+    public Double invoke(final NameResolver resolver, final Object... args) throws Exception {
+        if (args.length > 0 && args[0] instanceof Number)
+            return invoke(resolver, (Number) args[0]);
         else
-            throw new IllegalArgumentException(String.format("Incorrect function argument '%s'", input));
+            throw new IllegalArgumentException("The first argument is not a number");
     }
 }

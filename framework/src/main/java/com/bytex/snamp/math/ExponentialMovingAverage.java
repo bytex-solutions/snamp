@@ -4,11 +4,9 @@ import com.bytex.snamp.Stateful;
 import com.google.common.util.concurrent.AtomicDouble;
 
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.DoubleConsumer;
-import java.util.function.DoubleSupplier;
-import java.util.function.LongSupplier;
+import java.util.function.*;
 
 /**
  * An exponentially-weighted moving average.
@@ -17,30 +15,46 @@ import java.util.function.LongSupplier;
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average">Exponential moving average</a>
  */
-public final class ExponentialMovingAverage extends AtomicDouble implements DoubleConsumer, DoubleSupplier, LongSupplier, Stateful {
+public final class ExponentialMovingAverage extends AtomicDouble implements DoubleConsumer, DoubleSupplier, LongSupplier, Stateful, DoubleUnaryOperator {
     private static final Duration PRECISION = Duration.ofSeconds(1L);
     private static final Duration INTERVAL = PRECISION.multipliedBy(1L);
     private static final long serialVersionUID = -8885874345563930420L;
 
-    private final AtomicBoolean isSet;
-    private volatile double accumulator;
+    private final AtomicDouble accumulator;
     private final double alpha;
     private final AtomicLong startTime;
+
+    private ExponentialMovingAverage(final double intervalSeconds){
+        super(0D);
+        startTime = new AtomicLong(System.nanoTime());
+        accumulator = new AtomicDouble(Double.NaN);
+        alpha = 1 - Math.exp(-INTERVAL.getSeconds() / intervalSeconds);
+    }
 
     /**
      * Initializes a new average calculator.
      * @param interval Period of time in minutes over which the reading is said to be averaged
      */
     public ExponentialMovingAverage(final Duration interval){
-        super(0D);
-        isSet = new AtomicBoolean(false);
-        startTime = new AtomicLong(System.nanoTime());
-        alpha = 1 - Math.exp(-INTERVAL.getSeconds() / (double)interval.getSeconds());
+        this(interval.getSeconds());
     }
 
-    private double addAndGetAverage(final double state) {
+    public ExponentialMovingAverage(final long interval, final TimeUnit unit){
+        this(unit.toSeconds(interval));
+    }
+
+    private double getAverage() {
         final double instantCount = getAndSet(0D) / INTERVAL.toNanos();
-        return isSet.compareAndSet(false, true) ? instantCount : state + (alpha * (instantCount - state));
+        if(accumulator.compareAndSet(Double.NaN, instantCount)) //first time set
+            return instantCount;
+        else {
+            double next, prev;
+            do {
+                prev = accumulator.get();
+                next = prev + (alpha * (instantCount - prev));
+            } while (!accumulator.compareAndSet(prev, next));
+            return next;
+        }
     }
 
     /**
@@ -71,16 +85,22 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
         final long currentTime = System.nanoTime();
         final long startTime = this.startTime.get();
         final long age = currentTime - startTime;
-        double result = accumulator;
+        double result = accumulator.get();
         if (age > INTERVAL.toNanos()) {
             final long newStartTime = currentTime - age % INTERVAL.toNanos();
             if (this.startTime.compareAndSet(startTime, newStartTime)) {
                 for (int i = 0; i < age / INTERVAL.toNanos(); i++)
-                    result = addAndGetAverage(result);
-                accumulator = result;
+                    result = getAverage();
             }
         }
         return result * PRECISION.toNanos();
+    }
+
+
+    @Override
+    public double applyAsDouble(final double value) {
+        accept(value);
+        return getAsDouble();
     }
 
     /**

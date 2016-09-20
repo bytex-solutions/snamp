@@ -20,7 +20,7 @@ final class NumericUnaryFunction extends NumericFunction {
     }
 
     @Override
-    double compute(final Number input, final OperandResolver resolver) {
+    double invoke(final NameResolver resolver, final Number input) {
         double current, newValue;
         do {
             newValue = operator.applyAsDouble(current = value.get(), input.doubleValue());

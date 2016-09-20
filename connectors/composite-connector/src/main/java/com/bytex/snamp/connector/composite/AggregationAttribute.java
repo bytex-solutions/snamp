@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
-import com.bytex.snamp.connector.composite.functions.OperandResolver;
+import com.bytex.snamp.connector.composite.functions.NameResolver;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.ImmutableSet;
 
@@ -21,11 +21,11 @@ import java.util.Set;
 final class AggregationAttribute extends AbstractCompositeAttribute implements OpenMBeanAttributeInfo {
     private static final long serialVersionUID = 2597653763554514237L;
     private final AggregationFunction<?> function;
-    private final OperandResolver resolver;
+    private final NameResolver resolver;
 
     AggregationAttribute(final String connectorType,
                          final AggregationFunction<?> function,
-                         final OperandResolver resolver,
+                         final NameResolver resolver,
                          final MBeanAttributeInfo info){
         super(connectorType, info.getName(), function.getReturnType().getClassName(), info.getDescription(), info.isReadable(), false, info.isIs(), info.getDescriptor());
         this.function = function;
@@ -34,8 +34,7 @@ final class AggregationAttribute extends AbstractCompositeAttribute implements O
 
     @Override
     Object getValue(final AttributeSupport support) throws Exception {
-        final Object value = support.getAttribute(getName());
-        return function.compute(value, resolver);
+        return function.invoke(resolver, support.getAttribute(getName()));
     }
 
     @Override

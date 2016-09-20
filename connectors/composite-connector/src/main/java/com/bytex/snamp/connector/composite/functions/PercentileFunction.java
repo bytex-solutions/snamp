@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.composite.functions;
 
-import java.util.concurrent.TimeUnit;
+import com.bytex.snamp.math.DoubleReservoir;
+import com.bytex.snamp.math.Reservoir;
 
 /**
  * Computes percentile.
@@ -9,22 +10,17 @@ import java.util.concurrent.TimeUnit;
  * @since 2.0
  */
 final class PercentileFunction extends NumericFunction {
-    private final long intervalNanos;
-    private long checkpointNanos;
-    private final StatefulDoubleUnaryFunction percentile;
+    private final Reservoir reservoir;
+    private final double quantile;
 
-    PercentileFunction(final long percentile, final long interval, final TimeUnit unit){
-        intervalNanos = unit.toNanos(interval);
-        checkpointNanos = System.nanoTime();
-        this.percentile = UnaryFunctions.percentile(100, percentile / 100F);
+    PercentileFunction(final long percentile){
+        reservoir = new DoubleReservoir(1024);
+        quantile = percentile / 100D;
     }
 
     @Override
-    synchronized double compute(final Number input, final OperandResolver resolver) {
-        if (System.nanoTime() - checkpointNanos > intervalNanos) {
-            percentile.reset();
-            checkpointNanos = System.nanoTime();
-        }
-        return percentile.applyAsDouble(input.doubleValue());
+    double invoke(final NameResolver resolver, final Number input) {
+        reservoir.add(input);
+        return reservoir.getQuantile(quantile);
     }
 }

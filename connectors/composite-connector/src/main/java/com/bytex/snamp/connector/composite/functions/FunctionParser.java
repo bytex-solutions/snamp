@@ -51,11 +51,8 @@ public final class FunctionParser {
     private static PercentileFunction parsePercentileFunction(final Tokenizer lexer) throws FunctionParserException{
         lexer.nextToken(LeftBracketToken.class);
         final long percentile = lexer.nextToken(IntegerToken.class).getAsLong();
-        lexer.nextToken(CommaToken.class);
-        final long interval = lexer.nextToken(IntegerToken.class).getAsLong();
-        final TimeUnit unit = parseTimeUnit(lexer);
         lexer.nextToken(RightBracketToken.class);
-        return new PercentileFunction(percentile, interval, unit);
+        return new PercentileFunction(percentile);
     }
 
     private static SumFunction parseSumFunction(final Tokenizer lexer) throws FunctionParserException{
