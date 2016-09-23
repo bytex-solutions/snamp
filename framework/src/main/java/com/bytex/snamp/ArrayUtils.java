@@ -335,6 +335,14 @@ public final class ArrayUtils {
         return (T)emptyArrayImpl(elementType);
     }
 
+    public static <T> T getLast(final T[] array, final T defval){
+        return array.length > 0 ? array[array.length - 1] : defval;
+    }
+
+    public static <T> T getLast(final T[] array) {
+        return getLast(array, null);
+    }
+
     /**
      * Gets the first element in the array.
      * @param array Array instance. Cannot be {@literal null}.

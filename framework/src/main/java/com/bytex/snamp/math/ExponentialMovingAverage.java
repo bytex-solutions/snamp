@@ -92,7 +92,8 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
                 for (int i = 0; i < age / INTERVAL.toNanos(); i++)
                     result = getAverage();
             }
-        }
+        } else if (Double.isNaN(result))
+            result = 0D;
         return result * PRECISION.toNanos();
     }
 

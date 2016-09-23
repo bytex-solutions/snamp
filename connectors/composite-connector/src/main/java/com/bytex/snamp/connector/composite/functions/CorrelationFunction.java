@@ -4,18 +4,22 @@ import com.bytex.snamp.math.Correlation;
 
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;
-import java.util.function.DoubleBinaryOperator;
 
 /**
  * Represents a reference to the foreign attribute.
  */
 final class CorrelationFunction extends NumericFunction {
     private final String secondSource;
-    private final DoubleBinaryOperator correlation;
+    private final Correlation correlation;
 
     CorrelationFunction(final String secondSource){
         this.secondSource = Objects.requireNonNull(secondSource);
         this.correlation = new Correlation();
+    }
+
+    @Override
+    double getFallbackValue() {
+        return correlation.getAsDouble();
     }
 
     @Override

@@ -15,6 +15,11 @@ final class SumFunction extends NumericFunction {
     }
 
     @Override
+    double getFallbackValue() {
+        return sum.getAsDouble();
+    }
+
+    @Override
     double invoke(final NameResolver resolver, final Number input) {
         return sum.update(input.doubleValue());
     }

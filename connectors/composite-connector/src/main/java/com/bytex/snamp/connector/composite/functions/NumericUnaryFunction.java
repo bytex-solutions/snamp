@@ -20,6 +20,11 @@ final class NumericUnaryFunction extends NumericFunction {
     }
 
     @Override
+    double getFallbackValue() {
+        return 0D;
+    }
+
+    @Override
     double invoke(final NameResolver resolver, final Number input) {
         double current, newValue;
         do {

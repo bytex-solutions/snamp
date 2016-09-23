@@ -8,6 +8,46 @@ package com.bytex.snamp.connector.metrics;
  */
 public interface Rate extends Metric {
     /**
+     * Represents empty rate.
+     */
+    Rate EMPTY = new Rate() {
+        @Override
+        public long getTotalRate() {
+            return 0;
+        }
+
+        @Override
+        public long getLastRate(final MetricsInterval interval) {
+            return 0;
+        }
+
+        @Override
+        public double getLastMeanRate(final MetricsInterval interval) {
+            return 0;
+        }
+
+        @Override
+        public double getMeanRate(final MetricsInterval scale) {
+            return 0;
+        }
+
+        @Override
+        public long getMaxRate(final MetricsInterval interval) {
+            return 0;
+        }
+
+        @Override
+        public String getName() {
+            return "EMPTY";
+        }
+
+        @Override
+        public void reset() {
+
+        }
+    };
+
+    /**
      * Gets the total rate.
      * @return The total rate.
      */

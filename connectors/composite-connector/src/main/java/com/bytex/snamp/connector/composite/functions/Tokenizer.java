@@ -39,6 +39,9 @@ final class Tokenizer implements TokenPosition {
             return IntegerToken.parse(input, this);
         else
             switch (ch){
+                case SlashToken.VALUE:
+                    inc();
+                    return SlashToken.INSTANCE;
                 case LeftBracketToken.VALUE:
                     inc();
                     return LeftBracketToken.INSTANCE;

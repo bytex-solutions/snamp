@@ -1,6 +1,9 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Represents parser for function expressiong.
@@ -72,16 +75,29 @@ public final class FunctionParser {
         return new CorrelationFunction(operand);
     }
 
+    private static ExtractFunction parseExtractFunction(final Tokenizer lexer) throws FunctionParserException {
+        final List<String> path = new LinkedList<>();
+        for (Token lookup = lexer.nextToken(LeftBracketToken.class); !(lookup instanceof RightBracketToken); lookup = lexer.nextToken(token -> token instanceof SlashToken || token instanceof RightBracketToken)) {
+            lookup = lexer.nextToken(NameToken.class);
+            path.add(lookup.toString());
+        }
+        return new ExtractFunction(path);
+    }
+
+    private static <F extends AggregationFunction<?>> F parseTrivialFunction(final Tokenizer lexer, final Supplier<? extends F> factory) throws FunctionParserException {
+        lexer.nextToken(LeftBracketToken.class);
+        lexer.nextToken(RightBracketToken.class);
+        return factory.get();
+    }
+
     private static AggregationFunction<?> parseFunction(final String functionName, final Tokenizer lexer) throws FunctionParserException{
         switch (functionName){
             case "max":
-                lexer.nextToken(LeftBracketToken.class);
-                lexer.nextToken(RightBracketToken.class);
-                return NumericUnaryFunction.max();
+                return parseTrivialFunction(lexer, NumericUnaryFunction::max);
             case "min":
-                lexer.nextToken(LeftBracketToken.class);
-                lexer.nextToken(RightBracketToken.class);
-                return NumericUnaryFunction.min();
+                return parseTrivialFunction(lexer, NumericUnaryFunction::min);
+            case "gauge":
+                return parseTrivialFunction(lexer, GaugeFunction::new);
             case "sum":
                 return parseSumFunction(lexer);
             case "avg":
@@ -90,6 +106,8 @@ public final class FunctionParser {
                 return parsePercentileFunction(lexer);
             case "correl":
                 return parseCorrelationFunction(lexer);
+            case "extract":
+                return parseExtractFunction(lexer);
             default:
                 throw FunctionParserException.unknownFunctionName(functionName);
         }

@@ -16,16 +16,17 @@ abstract class NumericFunction extends AggregationFunction<Double> {
         super(SimpleType.DOUBLE);
     }
 
+    static boolean isNumber(final OpenType<?> inputType){
+        final WellKnownType type = WellKnownType.getType(inputType);
+        return type != null && type.isNumber();
+    }
+
     @Override
     public final boolean canAccept(final int index, final OpenType<?> inputType) {
-        switch (index) {
-            case 0:
-                final WellKnownType type = WellKnownType.getType(inputType);
-                return type != null && type.isNumber();
-            default:
-                return false;
-        }
+        return index == 0 && isNumber(inputType);
     }
+
+    abstract double getFallbackValue();
 
     abstract double invoke(final NameResolver resolver, final Number input) throws Exception;
 
@@ -40,9 +41,6 @@ abstract class NumericFunction extends AggregationFunction<Double> {
      */
     @Override
     public Double invoke(final NameResolver resolver, final Object... args) throws Exception {
-        if (args.length > 0 && args[0] instanceof Number)
-            return invoke(resolver, (Number) args[0]);
-        else
-            throw new IllegalArgumentException("The first argument is not a number");
+        return args.length > 0 && args[0] instanceof Number ? invoke(resolver, (Number) args[0]) : getFallbackValue();
     }
 }

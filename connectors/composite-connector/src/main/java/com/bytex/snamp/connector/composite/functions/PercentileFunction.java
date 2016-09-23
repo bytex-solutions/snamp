@@ -19,8 +19,13 @@ final class PercentileFunction extends NumericFunction {
     }
 
     @Override
+    double getFallbackValue() {
+        return reservoir.getQuantile(quantile);
+    }
+
+    @Override
     double invoke(final NameResolver resolver, final Number input) {
         reservoir.add(input);
-        return reservoir.getQuantile(quantile);
+        return getFallbackValue();
     }
 }
