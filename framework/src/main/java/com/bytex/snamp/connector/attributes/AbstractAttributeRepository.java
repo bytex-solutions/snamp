@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.metrics.AttributeMetric;
 import com.bytex.snamp.connector.metrics.AttributeMetricRecorder;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -572,7 +573,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     }
 
     protected final void parallelForEach(final Consumer<? super M> action, final ExecutorService threadPool) {
-        readAccept(SingleResourceGroup.INSTANCE, attributes.values(), attributes -> parallelForEach(attributes.spliterator(), action, threadPool));
+        readAccept(SingleResourceGroup.INSTANCE, attributes.values(), attributes -> Utils.parallelForEach(attributes, action, threadPool));
     }
 
     /**

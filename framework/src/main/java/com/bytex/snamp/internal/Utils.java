@@ -11,7 +11,9 @@ import org.osgi.framework.ServiceReference;
 import java.lang.invoke.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Spliterator;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -181,5 +183,21 @@ public final class Utils {
                                                                final Object owner,
                                                                final Method setter) throws ReflectiveOperationException {
         return reflectSetter(lookup, owner, lookup.unreflect(setter));
+    }
+
+    public static <T> void parallelForEach(final Spliterator<T> spliterator,
+                                                                       final Consumer<? super T> action,
+                                                                       final ExecutorService threadPool) {
+        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
+            final Spliterator<T> subset = spliterator.trySplit();
+            if (subset == null) return;
+            threadPool.submit(() -> subset.forEachRemaining(action::accept));
+        }
+    }
+
+    public static <T> void parallelForEach(final Iterable<T> collection,
+                                              final Consumer<? super T> action,
+                                              final ExecutorService threadPool){
+        parallelForEach(collection.spliterator(), action, threadPool);
     }
 }

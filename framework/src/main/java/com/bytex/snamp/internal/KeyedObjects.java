@@ -19,6 +19,10 @@ public interface KeyedObjects<K, V> extends Map<K, V> {
      */
     K getKey(final V item);
 
+    default boolean putIfAbsent(final V item){
+        return putIfAbsent(getKey(item), item) == null;
+    }
+
     /**
      * Puts an item into this map.
      * @param item An item to add into this map.

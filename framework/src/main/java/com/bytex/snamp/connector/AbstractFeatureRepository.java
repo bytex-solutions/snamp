@@ -145,16 +145,6 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
                 .collect(Collectors.toSet());
     }
 
-    protected static <F extends MBeanFeatureInfo> void parallelForEach(final Spliterator<F> spliterator,
-                                                                       final Consumer<? super F> action,
-                                                                       final ExecutorService threadPool) {
-        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
-            final Spliterator<F> subset = spliterator.trySplit();
-            if (subset == null) return;
-            threadPool.submit(() -> subset.forEachRemaining(action::accept));
-        }
-    }
-
     @Override
     public abstract void forEach(final Consumer<? super F> action);
 
