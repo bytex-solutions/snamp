@@ -106,4 +106,23 @@ public final class MetricTest extends Assert {
         assertEquals(Duration.ofMillis(450), writer.getMinValue());
         assertEquals(Duration.ofMillis(1500), writer.getMaxValue());
     }
+
+    @Test
+    public void rateTest() throws InterruptedException {
+        final RateRecorder writer = new RateRecorder("testMetrics");
+        writer.mark();
+        writer.mark();
+        Thread.sleep(1001);
+        assertEquals(0L, writer.getLastMaxRatePerSecond(MetricsInterval.SECOND));
+        assertEquals(2L, writer.getLastMaxRatePerSecond(MetricsInterval.MINUTE));
+        assertEquals(2, writer.getMaxRate(MetricsInterval.SECOND));
+        assertEquals(0L, writer.getLastRate(MetricsInterval.SECOND));
+        writer.mark();
+        writer.mark();
+        writer.mark();
+        assertEquals(3L, writer.getLastMaxRatePerSecond(MetricsInterval.SECOND));
+        assertEquals(3L, writer.getLastMaxRatePerSecond(MetricsInterval.MINUTE));
+        assertEquals(3L, writer.getMaxRate(MetricsInterval.SECOND));
+
+    }
 }

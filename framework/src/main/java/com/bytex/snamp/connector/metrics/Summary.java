@@ -59,6 +59,16 @@ public final class Summary {
             }
 
             @Override
+            public long getLastMaxRatePerSecond(final MetricsInterval interval) {
+                return sum(rate -> rate.getLastMaxRatePerSecond(interval));
+            }
+
+            @Override
+            public long getLastMaxRatePerMinute(final MetricsInterval interval) {
+                return sum(rate -> rate.getLastMaxRatePerMinute(interval));
+            }
+
+            @Override
             public String getName() {
                 return name;
             }

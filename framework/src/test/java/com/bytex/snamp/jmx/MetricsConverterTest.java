@@ -2,11 +2,11 @@ package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.connector.metrics.GaugeFPRecorder;
 import com.bytex.snamp.connector.metrics.RateRecorder;
+import com.bytex.snamp.connector.metrics.RatedGaugeFPRecorder;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.OpenDataException;
 
 import static com.bytex.snamp.jmx.CompositeDataUtils.getDouble;
 import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
@@ -19,7 +19,7 @@ import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
  */
 public final class MetricsConverterTest extends Assert {
     @Test
-    public void gaugeFPConversion() throws OpenDataException {
+    public void gaugeFPConversion() {
         final GaugeFPRecorder gaugeFP = new GaugeFPRecorder("testGauge", 512);
         gaugeFP.accept(12D);
         gaugeFP.accept(64D);
@@ -30,7 +30,7 @@ public final class MetricsConverterTest extends Assert {
     }
 
     @Test
-    public void rateConversion() throws OpenDataException, InterruptedException {
+    public void rateConversion() throws InterruptedException {
         final RateRecorder rate = new RateRecorder("testGauge");
         rate.mark();
         rate.mark();
@@ -40,5 +40,20 @@ public final class MetricsConverterTest extends Assert {
         assertEquals(2L, getLong(data, "totalRate", 0L));
         assertEquals(2D, getDouble(data, "meanRateLastSecond", Double.NaN), 0.1D);
         assertEquals(2D, getDouble(data, "meanRateLastMinute", Double.NaN), 0.1D);
+    }
+
+    @Test
+    public void ratedGaugeConversion() throws InterruptedException{
+        final RatedGaugeFPRecorder recorder = new RatedGaugeFPRecorder("testGauge");
+        recorder.accept(12D);
+        recorder.accept(64D);
+        Thread.sleep(1001);
+        final CompositeData data = MetricsConverter.fromRatedGaugeFP(recorder);
+        assertNotNull(data);
+        assertEquals(2L, getLong(data, "totalRate", 0L));
+        assertEquals(2D, getDouble(data, "meanRateLastSecond", Double.NaN), 0.1D);
+        assertEquals(2D, getDouble(data, "meanRateLastMinute", Double.NaN), 0.1D);
+        assertEquals(64D, getDouble(data, "maxValue", Double.NaN), 0.1D);
+        assertEquals(12D, getDouble(data, "minValue", Double.NaN), 0.1D);
     }
 }

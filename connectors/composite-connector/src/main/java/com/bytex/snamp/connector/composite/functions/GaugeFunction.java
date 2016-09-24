@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.composite.functions;
 import com.bytex.snamp.connector.metrics.GaugeFPRecorder;
 
 import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 
 import static com.bytex.snamp.jmx.MetricsConverter.GAUGE_FP_TYPE;
@@ -36,7 +35,7 @@ final class GaugeFunction extends AggregationFunction<CompositeData> {
     }
 
     @Override
-    public CompositeData invoke(final NameResolver resolver, final Object... args) throws OpenDataException {
+    public CompositeData invoke(final NameResolver resolver, final Object... args) {
         if(args.length > 0 && args[0] instanceof Number){
             final Number num = (Number) args[0];
             gaugeFP.accept(num.doubleValue());

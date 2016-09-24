@@ -29,7 +29,7 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
             .addItem(INVOCATIONS_FIELD, "Rate of invoked operations", RATE_TYPE)
             .build());
 
-    private static void collectMetrics(final AttributeMetric metrics, final Map<String, CompositeData> output) throws OpenDataException {
+    private static void collectMetrics(final AttributeMetric metrics, final Map<String, CompositeData> output) {
         final Rate attributeReads;
         final Rate attributeWrites;
         if(metrics == null)

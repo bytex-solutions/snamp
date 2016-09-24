@@ -37,6 +37,16 @@ public interface Rate extends Metric {
         }
 
         @Override
+        public long getLastMaxRatePerSecond(final MetricsInterval interval) {
+            return 0;
+        }
+
+        @Override
+        public long getLastMaxRatePerMinute(final MetricsInterval interval) {
+            return 0;
+        }
+
+        @Override
         public String getName() {
             return "EMPTY";
         }
@@ -76,9 +86,23 @@ public interface Rate extends Metric {
     double getMeanRate(final MetricsInterval scale);
 
     /**
-     * Gets the max rate of actions received for the last time.
+     * Gets the max rate of actions observed in the specified interval.
      * @param interval Measurement interval.
-     * @return The max rate of actions received for the last time.
+     * @return The max rate of actions received in the specified interval.
      */
     long getMaxRate(final MetricsInterval interval);
+
+    /**
+     * Gets the max rate of actions received per second for the last time.
+     * @param interval Measurement interval.
+     * @return The max rate of actions received per second for the last time.
+     */
+    long getLastMaxRatePerSecond(final MetricsInterval interval);
+
+    /**
+     * Gets the max rate of actions received per second for the last time.
+     * @param interval Measurement interval. Cannot be less than {@link MetricsInterval#MINUTE}.
+     * @return The max rate of actions received per second for the last time.
+     */
+    long getLastMaxRatePerMinute(final MetricsInterval interval);
 }

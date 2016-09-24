@@ -9,7 +9,10 @@ import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import javax.management.InstanceNotFoundException;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeType;
 
+import static com.bytex.snamp.jmx.MetricsConverter.fromRate;
 import static com.bytex.snamp.management.shell.Utils.appendln;
 import static com.google.common.collect.Iterables.getFirst;
 
@@ -40,25 +43,25 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
     @SpecialUse
     private boolean resetMetrics;
 
+    private static void printMetrics(final Rate rate, final StringBuilder output){
+        final CompositeData data = fromRate(rate);
+        final CompositeType type = data.getCompositeType();
+        type.keySet().forEach(itemName -> {
+            final String description = type.getDescription(itemName);
+            final Object value = data.get(itemName);
+            appendln(output, "%s: %s", description, value);
+        });
+    }
+
     private static void collectMetrics(final AttributeMetric metrics, final StringBuilder output) {
         if(metrics == null){
             appendln(output, "No metrics for attributes");
             return;
         }
-        appendln(output, "Total number of writes: %s", metrics.writes().getTotalRate());
-
-        for (final MetricsInterval interval : MetricsInterval.values()) {
-            appendln(output, "Maximum number of writes / %s: %s", interval, metrics.writes().getMaxRate(interval));
-            appendln(output, "Mean number of writes / %s: %s", interval, metrics.writes().getMeanRate(interval));
-            appendln(output, "Number of last writes / %s: %s", interval, metrics.writes().getLastRate(interval));
-        }
-
-        appendln(output, "Total number of reads: %s", metrics.reads().getTotalRate());
-        for (final MetricsInterval interval : MetricsInterval.values()) {
-            appendln(output, "Maximum number of reads / %s: %s", interval, metrics.reads().getMaxRate(interval));
-            appendln(output, "Mean number of reads / %s: %s", interval, metrics.reads().getMeanRate(interval));
-            appendln(output, "Number of last reads / %s: %s", interval, metrics.reads().getLastRate(interval));
-        }
+        appendln(output, "Attribute writes:");
+        printMetrics(metrics.writes(), output);
+        appendln(output, "Attribute reads:");
+        printMetrics(metrics.reads(), output);
     }
 
     private static void collectMetrics(final NotificationMetric metrics, final StringBuilder output) {
@@ -66,12 +69,8 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "No metrics for notifications");
             return;
         }
-        appendln(output, "Total number of notifications: %s", metrics.notifications().getTotalRate());
-        for (final MetricsInterval interval : MetricsInterval.values()) {
-            appendln(output, "Maximum number of notifications / %s: %s", interval, metrics.notifications().getMaxRate(interval));
-            appendln(output, "Mean number of notifications / %s: %s", interval, metrics.notifications().getMeanRate(interval));
-            appendln(output, "Number of last received notifications / %s: %s", interval, metrics.notifications().getLastRate(interval));
-        }
+        appendln(output, "Notification metrics:");
+        printMetrics(metrics.notifications(), output);
     }
 
     private static void collectMetrics(final OperationMetric metrics, final StringBuilder output) {
@@ -79,12 +78,8 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "No metrics for operations");
             return;
         }
-        appendln(output, "Total number of invocations: %s", metrics.invocations().getTotalRate());
-        for (final MetricsInterval interval : MetricsInterval.values()) {
-            appendln(output, "Maximum number of invocations / %s: %s", interval, metrics.invocations().getMaxRate(interval));
-            appendln(output, "Mean number of invocations / %s: %s", interval, metrics.invocations().getMeanRate(interval));
-            appendln(output, "Number of last received invocations / %s: %s", interval, metrics.invocations().getLastRate(interval));
-        }
+        appendln(output, "Operation metrics:");
+        printMetrics(metrics.invocations(), output);
     }
 
     private boolean showAll(){

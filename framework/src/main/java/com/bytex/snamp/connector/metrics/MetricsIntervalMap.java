@@ -13,8 +13,12 @@ final class MetricsIntervalMap<V> extends EnumMap<MetricsInterval, V> {
     private static final long serialVersionUID = 1743299463619063796L;
 
     MetricsIntervalMap(final Function<? super MetricsInterval, ? extends V> valueProvider){
+        this(MetricsInterval.ALL_INTERVALS, valueProvider);
+    }
+
+    MetricsIntervalMap(final Iterable<MetricsInterval> intervals, final Function<? super MetricsInterval, ? extends V> valueProvider){
         super(MetricsInterval.class);
-        for(final MetricsInterval interval: MetricsInterval.ALL_INTERVALS)
+        for(final MetricsInterval interval: intervals)
             put(interval, valueProvider.apply(interval));
     }
 
@@ -30,12 +34,18 @@ final class MetricsIntervalMap<V> extends EnumMap<MetricsInterval, V> {
         return converter.apply(get(interval));
     }
 
-    void acceptAsLong(final MetricsInterval interval, final long value, final ObjLongConsumer<V> consumer){
-        consumer.accept(get(interval), value);
+    boolean acceptAsLong(final MetricsInterval interval, final long value, final ObjLongConsumer<V> consumer) {
+        final boolean result;
+        if (result = containsKey(interval))
+            consumer.accept(get(interval), value);
+        return result;
     }
 
-    void acceptAsDouble(final MetricsInterval interval, final double value, final ObjDoubleConsumer<V> consumer){
-        consumer.accept(get(interval), value);
+    boolean acceptAsDouble(final MetricsInterval interval, final double value, final ObjDoubleConsumer<V> consumer) {
+        final boolean result;
+        if (result = containsKey(interval))
+            consumer.accept(get(interval), value);
+        return result;
     }
 
     void forEachAcceptLong(final long value, final ObjLongConsumer<V> consumer){

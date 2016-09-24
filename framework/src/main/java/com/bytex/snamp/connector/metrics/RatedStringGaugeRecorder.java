@@ -87,4 +87,26 @@ public class RatedStringGaugeRecorder extends StringGaugeRecorder implements Rat
     public final long getMaxRate(final MetricsInterval interval) {
         return rate.getMaxRate(interval);
     }
+
+    /**
+     * Gets the max rate of actions received per second for the last time.
+     *
+     * @param interval Measurement interval.
+     * @return The max rate of actions received per second for the last time.
+     */
+    @Override
+    public long getLastMaxRatePerSecond(final MetricsInterval interval) {
+        return rate.getLastMaxRatePerSecond(interval);
+    }
+
+    /**
+     * Gets the max rate of actions received per second for the last time.
+     *
+     * @param interval Measurement interval. Cannot be less than {@link MetricsInterval#MINUTE}.
+     * @return The max rate of actions received per second for the last time.
+     */
+    @Override
+    public long getLastMaxRatePerMinute(final MetricsInterval interval) {
+        return rate.getLastMaxRatePerMinute(interval);
+    }
 }

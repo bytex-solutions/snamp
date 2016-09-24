@@ -4,8 +4,10 @@ import com.bytex.snamp.concurrent.TimeLimitedDouble;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 import com.bytex.snamp.concurrent.TimeLimitedObject;
 import com.bytex.snamp.math.ExponentialMovingAverage;
+import com.google.common.collect.ImmutableSortedSet;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BinaryOperator;
 
@@ -15,7 +17,7 @@ import java.util.function.BinaryOperator;
  * @version 2.0
  * @since 1.0
  */
-public enum MetricsInterval {
+public enum MetricsInterval implements Comparable<MetricsInterval> {
     SECOND(1, TimeUnit.SECONDS){
         @Override
         public String toString() {
@@ -60,9 +62,9 @@ public enum MetricsInterval {
     };
 
     /**
-     * Cached array of available intervals for fast iteration.
+     * Sorted set of available intervals for fast iteration.
      */
-    static final MetricsInterval[] ALL_INTERVALS = values();
+    static final ImmutableSortedSet<MetricsInterval> ALL_INTERVALS = ImmutableSortedSet.copyOf(MetricsInterval::compareTo, Arrays.asList(values()));
 
     private final long timeToLive;
 
@@ -74,16 +76,16 @@ public enum MetricsInterval {
         return TimeLimitedLong.adder(initialValue, timeToLive);
     }
 
+    final TimeLimitedLong createLongPeakDetector(final long initialValue){
+        return TimeLimitedLong.peak(initialValue, timeToLive);
+    }
+
     final ExponentialMovingAverage createEMA(){
         return new ExponentialMovingAverage(Duration.ofMillis(timeToLive));
     }
 
     final double divideFP(final Duration value) {
         return value.toMillis() / (double) timeToLive;
-    }
-
-    final TimeLimitedLong createLongPeakDetector(final long initialValue) {
-        return TimeLimitedLong.peak(initialValue, timeToLive);
     }
 
     final TimeLimitedDouble createDoublePeakDetector(final double initialValue){
@@ -96,5 +98,32 @@ public enum MetricsInterval {
 
     final <V>TimeLimitedObject<V> createTemporaryBox(final V initialValue, final BinaryOperator<V> operator){
         return new TimeLimitedObject<>(timeToLive, initialValue, operator);
+    }
+
+    /**
+     * Gets next interval.
+     * @return The next available interval.
+     */
+    public final MetricsInterval next(){
+        for(final MetricsInterval interval: ALL_INTERVALS)
+            if(interval.compareTo(this) > 0)
+                return interval;
+        return null;
+    }
+
+    /**
+     * Gets a sorted set of intervals that are greater than this interval.
+     * @return A sorted set of intervals.
+     */
+    public final ImmutableSortedSet<MetricsInterval> greater(){
+        return ALL_INTERVALS.tailSet(this, false);
+    }
+
+    /**
+     * Gets a sorted set of intervals that are less than this interval.
+     * @return A sorted set of intervals.
+     */
+    public final ImmutableSortedSet<MetricsInterval> less(){
+        return ALL_INTERVALS.headSet(this, false);
     }
 }

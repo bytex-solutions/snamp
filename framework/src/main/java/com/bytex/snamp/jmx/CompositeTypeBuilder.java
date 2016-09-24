@@ -48,6 +48,18 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
         return this;
     }
 
+    /**
+     * Imports items from the specified composite type.
+     * @param type A source of import.
+     * @return This builder.
+     * @since 2.0
+     */
+    public CompositeTypeBuilder importFrom(final CompositeType type) {
+        for (final String itemName : type.keySet())
+            addItem(itemName, type.getDescription(itemName), type.getType(itemName));
+        return this;
+    }
+
     String getTypeName(){
         return typeName;
     }
