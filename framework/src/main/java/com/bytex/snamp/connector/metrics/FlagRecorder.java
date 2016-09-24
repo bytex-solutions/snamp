@@ -1,12 +1,9 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.TimeLimitedLong;
-import com.bytex.snamp.math.ExponentialMovingAverage;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
 
 /**
  * Represents implementation of {@link Flag}.
@@ -22,7 +19,6 @@ public class FlagRecorder extends AbstractMetric implements Flag {
     private final AtomicBoolean value;
     private final AtomicLong totalTrueCount;
     private final AtomicLong totalFalseCount;
-    private final MetricsIntervalMap<ExponentialMovingAverage> meanRatio;
     private final MetricsIntervalMap<TimeLimitedLong> lastTrueCount;
     private final MetricsIntervalMap<TimeLimitedLong> lastFalseCount;
 
@@ -31,26 +27,17 @@ public class FlagRecorder extends AbstractMetric implements Flag {
         value = new AtomicBoolean(false);
         totalTrueCount = new AtomicLong(0L);
         totalFalseCount = new AtomicLong(0L);
-        meanRatio = new MetricsIntervalMap<>(MetricsInterval::createEMA);
         lastFalseCount = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
         lastTrueCount = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
     }
 
-    private void updateRatio(final boolean value) {
-        final double trueCount, falseCount;
-        if (value) {
-            trueCount = totalTrueCount.incrementAndGet();
-            falseCount = totalFalseCount.get();
+    private void updateCounters(final boolean value) {
+        if(value){
+            totalTrueCount.incrementAndGet();
             lastTrueCount.values().forEach(TimeLimitedLong::updateByOne);
         } else {
-            falseCount = totalFalseCount.incrementAndGet();
-            trueCount = totalTrueCount.get();
+            totalFalseCount.incrementAndGet();
             lastFalseCount.values().forEach(TimeLimitedLong::updateByOne);
-        }
-        if (falseCount > 0D) { //avoid division by zero error
-            final double ratio = trueCount / falseCount;
-            for (final MetricsInterval interval : ALL_INTERVALS)
-                meanRatio.get(interval).accept(ratio);
         }
     }
 
@@ -60,7 +47,7 @@ public class FlagRecorder extends AbstractMetric implements Flag {
      */
     public void accept(final boolean value){
         this.value.set(value);
-        updateRatio(value);
+        updateCounters(value);
     }
 
     private void update(final boolean value, final BooleanBinaryOperator operator){
@@ -68,7 +55,7 @@ public class FlagRecorder extends AbstractMetric implements Flag {
         do {
             next = operator.applyAsBoolean(prev = this.value.get(), value);
         } while (!this.value.compareAndSet(prev, next));
-        updateRatio(next);
+        updateCounters(next);
     }
 
     /**
@@ -98,7 +85,6 @@ public class FlagRecorder extends AbstractMetric implements Flag {
         this.value.set(false);
         totalFalseCount.set(0L);
         totalTrueCount.set(0L);
-        meanRatio.values().forEach(ExponentialMovingAverage::reset);
         lastFalseCount.values().forEach(TimeLimitedLong::reset);
         lastTrueCount.values().forEach(TimeLimitedLong::reset);
     }
@@ -140,17 +126,6 @@ public class FlagRecorder extends AbstractMetric implements Flag {
     @Override
     public final long getLastCount(final MetricsInterval interval, final boolean value) {
         return (value ? lastTrueCount : lastFalseCount).get(interval).getAsLong();
-    }
-
-    /**
-     * Gets mean ratio between true values and false values for the period of time: count(true)/count(false)
-     *
-     * @param interval Measurement interval.
-     * @return Ratio between true values and false values.
-     */
-    @Override
-    public final double getMeanRatio(final MetricsInterval interval) {
-        return meanRatio.get(interval).getAsDouble();
     }
 
     /**

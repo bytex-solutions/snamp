@@ -1,8 +1,6 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.connector.metrics.GaugeFPRecorder;
-import com.bytex.snamp.connector.metrics.RateRecorder;
-import com.bytex.snamp.connector.metrics.RatedGaugeFPRecorder;
+import com.bytex.snamp.connector.metrics.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,7 +41,7 @@ public final class MetricsConverterTest extends Assert {
     }
 
     @Test
-    public void ratedGaugeConversion() throws InterruptedException{
+    public void ratedGaugeFPConversion() throws InterruptedException{
         final RatedGaugeFPRecorder recorder = new RatedGaugeFPRecorder("testGauge");
         recorder.accept(12D);
         recorder.accept(64D);
@@ -55,5 +53,44 @@ public final class MetricsConverterTest extends Assert {
         assertEquals(2D, getDouble(data, "meanRateLastMinute", Double.NaN), 0.1D);
         assertEquals(64D, getDouble(data, "maxValue", Double.NaN), 0.1D);
         assertEquals(12D, getDouble(data, "minValue", Double.NaN), 0.1D);
+    }
+
+    @Test
+    public void gauge64Conversion(){
+        final Gauge64Recorder recorder = new Gauge64Recorder("testGauge");
+        recorder.accept(12L);
+        recorder.accept(64L);
+        final CompositeData data = MetricsConverter.fromGauge64(recorder);
+        assertNotNull(data);
+        assertEquals(64L, getLong(data, "maxValue", 0L));
+        assertEquals(12L, getLong(data, "minValue", 0L));
+    }
+
+    @Test
+    public void ratedGauge64Conversion() throws InterruptedException{
+        final RatedGauge64Recorder recorder = new RatedGauge64Recorder("testGauge");
+        recorder.accept(12L);
+        recorder.accept(64L);
+        Thread.sleep(1001);
+        final CompositeData data = MetricsConverter.fromRatedGauge64(recorder);
+        assertNotNull(data);
+        assertEquals(2L, getLong(data, "totalRate", 0L));
+        assertEquals(2D, getDouble(data, "meanRateLastSecond", Double.NaN), 0.1D);
+        assertEquals(2D, getDouble(data, "meanRateLastMinute", Double.NaN), 0.1D);
+        assertEquals(64L, getLong(data, "maxValue", 0L));
+        assertEquals(12L, getLong(data, "minValue", 0L));
+    }
+
+    @Test
+    public void flagConversion(){
+        final FlagRecorder recorder = new FlagRecorder("testGauge");
+        recorder.accept(true);
+        recorder.accept(true);
+        recorder.accept(false);
+        final CompositeData data = MetricsConverter.fromFlag(recorder);
+        assertNotNull(data);
+        assertEquals(2, getLong(data, "totalCountOfTrueValues", 0L));
+        assertEquals(1, getLong(data, "totalCountOfFalseValues", 0L));
+        assertEquals(2D, getDouble(data, "ratio", Double.NaN), 0.1D);
     }
 }

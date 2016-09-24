@@ -30,11 +30,4 @@ public interface Flag extends Metric, BooleanSupplier {
      * @return Ratio between true values and false values
      */
     double getLastRatio(final MetricsInterval interval);
-
-    /**
-     * Gets mean ratio between true values and false values for the period of time: count(true)/count(false)
-     * @param interval Measurement interval.
-     * @return Ratio between true values and false values.
-     */
-    double getMeanRatio(final MetricsInterval interval);
 }

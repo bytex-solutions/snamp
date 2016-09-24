@@ -3,6 +3,8 @@ package com.bytex.snamp.jmx;
 import javax.management.AttributeNotFoundException;
 import javax.management.ListenerNotFoundException;
 import javax.management.NotificationListener;
+import java.util.concurrent.Callable;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Provides various methods for working with JMX exceptions.
@@ -12,7 +14,7 @@ import javax.management.NotificationListener;
  */
 public final class JMExceptionUtils {
     private JMExceptionUtils(){
-
+        throw new InstantiationError();
     }
 
     public static AttributeNotFoundException attributeNotFound(final String attributeName){
@@ -21,5 +23,9 @@ public final class JMExceptionUtils {
 
     public static ListenerNotFoundException listenerNotFound(final NotificationListener listener) {
         return new ListenerNotFoundException(String.format("Listener %s doesn't exist.", listener));
+    }
+
+    static <V> V assertCall(final Callable<V> task){
+        return callAndWrapException(task, AssertionError::new);
     }
 }

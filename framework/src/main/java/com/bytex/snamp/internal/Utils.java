@@ -15,6 +15,7 @@ import java.util.Spliterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
@@ -118,10 +119,14 @@ public final class Utils {
      * @throws ExceptionInInitializerError the exception in initializer error
      */
     public static <T> T interfaceStaticInitialize(final Callable<T> initializer){
+        return callAndWrapException(initializer, ExceptionInInitializerError::new);
+    }
+
+    public static <T, E extends Throwable> T callAndWrapException(final Callable<T> task, final Function<? super Exception, ? extends E> wrapper) throws E{
         try {
-            return initializer.call();
+            return task.call();
         } catch (final Exception e) {
-            throw new ExceptionInInitializerError(e);
+            throw wrapper.apply(e);
         }
     }
 
