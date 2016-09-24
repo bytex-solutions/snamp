@@ -93,4 +93,18 @@ public final class MetricsConverterTest extends Assert {
         assertEquals(1, getLong(data, "totalCountOfFalseValues", 0L));
         assertEquals(2D, getDouble(data, "ratio", Double.NaN), 0.1D);
     }
+
+    @Test
+    public void ratedFlagConversion(){
+        final RatedFlagRecorder recorder = new RatedFlagRecorder("testGauge");
+        recorder.accept(true);
+        recorder.accept(true);
+        recorder.accept(false);
+        final CompositeData data = MetricsConverter.fromRatedFlag(recorder);
+        assertNotNull(data);
+        assertEquals(2, getLong(data, "totalCountOfTrueValues", 0L));
+        assertEquals(1, getLong(data, "totalCountOfFalseValues", 0L));
+        assertEquals(2D, getDouble(data, "ratio", Double.NaN), 0.1D);
+        assertEquals(3L, getLong(data, "totalRate", 0L));
+    }
 }

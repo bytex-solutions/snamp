@@ -133,6 +133,9 @@ public final class MetricsConverter {
     private static final String RATIO_FOR_LAST_12_HOURS_FIELD = "ratioLast12Hours";
     private static final String RATIO_FOR_LAST_DAY_FIELD = "ratioLastDay";
 
+    /**
+     * Represents Open Type equivalent of {@link Flag}.
+     */
     public static final CompositeType FLAG_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Flag", "Flag")
         .addItem(TRUE_TOTAL_COUNT_FIELD, "Total count of 'true' values", SimpleType.LONG)
         .addItem(FALSE_TOTAL_COUNT_FIELD, "Total count of 'false' values", SimpleType.LONG)
@@ -163,6 +166,9 @@ public final class MetricsConverter {
             .addItem(RATIO_FOR_LAST_DAY_FIELD, "Ratio between 'true' and 'false' values for the last day", SimpleType.DOUBLE)
             .build());
 
+    /**
+     * Represents Open Type equivalent of {@link Rate}.
+     */
     public static final CompositeType RATE_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Rate", "Rate counter")
         .addItem(TOTAL_RATE_FIELD, "Total rate", SimpleType.LONG)
             //mean rate for the last time
@@ -304,6 +310,31 @@ public final class MetricsConverter {
             .importFrom(RATE_TYPE)
             .build());
 
+    /**
+     * Represents Open Type equivalent for {@link RatedFlag}.
+     */
+    public static final CompositeType RATED_FLAG_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedFlag", "Flag with rate support")
+            .importFrom(FLAG_TYPE)
+            .importFrom(RATE_TYPE)
+            .build());
+
+    /**
+     * Converts {@link RatedFlag} into {@link CompositeData}.
+     * @param flag A gauge to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains gauge data.
+     */
+    public static CompositeData fromRatedFlag(final RatedFlag flag){
+        final CompositeDataFields fields = new CompositeDataFields(RATED_FLAG_TYPE);
+        fillFlag(flag, fields);
+        fillRate(flag, fields);
+        return assertCall(() -> new CompositeDataSupport(RATED_FLAG_TYPE, fields));
+    }
+
+    /**
+     * Converts {@link RatedGauge64} into {@link CompositeData}.
+     * @param gauge A gauge to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains gauge data.
+     */
     public static CompositeData fromRatedGauge64(final RatedGauge64 gauge){
         final CompositeDataFields fields = new CompositeDataFields(RATED_GAUGE_64_TYPE);
         fillRate(gauge, fields);
@@ -514,6 +545,11 @@ public final class MetricsConverter {
                 .put(RATIO_FOR_LAST_DAY_FIELD, flag.getLastRatio(MetricsInterval.DAY));
     }
 
+    /**
+     * Converts {@link Flag} into {@link CompositeData}.
+     * @param flag A gauge to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains data from gauge.
+     */
     public static CompositeData fromFlag(final Flag flag){
         final CompositeDataFields fields = new CompositeDataFields(FLAG_TYPE);
         fillFlag(flag, fields);

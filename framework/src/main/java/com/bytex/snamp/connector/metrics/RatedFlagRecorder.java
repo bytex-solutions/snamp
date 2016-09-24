@@ -6,10 +6,10 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 2.0
  */
-public class RateFlagRecorder extends FlagRecorder implements RatedFlag {
+public class RatedFlagRecorder extends FlagRecorder implements RatedFlag {
     private final RateRecorder rate;
 
-    public RateFlagRecorder(final String name) {
+    public RatedFlagRecorder(final String name) {
         super(name);
         rate = new RateRecorder(name);
     }
