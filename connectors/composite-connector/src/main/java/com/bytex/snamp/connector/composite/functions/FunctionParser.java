@@ -1,8 +1,10 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -75,13 +77,13 @@ public final class FunctionParser {
         return new CorrelationFunction(operand);
     }
 
-    private static ExtractFunction parseExtractFunction(final Tokenizer lexer) throws FunctionParserException {
+    private static AbstractExtractFunction<?> parseExtractFunction(final Tokenizer lexer, final Function<? super Collection<String>, ? extends AbstractExtractFunction<?>> factory) throws FunctionParserException {
         final List<String> path = new LinkedList<>();
         for (Token lookup = lexer.nextToken(LeftBracketToken.class); !(lookup instanceof RightBracketToken); lookup = lexer.nextToken(token -> token instanceof SlashToken || token instanceof RightBracketToken)) {
             lookup = lexer.nextToken(NameToken.class);
             path.add(lookup.toString());
         }
-        return new ExtractFunction(path);
+        return factory.apply(path);
     }
 
     private static <F extends AggregationFunction<?>> F parseTrivialFunction(final Tokenizer lexer, final Supplier<? extends F> factory) throws FunctionParserException {
@@ -96,8 +98,10 @@ public final class FunctionParser {
                 return parseTrivialFunction(lexer, NumericUnaryFunction::max);
             case "min":
                 return parseTrivialFunction(lexer, NumericUnaryFunction::min);
-            case "gauge":
-                return parseTrivialFunction(lexer, GaugeFunction::new);
+            case "gauge_fp":
+                return parseTrivialFunction(lexer, GaugeFPFunction::new);
+            case "gauge_int":
+                return parseTrivialFunction(lexer, GaugeIntFunction::new);
             case "sum":
                 return parseSumFunction(lexer);
             case "avg":
@@ -107,7 +111,11 @@ public final class FunctionParser {
             case "correl":
                 return parseCorrelationFunction(lexer);
             case "extract":
-                return parseExtractFunction(lexer);
+                return parseExtractFunction(lexer, ExtractAsStringFunction::new);
+            case "extract_fp":
+                return parseExtractFunction(lexer, ExtractAsDoubleFunction::new);
+            case "extract_int":
+                return parseExtractFunction(lexer, ExtractAsIntFunction::new);
             default:
                 throw FunctionParserException.unknownFunctionName(functionName);
         }

@@ -26,7 +26,7 @@ import javax.management.openmbean.CompositeData;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 
-import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
+import static com.bytex.snamp.jmx.CompositeDataUtils.*;
 
 /**
  * @author Roman Sakno
@@ -58,7 +58,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Test
@@ -95,6 +95,34 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
             assertTrue(getLong(value2, "total", 0L) > 0);
             assertTrue(getLong(value2, "used", 0L) > 0);
             assertTrue(getLong(value2, "free", 0L) > 0);
+            return true;
+        }, true);
+    }
+
+    @Test
+    public void gaugeTest() throws JMException{
+        //write
+        testAttribute("int", TypeToken.of(Integer.class), 70);
+        //test
+        testAttribute("gauge_fp", TypeToken.of(CompositeData.class), null, (value1, value2) -> {
+            assertEquals(70D, getDouble(value2, "lastValue", Double.NaN), 0.1D);
+            assertEquals(70D, getDouble(value2, "maxValue", Double.NaN), 0.1D);
+            return true;
+        }, true);
+        testAttribute("gauge_int", TypeToken.of(CompositeData.class), null, (value1, value2) -> {
+            assertEquals(70L, getLong(value2, "lastValue", 0L));
+            assertEquals(70L, getLong(value2, "maxValue", 0L));
+            return true;
+        }, true);
+    }
+
+    @Test
+    public void extractTest() throws JMException {
+        Assume.assumeTrue("Linux test only", OperatingSystem.isLinux());
+        //extract
+        testAttribute("extr", TypeToken.of(String.class), null, (value1, value2) -> {
+            assertNotNull(value2);
+            assertTrue(Integer.parseInt(value2) > 0);
             return true;
         }, true);
     }
@@ -235,6 +263,27 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
             attribute.getParameters().put("source", "jmx");
             attribute.getParameters().put("formula", "avg(10s)");
             attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        });
+
+        attributes.addAndConsume("gauge_fp", attribute -> {
+            attribute.setAlternativeName("int32");
+            attribute.getParameters().put("formula", "gauge_fp()");
+            attribute.getParameters().put("source", "jmx");
+            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        });
+
+        attributes.addAndConsume("gauge_int", attribute -> {
+            attribute.setAlternativeName("int32");
+            attribute.getParameters().put("formula", "gauge_int()");
+            attribute.getParameters().put("source", "jmx");
+            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        });
+
+        attributes.addAndConsume("extr", attribute -> {
+            attribute.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
+            attribute.getParameters().put("format", "-m");
+            attribute.getParameters().put("source", "rshell");
+            attribute.getParameters().put("formula", "extract(total)");
         });
     }
 }

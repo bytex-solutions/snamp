@@ -11,6 +11,10 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * Represents abstract class for message-driven resource connector.
+ * <p>
+ *     The structure of attributes:
+ *     1. Metric-based attribute which holds a whole gauge, rate or timer.
+ *     2. Scalar-based attribute which extracts a counter from metric attribute
  * @since 2.0
  * @version 2.0
  */

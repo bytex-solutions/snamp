@@ -122,7 +122,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @return The command to apply.
      * @throws java.lang.IllegalStateException The command template is not specified.
      */
-    @ThreadSafe(true)
+    @ThreadSafe()
     public final String renderCommand(final Map<String, ?> channelParameters) throws IllegalStateException {
         return renderCommand(channelParameters, Collections.emptyMap());
     }

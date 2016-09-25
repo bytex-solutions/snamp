@@ -14,10 +14,10 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromGaugeFP;
  * @version 2.0
  * @since 2.0
  */
-final class GaugeFunction extends AggregationFunction<CompositeData> {
+final class GaugeFPFunction extends AggregationFunction<CompositeData> {
     private final GaugeFPRecorder gaugeFP;
 
-    GaugeFunction() {
+    GaugeFPFunction() {
         super(GAUGE_FP_TYPE);
         gaugeFP = new GaugeFPRecorder("gaugeFunction");
     }
