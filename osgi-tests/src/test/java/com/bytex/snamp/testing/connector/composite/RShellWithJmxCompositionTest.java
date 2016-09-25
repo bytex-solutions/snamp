@@ -58,7 +58,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
@@ -123,6 +123,16 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
         testAttribute("extr", TypeToken.of(String.class), null, (value1, value2) -> {
             assertNotNull(value2);
             assertTrue(Integer.parseInt(value2) > 0);
+            return true;
+        }, true);
+        testAttribute("extr_int", TypeToken.of(Long.class), null, (value1, value2) -> {
+            assertNotNull(value2);
+            assertTrue(value2 > 0L);
+            return true;
+        }, true);
+        testAttribute("extr_fp", TypeToken.of(Double.class), null, (value1, value2) -> {
+            assertNotNull(value2);
+            assertTrue(value2 > 0D);
             return true;
         }, true);
     }
@@ -284,6 +294,20 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
             attribute.getParameters().put("format", "-m");
             attribute.getParameters().put("source", "rshell");
             attribute.getParameters().put("formula", "extract(total)");
+        });
+
+        attributes.addAndConsume("extr_int", attribute -> {
+            attribute.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
+            attribute.getParameters().put("format", "-m");
+            attribute.getParameters().put("source", "rshell");
+            attribute.getParameters().put("formula", "extract_int(total)");
+        });
+
+        attributes.addAndConsume("extr_fp", attribute -> {
+            attribute.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
+            attribute.getParameters().put("format", "-m");
+            attribute.getParameters().put("source", "rshell");
+            attribute.getParameters().put("formula", "extract_fp(total)");
         });
     }
 }

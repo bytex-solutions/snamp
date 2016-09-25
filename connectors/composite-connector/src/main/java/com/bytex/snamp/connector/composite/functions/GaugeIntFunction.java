@@ -10,8 +10,8 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromGauge64;
 
 /**
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
 public class GaugeIntFunction extends AggregationFunction<CompositeData> {
     private final Gauge64Recorder gauge64;
