@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import com.bytex.snamp.BooleanBinaryOperator;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -12,9 +13,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 2.0
  */
 public class FlagRecorder extends AbstractMetric implements Flag {
-    private interface BooleanBinaryOperator{
-        boolean applyAsBoolean(final boolean current, final boolean provided);
-    }
 
     private final AtomicBoolean value;
     private final AtomicLong totalTrueCount;
@@ -31,7 +29,7 @@ public class FlagRecorder extends AbstractMetric implements Flag {
         lastTrueCount = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
     }
 
-    private void updateCounters(final boolean value) {
+    protected void writeValue(final boolean value) {
         if(value){
             totalTrueCount.incrementAndGet();
             lastTrueCount.values().forEach(TimeLimitedLong::updateByOne);
@@ -45,36 +43,36 @@ public class FlagRecorder extends AbstractMetric implements Flag {
      * Updates this gauge with a new value.
      * @param value A new value to be placed into this gauge.
      */
-    public void accept(final boolean value){
+    public final void accept(final boolean value){
         this.value.set(value);
-        updateCounters(value);
+        writeValue(value);
     }
 
-    private void update(final boolean value, final BooleanBinaryOperator operator){
+    public final void accept(final boolean value, final BooleanBinaryOperator operator){
         boolean next, prev;
         do {
             next = operator.applyAsBoolean(prev = this.value.get(), value);
         } while (!this.value.compareAndSet(prev, next));
-        updateCounters(next);
+        writeValue(next);
     }
 
     /**
      * Inverses the value inside of this gauge.
      */
     public final void inverse() {
-        update(false, (current, provided) -> !current);
+        accept(false, (current, provided) -> !current);
     }
 
     public final void or(final boolean value){
-        update(value, (current, provided) -> current | provided);
+        accept(value, (current, provided) -> current | provided);
     }
 
     public final void and(final boolean value){
-        update(value, (current, provided) -> current & provided);
+        accept(value, (current, provided) -> current & provided);
     }
 
     public final void xor(final boolean value){
-        update(value, (current, provided) -> current ^ provided);
+        accept(value, (current, provided) -> current ^ provided);
     }
 
     /**

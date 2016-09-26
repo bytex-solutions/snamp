@@ -5,13 +5,15 @@ import com.google.common.util.concurrent.AtomicDouble;
 
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleConsumer;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.ObjDoubleConsumer;
 
 /**
  * Represents implementation of {@link GaugeFP}.
  * @since 2.0
  * @version 2.0
  */
-public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, DoubleConsumer {
+public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, DoubleConsumer, ObjDoubleConsumer<DoubleBinaryOperator> {
     private final AtomicDouble maxValue;
     private final AtomicDouble minValue;
     private final AtomicDouble lastValue;
@@ -31,14 +33,35 @@ public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, Do
         this(name, DEFAULT_SAMPLING_SIZE);
     }
 
-    @Override
-    public void accept(final double value) {
+    protected void writeValue(final double value){
         updateReservoir(value);
         accumulate(maxValue, value, Math::max);
         accumulate(minValue, value, Math::min);
-        lastValue.set(value);
         lastMaxValues.forEachAcceptDouble(value, TimeLimitedDouble::accept);
         lastMinValues.forEachAcceptDouble(value, TimeLimitedDouble::accept);
+    }
+
+    public final void updateValue(final DoubleUnaryOperator operator){
+        double current, next;
+        do{
+            next = operator.applyAsDouble(current = lastValue.get());
+        } while (!lastValue.compareAndSet(current, next));
+        writeValue(next);
+    }
+
+    @Override
+    public final void accept(final DoubleBinaryOperator operator, final double value) {
+        double current, next;
+        do{
+            next = operator.applyAsDouble(current = lastValue.get(), value);
+        } while (!lastValue.compareAndSet(current, next));
+        writeValue(next);
+    }
+
+    @Override
+    public final void accept(final double value) {
+        lastValue.set(value);
+        writeValue(value);
     }
 
     private static void accumulate(final AtomicDouble thiz, final double value, final DoubleBinaryOperator operator) {

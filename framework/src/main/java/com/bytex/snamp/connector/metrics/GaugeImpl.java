@@ -4,7 +4,10 @@ import com.bytex.snamp.concurrent.TimeLimitedObject;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
@@ -14,7 +17,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  * @since 2.0
  */
-class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge<V>, Consumer<V> {
+class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge<V>, Consumer<V>, BiConsumer<BinaryOperator<V>, V> {
     private final AtomicReference<V> maxValue;
     private final AtomicReference<V> minValue;
     private final AtomicReference<V> lastValue;
@@ -69,13 +72,30 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
             return current.compareTo(provided) < 0 ? current : provided;
     }
 
-    @Override
-    public void accept(final V value) {
+    protected void writeValue(final V value){
         maxValue.accumulateAndGet(value, GaugeImpl::maxValue);
         minValue.accumulateAndGet(value, GaugeImpl::minValue);
-        lastValue.set(value);
         lastMaxValues.forEachAccept(value, TimeLimitedObject::accept);
         lastMinValues.forEachAccept(value, TimeLimitedObject::accept);
+    }
+
+    public final void updateValue(final UnaryOperator<V> operator){
+        V prev, next;
+        do{
+            next = operator.apply(prev = lastValue.get());
+        } while (!lastValue.compareAndSet(prev, next));
+        writeValue(next);
+    }
+
+    @Override
+    public final void accept(final BinaryOperator<V> operator, final V value) {
+        writeValue(lastValue.accumulateAndGet(value, operator));
+    }
+
+    @Override
+    public final void accept(final V value) {
+        lastValue.set(value);
+        writeValue(value);
     }
 
     /**

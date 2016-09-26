@@ -14,15 +14,10 @@ public class RatedFlagRecorder extends FlagRecorder implements RatedFlag {
         rate = new RateRecorder(name);
     }
 
-    /**
-     * Updates this gauge with a new value.
-     *
-     * @param value A new value to be placed into this gauge.
-     */
     @Override
-    public void accept(final boolean value) {
+    protected void writeValue(final boolean value) {
         rate.mark();
-        super.accept(value);
+        super.writeValue(value);
     }
 
     /**

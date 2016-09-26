@@ -71,8 +71,8 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
     }
 
     @Override
-    public void accept(final Duration value) {
-        super.accept(value);
+    protected void writeValue(final Duration value) {
+        super.writeValue(value);
         meanValues.forEachAcceptDouble(toDouble(value), ExponentialMovingAverage::accept);
         reservoir.accept(toDouble(value));
         summary.accumulateAndGet(value, Duration::plus);

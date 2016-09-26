@@ -20,9 +20,9 @@ public class RatedGauge64Recorder extends Gauge64Recorder implements RatedGauge6
     }
 
     @Override
-    public void accept(final long value) {
+    protected void writeValue(final long value) {
         rate.mark();
-        super.accept(value);
+        super.writeValue(value);
     }
 
     /**

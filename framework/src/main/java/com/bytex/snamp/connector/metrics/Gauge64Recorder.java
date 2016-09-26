@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.LongConsumer;
+import java.util.function.*;
 
 /**
  * Represents implementation of {@link Gauge64}.
@@ -9,7 +9,7 @@ import java.util.function.LongConsumer;
  * @version 2.0
  * @since 2.0
  */
-public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, LongConsumer {
+public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, LongConsumer, ObjLongConsumer<LongBinaryOperator> {
     private final AtomicLong maxValue;
     private final AtomicLong minValue;
     private final AtomicLong lastValue;
@@ -25,12 +25,29 @@ public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, Lo
         this(name, DEFAULT_SAMPLING_SIZE);
     }
 
-    @Override
-    public void accept(final long value){
+    protected void writeValue(final long value){
         updateReservoir(value);
         maxValue.accumulateAndGet(value, Math::max);
         minValue.accumulateAndGet(value, Math::min);
+    }
+
+    public final void updateValue(final LongUnaryOperator operator) {
+        long current, next;
+        do {
+            next = operator.applyAsLong(current = lastValue.get());
+        } while (!lastValue.compareAndSet(current, next));
+        writeValue(next);
+    }
+
+    @Override
+    public final void accept(final LongBinaryOperator operator, final long value) {
+        writeValue(lastValue.accumulateAndGet(value, operator));
+    }
+
+    @Override
+    public final void accept(final long value){
         lastValue.set(value);
+        writeValue(value);
     }
 
     /**

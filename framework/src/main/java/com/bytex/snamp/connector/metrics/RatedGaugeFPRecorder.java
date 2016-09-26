@@ -20,9 +20,9 @@ public class RatedGaugeFPRecorder extends GaugeFPRecorder implements RatedGaugeF
     }
 
     @Override
-    public void accept(final double value) {
+    protected void writeValue(final double value) {
         rate.mark();
-        super.accept(value);
+        super.writeValue(value);
     }
 
     @Override

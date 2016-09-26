@@ -20,9 +20,9 @@ public class RatedStringGaugeRecorder extends StringGaugeRecorder implements Rat
     }
 
     @Override
-    public void accept(final String value) {
+    protected void writeValue(final String value) {
         rate.mark();
-        super.accept(value);
+        super.writeValue(value);
     }
 
     /**

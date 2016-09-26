@@ -4,6 +4,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
+import java.util.function.DoubleFunction;
+import java.util.function.Function;
+import java.util.function.LongFunction;
 
 /**
  * Represents notification with the new instant value.
@@ -11,7 +14,7 @@ import java.util.OptionalLong;
  * @version 2.0
  * @since 2.0
  */
-public class ValueChangedNotification extends MeasurementNotification {
+public class ValueChangedNotification extends MeasurementNotification implements LongFunction<OptionalLong>, DoubleFunction<OptionalDouble>, Function<String, Optional<String>> {
     private static final long serialVersionUID = -7177935916249311678L;
 
     /**
@@ -64,19 +67,22 @@ public class ValueChangedNotification extends MeasurementNotification {
         modification = Objects.requireNonNull(value);
     }
 
-    public OptionalDouble combineAsDouble(final double currentValue){
+    @Override
+    public OptionalDouble apply(final double currentValue){
         return OptionalDouble.empty();
     }
 
-    public OptionalLong combineAsLong(final long currentValue){
+    @Override
+    public OptionalLong apply(final long currentValue){
         return OptionalLong.empty();
     }
 
-    public Optional<Boolean> combineAsBoolean(final boolean currentValue){
+    public Optional<Boolean> apply(final boolean currentValue){
         return Optional.empty();
     }
 
-    public Optional<String> combineAsString(final String currentValue){
+    @Override
+    public Optional<String> apply(final String currentValue){
         return Optional.empty();
     }
 
@@ -93,7 +99,7 @@ public class ValueChangedNotification extends MeasurementNotification {
             }
 
             @Override
-            public Optional<String> combineAsString(final String currentValue) {
+            public Optional<String> apply(final String currentValue) {
                 return Optional.of(super.modification.apply(currentValue, value));
             }
         };
@@ -112,12 +118,12 @@ public class ValueChangedNotification extends MeasurementNotification {
             }
 
             @Override
-            public OptionalDouble combineAsDouble(final double currentValue) {
+            public OptionalDouble apply(final double currentValue) {
                 return OptionalDouble.of(super.modification.apply(currentValue, value));
             }
 
             @Override
-            public OptionalLong combineAsLong(final long currentValue) {
+            public OptionalLong apply(final long currentValue) {
                 return OptionalLong.of(super.modification.apply(currentValue, value));
             }
         };
@@ -136,17 +142,17 @@ public class ValueChangedNotification extends MeasurementNotification {
             }
 
             @Override
-            public OptionalDouble combineAsDouble(final double currentValue) {
+            public OptionalDouble apply(final double currentValue) {
                 return OptionalDouble.of(super.modification.apply(currentValue, value ? 1D : 0D));
             }
 
             @Override
-            public OptionalLong combineAsLong(final long currentValue) {
+            public OptionalLong apply(final long currentValue) {
                 return OptionalLong.of(super.modification.apply(currentValue, value ? 1L : 0L));
             }
 
             @Override
-            public Optional<Boolean> combineAsBoolean(final boolean currentValue) {
+            public Optional<Boolean> apply(final boolean currentValue) {
                 return Optional.of(super.modification.apply(currentValue, value));
             }
         };
@@ -165,7 +171,7 @@ public class ValueChangedNotification extends MeasurementNotification {
             }
 
             @Override
-            public OptionalDouble combineAsDouble(final double currentValue) {
+            public OptionalDouble apply(final double currentValue) {
                 return OptionalDouble.of(super.modification.apply(currentValue, value));
             }
         };

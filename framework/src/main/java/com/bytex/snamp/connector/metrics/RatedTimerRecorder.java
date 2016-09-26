@@ -27,9 +27,9 @@ public class RatedTimerRecorder extends TimingRecorder implements RatedTimer {
     }
 
     @Override
-    public void accept(final Duration value) {
+    protected void writeValue(final Duration value) {
         rate.mark();
-        super.accept(value);
+        super.writeValue(value);
     }
 
     @Override
