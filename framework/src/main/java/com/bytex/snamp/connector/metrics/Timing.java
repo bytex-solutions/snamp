@@ -23,17 +23,11 @@ public interface Timing extends Gauge<Duration>, Metric {
      */
     Duration getDeviation();
 
-    default double getMeanNumberOfCompletedTasks(final MetricsInterval interval) {
-        return 1D / interval.divideFP(getQuantile(0.5));
-    }
+    double getMeanNumberOfCompletedTasks(final MetricsInterval interval);
 
-    default double getMaxNumberOfCompletedTasks(final MetricsInterval interval){
-        return 1D / interval.divideFP(getMinValue());
-    }
+    double getMaxNumberOfCompletedTasks(final MetricsInterval interval);
 
-    default double getMinNumberOfCompletedTasks(final MetricsInterval interval){
-        return 1D / interval.divideFP(getMaxValue());
-    }
+    double getMinNumberOfCompletedTasks(final MetricsInterval interval);
 
     /**
      * Computes a percent of durations that are greater than or equal to the specified duration.

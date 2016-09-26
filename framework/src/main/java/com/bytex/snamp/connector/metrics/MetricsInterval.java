@@ -85,7 +85,11 @@ public enum MetricsInterval implements Comparable<MetricsInterval> {
     }
 
     final double divideFP(final Duration value) {
-        return value.toMillis() / (double) timeToLive;
+        return divideFP(value.toMillis());
+    }
+
+    final double divideFP(final double value){
+        return value / timeToLive;
     }
 
     final TimeLimitedDouble createDoublePeakDetector(final double initialValue){

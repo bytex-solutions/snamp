@@ -7,6 +7,8 @@ import com.bytex.snamp.math.ExponentialMovingAverage;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.DoubleFunction;
+import java.util.function.Supplier;
 
 /**
  * Represents implementation of {@link Timing}.
@@ -64,7 +66,7 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
     }
 
     @Override
-    public Duration getLastMeanValue(final MetricsInterval interval) {
+    public final Duration getLastMeanValue(final MetricsInterval interval) {
         return meanValues.get(interval, avg -> fromDouble(avg.getAsDouble()));
     }
 
@@ -85,7 +87,7 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
      */
     @Override
     public final Duration getQuantile(final double quantile) {
-        return fromDouble(Math.round(reservoir.getQuantile(quantile)));
+        return fromDouble(reservoir.getQuantile(quantile));
     }
 
     /**
@@ -128,5 +130,24 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
     @Override
     public final Duration getSummaryValue() {
         return summary.get();
+    }
+
+    private double getNumberOfCompletedTasks(final MetricsInterval interval, final Supplier<Duration> durationProvider){
+        return 1D / interval.divideFP(durationProvider.get());
+    }
+
+    @Override
+    public final double getMeanNumberOfCompletedTasks(final MetricsInterval interval) {
+        return getNumberOfCompletedTasks(interval, this::getMeanValue);
+    }
+
+    @Override
+    public final double getMaxNumberOfCompletedTasks(final MetricsInterval interval){
+        return getNumberOfCompletedTasks(interval, this::getMinValue);
+    }
+
+    @Override
+    public final double getMinNumberOfCompletedTasks(final MetricsInterval interval){
+        return getNumberOfCompletedTasks(interval, this::getMaxValue);
     }
 }
