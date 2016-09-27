@@ -3,7 +3,6 @@ package com.bytex.snamp.core;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.ComputationPipeline;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -17,6 +16,9 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -28,9 +30,8 @@ import java.util.function.Supplier;
  */
 public final class DistributedServices {
     private static final class MessageFuture extends CompletableFuture<Serializable> implements ComputationPipeline<Serializable>, Communicator.MessageListener{
-
         @Override
-        public void receive(final ClusterMemberInfo memberInfo, final Serializable message, final long messageID) {
+        public void receive(final ClusterMemberInfo sender, final Serializable message, final long messageID) {
             complete(message);
         }
     }
@@ -59,8 +60,8 @@ public final class DistributedServices {
         }
 
         @Override
-        public void receive(final ClusterMemberInfo memberInfo, final Serializable message, final long messageID) {
-            listener.receive(memberInfo, message, messageID);
+        public void receive(final ClusterMemberInfo sender, final Serializable message, final long messageID) {
+            listener.receive(sender, message, messageID);
         }
 
         @Override
@@ -91,29 +92,15 @@ public final class DistributedServices {
         }
     }
 
-    private static final class LocalCommunicator extends ThreadSafeObject implements Communicator, Communicator.MessageProducer, Communicator.MessageConsumer{
+    private static final class LocalCommunicator implements Communicator{
         private final LongCounter idGenerator;
         private MessageListenerNode lastNode;
+        private final ReadWriteLock sync;
 
         private LocalCommunicator() {
-            super(SingleResourceGroup.class);
             idGenerator = new LocalLongCounter();
             lastNode = new MessageListenerNode();   //empty node
-        }
-
-        @Override
-        public MessageProducer getProducer() {
-            return this;
-        }
-
-        @Override
-        public MessageConsumer getConsumer(int bufferSize) {
-            return null;
-        }
-
-        @Override
-        public MessageConsumer getConsumer() {
-            return this;
+            sync = new ReentrantReadWriteLock();
         }
 
         @Override
@@ -123,15 +110,17 @@ public final class DistributedServices {
             return messageID;
         }
 
-        private void postMessageImpl(final Serializable message, final long messageID) {
-            for (MessageListenerNode node = lastNode; node != null; node = node.getPrevious())
-                if (node.test(message, messageID))
-                    node.receive(null, message, messageID);
-        }
-
         @Override
         public void postMessage(final Serializable message, final long messageID) {
-            readAccept(SingleResourceGroup.INSTANCE, message, msg -> postMessageImpl(msg, messageID));
+            final Lock readLock = sync.readLock();
+            readLock.lock();
+            try {
+                for (MessageListenerNode node = lastNode; node != null; node = node.getPrevious())
+                    if (node.test(message, messageID))
+                        node.receive(null, message, messageID);
+            } finally {
+                readLock.unlock();
+            }
         }
 
         @Override
@@ -152,16 +141,9 @@ public final class DistributedServices {
             return future;
         }
 
-        private MessageListenerNode addMessageListenerImpl(final MessageListener listener, final MessageFilter filter){
-            final MessageListenerNode node = new MessageListenerNode(listener, filter);
-            node.setPrevious(lastNode);
-            lastNode.setNext(node);
-            return lastNode = node;
-        }
-
         @Override
         public SafeCloseable addMessageListener(final MessageListener listener, final MessageFilter filter) {
-            return writeApply(SingleResourceGroup.INSTANCE, listener, filter, this::addMessageListenerImpl);
+            return null;
         }
     }
 

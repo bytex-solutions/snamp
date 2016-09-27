@@ -6,9 +6,7 @@ import com.bytex.snamp.concurrent.ComputationPipeline;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.EventListener;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
-import java.util.function.ObjLongConsumer;
 
 /**
  * Represents message bus used to communicate with other SNAMP nodes in the cluster.
@@ -21,7 +19,7 @@ public interface Communicator {
      */
     @FunctionalInterface
     interface MessageListener extends EventListener{
-        void receive(final ClusterMemberInfo memberInfo, final Serializable message, final long messageID);
+        void receive(final ClusterMemberInfo sender, final Serializable message, final long messageID);
     }
 
     /**
@@ -37,61 +35,32 @@ public interface Communicator {
     }
 
     /**
-     * Represents message producer.
+     * Sends a message.
+     * @param message A message to send. Cannot be {@literal null}.
+     * @return Message ID.
      */
-    interface MessageProducer{
-        /**
-         * Sends a message.
-         * @param message A message to send. Cannot be {@literal null}.
-         * @return Message ID.
-         */
-        long postMessage(final Serializable message);
-
-        /**
-         * Sends a message.
-         * @param message A message to send. Cannot be {@literal null}.
-         * @param messageID User-defined message ID.
-         */
-        void postMessage(final Serializable message, final long messageID);
-    }
+    long postMessage(final Serializable message);
 
     /**
-     * Represents message consumer.
+     * Sends a message.
+     * @param message A message to send. Cannot be {@literal null}.
+     * @param messageID User-defined message ID.
      */
-    interface MessageConsumer{
-        Serializable receiveMessage(final MessageFilter filter, final Duration timeout) throws InterruptedException, TimeoutException;
+    void postMessage(final Serializable message, final long messageID);
 
-        ComputationPipeline<? extends Serializable> receiveMessage(final MessageFilter filter);
+    Serializable receiveMessage(final MessageFilter filter, final Duration timeout) throws InterruptedException, TimeoutException;
 
-        SafeCloseable addMessageListener(final MessageListener listener, final MessageFilter filter);
-    }
+    ComputationPipeline<? extends Serializable> receiveMessage(final MessageFilter filter);
 
-    MessageProducer getProducer();
-
-    /**
-     * Gets buffered consumer of input messages.
-     * @param bufferSize Max size of buffer.
-     * @return A new consumer.
-     */
-    MessageConsumer getConsumer(final int bufferSize);
-
-    /**
-     * Gets consumer without buffer.
-     * @return A new consumer.
-     */
-    MessageConsumer getConsumer();
+    SafeCloseable addMessageListener(final MessageListener listener, final MessageFilter filter);
 
     static Serializable sendMessage(final Communicator communicator, final Serializable message, final Duration timeout) throws InterruptedException, TimeoutException {
-        final MessageProducer producer = communicator.getProducer();
-        final MessageConsumer consumer = communicator.getConsumer();
-        final long messageID = producer.postMessage(message);
-        return consumer.receiveMessage((msg, id) -> messageID == id, timeout);
+        final long messageID = communicator.postMessage(message);
+        return communicator.receiveMessage((msg, id) -> messageID == id, timeout);
     }
 
     static ComputationPipeline<? extends Serializable> sendMessage(final Communicator communicator, final Serializable message) throws InterruptedException {
-        final MessageProducer producer = communicator.getProducer();
-        final MessageConsumer consumer = communicator.getConsumer();
-        final long messageID = producer.postMessage(message);
-        return consumer.receiveMessage((msg, id) -> messageID == id);
+        final long messageID = communicator.postMessage(message);
+        return communicator.receiveMessage((msg, id) -> messageID == id);
     }
 }

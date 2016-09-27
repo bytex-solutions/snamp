@@ -182,11 +182,6 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
     }
 
     @Override
-    public Map<String, ?> getAttributes() {
-        return hazelcast.getCluster().getLocalMember().getAttributes();
-    }
-
-    @Override
     public synchronized void close() throws InterruptedException {
         electionThread.interrupt();
         try {
