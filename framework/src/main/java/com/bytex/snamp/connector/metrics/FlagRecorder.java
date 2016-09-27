@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.BooleanBinaryOperator;
+import com.bytex.snamp.BooleanUnaryOperator;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,6 +49,14 @@ public class FlagRecorder extends AbstractMetric implements Flag {
         writeValue(value);
     }
 
+    public final void updateValue(final BooleanUnaryOperator operator){
+        boolean next, prev;
+        do {
+            next = operator.applyAsBoolean(prev = this.value.get());
+        } while (!this.value.compareAndSet(prev, next));
+        writeValue(next);
+    }
+
     public final void accept(final boolean value, final BooleanBinaryOperator operator){
         boolean next, prev;
         do {
@@ -60,7 +69,7 @@ public class FlagRecorder extends AbstractMetric implements Flag {
      * Inverses the value inside of this gauge.
      */
     public final void inverse() {
-        accept(false, (current, provided) -> !current);
+        updateValue(value -> !value);
     }
 
     public final void or(final boolean value){
