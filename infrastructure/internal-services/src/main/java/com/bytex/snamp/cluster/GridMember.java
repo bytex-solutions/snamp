@@ -9,6 +9,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -168,6 +169,11 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
     @Override
     public InetSocketAddress getAddress() {
         return hazelcast.getCluster().getLocalMember().getSocketAddress();
+    }
+
+    @Override
+    public Map<String, ?> getAttributes() {
+        return hazelcast.getCluster().getLocalMember().getAttributes();
     }
 
     @Override

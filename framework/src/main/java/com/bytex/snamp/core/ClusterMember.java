@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentMap;
  * @since 1.0
  * @see LongCounter
  */
-public interface ClusterMember extends SupportService {
+public interface ClusterMember extends ClusterMemberInfo, SupportService {
     /**
      * Represents cluster-wide generator of unique identifiers.
      */
@@ -31,31 +31,9 @@ public interface ClusterMember extends SupportService {
     TypeToken<ConcurrentMap<String, Object>> STORAGE_SERVICE = new TypeToken<ConcurrentMap<String, Object>>() {};
 
     /**
-     * Determines whether this node is active.
-     * <p>
-     *   Passive SNAMP node ignores any notifications received by resource connector.
-     *   As a result, all gateways will not route notifications to the connected
-     *   monitoring tools. But you can still read any attributes.
-     * @return {@literal true}, if this node is active; otherwise, {@literal false}.
-     */
-    boolean isActive();
-
-    /**
      * Marks this node as passive and execute leader election.
      */
     void resign();
-
-    /**
-     * Gets unique name of this member.
-     * @return Name of the cluster node.
-     */
-    String getName();
-
-    /**
-     * Gets address of this node.
-     * @return Address of this node.
-     */
-    InetSocketAddress getAddress();
 
     /**
      * Gets distributed service.

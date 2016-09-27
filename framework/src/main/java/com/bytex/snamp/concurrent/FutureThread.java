@@ -12,7 +12,7 @@ import java.util.function.Function;
  * @version 2.0
  * @since 1.0
  */
-public class FutureThread<V> extends Thread implements Future<V>, CompletionStage<V>{
+public class FutureThread<V> extends Thread implements ComputationPipeline<V>{
 
     private final Callable<V> implementation;
     private final CompletableFuture<V> result;
