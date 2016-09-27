@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableSet;
 
 import javax.management.*;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -62,7 +63,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     @ThreadSafe
     public final TAccessor addAttribute(final String resourceName,
                                   final MBeanAttributeInfo metadata) throws Exception{
-        return writeCallInterruptibly(SingleResourceGroup.INSTANCE, () -> addAttributeImpl(resourceName, metadata));
+        return writeLock.call(SingleResourceGroup.INSTANCE, () -> addAttributeImpl(resourceName, metadata), null);
     }
 
     private TAccessor removeAttributeImpl(final String resourceName,
@@ -80,17 +81,17 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     @ThreadSafe
     public final TAccessor removeAttribute(final String resourceName,
                                            final MBeanAttributeInfo metadata){
-        return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeAttributeImpl);
+        return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeAttributeImpl);
     }
 
     protected final Object getAttributeValue(final String resourceName,
                                              final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
-        try (final SafeCloseable ignored = acquireReadLockInterruptibly(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
             if (attributes.containsKey(resourceName))
                 return attributes.get(resourceName).getAttribute(attributeName);
             else
                 throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
-        } catch (final InterruptedException e) {
+        } catch (final InterruptedException | TimeoutException e) {
             throw new ReflectionException(e);
         }
     }
@@ -98,12 +99,12 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     protected final void setAttributeValue(final String resourceName,
                                            final String attributeName,
                                            final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        try (final SafeCloseable ignored = acquireReadLockInterruptibly(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
             if (attributes.containsKey(resourceName))
                 attributes.get(resourceName).setAttribute(attributeName, value);
             else
                 throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
-        } catch (final InterruptedException e) {
+        } catch (final InterruptedException | TimeoutException e) {
             throw new ReflectionException(e);
         }
     }
@@ -111,7 +112,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     public final <E extends Throwable> boolean processAttribute(final String resourceName,
                                           final String attributeName,
                                           final Acceptor<? super TAccessor, E> processor) throws E {
-        try (final SafeCloseable ignored = acquireReadLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
             final TAccessor accessor = attributes.containsKey(resourceName) ?
                     attributes.get(resourceName).get(attributeName) :
                     null;
@@ -128,7 +129,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final Set<String> getHostedResources(){
-        return readApply(SingleResourceGroup.INSTANCE, attributes, attrs -> ImmutableSet.copyOf(attrs.keySet()));
+        return readLock.apply(SingleResourceGroup.INSTANCE, attributes, attrs -> ImmutableSet.copyOf(attrs.keySet()));
     }
 
     private static Set<String> getResourceAttributesImpl(final String resourceName,
@@ -140,7 +141,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
 
     @ThreadSafe
     public final Set<String> getResourceAttributes(final String resourceName) {
-        return readApply(SingleResourceGroup.INSTANCE, resourceName, attributes, ModelOfAttributes::getResourceAttributesImpl);
+        return readLock.apply(SingleResourceGroup.INSTANCE, resourceName, attributes, ModelOfAttributes::getResourceAttributesImpl);
     }
 
     private static <TAccessor extends AttributeAccessor> Collection<MBeanAttributeInfo> getResourceAttributesMetadataImpl(final String resourceName,
@@ -155,7 +156,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
 
     @ThreadSafe
     public final Collection<MBeanAttributeInfo> getResourceAttributesMetadata(final String resourceName){
-        return readApply(SingleResourceGroup.INSTANCE, resourceName, attributes, ModelOfAttributes::getResourceAttributesMetadataImpl);
+        return readLock.apply(SingleResourceGroup.INSTANCE, resourceName, attributes, ModelOfAttributes::getResourceAttributesMetadataImpl);
     }
 
     private static <TAccessor extends AttributeAccessor> Collection<TAccessor> clearImpl(final String resourceName,
@@ -172,7 +173,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final Collection<TAccessor> clear(final String resourceName) {
-        return writeApply(SingleResourceGroup.INSTANCE, resourceName, attributes, ModelOfAttributes::clearImpl);
+        return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, attributes, ModelOfAttributes::clearImpl);
     }
 
     private <E extends Exception> void forEachAttributeImpl(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E{
@@ -188,7 +189,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      * @throws E Unable to process attribute.
      */
     public final <E extends Exception> void forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E {
-        readAccept(SingleResourceGroup.INSTANCE, attributeReader, this::forEachAttributeImpl);
+        readLock.accept(SingleResourceGroup.INSTANCE, attributeReader, this::forEachAttributeImpl);
     }
 
     private static void clearImpl(final Map<String, ? extends ResourceFeatureList<?, ?>> attributes){
@@ -201,6 +202,6 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final void clear(){
-        writeAccept(SingleResourceGroup.INSTANCE, attributes, ModelOfAttributes::clearImpl);
+        writeLock.accept(SingleResourceGroup.INSTANCE, attributes, ModelOfAttributes::clearImpl);
     }
 }

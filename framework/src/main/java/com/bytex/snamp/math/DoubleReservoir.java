@@ -31,11 +31,11 @@ public class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer,
     }
 
     private SafeCloseable acquireWriteLock(){
-        return acquireWriteLock(SingleResourceGroup.INSTANCE);
+        return writeLock.acquireLock(SingleResourceGroup.INSTANCE);
     }
 
     private SafeCloseable acquireReadLock(){
-        return acquireReadLock(SingleResourceGroup.INSTANCE);
+        return readLock.acquireLock(SingleResourceGroup.INSTANCE);
     }
 
     /**

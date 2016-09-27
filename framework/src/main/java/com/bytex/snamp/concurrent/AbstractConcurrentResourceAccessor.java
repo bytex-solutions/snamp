@@ -55,7 +55,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
     @Override
     public <O> O apply(final Function<R, O> handler) {
         if (handler == null) return null;
-        try (final SafeCloseable ignored = acquireReadLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
             return handler.apply(getResource());
         }
     }
@@ -79,7 +79,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      */
     public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader) throws E {
         if (reader == null) return null;
-        try (final SafeCloseable ignored = acquireReadLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
             return reader.apply(getResource());
         }
     }
@@ -99,7 +99,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      */
     public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader, final Duration readTimeout) throws E, TimeoutException, InterruptedException {
         if(reader == null) return null;
-        try(final SafeCloseable ignored = acquireReadLockInterruptibly(SingleResourceGroup.INSTANCE, readTimeout)){
+        try(final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, readTimeout)){
             return reader.apply(getResource());
         }
     }
@@ -117,7 +117,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      */
     public final <O, E extends Throwable> O write(final Action<? super R, ? extends O, E> writer) throws E{
         if(writer == null) return null;
-        try(final SafeCloseable ignored = acquireWriteLock(SingleResourceGroup.INSTANCE)){
+        try(final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)){
             return writer.apply(getResource());
         }
     }
@@ -136,7 +136,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      */
     public final <O, E extends Throwable> O write(final Action<? super R, ? extends O, E> writer, final Duration writeTimeout) throws E, TimeoutException, InterruptedException {
         if(writer == null) return null;
-        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(SingleResourceGroup.INSTANCE, writeTimeout)){
+        try(final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE, writeTimeout)){
             return writer.apply(getResource());
         }
     }

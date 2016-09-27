@@ -145,7 +145,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     protected final void fire(final BiConsumer<? super M, ? super NotificationCollector> sender){
         final NotificationCollector collector = new NotificationCollector();
-        readAccept(SingleResourceGroup.INSTANCE, notifications.values(), collector, (notifications, collector1) -> notifications.forEach(n -> sender.accept(n, collector1)));
+        readLock.accept(SingleResourceGroup.INSTANCE, notifications.values(), collector, (notifications, collector1) -> notifications.forEach(n -> sender.accept(n, collector1)));
         fireListeners(collector.notifications);
         collector.notifications.clear();    //help GC
     }
@@ -169,7 +169,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                               final Object userData) {
         if (isSuspended()) return; //check if events are suspended
 
-        final Collection<Notification> notifs = readApply(SingleResourceGroup.INSTANCE, notifications, n -> n.values().stream()
+        final Collection<Notification> notifs = readLock.apply(SingleResourceGroup.INSTANCE, notifications, n -> n.values().stream()
                 .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder), category))
                 .map(holder -> new NotificationBuilder()
                         .setTimeStamp(timeStamp)
@@ -256,7 +256,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     @Override
     public final M enableNotifications(final String category, final NotificationDescriptor descriptor) {
         try {
-            return writeCallInterruptibly(SingleResourceGroup.INSTANCE, () -> enableNotificationsImpl(category, descriptor));
+            return writeLock.call(SingleResourceGroup.INSTANCE, () -> enableNotificationsImpl(category, descriptor), null);
         } catch (final Exception e) {
             failedToEnableNotifications(category, e);
             return null;
@@ -278,7 +278,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final M remove(final String category) {
-        final M metadata = writeApply(SingleResourceGroup.INSTANCE, this, category, AbstractNotificationRepository::removeImpl);
+        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, category, AbstractNotificationRepository::removeImpl);
         if (metadata != null)
             disconnectNotifications(metadata);
         return metadata;
@@ -313,7 +313,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        return readApply(SingleResourceGroup.INSTANCE, notifications, notifs -> ImmutableSet.copyOf(notifs.keySet()));
+        return readLock.apply(SingleResourceGroup.INSTANCE, notifications, notifs -> ImmutableSet.copyOf(notifs.keySet()));
     }
 
     /**
@@ -321,7 +321,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return {@literal true}, if all notifications disabled; otherwise, {@literal false}.
      */
     protected final boolean hasNoNotifications() {
-        return readSupply(SingleResourceGroup.INSTANCE, notifications::isEmpty);
+        return readLock.supplyBool(SingleResourceGroup.INSTANCE, notifications::isEmpty);
     }
 
     @MethodStub
@@ -379,12 +379,12 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final M[] getNotificationInfo() {
-        return readApply(SingleResourceGroup.INSTANCE, notifications.values(), this::toArray);
+        return readLock.apply(SingleResourceGroup.INSTANCE, notifications.values(), this::toArray);
     }
 
     @Override
     public final M getNotificationInfo(final String category) {
-        return readApply(SingleResourceGroup.INSTANCE, notifications, category, Map::get);
+        return readLock.apply(SingleResourceGroup.INSTANCE, notifications, category, Map::get);
     }
 
     /**
@@ -446,7 +446,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     public final void removeAll(final boolean removeNotificationListeners,
                                 final boolean removeResourceEventListeners) {
-        writeAccept(SingleResourceGroup.INSTANCE, notifications, this::removeAllImpl);
+        writeLock.accept(SingleResourceGroup.INSTANCE, this, notifications, AbstractNotificationRepository::removeAllImpl);
         if (removeNotificationListeners)
             listeners.clear();
         if (removeResourceEventListeners)
@@ -460,17 +460,17 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     @Override
     public final int size() {
-        return readSupply(SingleResourceGroup.INSTANCE, notifications::size);
+        return readLock.supplyInt(SingleResourceGroup.INSTANCE, notifications::size);
     }
 
     @Override
     public final Iterator<M> iterator() {
-        return readApply(SingleResourceGroup.INSTANCE, notifications.values(), Collection::iterator);
+        return readLock.apply(SingleResourceGroup.INSTANCE, notifications.values(), Collection::iterator);
     }
 
     @Override
     public final void forEach(final Consumer<? super M> action) {
-        readAccept(SingleResourceGroup.INSTANCE, notifications.values(), notifications -> notifications.forEach(action));
+        readLock.accept(SingleResourceGroup.INSTANCE, notifications.values(), action, Iterable::forEach);
     }
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){

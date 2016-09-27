@@ -63,7 +63,7 @@ final class SshGateway extends AbstractGateway implements GatewayController {
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E {
-            readAccept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
+            readLock.accept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
         }
 
         private static Map<String, ResourceNotificationList<SshNotificationAccessor>> createNotifs(){
@@ -79,7 +79,7 @@ final class SshGateway extends AbstractGateway implements GatewayController {
         }
 
         private void clear(){
-            writeAccept(SingleResourceGroup.INSTANCE, notifications, Map::clear);
+            writeLock.accept(SingleResourceGroup.INSTANCE, notifications, Map::clear);
             mailbox.clear();
         }
 
@@ -96,11 +96,11 @@ final class SshGateway extends AbstractGateway implements GatewayController {
 
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata){
-            return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::addNotificationImpl);
+            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::addNotificationImpl);
         }
 
         private Collection<? extends NotificationAccessor> clear(final String resourceName) {
-            return writeApply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> notifs.containsKey(resName) ?
+            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> notifs.containsKey(resName) ?
                     notifs.remove(resName).values() :
                     ImmutableList.<SshNotificationAccessor>of());
         }
@@ -119,7 +119,7 @@ final class SshGateway extends AbstractGateway implements GatewayController {
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata) {
-            return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeNotificationImpl);
+            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeNotificationImpl);
         }
 
         private Notification poll(final ExpressionBasedDescriptorFilter filter) {

@@ -252,7 +252,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M remove(final String operationID) {
-        final M metadata = writeApply(SingleResourceGroup.INSTANCE, operationID, this::removeImpl);
+        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, operationID, AbstractOperationRepository::removeImpl);
         if (metadata != null)
             disconnectOperation(metadata);
         return metadata;
@@ -323,7 +323,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     @Override
     public final M enableOperation(final String operationName, final OperationDescriptor descriptor) {
         try{
-            return writeCallInterruptibly(SingleResourceGroup.INSTANCE, () -> enableOperationImpl(operationName, descriptor));
+            return writeLock.call(SingleResourceGroup.INSTANCE, () -> enableOperationImpl(operationName, descriptor), null);
         } catch (final Exception e) {
             failedToEnableOperation(operationName, e);
             return null;
@@ -360,7 +360,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M[] getOperationInfo() {
-        return readSupply(SingleResourceGroup.INSTANCE, () -> toArray(operations.values()));
+        return readLock.supply(SingleResourceGroup.INSTANCE, () -> toArray(operations.values()));
     }
 
     /**
@@ -371,7 +371,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M getOperationInfo(final String operationID) {
-        return readApply(SingleResourceGroup.INSTANCE, operationID, operations::get);
+        return readLock.apply(SingleResourceGroup.INSTANCE, operations, operationID, Map::get);
     }
 
     /**
@@ -406,13 +406,13 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
                          final Object[] params,
                          final String[] signature) throws MBeanException, ReflectionException {
         try {
-            return readCallInterruptibly(SingleResourceGroup.INSTANCE, () -> {
+            return readLock.call(SingleResourceGroup.INSTANCE, () -> {
                 final M holder = operations.get(operationName);
                 if (holder != null)
                     return invoke(holder, params, signature);
                 else
                     throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", operationName)));
-            });
+            }, null);
         } catch (final MBeanException | ReflectionException e) {
             throw e;
         } catch (final Exception e) {
@@ -435,7 +435,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @param removeResourceListeners {@literal true} to remove all resource listeners; otherwise, {@literal false}.
      */
     public final void removeAll(final boolean removeResourceListeners) {
-        writeAccept(SingleResourceGroup.INSTANCE, operations, this::removeAllImpl);
+        writeLock.accept(SingleResourceGroup.INSTANCE, this, operations, AbstractOperationRepository::removeAllImpl);
         if (removeResourceListeners)
             removeAllResourceEventListeners();
     }
@@ -447,7 +447,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        return readApply(SingleResourceGroup.INSTANCE, operations, ops -> ImmutableSet.copyOf(ops.keySet()));
+        return readLock.apply(SingleResourceGroup.INSTANCE, operations, ops -> ImmutableSet.copyOf(ops.keySet()));
     }
 
     @Override
@@ -457,17 +457,17 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     @Override
     public final int size() {
-        return readSupply(SingleResourceGroup.INSTANCE, operations::size);
+        return readLock.supplyInt(SingleResourceGroup.INSTANCE, operations::size);
     }
 
     @Override
     public final Iterator<M> iterator() {
-        return readApply(SingleResourceGroup.INSTANCE, operations.values(), Collection::iterator);
+        return readLock.apply(SingleResourceGroup.INSTANCE, operations.values(), Collection::iterator);
     }
 
     @Override
     public final void forEach(final Consumer<? super M> action) {
-        readAccept(SingleResourceGroup.INSTANCE, operations.values(), operations -> operations.forEach(action));
+        readLock.accept(SingleResourceGroup.INSTANCE, operations.values(), action, Iterable::forEach);
     }
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){

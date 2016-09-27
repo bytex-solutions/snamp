@@ -70,7 +70,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @ThreadSafe
     @Override
     public final int size() {
-        return readSupply(SingleResourceGroup.INSTANCE, attributes::size);
+        return readLock.supplyInt(SingleResourceGroup.INSTANCE, attributes::size);
     }
 
     /**
@@ -80,7 +80,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M[] getAttributeInfo() {
-        return readApply(SingleResourceGroup.INSTANCE, attributes.values(), this::toArray);
+        return readLock.apply(SingleResourceGroup.INSTANCE, attributes.values(), this::toArray);
     }
 
     /**
@@ -91,7 +91,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M getAttributeInfo(final String attributeName) {
-        return readApply(SingleResourceGroup.INSTANCE, attributes, attributeName, Map::get);
+        return readLock.apply(SingleResourceGroup.INSTANCE, attributes, attributeName, Map::get);
     }
 
     /**
@@ -292,7 +292,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     public final M addAttribute(final String attributeName,
                                 final AttributeDescriptor descriptor) {
         try {
-            return writeCallInterruptibly(SingleResourceGroup.INSTANCE, () -> addAttributeImpl(attributeName, descriptor));
+            return writeLock.call(SingleResourceGroup.INSTANCE, () -> addAttributeImpl(attributeName, descriptor), null);
         } catch (final Exception e) {
             failedToConnectAttribute(attributeName, e);
             return null;
@@ -352,7 +352,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        try(final SafeCloseable ignored = acquireReadLockInterruptibly(SingleResourceGroup.INSTANCE)) {
+        try(final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
             return getAttributeImpl(attributeName);
         } catch (final AttributeNotFoundException e) {
             throw e;
@@ -423,7 +423,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @Override
     public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
         try {
-            readAcceptInterruptibly(SingleResourceGroup.INSTANCE, attribute, this::setAttributeImpl);
+            readLock.accept(SingleResourceGroup.INSTANCE, attribute, this::setAttributeImpl, (Duration) null);
         } catch (final AttributeNotFoundException e) {
             throw e;
         } catch (final InvalidAttributeValueException | MBeanException | ReflectionException e) {
@@ -489,7 +489,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M remove(final String attributeID) {
-        final M metadata = writeApply(SingleResourceGroup.INSTANCE, this, attributeID, AbstractAttributeRepository::removeImpl);
+        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, attributeID, AbstractAttributeRepository::removeImpl);
         if (metadata != null)
             disconnectAttribute(metadata);
         return metadata;
@@ -532,7 +532,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param removeAttributeEventListeners {@literal true} to remove all attribute listeners; otherwise, {@literal false}.
      */
     public final void removeAll(final boolean removeAttributeEventListeners) {
-        writeAccept(SingleResourceGroup.INSTANCE, attributes, this::removeAllImpl);
+        writeLock.accept(SingleResourceGroup.INSTANCE, attributes, this::removeAllImpl);
         if (removeAttributeEventListeners)
             super.removeAllResourceEventListeners();
     }
@@ -544,7 +544,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        return readApply(SingleResourceGroup.INSTANCE, attributes, attrs -> ImmutableSet.copyOf(attrs.keySet()));
+        return readLock.apply(SingleResourceGroup.INSTANCE, attributes, attrs -> ImmutableSet.copyOf(attrs.keySet()));
     }
 
     /**
@@ -564,16 +564,16 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     @Override
     public final Iterator<M> iterator() {
-        return readApply(SingleResourceGroup.INSTANCE, attributes.values(), Collection::iterator);
+        return readLock.apply(SingleResourceGroup.INSTANCE, attributes.values(), Collection::iterator);
     }
 
     @Override
     public final void forEach(final Consumer<? super M> action) {
-        readAccept(SingleResourceGroup.INSTANCE, attributes.values(), attributes -> attributes.forEach(action));
+        readLock.accept(SingleResourceGroup.INSTANCE, attributes.values(), action, Iterable::forEach);
     }
 
     protected final void parallelForEach(final Consumer<? super M> action, final ExecutorService threadPool) {
-        readAccept(SingleResourceGroup.INSTANCE, attributes.values(), attributes -> Utils.parallelForEach(attributes, action, threadPool));
+        readLock.accept(SingleResourceGroup.INSTANCE, attributes.values(), attributes -> Utils.parallelForEach(attributes, action, threadPool));
     }
 
     /**

@@ -20,6 +20,7 @@ import javax.management.openmbean.*;
 import java.io.Closeable;
 import java.lang.management.ManagementFactory;
 import java.nio.*;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -207,11 +208,11 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     NotificationAccessor addNotification(final MBeanNotificationInfo metadata){
-        return writeApply(MBeanResources.NOTIFICATIONS, metadata, this::addNotificationImpl);
+        return writeLock.apply(MBeanResources.NOTIFICATIONS, metadata, this::addNotificationImpl);
     }
 
     NotificationAccessor removeNotification(final MBeanNotificationInfo metadata) {
-        return writeApply(MBeanResources.NOTIFICATIONS, metadata, (Function<MBeanNotificationInfo, NotificationAccessor>) notifications::remove);
+        return writeLock.apply(MBeanResources.NOTIFICATIONS, metadata, (Function<MBeanNotificationInfo, NotificationAccessor>) notifications::remove);
     }
 
     private AttributeAccessor addAttributeImpl(final MBeanAttributeInfo metadata){
@@ -256,11 +257,11 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     AttributeAccessor addAttribute(final MBeanAttributeInfo metadata){
-        return writeApply(MBeanResources.ATTRIBUTES, this, metadata, ProxyMBean::addAttributeImpl);
+        return writeLock.apply(MBeanResources.ATTRIBUTES, this, metadata, ProxyMBean::addAttributeImpl);
     }
 
     AttributeAccessor removeAttribute(final MBeanAttributeInfo metadata){
-        return writeApply(MBeanResources.ATTRIBUTES, attributes, metadata, ResourceAttributeList::remove);
+        return writeLock.apply(MBeanResources.ATTRIBUTES, attributes, metadata, ResourceAttributeList::remove);
     }
 
     /**
@@ -275,7 +276,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public Object getAttribute(final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
         try {
-            return readCallInterruptibly(MBeanResources.ATTRIBUTES, () -> attributes.getAttribute(attributeName));
+            return readLock.call(MBeanResources.ATTRIBUTES, () -> attributes.getAttribute(attributeName), null);
         } catch (final AttributeNotFoundException | ReflectionException | MBeanException e) {
             throw e;
         } catch (final Exception e) {
@@ -299,7 +300,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public void setAttribute(final Attribute attributeHolder) throws AttributeNotFoundException, ReflectionException, InvalidAttributeValueException, MBeanException {
         try {
-            readAcceptInterruptibly(MBeanResources.ATTRIBUTES, attributeHolder, this::setAttributeImpl);
+            readLock.accept(MBeanResources.ATTRIBUTES, attributeHolder, this::setAttributeImpl, (Duration) null);
         } catch (final AttributeNotFoundException | ReflectionException | InvalidAttributeValueException | MBeanException e) {
             throw e;
         } catch (final Exception e) {
@@ -372,7 +373,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     private OpenMBeanAttributeInfo[] getAttributeInfo() {
-        return readApply(MBeanResources.ATTRIBUTES, attributes,
+        return readLock.apply(MBeanResources.ATTRIBUTES, attributes,
                 attrs -> attrs.values().stream()
                         .map(JmxAttributeAccessor::cloneMetadata)
                         .toArray(OpenMBeanAttributeInfo[]::new));
@@ -380,7 +381,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
 
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
-        return readApply(MBeanResources.NOTIFICATIONS, notifications,
+        return readLock.apply(MBeanResources.NOTIFICATIONS, notifications,
                 notifs -> notifs.values().stream()
                         .map(JmxNotificationAccessor::cloneMetadata)
                         .toArray(MBeanNotificationInfo[]::new));
@@ -456,7 +457,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     <E extends Exception> boolean forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
-        try (final SafeCloseable ignored = acquireReadLock(MBeanResources.ATTRIBUTES)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(MBeanResources.ATTRIBUTES)) {
             for (final JmxAttributeAccessor accessor : attributes.values())
                 if (!attributeReader.read(resourceName, accessor))
                     return false;
@@ -465,7 +466,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     <E extends Exception> boolean forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
-        try(final SafeCloseable ignored = acquireReadLock(MBeanResources.NOTIFICATIONS)){
+        try(final SafeCloseable ignored = readLock.acquireLock(MBeanResources.NOTIFICATIONS)){
             for(final JmxNotificationAccessor accessor: notifications.values())
                 if(!notificationReader.read(resourceName, accessor))
                     return false;

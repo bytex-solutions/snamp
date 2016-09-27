@@ -55,7 +55,7 @@ final class SysLogGateway extends AbstractGateway {
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SysLogNotificationAccessor, E> notificationReader) throws E {
-            readAccept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
+            readLock.accept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
         }
 
         private void setCheckSender(final ConcurrentSyslogMessageSender value){
@@ -95,7 +95,7 @@ final class SysLogGateway extends AbstractGateway {
 
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata) {
-            return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::addNotificationImpl);
+            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::addNotificationImpl);
         }
 
         private NotificationAccessor removeNotificationImpl(final String resourceName,
@@ -111,11 +111,11 @@ final class SysLogGateway extends AbstractGateway {
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata){
-            return writeApply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeNotificationImpl);
+            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeNotificationImpl);
         }
 
         private Collection<? extends NotificationAccessor> removeNotifications(final String resourceName) {
-            return writeApply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
+            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
                 if (notifs.containsKey(resName))
                     return notifs.remove(resName).values();
                 else return ImmutableList.of();
@@ -123,7 +123,7 @@ final class SysLogGateway extends AbstractGateway {
         }
 
         private void clear() {
-            writeAccept(SingleResourceGroup.INSTANCE, notifications, notifs -> {
+            writeLock.accept(SingleResourceGroup.INSTANCE, notifications, notifs -> {
                 notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
                 notifs.clear();
             });

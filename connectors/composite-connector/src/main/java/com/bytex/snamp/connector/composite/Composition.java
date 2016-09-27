@@ -11,6 +11,7 @@ import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Sets;
 import org.osgi.framework.BundleContext;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -69,7 +70,7 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
     void updateConnector(final String connectorType, final String connectionString, final Map<String, String> parameters) throws Exception {
         final String resourceName = this.resourceName;
         final BundleContext context = Utils.getBundleContextOfObject(this);
-        writeAcceptInterruptibly(SingleResourceGroup.INSTANCE, connectors, connectors -> updateConnector(connectors, connectorType, connectionString, resourceName, parameters, context));
+        writeLock.accept(SingleResourceGroup.INSTANCE, connectors, connectors -> updateConnector(connectors, connectorType, connectionString, resourceName, parameters, context), (Duration) null);
     }
 
     private static void retainConnectors(final Map<String, ManagedResourceConnector> connectors, final Set<String> set) throws Exception {
@@ -86,11 +87,11 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
      * @throws Exception Unable to dispose one or more connectors.
      */
     void retainConnectors(final Set<String> set) throws Exception {
-        writeAcceptInterruptibly(SingleResourceGroup.INSTANCE, connectors, connectors -> retainConnectors(connectors, set));
+        writeLock.accept(SingleResourceGroup.INSTANCE, connectors, connectors -> retainConnectors(connectors, set), (Duration) null);
     }
 
     private <T> T queryObject(final String connectorType, final Class<T> objectType){
-        final ManagedResourceConnector connector = readApply(SingleResourceGroup.INSTANCE, connectors, connectorType, Map::get);
+        final ManagedResourceConnector connector = readLock.apply(SingleResourceGroup.INSTANCE, connectors, connectorType, Map::get);
         return connector != null ? connector.queryObject(objectType) : null;
     }
 
@@ -120,6 +121,6 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
      */
     @Override
     public void close() throws Exception {
-        writeAcceptInterruptibly(SingleResourceGroup.INSTANCE, connectors, Composition::releaseConnectors);
+        writeLock.accept(SingleResourceGroup.INSTANCE, connectors, Composition::releaseConnectors, (Duration) null);
     }
 }

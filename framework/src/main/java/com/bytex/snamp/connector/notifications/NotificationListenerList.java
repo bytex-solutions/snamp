@@ -47,7 +47,7 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
     public final void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
                                         final Object handback) throws IllegalArgumentException {
-        writeAccept(SingleResourceGroup.INSTANCE, new NotificationListenerHolder(listener, filter, handback), listeners::add);
+        writeLock.accept(SingleResourceGroup.INSTANCE, listeners, new NotificationListenerHolder(listener, filter, handback), List::add);
     }
 
     private void removeNotificationListenerImpl(final NotificationListener listener) throws ListenerNotFoundException{
@@ -77,7 +77,7 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
      */
     public final void removeNotificationListener(final NotificationListener listener)
             throws ListenerNotFoundException {
-        writeAccept(SingleResourceGroup.INSTANCE, listener, this::removeNotificationListenerImpl);
+        writeLock.accept(SingleResourceGroup.INSTANCE, listener, this::removeNotificationListenerImpl);
     }
 
     /**
@@ -117,19 +117,19 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
      */
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
-        readAccept(SingleResourceGroup.INSTANCE, listeners, l -> l.forEach(holder -> handleNotification(holder, intercept(notification), handback)));
+        readLock.accept(SingleResourceGroup.INSTANCE, listeners, l -> l.forEach(holder -> handleNotification(holder, intercept(notification), handback)));
     }
 
     public final void handleNotification(final NotificationListenerInvoker invoker,
                                       final Notification notification,
                                       final Object handback) {
-        readAccept(SingleResourceGroup.INSTANCE, listeners, list -> invoker.invoke(notification, handback, list));
+        readLock.accept(SingleResourceGroup.INSTANCE, listeners, list -> invoker.invoke(notification, handback, list));
     }
 
     /**
      * Removes all listeners from this list.
      */
     public final void clear() {
-        writeAccept(SingleResourceGroup.INSTANCE, listeners, List::clear);
+        writeLock.accept(SingleResourceGroup.INSTANCE, listeners, List::clear);
     }
 }
