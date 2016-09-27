@@ -3,6 +3,7 @@ package com.bytex.snamp.core;
 import com.google.common.reflect.TypeToken;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -41,15 +42,17 @@ public interface ClusterMember extends SupportService {
     boolean isActive();
 
     /**
-     * Marks this node as passive and execute leader election.
-     */
-    void resign();
-
-    /**
      * Gets unique name of this member.
      * @return Name of the cluster node.
      */
     String getName();
+
+    /**
+     * Gets attributes associated with this member.
+     * @return The attributes associated with this member.
+     * @since 2.0
+     */
+    Map<String, ?> getAttributes();
 
     /**
      * Gets address of this node.
@@ -58,11 +61,18 @@ public interface ClusterMember extends SupportService {
     InetSocketAddress getAddress();
 
     /**
+     * Marks this node as passive and execute leader election.
+     */
+    void resign();
+
+    /**
      * Gets distributed service.
      * @param serviceName Service name.
      * @param serviceType Service type.
      * @param <S> Type of the service contract.
      * @return Distributed service; or {@literal null}, if service is not supported.
+     * @see #IDGEN_SERVICE
+     * @see #STORAGE_SERVICE
      */
     <S> S getService(final String serviceName, final TypeToken<S> serviceType);
 

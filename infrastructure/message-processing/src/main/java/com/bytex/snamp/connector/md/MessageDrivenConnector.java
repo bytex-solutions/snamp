@@ -6,8 +6,11 @@ import com.bytex.snamp.connector.notifications.measurement.MeasurementNotificati
 import com.bytex.snamp.connector.notifications.measurement.MeasurementSource;
 
 import javax.management.Notification;
+import javax.management.NotificationListener;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
 
 /**
  * Represents abstract class for message-driven resource connector.
@@ -18,12 +21,14 @@ import java.util.concurrent.ExecutorService;
  * @since 2.0
  * @version 2.0
  */
-public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector {
+public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector implements NotificationListener {
 
     private final MeasurementSource source;
     private final MessageDrivenAttributeRepository attributes;
+    private final NotificationProcessingModel processingModel;
 
     protected MessageDrivenConnector(final String resourceName,
+                                     final NotificationProcessingModel processingModel,
                                      final Map<String, String> parameters,
                                      final MessageDrivenConnectorConfigurationDescriptor descriptor) {
 
@@ -32,23 +37,38 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         source = new MeasurementSource(componentName, componentInstance);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
         attributes = new MessageDrivenAttributeRepository(resourceName, threadPool);
+        this.processingModel = Objects.requireNonNull(processingModel);
     }
 
+
+
     protected Notification parseNotification(final Map<String, ?> headers,
-                                             final Object body){
+                                             final Object body) throws Exception{
         return null;
     }
 
-    private void postMessage(final MeasurementNotification notification){
-        attributes.post(notification);
+    @Override
+    public final void handleNotification(final Notification notification, final Object handback) {
+        if (notification instanceof MeasurementNotification)
+            attributes.post((MeasurementNotification) notification);
+        if (NotificationProcessingModel.UNICAST.equals(processingModel)) {
+            //send notification to other cluster nodes
+
+        }
     }
 
     public final void postMessage(final Map<String, ?> headers,
-                                     final Object body){
-        final Notification notification = parseNotification(headers, body);
+                                     final Object body) {
+        final Notification notification;
+        try {
+            notification = parseNotification(headers, body);
+        } catch (final Exception e) {
+            getLogger().log(Level.SEVERE, String.format("Unable to parse notification: %s", body), e);
+            return;
+        }
         //dispatching notification
-        if(notification instanceof MeasurementNotification)
-            postMessage((MeasurementNotification)notification);
+        if (notification != null)
+            handleNotification(notification, null);
     }
 
     @Override

@@ -24,14 +24,14 @@ import java.util.function.Supplier;
  * @since 1.0
  */
 public final class DistributedServices {
-    private static final class InMemoryStorage extends ConcurrentHashMap<String, Object>{
+    private static final class LocalStorage extends ConcurrentHashMap<String, Object>{
         private static final long serialVersionUID = 2412615001344706359L;
     }
 
-    private static final class InMemoryLongCounter extends AtomicLong implements LongCounter {
+    private static final class LocalLongCounter extends AtomicLong implements LongCounter {
         private static final long serialVersionUID = 498408165929062468L;
 
-        InMemoryLongCounter(){
+        LocalLongCounter(){
             super(0L);
         }
 
@@ -61,20 +61,22 @@ public final class DistributedServices {
 
         @Override
         public int hashCode() {
-            return serviceType.hashCode() ^ serviceName.hashCode();
+            return Objects.hash(serviceName, serviceType);
         }
     }
+
     //in-memory services should be stored as soft-reference. This strategy helps to avoid memory
     //leaks in long-running scenarios
     private static LoadingCache<InMemoryServiceCacheKey, Object> IN_MEMORY_SERVICES = CacheBuilder.newBuilder()
             .softValues()
             .build(new CacheLoader<InMemoryServiceCacheKey, Object>() {
+
                 @Override
                 public Object load(final InMemoryServiceCacheKey key) throws InvalidKeyException {
                     if(ClusterMember.IDGEN_SERVICE.equals(key.serviceType))
-                        return new InMemoryLongCounter();
+                        return new LocalLongCounter();
                     else if(ClusterMember.STORAGE_SERVICE.equals(key.serviceType))
-                        return new InMemoryStorage();
+                        return new LocalStorage();
                     else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
                 }
             });
@@ -161,7 +163,7 @@ public final class DistributedServices {
      * @return {@literal true}, if this method is called in clustered environment; otherwise, {@literal false}.
      */
     public static boolean isInCluster(final BundleContext context) {
-        return processClusterNode(context, member -> true, () -> false);
+        return processClusterNode(context, Objects::nonNull, () -> false);
     }
 
     /**

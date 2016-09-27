@@ -9,6 +9,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -89,6 +90,16 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         }
         electionThread = new LeaderElectionThread(hazelcast);
         electionThread.start();
+    }
+
+    /**
+     * Gets attributes associated with this member.
+     *
+     * @return The attributes associated with this member.
+     */
+    @Override
+    public Map<String, ?> getAttributes() {
+        return hazelcast.getCluster().getLocalMember().getAttributes();
     }
 
     /**

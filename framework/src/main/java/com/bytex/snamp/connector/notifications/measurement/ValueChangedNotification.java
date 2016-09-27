@@ -32,21 +32,33 @@ public class ValueChangedNotification extends MeasurementNotification implements
     }
 
     /**
-     * Determines whether this notification contains {@code boolean} value.
-     * @return {@literal true}, if this notification contains {@code boolean} value.
+     * Determines whether this notification contains {@code double} value.
+     * @return {@literal true}, if this notification contains {@code double} value.
      */
     public boolean isFloatingPoint(){
         return false;
     }
 
+    /**
+     * Determines whether this notification contains {@code boolean} value.
+     * @return {@literal true}, if this notification contains {@code boolean} value.
+     */
     public boolean isFlag(){
         return false;
     }
 
+    /**
+     * Determines whether this notification contains {@code long} value.
+     * @return {@literal true}, if this notification contains {@code long} value.
+     */
     public boolean isInteger(){
         return false;
     }
 
+    /**
+     * Determines whether this notification contains {@link String} value.
+     * @return {@literal true}, if this notification contains {@link String} value.
+     */
     public boolean isString(){
         return false;
     }
