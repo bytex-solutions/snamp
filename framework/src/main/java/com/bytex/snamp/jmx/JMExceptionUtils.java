@@ -25,7 +25,7 @@ public final class JMExceptionUtils {
         return new ListenerNotFoundException(String.format("Listener %s doesn't exist.", listener));
     }
 
-    static <V> V assertCall(final Callable<V> task){
-        return callAndWrapException(task, AssertionError::new);
+    static <V> V assertCall(final Callable<V> task) {
+        return callAndWrapException(task, e -> new AssertionError("Unexpected exception", e));
     }
 }

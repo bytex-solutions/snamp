@@ -162,6 +162,18 @@ public abstract class LockManager {
         }
     }
 
+    public final <I> void acceptLong(final Enum<?> resourceGroup, final I input1, final long input2, final ObjLongConsumer<? super I> action){
+        try(final SafeCloseable ignored = acquireLock(resourceGroup)){
+            action.accept(input1, input2);
+        }
+    }
+
+    public final <I> void acceptLong(final Enum<?> resourceGroup, final I input1, final long input2, final ObjLongConsumer<? super I> action, final Duration timeout) throws TimeoutException, InterruptedException {
+        try(final SafeCloseable ignored = acquireLock(resourceGroup, timeout)){
+            action.accept(input1, input2);
+        }
+    }
+
     public static <G extends Enum<G>> LockManager reentrantLockManager(final Class<G> resourceGroupDef){
         final class ReentrantLockScope extends ReentrantLock implements SafeCloseable{
             private static final long serialVersionUID = -1714568000375347533L;

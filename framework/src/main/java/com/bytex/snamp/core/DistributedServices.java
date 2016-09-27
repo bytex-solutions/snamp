@@ -3,6 +3,8 @@ package com.bytex.snamp.core;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.ComputationPipeline;
+import com.bytex.snamp.concurrent.LockManager;
+import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -16,9 +18,6 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -39,11 +38,12 @@ public final class DistributedServices {
     private static final class MessageListenerNode implements Communicator.MessageListener, Communicator.MessageFilter, SafeCloseable{
         private final Communicator.MessageListener listener;
         private final Communicator.MessageFilter filter;
-        private volatile MessageListenerNode previous;
-        private volatile MessageListenerNode next;
+        private final LockManager writeLock;
+        private MessageListenerNode previous;
+        private MessageListenerNode next;
 
-        private MessageListenerNode(){
-            this(MessageListenerNode::emptyHandler, MessageListenerNode::ignoreMessages);
+        private MessageListenerNode(final LockManager writeLock){
+            this(writeLock, MessageListenerNode::emptyHandler, MessageListenerNode::ignoreMessages);
         }
 
         private static void emptyHandler(final ClusterMemberInfo memberInfo, final Serializable message, final long messageID){
@@ -54,9 +54,10 @@ public final class DistributedServices {
             return false;
         }
 
-        private MessageListenerNode(final Communicator.MessageListener listener, final Communicator.MessageFilter filter){
+        private MessageListenerNode(final LockManager writeLock, final Communicator.MessageListener listener, final Communicator.MessageFilter filter){
             this.listener = Objects.requireNonNull(listener);
             this.filter = Objects.requireNonNull(filter);
+            this.writeLock = Objects.requireNonNull(writeLock);
         }
 
         @Override
@@ -83,24 +84,27 @@ public final class DistributedServices {
 
         @Override
         public void close() {
-            //remove this node from the chain
-            if (next != null)
-                next.setPrevious(previous);
-            if(previous != null)
-                previous.setNext(next);
-            previous = next = null;
+            try (final SafeCloseable ignored = writeLock.acquireLock(LocalCommunicator.RESOURCE_GROUP)) {
+                //remove this node from the chain
+                if (next != null)
+                    next.setPrevious(previous);
+                if (previous != null)
+                    previous.setNext(next);
+            } finally {
+                previous = next = null;
+            }
         }
     }
 
-    private static final class LocalCommunicator implements Communicator{
+    private static final class LocalCommunicator extends ThreadSafeObject implements Communicator{
+        private static Enum<?> RESOURCE_GROUP = SingleResourceGroup.INSTANCE;
         private final LongCounter idGenerator;
         private MessageListenerNode lastNode;
-        private final ReadWriteLock sync;
 
         private LocalCommunicator() {
+            super(SingleResourceGroup.class);
             idGenerator = new LocalLongCounter();
-            lastNode = new MessageListenerNode();   //empty node
-            sync = new ReentrantReadWriteLock();
+            lastNode = new MessageListenerNode(writeLock);   //empty node
         }
 
         @Override
@@ -110,26 +114,24 @@ public final class DistributedServices {
             return messageID;
         }
 
+        private void postMessageImpl(final Serializable message, final long messageID){
+            for (MessageListenerNode node = lastNode; node != null; node = node.getPrevious())
+                if (node.test(message, messageID))
+                    node.receive(null, message, messageID);
+        }
+
         @Override
         public void postMessage(final Serializable message, final long messageID) {
-            final Lock readLock = sync.readLock();
-            readLock.lock();
-            try {
-                for (MessageListenerNode node = lastNode; node != null; node = node.getPrevious())
-                    if (node.test(message, messageID))
-                        node.receive(null, message, messageID);
-            } finally {
-                readLock.unlock();
-            }
+            readLock.acceptLong(RESOURCE_GROUP, message, messageID, this::postMessageImpl);
         }
 
         @Override
         public Serializable receiveMessage(final MessageFilter filter, final Duration timeout) throws InterruptedException, TimeoutException {
             final MessageFuture future = new MessageFuture();
             try(final SafeCloseable ignored = addMessageListener(future, filter)){
-                return future.get(timeout.toMillis(), TimeUnit.NANOSECONDS);
+                return future.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
             } catch (final ExecutionException e) {
-                throw new AssertionError(e);    //should never be happened
+                throw new AssertionError("Unexpected execution exception", e);    //should never be happened
             }
         }
 
@@ -141,9 +143,16 @@ public final class DistributedServices {
             return future;
         }
 
+        private SafeCloseable addMessageListenerImpl(final MessageListener listener, final MessageFilter filter){
+            final MessageListenerNode node = new MessageListenerNode(writeLock, listener, filter);
+            node.setPrevious(lastNode);
+            lastNode.setNext(node);
+            return lastNode = node;
+        }
+
         @Override
         public SafeCloseable addMessageListener(final MessageListener listener, final MessageFilter filter) {
-            return null;
+            return writeLock.apply(RESOURCE_GROUP, listener, filter, this::addMessageListenerImpl);
         }
     }
 
