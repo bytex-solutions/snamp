@@ -6,8 +6,6 @@ import com.bytex.snamp.concurrent.ComputationPipeline;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Queue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -23,7 +21,7 @@ public interface Communicator {
     /**
      * Represents message type.
      */
-    enum MessageType implements Predicate<IncomingMessage>{
+    enum MessageType implements Predicate<IncomingMessage>, Serializable{
         /**
          * Represents request message.
          */
@@ -92,16 +90,16 @@ public interface Communicator {
 
     /**
      * Sends a one-way message.
-     * @param message A message to send.
+     * @param signal A message to send.
      */
-    void sendSignal(final Serializable message);
+    void sendSignal(final Serializable signal);
 
     /**
      * Sends a message of the specified type.
-     * @param message A message to send. Cannot be {@literal null}.
+     * @param payload Payload of the message to send. Cannot be {@literal null}.
      * @param type Type of the message.
      */
-    void sendMessage(final Serializable message, final MessageType type);
+    void sendMessage(final Serializable payload, final MessageType type);
 
     /**
      * Sends a message of the specified type.
@@ -121,9 +119,9 @@ public interface Communicator {
 
     MessageBox createMessageBox(final Predicate<? super IncomingMessage> filter);
 
-    IncomingMessage sendRequest(final Serializable message, final Duration timeout) throws InterruptedException, TimeoutException;
+    IncomingMessage sendRequest(final Serializable request, final Duration timeout) throws InterruptedException, TimeoutException;
 
-    ComputationPipeline<? extends IncomingMessage> sendRequest(final Serializable message) throws InterruptedException;
+    ComputationPipeline<? extends IncomingMessage> sendRequest(final Serializable request) throws InterruptedException;
 
     static Predicate<? super IncomingMessage> responseWithMessageID(final long messageID){
         return MessageType.RESPONSE.and(msg -> msg.getMessageID() == messageID);

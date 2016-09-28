@@ -203,18 +203,14 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
 
     private static final class MessageFuture extends CompletableFuture<IncomingMessage> implements ComputationPipeline<IncomingMessage>, MessageListenerNode{
         private final NodePosition position;
-        private final boolean closeWhenComplete;
 
-        private MessageFuture(final LockManager writeLock, final Predicate<? super IncomingMessage> filter, final boolean closeWhenComplete){
+        private MessageFuture(final LockManager writeLock, final Predicate<? super IncomingMessage> filter){
             position = new NodePosition(writeLock, filter);
-            this.closeWhenComplete = closeWhenComplete;
         }
 
         @Override
         public void accept(final IncomingMessage message) {
             complete(message);
-            if (closeWhenComplete)
-                position.detach();
         }
 
         @Override
@@ -367,13 +363,13 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     @Override
-    public void sendSignal(final Serializable message) {
-        sendMessage(message, MessageType.SIGNAL);
+    public void sendSignal(final Serializable signal) {
+        sendMessage(signal, MessageType.SIGNAL);
     }
 
     @Override
-    public void sendMessage(final Serializable message, final MessageType type) {
-        sendMessage(message, type, newMessageID());
+    public void sendMessage(final Serializable payload, final MessageType type) {
+        sendMessage(payload, type, newMessageID());
     }
 
     private void sendMessageImpl(final Serializable payload, final long messageID, final MessageType type) {
@@ -400,7 +396,10 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     private MessageFuture receiveMessage(final Predicate<? super IncomingMessage> filter, final boolean closeWhenComplete) {
-        return addMessageListener(lock -> new MessageFuture(lock, filter, closeWhenComplete));
+        final MessageFuture result = addMessageListener(lock -> new MessageFuture(lock, filter));
+        if(closeWhenComplete)
+            result.thenRun(result::close);
+        return result;
     }
 
     @Override

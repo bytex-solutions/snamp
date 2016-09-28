@@ -10,7 +10,6 @@ import com.hazelcast.core.ILock;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -126,11 +125,17 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
             result = getStorage(serviceName);
         else if (IDGEN_SERVICE.equals(serviceType))
             result = getLongCounter(serviceName);
+        else if(COMMUNICATION_SERVICE.equals(serviceType))
+            result = getCommunicator(serviceName);
         else return null;
         return TypeTokens.cast(result, serviceType);
     }
 
-    private ConcurrentMap<String, Object> getStorage(final String collectionName){
+    private HazelcastCommunicator getCommunicator(final String serviceName){
+        return new HazelcastCommunicator(hazelcast, serviceName, this);
+    }
+
+    private HazelcastStorage getStorage(final String collectionName){
         return new HazelcastStorage(hazelcast, collectionName);
     }
 
