@@ -27,7 +27,7 @@ final class HazelcastCommunicator implements Communicator {
             this.filter = Objects.requireNonNull(filter);
         }
 
-        void onMessage(final HazelcastIncomingMessage inputMessage){
+        private void onMessage(final HazelcastIncomingMessage inputMessage){
             if(filter.test(inputMessage))
                 complete(inputMessage);
         }

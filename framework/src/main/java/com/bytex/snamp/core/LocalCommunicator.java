@@ -92,10 +92,10 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
             return filter.test(message);
         }
 
-        final void detach() {
+        final void removeNode() {
             final LockManager writeLock = getAndSet(null);
             if (writeLock != null)
-                try (final SafeCloseable ignored = writeLock.acquireLock(LocalCommunicator.RESOURCE_GROUP)) {
+                try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
                     //remove this node from the chain
                     if (next != null)
                         next.setPrevious(previous);
@@ -124,7 +124,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
 
         @Override
         public void close() {
-            position.detach();
+            position.removeNode();
         }
 
         @Override
@@ -167,7 +167,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
 
         @Override
         public void close() {
-            position.detach();
+            position.removeNode();
         }
 
         @Override
@@ -215,7 +215,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
 
         @Override
         public void close() {
-            position.detach();
+            position.removeNode();
         }
 
         @Override
@@ -326,11 +326,6 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         }
 
         @Override
-        public void close() {
-            detach();
-        }
-
-        @Override
         public void accept(final IncomingMessage message) {
             listener.accept(message);
         }
@@ -339,9 +334,13 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         public String toString() {
             return listener.toString();
         }
+
+        @Override
+        public void close() {
+            removeNode();
+        }
     }
 
-    private static Enum<?> RESOURCE_GROUP = SingleResourceGroup.INSTANCE;
     private final LongCounter idGenerator;
     private final HeadMessageListenerNode firstNode;
     private final TailMessageListenerNode lastNode;
@@ -383,7 +382,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
 
     @Override
     public void sendMessage(final Serializable payload, final MessageType type, final long messageID) {
-        readLock.accept(RESOURCE_GROUP, this, communicator -> communicator.sendMessageImpl(payload, messageID, type));
+        readLock.accept(SingleResourceGroup.INSTANCE, this, communicator -> communicator.sendMessageImpl(payload, messageID, type));
     }
 
     @Override
@@ -420,7 +419,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     private <N extends MessageListenerNode> N addMessageListener(final Function<? super LockManager, ? extends N> nodeFactory) {
-        return writeLock.apply(RESOURCE_GROUP, this, nodeFactory, LocalCommunicator::addMessageListenerImpl);
+        return writeLock.apply(SingleResourceGroup.INSTANCE, this, nodeFactory, LocalCommunicator::addMessageListenerImpl);
     }
 
     @Override
@@ -455,5 +454,9 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         final MessageFuture receiver = receiveMessage(Communicator.responseWithMessageID(messageID), true);
         sendMessage(message, MessageType.REQUEST, messageID);
         return receiver;
+    }
+
+    boolean hasNoSubscribers(){
+        return firstNode.getNext() == lastNode;
     }
 }

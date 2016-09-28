@@ -35,6 +35,7 @@ public final class DistributedServicesTest extends Assert {
     @Test
     public void communicatorTest() throws InterruptedException, ExecutionException, TimeoutException {
         final Communicator com = DistributedServices.getProcessLocalCommunicator("localCommunicator");
+        assertTrue(com instanceof LocalCommunicator);
         //test message box
         try(final Communicator.MessageBox box = com.createMessageBox(Communicator.ANY_MESSAGE)) {
             com.sendSignal("First");
@@ -47,6 +48,7 @@ public final class DistributedServicesTest extends Assert {
         //test future
         final Future<? extends Communicator.IncomingMessage> receiver1 = com.receiveMessage(Communicator.ANY_MESSAGE);
         final Future<? extends Communicator.IncomingMessage> receiver2 = com.receiveMessage(Communicator.ANY_MESSAGE);
+        assertFalse(((LocalCommunicator)com).hasNoSubscribers());
         com.sendSignal("Hello");
         assertEquals("Hello", receiver1.get(1, TimeUnit.SECONDS).getPayload());
         assertEquals("Hello", receiver2.get(1, TimeUnit.SECONDS).getPayload());
@@ -65,5 +67,6 @@ public final class DistributedServicesTest extends Assert {
             final Communicator.IncomingMessage response = com.sendRequest("Request", Duration.ofSeconds(1L));
             assertEquals(EXPECTED_RESPONSE, response.getPayload());
         }
+        assertTrue(((LocalCommunicator)com).hasNoSubscribers());
     }
 }
