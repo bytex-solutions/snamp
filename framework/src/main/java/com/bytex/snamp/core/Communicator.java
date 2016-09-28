@@ -5,8 +5,12 @@ import com.bytex.snamp.concurrent.ComputationPipeline;
 
 import java.io.Serializable;
 import java.time.Duration;
-import java.util.EventListener;
+import java.util.Queue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Represents message bus used to communicate with other SNAMP nodes in the cluster.
@@ -14,53 +18,114 @@ import java.util.concurrent.TimeoutException;
  * @version 2.0
  */
 public interface Communicator {
-    /**
-     * Represents message listener.
-     */
-    @FunctionalInterface
-    interface MessageListener extends EventListener{
-        void receive(final ClusterMemberInfo sender, final Serializable message, final long messageID);
-    }
+    Predicate<? super IncomingMessage> ANY_MESSAGE = msg -> true;
 
     /**
-     * Represents message filter.
+     * Represents message type.
      */
-    @FunctionalInterface
-    interface MessageFilter{
-        boolean test(final Serializable message, final long messageID);
+    enum MessageType implements Predicate<IncomingMessage>{
+        /**
+         * Represents request message.
+         */
+        REQUEST,
+        /**
+         * Represents response message.
+         */
+        RESPONSE,
+        /**
+         * Represents one-way message without response
+         */
+        SIGNAL;
 
-        default MessageFilter and(final MessageFilter filter) {
-            return (message, id) -> test(message, id) && filter.test(message, id);
+        @Override
+        public final boolean test(final IncomingMessage message) {
+            return equals(message.getType());
         }
     }
 
     /**
-     * Sends a message.
-     * @param message A message to send. Cannot be {@literal null}.
-     * @return Message ID.
+     * Represents incoming message.
      */
-    long postMessage(final Serializable message);
+    interface IncomingMessage {
+        /**
+         * Gets payload of the message.
+         * @return Payload of the message.
+         */
+        Serializable getPayload();
 
+        /**
+         * Gets sender of the message.
+         * @return Sender of the message.
+         */
+        ClusterMemberInfo getSender();
+
+        /**
+         * Gets message identifier.
+         * @return Message identifier.
+         */
+        long getMessageID();
+
+        /**
+         * Gets publication time of this message in Unix time format.
+         * @return Publication time of this message in Unix time format.
+         */
+        long getTimeStamp();
+
+        /**
+         * Gets type of this message.
+         * @return Type of this message.
+         */
+        MessageType getType();
+    }
     /**
-     * Sends a message.
-     * @param message A message to send. Cannot be {@literal null}.
-     * @param messageID User-defined message ID.
+     * Represents input message box.
      */
-    void postMessage(final Serializable message, final long messageID);
+    interface MessageBox extends Queue<IncomingMessage>, SafeCloseable{
 
-    Serializable receiveMessage(final MessageFilter filter, final Duration timeout) throws InterruptedException, TimeoutException;
-
-    ComputationPipeline<? extends Serializable> receiveMessage(final MessageFilter filter);
-
-    SafeCloseable addMessageListener(final MessageListener listener, final MessageFilter filter);
-
-    static Serializable sendMessage(final Communicator communicator, final Serializable message, final Duration timeout) throws InterruptedException, TimeoutException {
-        final long messageID = communicator.postMessage(message);
-        return communicator.receiveMessage((msg, id) -> messageID == id, timeout);
     }
 
-    static ComputationPipeline<? extends Serializable> sendMessage(final Communicator communicator, final Serializable message) throws InterruptedException {
-        final long messageID = communicator.postMessage(message);
-        return communicator.receiveMessage((msg, id) -> messageID == id);
+    /**
+     * Generates a new unique message identifier.
+     * @return Unique message identifier.
+     */
+    long newMessageID();
+
+    /**
+     * Sends a one-way message.
+     * @param message A message to send.
+     */
+    void sendSignal(final Serializable message);
+
+    /**
+     * Sends a message of the specified type.
+     * @param message A message to send. Cannot be {@literal null}.
+     * @param type Type of the message.
+     */
+    void sendMessage(final Serializable message, final MessageType type);
+
+    /**
+     * Sends a message of the specified type.
+     * @param payload A message to send. Cannot be {@literal null}.
+     * @param type Type of the message.
+     * @param messageID User-defined message ID.
+     */
+    void sendMessage(final Serializable payload, final MessageType type, final long messageID);
+
+    IncomingMessage receiveMessage(final Predicate<? super IncomingMessage> filter, final Duration timeout) throws InterruptedException, TimeoutException;
+
+    ComputationPipeline<? extends IncomingMessage> receiveMessage(final Predicate<? super IncomingMessage> filter);
+
+    SafeCloseable addMessageListener(final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter);
+
+    MessageBox createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter);
+
+    MessageBox createMessageBox(final Predicate<? super IncomingMessage> filter);
+
+    IncomingMessage sendRequest(final Serializable message, final Duration timeout) throws InterruptedException, TimeoutException;
+
+    ComputationPipeline<? extends IncomingMessage> sendRequest(final Serializable message) throws InterruptedException;
+
+    static Predicate<? super IncomingMessage> responseWithMessageID(final long messageID){
+        return MessageType.RESPONSE.and(msg -> msg.getMessageID() == messageID);
     }
 }

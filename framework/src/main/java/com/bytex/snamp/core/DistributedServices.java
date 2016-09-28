@@ -1,10 +1,6 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TypeTokens;
-import com.bytex.snamp.concurrent.ComputationPipeline;
-import com.bytex.snamp.concurrent.LockManager;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -12,12 +8,10 @@ import com.google.common.reflect.TypeToken;
 import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.InvalidKeyException;
-import java.io.Serializable;
 import java.lang.management.ManagementFactory;
-import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -28,151 +22,6 @@ import java.util.function.Supplier;
  * @since 1.0
  */
 public final class DistributedServices {
-    private static final class MessageFuture extends CompletableFuture<Serializable> implements ComputationPipeline<Serializable>, Communicator.MessageListener{
-        @Override
-        public void receive(final ClusterMemberInfo sender, final Serializable message, final long messageID) {
-            complete(message);
-        }
-    }
-
-    private static final class MessageListenerNode implements Communicator.MessageListener, Communicator.MessageFilter, SafeCloseable{
-        private final Communicator.MessageListener listener;
-        private final Communicator.MessageFilter filter;
-        private final LockManager writeLock;
-        private MessageListenerNode previous;
-        private MessageListenerNode next;
-
-        private MessageListenerNode(final LockManager writeLock){
-            this(writeLock, MessageListenerNode::emptyHandler, MessageListenerNode::ignoreMessages);
-        }
-
-        private static void emptyHandler(final ClusterMemberInfo memberInfo, final Serializable message, final long messageID){
-
-        }
-
-        private static boolean ignoreMessages(final Serializable message, final long messageID){
-            return false;
-        }
-
-        private MessageListenerNode(final LockManager writeLock, final Communicator.MessageListener listener, final Communicator.MessageFilter filter){
-            this.listener = Objects.requireNonNull(listener);
-            this.filter = Objects.requireNonNull(filter);
-            this.writeLock = Objects.requireNonNull(writeLock);
-        }
-
-        @Override
-        public void receive(final ClusterMemberInfo sender, final Serializable message, final long messageID) {
-            listener.receive(sender, message, messageID);
-        }
-
-        @Override
-        public boolean test(final Serializable message, final long messageID) {
-            return filter.test(message, messageID);
-        }
-
-        private void setPrevious(final MessageListenerNode listener){
-            previous = listener;
-        }
-
-        private void setNext(final MessageListenerNode listener){
-            next = listener;
-        }
-
-        private MessageListenerNode getPrevious(){
-            return previous;
-        }
-
-        @Override
-        public void close() {
-            try (final SafeCloseable ignored = writeLock.acquireLock(LocalCommunicator.RESOURCE_GROUP)) {
-                //remove this node from the chain
-                if (next != null)
-                    next.setPrevious(previous);
-                if (previous != null)
-                    previous.setNext(next);
-            } finally {
-                previous = next = null;
-            }
-        }
-    }
-
-    private static final class LocalCommunicator extends ThreadSafeObject implements Communicator{
-        private static Enum<?> RESOURCE_GROUP = SingleResourceGroup.INSTANCE;
-        private final LongCounter idGenerator;
-        private MessageListenerNode lastNode;
-
-        private LocalCommunicator() {
-            super(SingleResourceGroup.class);
-            idGenerator = new LocalLongCounter();
-            lastNode = new MessageListenerNode(writeLock);   //empty node
-        }
-
-        @Override
-        public long postMessage(final Serializable message) {
-            final long messageID = idGenerator.getAsLong();
-            postMessage(message, messageID);
-            return messageID;
-        }
-
-        private void postMessageImpl(final Serializable message, final long messageID){
-            for (MessageListenerNode node = lastNode; node != null; node = node.getPrevious())
-                if (node.test(message, messageID))
-                    node.receive(null, message, messageID);
-        }
-
-        @Override
-        public void postMessage(final Serializable message, final long messageID) {
-            readLock.acceptLong(RESOURCE_GROUP, message, messageID, this::postMessageImpl);
-        }
-
-        @Override
-        public Serializable receiveMessage(final MessageFilter filter, final Duration timeout) throws InterruptedException, TimeoutException {
-            final MessageFuture future = new MessageFuture();
-            try(final SafeCloseable ignored = addMessageListener(future, filter)){
-                return future.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
-            } catch (final ExecutionException e) {
-                throw new AssertionError("Unexpected execution exception", e);    //should never be happened
-            }
-        }
-
-        @Override
-        public ComputationPipeline<? extends Serializable> receiveMessage(final MessageFilter filter) {
-            final MessageFuture future = new MessageFuture();
-            final SafeCloseable subscription = addMessageListener(future, filter);
-            future.thenAccept(msg -> subscription.close());
-            return future;
-        }
-
-        private SafeCloseable addMessageListenerImpl(final MessageListener listener, final MessageFilter filter){
-            final MessageListenerNode node = new MessageListenerNode(writeLock, listener, filter);
-            node.setPrevious(lastNode);
-            lastNode.setNext(node);
-            return lastNode = node;
-        }
-
-        @Override
-        public SafeCloseable addMessageListener(final MessageListener listener, final MessageFilter filter) {
-            return writeLock.apply(RESOURCE_GROUP, listener, filter, this::addMessageListenerImpl);
-        }
-    }
-
-    private static final class LocalStorage extends ConcurrentHashMap<String, Object>{
-        private static final long serialVersionUID = 2412615001344706359L;
-    }
-
-    private static final class LocalLongCounter extends AtomicLong implements LongCounter {
-        private static final long serialVersionUID = 498408165929062468L;
-
-        LocalLongCounter(){
-            super(0L);
-        }
-
-        @Override
-        public long getAsLong() {
-            return getAndIncrement();
-        }
-    }
-
     private static final class InMemoryServiceCacheKey<S>{
         private final TypeToken<S> serviceType;
         private final String serviceName;
@@ -209,6 +58,8 @@ public final class DistributedServices {
                         return new LocalLongCounter();
                     else if(ClusterMember.STORAGE_SERVICE.equals(key.serviceType))
                         return new LocalStorage();
+                    else if(ClusterMember.COMMUNICATION_SERVICE.equals(key.serviceType))
+                        return new LocalCommunicator();
                     else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
                 }
             });
@@ -224,6 +75,10 @@ public final class DistributedServices {
         } catch (final ExecutionException e) {
             return null;
         }
+    }
+
+    public static Communicator getProcessLocalCommunicator(final String channelName){
+        return getProcessLocalService(channelName, ClusterMember.COMMUNICATION_SERVICE);
     }
 
     /**

@@ -30,6 +30,11 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
     TypeToken<ConcurrentMap<String, Object>> STORAGE_SERVICE = new TypeToken<ConcurrentMap<String, Object>>() {};
 
     /**
+     * Represents communication service.
+     */
+    TypeToken<Communicator> COMMUNICATION_SERVICE = TypeToken.of(Communicator.class);
+
+    /**
      * Marks this node as passive and execute leader election.
      */
     void resign();
