@@ -346,20 +346,19 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     private static Enum<?> RESOURCE_GROUP = SingleResourceGroup.INSTANCE;
-    private static final GroupedThreadFactory LOCAL_THREAD_GROUP = new GroupedThreadFactory("LocalCommunicator");
     private final LongCounter idGenerator;
     private final HeadMessageListenerNode firstNode;
     private final TailMessageListenerNode lastNode;
     private final ExecutorService threadPool;
 
-    LocalCommunicator() {
+    LocalCommunicator(final String communicatorName) {
         super(SingleResourceGroup.class);
         idGenerator = new LocalLongCounter();
         firstNode = new HeadMessageListenerNode();
         lastNode = new TailMessageListenerNode();   //tail empty node
         firstNode.setNext(lastNode);
         lastNode.setPrevious(firstNode);
-        threadPool = Executors.newSingleThreadExecutor(LOCAL_THREAD_GROUP);
+        threadPool = Executors.newSingleThreadExecutor(new GroupedThreadFactory("LocalCommunicator-".concat(communicatorName)));
     }
 
     @Override

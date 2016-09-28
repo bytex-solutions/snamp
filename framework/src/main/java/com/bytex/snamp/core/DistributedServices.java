@@ -22,22 +22,22 @@ import java.util.function.Supplier;
  * @since 1.0
  */
 public final class DistributedServices {
-    private static final class InMemoryServiceCacheKey<S>{
-        private final TypeToken<S> serviceType;
+    private static final class LocalServiceKey<S> {
         private final String serviceName;
+        private final TypeToken<S> serviceType;
 
-        private InMemoryServiceCacheKey(final String serviceName, final TypeToken<S> serviceType){
-            this.serviceType = Objects.requireNonNull(serviceType);
+        private LocalServiceKey(final String serviceName, final TypeToken<S> serviceType){
             this.serviceName = Objects.requireNonNull(serviceName);
+            this.serviceType = Objects.requireNonNull(serviceType);
         }
 
-        private boolean equals(final InMemoryServiceCacheKey other){
+        private boolean equals(final LocalServiceKey other){
             return serviceName.equals(other.serviceName) && serviceType.equals(other.serviceType);
         }
 
         @Override
         public boolean equals(final Object other) {
-            return other instanceof InMemoryServiceCacheKey && equals((InMemoryServiceCacheKey)other);
+            return other instanceof LocalServiceKey && equals((LocalServiceKey)other);
         }
 
         @Override
@@ -48,18 +48,18 @@ public final class DistributedServices {
 
     //in-memory services should be stored as soft-reference. This strategy helps to avoid memory
     //leaks in long-running scenarios
-    private static LoadingCache<InMemoryServiceCacheKey, Object> IN_MEMORY_SERVICES = CacheBuilder.newBuilder()
+    private static LoadingCache<LocalServiceKey, Object> LOCAL_SERVICES = CacheBuilder.newBuilder()
             .softValues()
-            .build(new CacheLoader<InMemoryServiceCacheKey, Object>() {
+            .build(new CacheLoader<LocalServiceKey, Object>() {
 
                 @Override
-                public Object load(final InMemoryServiceCacheKey key) throws InvalidKeyException {
+                public Object load(final LocalServiceKey key) throws InvalidKeyException {
                     if(ClusterMember.IDGEN_SERVICE.equals(key.serviceType))
                         return new LocalLongCounter();
                     else if(ClusterMember.STORAGE_SERVICE.equals(key.serviceType))
                         return new LocalStorage();
                     else if(ClusterMember.COMMUNICATION_SERVICE.equals(key.serviceType))
-                        return new LocalCommunicator();
+                        return new LocalCommunicator(key.serviceName);
                     else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
                 }
             });
@@ -69,9 +69,9 @@ public final class DistributedServices {
     }
 
     private static <S> S getProcessLocalService(final String serviceName, final TypeToken<S> serviceType) {
-        final InMemoryServiceCacheKey<S> key = new InMemoryServiceCacheKey<>(serviceName, serviceType);
+        final LocalServiceKey<S> key = new LocalServiceKey<>(serviceName, serviceType);
         try {
-            return TypeTokens.cast(IN_MEMORY_SERVICES.get(key), serviceType);
+            return TypeTokens.cast(LOCAL_SERVICES.get(key), serviceType);
         } catch (final ExecutionException e) {
             return null;
         }
