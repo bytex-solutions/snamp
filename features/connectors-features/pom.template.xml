@@ -9,7 +9,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>SNAMP Connectors Collection</name>
+    <name>Packed Connectors</name>
     <artifactId>connectors-features</artifactId>
     <packaging>pom</packaging>
     <modules>

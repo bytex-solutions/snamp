@@ -132,7 +132,7 @@ final class HazelcastCommunicator implements Communicator {
         final MessageReceiver receiver = new MessageReceiver(filter);
         final String subscription = topic.addMessageListener(receiver);
         try {
-            return receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+            return timeout == null ? receiver.get() : receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         } catch (final ExecutionException e) {
             throw new AssertionError("Unexpected exception", e);
         } finally {
@@ -176,7 +176,7 @@ final class HazelcastCommunicator implements Communicator {
         final String subscription = topic.addMessageListener(receiver);
         try {
             sendMessage(request, MessageType.REQUEST, messageID);
-            return receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+            return timeout == null ? receiver.get() : receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         } catch (final ExecutionException e) {
             throw new AssertionError("Unexpected exception", e);
         } finally {

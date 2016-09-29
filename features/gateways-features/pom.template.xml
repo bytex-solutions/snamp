@@ -9,7 +9,8 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>Collection of read-to-use gateways</name>
+    <name>Packed Gateways</name>
+    <description>Collection of ready-to-use gateways</description>
     <artifactId>gateways-features</artifactId>
     <packaging>pom</packaging>
     <modules>

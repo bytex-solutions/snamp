@@ -398,7 +398,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     @Override
     public IncomingMessage receiveMessage(final Predicate<? super IncomingMessage> filter, final Duration timeout) throws InterruptedException, TimeoutException {
         try (final MessageFuture future = receiveMessage(filter, false)) {
-            return future.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+            return timeout == null ? future.get() : future.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         } catch (final ExecutionException e) {
             throw new AssertionError("Unexpected execution exception", e);    //should never be happened
         }
@@ -452,7 +452,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         final long messageID = newMessageID();
         try (final MessageFuture receiver = receiveMessage(Communicator.responseWithMessageID(messageID), false)) {
             sendMessage(message, MessageType.REQUEST, messageID);
-            return receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+            return timeout == null ? receiver.get() : receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         } catch (final ExecutionException e) {
             throw new AssertionError("Unexpected exception", e);
         }

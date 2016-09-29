@@ -10,7 +10,7 @@
   </parent>
   <artifactId>connectors-features</artifactId>
   <packaging>pom</packaging>
-  <name>SNAMP Connectors Collection</name>
+  <name>Packed Connectors</name>
   <modules>
     <module>jmx-connector-feature</module>
     <module>snmp-connector-feature</module>
