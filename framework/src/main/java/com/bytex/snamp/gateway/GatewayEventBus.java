@@ -1,13 +1,18 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
+import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import org.osgi.framework.BundleContext;
 
 import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static com.bytex.snamp.internal.Utils.getBundleContext;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -17,11 +22,18 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 final class GatewayEventBus {
-    private static final ExecutorService EVENT_EXECUTOR =
-            Executors.newSingleThreadExecutor(new GroupedThreadFactory("GATEWAY_EVENT_BUS"));
+    private static final LazyValue<ExecutorService> LOCAL_EVENT_EXECUTOR = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> newSingleThreadExecutor(new GroupedThreadFactory("GATEWAY_EVENT_BUS")));
 
     private static final Multimap<String, WeakReference<GatewayEventListener>> listeners =
             HashMultimap.create(10, 3);
+
+    private static ExecutorService getEventExecutor() {
+        final BundleContext context = getBundleContext(GatewayEventBus.class);
+        ExecutorService result = context == null ? LOCAL_EVENT_EXECUTOR.get() : ThreadPoolRepository.getDefaultThreadPool(context);
+        if (result == null)
+            result = LOCAL_EVENT_EXECUTOR.get();
+        return result;
+    }
 
     private GatewayEventBus(){
         throw new InstantiationError();
@@ -48,9 +60,7 @@ final class GatewayEventBus {
         synchronized (listeners) {
             WeakMultimap.iterate(listeners, (type, listener) -> {
                 if (Objects.equals(gatewayType, type))
-                    if (EVENT_EXECUTOR.isTerminated())
-                        listener.handle(event);
-                    else EVENT_EXECUTOR.execute(() -> listener.handle(event));
+                    getEventExecutor().execute(() -> listener.handle(event));
                 return true;
             });
         }

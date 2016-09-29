@@ -13,7 +13,7 @@ public final class LazyValueTest extends Assert {
     public void illegalStateTest(){
         final LazyValue<BigInteger> lazy = LazyValueFactory.THREAD_SAFE.of(() -> BigInteger.TEN);
         assertFalse(lazy.isActivated());
-        lazy.getIfActivated();
+        lazy.getIfPresent();
     }
 
     @Test

@@ -11,7 +11,7 @@ import com.bytex.snamp.SpecialUse;
 public final class SysLogGatewayActivator extends GatewayActivator<SysLogGateway> {
     @SpecialUse
     public SysLogGatewayActivator(){
-        super(SysLogGatewayActivator::newGateway, configurationDescriptor(SysLogConfigurationDescriptor::new));
+        super(SysLogGatewayActivator::newGateway, configurationDescriptor(SysLogConfigurationDescriptor::getInstance));
     }
 
     private static SysLogGateway newGateway(final String instanceName,

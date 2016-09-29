@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.jmx;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
@@ -30,6 +31,7 @@ import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -426,12 +428,13 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                                           final ObjectName globalName,
                                           final BundleContext context,
                                           final JmxConnectionManager connectionManager,
+                                          final ExecutorService threadPool,
                                           final boolean expandable) {
             super(resourceName, JmxNotificationInfo.class, DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)), expandable);
             this.connectionManager = connectionManager;
             this.globalObjectName = globalName;
             this.connectionManager.addReconnectionHandler(this);
-            listenerInvoker = createListenerInvoker(Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifs-".concat(resourceName))));
+            listenerInvoker = createListenerInvoker(threadPool);
         }
 
         private static NotificationListenerInvoker createListenerInvoker(final Executor executor){
@@ -728,6 +731,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                 connectionOptions.getGlobalObjectName(),
                 Utils.getBundleContextOfObject(this),
                 connectionManager,
+                connectionOptions.getThreadPool(),
                 smartMode);
         this.attributes = new JmxAttributeRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager, smartMode);
         this.operations = new JmxOperationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager, smartMode);

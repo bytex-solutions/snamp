@@ -3,6 +3,7 @@ package com.bytex.snamp.core;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.*;
+import org.osgi.framework.BundleContext;
 
 import java.io.Serializable;
 import java.time.Duration;
@@ -12,6 +13,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents cluster-local communicator.
@@ -341,19 +344,26 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         }
     }
 
+    private static final LazyValue<ExecutorService> LOCAL_MESSAGE_SENDER = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> newSingleThreadExecutor(new GroupedThreadFactory("LocalCommunicator")));
     private final LongCounter idGenerator;
     private final HeadMessageListenerNode firstNode;
     private final TailMessageListenerNode lastNode;
-    private final ExecutorService threadPool;
 
-    LocalCommunicator(final String communicatorName) {
+    LocalCommunicator() {
         super(SingleResourceGroup.class);
         idGenerator = new LocalLongCounter();
         firstNode = new HeadMessageListenerNode();
         lastNode = new TailMessageListenerNode();   //tail empty node
         firstNode.setNext(lastNode);
         lastNode.setPrevious(firstNode);
-        threadPool = Executors.newSingleThreadExecutor(new GroupedThreadFactory("LocalCommunicator-".concat(communicatorName)));
+    }
+
+    private ExecutorService getExecutorService() {
+        final BundleContext context = getBundleContextOfObject(this);
+        ExecutorService result = context == null ? LOCAL_MESSAGE_SENDER.get() : ThreadPoolRepository.getDefaultThreadPool(context);
+        if (result == null)
+            result = LOCAL_MESSAGE_SENDER.get();
+        return result;
     }
 
     @Override
@@ -376,7 +386,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         for (MessageListenerNode node = firstNode.getNext(); !(node instanceof TailMessageListenerNode); node = node.getNext())
             if (node.test(message)) {
                 final Consumer<? super IncomingMessage> listener = node;
-                threadPool.execute(() -> listener.accept(message));
+                getExecutorService().execute(() -> listener.accept(message));
             }
     }
 

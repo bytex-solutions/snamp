@@ -46,4 +46,8 @@ public interface ThreadPoolRepository extends SupportService, ManagedService, It
             }
         else return null;
     }
+
+    static ExecutorService getDefaultThreadPool(final BundleContext context){
+        return getThreadPool(context, DEFAULT_POOL, true);
+    }
 }

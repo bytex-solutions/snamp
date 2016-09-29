@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.groovy.impl;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
@@ -96,14 +97,14 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
         private GroovyNotificationRepository(final String resourceName,
                                              final EventConnector connector,
-                                             final BundleContext context){
+                                             final ExecutorService threadPool,
+                                             final BundleContext context) {
             super(resourceName,
                     GroovyNotificationInfo.class,
                     DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)),
                     false);
             this.connector = Objects.requireNonNull(connector);
-            final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifications-".concat(resourceName)));
-            this.listenerInvoker = createListenerInvoker(executor);
+            this.listenerInvoker = createListenerInvoker(threadPool);
         }
 
         private static NotificationListenerInvoker createListenerInvoker(final Executor executor) {
@@ -282,7 +283,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                 null :
                 engine.init(initScript, params);
         attributes = new GroovyAttributeRepository(resourceName, engine);
-        events = new GroovyNotificationRepository(resourceName, engine, Utils.getBundleContextOfObject(this));
+        final ExecutorService threadPool = GroovyResourceConfigurationDescriptor.getInstance().parseThreadPool(params);
+        events = new GroovyNotificationRepository(resourceName, engine, threadPool, Utils.getBundleContextOfObject(this));
     }
 
     @Aggregation

@@ -3,8 +3,10 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.Acceptor;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * @author Roman Sakno
@@ -45,8 +47,12 @@ final class SimpleLazyValue<V> implements LazyValue<V> {
     }
 
     @Override
-    public V getIfActivated() throws IllegalStateException {
-        if(isActivated()) return value;
-        else throw new IllegalStateException();
+    public void reset() {
+        value = null;
+    }
+
+    @Override
+    public Optional<V> getIfPresent() {
+        return value != null ? Optional.of(value) : Optional.empty();
     }
 }

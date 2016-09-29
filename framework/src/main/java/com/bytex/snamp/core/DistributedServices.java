@@ -59,7 +59,7 @@ public final class DistributedServices {
                     else if(ClusterMember.STORAGE_SERVICE.equals(key.serviceType))
                         return new LocalStorage();
                     else if(ClusterMember.COMMUNICATION_SERVICE.equals(key.serviceType))
-                        return new LocalCommunicator(key.serviceName);
+                        return new LocalCommunicator();
                     else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
                 }
             });

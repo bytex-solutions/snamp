@@ -20,10 +20,8 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
-
-import static com.bytex.snamp.gateway.syslog.SysLogConfigurationDescriptor.createSender;
-import static com.bytex.snamp.gateway.syslog.SysLogConfigurationDescriptor.getPassiveCheckSendPeriod;
 
 /**
  * @author Roman Sakno
@@ -174,9 +172,10 @@ final class SysLogGateway extends AbstractGateway {
     }
 
     private void start(final SyslogMessageSender sender,
-                       final Duration passiveCheckSendPeriod){
+                       final Duration passiveCheckSendPeriod,
+                       final ExecutorService threadPool){
         final ConcurrentSyslogMessageSender parallelSender =
-                new ConcurrentSyslogMessageSender(sender);
+                new ConcurrentSyslogMessageSender(sender, threadPool);
         attributeSender = new SysLogAttributeSender(passiveCheckSendPeriod,
                 parallelSender,
                 attributes);
@@ -186,8 +185,10 @@ final class SysLogGateway extends AbstractGateway {
 
     @Override
     protected void start(final Map<String, String> parameters) throws Exception {
-        start(createSender(parameters),
-                getPassiveCheckSendPeriod(parameters));
+        final SysLogConfigurationDescriptor parser = SysLogConfigurationDescriptor.getInstance();
+        start(parser.createSender(parameters),
+                parser.getPassiveCheckSendPeriod(parameters),
+                parser.getThreadPool(parameters));
     }
 
     @Override

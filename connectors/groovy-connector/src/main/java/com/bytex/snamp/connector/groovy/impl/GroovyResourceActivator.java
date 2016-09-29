@@ -26,7 +26,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
     @SpecialUse
     public GroovyResourceActivator(){
         super(GroovyResourceActivator::createConnector,
-                configurationDescriptor(GroovyResourceConfigurationDescriptor::new),
+                configurationDescriptor(GroovyResourceConfigurationDescriptor::getInstance),
                 discoveryService(GroovyResourceActivator::newDiscoveryService));
     }
 

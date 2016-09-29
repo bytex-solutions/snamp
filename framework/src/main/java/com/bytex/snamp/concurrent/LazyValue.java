@@ -3,6 +3,7 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ThreadSafe;
 
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
@@ -25,9 +26,7 @@ public interface LazyValue<V> extends Supplier<V> {
     /**
      * Releases encapsulated object.
      */
-    default void reset(){
-        reset(value -> {});
-    }
+    void reset();
 
     /**
      * Determines whether object in this container already instantiated.
@@ -50,11 +49,5 @@ public interface LazyValue<V> extends Supplier<V> {
      */
     V get(final Callable<? extends V> activator) throws Exception;
 
-    /**
-     * Gets object stored in this container only if it is already instantiated.
-     * @return An object stored in this container.
-     * @throws IllegalStateException Container is not initialized.
-     * @see #isActivated()
-     */
-    V getIfActivated() throws IllegalStateException;
+    Optional<V> getIfPresent();
 }

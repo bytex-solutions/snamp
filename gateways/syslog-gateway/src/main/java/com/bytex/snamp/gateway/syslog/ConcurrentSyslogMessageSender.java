@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * @author Roman Sakno
@@ -21,9 +22,10 @@ final class ConcurrentSyslogMessageSender extends AbstractSyslogMessageSender im
     private final SyslogMessageSender messageSender;
     private final ExecutorService executor;
 
-    ConcurrentSyslogMessageSender(final SyslogMessageSender sequentialSender){
+    ConcurrentSyslogMessageSender(final SyslogMessageSender sequentialSender,
+                                  final ExecutorService threadPool){
         messageSender = Objects.requireNonNull(sequentialSender);
-        executor = Executors.newSingleThreadExecutor();
+        executor = Objects.requireNonNull(threadPool);
     }
 
     private static void sendMessage(final SyslogMessageSender sender,
@@ -45,6 +47,6 @@ final class ConcurrentSyslogMessageSender extends AbstractSyslogMessageSender im
 
     @Override
     public void close() {
-        executor.shutdownNow();
+
     }
 }

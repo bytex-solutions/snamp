@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 /**
@@ -29,6 +30,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     private final long watchDogPeriod;
     private final boolean smartMode;
     private final ObjectName globalNamespace;
+    private final ExecutorService threadPool;
 
     JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException, MalformedObjectNameException {
         super(connectionString);
@@ -40,6 +42,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         this.watchDogPeriod = parser.parseWatchDogPeriod(options);
         this.smartMode = parser.isSmartModeEnabled(options);
         this.globalNamespace = parser.parseRootObjectName(options);
+        this.threadPool = parser.parseThreadPool(options);
     }
 
     private Map<String, Object> getJmxOptions(){
@@ -87,5 +90,9 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         } catch (final Exception e){
             throw new IOException(e);
         }
+    }
+
+    ExecutorService getThreadPool() {
+        return threadPool;
     }
 }

@@ -3,6 +3,7 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.Acceptor;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
@@ -76,18 +77,13 @@ abstract class ThreadSafeLazyValue<V, C> implements LazyValue<V> {
 
     @Override
     public final V get() {
-        final C localRef = ref;
-        V value;
-        return localRef == null || (value = unref(localRef)) == null ? getSync() : value;
+        return getIfPresent().orElseGet(this::getSync);
     }
 
     @Override
-    public final synchronized V getIfActivated() throws IllegalStateException {
+    public final Optional<V> getIfPresent() {
         final C localRef = ref;
         V value;
-        if (localRef == null || (value = unref(localRef)) == null)
-            throw new IllegalStateException("Container is not initialized");
-        else
-            return value;
+        return (localRef == null || (value = unref(localRef)) == null) ? Optional.empty() : Optional.of(value);
     }
 }

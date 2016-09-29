@@ -1,6 +1,9 @@
 package com.bytex.snamp.gateway.syslog;
 
+import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.MessageFormat;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
@@ -20,7 +23,7 @@ import static com.bytex.snamp.MapUtils.*;
  * @version 2.0
  * @since 1.0
  */
-final class SysLogConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+final class SysLogConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements GatewayDescriptionProvider {
     private static final String CONNECTION_TIMEOUT_PARAM = "connectionTimeout";
     private static final String APPLICATION_NAME_PARAM = "applicationName";
     private static final String FACILITY_PARAM = "facility";
@@ -71,10 +74,16 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
         }
     }
 
-    SysLogConfigurationDescriptor(){
+    private static final LazyValue<SysLogConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(SysLogConfigurationDescriptor::new);
+
+    private SysLogConfigurationDescriptor(){
         super(new GatewayConfigurationInfo(),
                 new AttributeConfigurationInfo(),
                 new EventConfigurationInfo());
+    }
+
+    static SysLogConfigurationDescriptor getInstance(){
+        return INSTANCE.get();
     }
 
     static String getApplicationName(final Descriptor descr, final String defaultValue){
@@ -90,7 +99,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
         else return defaultValue;
     }
 
-    static SyslogMessageSender createSender(final Map<String, String> parameters) throws AbsentSysLogConfigurationParameterException {
+    SyslogMessageSender createSender(final Map<String, String> parameters) throws AbsentSysLogConfigurationParameterException {
         final int port = getIfPresent(parameters, PORT_PARAM, Integer::parseInt, AbsentSysLogConfigurationParameterException::new);
         final String address = getIfPresent(parameters, ADDRESS_PARAM, Function.identity(), AbsentSysLogConfigurationParameterException::new);
         final int connectionTimeout = getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt, () -> 2000);
@@ -128,7 +137,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
         return factory.create(address, port, format, ssl, connectionTimeout);
     }
 
-    static Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
+    Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
         final long period = getValueAsLong(parameters, PASSIVE_CHECK_SEND_PERIOD_PARAM, Long::parseLong, () -> 1000L);
         return Duration.ofMillis(period);
     }
