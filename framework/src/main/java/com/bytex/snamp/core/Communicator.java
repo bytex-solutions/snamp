@@ -53,7 +53,7 @@ public interface Communicator {
 
         /**
          * Gets sender of the message.
-         * @return Sender of the message.
+         * @return Sender of the message; or {@literal null} when communicator is not in cluster.
          */
         ClusterMemberInfo getSender();
 

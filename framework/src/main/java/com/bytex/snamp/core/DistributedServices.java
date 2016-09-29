@@ -114,6 +114,16 @@ public final class DistributedServices {
     }
 
     /**
+     * Gets distributed {@link Communicator}.
+     * @param context Context of the caller OSGi bundle.
+     * @param channelName Name of the communicator.
+     * @return Distributed or process-local communicator.
+     */
+    public static Communicator getDistributedCommunicator(final BundleContext context, final String channelName){
+        return getService(context, channelName, ClusterMember.COMMUNICATION_SERVICE);
+    }
+
+    /**
      * Gets distributed {@link java.util.concurrent.ConcurrentMap}.
      * @param context Context of the caller OSGi bundle.
      * @param collectionName Name of the distributed collection.

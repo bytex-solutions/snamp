@@ -2,6 +2,7 @@ package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.core.ClusterMemberInfo;
 import com.google.common.collect.ImmutableMap;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.Member;
 
 import java.net.InetSocketAddress;
@@ -23,6 +24,10 @@ final class HazelcastNodeInfo implements ClusterMemberInfo {
         this.name = name;
         this.address = sender.getSocketAddress();
         this.attributes = ImmutableMap.copyOf(sender.getAttributes());
+    }
+
+    HazelcastNodeInfo(final HazelcastInstance hazelcast, final boolean active){
+        this(hazelcast.getCluster().getLocalMember(), active, hazelcast.getName());
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LongCounter;
 import com.google.common.reflect.TypeToken;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 
@@ -51,11 +52,21 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
 
     private final HazelcastInstance hazelcast;
     private LeaderElectionThread electionThread;
+    private final boolean shutdownHazelcast;
 
-    public GridMember(final HazelcastInstance hazelcastInstance){
+    private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdown){
         this.electionThread = new LeaderElectionThread(hazelcastInstance);
         this.hazelcast = hazelcastInstance;
         electionThread.start();
+        this.shutdownHazelcast = shutdown;
+    }
+
+    public GridMember(final HazelcastInstance hazelcastInstance){
+        this(hazelcastInstance, false);
+    }
+
+    GridMember(){
+        this(Hazelcast.newHazelcastInstance(), true);
     }
 
     /**
@@ -194,6 +205,8 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         }finally {
             electionThread.resign();
             electionThread = null;
+            if(shutdownHazelcast)
+                hazelcast.shutdown();
             clearCache();
         }
     }
