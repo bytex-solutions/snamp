@@ -10,10 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 /**
@@ -38,6 +35,19 @@ public final class DistributedServicesTest extends Assert {
         instance2.close();
         instance1 = null;
         instance2 = null;
+    }
+
+    @Test
+    public void storageTest() throws InterruptedException {
+        final ConcurrentMap<String, Object> storage1 = instance1.getService("storage", ClusterMember.STORAGE_SERVICE);
+        final ConcurrentMap<String, Object> storage2 = instance2.getService("storage", ClusterMember.STORAGE_SERVICE);
+        assertTrue(storage1 instanceof HazelcastStorage);
+        assertTrue(storage2 instanceof HazelcastStorage);
+        storage1.put("key", Duration.ofSeconds(10));
+        Thread.sleep(400);
+        final Object value = storage2.get("key");
+        assertTrue(value instanceof Duration);
+        assertEquals(Duration.ofSeconds(10), value);
     }
 
     @Test
