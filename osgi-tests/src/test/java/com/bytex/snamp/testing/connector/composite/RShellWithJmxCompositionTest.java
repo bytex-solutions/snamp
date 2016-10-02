@@ -187,6 +187,19 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     }
 
     @Test
+    public void rateAttributeTest() throws JMException, InterruptedException {
+        stringAttributeTest();
+        stringAttributeTest();
+        Thread.sleep(300);
+        testAttribute("notifRate", TypeToken.of(CompositeData.class), null, (value1, value2) -> {
+            assertNull(value1);
+            assertNotNull(value2);
+            assertEquals(2L, getLong(value2, "totalRate", 0L));
+            return true;
+        }, true);
+    }
+
+    @Test
     public void configurationTest(){
         testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
                 "separator"
@@ -308,6 +321,11 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
             attribute.getParameters().put("format", "-m");
             attribute.getParameters().put("source", "rshell");
             attribute.getParameters().put("formula", "extract_fp(total)");
+        });
+
+        attributes.addAndConsume("notifRate", attribute -> {
+            attribute.setAlternativeName("attributeChange");
+            attribute.getParameters().put("formula", "rate()");
         });
     }
 }

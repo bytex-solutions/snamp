@@ -4,6 +4,7 @@ import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.FunctionParser;
 import com.bytex.snamp.connector.composite.functions.FunctionParserException;
@@ -27,6 +28,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     private static final String SEPARATOR_PARAM = "separator";
     private static final String SOURCE_PARAM = "source";
     private static final String FORMULA_PARAM = "formula";
+    private static final String RATE_FORMULA_PARAM = "rate()";
 
     private static final LazyValue<CompositeResourceConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(CompositeResourceConfigurationDescriptor::new);
 
@@ -73,7 +75,11 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
         return getFieldIfPresent(descriptor, SOURCE_PARAM, Objects::toString, AbsentCompositeConfigurationParameterException::new);
     }
 
-    static AggregationFunction<?> parseFormula(final Descriptor descriptor) throws FunctionParserException {
+    static boolean isRateFormula(final AttributeDescriptor descriptor){
+        return getField(descriptor, FORMULA_PARAM, RATE_FORMULA_PARAM::equals, () -> false);
+    }
+
+    static AggregationFunction<?> parseFormula(final AttributeDescriptor descriptor) throws FunctionParserException {
         final String formula = getField(descriptor, FORMULA_PARAM, Objects::toString, () -> "");
         if(isNullOrEmpty(formula))
             return null;

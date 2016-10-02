@@ -14,6 +14,7 @@ import javax.management.openmbean.SimpleType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,16 +23,19 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-final class AttributeComposition extends AbstractAttributeRepository<AbstractCompositeAttribute> implements NameResolver {
+final class AttributeComposition extends AbstractAttributeRepository<AbstractCompositeAttribute> implements NameResolver, NotificationListener {
     private final AttributeSupportProvider attributeSupportProvider;
     private final Logger logger;
+    private final ExecutorService threadPool;
 
     AttributeComposition(final String resourceName,
                          final AttributeSupportProvider provider,
+                         final ExecutorService threadPool,
                          final Logger logger){
         super(resourceName, AbstractCompositeAttribute.class, false);
         attributeSupportProvider = Objects.requireNonNull(provider);
         this.logger = Objects.requireNonNull(logger);
+        this.threadPool = Objects.requireNonNull(threadPool);
     }
 
     private Object resolveAs(final String operand, final WellKnownType expectedType) throws Exception{
@@ -81,31 +85,47 @@ final class AttributeComposition extends AbstractAttributeRepository<AbstractCom
      */
     @Override
     protected void disconnectAttribute(final AbstractCompositeAttribute attributeInfo) {
-        final AttributeSupport support = attributeSupportProvider.getAttributeSupport(attributeInfo.getConnectorType());
-        if (support != null)
-            support.removeAttribute(attributeInfo.getName());
+        if (attributeInfo instanceof CompositeFeature) {
+            final AttributeSupport support = attributeSupportProvider.getAttributeSupport(((CompositeFeature) attributeInfo).getConnectorType());
+            if (support != null)
+                support.removeAttribute(attributeInfo.getName());
+        }
     }
 
     @Override
     protected AbstractCompositeAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws ReflectionException, AttributeNotFoundException, MBeanException, AbsentCompositeConfigurationParameterException, FunctionParserException {
+        if (CompositeResourceConfigurationDescriptor.isRateFormula(descriptor)) //rate attribute
+            return new RateAttribute(attributeName, descriptor);
+        //regular attribute
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(descriptor);
         final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType);
         if (support == null)
             throw new ReflectionException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support attributes", connectorType)));
-        final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor);
-        if (underlyingAttribute == null)
-            throw CompositeAttribute.attributeNotFound(connectorType, attributeName);
-        final AggregationFunction<?> function = CompositeResourceConfigurationDescriptor.parseFormula(descriptor);
-        //check whether the type of function is compatible with type of attribute
-        if(function == null)
-            return new CompositeAttribute(connectorType, underlyingAttribute);
         else {
-            final OpenType<?> attributeType = AttributeDescriptor.getOpenType(underlyingAttribute);
-            if(function.canAccept(0, attributeType))
-                return new AggregationAttribute(connectorType, function, this, underlyingAttribute);
-            else
-                throw new MBeanException(new IllegalStateException(String.format("Function '%s' cannot be applied to attribute '%s'", function, underlyingAttribute)));
+            //process regular attribute
+            final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor);
+            if (underlyingAttribute == null)
+                throw CompositeAttribute.attributeNotFound(connectorType, attributeName);
+            final AggregationFunction<?> function = CompositeResourceConfigurationDescriptor.parseFormula(descriptor);
+            //check whether the type of function is compatible with type of attribute
+            if (function == null) {
+                return new CompositeAttribute(connectorType, underlyingAttribute);
+            } else {
+                final OpenType<?> attributeType = AttributeDescriptor.getOpenType(underlyingAttribute);
+                if (function.canAccept(0, attributeType))
+                    return new AggregationAttribute(connectorType, function, this, underlyingAttribute);
+                else
+                    throw new MBeanException(new IllegalStateException(String.format("Function '%s' cannot be applied to attribute '%s'", function, underlyingAttribute)));
+            }
         }
+    }
+
+    @Override
+    public void handleNotification(final Notification notification, final Object handback) {
+        parallelForEach(attribute -> {
+            if (attribute instanceof NotificationListener)
+                ((NotificationListener) attribute).handleNotification(notification, handback);
+        }, threadPool);
     }
 
     @Override

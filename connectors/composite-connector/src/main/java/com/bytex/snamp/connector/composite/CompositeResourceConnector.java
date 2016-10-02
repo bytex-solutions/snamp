@@ -44,8 +44,9 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
 
     CompositeResourceConnector(final String resourceName, final ExecutorService threadPool) {
         connectors = new Composition(resourceName);
-        attributes = new AttributeComposition(resourceName, connectors, getLogger());
+        attributes = new AttributeComposition(resourceName, connectors, threadPool, getLogger());
         notifications = new NotificationComposition(resourceName, connectors, threadPool, getLogger(), Utils.getBundleContextOfObject(this));
+        notifications.addNotificationListener(attributes, null, null);
         operations = new OperationComposition(resourceName, connectors, getLogger());
     }
 

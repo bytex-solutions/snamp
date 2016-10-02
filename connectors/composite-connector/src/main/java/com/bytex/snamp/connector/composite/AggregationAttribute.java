@@ -18,7 +18,7 @@ import java.util.Set;
  * @version 2.0
  * @since 2.0
  */
-final class AggregationAttribute extends AbstractCompositeAttribute implements OpenMBeanAttributeInfo {
+final class AggregationAttribute extends CompositeAttribute implements OpenMBeanAttributeInfo {
     private static final long serialVersionUID = 2597653763554514237L;
     private final AggregationFunction<?> function;
     private final NameResolver resolver;
@@ -33,8 +33,13 @@ final class AggregationAttribute extends AbstractCompositeAttribute implements O
     }
 
     @Override
-    Object getValue(final AttributeSupport support) throws Exception {
-        return function.invoke(resolver, support.getAttribute(getName()));
+    Object getValue(final AttributeSupport support) throws ReflectionException, AttributeNotFoundException, MBeanException {
+        final Object attributeValue = support.getAttribute(getName());
+        try {
+            return function.invoke(resolver, attributeValue);
+        } catch (final Exception e) {
+            throw new ReflectionException(e);
+        }
     }
 
     @Override
