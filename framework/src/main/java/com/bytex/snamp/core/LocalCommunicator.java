@@ -459,7 +459,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     @Override
-    public MessageFuture sendRequest(Serializable message) throws InterruptedException {
+    public MessageFuture sendRequest(final Serializable message) throws InterruptedException {
         final long messageID = newMessageID();
         final MessageFuture receiver = receiveMessage(Communicator.responseWithMessageID(messageID), true);
         sendMessage(message, MessageType.REQUEST, messageID);
