@@ -688,8 +688,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             failedToEnableNotifications(logger, Level.WARNING, category, e);
         }
 
-        private void fire(final ManagementNotificationType<?> category, final String message, final Object userData) {
-            fire(category.getCategory(), message, sequenceNumberGenerator, userData);
+        private boolean fire(final ManagementNotificationType<?> category, final String message, final Object userData) {
+            return fire(category.getCategory(), message, sequenceNumberGenerator, userData);
         }
     }
 
@@ -855,11 +855,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     private boolean emitNotificationImpl(final ManagementNotificationType<?> category,
                                       final String message,
                                       final Object userData){
-        if(notifications.isSuspended()) return false;
-        else {
-            notifications.fire(category, message, userData);
-            return true;
-        }
+        return notifications.fire(category, message, userData);
     }
 
     /**

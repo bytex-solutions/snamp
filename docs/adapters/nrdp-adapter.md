@@ -4,13 +4,13 @@ NRDP Resource Adapter allows to collect monitoring and management information fr
 
 ![Communication Scheme](nrdp-adapter.png)
 
-The resource adapter sends check information about connected resources in XML format to NRDP agent at the specified period of time.
+The resource adapter sends check information about connected resources in XML format to NRDP agent at the specified period.
 
 NRDP Resource Adapter supports following features (if these features are supported by managed resources as well):
 
 Feature | Description
 ---- | ----
-Attributes | Each attribute is being transferred to NRDP agent at the specified period of time
+Attributes | Each attribute is being transferred to NRDP agent at the specified period
 Notifications | Each notification is being delivered asynchronously to NRDP agent
 
 Note that this adapter utilizes **its own internal thread pool that can be configured explicitly**.

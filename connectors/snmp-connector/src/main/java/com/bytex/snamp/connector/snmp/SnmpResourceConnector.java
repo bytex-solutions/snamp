@@ -102,16 +102,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
 
         /**
-         * Determines whether raising of registered events is suspended.
-         *
-         * @return {@literal true}, if events are suspended; otherwise {@literal false}.
-         */
-        @Override
-        public boolean isSuspended() {
-            return super.isSuspended() && !DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
-        }
-
-        /**
          * Reports an error when enabling notifications.
          *
          * @param category An event category.

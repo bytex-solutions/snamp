@@ -15,9 +15,9 @@ interface Gauge<V extends Comparable<V>> extends Metric {
     V getMaxValue();
 
     /**
-     * Gets maximum value for the last period of time.
-     * @param interval Period of time.
-     * @return Maximum value of the last period of time.
+     * Gets maximum value for the last period.
+     * @param interval Period.
+     * @return Maximum value of the last period.
      */
     V getLastMaxValue(final MetricsInterval interval);
 
@@ -28,9 +28,9 @@ interface Gauge<V extends Comparable<V>> extends Metric {
     V getMinValue();
 
     /**
-     * Gets minimum value for the last period of time.
-     * @param interval Period of time.
-     * @return Minimum value for the last period of time.
+     * Gets minimum value for the last period.
+     * @param interval Period.
+     * @return Minimum value for the last period.
      */
     V getLastMinValue(final MetricsInterval interval);
 

@@ -135,21 +135,20 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @param message The human-readable message associated with the notification.
      * @param sequenceNumberProvider Sequence number generator. Cannot be {@literal null}.
      * @param userData Advanced object associated with the notification.
+     * @return {@literal true}, if one of the registered notifications is raised; otherwise, {@literal false}.
      */
-    protected final void fire(final String category,
+    protected final boolean fire(final String category,
                               final String message,
                               final LongSupplier sequenceNumberProvider,
                               final Object userData) {
-        fire(category, message, sequenceNumberProvider.getAsLong(), System.currentTimeMillis(), userData);
+        return fire(category, message, sequenceNumberProvider.getAsLong(), System.currentTimeMillis(), userData);
     }
 
-    protected final void fire(final String category,
+    protected final boolean fire(final String category,
                               final String message,
                               final long sequenceNumber,
                               final long timeStamp,
                               final Object userData) {
-        if (isSuspended()) return; //check if events are suspended
-
         final Collection<Notification> notifs = readLock.apply(SingleResourceGroup.INSTANCE, notifications, n -> n.values().stream()
                 .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder), category))
                 .map(holder -> new NotificationBuilder()
@@ -162,9 +161,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                         .get()
                 ).
                         collect(Collectors.toList()));
+        final boolean hasListeners = !notifs.isEmpty();
         //fire listeners
         fireListeners(notifs);
         notifs.clear();     //help GC
+        return hasListeners;
     }
 
     /**
@@ -456,26 +457,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){
         logger.log(level, String.format("Unable to expand events for resource %s", getResourceName()), e);
-    }
-
-    /**
-     * Determines whether raising of registered events is suspended.
-     *
-     * @return {@literal true}, if events are suspended; otherwise {@literal false}.
-     */
-    @Override
-    public boolean isSuspended() {
-        return suspended;
-    }
-
-    /**
-     * Suspends or activate raising of events.
-     *
-     * @param value {@literal true} to suspend events; {@literal false}, to activate events.
-     */
-    @Override
-    public void setSuspended(final boolean value) {
-        suspended = value;
     }
 
     /**

@@ -33,7 +33,7 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
 
     /**
      * Initializes a new average calculator.
-     * @param interval Period of time in minutes over which the reading is said to be averaged
+     * @param interval Interval of time, in minutes, over which the reading is said to be averaged
      */
     public ExponentialMovingAverage(final Duration interval){
         this(interval.getSeconds());

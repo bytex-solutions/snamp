@@ -72,12 +72,6 @@ public interface NotificationSupport extends NotificationBroadcaster {
     MBeanNotificationInfo getNotificationInfo(final String notificationType);
 
     /**
-     * Determines whether raising of registered events is suspended.
-     * @return {@literal true}, if events are suspended; otherwise {@literal false}.
-     */
-    boolean isSuspended();
-
-    /**
      * Determines whether this repository can be populated with notifications using call of {@link #expandNotifications()}.
      * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
      * @since 2.0
@@ -91,10 +85,4 @@ public interface NotificationSupport extends NotificationBroadcaster {
      * @since 2.0
      */
     Collection<? extends MBeanNotificationInfo> expandNotifications();
-
-    /**
-     * Suspends or activate raising of events.
-     * @param value {@literal true} to suspend events; {@literal false}, to activate events.
-     */
-    void setSuspended(final boolean value);
 }

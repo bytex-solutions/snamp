@@ -37,10 +37,10 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
     }
 
     /**
-     * Gets maximum value for the last period of time.
+     * Gets maximum value for the last period.
      *
-     * @param interval Period of time.
-     * @return Maximum value of the last period of time.
+     * @param interval Period.
+     * @return Maximum value of the last period.
      */
     @Override
     public final V getLastMaxValue(final MetricsInterval interval) {
@@ -48,10 +48,10 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
     }
 
     /**
-     * Gets minimum value for the last period of time.
+     * Gets minimum value for the last period.
      *
-     * @param interval Period of time.
-     * @return Minimum value for the last period of time.
+     * @param interval Period.
+     * @return Minimum value for the last period.
      */
     @Override
     public final V getLastMinValue(final MetricsInterval interval) {

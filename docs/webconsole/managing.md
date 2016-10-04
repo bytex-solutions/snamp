@@ -8,7 +8,7 @@ Take a look on the main tab window:
 ![Main tab window example](managing.png)
 
 Here you can see some count of different messages in the karaf log messages directly related to SNAMP. 
-These messages are automatically updated once a certain period of time (you can see StatisticRenewalTime attribute of the SNAMP MBean).
+These messages are automatically updated once a certain period (you can see StatisticRenewalTime attribute of the SNAMP MBean).
 
 In this tab you also can start/stop adapter or connector:
 

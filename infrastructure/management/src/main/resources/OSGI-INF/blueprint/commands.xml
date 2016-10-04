@@ -101,12 +101,6 @@
             <action class="com.bytex.snamp.management.shell.ReadAttributesCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.SuspendEventsCommand"/>
-        </command>
-        <command>
-            <action class="com.bytex.snamp.management.shell.ResumeEventsCommand"/>
-        </command>
-        <command>
             <action class="com.bytex.snamp.management.shell.ListenEventsCommand"/>
         </command>
         <command>

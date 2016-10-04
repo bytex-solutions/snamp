@@ -14,9 +14,9 @@ public interface GaugeFP extends NumericGauge {
     double getMaxValue();
 
     /**
-     * Gets maximum value for the last period of time.
-     * @param interval Period of time.
-     * @return Maximum value of the last period of time.
+     * Gets maximum value for the last period.
+     * @param interval Period.
+     * @return Maximum value of the last period.
      */
     double getLastMaxValue(final MetricsInterval interval);
 
@@ -27,9 +27,9 @@ public interface GaugeFP extends NumericGauge {
     double getMinValue();
 
     /**
-     * Gets minimum value for the last period of time.
-     * @param interval Period of time.
-     * @return Minimum value for the last period of time.
+     * Gets minimum value for the last period.
+     * @param interval Period.
+     * @return Minimum value for the last period.
      */
     double getLastMinValue(final MetricsInterval interval);
 

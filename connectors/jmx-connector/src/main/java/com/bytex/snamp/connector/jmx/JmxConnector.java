@@ -15,8 +15,6 @@ import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptorRead;
-import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.internal.Utils;
 
 import javax.management.*;
 import javax.management.openmbean.OpenDataException;
@@ -434,16 +432,6 @@ final class JmxConnector extends AbstractManagedResourceConnector {
 
         private static NotificationListenerInvoker createListenerInvoker(final Executor executor){
             return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, (e, source) -> getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification", e));
-        }
-
-        /**
-         * Determines whether raising of registered events is suspended.
-         *
-         * @return {@literal true}, if events are suspended; otherwise {@literal false}.
-         */
-        @Override
-        public boolean isSuspended() {
-            return super.isSuspended() && !DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
         }
 
         /**

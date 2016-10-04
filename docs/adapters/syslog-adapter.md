@@ -4,13 +4,13 @@ Syslog Resource Adapter allows to collect monitoring and management information 
 
 ![Communication Scheme](syslog-adapter.png)
 
-The resource adapter sends check information about connected resources in binary format to Syslog server at the specified period of time.
+The resource adapter sends check information about connected resources in binary format to Syslog server at the specified period.
 
 Syslog Resource Adapter supports the following features (if they are supported by managed resources as well):
 
 Feature | Description
 ---- | ----
-Attributes | Each attribute will be transferred to Syslog server at the specified period of time
+Attributes | Each attribute will be transferred to Syslog server at the specified period
 Notifications | Each notification will be delivered asynchronously to Syslog server
 
 ## Configuration Parameters

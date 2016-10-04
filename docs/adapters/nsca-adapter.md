@@ -4,13 +4,13 @@ NSCA Resource Adapter allows to collect monitoring and management information fr
 
 ![Communication Scheme](nsca-adapter.png)
 
-The resource adapter sends check information about connected resources in binary format to NSCA agent at the specified period of time.
+The resource adapter sends check information about connected resources in binary format to NSCA agent at the specified period.
 
 NSCA Resource Adapter supports the following features (if these features are supported by managed resources as well):
 
 Feature | Description
 ---- | ----
-Attributes | Each attribute will be transferred to NSCA agent at the specified period of time
+Attributes | Each attribute will be transferred to NSCA agent at the specified period
 Notifications | Each notification will be delivered asynchronously to NSCA agent
 
 Note that this adapter utilizes **its own internal thread pool that can be configured explicitly**.

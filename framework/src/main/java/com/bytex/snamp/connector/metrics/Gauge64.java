@@ -14,9 +14,9 @@ public interface Gauge64 extends NumericGauge {
     long getMaxValue();
 
     /**
-     * Gets maximum value for the last period of time.
-     * @param interval Period of time.
-     * @return Maximum value of the last period of time.
+     * Gets maximum value for the last period.
+     * @param interval Period.
+     * @return Maximum value of the last period.
      */
     long getLastMaxValue(final MetricsInterval interval);
 
@@ -27,9 +27,9 @@ public interface Gauge64 extends NumericGauge {
     long getMinValue();
 
     /**
-     * Gets minimum value for the last period of time.
-     * @param interval Period of time.
-     * @return Minimum value for the last period of time.
+     * Gets minimum value for the last period.
+     * @param interval Period.
+     * @return Minimum value for the last period.
      */
     long getLastMinValue(final MetricsInterval interval);
 
