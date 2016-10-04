@@ -33,8 +33,8 @@ final class ThriftNotificationRepository extends MDANotificationRepository<Thrif
                                  final Logger logger) {
         super(resourceName,
                 FEATURE_TYPE,
-                threadPool,
-                DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
+                context,
+                threadPool);
         this.logger = Objects.requireNonNull(logger);
     }
 

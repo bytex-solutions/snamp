@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connector.notifications.NotificationListenerInvokerFactory;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LongCounter;
+import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.OpenType;
 import java.util.concurrent.ExecutorService;
@@ -25,18 +26,14 @@ import static com.bytex.snamp.connector.mda.MDAResourceConfigurationDescriptorPr
 public abstract class MDANotificationRepository<M extends MDANotificationInfo> extends AbstractNotificationRepository<M> implements SafeCloseable {
     private final NotificationListenerInvoker listenerInvoker;
     private AccessTimer lastWriteAccess;
-
-    protected MDANotificationRepository(final String resourceName,
-                                       final Class<M> featureType,
-                                       final ExecutorService threadPool){
-        this(resourceName, featureType, threadPool, DistributedServices.getProcessLocalCounterGenerator("notifications-".concat(resourceName)));
-    }
+    protected final LongCounter sequenceNumberGenerator;
 
     protected MDANotificationRepository(final String resourceName,
                                         final Class<M> featureType,
-                                        final ExecutorService threadPool,
-                                        final LongCounter sequenceNumberGenerator){
-        super(resourceName, featureType, sequenceNumberGenerator, false);
+                                        final BundleContext context,
+                                       final ExecutorService threadPool){
+        super(resourceName, featureType, false);
+        sequenceNumberGenerator = DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
         listenerInvoker = NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
     }
 

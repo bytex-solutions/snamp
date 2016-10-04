@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.NotificationMetric;
 import com.bytex.snamp.connector.metrics.NotificationMetricRecorder;
 import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableSet;
@@ -43,14 +44,16 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
          * Enqueues a notification to sent in future.
          * @param metadata Notification metadata.
          * @param message Notification message.
+         * @param sequenceNumberGenerator Sequence number generator. Cannot be {@literal null}.
          * @param userData Advanced data to be associated with the notification.
          */
         public void enqueue(final MBeanNotificationInfo metadata,
                                final String message,
+                            final LongSupplier sequenceNumberGenerator,
                                final Object userData){
             enqueue(metadata,
                     message,
-                    generateSequenceNumber(),
+                    sequenceNumberGenerator.getAsLong(),
                     System.currentTimeMillis(),
                     userData);
         }
@@ -82,7 +85,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     private final KeyedObjects<String, M> notifications;
     private final NotificationListenerList listeners;
-    private final LongSupplier sequenceNumberGenerator;
     private final NotificationMetricRecorder metrics;
     private volatile boolean suspended;
     private final boolean expandable;
@@ -96,24 +98,9 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType,
                                              final boolean expandable) {
-        this(resourceName, notifMetadataType, DistributedServices.getProcessLocalCounterGenerator("notifications-".concat(resourceName)), expandable);
-    }
-
-    /**
-     * Initializes a new notification manager.
-     * @param resourceName The name of the managed resource.
-     * @param notifMetadataType Type of the notification metadata.
-     * @param sequenceNumberGenerator Generator for sequence numbers. Cannot be {@literal null}.
-     * @param expandable {@literal true}, if repository can be populated automatically; otherwise, {@literal false}.
-     */
-    protected AbstractNotificationRepository(final String resourceName,
-                                             final Class<M> notifMetadataType,
-                                             final LongSupplier sequenceNumberGenerator,
-                                             final boolean expandable) {
         super(resourceName, notifMetadataType);
         notifications = AbstractKeyedObjects.create(metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()));
         listeners = new NotificationListenerList();
-        this.sequenceNumberGenerator = Objects.requireNonNull(sequenceNumberGenerator);
         metrics = new NotificationMetricRecorder();
         suspended = false;
         this.expandable = expandable;
@@ -127,14 +114,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     @Override
     public final NotificationMetric getMetrics() {
         return metrics;
-    }
-
-    /**
-     * Generates a new unique sequence number for the notification.
-     * @return A new unique sequence number.
-     */
-    protected final long generateSequenceNumber(){
-        return sequenceNumberGenerator.getAsLong();
     }
 
     /**
@@ -154,12 +133,14 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * Invokes all listeners associated with the specified notification category.
      * @param category An event category.
      * @param message The human-readable message associated with the notification.
+     * @param sequenceNumberProvider Sequence number generator. Cannot be {@literal null}.
      * @param userData Advanced object associated with the notification.
      */
     protected final void fire(final String category,
                               final String message,
+                              final LongSupplier sequenceNumberProvider,
                               final Object userData) {
-        fire(category, message, generateSequenceNumber(), System.currentTimeMillis(), userData);
+        fire(category, message, sequenceNumberProvider.getAsLong(), System.currentTimeMillis(), userData);
     }
 
     protected final void fire(final String category,
@@ -189,7 +170,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     /**
      * Aspect called after invocation of {@link #fire(BiConsumer)},
      * {@link #fire(String, String, long, long, Object)} or
-     * {@link #fire(String, String, Object)}.
+     * {@link #fire(String, String, LongSupplier, Object)}.
      */
     @MethodStub
     protected void interceptFire(){

@@ -31,8 +31,8 @@ final class JMSNotificationRepository extends MDANotificationRepository<MDANotif
                               final Logger logger){
         super(resourceName,
                 MDANotificationInfo.class,
-                threadPool,
-                DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
+                context,
+                threadPool);
         this.logger = Objects.requireNonNull(logger);
         this.converter = Objects.requireNonNull(dataConverter);
     }

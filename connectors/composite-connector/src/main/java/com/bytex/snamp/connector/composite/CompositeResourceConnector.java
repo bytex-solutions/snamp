@@ -4,7 +4,6 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.internal.Utils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 
@@ -45,7 +44,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     CompositeResourceConnector(final String resourceName, final ExecutorService threadPool) {
         connectors = new Composition(resourceName);
         attributes = new AttributeComposition(resourceName, connectors, threadPool, getLogger());
-        notifications = new NotificationComposition(resourceName, connectors, threadPool, getLogger(), Utils.getBundleContextOfObject(this));
+        notifications = new NotificationComposition(resourceName, connectors, threadPool, getLogger());
         notifications.addNotificationListener(attributes, null, null);
         operations = new OperationComposition(resourceName, connectors, getLogger());
     }

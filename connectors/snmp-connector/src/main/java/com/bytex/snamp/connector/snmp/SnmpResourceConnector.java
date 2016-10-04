@@ -14,6 +14,7 @@ import com.bytex.snamp.connector.attributes.OpenMBeanAttributeInfoImpl;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -80,6 +81,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final NotificationListenerInvoker listenerInvoker;
         private final Logger logger;
+        private final LongCounter sequenceNumberGenerator;
 
         private SnmpNotificationRepository(final String resourceName,
                                            final AbstractConcurrentResourceAccessor<SnmpClient> client,
@@ -87,11 +89,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                                            final Logger logger){
             super(resourceName,
                     SnmpNotificationInfo.class,
-                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)),
                     false);
             this.logger = Objects.requireNonNull(logger);
             this.client = client;
             final Executor executor = client.read(cl -> cl.queryObject(Executor.class));
+            sequenceNumberGenerator = DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
             listenerInvoker = createListenerInvoker(executor, logger);
         }
 
@@ -234,6 +236,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                           final List<VariableBinding> attachment){
             super.fire(category,
                     message,
+                    sequenceNumberGenerator,
                     toArray(attachment));
         }
 

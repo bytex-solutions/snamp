@@ -13,6 +13,7 @@ import com.bytex.snamp.connector.groovy.*;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import groovy.util.ResourceException;
@@ -70,6 +71,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     private static final class GroovyNotificationRepository extends AbstractNotificationRepository<GroovyNotificationInfo> {
         private final EventConnector connector;
         private final NotificationListenerInvoker listenerInvoker;
+        private final LongCounter sequenceNumberGenerator;
 
         private final class NotificationEmitterSlim implements NotificationEmitter{
             private final String category;
@@ -85,7 +87,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
             @Override
             public void emitNotification(final String message, final Object userData) {
-                fire(category, message, userData);
+                fire(category, message, sequenceNumberGenerator, userData);
             }
 
             @Override
@@ -101,10 +103,10 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                                              final BundleContext context) {
             super(resourceName,
                     GroovyNotificationInfo.class,
-                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)),
                     false);
             this.connector = Objects.requireNonNull(connector);
             this.listenerInvoker = createListenerInvoker(threadPool);
+            this.sequenceNumberGenerator = DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
         }
 
         private static NotificationListenerInvoker createListenerInvoker(final Executor executor) {

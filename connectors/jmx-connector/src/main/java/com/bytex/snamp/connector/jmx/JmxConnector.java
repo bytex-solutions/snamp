@@ -2,8 +2,6 @@ package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
@@ -19,7 +17,6 @@ import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptorRead;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import javax.management.openmbean.OpenDataException;
@@ -32,7 +29,6 @@ import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -426,11 +422,10 @@ final class JmxConnector extends AbstractManagedResourceConnector {
 
         private JmxNotificationRepository(final String resourceName,
                                           final ObjectName globalName,
-                                          final BundleContext context,
                                           final JmxConnectionManager connectionManager,
                                           final ExecutorService threadPool,
                                           final boolean expandable) {
-            super(resourceName, JmxNotificationInfo.class, DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)), expandable);
+            super(resourceName, JmxNotificationInfo.class, expandable);
             this.connectionManager = connectionManager;
             this.globalObjectName = globalName;
             this.connectionManager.addReconnectionHandler(this);
@@ -729,7 +724,6 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         else smartMode = false;
         this.notifications = new JmxNotificationRepository(resourceName,
                 connectionOptions.getGlobalObjectName(),
-                Utils.getBundleContextOfObject(this),
                 connectionManager,
                 connectionOptions.getThreadPool(),
                 smartMode);

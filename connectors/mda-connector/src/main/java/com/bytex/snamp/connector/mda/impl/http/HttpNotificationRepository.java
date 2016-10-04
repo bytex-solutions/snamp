@@ -29,7 +29,7 @@ final class HttpNotificationRepository extends MDANotificationRepository<HttpNot
                                final ExecutorService threadPool,
                                final BundleContext context,
                                final Logger logger) {
-        super(resourceName, FEATURE_TYPE, threadPool, DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
+        super(resourceName, FEATURE_TYPE, context, threadPool);
         this.logger = Objects.requireNonNull(logger);
     }
 

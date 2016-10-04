@@ -643,30 +643,20 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private final Logger logger;
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
         private final NotificationListenerInvoker listenerInvoker;
+        private final LongCounter sequenceNumberGenerator;
 
         private JavaBeanNotificationRepository(final String resourceName,
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
                                                final BundleContext context,
                                                final Logger logger) {
-            this(resourceName,
-                    notifTypes,
-                    context == null ?  //may be null when executing through unit tests
-                            DistributedServices.getProcessLocalCounterGenerator("notifications-".concat(resourceName)) :
-                            DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)),
-                    logger);
-        }
-
-        private JavaBeanNotificationRepository(final String resourceName,
-                                               final Set<? extends ManagementNotificationType<?>> notifTypes,
-                                               final LongCounter numberGenerator,
-                                               final Logger logger){
-            super(resourceName, CustomNotificationInfo.class, numberGenerator, false);
+            super(resourceName, CustomNotificationInfo.class, false);
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
+            this.sequenceNumberGenerator = context == null ?  //may be null when executing through unit tests
+                    DistributedServices.getProcessLocalCounterGenerator("notifications-".concat(resourceName)) :
+                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
         }
-
-
 
         @Override
         protected NotificationListenerInvoker getListenerInvoker() {
@@ -699,7 +689,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         private void fire(final ManagementNotificationType<?> category, final String message, final Object userData) {
-            fire(category.getCategory(), message, userData);
+            fire(category.getCategory(), message, sequenceNumberGenerator, userData);
         }
     }
 

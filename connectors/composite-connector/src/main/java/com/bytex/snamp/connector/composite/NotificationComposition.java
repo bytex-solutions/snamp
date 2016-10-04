@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.notifications.*;
+import com.bytex.snamp.core.LongCounter;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.BundleContext;
@@ -34,9 +35,8 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
     NotificationComposition(final String resourceName,
                             final NotificationSupportProvider provider,
                             final ExecutorService threadPool,
-                            final Logger logger,
-                            final BundleContext context){
-        super(resourceName, CompositeNotification.class, getDistributedCounter(context, "notifications-".concat(resourceName)), false);
+                            final Logger logger){
+        super(resourceName, CompositeNotification.class, false);
         this.provider = Objects.requireNonNull(provider);
         this.logger = Objects.requireNonNull(logger);
         this.subscription = HashMultimap.create();
@@ -47,7 +47,7 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
     public void handleNotification(final Notification notification, final Object handback) {
         final CompositeNotification compositeNotification = getNotificationInfo(notification.getType());
         if (compositeNotification != null)
-            fire(NotificationDescriptor.getName(compositeNotification), notification.getMessage(), generateSequenceNumber(), notification.getTimeStamp(), notification.getUserData());
+            fire(NotificationDescriptor.getName(compositeNotification), notification.getMessage(), notification.getSequenceNumber(), notification.getTimeStamp(), notification.getUserData());
     }
 
     @Override
