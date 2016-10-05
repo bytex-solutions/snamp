@@ -6,6 +6,7 @@ import com.bytex.snamp.concurrent.TimeLimitedObject;
 import com.bytex.snamp.math.ExponentialMovingAverage;
 import com.google.common.collect.ImmutableSortedSet;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +18,7 @@ import java.util.function.BinaryOperator;
  * @version 2.0
  * @since 1.0
  */
-public enum MetricsInterval implements Comparable<MetricsInterval> {
+public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable {
     SECOND(1, TimeUnit.SECONDS){
         @Override
         public String toString() {

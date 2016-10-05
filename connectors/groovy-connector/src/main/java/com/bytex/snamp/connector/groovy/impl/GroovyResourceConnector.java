@@ -68,7 +68,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class GroovyNotificationRepository extends AbstractNotificationRepository<GroovyNotificationInfo> {
+    private static final class GroovyNotificationRepository extends DistributedNotificationRepository<GroovyNotificationInfo> {
         private final EventConnector connector;
         private final NotificationListenerInvoker listenerInvoker;
         private final LongCounter sequenceNumberGenerator;
@@ -134,7 +134,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         protected void disconnectNotifications(final GroovyNotificationInfo metadata) {
             try {
                 metadata.close();
-            } catch (final Exception ignored) {
+            } catch (final Exception e) {
+                getLoggerImpl().log(Level.SEVERE, "Unexpected exception", e);
             }
         }
 

@@ -17,6 +17,7 @@ import java.util.function.Predicate;
  */
 public interface Communicator {
     Predicate<? super IncomingMessage> ANY_MESSAGE = msg -> true;
+    Predicate<IncomingMessage> REMOTE_MESSAGE = IncomingMessage::isRemote;
 
     /**
      * Represents message type.

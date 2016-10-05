@@ -6,8 +6,6 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.NotificationMetric;
 import com.bytex.snamp.connector.metrics.NotificationMetricRecorder;
-import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableSet;
@@ -149,6 +147,8 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                               final long sequenceNumber,
                               final long timeStamp,
                               final Object userData) {
+        if(isSuspended())
+            return false;
         final Collection<Notification> notifs = readLock.apply(SingleResourceGroup.INSTANCE, notifications, n -> n.values().stream()
                 .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder), category))
                 .map(holder -> new NotificationBuilder()
@@ -161,29 +161,34 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                         .get()
                 ).
                         collect(Collectors.toList()));
-        final boolean hasListeners = !notifs.isEmpty();
+        final boolean hasNotifications = !notifs.isEmpty();
         //fire listeners
         fireListeners(notifs);
         notifs.clear();     //help GC
-        return hasListeners;
+        return hasNotifications;
     }
 
     /**
-     * Aspect called after invocation of {@link #fire(BiConsumer)},
-     * {@link #fire(String, String, long, long, Object)} or
-     * {@link #fire(String, String, LongSupplier, Object)}.
+     * Determines whether all listeners in this repository should be suspended.
+     * @return {@literal true} to suspend all notifications; otherwise, {@literal false}.
      */
+    protected boolean isSuspended(){
+        return false;
+    }
+
     @MethodStub
-    protected void interceptFire(){
+    protected void interceptFire(final Collection<? extends Notification> notifications){
 
     }
 
-    private void fireListeners(final Iterable<? extends Notification> notifications) {
-        notifications.forEach(n -> {
-            listeners.handleNotification(getListenerInvoker(), n, null);
-            metrics.update();
-        });
-        interceptFire();
+    final void fireListenersNoIntercept(final Notification n){
+        listeners.handleNotification(getListenerInvoker(), n, null);
+        metrics.update();
+    }
+
+    private void fireListeners(final Collection<? extends Notification> notifications) {
+        notifications.forEach(this::fireListenersNoIntercept);
+        interceptFire(notifications);
     }
 
     private void notificationAdded(final M metadata){

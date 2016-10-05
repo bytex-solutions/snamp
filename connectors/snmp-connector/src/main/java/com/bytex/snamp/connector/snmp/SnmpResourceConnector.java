@@ -77,7 +77,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
     }
 
-    private static final class SnmpNotificationRepository extends AbstractNotificationRepository<SnmpNotificationInfo> implements CommandResponder{
+    private static final class SnmpNotificationRepository extends DistributedNotificationRepository<SnmpNotificationInfo> implements CommandResponder{
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final NotificationListenerInvoker listenerInvoker;
         private final Logger logger;

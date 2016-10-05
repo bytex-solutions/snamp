@@ -42,14 +42,6 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
     }
 
     /**
-     * Resets last access time.
-     */
-    @Override
-    protected final void interceptFire() {
-        lastWriteAccess.reset();
-    }
-
-    /**
      * Gets the invoker used to executed notification listeners.
      *
      * @return The notification listener invoker.
