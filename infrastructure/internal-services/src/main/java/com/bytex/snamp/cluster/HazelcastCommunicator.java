@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -53,22 +54,27 @@ final class HazelcastCommunicator implements Communicator {
         }
     }
 
-    private static class MessageReceiver extends CompletableFuture<HazelcastIncomingMessage> implements ComputationPipeline<HazelcastIncomingMessage>, MessageListener<TransferObject>, SafeCloseable{
+    private static class MessageReceiver<V> extends CompletableFuture<V> implements ComputationPipeline<V>, MessageListener<TransferObject>, SafeCloseable{
         private final Predicate<? super HazelcastIncomingMessage> filter;
         private final String subscription;
         private final ITopic<TransferObject> topic;
         private final String localMemberID;
+        private final Function<? super IncomingMessage, ? extends V> messageParser;
 
-        private MessageReceiver(final HazelcastInstance hazelcast, final String communicatorName, final Predicate<? super HazelcastIncomingMessage> filter){
+        private MessageReceiver(final HazelcastInstance hazelcast,
+                                final String communicatorName,
+                                final Predicate<? super HazelcastIncomingMessage> filter,
+                                final Function<? super IncomingMessage, ? extends V> messageParser){
             this.filter = Objects.requireNonNull(filter);
             this.topic = hazelcast.getTopic(communicatorName);
             this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
             this.subscription = topic.addMessageListener(this);
+            this.messageParser = Objects.requireNonNull(messageParser);
         }
 
         private void onMessage(final HazelcastIncomingMessage inputMessage){
             if(filter.test(inputMessage))
-                complete(inputMessage);
+                complete(messageParser.apply(inputMessage));
         }
 
         @Override
@@ -84,23 +90,28 @@ final class HazelcastCommunicator implements Communicator {
         }
     }
 
-    private static final class LinkedMessageBox extends LinkedBlockingQueue<IncomingMessage> implements MessageBox, MessageListener<TransferObject>{
+    private static final class LinkedMessageBox<V> extends LinkedBlockingQueue<V> implements MessageBox<V>, MessageListener<TransferObject>{
         private static final long serialVersionUID = 5833889571236077744L;
         private final Predicate<? super IncomingMessage> filter;
         private final String subscription;
         private final ITopic<TransferObject> topic;
         private final String localMemberID;
+        private final Function<? super IncomingMessage, ? extends V> messageParser;
 
-        private LinkedMessageBox(final HazelcastInstance hazelcast, final String communicatorName, final Predicate<? super IncomingMessage> filter){
+        private LinkedMessageBox(final HazelcastInstance hazelcast,
+                                 final String communicatorName,
+                                 final Predicate<? super IncomingMessage> filter,
+                                 final Function<? super IncomingMessage, ? extends V> messageParser){
             this.filter = Objects.requireNonNull(filter);
             this.topic = hazelcast.getTopic(communicatorName);
             this.subscription = topic.addMessageListener(this);
             this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
+            this.messageParser = Objects.requireNonNull(messageParser);
         }
 
         private void onMessage(final HazelcastIncomingMessage message){
             if(filter.test(message))
-                add(message);
+                add(messageParser.apply(message));
         }
 
         @Override
@@ -116,24 +127,30 @@ final class HazelcastCommunicator implements Communicator {
         }
     }
 
-    private static final class FixedSizeMessageBox extends ArrayBlockingQueue<IncomingMessage> implements MessageBox, MessageListener<TransferObject>, SafeCloseable{
+    private static final class FixedSizeMessageBox<V> extends ArrayBlockingQueue<V> implements MessageBox<V>, MessageListener<TransferObject>, SafeCloseable{
         private static final long serialVersionUID = 2173687138535015363L;
         private final Predicate<? super IncomingMessage> filter;
         private final String subscription;
         private final transient ITopic<TransferObject> topic;
         private final String localMemberID;
+        private final Function<? super IncomingMessage, ? extends V> messageParser;
 
-        private FixedSizeMessageBox(final HazelcastInstance hazelcast, final String communicatorName, final Predicate<? super IncomingMessage> filter, final int capacity){
+        private FixedSizeMessageBox(final int capacity,
+                                    final HazelcastInstance hazelcast,
+                                    final String communicatorName,
+                                    final Predicate<? super IncomingMessage> filter,
+                                    final Function<? super IncomingMessage, ? extends V> messageParser){
             super(capacity);
             this.filter = Objects.requireNonNull(filter);
             this.topic = hazelcast.getTopic(communicatorName);
             this.subscription = topic.addMessageListener(this);
             this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
+            this.messageParser = Objects.requireNonNull(messageParser);
         }
 
         private void onMessage(final HazelcastIncomingMessage message){
             if(filter.test(message))
-                add(message);
+                add(messageParser.apply(message));
         }
 
         @Override
@@ -187,8 +204,8 @@ final class HazelcastCommunicator implements Communicator {
     }
 
     @Override
-    public IncomingMessage receiveMessage(final Predicate<? super IncomingMessage> filter, final Duration timeout) throws InterruptedException, TimeoutException {
-        try(final MessageReceiver receiver = receiveMessage(filter)) {
+    public <V> V receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
+        try(final MessageReceiver<V> receiver = receiveMessage(filter, messageParser)) {
             return timeout == null ? receiver.get() : receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         } catch (final ExecutionException e) {
             throw new AssertionError("Unexpected exception", e);
@@ -196,8 +213,8 @@ final class HazelcastCommunicator implements Communicator {
     }
 
     @Override
-    public MessageReceiver receiveMessage(final Predicate<? super IncomingMessage> filter) {
-        return new MessageReceiver(hazelcast, communicatorName, filter);
+    public <V> MessageReceiver<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+        return new MessageReceiver<>(hazelcast, communicatorName, filter, messageParser);
     }
 
     @Override
@@ -206,19 +223,19 @@ final class HazelcastCommunicator implements Communicator {
     }
 
     @Override
-    public FixedSizeMessageBox createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter) {
-        return new FixedSizeMessageBox(hazelcast, communicatorName, filter, capacity);
+    public <V> FixedSizeMessageBox<V> createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+        return new FixedSizeMessageBox<>(capacity, hazelcast, communicatorName, filter, messageParser);
     }
 
     @Override
-    public LinkedMessageBox createMessageBox(final Predicate<? super IncomingMessage> filter) {
-        return new LinkedMessageBox(hazelcast, communicatorName, filter);
+    public <V> LinkedMessageBox<V> createMessageBox(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+        return new LinkedMessageBox<>(hazelcast, communicatorName, filter, messageParser);
     }
 
     @Override
-    public IncomingMessage sendRequest(final Serializable request, final Duration timeout) throws InterruptedException, TimeoutException {
+    public <V> V sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
         final long messageID = newMessageID();
-        try (final MessageReceiver receiver = receiveMessage(Communicator.responseWithMessageID(messageID))) {
+        try (final MessageReceiver<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser)) {
             sendMessage(request, MessageType.REQUEST, messageID);
             return timeout == null ? receiver.get() : receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         } catch (final ExecutionException e) {
@@ -227,9 +244,9 @@ final class HazelcastCommunicator implements Communicator {
     }
 
     @Override
-    public MessageReceiver sendRequest(final Serializable request) throws InterruptedException {
+    public <V> MessageReceiver<V> sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser) throws InterruptedException {
         final long messageID = newMessageID();
-        final MessageReceiver receiver = receiveMessage(Communicator.responseWithMessageID(messageID));
+        final MessageReceiver<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser);
         sendMessage(request, MessageType.REQUEST, messageID);
         return receiver;
     }

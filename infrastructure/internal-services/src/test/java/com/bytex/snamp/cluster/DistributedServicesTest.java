@@ -12,6 +12,7 @@ import org.junit.Test;
 import java.time.Duration;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Represents tests for distributed services with hazelcast.
@@ -20,6 +21,8 @@ import java.util.function.Consumer;
  * @since 2.0
  */
 public final class DistributedServicesTest extends Assert {
+    private static final Function<Communicator.IncomingMessage, String> PAYLOAD_TO_STRING = msg -> msg.getPayload().toString();
+
     private GridMember instance1;
     private GridMember instance2;
 
@@ -70,9 +73,9 @@ public final class DistributedServicesTest extends Assert {
         final Communicator com2 = instance2.getService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
         assertTrue(com1 instanceof HazelcastCommunicator);
         assertTrue(com2 instanceof HazelcastCommunicator);
-        final Future<? extends Communicator.IncomingMessage> receiver2 = com2.receiveMessage(Communicator.MessageType.SIGNAL);
+        final Future<String> receiver2 = com2.receiveMessage(Communicator.MessageType.SIGNAL, PAYLOAD_TO_STRING);
         com1.sendSignal("Request");
-        assertEquals("Request", receiver2.get(1, TimeUnit.SECONDS).getPayload());
+        assertEquals("Request", receiver2.get(1, TimeUnit.SECONDS));
         instance1.releaseService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
     }
 
@@ -81,20 +84,20 @@ public final class DistributedServicesTest extends Assert {
         final Communicator com = instance1.getService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
         assertTrue(com instanceof HazelcastCommunicator);
         //test message box
-        try(final Communicator.MessageBox box = com.createMessageBox(Communicator.ANY_MESSAGE)) {
+        try (final Communicator.MessageBox<String> box = com.createMessageBox(Communicator.ANY_MESSAGE, PAYLOAD_TO_STRING)) {
             com.sendSignal("First");
             com.sendSignal("Second");
             Thread.sleep(300);
             assertEquals(2, box.size());
-            assertEquals("First", box.poll().getPayload());
-            assertEquals("Second", box.poll().getPayload());
+            assertEquals("First", box.poll());
+            assertEquals("Second", box.poll());
         }
         //test future
-        final Future<? extends Communicator.IncomingMessage> receiver1 = com.receiveMessage(Communicator.ANY_MESSAGE);
-        final Future<? extends Communicator.IncomingMessage> receiver2 = com.receiveMessage(Communicator.ANY_MESSAGE);
+        final Future<String> receiver1 = com.receiveMessage(Communicator.ANY_MESSAGE, PAYLOAD_TO_STRING);
+        final Future<String> receiver2 = com.receiveMessage(Communicator.ANY_MESSAGE, PAYLOAD_TO_STRING);
         com.sendSignal("Hello");
-        assertEquals("Hello", receiver1.get(1, TimeUnit.SECONDS).getPayload());
-        assertEquals("Hello", receiver2.get(1, TimeUnit.SECONDS).getPayload());
+        assertEquals("Hello", receiver1.get(1, TimeUnit.SECONDS));
+        assertEquals("Hello", receiver2.get(1, TimeUnit.SECONDS));
         //test dialog
         final String EXPECTED_RESPONSE = "Response";
         final Consumer<Communicator.IncomingMessage> responseListener = msg -> {
@@ -103,13 +106,13 @@ public final class DistributedServicesTest extends Assert {
             assertEquals("Request", msg.getPayload());
             com.sendMessage(EXPECTED_RESPONSE, Communicator.MessageType.RESPONSE, msg.getMessageID());
         };
-        try(final SafeCloseable ignored = com.addMessageListener(responseListener, Communicator.MessageType.REQUEST)){
-            final Future<? extends Communicator.IncomingMessage> response = com.sendRequest("Request");
-            assertEquals(EXPECTED_RESPONSE, response.get(1, TimeUnit.SECONDS).getPayload());
+        try (final SafeCloseable ignored = com.addMessageListener(responseListener, Communicator.MessageType.REQUEST)) {
+            final Future<String> response = com.sendRequest("Request", PAYLOAD_TO_STRING);
+            assertEquals(EXPECTED_RESPONSE, response.get(1, TimeUnit.SECONDS));
         }
-        try(final SafeCloseable ignored = com.addMessageListener(responseListener, Communicator.MessageType.REQUEST)){
-            final Communicator.IncomingMessage response = com.sendRequest("Request", Duration.ofSeconds(1L));
-            assertEquals(EXPECTED_RESPONSE, response.getPayload());
+        try (final SafeCloseable ignored = com.addMessageListener(responseListener, Communicator.MessageType.REQUEST)) {
+            final String response = com.sendRequest("Request", PAYLOAD_TO_STRING, Duration.ofSeconds(1L));
+            assertEquals(EXPECTED_RESPONSE, response);
         }
         instance1.releaseService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
     }

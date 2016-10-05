@@ -4,6 +4,7 @@ import com.bytex.snamp.core.Communicator;
 import org.apache.karaf.shell.commands.Command;
 
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 import static com.bytex.snamp.management.shell.Utils.appendln;
 
@@ -21,7 +22,7 @@ public final class ReceiveMessageCommand extends MessageCommand {
     protected CharSequence doExecute() throws InterruptedException, TimeoutException {
         final Communicator communicator = getCommunicator();
         session.getConsole().format("Waiting input message. Press Ctrl+C to abort");
-        final Communicator.IncomingMessage message = communicator.receiveMessage(Communicator.ANY_MESSAGE, null);
+        final Communicator.IncomingMessage message = communicator.receiveMessage(Communicator.ANY_MESSAGE, Function.identity(), null);
         if(message == null)
             return "No message received";
         final StringBuilder result = new StringBuilder();

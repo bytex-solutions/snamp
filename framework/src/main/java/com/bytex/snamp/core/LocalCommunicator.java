@@ -66,6 +66,13 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         }
     }
 
+    interface MessageListenerNode extends Consumer<IncomingMessage>, Predicate<IncomingMessage>, SafeCloseable{
+        MessageListenerNode getPrevious();
+        MessageListenerNode getNext();
+        void setNext(final MessageListenerNode value);
+        void setPrevious(final MessageListenerNode value);
+    }
+
     /**
      * Represents position of the listener node in the listener chain.
      */
@@ -115,19 +122,17 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         }
     }
 
-    interface MessageListenerNode extends Consumer<IncomingMessage>, Predicate<IncomingMessage>, SafeCloseable{
-        MessageListenerNode getPrevious();
-        MessageListenerNode getNext();
-        void setNext(final MessageListenerNode value);
-        void setPrevious(final MessageListenerNode value);
-    }
-
-    private static final class FixedSizeMessageBox extends ArrayBlockingQueue<IncomingMessage> implements MessageBox, MessageListenerNode{
+    private static final class FixedSizeMessageBox<V> extends ArrayBlockingQueue<V> implements MessageBox<V>, MessageListenerNode{
         private final NodePosition position;
+        private final Function<? super IncomingMessage, ? extends V> messageParser;
 
-        private FixedSizeMessageBox(final int capacity, final LockManager writeLock, final Predicate<? super IncomingMessage> filter) {
+        private FixedSizeMessageBox(final int capacity,
+                                    final LockManager writeLock,
+                                    final Predicate<? super IncomingMessage> filter,
+                                    final Function<? super IncomingMessage, ? extends V> messageParser) {
             super(capacity);
             this.position = new NodePosition(writeLock, filter);
+            this.messageParser = Objects.requireNonNull(messageParser);
         }
 
         @Override
@@ -137,7 +142,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
 
         @Override
         public void accept(final IncomingMessage message) {
-            add(message);
+            add(messageParser.apply(message));
         }
 
         @Override
@@ -166,11 +171,15 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         }
     }
 
-    private static final class LinkedMessageBox extends LinkedBlockingQueue<IncomingMessage> implements MessageBox, MessageListenerNode{
+    private static final class LinkedMessageBox<V> extends LinkedBlockingQueue<V> implements MessageBox<V>, MessageListenerNode{
         private final NodePosition position;
+        private final Function<? super IncomingMessage, ? extends V> messageParser;
 
-        private LinkedMessageBox(final LockManager writeLock, final Predicate<? super IncomingMessage> filter){
+        private LinkedMessageBox(final LockManager writeLock,
+                                 final Predicate<? super IncomingMessage> filter,
+                                 final Function<? super IncomingMessage, ? extends V> messageParser){
             position = new NodePosition(writeLock, filter);
+            this.messageParser = Objects.requireNonNull(messageParser);
         }
 
         @Override
@@ -180,7 +189,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
 
         @Override
         public void accept(final IncomingMessage message) {
-            add(message);
+            add(messageParser.apply(message));
         }
 
         @Override
@@ -209,16 +218,20 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         }
     }
 
-    private static final class MessageFuture extends CompletableFuture<IncomingMessage> implements ComputationPipeline<IncomingMessage>, MessageListenerNode{
+    private static final class MessageFuture<V> extends CompletableFuture<V> implements ComputationPipeline<V>, MessageListenerNode{
         private final NodePosition position;
+        private final Function<? super IncomingMessage, ? extends V> messageParser;
 
-        private MessageFuture(final LockManager writeLock, final Predicate<? super IncomingMessage> filter){
+        private MessageFuture(final LockManager writeLock,
+                              final Predicate<? super IncomingMessage> filter,
+                              final Function<? super IncomingMessage, ? extends V> messageParser){
             position = new NodePosition(writeLock, filter);
+            this.messageParser = Objects.requireNonNull(messageParser);
         }
 
         @Override
         public void accept(final IncomingMessage message) {
-            complete(message);
+            complete(messageParser.apply(message));
         }
 
         @Override
@@ -401,24 +414,24 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     @Override
-    public IncomingMessage receiveMessage(final Predicate<? super IncomingMessage> filter, final Duration timeout) throws InterruptedException, TimeoutException {
-        try (final MessageFuture future = receiveMessage(filter, false)) {
+    public <V> V receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
+        try (final MessageFuture<V> future = receiveMessage(filter, messageParser, false)) {
             return timeout == null ? future.get() : future.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         } catch (final ExecutionException e) {
             throw new AssertionError("Unexpected execution exception", e);    //should never be happened
         }
     }
 
-    private MessageFuture receiveMessage(final Predicate<? super IncomingMessage> filter, final boolean closeWhenComplete) {
-        final MessageFuture result = addMessageListener(lock -> new MessageFuture(lock, filter));
+    private <V> MessageFuture<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser, final boolean closeWhenComplete) {
+        final MessageFuture<V> result = addMessageListener(lock -> new MessageFuture<V>(lock, filter, messageParser));
         if(closeWhenComplete)
             result.thenRun(result::close);
         return result;
     }
 
     @Override
-    public MessageFuture receiveMessage(final Predicate<? super IncomingMessage> filter) {
-        return receiveMessage(filter, true);
+    public <V> MessageFuture<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+        return receiveMessage(filter, messageParser, true);
     }
 
     private <N extends MessageListenerNode> N addMessageListenerImpl(final Function<? super LockManager, ? extends N> nodeFactory){
@@ -443,19 +456,19 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     @Override
-    public FixedSizeMessageBox createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter) {
-        return addMessageListener(lock -> new FixedSizeMessageBox(capacity, lock, filter));
+    public <V> FixedSizeMessageBox<V> createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+        return addMessageListener(lock -> new FixedSizeMessageBox<V>(capacity, lock, filter, messageParser));
     }
 
     @Override
-    public LinkedMessageBox createMessageBox(final Predicate<? super IncomingMessage> filter) {
-        return addMessageListener(lock -> new LinkedMessageBox(lock, filter));
+    public <V> LinkedMessageBox<V> createMessageBox(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+        return addMessageListener(lock -> new LinkedMessageBox<V>(lock, filter, messageParser));
     }
 
     @Override
-    public IncomingMessage sendRequest(final Serializable message, final Duration timeout) throws InterruptedException, TimeoutException {
+    public <V> V sendRequest(final Serializable message, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
         final long messageID = newMessageID();
-        try (final MessageFuture receiver = receiveMessage(Communicator.responseWithMessageID(messageID), false)) {
+        try (final MessageFuture<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser, false)) {
             sendMessage(message, MessageType.REQUEST, messageID);
             return timeout == null ? receiver.get() : receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         } catch (final ExecutionException e) {
@@ -464,9 +477,9 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     @Override
-    public MessageFuture sendRequest(final Serializable message) throws InterruptedException {
+    public <V> MessageFuture<V> sendRequest(final Serializable message, final Function<? super IncomingMessage, ? extends V> messageParser) throws InterruptedException {
         final long messageID = newMessageID();
-        final MessageFuture receiver = receiveMessage(Communicator.responseWithMessageID(messageID), true);
+        final MessageFuture<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser, true);
         sendMessage(message, MessageType.REQUEST, messageID);
         return receiver;
     }

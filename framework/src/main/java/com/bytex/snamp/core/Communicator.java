@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.util.Queue;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -84,8 +85,9 @@ public interface Communicator {
     }
     /**
      * Represents input message box.
+     * @param <V> Type of processed messages.
      */
-    interface MessageBox extends Queue<IncomingMessage>, SafeCloseable{
+    interface MessageBox<V> extends Queue<V>, SafeCloseable{
 
     }
 
@@ -116,19 +118,19 @@ public interface Communicator {
      */
     void sendMessage(final Serializable payload, final MessageType type, final long messageID);
 
-    IncomingMessage receiveMessage(final Predicate<? super IncomingMessage> filter, final Duration timeout) throws InterruptedException, TimeoutException;
+    <V> V receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException;
 
-    ComputationPipeline<? extends IncomingMessage> receiveMessage(final Predicate<? super IncomingMessage> filter);
+    <V> ComputationPipeline<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser);
 
     SafeCloseable addMessageListener(final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter);
 
-    MessageBox createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter);
+    <V> MessageBox<V> createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser);
 
-    MessageBox createMessageBox(final Predicate<? super IncomingMessage> filter);
+    <V> MessageBox<V> createMessageBox(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser);
 
-    IncomingMessage sendRequest(final Serializable request, final Duration timeout) throws InterruptedException, TimeoutException;
+    <V> V sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException;
 
-    ComputationPipeline<? extends IncomingMessage> sendRequest(final Serializable request) throws InterruptedException;
+    <V> ComputationPipeline<V> sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser) throws InterruptedException;
 
     static Predicate<? super IncomingMessage> responseWithMessageID(final long messageID){
         return MessageType.RESPONSE.and(msg -> msg.getMessageID() == messageID);
