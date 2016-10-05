@@ -59,6 +59,11 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         public MessageType getType() {
             return messageType;
         }
+
+        @Override
+        public boolean isRemote() {
+            return false;
+        }
     }
 
     /**

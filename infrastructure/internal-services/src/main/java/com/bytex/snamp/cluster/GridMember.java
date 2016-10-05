@@ -142,8 +142,8 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         return TypeTokens.cast(result, serviceType);
     }
 
-    private HazelcastCommunicator getCommunicator(final String serviceName){
-        return new HazelcastCommunicator(hazelcast, serviceName, this);
+    private HazelcastCommunicator getCommunicator(final String serviceName) {
+        return new HazelcastCommunicator(hazelcast, this::isActive, serviceName);
     }
 
     private HazelcastStorage getStorage(final String collectionName){

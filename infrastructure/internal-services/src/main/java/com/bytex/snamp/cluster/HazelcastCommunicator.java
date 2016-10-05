@@ -2,7 +2,6 @@ package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.ComputationPipeline;
-import com.bytex.snamp.core.ClusterMemberInfo;
 import com.bytex.snamp.core.Communicator;
 import com.hazelcast.core.*;
 
@@ -10,6 +9,7 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -20,11 +20,50 @@ import java.util.function.Predicate;
  * @since 2.0
  */
 final class HazelcastCommunicator implements Communicator {
-    private static class MessageReceiver extends CompletableFuture<HazelcastIncomingMessage> implements ComputationPipeline<HazelcastIncomingMessage>, MessageListener<TransferObject>{
+    private static final class TransferObjectListener implements MessageListener<TransferObject>, SafeCloseable{
+        private final String localMemberID;
         private final Predicate<? super HazelcastIncomingMessage> filter;
+        private final Consumer<? super HazelcastIncomingMessage> listener;
+        private final ITopic<TransferObject> topic;
+        private final String subscription;
 
-        private MessageReceiver(final Predicate<? super HazelcastIncomingMessage> filter){
+        private TransferObjectListener(final HazelcastInstance hazelcast, final String communicatorName, final Predicate<? super HazelcastIncomingMessage> filter, final Consumer<? super HazelcastIncomingMessage> listener){
+            this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
             this.filter = Objects.requireNonNull(filter);
+            this.listener = Objects.requireNonNull(listener);
+            this.topic = hazelcast.getTopic(communicatorName);
+            this.subscription = topic.addMessageListener(this);
+        }
+
+        private void onMessage(final HazelcastIncomingMessage message){
+            if(filter.test(message))
+                listener.accept(message);
+        }
+
+        @Override
+        public void onMessage(final Message<TransferObject> hzMessage) {
+            final HazelcastIncomingMessage msg = new HazelcastIncomingMessage(hzMessage);
+            msg.detectRemoteMessage(localMemberID);
+            onMessage(msg);
+        }
+
+        @Override
+        public void close() {
+            topic.removeMessageListener(subscription);
+        }
+    }
+
+    private static class MessageReceiver extends CompletableFuture<HazelcastIncomingMessage> implements ComputationPipeline<HazelcastIncomingMessage>, MessageListener<TransferObject>, SafeCloseable{
+        private final Predicate<? super HazelcastIncomingMessage> filter;
+        private final String subscription;
+        private final ITopic<TransferObject> topic;
+        private final String localMemberID;
+
+        private MessageReceiver(final HazelcastInstance hazelcast, final String communicatorName, final Predicate<? super HazelcastIncomingMessage> filter){
+            this.filter = Objects.requireNonNull(filter);
+            this.topic = hazelcast.getTopic(communicatorName);
+            this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
+            this.subscription = topic.addMessageListener(this);
         }
 
         private void onMessage(final HazelcastIncomingMessage inputMessage){
@@ -34,7 +73,14 @@ final class HazelcastCommunicator implements Communicator {
 
         @Override
         public final void onMessage(final Message<TransferObject> hzMessage) {
-            onMessage(new HazelcastIncomingMessage(hzMessage));
+            final HazelcastIncomingMessage msg = new HazelcastIncomingMessage(hzMessage);
+            msg.detectRemoteMessage(localMemberID);
+            onMessage(msg);
+        }
+
+        @Override
+        public void close() {
+            topic.removeMessageListener(subscription);
         }
     }
 
@@ -43,11 +89,13 @@ final class HazelcastCommunicator implements Communicator {
         private final Predicate<? super IncomingMessage> filter;
         private final String subscription;
         private final ITopic<TransferObject> topic;
+        private final String localMemberID;
 
-        private LinkedMessageBox(final ITopic<TransferObject> topic, final Predicate<? super IncomingMessage> filter){
+        private LinkedMessageBox(final HazelcastInstance hazelcast, final String communicatorName, final Predicate<? super IncomingMessage> filter){
             this.filter = Objects.requireNonNull(filter);
-            this.topic = Objects.requireNonNull(topic);
+            this.topic = hazelcast.getTopic(communicatorName);
             this.subscription = topic.addMessageListener(this);
+            this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
         }
 
         private void onMessage(final HazelcastIncomingMessage message){
@@ -57,7 +105,9 @@ final class HazelcastCommunicator implements Communicator {
 
         @Override
         public void onMessage(final Message<TransferObject> hzMessage) {
-            onMessage(new HazelcastIncomingMessage(hzMessage));
+            final HazelcastIncomingMessage msg = new HazelcastIncomingMessage(hzMessage);
+            msg.detectRemoteMessage(localMemberID);
+            onMessage(msg);
         }
 
         @Override
@@ -66,17 +116,19 @@ final class HazelcastCommunicator implements Communicator {
         }
     }
 
-    private static final class FixedSizeMessageBox extends ArrayBlockingQueue<IncomingMessage> implements MessageBox, MessageListener<TransferObject>{
+    private static final class FixedSizeMessageBox extends ArrayBlockingQueue<IncomingMessage> implements MessageBox, MessageListener<TransferObject>, SafeCloseable{
         private static final long serialVersionUID = 2173687138535015363L;
         private final Predicate<? super IncomingMessage> filter;
         private final String subscription;
-        private final ITopic<TransferObject> topic;
+        private final transient ITopic<TransferObject> topic;
+        private final String localMemberID;
 
-        private FixedSizeMessageBox(final ITopic<TransferObject> topic, final Predicate<? super IncomingMessage> filter, final int capacity){
+        private FixedSizeMessageBox(final HazelcastInstance hazelcast, final String communicatorName, final Predicate<? super IncomingMessage> filter, final int capacity){
             super(capacity);
             this.filter = Objects.requireNonNull(filter);
-            this.topic = Objects.requireNonNull(topic);
+            this.topic = hazelcast.getTopic(communicatorName);
             this.subscription = topic.addMessageListener(this);
+            this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
         }
 
         private void onMessage(final HazelcastIncomingMessage message){
@@ -86,7 +138,9 @@ final class HazelcastCommunicator implements Communicator {
 
         @Override
         public void onMessage(final Message<TransferObject> message) {
-            onMessage(new HazelcastIncomingMessage(message));
+            final HazelcastIncomingMessage msg = new HazelcastIncomingMessage(message);
+            msg.detectRemoteMessage(localMemberID);
+            onMessage(msg);
         }
 
         @Override
@@ -95,21 +149,21 @@ final class HazelcastCommunicator implements Communicator {
         }
     }
 
-    private final ClusterMemberInfo senderInfo;
-    private final IAtomicLong idGenerator;
-    private final ITopic<TransferObject> topic;
+    private final HazelcastInstance hazelcast;
+    private final String communicatorName;
+    private final BooleanSupplier activeNodeDetector;
 
     HazelcastCommunicator(final HazelcastInstance hazelcast,
-                          final String communicatorName,
-                          final ClusterMemberInfo sender){
-        this.senderInfo = Objects.requireNonNull(sender);
-        this.idGenerator = hazelcast.getAtomicLong("MSGID-".concat(communicatorName));
-        this.topic = hazelcast.getTopic(communicatorName);
+                          final BooleanSupplier activeNodeDetector,
+                          final String communicatorName){
+        this.hazelcast = Objects.requireNonNull(hazelcast);
+        this.activeNodeDetector = Objects.requireNonNull(activeNodeDetector);
+        this.communicatorName = communicatorName;
     }
 
     @Override
     public long newMessageID() {
-        return idGenerator.getAndIncrement();
+        return hazelcast.getAtomicLong("MSGID-".concat(communicatorName)).getAndIncrement();
     }
 
     @Override
@@ -122,65 +176,53 @@ final class HazelcastCommunicator implements Communicator {
         sendMessage(payload, type, newMessageID());
     }
 
+    private HazelcastNodeInfo createLocalNodeInfo(){
+        return new HazelcastNodeInfo(hazelcast, activeNodeDetector.getAsBoolean());
+    }
+
     @Override
     public void sendMessage(final Serializable payload, final MessageType type, final long messageID) {
-        topic.publish(new TransferObject(senderInfo, payload, type, messageID));
+        final ITopic<TransferObject> topic = hazelcast.getTopic(communicatorName);
+        topic.publish(new TransferObject(createLocalNodeInfo(), payload, type, messageID));
     }
 
     @Override
     public IncomingMessage receiveMessage(final Predicate<? super IncomingMessage> filter, final Duration timeout) throws InterruptedException, TimeoutException {
-        final MessageReceiver receiver = new MessageReceiver(filter);
-        final String subscription = topic.addMessageListener(receiver);
-        try {
+        try(final MessageReceiver receiver = receiveMessage(filter)) {
             return timeout == null ? receiver.get() : receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         } catch (final ExecutionException e) {
             throw new AssertionError("Unexpected exception", e);
-        } finally {
-            topic.removeMessageListener(subscription);
         }
     }
 
     @Override
     public MessageReceiver receiveMessage(final Predicate<? super IncomingMessage> filter) {
-        final MessageReceiver receiver = new MessageReceiver(filter);
-        final String subscription = topic.addMessageListener(receiver);
-        receiver.thenRun(() -> topic.removeMessageListener(subscription));   //remove subscription after receiving message
-        return receiver;
+        return new MessageReceiver(hazelcast, communicatorName, filter);
     }
 
     @Override
-    public SafeCloseable addMessageListener(final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter) {
-        final MessageListener<TransferObject> hzListener = hzMessage -> {
-            final HazelcastIncomingMessage msg = new HazelcastIncomingMessage(hzMessage);
-            if (filter.test(msg))
-                listener.accept(msg);
-        };
-        final String subscription = topic.addMessageListener(hzListener);
-        return () -> topic.removeMessageListener(subscription);
+    public TransferObjectListener addMessageListener(final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter) {
+        return new TransferObjectListener(hazelcast, communicatorName, filter, listener);
     }
 
     @Override
     public FixedSizeMessageBox createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter) {
-        return new FixedSizeMessageBox(topic, filter, capacity);
+        return new FixedSizeMessageBox(hazelcast, communicatorName, filter, capacity);
     }
 
     @Override
     public LinkedMessageBox createMessageBox(final Predicate<? super IncomingMessage> filter) {
-        return new LinkedMessageBox(topic, filter);
+        return new LinkedMessageBox(hazelcast, communicatorName, filter);
     }
 
     @Override
     public IncomingMessage sendRequest(final Serializable request, final Duration timeout) throws InterruptedException, TimeoutException {
         final long messageID = newMessageID();
-        final MessageReceiver receiver = new MessageReceiver(Communicator.responseWithMessageID(messageID));
-        final String subscription = topic.addMessageListener(receiver);
-        try {
+        try (final MessageReceiver receiver = receiveMessage(Communicator.responseWithMessageID(messageID))) {
             sendMessage(request, MessageType.REQUEST, messageID);
             return timeout == null ? receiver.get() : receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         } catch (final ExecutionException e) {
             throw new AssertionError("Unexpected exception", e);
-        } finally {
-            topic.removeMessageListener(subscription);
         }
     }
 

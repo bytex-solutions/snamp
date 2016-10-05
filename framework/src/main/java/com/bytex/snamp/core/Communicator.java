@@ -74,6 +74,12 @@ public interface Communicator {
          * @return Type of this message.
          */
         MessageType getType();
+
+        /**
+         * Determines whether this message was sent by remote publisher.
+         * @return {@literal true}, if this message was sent by remote peer; {@literal false}, if this message was sent from the current process.
+         */
+        boolean isRemote();
     }
     /**
      * Represents input message box.

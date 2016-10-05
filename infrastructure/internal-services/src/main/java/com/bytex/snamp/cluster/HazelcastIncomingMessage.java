@@ -15,8 +15,9 @@ import java.util.Objects;
 final class HazelcastIncomingMessage implements Communicator.IncomingMessage {
     private final HazelcastNodeInfo sender;
     private final Message<TransferObject> hzMessage;
+    private boolean remote;
 
-    HazelcastIncomingMessage(final Message<TransferObject> hzMessage){
+    HazelcastIncomingMessage( final Message<TransferObject> hzMessage){
         this.hzMessage = Objects.requireNonNull(hzMessage);
         this.sender = new HazelcastNodeInfo(hzMessage.getPublishingMember(), hzMessage.getMessageObject().isSenderActive, hzMessage.getMessageObject().senderName);
     }
@@ -69,5 +70,15 @@ final class HazelcastIncomingMessage implements Communicator.IncomingMessage {
     @Override
     public Communicator.MessageType getType() {
         return hzMessage.getMessageObject().messageType;
+    }
+
+    @Override
+    public boolean isRemote() {
+        return remote;
+    }
+
+    void detectRemoteMessage(final String localNodeID){
+        final boolean isLocal = localNodeID.equals(sender.getNodeID());
+        remote = !isLocal;
     }
 }
