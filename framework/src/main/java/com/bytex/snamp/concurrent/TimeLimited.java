@@ -1,11 +1,16 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.Stateful;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.LongSupplier;
 
 /**
  * Represents abstract time-based accumulator.
@@ -13,17 +18,18 @@ import java.util.function.LongSupplier;
  * @version 2.0
  * @since 1.0
  */
-abstract class TimeLimited implements Stateful {
+abstract class TimeLimited implements Stateful, Serializable {
+    private static final long serialVersionUID = -3419420505943412983L;
     private final AtomicLong timer;
 
     /**
      * Time-to-live of the value in this accumulator, in millis.
      */
-    private final LongSupplier timeToLive;
+    private final Duration timeToLive;
 
-    TimeLimited(final LongSupplier ttl){
+    TimeLimited(final Duration ttl){
         timer = new AtomicLong(System.currentTimeMillis());
-        this.timeToLive = ttl;
+        this.timeToLive = Objects.requireNonNull(ttl);
     }
 
     /**
@@ -34,10 +40,16 @@ abstract class TimeLimited implements Stateful {
         timer.set(System.currentTimeMillis());
     }
 
+    @SpecialUse
+    private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        timer.set(System.currentTimeMillis());  //reset timer to the local time
+    }
+
     private boolean resetTimerIfExpired() {
         final long ticks = timer.get();
         final long now = System.currentTimeMillis();
-        return now - ticks > timeToLive.getAsLong() && timer.compareAndSet(ticks, now);
+        return now - ticks > timeToLive.toMillis() && timer.compareAndSet(ticks, now);
     }
 
     final <I> void acceptIfExpired(final I input, final Consumer<? super I> action){

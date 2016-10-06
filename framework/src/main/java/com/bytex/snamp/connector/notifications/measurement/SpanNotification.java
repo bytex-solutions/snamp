@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.notifications.measurement;
 
-import com.bytex.snamp.SerializableMap;
+import com.bytex.snamp.io.SerializableMap;
 import com.bytex.snamp.TypeTokens;
 import com.google.common.reflect.TypeToken;
 

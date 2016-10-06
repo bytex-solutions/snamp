@@ -3,6 +3,7 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
@@ -26,7 +27,7 @@ public abstract class TimeLimitedLong extends TimeLimited implements LongSupplie
      * @param ttl Time-to-live of the value in this accumulator, in millis.
      */
     protected TimeLimitedLong(final long initialValue,
-                              final LongSupplier ttl){
+                              final Duration ttl){
         super(ttl);
         current = new AtomicLong(this.initialValue = initialValue);
     }
@@ -62,12 +63,12 @@ public abstract class TimeLimitedLong extends TimeLimited implements LongSupplie
 
     /**
      * Atomically combines a new value with existing using given function.
-     * @param operator A side-effect-free function used to combine two values. Cannot be {@literal null}.
      * @param newValue The value passed from {@link #update(long)} method.
+     * @param operator A side-effect-free function used to combine two values. Cannot be {@literal null}.
      * @return The updated value.
      * @since 1.2
      */
-    protected final long accumulateAndGet(final LongBinaryOperator operator, final long newValue){
+    protected final long accumulateAndGet(final long newValue, final LongBinaryOperator operator){
         return current.accumulateAndGet(newValue, operator);
     }
 
@@ -75,7 +76,7 @@ public abstract class TimeLimitedLong extends TimeLimited implements LongSupplie
      * Combines the value in this accumulator with the new one.
      * @param value A value comes for {@link #update(long)} method.
      * @return A new combined value.
-     * @see #accumulateAndGet(LongBinaryOperator, long)
+     * @see #accumulateAndGet(long, LongBinaryOperator)
      * @see #addAndGet(long)
      */
     protected abstract long accumulate(final long value);
@@ -123,37 +124,47 @@ public abstract class TimeLimitedLong extends TimeLimited implements LongSupplie
         return Long.toString(current.get());
     }
 
-    public static TimeLimitedLong create(final long initialValue, final long ttl, final LongBinaryOperator accumulator){
-        return new TimeLimitedLong(initialValue, () -> ttl) {
+    public static TimeLimitedLong create(final long initialValue, final Duration ttl, final LongBinaryOperator accumulator){
+        return new TimeLimitedLong(initialValue, ttl) {
+            private static final long serialVersionUID = 1320724085739486292L;
 
             @Override
             protected long accumulate(final long value) {
-                return accumulateAndGet(accumulator, value);
+                return accumulateAndGet(value, accumulator);
             }
         };
     }
 
-    public static TimeLimitedLong peak(final long initialValue, final long ttl){
-        return create(initialValue, ttl, Math::max);
-    }
+    public static TimeLimitedLong peak(final long initialValue, final Duration ttl){
+        return new TimeLimitedLong(initialValue, ttl) {
+            private static final long serialVersionUID = -5273127638188299543L;
 
-    public static TimeLimitedLong min(final long initialValue, final long ttl){
-        return create(initialValue, ttl, Math::min);
-    }
-
-    public static TimeLimitedLong adder(final long initialValue, final long ttl) {
-        final class Adder extends TimeLimitedLong {
-
-            private Adder(final long initialValue, final long ttl){
-                super(initialValue, () -> ttl);
+            @Override
+            protected long accumulate(final long value) {
+                return accumulateAndGet(value, Math::max);
             }
+        };
+    }
+
+    public static TimeLimitedLong min(final long initialValue, final Duration ttl){
+        return new TimeLimitedLong(initialValue, ttl) {
+            private static final long serialVersionUID = -5273127638188299543L;
+
+            @Override
+            protected long accumulate(final long value) {
+                return accumulateAndGet(value, Math::min);
+            }
+        };
+    }
+
+    public static TimeLimitedLong adder(final long initialValue, final Duration ttl) {
+        return new TimeLimitedLong(initialValue, ttl) {
+            private static final long serialVersionUID = -5273127638188299543L;
 
             @Override
             protected long accumulate(final long delta) {
                 return addAndGet(delta);
             }
-        }
-
-        return new Adder(initialValue, ttl);
+        };
     }
 }

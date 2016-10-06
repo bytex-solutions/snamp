@@ -4,7 +4,6 @@ import com.bytex.snamp.concurrent.TimeLimitedLong;
 import org.osgi.service.log.LogService;
 
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongConsumer;
 
 /**
@@ -15,8 +14,10 @@ import java.util.function.LongConsumer;
  */
 final class StatisticCounters {
     private static final class LogEventCounter extends TimeLimitedLong {
-        private LogEventCounter(final AtomicLong timeout){
-            super(0L, timeout::get);
+        private static final long serialVersionUID = -470327556746659772L;
+
+        private LogEventCounter(final long timeout){
+            super(0L, Duration.ofMillis(timeout));
         }
 
         @Override
@@ -25,11 +26,11 @@ final class StatisticCounters {
         }
     }
 
-    private final AtomicLong timeout;
-    private final LogEventCounter numberOfFaults;
-    private final LogEventCounter numberOfWarnings;
-    private final LogEventCounter numberOfDebugMessages;
-    private final LogEventCounter numberOfInformationMessages;
+    private volatile long timeout;
+    private volatile LogEventCounter numberOfFaults;
+    private volatile LogEventCounter numberOfWarnings;
+    private volatile LogEventCounter numberOfDebugMessages;
+    private volatile LogEventCounter numberOfInformationMessages;
 
     /**
      * Initializes a new countdown timer.
@@ -38,7 +39,10 @@ final class StatisticCounters {
      * @throws IllegalArgumentException initial is null.
      */
     StatisticCounters(final Duration frequency) {
-        this.timeout = new AtomicLong(frequency.toMillis());
+        updateCounters(this.timeout = frequency.toMillis());
+    }
+
+    private void updateCounters(final long timeout){
         numberOfFaults = new LogEventCounter(timeout);
         numberOfDebugMessages = new LogEventCounter(timeout);
         numberOfInformationMessages = new LogEventCounter(timeout);
@@ -51,7 +55,8 @@ final class StatisticCounters {
      * @param value Renewal time, in millis.
      */
     void setRenewalTime(final long value){
-        timeout.set(value);
+        timeout = value;
+        updateCounters(value);
     }
 
     /**
@@ -60,7 +65,7 @@ final class StatisticCounters {
      * @return Renewal time, in millis.
      */
     long getRenewalTime(){
-        return timeout.get();
+        return timeout;
     }
 
     long getValue(final int level){

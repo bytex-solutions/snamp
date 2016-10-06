@@ -1,4 +1,4 @@
-package com.bytex.snamp;
+package com.bytex.snamp.io;
 
 import java.io.Serializable;
 import java.util.Map;

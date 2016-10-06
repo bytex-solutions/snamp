@@ -1,6 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.SerializableMap;
+import com.bytex.snamp.io.SerializableMap;
 import com.bytex.snamp.Stateful;
 import com.google.common.collect.ForwardingMap;
 

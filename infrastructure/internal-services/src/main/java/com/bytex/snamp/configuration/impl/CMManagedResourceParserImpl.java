@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MutableBoolean;
-import com.bytex.snamp.SerializableMap;
+import com.bytex.snamp.io.SerializableMap;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;

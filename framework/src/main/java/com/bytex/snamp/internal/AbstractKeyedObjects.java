@@ -1,6 +1,6 @@
 package com.bytex.snamp.internal;
 
-import com.bytex.snamp.SerializableMap;
+import com.bytex.snamp.io.SerializableMap;
 
 import java.util.HashMap;
 import java.util.function.Function;

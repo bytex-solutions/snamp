@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
@@ -19,8 +20,8 @@ public final class TimeLimitedObject<V> extends TimeLimited implements Consumer<
     private final V initialValue;
     private final BinaryOperator<V> operator;
 
-    public TimeLimitedObject(final long ttl, final V initialValue, final BinaryOperator<V> operator) {
-        super(() -> ttl);
+    public TimeLimitedObject(final V initialValue, final Duration ttl, final BinaryOperator<V> operator) {
+        super(ttl);
         storage = new AtomicReference<>(this.initialValue = initialValue);
         this.operator = Objects.requireNonNull(operator);
     }

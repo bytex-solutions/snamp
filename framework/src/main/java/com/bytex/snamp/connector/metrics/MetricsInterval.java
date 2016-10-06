@@ -74,11 +74,11 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
     }
 
     final TimeLimitedLong createdAdder(final long initialValue){
-        return TimeLimitedLong.adder(initialValue, timeToLive);
+        return TimeLimitedLong.adder(initialValue, Duration.ofMillis(timeToLive));
     }
 
     final TimeLimitedLong createLongPeakDetector(final long initialValue){
-        return TimeLimitedLong.peak(initialValue, timeToLive);
+        return TimeLimitedLong.peak(initialValue, Duration.ofMillis(timeToLive));
     }
 
     final ExponentialMovingAverage createEMA(){
@@ -94,15 +94,15 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
     }
 
     final TimeLimitedDouble createDoublePeakDetector(final double initialValue){
-        return TimeLimitedDouble.peak(initialValue, timeToLive);
+        return TimeLimitedDouble.peak(initialValue, Duration.ofMillis(timeToLive));
     }
 
     final TimeLimitedDouble createDoubleMinDetector(final double initialValue){
-        return TimeLimitedDouble.min(initialValue, timeToLive);
+        return TimeLimitedDouble.min(initialValue, Duration.ofMillis(timeToLive));
     }
 
     final <V>TimeLimitedObject<V> createTemporaryBox(final V initialValue, final BinaryOperator<V> operator){
-        return new TimeLimitedObject<>(timeToLive, initialValue, operator);
+        return new TimeLimitedObject<>(initialValue, Duration.ofMillis(timeToLive), operator);
     }
 
     /**

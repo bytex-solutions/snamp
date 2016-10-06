@@ -1,10 +1,10 @@
 package com.bytex.snamp.concurrent;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
-import java.util.function.LongSupplier;
 
 /**
  * Represents time-constrained accumulator for {@code int} numbers.
@@ -13,16 +13,17 @@ import java.util.function.LongSupplier;
  * @since 1.0
  */
 public abstract class TimeLimitedInt extends TimeLimited implements IntSupplier, IntConsumer {
+    private static final long serialVersionUID = -3529410942029219094L;
     private final AtomicInteger current;
     private final int initialValue;
 
     /**
      * Initializes a new accumulator of {@literal int} values.
      * @param initialValue The initial value of this accumulator.
-     * @param ttl Time-to-live of the value in this accumulator, in millis.
+     * @param ttl Time-to-live of the value in this accumulator. Cannot be {@literal null}.
      */
     protected TimeLimitedInt(final int initialValue,
-                             final LongSupplier ttl){
+                             final Duration ttl){
         super(ttl);
         current = new AtomicInteger(this.initialValue = initialValue);
     }
@@ -54,12 +55,12 @@ public abstract class TimeLimitedInt extends TimeLimited implements IntSupplier,
 
     /**
      * Atomically combines a new value with existing using given function.
-     * @param operator A side-effect-free function used to combine two values. Cannot be {@literal null}.
      * @param newValue The value passed from {@link #update(int)} method.
+     * @param operator A side-effect-free function used to combine two values. Cannot be {@literal null}.
      * @return The updated value.
      * @since 1.2
      */
-    protected final int accumulateAndGet(final IntBinaryOperator operator, final int newValue){
+    protected final int accumulateAndGet(final int newValue, final IntBinaryOperator operator){
         return current.accumulateAndGet(newValue, operator);
     }
 
@@ -102,33 +103,36 @@ public abstract class TimeLimitedInt extends TimeLimited implements IntSupplier,
         return Integer.toString(current.get());
     }
 
-    public static TimeLimitedInt create(final int initialValue, final long ttl, final IntBinaryOperator accumulator){
-        return new TimeLimitedInt(initialValue, () -> ttl) {
+    public static TimeLimitedInt create(final int initialValue, final Duration ttl, final IntBinaryOperator accumulator){
+        return new TimeLimitedInt(initialValue, ttl) {
+            private static final long serialVersionUID = 6051079718988961185L;
 
             @Override
             protected int accumulate(final int value) {
-                return accumulateAndGet(accumulator, value);
+                return accumulateAndGet(value, accumulator);
             }
         };
     }
 
-    public static TimeLimitedInt peak(final int initialValue, final long ttl){
-        return create(initialValue, ttl, Math::max);
+    public static TimeLimitedInt peak(final int initialValue, final Duration ttl){
+        return new TimeLimitedInt(initialValue, ttl) {
+            private static final long serialVersionUID = -8486723696320618514L;
+
+            @Override
+            protected int accumulate(final int value) {
+                return accumulateAndGet(value, Math::max);
+            }
+        };
     }
 
-    public static TimeLimitedInt adder(final int initialValue, final long ttl) {
-        final class Adder extends TimeLimitedInt {
-
-            private Adder(final int initialValue, final long ttl){
-                super(initialValue, () -> ttl);
-            }
+    public static TimeLimitedInt adder(final int initialValue, final Duration ttl) {
+        return new TimeLimitedInt(initialValue, ttl) {
+            private static final long serialVersionUID = -8664657963798986570L;
 
             @Override
             protected int accumulate(final int delta) {
                 return addAndGet(delta);
             }
-        }
-
-        return new Adder(initialValue, ttl);
+        };
     }
 }
