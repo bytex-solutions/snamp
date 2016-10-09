@@ -25,11 +25,16 @@ abstract class TimeLimited implements Stateful, Serializable {
     /**
      * Time-to-live of the value in this accumulator, in millis.
      */
-    private final Duration timeToLive;
+    private final long timeToLive;
 
     TimeLimited(final Duration ttl){
-        timer = new AtomicLong(System.currentTimeMillis());
-        this.timeToLive = Objects.requireNonNull(ttl);
+        timer = new AtomicLong();
+        this.timeToLive = Objects.requireNonNull(ttl).toMillis();
+        setLocalTime();
+    }
+
+    private void setLocalTime(){
+        timer.set(System.currentTimeMillis());
     }
 
     /**
@@ -40,16 +45,16 @@ abstract class TimeLimited implements Stateful, Serializable {
         timer.set(System.currentTimeMillis());
     }
 
-    @SpecialUse
+    @SpecialUse        //deserialization hook
     private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        timer.set(System.currentTimeMillis());  //reset timer to the local time
+        setLocalTime();  //reset timer to the local time
     }
 
     private boolean resetTimerIfExpired() {
         final long ticks = timer.get();
         final long now = System.currentTimeMillis();
-        return now - ticks > timeToLive.toMillis() && timer.compareAndSet(ticks, now);
+        return now - ticks > timeToLive && timer.compareAndSet(ticks, now);
     }
 
     final <I> void acceptIfExpired(final I input, final Consumer<? super I> action){
