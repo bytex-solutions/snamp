@@ -5,6 +5,7 @@ import com.bytex.snamp.concurrent.ComputationPipeline;
 
 import java.io.Serializable;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -19,7 +20,6 @@ import java.util.function.Predicate;
 public interface Communicator {
     Predicate<? super IncomingMessage> ANY_MESSAGE = msg -> true;
     Predicate<IncomingMessage> REMOTE_MESSAGE = IncomingMessage::isRemote;
-    Function<IncomingMessage, String> PAYLOAD_TO_STRING = msg -> msg.getPayload().toString();
 
     /**
      * Represents message type.
@@ -133,7 +133,15 @@ public interface Communicator {
 
     <V> ComputationPipeline<V> sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser) throws InterruptedException;
 
-    static Predicate<? super IncomingMessage> responseWithMessageID(final long messageID){
+    static Predicate<IncomingMessage> responseWithMessageID(final long messageID){
         return MessageType.RESPONSE.and(msg -> msg.getMessageID() == messageID);
+    }
+
+    static String getPayloadAsString(final IncomingMessage message){
+        return Objects.toString(message.getPayload());
+    }
+
+    static Predicate<IncomingMessage> responseWithPayload(final Serializable expected){
+        return MessageType.RESPONSE.and(msg -> Objects.equals(msg.getPayload(), expected));
     }
 }

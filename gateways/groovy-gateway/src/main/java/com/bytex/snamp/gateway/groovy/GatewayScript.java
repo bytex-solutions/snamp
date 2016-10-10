@@ -1,19 +1,23 @@
 package com.bytex.snamp.gateway.groovy;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.core.Communicator;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.io.Communicator;
 import com.google.common.eventbus.Subscribe;
 import groovy.lang.Closure;
 import groovy.lang.Script;
+import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import java.time.Duration;
 import java.util.EventListener;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
+import static com.bytex.snamp.internal.Utils.getBundleContext;
 
 /**
  * Represents an abstract class for gateway automation script.
@@ -34,19 +38,11 @@ public abstract class GatewayScript extends Script implements AutoCloseable, Not
     }
 
     @SpecialUse
-    protected static Communicator getCommunicator(final String sessionName) throws ExecutionException {
-        return Communicator.getSession(sessionName);
-    }
-
-    @SpecialUse
-    protected static EventListener asListener(final Closure<?> closure) {
-        return new EventListener() {
-            @Subscribe
-            @SpecialUse
-            public void accept(final Object message) {
-                closure.call(message);
-            }
-        };
+    protected static Communicator getCommunicator(final String sessionName) {
+        final BundleContext context = getBundleContext(GatewayScript.class);
+        return context == null ?
+                DistributedServices.getProcessLocalCommunicator(sessionName) :
+                DistributedServices.getDistributedCommunicator(context, sessionName);
     }
 
     /**

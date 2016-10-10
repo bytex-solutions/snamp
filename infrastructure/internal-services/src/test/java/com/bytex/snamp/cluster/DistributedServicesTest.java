@@ -71,7 +71,7 @@ public final class DistributedServicesTest extends Assert {
         final Communicator com2 = instance2.getService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
         assertTrue(com1 instanceof HazelcastCommunicator);
         assertTrue(com2 instanceof HazelcastCommunicator);
-        final Future<String> receiver2 = com2.receiveMessage(Communicator.MessageType.SIGNAL, Communicator.PAYLOAD_TO_STRING);
+        final Future<String> receiver2 = com2.receiveMessage(Communicator.MessageType.SIGNAL, Communicator::getPayloadAsString);
         com1.sendSignal("Request");
         assertEquals("Request", receiver2.get(1, TimeUnit.SECONDS));
         instance1.releaseService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
@@ -82,7 +82,7 @@ public final class DistributedServicesTest extends Assert {
         final Communicator com = instance1.getService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
         assertTrue(com instanceof HazelcastCommunicator);
         //test message box
-        try (final Communicator.MessageBox<String> box = com.createMessageBox(Communicator.ANY_MESSAGE, Communicator.PAYLOAD_TO_STRING)) {
+        try (final Communicator.MessageBox<String> box = com.createMessageBox(Communicator.ANY_MESSAGE, Communicator::getPayloadAsString)) {
             com.sendSignal("First");
             com.sendSignal("Second");
             Thread.sleep(300);
@@ -91,8 +91,8 @@ public final class DistributedServicesTest extends Assert {
             assertEquals("Second", box.poll());
         }
         //test future
-        final Future<String> receiver1 = com.receiveMessage(Communicator.ANY_MESSAGE, Communicator.PAYLOAD_TO_STRING);
-        final Future<String> receiver2 = com.receiveMessage(Communicator.ANY_MESSAGE, Communicator.PAYLOAD_TO_STRING);
+        final Future<String> receiver1 = com.receiveMessage(Communicator.ANY_MESSAGE, Communicator::getPayloadAsString);
+        final Future<String> receiver2 = com.receiveMessage(Communicator.ANY_MESSAGE, Communicator::getPayloadAsString);
         com.sendSignal("Hello");
         assertEquals("Hello", receiver1.get(1, TimeUnit.SECONDS));
         assertEquals("Hello", receiver2.get(1, TimeUnit.SECONDS));
@@ -105,11 +105,11 @@ public final class DistributedServicesTest extends Assert {
             com.sendMessage(EXPECTED_RESPONSE, Communicator.MessageType.RESPONSE, msg.getMessageID());
         };
         try (final SafeCloseable ignored = com.addMessageListener(responseListener, Communicator.MessageType.REQUEST)) {
-            final Future<String> response = com.sendRequest("Request", Communicator.PAYLOAD_TO_STRING);
+            final Future<String> response = com.sendRequest("Request", Communicator::getPayloadAsString);
             assertEquals(EXPECTED_RESPONSE, response.get(1, TimeUnit.SECONDS));
         }
         try (final SafeCloseable ignored = com.addMessageListener(responseListener, Communicator.MessageType.REQUEST)) {
-            final String response = com.sendRequest("Request", Communicator.PAYLOAD_TO_STRING, Duration.ofSeconds(1L));
+            final String response = com.sendRequest("Request", Communicator::getPayloadAsString, Duration.ofSeconds(1L));
             assertEquals(EXPECTED_RESPONSE, response);
         }
         instance1.releaseService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);

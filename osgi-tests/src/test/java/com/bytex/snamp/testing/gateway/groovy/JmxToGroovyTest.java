@@ -1,10 +1,11 @@
 package com.bytex.snamp.testing.gateway.groovy;
 
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.core.Communicator;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
-import com.bytex.snamp.io.Communicator;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -16,6 +17,7 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import java.io.File;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
@@ -53,43 +55,42 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void stringAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
-        final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeStringAttribute", NON_NOTIF, Duration.ofSeconds(10));
-        assertTrue(result instanceof String);
+        final Communicator channel = DistributedServices.getProcessLocalCommunicator(COMMUNICATION_CHANNEL);
+        final String result = channel.sendRequest("changeStringAttribute", Communicator::getPayloadAsString, Duration.ofSeconds(10));
         assertEquals("Frank Underwood", result);
     }
 
     @Test
     public void booleanAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
-        final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeBooleanAttribute", NON_NOTIF, Duration.ofSeconds(10));
+        final Communicator channel = DistributedServices.getProcessLocalCommunicator(COMMUNICATION_CHANNEL);
+        final Serializable result = channel.sendRequest("changeBooleanAttribute", Communicator.IncomingMessage::getPayload, Duration.ofSeconds(10));
         assertTrue(result instanceof Boolean);
         assertEquals(Boolean.TRUE, result);
     }
 
     @Test
     public void integerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
-        final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeIntegerAttribute", NON_NOTIF, Duration.ofSeconds(10));
+        final Communicator channel = DistributedServices.getProcessLocalCommunicator(COMMUNICATION_CHANNEL);
+        final Serializable result = channel.sendRequest("changeIntegerAttribute", Communicator.IncomingMessage::getPayload, Duration.ofSeconds(10));
         assertTrue(result instanceof Integer);
         assertEquals(1020, result);
     }
 
     @Test
     public void bigIntegerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
-        final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeBigIntegerAttribute", NON_NOTIF, 2000);
+        final Communicator channel = DistributedServices.getProcessLocalCommunicator(COMMUNICATION_CHANNEL);
+        final Serializable result = channel.sendRequest("changeBigIntegerAttribute", Communicator.IncomingMessage::getPayload, Duration.ofSeconds(2));
         assertTrue(result instanceof BigInteger);
         assertEquals(BigInteger.valueOf(1020L), result);
     }
 
     @Test
     public void notificationTest() throws ExecutionException, TimeoutException, InterruptedException {
-        final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
+        final Communicator channel = DistributedServices.getProcessLocalCommunicator(COMMUNICATION_CHANNEL);
         final String MESSAGE = "changeStringAttributeSilent";
-        final Future<?> awaitor = channel.registerMessageSynchronizer(MESSAGE);
-        channel.post(MESSAGE);
-        final Object notification = awaitor.get(3, TimeUnit.SECONDS);
+        final Future<Serializable> awaitor = channel.receiveMessage(Communicator.MessageType.RESPONSE, Communicator.IncomingMessage::getPayload);
+        channel.sendMessage(MESSAGE, Communicator.MessageType.REQUEST);
+        final Serializable notification = awaitor.get(3, TimeUnit.SECONDS);
         assertTrue(notification instanceof Notification);
     }
 

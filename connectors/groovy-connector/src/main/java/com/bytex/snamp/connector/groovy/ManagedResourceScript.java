@@ -7,9 +7,9 @@ import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.io.Communicator;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.eventbus.Subscribe;
@@ -338,24 +338,13 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
     }
 
     @SpecialUse
-    protected static Communicator getCommunicator(final String sessionName) throws ExecutionException {
-        return Communicator.getSession(sessionName);
+    protected static Communicator getCommunicator(final String sessionName) {
+        final BundleContext context = getBundleContext();
+        return context == null ? DistributedServices.getProcessLocalCommunicator(sessionName) : DistributedServices.getDistributedCommunicator(context, sessionName);
     }
 
     @SpecialUse
     protected static boolean isActiveClusterNode(){
         return DistributedServices.isActiveNode(getBundleContext());
-    }
-
-    @SpecialUse
-    protected static EventListener asListener(final Closure<?> closure){
-        return new EventListener(){
-
-            @Subscribe
-            @SpecialUse
-            public void accept(final Object message){
-                closure.call(message);
-            }
-        };
     }
 }
