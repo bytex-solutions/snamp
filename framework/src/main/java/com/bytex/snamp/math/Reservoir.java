@@ -2,6 +2,7 @@ package com.bytex.snamp.math;
 
 import com.bytex.snamp.Stateful;
 
+import java.io.Serializable;
 import java.util.OptionalInt;
 
 /**
@@ -10,7 +11,7 @@ import java.util.OptionalInt;
  * @version 2.0
  * @since 2.0
  */
-public interface Reservoir extends Stateful {
+public interface Reservoir extends Stateful, Serializable {
     /**
      * Gets size of this reservoir.
      *

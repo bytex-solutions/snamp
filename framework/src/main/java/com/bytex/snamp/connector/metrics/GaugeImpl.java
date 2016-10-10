@@ -1,7 +1,9 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.TimeLimitedObject;
+import com.bytex.snamp.io.SerializableBinaryOperator;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
@@ -17,7 +19,8 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  * @since 2.0
  */
-class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge<V>, Consumer<V>, BiConsumer<BinaryOperator<V>, V> {
+class GaugeImpl<V extends Comparable<V> & Serializable> extends AbstractMetric implements Gauge<V>, Consumer<V>, BiConsumer<BinaryOperator<V>, V> {
+    private static final long serialVersionUID = 7899285535676342920L;
     private final AtomicReference<V> maxValue;
     private final AtomicReference<V> minValue;
     private final AtomicReference<V> lastValue;
@@ -32,8 +35,8 @@ class GaugeImpl<V extends Comparable<V>> extends AbstractMetric implements Gauge
         maxValue = new AtomicReference<>();
         minValue = new AtomicReference<>();
         lastValue = new AtomicReference<>();
-        lastMinValues = new MetricsIntervalMap<>(interval -> interval.createTemporaryBox(null, GaugeImpl::minValue));
-        lastMaxValues = new MetricsIntervalMap<>(interval -> interval.createTemporaryBox(null, GaugeImpl::maxValue));
+        lastMinValues = new MetricsIntervalMap<>(interval -> interval.createTemporaryBox(null, (SerializableBinaryOperator<V>)GaugeImpl::minValue));
+        lastMaxValues = new MetricsIntervalMap<>(interval -> interval.createTemporaryBox(null, (SerializableBinaryOperator<V>)GaugeImpl::maxValue));
     }
 
     /**

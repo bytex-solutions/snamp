@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -8,7 +9,8 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-abstract class AbstractMetric implements Metric {
+abstract class AbstractMetric implements Metric, Serializable {
+    private static final long serialVersionUID = -8381259894349243894L;
     private final String name;
 
     AbstractMetric(final String name){

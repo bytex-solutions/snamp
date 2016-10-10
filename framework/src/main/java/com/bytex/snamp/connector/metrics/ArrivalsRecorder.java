@@ -16,6 +16,7 @@ import java.util.function.Consumer;
  */
 public final class ArrivalsRecorder extends AbstractMetric implements Consumer<Duration>, Arrivals {
     private static final double NANOS_IN_SECOND = 1_000_000_000D;
+    private static final long serialVersionUID = 6146322787615499495L;
     private final RateRecorder requestRate;
     private final TimingRecorder responseTime;
     private final Correlation rpsAndTimeCorrelation;  //correlation between rps and response time.

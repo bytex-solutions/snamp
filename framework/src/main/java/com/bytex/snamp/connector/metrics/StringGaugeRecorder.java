@@ -7,6 +7,8 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public class StringGaugeRecorder extends GaugeImpl<String> implements StringGauge {
+    private static final long serialVersionUID = -8088704775399041609L;
+
     /**
      * Initializes a new string gauge.
      * @param name The name of the gauge.

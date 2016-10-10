@@ -4,6 +4,7 @@ import com.bytex.snamp.Stateful;
 import com.bytex.snamp.ThreadSafe;
 import com.google.common.util.concurrent.AtomicDouble;
 
+import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleSupplier;
@@ -15,7 +16,8 @@ import java.util.function.DoubleSupplier;
  * @since 2.0
  */
 @ThreadSafe
-public final class Correlation implements DoubleBinaryOperator, Stateful, DoubleSupplier {
+public final class Correlation implements DoubleBinaryOperator, Stateful, DoubleSupplier, Serializable {
+    private static final long serialVersionUID = 2580693283449732060L;
     private final AtomicDouble sumX = new AtomicDouble(0D);
     private final AtomicDouble sumY = new AtomicDouble(0D);
     private final AtomicDouble prodX = new AtomicDouble(0D);

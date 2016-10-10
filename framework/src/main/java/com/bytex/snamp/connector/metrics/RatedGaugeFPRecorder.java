@@ -7,6 +7,7 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public class RatedGaugeFPRecorder extends GaugeFPRecorder implements RatedGaugeFP {
+    private static final long serialVersionUID = 1843602850458733111L;
     private final RateRecorder rate;
 
     public RatedGaugeFPRecorder(final String name, final int samplingSize) {

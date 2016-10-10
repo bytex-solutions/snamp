@@ -7,6 +7,7 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public class RatedFlagRecorder extends FlagRecorder implements RatedFlag {
+    private static final long serialVersionUID = -6871509716735928335L;
     private final RateRecorder rate;
 
     public RatedFlagRecorder(final String name) {

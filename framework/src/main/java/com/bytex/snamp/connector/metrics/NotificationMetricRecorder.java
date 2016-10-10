@@ -8,6 +8,7 @@ package com.bytex.snamp.connector.metrics;
  */
 public class NotificationMetricRecorder extends AbstractMetric implements NotificationMetric {
     public static final String DEFAULT_NAME = "notifications";
+    private static final long serialVersionUID = 6355507158499182709L;
     private final RateRecorder notificationsRate;
 
     public NotificationMetricRecorder(final String name){

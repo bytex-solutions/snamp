@@ -1,8 +1,10 @@
 package com.bytex.snamp.connector.metrics;
 
+import com.bytex.snamp.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Random;
 
@@ -56,12 +58,6 @@ public final class GaugeTest extends Assert {
     }
 
     @Test
-    public void test(){
-        double i = Double.POSITIVE_INFINITY;
-        System.out.println(1 - i);
-    }
-
-    @Test
     public void stringGaugeTest(){
         final StringGaugeRecorder writer = new StringGaugeRecorder("testGauge");
         writer.accept("a");
@@ -70,5 +66,37 @@ public final class GaugeTest extends Assert {
         assertEquals("ab", writer.getLastValue());
         assertEquals("b", writer.getMaxValue());
         assertEquals("a", writer.getMinValue());
+    }
+
+    @Test
+    public void stringGaugeSerializationTest() throws IOException {
+        RatedStringGaugeRecorder recorder = new RatedStringGaugeRecorder("testGauge");
+        recorder.accept("a");
+        recorder.accept("b");
+        recorder.accept("ab");
+        final byte[] serializationData = IOUtils.serialize(recorder);
+        recorder = IOUtils.deserialize(serializationData, RatedStringGaugeRecorder.class);
+        assertEquals("ab", recorder.getLastValue());
+        assertEquals("b", recorder.getMaxValue());
+        assertEquals("a", recorder.getMinValue());
+        assertEquals(3, recorder.getTotalRate());
+    }
+
+    @Test
+    public void GaugeFpSerializationTest() throws IOException {
+        RatedGauge64Recorder recorder = new RatedGauge64Recorder("testGauge");
+        recorder.accept(10L);
+        recorder.accept(20L);
+        recorder.accept(30L);
+        recorder.accept(5L);
+        recorder.accept(15L);
+        recorder.accept(16L);
+        final byte[] serializationData = IOUtils.serialize(recorder);
+        recorder = IOUtils.deserialize(serializationData, RatedGauge64Recorder.class);
+        assertEquals(30L, recorder.getMaxValue());
+        assertEquals(5L, recorder.getMinValue());
+        assertEquals(16L, recorder.getLastValue());
+        assertEquals(19.6D, recorder.getQuantile(0.7), 0.1D);
+        assertEquals(6, recorder.getTotalRate());
     }
 }

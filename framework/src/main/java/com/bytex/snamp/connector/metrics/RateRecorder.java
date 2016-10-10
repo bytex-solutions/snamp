@@ -16,6 +16,7 @@ import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
  * @since 2.0
  */
 public class RateRecorder extends AbstractMetric implements Rate {
+    private static final long serialVersionUID = -6735931494509416689L;
     private final MetricsIntervalMap<TimeLimitedLong> lastRate;
     private final MetricsIntervalMap<AtomicLong> maxRate;
     private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePerSecond;

@@ -86,7 +86,7 @@ public final class IOUtils {
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
                                                          final TypeToken<T> expectedType) throws IOException {
-        return deserialize(serializedForm, expectedType, expectedType.getClass().getClassLoader());
+        return deserialize(serializedForm, expectedType, expectedType.getRawType().getClassLoader());
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,

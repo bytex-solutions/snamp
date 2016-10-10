@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 2.0
  */
 public class FlagRecorder extends AbstractMetric implements Flag {
-
+    private static final long serialVersionUID = -620668865127205732L;
     private final AtomicBoolean value;
     private final AtomicLong totalTrueCount;
     private final AtomicLong totalFalseCount;

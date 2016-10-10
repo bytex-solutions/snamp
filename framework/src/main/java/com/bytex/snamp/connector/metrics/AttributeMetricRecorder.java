@@ -8,6 +8,7 @@ package com.bytex.snamp.connector.metrics;
  */
 public class AttributeMetricRecorder extends AbstractMetric implements AttributeMetric {
     public static final String DEFAULT_NAME = "attributes";
+    private static final long serialVersionUID = 8697867855627851983L;
     private final RateRecorder readRate;
     private final RateRecorder writeRate;
 

@@ -14,6 +14,7 @@ import java.util.function.ObjDoubleConsumer;
  * @version 2.0
  */
 public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, DoubleConsumer, ObjDoubleConsumer<DoubleBinaryOperator> {
+    private static final long serialVersionUID = 8109332123969613035L;
     private final AtomicDouble maxValue;
     private final AtomicDouble minValue;
     private final AtomicDouble lastValue;

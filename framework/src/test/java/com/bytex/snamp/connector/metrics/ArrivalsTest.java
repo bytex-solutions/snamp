@@ -1,8 +1,10 @@
 package com.bytex.snamp.connector.metrics;
 
+import com.bytex.snamp.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.time.Duration;
 
 /**
@@ -41,5 +43,15 @@ public final class ArrivalsTest extends Assert {
         final double avail = recorder.getMeanAvailability(1) * 100;
         assertTrue(avail > 20D);
         assertTrue(avail < 25D);
+    }
+
+    @Test
+    public void serializationTest() throws IOException {
+        ArrivalsRecorder recorder = new ArrivalsRecorder("testGauge");
+        recorder.accept(Duration.ofSeconds(1L));
+        recorder.accept(Duration.ofSeconds(1L));
+        final byte[] serializationData = IOUtils.serialize(recorder);
+        recorder = IOUtils.deserialize(serializationData, ArrivalsRecorder.class);
+        assertEquals(2, recorder.getRequestRate().getTotalRate());
     }
 }

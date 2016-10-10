@@ -10,6 +10,7 @@ import java.util.function.*;
  * @since 2.0
  */
 public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, LongConsumer, ObjLongConsumer<LongBinaryOperator> {
+    private static final long serialVersionUID = 7528670309055651559L;
     private final AtomicLong maxValue;
     private final AtomicLong minValue;
     private final AtomicLong lastValue;

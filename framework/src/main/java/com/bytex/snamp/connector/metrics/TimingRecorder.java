@@ -17,6 +17,7 @@ import java.util.function.Supplier;
  * @since 2.0
  */
 public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
+    private static final long serialVersionUID = 7250210436685797077L;
     private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;
     private final AtomicLong count;
     private final DoubleReservoir reservoir;

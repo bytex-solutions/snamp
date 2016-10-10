@@ -8,6 +8,7 @@ import java.time.Duration;
  * @version 2.0
  */
 public class RatedTimerRecorder extends TimingRecorder implements RatedTimer {
+    private static final long serialVersionUID = -1501369457653393355L;
     private final RateRecorder rate;
 
     public RatedTimerRecorder(final String name, final int samplingSize) {

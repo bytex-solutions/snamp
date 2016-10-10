@@ -8,6 +8,7 @@ package com.bytex.snamp.connector.metrics;
  */
 public class OperationMetricRecorder extends AbstractMetric implements OperationMetric {
     public static final String DEFAULT_NAME = "operations";
+    private static final long serialVersionUID = 2944470493827345462L;
     private final RateRecorder invocationsRate;
 
     public OperationMetricRecorder(final String name){

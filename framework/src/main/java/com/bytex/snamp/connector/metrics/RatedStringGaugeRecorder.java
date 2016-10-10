@@ -7,6 +7,7 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public class RatedStringGaugeRecorder extends StringGaugeRecorder implements RatedStringGauge {
+    private static final long serialVersionUID = 956217566486645152L;
     private final RateRecorder rate;
 
     /**

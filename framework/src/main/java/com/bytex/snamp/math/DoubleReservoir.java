@@ -1,12 +1,19 @@
 package com.bytex.snamp.math;
 
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.SnapshotSupport;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.io.SerializableSnapshotSupport;
+import com.bytex.snamp.io.SerializedState;
 
+import java.io.Externalizable;
+import java.io.ObjectStreamException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.function.DoubleConsumer;
 import java.util.function.IntToDoubleFunction;
+import java.util.function.Supplier;
 
 /**
  * Provides reservoir of {@code double} values.
@@ -14,9 +21,32 @@ import java.util.function.IntToDoubleFunction;
  * @version 2.0
  * @since 2.0
  */
-public class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer, IntToDoubleFunction, Reservoir {
+public final class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer, IntToDoubleFunction, Reservoir, SerializableSnapshotSupport<DoubleReservoir> {
+    private static final class DoubleReservoirSnapshot extends SerializedState<DoubleReservoir>{
+        private static final long serialVersionUID = -6080572664395210068L;
+        private final double[] values;
+        private final int actualSize;
+
+        private DoubleReservoirSnapshot(final DoubleReservoir reservoir){
+            this.values = reservoir.values;
+            this.actualSize = reservoir.actualSize;
+        }
+
+        @Override
+        public DoubleReservoir get() {
+            return new DoubleReservoir(this);
+        }
+    }
+
+    private static final long serialVersionUID = -2597353518482200745L;
     private final double[] values;
     private int actualSize;
+
+    private DoubleReservoir(final DoubleReservoirSnapshot snapshot){
+        super(SingleResourceGroup.class);
+        values = snapshot.values;
+        actualSize = snapshot.actualSize;
+    }
 
     /**
      * Initializes a new reservoir.
@@ -28,6 +58,16 @@ public class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer,
             throw new IllegalArgumentException("Sampling size cannot be less than 2");
         this.values = new double[samplingSize];
         this.actualSize = 0;
+    }
+
+    @Override
+    public DoubleReservoirSnapshot captureState() {
+        return new DoubleReservoirSnapshot(this);
+    }
+
+    @Override
+    public final Object writeReplace() {
+        return captureState();
     }
 
     private SafeCloseable acquireWriteLock(){

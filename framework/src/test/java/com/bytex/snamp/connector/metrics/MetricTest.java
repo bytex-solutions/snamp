@@ -1,9 +1,11 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.FutureThread;
+import com.bytex.snamp.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -102,7 +104,7 @@ public final class MetricTest extends Assert {
         writer.accept(Duration.ofMillis(1500));
         //timing
         assertEquals(Duration.ofMillis(1500), writer.getLastValue());
-        assertEquals(816, writer.getQuantile(0.5D).toMillis());
+        assertEquals(500, writer.getQuantile(0.5D).toMillis());
         assertEquals(Duration.ofMillis(450), writer.getMinValue());
         assertEquals(Duration.ofMillis(1500), writer.getMaxValue());
     }
@@ -123,6 +125,43 @@ public final class MetricTest extends Assert {
         assertEquals(3L, writer.getLastMaxRatePerSecond(MetricsInterval.SECOND));
         assertEquals(3L, writer.getLastMaxRatePerSecond(MetricsInterval.MINUTE));
         assertEquals(3L, writer.getMaxRate(MetricsInterval.SECOND));
+    }
 
+    @Test
+    public void rateSerializationTest() throws IOException {
+        RateRecorder writer = new RateRecorder("testMetrics");
+        writer.mark();
+        writer.mark();
+        assertEquals(2, writer.getTotalRate());
+        final byte[] serializationData = IOUtils.serialize(writer);
+        writer = IOUtils.deserialize(serializationData, RateRecorder.class);
+        assertEquals(2, writer.getTotalRate());
+    }
+
+    @Test
+    public void timingSerializationTest() throws IOException {
+        TimingRecorder writer = new TimingRecorder("testMetrics");
+        writer.accept(Duration.ofMillis(450));
+        writer.accept(Duration.ofMillis(500));
+        writer.accept(Duration.ofMillis(1500));
+        final byte[] serializationData = IOUtils.serialize(writer);
+        writer = IOUtils.deserialize(serializationData, TimingRecorder.class);
+        assertEquals(Duration.ofMillis(1500), writer.getLastValue());
+        assertEquals(500, writer.getQuantile(0.5D).toMillis());
+        assertEquals(Duration.ofMillis(450), writer.getMinValue());
+        assertEquals(Duration.ofMillis(1500), writer.getMaxValue());
+    }
+
+    @Test
+    public void ratedFlagSerializationTest() throws IOException {
+        RatedFlagRecorder recorder = new RatedFlagRecorder("testMetrics");
+        recorder.writeValue(true);
+        recorder.writeValue(true);
+        recorder.writeValue(false);
+        final byte[] serializationData = IOUtils.serialize(recorder);
+        recorder = IOUtils.deserialize(serializationData, RatedFlagRecorder.class);
+        assertEquals(2, recorder.getTotalCount(true));
+        assertEquals(1, recorder.getTotalCount(false));
+        assertEquals(3, recorder.getTotalRate());
     }
 }
