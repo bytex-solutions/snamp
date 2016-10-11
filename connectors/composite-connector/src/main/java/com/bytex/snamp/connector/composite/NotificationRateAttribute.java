@@ -16,15 +16,15 @@ import javax.management.openmbean.CompositeType;
  * @version 2.0
  * @since 2.0
  */
-final class RateAttribute extends AbstractCompositeAttribute implements NotificationListener {
+final class NotificationRateAttribute extends AbstractCompositeAttribute implements NotificationListener {
     private static final long serialVersionUID = -6525078880291154173L;
     private static final CompositeType TYPE = MetricsConverter.RATE_TYPE;
     private static final String DESCRIPTION = "Computes rate of the notification";
 
-    private final RateRecorder rate;
+    private volatile RateRecorder rate;
     private final String notificationType;
 
-    RateAttribute(final String name, final AttributeDescriptor descriptor) {
+    NotificationRateAttribute(final String name, final AttributeDescriptor descriptor) {
         super(name, TYPE.getClassName(), descriptor.getDescription(DESCRIPTION), true, false, false, descriptor);
         rate = new RateRecorder(name);
         notificationType = descriptor.getName(name);

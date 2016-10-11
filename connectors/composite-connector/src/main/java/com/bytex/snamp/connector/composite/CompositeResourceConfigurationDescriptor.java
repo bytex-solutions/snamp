@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.MapUtils.getValueAsLong;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -29,12 +30,13 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     private static final String SOURCE_PARAM = "source";
     private static final String FORMULA_PARAM = "formula";
     private static final String RATE_FORMULA_PARAM = "rate()";
+    private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
 
     private static final LazyValue<CompositeResourceConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(CompositeResourceConfigurationDescriptor::new);
 
     private static final class ResourceConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private ResourceConfigurationDescription(){
-            super("ConnectorParameters", ManagedResourceConfiguration.class, SEPARATOR_PARAM);
+            super("ConnectorParameters", ManagedResourceConfiguration.class, SEPARATOR_PARAM, SYNC_PERIOD_PARAM);
         }
     }
 
@@ -77,6 +79,10 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
 
     static boolean isRateFormula(final AttributeDescriptor descriptor){
         return getField(descriptor, FORMULA_PARAM, RATE_FORMULA_PARAM::equals, () -> false);
+    }
+
+    long parseSynchronizationPeriod(final Map<String, String> parameters){
+        return getValueAsLong(parameters, SYNC_PERIOD_PARAM, Long::parseLong, () -> 10000L);
     }
 
     static AggregationFunction<?> parseFormula(final AttributeDescriptor descriptor) throws FunctionParserException {

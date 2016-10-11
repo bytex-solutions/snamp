@@ -35,6 +35,13 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
     TypeToken<Communicator> COMMUNICATION_SERVICE = TypeToken.of(Communicator.class);
 
     /**
+     * Gets number of neighborhood nodes in the cluster.
+     * @return Number of nodes in the cluster.
+     * @since 2.0
+     */
+    int getNeighbors();
+
+    /**
      * Marks this node as passive and execute leader election.
      */
     void resign();

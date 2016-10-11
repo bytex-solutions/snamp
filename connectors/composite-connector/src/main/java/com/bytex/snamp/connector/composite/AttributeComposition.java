@@ -95,7 +95,7 @@ final class AttributeComposition extends AbstractAttributeRepository<AbstractCom
     @Override
     protected AbstractCompositeAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws ReflectionException, AttributeNotFoundException, MBeanException, AbsentCompositeConfigurationParameterException, FunctionParserException {
         if (CompositeResourceConfigurationDescriptor.isRateFormula(descriptor)) //rate attribute
-            return new RateAttribute(attributeName, descriptor);
+            return new NotificationRateAttribute(attributeName, descriptor);
         //regular attribute
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(descriptor);
         final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType);

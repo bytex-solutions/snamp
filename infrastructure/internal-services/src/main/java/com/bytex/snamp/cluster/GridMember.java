@@ -102,6 +102,11 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         electionThread.start();
     }
 
+    @Override
+    public int getNeighbors() {
+        return hazelcast.getCluster().getMembers().size() - 1;
+    }
+
     /**
      * Gets attributes associated with this member.
      *

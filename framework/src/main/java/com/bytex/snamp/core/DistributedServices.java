@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 
 /**
  * Represents a set of distributed services.
@@ -107,6 +108,19 @@ public final class DistributedServices {
         else return def.get();
     }
 
+    private static int processClusterNodeAsInt(final BundleContext context,
+                                               final ToIntFunction<? super ClusterMember> processor,
+                                               final int def) {
+        final ServiceHolder<ClusterMember> holder = ServiceHolder.tryCreate(context, ClusterMember.class);
+        if (holder != null)
+            try {
+                return processor.applyAsInt(holder.getService());
+            } finally {
+                holder.release(context);
+            }
+        else return def;
+    }
+
     private static <S> S getService(final BundleContext context,
                                     final String serviceName,
                                     final TypeToken<S> serviceType) {
@@ -170,5 +184,9 @@ public final class DistributedServices {
      */
     public static String getLocalMemberName(final BundleContext context){
         return processClusterNode(context, ClusterMember::getName, () -> ManagementFactory.getRuntimeMXBean().getName());
+    }
+
+    public static int getNeighbors(final BundleContext context){
+        return processClusterNodeAsInt(context, ClusterMember::getNeighbors, 0);
     }
 }
