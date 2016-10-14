@@ -2,8 +2,6 @@ package com.bytex.snamp.connector.groovy.impl;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
@@ -28,7 +26,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,7 +65,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class GroovyNotificationRepository extends DistributedNotificationRepository<GroovyNotificationInfo> {
+    private static final class GroovyNotificationRepository extends AccurateNotificationRepository<GroovyNotificationInfo> {
         private final EventConnector connector;
         private final NotificationListenerInvoker listenerInvoker;
         private final LongCounter sequenceNumberGenerator;

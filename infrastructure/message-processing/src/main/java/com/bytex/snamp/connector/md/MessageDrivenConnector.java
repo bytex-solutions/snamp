@@ -8,7 +8,6 @@ import com.bytex.snamp.connector.notifications.measurement.MeasurementSource;
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
@@ -22,13 +21,11 @@ import java.util.logging.Level;
  * @version 2.0
  */
 public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector implements NotificationListener {
-
     private final MeasurementSource source;
     private final MessageDrivenAttributeRepository attributes;
-    private final NotificationProcessingModel processingModel;
+    private NotificationParser parser;
 
     protected MessageDrivenConnector(final String resourceName,
-                                     final NotificationProcessingModel processingModel,
                                      final Map<String, String> parameters,
                                      final MessageDrivenConnectorConfigurationDescriptor descriptor) {
 
@@ -37,24 +34,18 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         source = new MeasurementSource(componentName, componentInstance);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
         attributes = new MessageDrivenAttributeRepository(resourceName, threadPool);
-        this.processingModel = Objects.requireNonNull(processingModel);
+        parser = descriptor.createNotificationParser(parameters);
     }
-
-
 
     protected Notification parseNotification(final Map<String, ?> headers,
                                              final Object body) throws Exception{
-        return null;
+        return parser.parse(headers, body);
     }
 
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
         if (notification instanceof MeasurementNotification)
             attributes.post((MeasurementNotification) notification);
-        if (NotificationProcessingModel.UNICAST.equals(processingModel)) {
-            //send notification to other cluster nodes
-
-        }
     }
 
     public final void postMessage(final Map<String, ?> headers,

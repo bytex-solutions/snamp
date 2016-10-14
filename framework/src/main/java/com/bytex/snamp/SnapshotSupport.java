@@ -12,5 +12,5 @@ public interface SnapshotSupport<T extends SnapshotSupport<T>> extends Stateful 
      * Captures the state of this object.
      * @return A function that can be used to recreate object in its captured state.
      */
-    Supplier<? extends T> captureState();
+    Supplier<? extends T> takeSnapshot();
 }

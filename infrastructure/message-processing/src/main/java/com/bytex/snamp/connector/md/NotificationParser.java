@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
-
+import javax.management.Notification;
 import java.util.Map;
 
 /**
@@ -10,6 +9,14 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
+@FunctionalInterface
 interface NotificationParser {
-    MeasurementNotification parse(final Map<String, ?> headers, final Object body);
+    /**
+     * Converts headers and body into {@link Notification}.
+     * @param headers A headers of the input message. Cannot be {@literal null}.
+     * @param body Body of the message.
+     * @return Notification restored from the message headers and body.
+     * @throws Exception Unable to parse notification.
+     */
+    Notification parse(final Map<String, ?> headers, final Object body) throws Exception;
 }

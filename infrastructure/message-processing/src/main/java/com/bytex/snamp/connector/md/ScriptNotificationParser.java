@@ -28,14 +28,11 @@ final class ScriptNotificationParser implements NotificationParser {
     }
 
     @Override
-    public MeasurementNotification parse(final Map<String, ?> headers, final Object body) {
+    public MeasurementNotification parse(final Map<String, ?> headers, final Object body) throws IOException, ScriptException {
         Object result;
-        try(final FileReader reader = new FileReader(scriptFile)){
+        try (final FileReader reader = new FileReader(scriptFile)) {
             result = engine.eval(reader);
-        } catch (final IOException | ScriptException e) {
-            e.printStackTrace();
-            result = null;
         }
-        return (MeasurementNotification)result;
+        return (MeasurementNotification) result;
     }
 }

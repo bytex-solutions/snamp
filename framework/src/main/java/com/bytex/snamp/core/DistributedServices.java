@@ -8,7 +8,6 @@ import com.google.common.reflect.TypeToken;
 import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.InvalidKeyException;
-import java.lang.management.ManagementFactory;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -165,7 +164,7 @@ public final class DistributedServices {
      * @return {@literal true}, the caller code hosted in active cluster node; otherwise, {@literal false}.
      */
     public static boolean isActiveNode(final BundleContext context) {
-        return processClusterNode(context, ClusterMember::isActive, () -> true);
+        return processClusterNode(context, ClusterMember::isActive, LocalMember.INSTANCE::isActive);
     }
 
     /**
@@ -183,7 +182,7 @@ public final class DistributedServices {
      * @return Name of the cluster node.
      */
     public static String getLocalMemberName(final BundleContext context){
-        return processClusterNode(context, ClusterMember::getName, () -> ManagementFactory.getRuntimeMXBean().getName());
+        return processClusterNode(context, ClusterMember::getName, LocalMember.INSTANCE::getName);
     }
 
     public static int getNeighbors(final BundleContext context){

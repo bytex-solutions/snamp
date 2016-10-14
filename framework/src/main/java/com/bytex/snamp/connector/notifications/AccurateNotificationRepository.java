@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.notifications;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.core.DistributedServices;
-import com.google.common.collect.ImmutableList;
 import org.osgi.framework.BundleContext;
 
 import javax.management.MBeanNotificationInfo;
@@ -27,10 +26,10 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  * @version 2.0
  */
-public abstract class DistributedNotificationRepository<M extends MBeanNotificationInfo> extends AbstractNotificationRepository<M> implements Consumer<Communicator.IncomingMessage> {
+public abstract class AccurateNotificationRepository<M extends MBeanNotificationInfo> extends AbstractNotificationRepository<M> implements Consumer<Communicator.IncomingMessage> {
     private final SafeCloseable subscription;
     private final Consumer<? super Notification> sender;
-    private static final String CHANNEL_NAME = "DistributedNotifications";
+    private static final String CHANNEL_NAME = "AccurateNotifications";
 
     /**
      * Initializes a new notification manager.
@@ -39,7 +38,7 @@ public abstract class DistributedNotificationRepository<M extends MBeanNotificat
      * @param notifMetadataType Type of the notification metadata.
      * @param expandable        {@literal true}, if repository can be populated automatically; otherwise, {@literal false}.
      */
-    protected DistributedNotificationRepository(final String resourceName, final Class<M> notifMetadataType, final boolean expandable) {
+    protected AccurateNotificationRepository(final String resourceName, final Class<M> notifMetadataType, final boolean expandable) {
         super(resourceName, notifMetadataType, expandable);
         final Communicator communicator = DistributedServices.getDistributedCommunicator(getBundleContext(), CHANNEL_NAME);
         subscription = communicator.addMessageListener(this, notificationFilter(resourceName));

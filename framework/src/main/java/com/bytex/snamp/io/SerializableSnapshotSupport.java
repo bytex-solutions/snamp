@@ -13,13 +13,13 @@ import java.io.Serializable;
  */
 public interface SerializableSnapshotSupport<T extends SerializableSnapshotSupport<T>> extends SnapshotSupport<T>, Serializable {
     @Override
-    SerializedState<? extends T> captureState();
+    SerializedState<? extends T> takeSnapshot();
 
     /**
      * Special method required by {@link Serializable} specification.
      * @return Serializable state of this object.
      * @throws ObjectStreamException Serializable state cannot be created.
-     * @implSpec This method should always call method {@link #captureState()}.
+     * @implSpec This method should always call method {@link #takeSnapshot()}.
      */
     @SpecialUse
     Object writeReplace() throws ObjectStreamException;

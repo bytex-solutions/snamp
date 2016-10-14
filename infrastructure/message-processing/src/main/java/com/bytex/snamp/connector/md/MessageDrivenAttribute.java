@@ -26,4 +26,6 @@ abstract class MessageDrivenAttribute extends OpenMBeanAttributeInfoImpl {
     }
 
     abstract boolean accept(final MeasurementNotification notification);
+
+
 }

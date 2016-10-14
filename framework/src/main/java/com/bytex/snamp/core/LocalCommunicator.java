@@ -42,7 +42,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
 
         @Override
         public ClusterMemberInfo getSender() {
-            return null;
+            return LocalMember.INSTANCE;
         }
 
         @Override
@@ -77,6 +77,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
      * Represents position of the listener node in the listener chain.
      */
     private static class NodePosition extends AtomicReference<LockManager> implements Predicate<IncomingMessage>{
+        private static final long serialVersionUID = -7984543206192783148L;
         private final Predicate<? super IncomingMessage> filter;
         private MessageListenerNode previous;
         private MessageListenerNode next;
@@ -123,6 +124,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     private static final class FixedSizeMessageBox<V> extends ArrayBlockingQueue<V> implements MessageBox<V>, MessageListenerNode{
+        private static final long serialVersionUID = -2220120261326005511L;
         private final NodePosition position;
         private final Function<? super IncomingMessage, ? extends V> messageParser;
 
@@ -172,6 +174,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     private static final class LinkedMessageBox<V> extends LinkedBlockingQueue<V> implements MessageBox<V>, MessageListenerNode{
+        private static final long serialVersionUID = -5258465049815978421L;
         private final NodePosition position;
         private final Function<? super IncomingMessage, ? extends V> messageParser;
 
@@ -339,6 +342,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     private static final class MessageListenerHolder extends NodePosition implements MessageListenerNode{
+        private static final long serialVersionUID = 3125562524096198824L;
         private final Consumer<? super IncomingMessage> listener;
 
         private MessageListenerHolder(final LockManager writeLock, final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter){

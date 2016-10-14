@@ -1,19 +1,14 @@
 package com.bytex.snamp.math;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.SnapshotSupport;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.io.SerializableSnapshotSupport;
 import com.bytex.snamp.io.SerializedState;
 
-import java.io.Externalizable;
-import java.io.ObjectStreamException;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.function.DoubleConsumer;
 import java.util.function.IntToDoubleFunction;
-import java.util.function.Supplier;
 
 /**
  * Provides reservoir of {@code double} values.
@@ -61,13 +56,13 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
     }
 
     @Override
-    public DoubleReservoirSnapshot captureState() {
+    public DoubleReservoirSnapshot takeSnapshot() {
         return new DoubleReservoirSnapshot(this);
     }
 
     @Override
     public final Object writeReplace() {
-        return captureState();
+        return takeSnapshot();
     }
 
     private SafeCloseable acquireWriteLock(){

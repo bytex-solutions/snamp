@@ -29,8 +29,8 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
         super(attributeDescriptor, eventDescription);
     }
 
-    final String parseComponentInstance(final Map<String, String> parameters, final String resourceName){
-        return getValue(parameters, COMPONENT_INSTANCE_PARAM, Function.identity(), () -> resourceName);
+    final String parseComponentInstance(final Map<String, String> parameters, final String defaultValue){
+        return getValue(parameters, COMPONENT_INSTANCE_PARAM, Function.identity(), () -> defaultValue);
     }
 
     final String parseComponentName(final Map<String, String> parameters) {
