@@ -10,12 +10,12 @@ import com.bytex.snamp.connector.composite.functions.FunctionParser;
 import com.bytex.snamp.connector.composite.functions.FunctionParserException;
 
 import javax.management.Descriptor;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
 import static com.bytex.snamp.MapUtils.getValue;
-import static com.bytex.snamp.MapUtils.getValueAsLong;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -81,8 +81,8 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
         return getField(descriptor, FORMULA_PARAM, RATE_FORMULA_PARAM::equals, () -> false);
     }
 
-    long parseSynchronizationPeriod(final Map<String, String> parameters){
-        return getValueAsLong(parameters, SYNC_PERIOD_PARAM, Long::parseLong, () -> 10000L);
+    Duration parseSynchronizationPeriod(final Map<String, String> parameters) {
+        return getValue(parameters, SYNC_PERIOD_PARAM, value -> Duration.ofMillis(Long.parseLong(value)), () -> Duration.ofMillis(10000L));
     }
 
     static AggregationFunction<?> parseFormula(final AttributeDescriptor descriptor) throws FunctionParserException {

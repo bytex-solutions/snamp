@@ -1,10 +1,11 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.metrics.Metric;
+import com.bytex.snamp.connector.metrics.Rate;
 import com.bytex.snamp.connector.metrics.RateRecorder;
 import com.bytex.snamp.jmx.MetricsConverter;
 
-import javax.management.MBeanException;
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.openmbean.CompositeData;
@@ -16,7 +17,7 @@ import javax.management.openmbean.CompositeType;
  * @version 2.0
  * @since 2.0
  */
-final class NotificationRateAttribute extends AbstractCompositeAttribute implements NotificationListener {
+final class NotificationRateAttribute extends MetricAttribute<Rate> implements NotificationListener {
     private static final long serialVersionUID = -6525078880291154173L;
     private static final CompositeType TYPE = MetricsConverter.RATE_TYPE;
     private static final String DESCRIPTION = "Computes rate of the notification";
@@ -31,18 +32,26 @@ final class NotificationRateAttribute extends AbstractCompositeAttribute impleme
     }
 
     @Override
+    Rate getMetric() {
+        return rate;
+    }
+
+    @Override
+    boolean setMetric(final Metric value) {
+        final boolean success;
+        if (success = value instanceof RateRecorder)
+            rate = (RateRecorder) value;
+        return success;
+    }
+
+    @Override
     public void handleNotification(final Notification notification, final Object handback) {
         if(this.notificationType.equals(notification.getType()))
             rate.mark();
     }
 
     @Override
-    CompositeData getValue(final AttributeSupportProvider provider) throws Exception {
+    CompositeData getValue(final AttributeSupportProvider provider) {
         return MetricsConverter.fromRate(rate);
-    }
-
-    @Override
-    void setValue(final AttributeSupportProvider provider, final Object value) throws MBeanException {
-        throw new MBeanException(new UnsupportedOperationException(String.format("Attribute %s is read-only", getName())));
     }
 }

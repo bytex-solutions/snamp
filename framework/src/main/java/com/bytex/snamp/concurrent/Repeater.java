@@ -280,13 +280,13 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                 break;
             case STARTED:
                 repeatThread.interrupt();
-                state = RepeaterState.STOPPING;
+                stateChanged(state = RepeaterState.STOPPING);
                 join(repeatThread, timeoutMillis);
                 break;
             default:
                 return false;
         }
-        state = RepeaterState.STOPPED;
+        stateChanged(state = RepeaterState.STOPPED);
         repeatThread = null;
         return true;
     }
@@ -319,22 +319,9 @@ public abstract class Repeater implements AutoCloseable, Runnable {
 
     private void closeImpl(){
         if(repeatThread != null) repeatThread.interrupt();
-        state = RepeaterState.CLOSED;
+        stateChanged(state = RepeaterState.CLOSED);
         repeatThread = null;
         exception = null;
-    }
-
-    private void close(final long millis) throws InterruptedException, TimeoutException {
-        long duration = System.currentTimeMillis();
-        if (monitor.tryLock(millis, TimeUnit.MILLISECONDS)) {
-            duration = System.currentTimeMillis() - duration;
-            try {
-                tryStop(millis - duration);
-                closeImpl();    //must be closed before lock will be released
-            } finally {
-                monitor.unlock();
-            }
-        } else throw new TimeoutException("Too small timeout " + millis);
     }
 
     /**
@@ -345,7 +332,16 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @throws InterruptedException The blocked thread is interrupted.
      */
     public final void close(final Duration timeout) throws TimeoutException, InterruptedException{
-        close(timeout.toMillis());
+        long duration = System.currentTimeMillis();
+        if (monitor.tryLock(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
+            duration = System.currentTimeMillis() - duration;
+            try {
+                tryStop(timeout.toMillis() - duration);
+                closeImpl();    //must be closed before lock will be released
+            } finally {
+                monitor.unlock();
+            }
+        } else throw new TimeoutException("Too small timeout " + timeout);
     }
 
     /**

@@ -1,11 +1,12 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.FunctionParserException;
 import com.bytex.snamp.connector.composite.functions.NameResolver;
+import com.bytex.snamp.connector.metrics.Metric;
 import com.bytex.snamp.jmx.WellKnownType;
 
 import javax.management.*;
@@ -14,6 +15,7 @@ import javax.management.openmbean.SimpleType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,19 +25,41 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-final class AttributeComposition extends AbstractAttributeRepository<AbstractCompositeAttribute> implements NameResolver, NotificationListener {
+final class AttributeComposition extends DistributedAttributeRepository<AbstractCompositeAttribute> implements NameResolver, NotificationListener {
+    private static abstract class AbstractSnapshot implements AttributeSnapshot{
+        private static final long serialVersionUID = 6372669830203116940L;
+        private final String name;
+
+        private AbstractSnapshot(final AbstractCompositeAttribute attribute){
+            name = attribute.getName();
+        }
+
+        @Override
+        public final String getName() {
+            return name;
+        }
+    }
+
+    private static final class MetricSnapshot extends AbstractSnapshot{
+        private static final long serialVersionUID = -3335155646667594727L;
+        private final Metric metric;
+
+        private MetricSnapshot(final MetricAttribute<?> attribute){
+            super(attribute);
+            metric = attribute.getMetric();
+        }
+    }
+
     private final AttributeSupportProvider attributeSupportProvider;
     private final Logger logger;
-    private final ExecutorService threadPool;
 
     AttributeComposition(final String resourceName,
                          final AttributeSupportProvider provider,
                          final ExecutorService threadPool,
                          final Logger logger){
-        super(resourceName, AbstractCompositeAttribute.class, false);
+        super(resourceName, AbstractCompositeAttribute.class, false, threadPool);
         attributeSupportProvider = Objects.requireNonNull(provider);
         this.logger = Objects.requireNonNull(logger);
-        this.threadPool = Objects.requireNonNull(threadPool);
     }
 
     private Object resolveAs(final String operand, final WellKnownType expectedType) throws Exception{
@@ -118,6 +142,22 @@ final class AttributeComposition extends AbstractAttributeRepository<AbstractCom
                     throw new MBeanException(new IllegalStateException(String.format("Function '%s' cannot be applied to attribute '%s'", function, underlyingAttribute)));
             }
         }
+    }
+
+    @Override
+    protected Optional<AttributeSnapshot> takeSnapshot(final AbstractCompositeAttribute attribute) {
+        if (attribute instanceof MetricAttribute<?>)
+            return Optional.of(new MetricSnapshot((MetricAttribute<?>) attribute));
+        else
+            return Optional.empty();
+    }
+
+    @Override
+    protected boolean applySnapshot(final AbstractCompositeAttribute attribute, final AttributeSnapshot snapshot) {
+        if (snapshot instanceof MetricSnapshot && attribute instanceof MetricAttribute<?>)
+            return ((MetricAttribute<?>) attribute).setMetric(((MetricSnapshot) snapshot).metric);
+        else
+            return false;
     }
 
     @Override
