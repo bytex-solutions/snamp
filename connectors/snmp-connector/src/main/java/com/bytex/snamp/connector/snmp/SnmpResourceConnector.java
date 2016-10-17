@@ -352,7 +352,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class TimeTicksAttributeInfo extends CustomFormatterAttributeInfo<TimeTicks>{
+    private static final class TimeTicksAttributeInfo extends AbstractFormatterAttributeInfo<TimeTicks> {
         private static final long serialVersionUID = 4620458170097932634L;
 
         private TimeTicksAttributeInfo(final String attributeID,
@@ -415,13 +415,13 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static abstract class CustomFormatterAttributeInfo<V extends Variable> extends SnmpAttributeInfo<V> implements SnmpObjectConverter<V>{
+    private static abstract class AbstractFormatterAttributeInfo<V extends Variable> extends SnmpAttributeInfo<V> implements SnmpObjectConverter<V>{
         private static final long serialVersionUID = 4378706124755779647L;
         private final SnmpObjectConverter<V> formatter;
 
-        private CustomFormatterAttributeInfo(final String attributeID,
-                                             final SnmpObjectConverter<V> converter,
-                                             final AttributeDescriptor descriptor) {
+        private AbstractFormatterAttributeInfo(final String attributeID,
+                                               final SnmpObjectConverter<V> converter,
+                                               final AttributeDescriptor descriptor) {
             super(attributeID, converter.getOpenType(), descriptor);
             this.formatter = converter;
         }
@@ -437,7 +437,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class IpAddressAttributeInfo extends CustomFormatterAttributeInfo<IpAddress>{
+    private static final class IpAddressAttributeInfo extends AbstractFormatterAttributeInfo<IpAddress> {
         private static final long serialVersionUID = 7204017895936479653L;
 
         private IpAddressAttributeInfo(final String attributeID,
@@ -489,7 +489,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class OctetStringAttributeInfo extends CustomFormatterAttributeInfo<OctetString>{
+    private static final class OctetStringAttributeInfo extends AbstractFormatterAttributeInfo<OctetString> {
         private static final long serialVersionUID = -4202389744046621844L;
 
         private OctetStringAttributeInfo(final String attributeID,
@@ -499,7 +499,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class OidAttributeInfo extends CustomFormatterAttributeInfo<OID>{
+    private static final class OidAttributeInfo extends AbstractFormatterAttributeInfo<OID> {
         private static final long serialVersionUID = 2175664004641918099L;
 
         private OidAttributeInfo(final String attributeID,

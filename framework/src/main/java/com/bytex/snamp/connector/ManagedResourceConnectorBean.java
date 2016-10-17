@@ -148,7 +148,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
          * @param metadata The metadata of the bean property.
          * @return JMX-compliant attribute value.
          */
-        T toJmxValue(final Object attributeValue, final CustomAttributeInfo metadata);
+        T toJmxValue(final Object attributeValue, final AbstractAttributeInfo metadata);
 
         /**
          * Converts JMX-compliant attribute value into the native Java object.
@@ -156,7 +156,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
          * @param metadata The metadata of the bean property.
          * @return The converted attribute value.
          */
-        Object fromJmxValue(final T jmxValue, final CustomAttributeInfo metadata);
+        Object fromJmxValue(final T jmxValue, final AbstractAttributeInfo metadata);
     }
 
     private static final class DefaultManagementAttributeMarshaller implements ManagementAttributeMarshaller<Object> {
@@ -167,13 +167,13 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         @Override
         public Object toJmxValue(final Object attributeValue,
-                                 final CustomAttributeInfo descriptor) {
+                                 final AbstractAttributeInfo descriptor) {
             return attributeValue;
         }
 
         @Override
         public Object fromJmxValue(final Object jmxValue,
-                                   final CustomAttributeInfo descriptor) {
+                                   final AbstractAttributeInfo descriptor) {
             return jmxValue;
         }
     }
@@ -396,7 +396,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @since 1.0
      * @version 2.0
      */
-    private static class JavaBeanAttributeInfo extends CustomAttributeInfo implements AttributeDescriptorRead{
+    private static class JavaBeanAttributeInfo extends AbstractAttributeInfo implements AttributeDescriptorRead{
         private static final long serialVersionUID = -5047097712279607039L;
         private final Supplier<?> getter;
         private final Consumer setter;

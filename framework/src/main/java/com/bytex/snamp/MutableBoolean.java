@@ -45,19 +45,27 @@ public final class MutableBoolean implements BooleanSupplier, Serializable, Comp
      * @return A new value in the container.
      */
     public boolean invert() {
-        return this.value = !value;
+        return modify(BooleanUnaryOperator.NEGATE);
     }
 
     public boolean and(final boolean right) {
-        return value &= right;
+        return set(right, (l, r) -> l & r);
     }
 
     public boolean or(final boolean right){
-        return value |= right;
+        return set(right, (l, r) -> l | r);
     }
 
     public boolean xor(final boolean right){
-        return value ^= right;
+        return set(right, (l, r) -> l ^ r);
+    }
+
+    public boolean set(final boolean right, final BooleanBinaryOperator operator){
+        return value = operator.applyAsBoolean(value, right);
+    }
+
+    public boolean modify(final BooleanUnaryOperator operator){
+        return value = operator.applyAsBoolean(value);
     }
 
     /**
@@ -76,9 +84,13 @@ public final class MutableBoolean implements BooleanSupplier, Serializable, Comp
         set(false);
     }
 
+    public int compareTo(final boolean other){
+        return Boolean.compare(value, other);
+    }
+
     @Override
     public int compareTo(final BooleanSupplier other) {
-        return Boolean.compare(value, other.getAsBoolean());
+        return compareTo(other.getAsBoolean());
     }
 
     @Override

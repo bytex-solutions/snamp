@@ -15,7 +15,7 @@ import java.util.function.Supplier;
  * @see TimeLimitedLong
  * @see TimeLimitedInt
  */
-public final class TimeLimitedObject<V> extends TimeLimited implements Consumer<V>, Supplier<V> {
+public final class TimeLimitedObject<V> extends Timeout implements Consumer<V>, Supplier<V> {
     private final AtomicReference<V> storage;
     private final V initialValue;
     private final BinaryOperator<V> operator;
@@ -39,7 +39,7 @@ public final class TimeLimitedObject<V> extends TimeLimited implements Consumer<
         setInitialValue();
     }
 
-    private void resetIfExpired(){
+    private void resetIfNecessary(){
         acceptIfExpired(this, TimeLimitedObject::setInitialValue);
     }
 
@@ -49,7 +49,7 @@ public final class TimeLimitedObject<V> extends TimeLimited implements Consumer<
      * @return Accumulated value.
      */
     public V update(final V value){
-        resetIfExpired();
+        resetIfNecessary();
         return storage.accumulateAndGet(value, operator);
     }
 
@@ -69,7 +69,7 @@ public final class TimeLimitedObject<V> extends TimeLimited implements Consumer<
      */
     @Override
     public V get() {
-        resetIfExpired();
+        resetIfNecessary();
         return storage.get();
     }
     @Override

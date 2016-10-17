@@ -6,6 +6,7 @@ import com.bytex.snamp.connector.attributes.OpenMBeanAttributeInfoImpl;
 import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
 import javax.management.openmbean.OpenType;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Represents abstract class for attributes that can be updated by third-party component
@@ -24,6 +25,8 @@ abstract class MessageDrivenAttribute extends OpenMBeanAttributeInfoImpl {
                            final AttributeDescriptor descriptor) {
         super(name, type, description, specifier, descriptor);
     }
+
+    abstract Object getValue(final ConcurrentMap<String, Object> storage) throws Exception;
 
     abstract boolean accept(final MeasurementNotification notification);
 

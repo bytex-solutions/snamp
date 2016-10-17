@@ -12,7 +12,7 @@ import java.util.function.IntSupplier;
  * @version 2.0
  * @since 1.0
  */
-public abstract class TimeLimitedInt extends TimeLimited implements IntSupplier, IntConsumer {
+public abstract class TimeLimitedInt extends Timeout implements IntSupplier, IntConsumer {
     private static final long serialVersionUID = -3529410942029219094L;
     private final AtomicInteger current;
     private final int initialValue;
@@ -38,7 +38,7 @@ public abstract class TimeLimitedInt extends TimeLimited implements IntSupplier,
         current.set(initialValue);
     }
 
-    private void resetIfExpired(){
+    private void resetIfNecessary(){
         acceptIfExpired(this, TimeLimitedInt::setInitialValue);
     }
 
@@ -72,7 +72,7 @@ public abstract class TimeLimitedInt extends TimeLimited implements IntSupplier,
      * @return Modified accumulator value.
      */
     public final int update(final int value){
-        resetIfExpired();
+        resetIfNecessary();
         return accumulate(value);
     }
 
@@ -94,7 +94,7 @@ public abstract class TimeLimitedInt extends TimeLimited implements IntSupplier,
      */
     @Override
     public final int getAsInt() {
-        resetIfExpired();
+        resetIfNecessary();
         return current.get();
     }
 

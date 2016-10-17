@@ -12,7 +12,7 @@ import java.util.function.DoubleSupplier;
  * @since 2.0
  * @version 2.0
  */
-public abstract class TimeLimitedDouble extends TimeLimited implements DoubleSupplier, DoubleConsumer {
+public abstract class TimeLimitedDouble extends Timeout implements DoubleSupplier, DoubleConsumer {
     private static final long serialVersionUID = 5932747666389586277L;
     private final AtomicDouble current;
     private final double initialValue;

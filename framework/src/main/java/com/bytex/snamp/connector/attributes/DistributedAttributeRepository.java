@@ -1,15 +1,14 @@
 package com.bytex.snamp.connector.attributes;
 
-import com.bytex.snamp.core.Communicator;
+import com.bytex.snamp.concurrent.Timeout;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.internal.MapKeyRef;
 import org.osgi.framework.BundleContext;
 
 import javax.management.MBeanAttributeInfo;
-import java.io.Serializable;
+import java.time.Duration;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
-
+import java.util.concurrent.ConcurrentMap;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
@@ -19,55 +18,47 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  * @see AttributesDistributionJob
  */
-public abstract class DistributedAttributeRepository<M extends MBeanAttributeInfo> extends AbstractAttributeRepository<M> implements Consumer<Communicator.IncomingMessage> {
+public abstract class DistributedAttributeRepository<M extends MBeanAttributeInfo> extends AbstractAttributeRepository<M> {
+    private static final String STORAGE_NAME_POSTIFX = "-attributes";
 
-    /**
-     * Represents serializable snapshot of the attribute's internal state.
-     */
-    protected interface AttributeSnapshot extends Serializable{
-        /**
-         * Gets name of attribute which produces this checkpoint
-         * @return Name of attribute which produces this checkpoint.
-         */
-        String getName();
-    }
-
-    protected final ExecutorService threadPool;
+    private final ConcurrentMap<String, Object> storage;
+    private Duration syncPeriod;
 
     protected DistributedAttributeRepository(final String resourceName,
                                              final Class<M> attributeMetadataType,
-                                             final boolean expandable,
-                                             final ExecutorService threadPool) {
+                                             final boolean expandable) {
         super(resourceName, attributeMetadataType, expandable);
-        this.threadPool = Objects.requireNonNull(threadPool);
+        final BundleContext context = getBundleContextOfObject(this);
+        storage = DistributedServices.getDistributedStorage(context, getResourceName().concat(STORAGE_NAME_POSTIFX));
+        syncPeriod = Duration.ZERO;
     }
 
-    private void sendSnapshot(final M attribute, final Communicator communicator){
-        takeSnapshot(attribute).ifPresent(communicator::sendSignal);
-    }
-
-    final void sendSnapshots(final Communicator communicator) {
-        parallelForEach(attribute -> sendSnapshot(attribute, communicator), threadPool);
+    public final void setSyncPeriod(final Duration value){
+        syncPeriod = Objects.requireNonNull(value);
     }
 
     /**
-     * Performs this operation on the given argument.
+     * Connects to the specified attribute.
      *
-     * @param incomingMessage the input argument
+     * @param attributeName The name of the attribute.
+     * @param descriptor    Attribute descriptor.
+     * @return The description of the attribute; or {@literal null},
+     * @throws Exception Internal connector error.
      */
     @Override
-    public final void accept(final Communicator.IncomingMessage incomingMessage) {
-        final AttributeSnapshot snapshot = (AttributeSnapshot) incomingMessage.getPayload();
-        final M attribute = get(snapshot.getName());
-        if(attribute != null)
-            applySnapshot(attribute, snapshot);
+    protected final M connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
+        final Timeout timeout = Duration.ZERO.equals(syncPeriod) ? null : new Timeout(syncPeriod);
+        final MapKeyRef<String, Object> dataSlot = new MapKeyRef<>(storage, descriptor.getName(attributeName));
+
     }
 
-    final BundleContext getBundleContext(){
-        return getBundleContextOfObject(this);
+    /**
+     * Removes the attribute from the connector.
+     *
+     * @param attributeInfo An attribute metadata.
+     */
+    @Override
+    protected void disconnectAttribute(final M attributeInfo) {
+        super.disconnectAttribute(attributeInfo);
     }
-
-    protected abstract Optional<AttributeSnapshot> takeSnapshot(final M attribute);
-
-    protected abstract boolean applySnapshot(final M attribute, final AttributeSnapshot snapshot);
 }

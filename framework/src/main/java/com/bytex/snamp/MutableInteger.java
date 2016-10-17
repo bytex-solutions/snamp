@@ -116,9 +116,13 @@ public final class MutableInteger extends Number implements IntSupplier, IntCons
         return value;
     }
 
+    public int compareTo(final int other){
+        return Integer.compare(value, other);
+    }
+
     @Override
     public int compareTo(final IntSupplier other) {
-        return Integer.compare(value, other.getAsInt());
+        return compareTo(other.getAsInt());
     }
 
     @Override

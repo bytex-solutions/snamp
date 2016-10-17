@@ -9,7 +9,7 @@ import java.util.Set;
  * @version 2.0
  * @since 1.0
  */
-public class OpenMBeanAttributeInfoImpl extends CustomAttributeInfo implements OpenMBeanAttributeInfo {
+public class OpenMBeanAttributeInfoImpl extends AbstractAttributeInfo implements OpenMBeanAttributeInfo {
     private static final long serialVersionUID = -7592242456297020895L;
     private final OpenType<?> openType;
 

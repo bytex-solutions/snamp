@@ -1,11 +1,11 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 import com.bytex.snamp.core.DistributedServices;
 
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 
@@ -16,15 +16,25 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 1.0
  * @since 1.0
  */
-final class MessageDrivenAttributeRepository extends AbstractAttributeRepository<MessageDrivenAttribute> {
-    private final ExecutorService threadPool;
+final class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> {
+
     private final ConcurrentMap<String, Object> storage;
 
     MessageDrivenAttributeRepository(final String resourceName,
                                      final ExecutorService threadPool) {
-        super(resourceName, MessageDrivenAttribute.class, false);
-        this.threadPool = Objects.requireNonNull(threadPool);
+        super(resourceName, MessageDrivenAttribute.class, false, threadPool);
         this.storage = DistributedServices.getDistributedStorage(getBundleContextOfObject(this), resourceName.concat("-attributes"));
+    }
+
+    @Override
+    protected Optional<AttributeSnapshot> takeSnapshot(final MessageDrivenAttribute attribute) {
+        if(attribute instanceof MetricHolderAttribute<?>)
+            return ((MetricHolderAttribute<?>)attribute).getMetric()
+    }
+
+    @Override
+    protected boolean applySnapshot(final MessageDrivenAttribute attribute, final AttributeSnapshot snapshot) {
+        return false;
     }
 
     @Override
@@ -46,7 +56,7 @@ final class MessageDrivenAttributeRepository extends AbstractAttributeRepository
      */
     @Override
     protected Object getAttribute(final MessageDrivenAttribute metadata) throws Exception {
-        return null;
+        return metadata.getValue(storage);
     }
 
     @Override

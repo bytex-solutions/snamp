@@ -16,7 +16,7 @@ import java.util.function.LongSupplier;
  * @since 1.0
  */
 @ThreadSafe
-public abstract class TimeLimitedLong extends TimeLimited implements LongSupplier, LongConsumer {
+public abstract class TimeLimitedLong extends Timeout implements LongSupplier, LongConsumer {
     @SpecialUse
     private final AtomicLong current;
     private final long initialValue;
@@ -46,7 +46,7 @@ public abstract class TimeLimitedLong extends TimeLimited implements LongSupplie
         setInitialValue();
     }
 
-    private void resetIfExpired() {
+    private void resetIfNecessary() {
         acceptIfExpired(this, TimeLimitedLong::setInitialValue);
     }
 
@@ -87,7 +87,7 @@ public abstract class TimeLimitedLong extends TimeLimited implements LongSupplie
      * @return Modified accumulator value.
      */
     public final long update(final long value) {
-        resetIfExpired();
+        resetIfNecessary();
         return accumulate(value);
     }
 
@@ -115,7 +115,7 @@ public abstract class TimeLimitedLong extends TimeLimited implements LongSupplie
      */
     @Override
     public final long getAsLong() {
-        resetIfExpired();
+        resetIfNecessary();
         return current.get();
     }
 
