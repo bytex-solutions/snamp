@@ -3,12 +3,10 @@ package com.bytex.snamp.connector.composite;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.attributes.AttributesDistributionJob;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -42,16 +40,13 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     private final NotificationComposition notifications;
     @Aggregation(cached = true)
     private final OperationComposition operations;
-    private final AttributesDistributionJob synchronizationJob;
 
-    CompositeResourceConnector(final String resourceName, final Duration synchronizationPeriod, final ExecutorService threadPool) {
+    CompositeResourceConnector(final String resourceName, final ExecutorService threadPool) {
         connectors = new Composition(resourceName);
         attributes = new AttributeComposition(resourceName, connectors, threadPool, getLogger());
         notifications = new NotificationComposition(resourceName, connectors, threadPool, getLogger());
         notifications.addNotificationListener(attributes, null, null);
         operations = new OperationComposition(resourceName, connectors, getLogger());
-        synchronizationJob = new AttributesDistributionJob(synchronizationPeriod, attributes);
-        synchronizationJob.run();
     }
 
     @Override
@@ -112,7 +107,6 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
      */
     @Override
     public void close() throws Exception {
-        synchronizationJob.close(Duration.ofSeconds(5));
         connectors.close();
         attributes.close();
         notifications.close();

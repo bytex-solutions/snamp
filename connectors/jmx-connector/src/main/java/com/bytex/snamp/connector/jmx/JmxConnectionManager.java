@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.jmx;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.concurrent.VolatileBox;
+import com.bytex.snamp.VolatileBox;
 
 import javax.management.JMException;
 import javax.management.MBeanServerConnection;

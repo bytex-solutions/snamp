@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.Box;
+import com.bytex.snamp.SimpleBox;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -149,7 +149,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      */
     @Override
     public <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException {
-        final Box<O> result = new Box<>();
+        final SimpleBox<O> result = new SimpleBox<>();
         readConfiguration(result.changeConsumingType(handler));
         return result.get();
     }

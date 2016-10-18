@@ -27,17 +27,6 @@ final class MessageDrivenAttributeRepository extends DistributedAttributeReposit
     }
 
     @Override
-    protected Optional<AttributeSnapshot> takeSnapshot(final MessageDrivenAttribute attribute) {
-        if(attribute instanceof MetricHolderAttribute<?>)
-            return ((MetricHolderAttribute<?>)attribute).getMetric()
-    }
-
-    @Override
-    protected boolean applySnapshot(final MessageDrivenAttribute attribute, final AttributeSnapshot snapshot) {
-        return false;
-    }
-
-    @Override
     protected MessageDrivenAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
         return null;
     }
@@ -75,6 +64,6 @@ final class MessageDrivenAttributeRepository extends DistributedAttributeReposit
     }
 
     void post(final MeasurementNotification notification) {
-        parallelForEach(attribute -> attribute.accept(notification), threadPool);
+        parallelForEach(attribute -> attribute.accept(notification), null);
     }
 }

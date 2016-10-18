@@ -1,5 +1,7 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.*;

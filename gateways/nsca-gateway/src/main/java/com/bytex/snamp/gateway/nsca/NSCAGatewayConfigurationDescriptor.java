@@ -2,8 +2,8 @@ package com.bytex.snamp.gateway.nsca;
 
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
-import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.googlecode.jsendnsca.core.Encryption;
 import com.googlecode.jsendnsca.core.NagiosSettings;

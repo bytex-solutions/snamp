@@ -1,8 +1,8 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 

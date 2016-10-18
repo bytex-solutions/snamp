@@ -1,7 +1,5 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.Wrapper;
-
 /**
  * Provides thread-safe access to the thread-unsafe resource.
  * <p>
@@ -42,7 +40,7 @@ import com.bytex.snamp.Wrapper;
  * @since 1.0
  * @version 2.0
  */
-public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAccessor<R> implements Wrapper<R> {
+public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAccessor<R> {
     private static final long serialVersionUID = -5981763196807390411L;
 
     /**

@@ -2,7 +2,8 @@ package com.bytex.snamp.gateway.snmp;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.MutableInteger;
+import com.bytex.snamp.BoxFactory;
+import com.bytex.snamp.IntBox;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.jmx.TabularDataUtils;
@@ -118,7 +119,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     private static <E extends Exception> void forEachVariable(final TabularData attachment,
                                                               final DescriptorRead options,
                                                               final Acceptor<VariableBinding, E> handler) throws E{
-        final MutableInteger rowIndex = new MutableInteger();
+        final IntBox rowIndex = BoxFactory.createForInt(0);
         TabularDataUtils.forEachRow(attachment, value -> {
             int columnIndex = 0;
             for(final String columnName: value.getCompositeType().keySet()){

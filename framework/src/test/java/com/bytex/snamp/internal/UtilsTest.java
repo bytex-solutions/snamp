@@ -1,6 +1,7 @@
 package com.bytex.snamp.internal;
 
 import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SpecialUse;
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,7 +44,7 @@ public final class UtilsTest extends Assert {
     @SuppressWarnings("unchecked")
     @Test
     public void reflectSetterTest() throws ReflectiveOperationException{
-        final Box<String> box = new Box<>("");
+        final Box<String> box = BoxFactory.create("");
         final Consumer<String> setter = reflectSetter(MethodHandles.lookup(), box, box.getClass().getDeclaredMethod("set", Object.class));
         setter.accept("Frank Underwood");
         assertEquals("Frank Underwood", box.get());

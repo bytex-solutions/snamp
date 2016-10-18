@@ -1,12 +1,10 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.Wrapper;
 
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 
 /**
  * Provides a base class for organizing thread-safe access to the thread-unsafe resource.
@@ -18,7 +16,7 @@ import java.util.function.Function;
  * @since 1.0
  * @version 2.0
  */
-public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeObject implements Wrapper<R>, Serializable {
+public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeObject implements Serializable {
     private static final long serialVersionUID = -7263363564614921684L;
 
     /**
@@ -44,20 +42,6 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      */
     protected AbstractConcurrentResourceAccessor(){
         super(SingleResourceGroup.class);
-    }
-
-    /**
-     * Provides unsafe access to the resource.
-     * @param handler The wrapped object handler.
-     * @param <O> Type of the resource processing result.
-     * @return The resource processing result.
-     */
-    @Override
-    public <O> O apply(final Function<R, O> handler) {
-        if (handler == null) return null;
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
-            return handler.apply(getResource());
-        }
     }
 
     /**

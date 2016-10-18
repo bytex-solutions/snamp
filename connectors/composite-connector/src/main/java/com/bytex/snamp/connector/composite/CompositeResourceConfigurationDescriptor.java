@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -10,7 +10,6 @@ import com.bytex.snamp.connector.composite.functions.FunctionParser;
 import com.bytex.snamp.connector.composite.functions.FunctionParserException;
 
 import javax.management.Descriptor;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -30,13 +29,12 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     private static final String SOURCE_PARAM = "source";
     private static final String FORMULA_PARAM = "formula";
     private static final String RATE_FORMULA_PARAM = "rate()";
-    private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
 
     private static final LazyValue<CompositeResourceConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(CompositeResourceConfigurationDescriptor::new);
 
     private static final class ResourceConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private ResourceConfigurationDescription(){
-            super("ConnectorParameters", ManagedResourceConfiguration.class, SEPARATOR_PARAM, SYNC_PERIOD_PARAM);
+            super("ConnectorParameters", ManagedResourceConfiguration.class, SEPARATOR_PARAM);
         }
     }
 
@@ -79,10 +77,6 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
 
     static boolean isRateFormula(final AttributeDescriptor descriptor){
         return getField(descriptor, FORMULA_PARAM, RATE_FORMULA_PARAM::equals, () -> false);
-    }
-
-    Duration parseSynchronizationPeriod(final Map<String, String> parameters) {
-        return getValue(parameters, SYNC_PERIOD_PARAM, value -> Duration.ofMillis(Long.parseLong(value)), () -> Duration.ofMillis(10000L));
     }
 
     static AggregationFunction<?> parseFormula(final AttributeDescriptor descriptor) throws FunctionParserException {

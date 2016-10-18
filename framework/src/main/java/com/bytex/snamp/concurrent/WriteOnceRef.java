@@ -2,11 +2,9 @@ package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.Wrapper;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -15,7 +13,7 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 1.0
  */
-public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
+public class WriteOnceRef<T> implements Supplier<T> {
     private static final AtomicIntegerFieldUpdater<WriteOnceRef> LOCKED_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(WriteOnceRef.class, "locked");
     private T value;
@@ -105,16 +103,5 @@ public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
                 equals(((WriteOnceRef<?>) obj)) :
                 Objects.equals(value, obj);
 
-    }
-
-    /**
-     * Handles the wrapped object.
-     *
-     * @param handler The wrapped object handler.
-     * @return The wrapped object handling result.
-     */
-    @Override
-    public final <R> R apply(final Function<T, R> handler) {
-        return handler != null ? handler.apply(value) : null;
     }
 }

@@ -1,5 +1,7 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
 import org.junit.Assert;
 import org.junit.Test;
 

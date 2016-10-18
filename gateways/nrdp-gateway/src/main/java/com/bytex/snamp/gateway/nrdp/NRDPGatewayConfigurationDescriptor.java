@@ -1,8 +1,8 @@
 package com.bytex.snamp.gateway.nrdp;
 
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
-import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.bytex.snamp.jmx.DescriptorUtils;

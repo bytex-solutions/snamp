@@ -1,35 +1,49 @@
 package com.bytex.snamp.connector.composite;
 
+import com.bytex.snamp.Box;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.Metric;
+import org.osgi.framework.BundleContext;
 
-import javax.management.Descriptor;
 import javax.management.MBeanException;
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeType;
+import java.io.Serializable;
+import java.util.Objects;
+
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-abstract class MetricAttribute<M extends Metric> extends AbstractCompositeAttribute {
+abstract class MetricAttribute<M extends Metric & Serializable> extends AbstractCompositeAttribute {
     private static final long serialVersionUID = -2642294369415157342L;
+    final Box<M> metricStorage;
 
     MetricAttribute(final String name,
-                                                 final String type,
-                                                 final String description,
-                                                 final boolean isReadable,
-                                                 final boolean isWritable,
-                                                 final boolean isIs,
-                                                 final Descriptor descriptor) {
-        super(name, type, description, isReadable, isWritable, isIs, descriptor);
+                    final CompositeType type,
+                    final String description,
+                    final AttributeDescriptor descriptor,
+                    final Box<M> metricStorage) {
+        super(name, type.getClassName(), descriptor.getDescription(description), true, false, false, descriptor);
+        this.metricStorage = Objects.requireNonNull(metricStorage);
     }
 
-    abstract M getMetric();
+    final BundleContext getBundleContext(){
+        return getBundleContextOfObject(this);
+    }
 
-    abstract boolean setMetric(final Metric value);
+    abstract CompositeData getValue(final M metric);
+
+    abstract M createMetrics();
 
     @Override
-    abstract CompositeData getValue(final AttributeSupportProvider provider);
+    final CompositeData getValue(final AttributeSupportProvider provider){
+        final M metric = metricStorage.setIfAbsent(this::createMetrics);
+        return getValue(metric);
+    }
 
     @Override
     final void setValue(final AttributeSupportProvider provider, final Object value) throws MBeanException {

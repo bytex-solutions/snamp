@@ -1,4 +1,4 @@
-package com.bytex.snamp.concurrent;
+package com.bytex.snamp;
 
 import java.util.function.Supplier;
 

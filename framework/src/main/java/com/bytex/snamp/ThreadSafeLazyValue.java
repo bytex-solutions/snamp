@@ -1,6 +1,7 @@
-package com.bytex.snamp.concurrent;
+package com.bytex.snamp;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.LazyValue;
 
 import java.util.Objects;
 import java.util.Optional;

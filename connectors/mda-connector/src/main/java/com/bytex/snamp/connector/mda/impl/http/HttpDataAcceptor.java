@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.mda.impl.http;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.VolatileBox;
+import com.bytex.snamp.VolatileBox;
 import com.bytex.snamp.connector.mda.DataAcceptor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.json.JsonUtils;

@@ -1,9 +1,6 @@
 package com.bytex.snamp;
 
-import java.util.function.IntBinaryOperator;
-import java.util.function.IntConsumer;
-import java.util.function.IntFunction;
-import java.util.function.IntSupplier;
+import java.util.function.*;
 
 /**
  * Represents mutable container for {@code int} data type.
@@ -13,32 +10,106 @@ import java.util.function.IntSupplier;
  * @since 2.0
  */
 @ThreadSafe(false)
-public final class MutableInteger extends Number implements IntSupplier, IntConsumer, Comparable<IntSupplier> {
+final class MutableInteger extends Number implements IntBox {
     private static final long serialVersionUID = 6827831423137642850L;
     private int value;
 
-    public MutableInteger(final int value){
+    MutableInteger(final int value){
         this.value = value;
     }
 
-    public MutableInteger(){
-        this(0);
+    @Override
+    public Integer setIfAbsent(final Supplier<? extends Integer> valueProvider) {
+        return value;
     }
 
+    @Override
     public int getAndIncrement() {
         return value++;
     }
 
+    @Override
     public int incrementAndGet(){
         return ++value;
     }
 
-    public <R> R get(final IntFunction<R> fn){
+    @Override
+    public <R> R get(final IntFunction<? extends R> fn){
         return fn.apply(value);
     }
 
-    public int set(final int right, final IntBinaryOperator operator) {
+    @Override
+    public int accumulateAndGet(final int right, final IntBinaryOperator operator) {
         return value = operator.applyAsInt(value, right);
+    }
+
+    @Override
+    public int getAndSet(final int newValue) {
+        final int prev = value;
+        value = newValue;
+        return prev;
+    }
+
+    @Override
+    public int accumulateAndGet(final IntUnaryOperator operator) {
+        return value = operator.applyAsInt(value);
+    }
+
+    /**
+     * Gets value stored in this container.
+     *
+     * @return Value stored in this container.
+     */
+    @Override
+    public Integer get() {
+        return getAsInt();
+    }
+
+    @Override
+    public void set(final Integer newValue) {
+        value = newValue;
+    }
+
+    @Override
+    public Integer accumulateAndGet(final Integer right, final BinaryOperator<Integer> operator) {
+        return value = operator.apply(value, right);
+    }
+
+    @Override
+    public Integer accumulateAndGet(final UnaryOperator<Integer> operator) {
+        return value = operator.apply(value);
+    }
+
+    @Override
+    public Integer getAndSet(final Integer newValue) {
+        final int prev = value;
+        value = newValue;
+        return prev;
+    }
+
+    @Override
+    public Integer getOrDefault(final Supplier<? extends Integer> defaultProvider) {
+        return value;
+    }
+
+    /**
+     * Determines whether this container has stored value.
+     *
+     * @return {@literal true}, if this container has stored value.
+     */
+    @Override
+    public boolean hasValue() {
+        return true;
+    }
+
+    /**
+     * Performs this operation on the given argument.
+     *
+     * @param value the input argument
+     */
+    @Override
+    public void accept(final Integer value) {
+        set(value);
     }
 
     /**

@@ -1,20 +1,16 @@
-package com.bytex.snamp.concurrent;
-
-import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.ThreadSafe;
+package com.bytex.snamp;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 /**
- * Represents a thread-safe container for object with activation.
+ * Represents container for object with lazy activation.
  * @param <V> Type of value provided by container.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.2
  */
-@ThreadSafe
 public interface LazyValue<V> extends Supplier<V> {
     /**
      * Releases encapsulated object.
@@ -49,5 +45,9 @@ public interface LazyValue<V> extends Supplier<V> {
      */
     V get(final Callable<? extends V> activator) throws Exception;
 
+    /**
+     * Gets value in this container if it is initialized.
+     * @return Value encapsulated by this container; or none, if this container is not initialized.
+     */
     Optional<V> getIfPresent();
 }

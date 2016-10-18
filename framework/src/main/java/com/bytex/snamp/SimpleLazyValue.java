@@ -1,12 +1,12 @@
-package com.bytex.snamp.concurrent;
+package com.bytex.snamp;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.LazyValue;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
-import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * @author Roman Sakno

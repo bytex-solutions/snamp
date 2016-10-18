@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway.groovy.impl;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.groovy.GatewayScript;
-import com.bytex.snamp.concurrent.VolatileBox;
+import com.bytex.snamp.VolatileBox;
 
 /**
  * Represents simple container for {@link GatewayScript} object.

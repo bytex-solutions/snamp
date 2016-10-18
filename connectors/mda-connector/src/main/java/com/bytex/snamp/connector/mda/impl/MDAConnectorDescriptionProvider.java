@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.mda.impl;
 
-import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
 import com.bytex.snamp.connector.mda.MDAResourceConfigurationDescriptorProvider;
 
 import java.util.Map;

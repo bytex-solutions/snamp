@@ -8,9 +8,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.time.Duration;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Represents class for measuring timeouts.
@@ -74,12 +74,11 @@ public class Timeout implements Stateful, Serializable {
         return now - ticks > timeout && timer.compareAndSet(ticks, now);
     }
 
-    public final <T> Optional<? extends T> supplyIfExpired(final Supplier<? extends T> supplier){
-        return resetIfExpired() ? Optional.of(supplier.get()) : Optional.empty();
-    }
-
-    public final <I, O> Optional<? extends O> applyIfExpired(final I input, final Function<? super I, ? extends O> fn){
-        return resetIfExpired() ? Optional.of(fn.apply(input)) : Optional.empty();
+    public final boolean runIfExpired(final Runnable action){
+        final boolean expired;
+        if(expired = resetIfExpired())
+            action.run();
+        return expired;
     }
 
     public final <I> boolean acceptIfExpired(final I input, final Consumer<? super I> action){

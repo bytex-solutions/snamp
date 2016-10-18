@@ -4,7 +4,6 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
-import com.bytex.snamp.concurrent.VolatileBox;
 import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import org.jivesoftware.smack.SmackException;
@@ -18,6 +17,7 @@ import org.jivesoftware.smack.packet.XMPPError;
 import java.io.Closeable;
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -46,7 +46,7 @@ final class Bot implements ChatManagerListener, Closeable, SafeCloseable {
         private final Logger logger;
         private final A attributes;
         private volatile boolean closed;
-        private final VolatileBox<ExpressionBasedDescriptorFilter> notificationFilter;
+        private final AtomicReference<ExpressionBasedDescriptorFilter> notificationFilter;
 
         private ChatSession(final Chat chat,
                             final A attributes,
@@ -55,7 +55,7 @@ final class Bot implements ChatManagerListener, Closeable, SafeCloseable {
             chat.addMessageListener(this);
             this.logger = logger;
             this.attributes = attributes;
-            notificationFilter = new VolatileBox<>(null);
+            notificationFilter = new AtomicReference<>(null);
         }
 
         @Override

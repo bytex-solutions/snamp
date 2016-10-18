@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
 
 import java.util.Enumeration;
 import java.util.NoSuchElementException;

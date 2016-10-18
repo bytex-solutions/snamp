@@ -1,7 +1,7 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
 import com.bytex.snamp.io.IOUtils;
 import org.osgi.framework.Version;
 

@@ -2,8 +2,8 @@ package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.TypeTokens;
-import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.connector.attributes.AttributeAddedEvent;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;

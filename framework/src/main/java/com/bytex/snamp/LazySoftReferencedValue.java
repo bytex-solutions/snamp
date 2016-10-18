@@ -1,4 +1,4 @@
-package com.bytex.snamp.concurrent;
+package com.bytex.snamp;
 
 import java.lang.ref.SoftReference;
 import java.util.function.Supplier;

@@ -1,8 +1,8 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;

@@ -1,14 +1,12 @@
 package com.bytex.snamp.concurrent.impl;
 
-import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
-import com.google.common.collect.ImmutableMap;
 
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 /**
  * Represents default settings of thread pool.
