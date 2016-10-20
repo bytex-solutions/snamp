@@ -205,4 +205,30 @@ public final class Utils {
                                               final ExecutorService threadPool){
         parallelForEach(collection.spliterator(), action, threadPool);
     }
+
+    private static final MethodHandle CALL_SILENT_HANDLE = interfaceStaticInitialize(() -> {
+        final MethodHandles.Lookup lookup = MethodHandles.lookup();
+        final CallSite site = LambdaMetafactory.metafactory(lookup,
+                "get",
+                MethodType.methodType(Supplier.class, Callable.class),
+                MethodType.methodType(Object.class),
+                lookup.unreflect(Callable.class.getMethod("call")),
+                MethodType.methodType(Object.class));
+        return site.getTarget();
+    });
+
+    @SuppressWarnings("unchecked")
+    public static <V> Supplier<? extends V> suspendException(final Callable<? extends V> callable){
+        final Supplier result;
+        try{
+            result = (Supplier) CALL_SILENT_HANDLE.invokeExact(callable);
+        } catch (final Throwable e) {
+            throw new AssertionError("Invalid call site", e);
+        }
+        return result;
+    }
+
+    public static <V> V callAsUnchecked(final Callable<V> callable){
+        return suspendException(callable).get();
+    }
 }
