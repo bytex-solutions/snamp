@@ -6,7 +6,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import groovy.lang.GroovyObjectSupport;
 
-import java.util.concurrent.ExecutionException;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Provides access to connected resources from Groovy script.
@@ -22,11 +22,7 @@ public abstract class GroovyManagementModel extends GroovyObjectSupport implemen
     }
 
     private GroovyManagedResource getOrPutResource(final String resourceName) {
-        try {
-            return cache.get(resourceName, () -> new GroovyManagedResource(GroovyManagementModel.this, resourceName));
-        } catch (final ExecutionException ignored) {
-            return null;
-        }
+        return callUnchecked(() -> cache.get(resourceName, () -> new GroovyManagedResource(GroovyManagementModel.this, resourceName)));
     }
 
     @SpecialUse

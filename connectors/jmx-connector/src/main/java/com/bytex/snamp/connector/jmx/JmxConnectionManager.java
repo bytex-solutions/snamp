@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.jmx;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.VolatileBox;
 
 import javax.management.JMException;
 import javax.management.MBeanServerConnection;
@@ -74,7 +73,7 @@ final class JmxConnectionManager implements AutoCloseable {
         private final Lock writeLock;
         private final ConnectionHolder connectionHolder;
         private final List<ConnectionEstablishedEventHandler> reconnectionHandlers;
-        private final VolatileBox<IOException> problem;
+        private final AtomicReference<IOException> problem;
         private final Logger logger;
 
         private ConnectionWatchDog(final Duration period,
@@ -86,7 +85,7 @@ final class JmxConnectionManager implements AutoCloseable {
             this.writeLock = Objects.requireNonNull(writeLock);
             this.connectionHolder = connection;
             this.reconnectionHandlers = new Vector<>(4);
-            this.problem = new VolatileBox<>();
+            this.problem = new AtomicReference<>();
         }
 
         /**
@@ -102,7 +101,7 @@ final class JmxConnectionManager implements AutoCloseable {
         @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
         private void reportProblemAndWait(final IOException e) throws InterruptedException {
             reportProblem(problem, e);
-            while (problem.hasValue())
+            while (problem.get() != null)
                 Thread.sleep(1);
         }
 

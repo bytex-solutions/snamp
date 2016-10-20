@@ -163,7 +163,7 @@ public final class MetricsConverter {
             .addItem(RATIO_FOR_LAST_HOUR_FIELD, "Ratio between 'true' and 'false' values for the last hour", SimpleType.DOUBLE)
             .addItem(RATIO_FOR_LAST_12_HOURS_FIELD, "Ratio between 'true' and 'false' values for the last 12 hours", SimpleType.DOUBLE)
             .addItem(RATIO_FOR_LAST_DAY_FIELD, "Ratio between 'true' and 'false' values for the last day", SimpleType.DOUBLE)
-            .build());
+            .call());
 
     /**
      * Represents Open Type equivalent of {@link Rate}.
@@ -215,7 +215,7 @@ public final class MetricsConverter {
             .addItem(MAX_RATE_PER_MINUTE_FOR_LAST_HOUR_FIELD, "Max rate per minute for the last hour", SimpleType.LONG)
             .addItem(MAX_RATE_PER_MINUTE_FOR_LAST_12_HOURS_FIELD, "Max rate per minute for the last 12 hours", SimpleType.LONG)
             .addItem(MAX_RATE_PER_MINUTE_FOR_LAST_DAY_FIELD, "Max rate per minute for the last day", SimpleType.LONG)
-            .build());
+            .call());
 
     /**
      * Represents Open Type equivalent of {@link GaugeFP}.
@@ -253,7 +253,7 @@ public final class MetricsConverter {
             .addItem(MIN_VALUE_FOR_LAST_HOUR_FIELD, "Minimum value for the last hour", SimpleType.DOUBLE)
             .addItem(MIN_VALUE_FOR_LAST_12_HOURS_FIELD, "Minimum value for the last twelve hours", SimpleType.DOUBLE)
             .addItem(MIN_VALUE_FOR_LAST_DAY_FIELD, "Minimum value for the last day", SimpleType.DOUBLE)
-            .build());
+            .call());
 
     /**
      * Represents Open Type equivalent of {@link GaugeFP}.
@@ -291,7 +291,7 @@ public final class MetricsConverter {
             .addItem(MIN_VALUE_FOR_LAST_HOUR_FIELD, "Minimum value for the last hour", SimpleType.LONG)
             .addItem(MIN_VALUE_FOR_LAST_12_HOURS_FIELD, "Minimum value for the last twelve hours", SimpleType.LONG)
             .addItem(MIN_VALUE_FOR_LAST_DAY_FIELD, "Minimum value for the last day", SimpleType.LONG)
-            .build());
+            .call());
 
     /**
      * Represents Open Type equivalent of {@link RatedGaugeFP}.
@@ -299,7 +299,7 @@ public final class MetricsConverter {
     public static final CompositeType RATED_GAUGE_FP_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedGaugeFP", "Floating-point gauge with rate support")
             .importFrom(GAUGE_FP_TYPE)
             .importFrom(RATE_TYPE)
-            .build());
+            .call());
 
     /**
      * Represents Open Type equivalent for {@link RatedGauge64}.
@@ -307,7 +307,7 @@ public final class MetricsConverter {
     public static final CompositeType RATED_GAUGE_64_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedGauge64", "64-bit integer gauge with rate support")
             .importFrom(GAUGE_64_TYPE)
             .importFrom(RATE_TYPE)
-            .build());
+            .call());
 
     /**
      * Represents Open Type equivalent for {@link RatedFlag}.
@@ -315,7 +315,7 @@ public final class MetricsConverter {
     public static final CompositeType RATED_FLAG_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedFlag", "Flag with rate support")
             .importFrom(FLAG_TYPE)
             .importFrom(RATE_TYPE)
-            .build());
+            .call());
 
     /**
      * Converts {@link RatedFlag} into {@link CompositeData}.

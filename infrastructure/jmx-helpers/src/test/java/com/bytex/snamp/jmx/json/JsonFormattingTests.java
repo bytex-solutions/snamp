@@ -73,7 +73,7 @@ public final class JsonFormattingTests extends Assert {
                 .setTypeName("dict")
                 .setTypeDescription("dict")
                 .put("item1", "Dummy item", 2)
-                .build();
+                .call();
         final Gson formatter = new GsonBuilder()
                 .registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataFormatter())
                 .create();
@@ -113,7 +113,7 @@ public final class JsonFormattingTests extends Assert {
                 .addColumn("column1", "desc", SimpleType.STRING, true)
                 .addColumn("column2", "desc", SimpleType.BOOLEAN, true)
                 .addColumn("column3", "desc", SimpleType.OBJECTNAME, false)
-                .build();
+                .call();
         final JsonObject json = OpenTypeFormatter.serialize(type);
         assertEquals(type, OpenTypeFormatter.deserialize(json));
     }
@@ -129,7 +129,7 @@ public final class JsonFormattingTests extends Assert {
                 )
                 .add(42, "String1")
                 .add(43, "String2")
-                .build();
+                .call();
         final Gson formatter = new GsonBuilder()
                 .registerTypeHierarchyAdapter(TabularData.class, new TabularDataFormatter())
                 .create();
@@ -153,7 +153,7 @@ public final class JsonFormattingTests extends Assert {
                 .setTypeName("dict")
                 .setTypeDescription("dict")
                 .put("item1", "Dummy item", 2)
-                .build());
+                .call());
         final JsonElement elem = formatter.toJsonTree(notif);
         assertTrue(elem.isJsonObject());
     }

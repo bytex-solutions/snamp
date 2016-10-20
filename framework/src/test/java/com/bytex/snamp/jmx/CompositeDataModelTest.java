@@ -56,7 +56,7 @@ public final class CompositeDataModelTest extends Assert {
                 .put(ISimpleCompositeData.KEY1_NAME, "Dummy key", 42)
                 .put(ISimpleCompositeData.KEY2_NAME, "Dummy key", 3.14)
                 .put(ISimpleCompositeData.KEY3_NAME, "Dummy key", "Hello, world")
-                .build();
+                .call();
         final ISimpleCompositeData data = CompositeDataUtils.convert(ISimpleCompositeData.class, dict);
         assertEquals(42, data.getKey1());
         assertEquals(3.14, data.getKey2(), 0.001);
@@ -85,7 +85,7 @@ public final class CompositeDataModelTest extends Assert {
                         .addItem(SimpleCompositeData.KEY1_NAME, "Dummy item", SimpleCompositeData.KEY1_TYPE)
                         .addItem(SimpleCompositeData.KEY2_NAME, "Dummy item", SimpleCompositeData.KEY2_TYPE)
                         .addItem(SimpleCompositeData.KEY3_NAME, "Dummy item", SimpleCompositeData.KEY3_TYPE)
-                        .build()
+                        .call()
         );
         assertEquals(42, dict.get(SimpleCompositeData.KEY1_NAME));
         assertEquals(3.14, (double)dict.get(SimpleCompositeData.KEY2_NAME), 0.001);

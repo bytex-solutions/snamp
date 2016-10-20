@@ -132,7 +132,7 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
             final CompositeData expectedValue = new CompositeDataBuilder("MemoryStatus", "dummy")
                     .put("free", "free mem", 65)
                     .put("total", "total mem", 100500)
-                    .build();
+                    .call();
             final MapMessage message = session.createMapMessage();
             message.setInt("free", 65);
             message.setInt("total", 100500);

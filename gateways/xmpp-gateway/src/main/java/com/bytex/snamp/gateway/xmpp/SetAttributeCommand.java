@@ -5,7 +5,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.jivesoftware.smack.packet.Message;
 
-import javax.management.JMException;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -36,11 +36,11 @@ final class SetAttributeCommand extends AbstractAttributeCommand {
                               final String attributeID,
                               final String attributeValue,
                               final boolean silent) throws CommandException{
-        try {
+        callAndWrapException(() -> {
             writer.setAttribute(resourceName, attributeID, attributeValue);
-        } catch (final JMException e) {
-            throw new CommandException(e);
-        }
+            return null;
+        }, CommandException::new);
+
         if(silent) return null;
         else {
             final Message result = new Message();

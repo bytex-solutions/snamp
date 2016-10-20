@@ -2,7 +2,8 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.MutableBoolean;
+import com.bytex.snamp.BooleanBox;
+import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.io.SerializableMap;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
@@ -22,6 +23,7 @@ import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.putValue;
 import static com.bytex.snamp.configuration.impl.SerializableManagedResourceConfiguration.*;
 import static com.bytex.snamp.connector.ManagedResourceConnector.CAPABILITY_NAMESPACE;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -133,25 +135,23 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
 
     @Override
     void removeAll(final ConfigurationAdmin admin) throws IOException {
-        try {
+        callAndWrapException(() -> {
             forEachResource(admin, ALL_CONNECTORS_QUERY, Configuration::delete);
-        } catch (final InvalidSyntaxException e) {
-            throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);
     }
 
     @Override
     void fill(final ConfigurationAdmin admin,
                                       final Map<String, SerializableManagedResourceConfiguration> output) throws IOException {
-        try {
+        callAndWrapException(() -> {
             forEachResource(admin, ALL_CONNECTORS_QUERY, config -> {
                 final String resourceName = getResourceName(config.getProperties());
                 final SerializableManagedResourceConfiguration resource = parse(config);
                 output.put(resourceName, resource);
             });
-        } catch (final InvalidSyntaxException e) {
-           throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);
     }
 
     @Override
@@ -208,11 +208,11 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
                              final SerializableManagedResourceConfiguration resource,
                              final ConfigurationAdmin admin) throws ManagedResourceConfigurationException {
         try {
-            final MutableBoolean updated = new MutableBoolean();
+            final BooleanBox updated = BoxFactory.createForBoolean(false);
             //find existing configuration of resources
             forEachResource(admin, String.format("(%s=%s)", RESOURCE_NAME_PROPERTY, resourceName), config -> {
                 serialize(resourceName, resource, config);
-                updated.setTrue();
+                updated.set(true);
             });
             //no existing configuration, creates a new configuration
             if (!updated.get())
@@ -227,15 +227,14 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
                      final ConfigurationAdmin admin) throws IOException {
         //remove all unnecessary resources
         final Map<String, ? extends SerializableManagedResourceConfiguration> resources = config.getEntities(SerializableManagedResourceConfiguration.class);
-        try {
+        callAndWrapException(() -> {
             forEachResource(admin, ALL_CONNECTORS_QUERY, output -> {
                 final String resourceName = getResourceName(output.getProperties());
                 if (!resources.containsKey(resourceName))
                     output.delete();
             });
-        } catch (final InvalidSyntaxException e) {
-            throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);
         //save each modified resource
         config.getEntities(SerializableManagedResourceConfiguration.class).modifiedEntries((resourceName, resource) -> {
             serialize(resourceName, resource, admin);

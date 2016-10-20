@@ -75,11 +75,7 @@ public final class Utils {
     }
 
     public static <V> V withContextClassLoader(final ClassLoader loader, final Supplier<? extends V> action) {
-        try {
-            return withContextClassLoader(loader, (Callable<V>)action::get);
-        } catch (final Exception e) {
-            throw new AssertionError("Should never be happened", e);
-        }
+        return callAndWrapException(() -> withContextClassLoader(loader, (Callable<V>)action::get), e -> new AssertionError("Should never be happened", e));
     }
 
     public static <V> V withContextClassLoader(final ClassLoader loader, final Callable<? extends V> action) throws Exception {

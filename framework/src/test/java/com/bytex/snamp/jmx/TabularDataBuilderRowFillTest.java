@@ -21,7 +21,7 @@ public final class TabularDataBuilderRowFillTest extends Assert {
                 .setDescription("Description", true)
                 .addColumn("column1", "dummy desc", SimpleType.STRING, true)
                 .addColumn("column2", "dummy desc", SimpleType.BOOLEAN, false)
-                .build();
+                .call();
         final TabularData data = new TabularDataBuilderRowFill(type)
                 .newRow()
                     .cell("column1", "Frank Underwood")

@@ -5,9 +5,10 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.jivesoftware.smack.packet.Message;
-import org.osgi.framework.InvalidSyntaxException;
 
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -27,19 +28,18 @@ final class ManageNotificationsCommand extends AbstractCommand {
     ManageNotificationsCommand(final AtomicReference<ExpressionBasedDescriptorFilter> filter){
         super(COMMAND_OPTIONS);
         this.filter = filter;
-
     }
 
     @Override
-    protected Message doCommand(final CommandLine command) throws CommandException{
-        if(command.hasOption(FILTER_OPT.getOpt()))
-            try{
+    protected Message doCommand(final CommandLine command) throws CommandException {
+        if (command.hasOption(FILTER_OPT.getOpt()))
+            callAndWrapException(() -> {
                 final String expr = command.getOptionValue(FILTER_OPT.getOpt());
                 filter.set(new ExpressionBasedDescriptorFilter(expr));
-            } catch (final InvalidSyntaxException e) {
-                throw new CommandException(e);
-            }
-        else filter.set(null);
+                return null;
+            }, CommandException::new);
+        else
+            filter.set(null);
         return null;
     }
 }

@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents advanced routines to work with arrays.
@@ -323,16 +324,13 @@ public final class ArrayUtils {
      * @throws IllegalArgumentException Incorrect array type.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader){
-        if(arrayType.getDimension() > 1)
+    public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader) {
+        if (arrayType.getDimension() > 1)
             throw new IllegalArgumentException("Wrong number of dimensions: " + arrayType.getDimension());
-        final Class<?> elementType;
-        try{
-            elementType = Class.forName(arrayType.getClassName(), true, loader).getComponentType();
-        } catch (final ClassNotFoundException e) {
-            throw new IllegalArgumentException(e);
-        }
-        return (T)emptyArrayImpl(elementType);
+        final Class<?> elementType = callAndWrapException(
+                () -> Class.forName(arrayType.getClassName(), true, loader).getComponentType(),
+                IllegalArgumentException::new);
+        return (T) emptyArrayImpl(elementType);
     }
 
     public static <T> T getLast(final T[] array, final T defval){

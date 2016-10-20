@@ -256,18 +256,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private JavaBeanOperationInfo(final String operationName,
                                       final MethodDescriptor method,
                                       final OperationDescriptor descriptor,
-                                      final Object owner) throws ReflectionException{
+                                      final Object owner) throws ReflectionException {
             super(operationName,
                     getDescription(method),
                     getParameters(method),
                     getReturnType(method),
                     getImpact(method),
                     descriptor);
-            try {
-                handle = MethodHandles.publicLookup().unreflect(method.getMethod()).bindTo(owner);
-            } catch (final IllegalAccessException e) {
-                throw new ReflectionException(e);
-            }
+            handle = callAndWrapException(() -> MethodHandles.publicLookup().unreflect(method.getMethod()).bindTo(owner), ReflectionException::new);
         }
 
         private static String getDescription(final MethodDescriptor method){
@@ -419,15 +415,13 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             final Method setter = property.getWriteMethod();
             final ManagementAttribute info = getAdditionalInfo(getter, setter);
             if(info != null)
-                try {
+                this.formatter = callAndWrapException(() -> {
                     final Class<? extends ManagementAttributeMarshaller> formatterClass =
                             info.marshaller();
-                    this.formatter = Objects.equals(formatterClass, DefaultManagementAttributeMarshaller.class) ?
+                    return Objects.equals(formatterClass, DefaultManagementAttributeMarshaller.class) ?
                             new DefaultManagementAttributeMarshaller():
                             formatterClass.newInstance();
-                } catch (final ReflectiveOperationException e){
-                    throw new ReflectionException(e);
-                }
+                }, ReflectionException::new);
             else formatter = new DefaultManagementAttributeMarshaller();
             final MethodHandles.Lookup lookup = MethodHandles.lookup();
             try{

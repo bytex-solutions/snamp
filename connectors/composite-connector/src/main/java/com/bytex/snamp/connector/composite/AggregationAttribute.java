@@ -11,6 +11,7 @@ import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
 import java.util.Objects;
 import java.util.Set;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents attribute with aggregation formula.
@@ -35,11 +36,7 @@ final class AggregationAttribute extends CompositeAttribute implements OpenMBean
     @Override
     Object getValue(final AttributeSupport support) throws ReflectionException, AttributeNotFoundException, MBeanException {
         final Object attributeValue = support.getAttribute(getName());
-        try {
-            return function.invoke(resolver, attributeValue);
-        } catch (final Exception e) {
-            throw new ReflectionException(e);
-        }
+        return callAndWrapException(() -> function.invoke(resolver, attributeValue), ReflectionException::new);
     }
 
     @Override

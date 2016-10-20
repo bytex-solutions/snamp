@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.MapUtils.*;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -146,8 +147,8 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
             @Override
             public PublicKey getClientPublicKey() throws InvalidKeyException {
                 final File keyFile = new File(parameters.get(PUBLIC_KEY_FILE_PARAM));
-                KeyFormat format = getClientPublicKeyFormat();
-                try {
+                return callAndWrapException(() -> {
+                    KeyFormat format = getClientPublicKeyFormat();
                     if (format == KeyFormat.Unknown)
                         format = KeyProviderUtil.detectKeyFileFormat(keyFile);
                     final FileKeyProvider provider;
@@ -166,9 +167,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
                     }
                     provider.init(keyFile);
                     return provider.getPublic();
-                } catch (final IOException e) {
-                    throw new InvalidKeyException(e);
-                }
+                }, InvalidKeyException::new);
             }
 
             @Override

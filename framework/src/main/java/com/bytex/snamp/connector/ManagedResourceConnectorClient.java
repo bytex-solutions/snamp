@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents a client of resource connector that can be used by resource consumers.
@@ -346,12 +347,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     @SuppressWarnings("unchecked")
     public static ServiceReference<ManagedResourceConnector> getResourceConnector(final BundleContext context,
                                                                           final String resourceName) {
-        try {
-            return Iterables.<ServiceReference>getFirst(context.getServiceReferences(ManagedResourceConnector.class, ManagedResourceActivator.createFilter(resourceName)), null);
-        }
-        catch (final InvalidSyntaxException ignored) {
-            return null;
-        }
+        return callUnchecked(() -> Iterables.<ServiceReference>getFirst(context.getServiceReferences(ManagedResourceConnector.class, ManagedResourceActivator.createFilter(resourceName)), null));
     }
 
     /**

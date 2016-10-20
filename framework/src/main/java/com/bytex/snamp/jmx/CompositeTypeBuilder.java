@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeType} instances.
@@ -107,15 +108,16 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
      * @return A new instance of the {@link javax.management.openmbean.CompositeType} instance.
      * @throws javax.management.openmbean.OpenDataException Invalid composite type.
      */
-    public CompositeType build() throws OpenDataException {
+    @Override
+    public CompositeType call() throws OpenDataException {
         return build(typeName,
                 typeDescription,
                 items);
     }
 
-    static CompositeType build(final String typeName,
-                               final String typeDescription,
-                               final Map<String, ? extends CompositeTypeItem> items) throws OpenDataException {
+    private static CompositeType build(final String typeName,
+                                       final String typeDescription,
+                                       final Map<String, ? extends CompositeTypeItem> items) throws OpenDataException {
         final String[] itemNames = items.keySet().stream().toArray(String[]::new);
         final String[] itemDescriptions = new String[itemNames.length];
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
@@ -134,7 +136,7 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
      * @throws OpenDataException Invalid items.
      */
     public CompositeData build(final Map<String, ?> items) throws OpenDataException {
-        return new CompositeDataSupport(build(), items);
+        return new CompositeDataSupport(call(), items);
     }
 
     int size(){
@@ -148,11 +150,7 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
      */
     @Override
     public CompositeType get() throws IllegalStateException{
-        try {
-            return build();
-        } catch (final OpenDataException e) {
-            throw new IllegalStateException(e);
-        }
+        return callAndWrapException(this, IllegalStateException::new);
     }
 
     /**

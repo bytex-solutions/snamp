@@ -40,7 +40,7 @@ public final class DefaultValuesTest extends Assert {
                 .addItem("z", "dummy", SimpleType.BIGDECIMAL)
                 .addItem("j", "dummy", SimpleType.DATE)
                 .addItem("i", "dummy", SimpleType.INTEGER)
-                .build();
+                .call();
         final CompositeData data = DefaultValues.get(type);
         assertEquals("", data.get("x"));
         assertEquals(new ObjectName(""), data.get("y"));

@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.jmx;
 
-import com.bytex.snamp.SimpleBox;
+import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.internal.Utils;
 
 import javax.management.MalformedObjectNameException;
@@ -35,7 +36,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException, MalformedObjectNameException {
         super(connectionString);
         final JmxConnectorDescriptionProvider parser = JmxConnectorDescriptionProvider.getInstance();
-        final SimpleBox<String> userName = new SimpleBox<>(), password = new SimpleBox<>();
+        final Box<String> userName = BoxFactory.create(null), password = BoxFactory.create(null);
         parser.parseUserNameAndPassword(options, userName, password);
         this.login = userName.get();
         this.password = password.get();

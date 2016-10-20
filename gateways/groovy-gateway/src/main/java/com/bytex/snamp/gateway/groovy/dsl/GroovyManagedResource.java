@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents wrapper for collection of attributes. This class cannot be inherited or instantiated
@@ -53,11 +54,7 @@ public final class GroovyManagedResource extends GroovyObjectSupport {
                                                              final String resourceName,
                                                              final String attributeName,
                                                              final AttributesView attributes) {
-        try {
-            return cache.get(attributeName, () -> new GroovyResourceAttribute(attributes, resourceName, attributeName));
-        } catch (final ExecutionException ignored) {
-            return null;
-        }
+        return callUnchecked(() -> cache.get(attributeName, () -> new GroovyResourceAttribute(attributes, resourceName, attributeName)));
     }
 
     private static GroovyResourceEvent getOrPutEvent(final Cache<String, GroovyResourceEvent> cache,

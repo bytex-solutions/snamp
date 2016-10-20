@@ -4,11 +4,12 @@ import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.Notification;
 import java.io.InputStream;
 import java.io.PrintWriter;
+
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 import static com.bytex.snamp.io.IOUtils.hasMoreData;
 
 /**
@@ -36,15 +37,9 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
 
     @Override
     protected void doCommand(final CommandLine input, final PrintWriter output) throws CommandException {
-        final ExpressionBasedDescriptorFilter filter;
-        if(input.hasOption(FILTER_OPTION.getOpt()))
-            try {
-                filter = new ExpressionBasedDescriptorFilter(input.getOptionValue(FILTER_OPTION.getOpt()));
-            }
-            catch (final InvalidSyntaxException e){
-                throw new CommandException(e);
-            }
-        else filter = null;
+        final ExpressionBasedDescriptorFilter filter = input.hasOption(FILTER_OPTION.getOpt()) ?
+                callAndWrapException(() -> new ExpressionBasedDescriptorFilter(input.getOptionValue(FILTER_OPTION.getOpt())), CommandException::new) :
+                null;
         final InputStream consoleInput = getConsoleInputStream();
         final GatewayController controller = getGatewayController();
         while (!hasMoreData(consoleInput)) {

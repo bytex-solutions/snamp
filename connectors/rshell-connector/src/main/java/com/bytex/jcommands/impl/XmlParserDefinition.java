@@ -1,13 +1,15 @@
 package com.bytex.jcommands.impl;
 
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.Internal;
+import com.bytex.snamp.ResettableIterator;
+import com.bytex.snamp.SpecialUse;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.bytex.snamp.*;
 
 import javax.script.*;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.annotation.*;
-import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -20,7 +22,9 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+
 import static com.bytex.snamp.ArrayUtils.emptyByteArray;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 import static com.bytex.snamp.internal.Utils.convertTo;
 
 /**
@@ -81,17 +85,17 @@ public class XmlParserDefinition {
          */
         @Override
         public Object eval(final Reader reader, final ScriptContext context) throws ScriptException {
-            final StringBuilder script = new StringBuilder();
-            final char[] buffer = new char[256];
-            int count;
-            try {
+            final String result = callAndWrapException(() -> {
+                final StringBuilder script = new StringBuilder();
+                final char[] buffer = new char[256];
+                int count;
                 while ((count = reader.read(buffer)) > 0)
                     script.append(buffer, 0, count);
-            } catch (final IOException e) {
-                throw new ScriptException(e);
-            }
-            return eval(script.toString(), context);
+                return script.toString();
+            }, ScriptException::new);
+            return eval(result, context);
         }
+
         /**
          * Returns a <code>ScriptEngineFactory</code> for the class to which this <code>ScriptEngine</code> belongs.
          *

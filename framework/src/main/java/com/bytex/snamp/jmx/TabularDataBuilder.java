@@ -5,8 +5,10 @@ import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents {@link javax.management.openmbean.TabularData} instance builder.
@@ -14,7 +16,7 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 1.0
  */
-public class TabularDataBuilder extends LinkedList<CompositeData> implements Supplier<TabularData> {
+public class TabularDataBuilder extends LinkedList<CompositeData> implements Supplier<TabularData>, Callable<TabularData> {
     private static final long serialVersionUID = 6161683440252406652L;
     private final TabularTypeBuilder columns = new TabularTypeBuilder();
 
@@ -91,8 +93,9 @@ public class TabularDataBuilder extends LinkedList<CompositeData> implements Sup
      * @return A new {@link javax.management.openmbean.TabularData} instance.
      * @throws javax.management.openmbean.OpenDataException Unable to construct table.
      */
-    public final TabularData build() throws OpenDataException{
-        final TabularDataSupport result = new TabularDataSupport(this.columns.build());
+    @Override
+    public final TabularData call() throws OpenDataException{
+        final TabularDataSupport result = new TabularDataSupport(this.columns.call());
         forEach(result::put);
         return result;
     }
@@ -104,10 +107,6 @@ public class TabularDataBuilder extends LinkedList<CompositeData> implements Sup
      */
     @Override
     public final TabularData get() throws IllegalStateException{
-        try {
-            return build();
-        } catch (final OpenDataException e) {
-            throw new IllegalStateException(e);
-        }
+        return callAndWrapException(this, IllegalStateException::new);
     }
 }

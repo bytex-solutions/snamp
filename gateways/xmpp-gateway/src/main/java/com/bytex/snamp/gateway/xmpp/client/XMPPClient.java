@@ -1,10 +1,9 @@
 package com.bytex.snamp.gateway.xmpp.client;
 
-import com.bytex.snamp.gateway.xmpp.XMPPGatewayConfigurationProvider;
 import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
+import com.bytex.snamp.gateway.xmpp.XMPPGatewayConfigurationProvider;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.chat.ChatMessageListener;
@@ -20,6 +19,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents simple XMPP client that can be used in integration tests.
@@ -49,30 +50,29 @@ public final class XMPPClient implements Closeable {
     }
 
     public void peekMessage(final String message) throws IOException {
-        if(chat == null) throw new IOException("Chat doesn't exist");
-        else try {
-            chat.sendMessage(message);
-        } catch (final SmackException.NotConnectedException e) {
-            throw new IOException(e);
-        }
+        if (chat == null)
+            throw new IOException("Chat doesn't exist");
+        else
+            callAndWrapException(() -> {
+                chat.sendMessage(message);
+                return null;
+            }, IOException::new);
     }
 
     public String sendMessage(final String message,
                               final String ignoreFilter,
                               final Duration responseTimeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
-        if(chat == null) throw new IOException("Chat doesn't exist");
+        if (chat == null) throw new IOException("Chat doesn't exist");
         final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
         chat.addMessageListener(response);
-        try {
+        callAndWrapException(() -> {
             chat.sendMessage(message);
-        } catch (final SmackException.NotConnectedException e) {
-            throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);
         final Message responseMsg;
-        try{
+        try {
             responseMsg = response.get(responseTimeout.toNanos(), TimeUnit.NANOSECONDS);
-        }
-        finally {
+        } finally {
             chat.removeMessageListener(response);
         }
         return responseMsg.getBody();
@@ -102,12 +102,11 @@ public final class XMPPClient implements Closeable {
     }
 
     public void connectAndLogin() throws IOException {
-        try {
+        callAndWrapException(() -> {
             connection.connect();
             connection.login();
-        } catch (final SmackException | XMPPException e) {
-            throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);
     }
 
     @Override

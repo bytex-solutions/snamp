@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Describes a well-known type that should be supported by
@@ -300,7 +301,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
         }
     }
 
-    private static final LoadingCache<Object, WellKnownType> cache =
+    private static final LoadingCache<Object, WellKnownType> CACHE =
             CacheBuilder.newBuilder().weakKeys().build(new WellKnownTypeCacheLoader());
 
     private final OpenType<?> openType;
@@ -309,23 +310,14 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
 
     <T> WellKnownType(final String name, final SimpleType<T> openType){
         this.openType = Objects.requireNonNull(openType, "openType is null.");
-        try {
-            this.javaType = Class.forName(openType.getClassName());
-        } catch (final ClassNotFoundException e) {
-            throw new ExceptionInInitializerError(e);
-        }
+        this.javaType = callUnchecked(() -> Class.forName(openType.getClassName()));
         this.displayName = name;
     }
 
     <A> WellKnownType(final String name, final SimpleType<?> componentType,
                       final boolean primitive){
-        try {
-            this.openType = new ArrayType<A>(componentType, primitive);
-            this.javaType = Class.forName(openType.getClassName());
-        }
-        catch (final OpenDataException | ClassNotFoundException e) {
-            throw new ExceptionInInitializerError(e);
-        }
+        this.openType = callUnchecked(() -> new ArrayType<A>(componentType, primitive));
+        this.javaType = callUnchecked(() -> Class.forName(openType.getClassName()));
         this.displayName = name;
     }
 
@@ -512,7 +504,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
     public static WellKnownType getType(final String className) {
         if(className == null || className.isEmpty()) return null;
         else try {
-            return cache.get(className);
+            return CACHE.get(className);
         } catch (ExecutionException ignored) {
             return null;
         }
@@ -548,7 +540,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
                 return TABLE_ARRAY;
         }
         try {
-            return cache.get(openType);
+            return CACHE.get(openType);
         } catch (final ExecutionException ignored) {
             return null;
         }
@@ -575,7 +567,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
     public static WellKnownType getType(final TypeToken<?> token){
         if(token == null) return null;
         else try {
-            return cache.get(token);
+            return CACHE.get(token);
         } catch (final ExecutionException ignored) {
             return null;
         }

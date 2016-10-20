@@ -6,6 +6,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents shell command that obtains a list of attributes.
@@ -54,14 +55,13 @@ final class ListOfAttributesCommand extends AbstractManagementShellCommand {
         final boolean withNames = input.hasOption(SHOW_NAMES_OPTION.getOpt());
         final boolean details = input.hasOption(SHOW_DETAILS_OPTION.getOpt());
         final String resourceName = input.getOptionValue(RESOURCE_OPTION.getOpt(), "");
-        try {
+        callAndWrapException(() -> {
             if (resourceName.isEmpty())
                 for (final String r : getGatewayController().getConnectedResources())
                     printAttributes(r, withNames, details, output);
-            else printAttributes(resourceName, withNames, details, output);
-        }
-        catch (final IOException e){
-            throw new CommandException(e);
-        }
+            else
+                printAttributes(resourceName, withNames, details, output);
+            return null;
+        }, CommandException::new);
     }
 }

@@ -6,8 +6,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
-import static com.bytex.snamp.internal.Utils.convertTo;
+import static com.bytex.snamp.internal.Utils.*;
 
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeData} instance.
@@ -17,7 +18,7 @@ import static com.bytex.snamp.internal.Utils.convertTo;
  * @see javax.management.openmbean.CompositeData
  * @see javax.management.openmbean.CompositeDataSupport
  */
-public class CompositeDataBuilder extends LinkedHashMap<String, Object> implements Supplier<CompositeData> {
+public class CompositeDataBuilder extends LinkedHashMap<String, Object> implements Supplier<CompositeData>, Callable<CompositeData> {
     private static final long serialVersionUID = 4339347653114240740L;
     private final CompositeTypeBuilder typeBuilder;
 
@@ -313,7 +314,8 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      * @return A new JMX Composite Data.
      * @throws javax.management.openmbean.OpenDataException Unable to construct composite data.
      */
-    public final CompositeData build() throws OpenDataException{
+    @Override
+    public final CompositeData call() throws OpenDataException{
         return typeBuilder.build(this);
     }
 
@@ -324,10 +326,6 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      */
     @Override
     public final CompositeData get() throws IllegalStateException{
-        try {
-            return build();
-        } catch (final OpenDataException e) {
-            throw new IllegalStateException(e);
-        }
+        return callAndWrapException(this, IllegalStateException::new);
     }
 }

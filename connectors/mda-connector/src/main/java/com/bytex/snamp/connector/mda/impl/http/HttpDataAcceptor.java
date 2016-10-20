@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.mda.impl.http;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.VolatileBox;
 import com.bytex.snamp.connector.mda.DataAcceptor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.json.JsonUtils;
@@ -12,7 +11,7 @@ import org.osgi.service.http.NamespaceException;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
-import javax.management.openmbean.*;
+import javax.management.openmbean.OpenDataException;
 import javax.servlet.ServletException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -23,6 +22,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
@@ -37,7 +37,7 @@ public final class HttpDataAcceptor extends DataAcceptor {
     private final Gson formatter;
     private final String servletContext;
     private final ExecutorService threadPool;
-    private final VolatileBox<HttpService> publisherRef;
+    private final AtomicReference<HttpService> publisherRef;
     private final HttpAttributeRepository attributes;
     private final HttpNotificationRepository notifications;
 
@@ -51,7 +51,7 @@ public final class HttpDataAcceptor extends DataAcceptor {
                 Utils.getBundleContextOfObject(this),
                 getLogger());
         this.servletContext = Objects.requireNonNull(context);
-        this.publisherRef = new VolatileBox<>();
+        this.publisherRef = new AtomicReference<>();
         this.formatter = JsonUtils.registerTypeAdapters(new GsonBuilder().serializeNulls()).create();
     }
 

@@ -18,6 +18,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents a basic support for aggregation.
@@ -55,11 +56,7 @@ public abstract class AbstractAggregator implements Aggregator {
 
         @Override
         public Object get(final Aggregator owner) throws InvocationTargetException {
-            try {
-                return callable.call();
-            } catch (final Exception e) {
-                throw new InvocationTargetException(e);
-            }
+            return callAndWrapException(callable, InvocationTargetException::new);
         }
 
         @Override

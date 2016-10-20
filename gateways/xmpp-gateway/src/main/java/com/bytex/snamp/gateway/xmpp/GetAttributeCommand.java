@@ -6,10 +6,11 @@ import org.apache.commons.cli.Options;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Message;
 
-import javax.management.JMException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Objects;
+
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -38,14 +39,9 @@ final class GetAttributeCommand extends AbstractAttributeCommand {
     private Message doCommand(final String resourceName,
                                  final String attributeID,
                                  final AttributeValueFormat format) throws CommandException{
-        final String value;
         final Collection<ExtensionElement> extensions =
                 new LinkedList<>();
-        try{
-            value = reader.getAttribute(resourceName, attributeID, format, extensions);
-        } catch (final JMException e) {
-            throw new CommandException(e);
-        }
+        final String value = callAndWrapException(() -> reader.getAttribute(resourceName, attributeID, format, extensions), CommandException::new);
         final Message result = new Message();
         result.setSubject(String.format("Value of '%s/%s'", resourceName, attributeID));
         result.setBody(value);

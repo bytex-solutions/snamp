@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents a client of resource connector that can be used by gateway consumers.
@@ -70,11 +71,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     @SuppressWarnings("unchecked")
     public static ServiceReference<Gateway> getGatewayInstance(final BundleContext context,
                                                                final String instanceName) {
-        try {
-            return Iterables.<ServiceReference>getFirst(context.getServiceReferences(Gateway.class, GatewayActivator.createFilter(instanceName)), null);
-        } catch (final InvalidSyntaxException ignored) {
-            return null;
-        }
+        return callUnchecked(() -> Iterables.<ServiceReference>getFirst(context.getServiceReferences(Gateway.class, GatewayActivator.createFilter(instanceName)), null));
     }
 
     /**

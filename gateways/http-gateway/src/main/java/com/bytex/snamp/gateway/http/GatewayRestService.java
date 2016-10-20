@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Objects;
 import java.util.Set;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 @Path("/")
 @Singleton
@@ -35,16 +36,13 @@ public final class GatewayRestService {
     public SuspendResponse<String> subscribe(@PathParam(HttpNotificationAccessor.RESOURCE_URL_PARAM) final String resourceName,
                                              @Context final HttpServletRequest request) throws WebApplicationException {
         final InternalBroadcaster broadcaster = notifications.getBroadcaster(resourceName);
-        if (broadcaster != null) {
-            try {
+        if (broadcaster != null)
+            return callAndWrapException(() -> {
                 broadcaster.initialize(request);
                 return new SuspendResponse.SuspendResponseBuilder<String>()
                         .broadcaster(broadcaster)
                         .build();
-            } catch (final Exception e) {
-                throw new WebApplicationException(e);
-            }
-        }
+            }, WebApplicationException::new);
         else
             throw new WebApplicationException(new IllegalArgumentException(String.format("Unknown resource %s", resourceName)), Response.Status.NOT_FOUND);
     }

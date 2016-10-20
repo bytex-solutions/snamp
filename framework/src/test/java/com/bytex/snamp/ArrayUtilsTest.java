@@ -57,7 +57,7 @@ public final class ArrayUtilsTest extends Assert {
         final CompositeType ct = new CompositeTypeBuilder("dummyType", "dummy")
                 .addItem("x", "X coordinate", SimpleType.LONG)
                 .addItem("y", "Y coordinate", SimpleType.LONG)
-                .build();
+                .call();
         array = ArrayUtils.newArray(new ArrayType<CompositeData[]>(1, ct), 7);
         assertTrue(array instanceof CompositeData[]);
         assertEquals(7, Array.getLength(array));

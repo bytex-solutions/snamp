@@ -122,7 +122,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
                 .put("col1", "dummy item", SimpleType.BOOLEAN, true)
                 .put("col2", "dummy item", SimpleType.INTEGER, 42)
                 .put("col3", "dummy item", SimpleType.STRING, "Frank Underwood")
-                .build();
+                .call();
         testJmxAttribute(new Attribute("6.1", dict));
     }
 
@@ -137,7 +137,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
                     .addColumn("col3", "dummy item", SimpleType.STRING, true))
                 .add(true, 67, "Dostoevsky")
                 .add(false, 98, "Pushkin")
-                .build();
+                .call();
         testJmxAttribute(new Attribute("7.1", table));
     }
 

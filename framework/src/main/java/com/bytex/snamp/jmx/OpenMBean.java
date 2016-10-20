@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents an abstract class for building Open MBeans.
@@ -614,13 +615,10 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     @Override
     public final AttributeList getAttributes(final String[] names) {
         final AttributeList result = new AttributeList();
-        for(final String name: names)
-            try{
-                result.add(new Attribute(name, getAttribute(name)));
-            }
-            catch(final Exception ignored){
-
-            }
+        for (final String name : names) {
+            final Object value = callUnchecked(() -> getAttribute(name));
+            result.add(new Attribute(name, value));
+        }
         return result;
     }
 
@@ -635,14 +633,13 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     @Override
     public final AttributeList setAttributes(final AttributeList attributes) {
         final AttributeList result = new AttributeList();
-        for(final Object attr: attributes)
-            try{
+        for(final Object attr: attributes){
+            callUnchecked(() -> {
                 setAttribute((Attribute)attr);
-                result.add(attr);
-            }
-            catch (final Exception ignored){
-
-            }
+                return null;
+            });
+            result.add(attr);
+        }
         return result;
     }
 

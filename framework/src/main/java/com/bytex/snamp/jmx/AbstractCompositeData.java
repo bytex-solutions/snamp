@@ -6,6 +6,7 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.util.HashMap;
 import java.util.Map;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents an abstract class for constructing homogeneous composite data.
@@ -139,11 +140,7 @@ public abstract class AbstractCompositeData<V> extends HashMap<String, V> implem
     @Override
     public final CompositeType getCompositeType() throws IllegalStateException {
         if (cachedType == null)
-            try {
-                cachedType = getCompositeTypeImpl();
-            } catch (final OpenDataException e) {
-                throw new IllegalStateException(e);
-            }
+            cachedType = callAndWrapException(this::getCompositeTypeImpl, IllegalStateException::new);
         return cachedType;
     }
 

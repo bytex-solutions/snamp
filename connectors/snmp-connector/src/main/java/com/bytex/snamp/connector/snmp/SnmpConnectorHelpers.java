@@ -3,11 +3,11 @@ package com.bytex.snamp.connector.snmp;
 import org.snmp4j.smi.OID;
 
 import javax.management.openmbean.ArrayType;
-import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.util.Arrays;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * @author Roman Sakno
@@ -31,11 +31,7 @@ final class SnmpConnectorHelpers {
     }
 
     static <T> ArrayType<T[]> arrayType(final SimpleType<T> type,
-                                                final boolean primitive) throws ExceptionInInitializerError{
-        try {
-            return new ArrayType<>(type, primitive);
-        } catch (final OpenDataException e) {
-            throw new ExceptionInInitializerError(e);
-        }
+                                                final boolean primitive){
+        return callUnchecked(() -> new ArrayType<>(type, primitive));
     }
 }

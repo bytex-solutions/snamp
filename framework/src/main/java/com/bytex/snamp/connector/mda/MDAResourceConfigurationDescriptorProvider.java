@@ -70,7 +70,7 @@ public abstract class MDAResourceConfigurationDescriptorProvider extends Configu
                 builder.addItem(itemName, itemName, itemType.getOpenType());
             }
         }
-        return builder.build();
+        return builder.call();
     }
 
     @SafeVarargs

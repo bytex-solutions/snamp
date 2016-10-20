@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.util.BitSet;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -70,12 +71,12 @@ public final class IOUtils {
         if (serializedForm == null || serializedForm.length == 0)
             return null;
         else
-            try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
-                 final ObjectInputStream deserializer = new CustomObjectInputStream(stream, resolver)) {
-                return TypeTokens.cast(deserializer.readObject(), expectedType);
-            } catch (final ClassNotFoundException | ClassCastException e) {
-                throw new IOException(e);
-            }
+            return callAndWrapException(() -> {
+                try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
+                     final ObjectInputStream deserializer = new CustomObjectInputStream(stream, resolver)) {
+                    return TypeTokens.cast(deserializer.readObject(), expectedType);
+                }
+            }, IOException::new);
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,

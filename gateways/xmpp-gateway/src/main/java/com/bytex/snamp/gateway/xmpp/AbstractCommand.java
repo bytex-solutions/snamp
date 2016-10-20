@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway.xmpp;
 
 import org.apache.commons.cli.*;
 import org.jivesoftware.smack.packet.Message;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -26,12 +27,7 @@ abstract class AbstractCommand extends BasicParser implements Command {
 
     @Override
     public final Message doCommand(final String[] arguments) throws CommandException {
-        final CommandLine command;
-        try {
-            command = parse(getOptions(), arguments);
-        } catch (final ParseException e) {
-            throw new CommandException(e);
-        }
+        final CommandLine command = callAndWrapException(() -> parse(getOptions(), arguments), CommandException::new);
         return doCommand(command);
     }
 }

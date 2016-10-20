@@ -58,7 +58,7 @@ public final class XmlCommandLineTemplateTest extends Assert {
                 .setTypeDescription("desr")
                 .put("key1", "key1", "Hello")
                 .put("key2", "key2", "world")
-                .build();
+                .call();
         final String result = template.renderCommand(ImmutableMap.of("dict", dict));
         assertEquals("Hello, world", result);
     }
@@ -75,7 +75,7 @@ public final class XmlCommandLineTemplateTest extends Assert {
                 .addColumn("column2", "column2", SimpleType.INTEGER, false))
                 .add("A", 42)
                 .add("B", 43)
-                .build();
+                .call();
         final String result = template.renderCommand(ImmutableMap.of("table", TabularDataUtils.getRows(table)));
         assertEquals("A = 42B = 43", result);
     }

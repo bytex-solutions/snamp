@@ -1,9 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.SimpleBox;
-import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.*;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -15,6 +12,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents SNAMP configuration manager that uses {@link ConfigurationAdmin}
@@ -89,11 +87,10 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
 
     private <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler, final Lock synchronizer) throws E, IOException {
         //obtain lock on configuration
-        try {
+        callAndWrapException(() -> {
             synchronizer.lockInterruptibly();
-        } catch (final InterruptedException e) {
-            throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);
         //Process configuration protected by lock.
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
@@ -149,7 +146,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      */
     @Override
     public <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException {
-        final SimpleBox<O> result = new SimpleBox<>();
+        final Box<O> result = BoxFactory.create(null);
         readConfiguration(result.changeConsumingType(handler));
         return result.get();
     }

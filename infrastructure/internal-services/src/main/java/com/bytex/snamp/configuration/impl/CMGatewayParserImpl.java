@@ -1,7 +1,8 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.MutableBoolean;
+import com.bytex.snamp.BooleanBox;
+import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import org.osgi.framework.Constants;
@@ -14,6 +15,7 @@ import java.util.*;
 
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.gateway.Gateway.CAPABILITY_NAMESPACE;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -82,24 +84,22 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     @Override
     void fill(final ConfigurationAdmin admin,
                                      final Map<String, SerializableGatewayConfiguration> output) throws IOException {
-        try {
+        callAndWrapException(() -> {
             forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, config -> {
                 final String gatewayInstanceName = getInstanceName(config.getProperties());
                 final SerializableGatewayConfiguration gatewayInstance = parse(config);
                 output.put(gatewayInstanceName, gatewayInstance);
             });
-        } catch (final InvalidSyntaxException e) {
-            throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);
     }
 
     @Override
     void removeAll(final ConfigurationAdmin admin) throws IOException {
-        try {
+        callAndWrapException(() -> {
             forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, Configuration::delete);
-        } catch (final InvalidSyntaxException e) {
-            throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);
     }
 
     @Override
@@ -144,10 +144,10 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
                              final ConfigurationAdmin admin) throws GatewayConfigurationException {
         try {
             //find existing configuration of gateway
-            final MutableBoolean updated = new MutableBoolean();
+            final BooleanBox updated = BoxFactory.createForBoolean(false);
             forEachGatewayInstance(admin, String.format("(%s=%s)", GATEWAY_INSTANCE_NAME_PROPERTY, gatewayInstanceName), config -> {
                 serialize(gatewayInstanceName, gatewayInstance, config);
-                updated.setTrue();
+                updated.set(true);
             });
             //no existing configuration, creates a new configuration
             if (!updated.get())
@@ -164,15 +164,14 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
               final ConfigurationAdmin admin) throws IOException {
         final ConfigurationEntityList<? extends SerializableGatewayConfiguration> instances = config.getEntities(SerializableGatewayConfiguration.class);
         //remove all unnecessary gateway
-        try {
+        callAndWrapException(() -> {
             forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, output -> {
                 final String gatewayInstance = getInstanceName(output.getProperties());
                 if (!instances.containsKey(gatewayInstance))
                     output.delete();
             });
-        } catch (final InvalidSyntaxException e) {
-            throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);
         //save each modified gateway instance
         config.getEntities(SerializableGatewayConfiguration.class).modifiedEntries((gatewayInstanceName, gatewayInstanceConfig) -> {
             serialize(gatewayInstanceName, gatewayInstanceConfig, admin);

@@ -2,6 +2,7 @@ package com.bytex.snamp.jmx;
 
 import javax.management.openmbean.*;
 import java.util.*;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents builder of {@link javax.management.openmbean.TabularType} instances.
@@ -129,7 +130,7 @@ public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, I
     }
 
     CompositeType buildRowType() throws OpenDataException {
-        return rowBuilder.build();
+        return rowBuilder.call();
     }
 
     int size(){
@@ -151,7 +152,7 @@ public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, I
      * @return A new instance of {@link javax.management.openmbean.TabularType}.
      * @throws OpenDataException Unable to construct type.
      */
-    public TabularType build() throws OpenDataException{
+    public TabularType call() throws OpenDataException{
         return new TabularType(typeName,
                 typeDescription,
                 buildRowType(),
@@ -165,11 +166,7 @@ public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, I
      */
     @Override
     public TabularType get() throws IllegalStateException{
-        try {
-            return build();
-        } catch (final OpenDataException e) {
-            throw new IllegalStateException(e);
-        }
+        return callAndWrapException(this, IllegalStateException::new);
     }
 
     /**

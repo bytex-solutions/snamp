@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Exposes access to individual management attribute.
@@ -278,12 +279,10 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
         return value;
     }
 
-    public final Class<?> getRawType() throws ReflectionException{
-        try {
-            return Class.forName(getMetadata().getType());
-        } catch (ClassNotFoundException e) {
-            throw new ReflectionException(e);
-        }
+    public final Class<?> getRawType() throws ReflectionException {
+        final String type = getMetadata().getType();
+        final ClassLoader loader = getClass().getClassLoader();
+        return callAndWrapException(() -> Class.forName(type, true, loader), ReflectionException::new);
     }
 
     /**
