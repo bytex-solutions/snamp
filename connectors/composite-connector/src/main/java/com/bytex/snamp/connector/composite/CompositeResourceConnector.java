@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -41,9 +42,11 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     @Aggregation(cached = true)
     private final OperationComposition operations;
 
-    CompositeResourceConnector(final String resourceName, final ExecutorService threadPool) {
+    CompositeResourceConnector(final String resourceName,
+                               final ExecutorService threadPool,
+                               final Duration syncPeriod) {
         connectors = new Composition(resourceName);
-        attributes = new AttributeComposition(resourceName, connectors, threadPool, getLogger());
+        attributes = new AttributeComposition(resourceName, connectors, threadPool, syncPeriod, getLogger());
         notifications = new NotificationComposition(resourceName, connectors, threadPool, getLogger());
         notifications.addNotificationListener(attributes, null, null);
         operations = new OperationComposition(resourceName, connectors, getLogger());

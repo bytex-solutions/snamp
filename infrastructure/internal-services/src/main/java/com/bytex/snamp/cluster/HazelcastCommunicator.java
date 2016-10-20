@@ -13,6 +13,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  *
@@ -206,9 +207,8 @@ final class HazelcastCommunicator implements Communicator {
     @Override
     public <V> V receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
         try(final MessageReceiver<V> receiver = receiveMessage(filter, messageParser)) {
-            return timeout == null ? receiver.get() : receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
-        } catch (final ExecutionException e) {
-            throw new AssertionError("Unexpected exception", e);
+            final Callable<V> callable = timeout == null ? receiver::get : () -> receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+            return callUnchecked(callable);
         }
     }
 
@@ -237,9 +237,8 @@ final class HazelcastCommunicator implements Communicator {
         final long messageID = newMessageID();
         try (final MessageReceiver<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser)) {
             sendMessage(request, MessageType.REQUEST, messageID);
-            return timeout == null ? receiver.get() : receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
-        } catch (final ExecutionException e) {
-            throw new AssertionError("Unexpected exception", e);
+            final Callable<V> callable = timeout == null ? receiver::get : () -> receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+            return callUnchecked(callable);
         }
     }
 

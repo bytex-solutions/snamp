@@ -10,8 +10,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-import static com.bytex.snamp.internal.Utils.isInstanceOf;
+import static com.bytex.snamp.internal.Utils.*;
 
 /**
  * Represents an abstract for all SNAMP-specific bundle activators.
@@ -913,7 +912,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
             @Override
             public Object get(final Object key) {
-                return key instanceof String ? get((String)key) : null;
+                return convertTo(key, String.class, this::get);
             }
 
             @Override

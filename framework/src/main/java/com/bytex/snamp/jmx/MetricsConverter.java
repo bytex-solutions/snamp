@@ -5,8 +5,7 @@ import com.bytex.snamp.connector.metrics.*;
 import javax.management.openmbean.*;
 import java.util.HashMap;
 
-import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
-import static com.bytex.snamp.jmx.JMExceptionUtils.assertCall;
+import static com.bytex.snamp.internal.Utils.*;
 
 /**
  * Provides conversion between SNAMP metrics declared in {@link com.bytex.snamp.connector.metrics} package
@@ -327,7 +326,7 @@ public final class MetricsConverter {
         final CompositeDataFields fields = new CompositeDataFields(RATED_FLAG_TYPE);
         fillFlag(flag, fields);
         fillRate(flag, fields);
-        return assertCall(() -> new CompositeDataSupport(RATED_FLAG_TYPE, fields));
+        return callUnchecked(() -> new CompositeDataSupport(RATED_FLAG_TYPE, fields));
     }
 
     /**
@@ -339,7 +338,7 @@ public final class MetricsConverter {
         final CompositeDataFields fields = new CompositeDataFields(RATED_GAUGE_64_TYPE);
         fillRate(gauge, fields);
         fillGauge64(gauge, fields);
-        return assertCall(() -> new CompositeDataSupport(RATED_GAUGE_64_TYPE, fields));
+        return callUnchecked(() -> new CompositeDataSupport(RATED_GAUGE_64_TYPE, fields));
     }
 
     /**
@@ -351,7 +350,7 @@ public final class MetricsConverter {
         final CompositeDataFields fields = new CompositeDataFields(RATED_GAUGE_FP_TYPE);
         fillRate(gauge, fields);
         fillGaugeFP(gauge, fields);
-        return assertCall(() -> new CompositeDataSupport(RATED_GAUGE_FP_TYPE, fields));
+        return callUnchecked(() -> new CompositeDataSupport(RATED_GAUGE_FP_TYPE, fields));
     }
 
     private MetricsConverter(){
@@ -417,7 +416,7 @@ public final class MetricsConverter {
     public static CompositeData fromRate(final Rate rate) {
         final CompositeDataFields result = new CompositeDataFields(RATE_TYPE);
         fillRate(rate, result);
-        return assertCall(() -> new CompositeDataSupport(RATE_TYPE, result));
+        return callUnchecked(() -> new CompositeDataSupport(RATE_TYPE, result));
     }
 
     private static void fillGaugeFP(final GaugeFP gauge, final CompositeDataFields output) {
@@ -464,7 +463,7 @@ public final class MetricsConverter {
     public static CompositeData fromGaugeFP(final GaugeFP gauge) {
         final CompositeDataFields result = new CompositeDataFields(GAUGE_FP_TYPE);
         fillGaugeFP(gauge, result);
-        return assertCall(() -> new CompositeDataSupport(GAUGE_FP_TYPE, result));
+        return callUnchecked(() -> new CompositeDataSupport(GAUGE_FP_TYPE, result));
     }
 
     private static void fillGauge64(final Gauge64 gauge, final CompositeDataFields output) {
@@ -511,7 +510,7 @@ public final class MetricsConverter {
     public static CompositeData fromGauge64(final Gauge64 gauge){
         final CompositeDataFields result = new CompositeDataFields(GAUGE_64_TYPE);
         fillGauge64(gauge, result);
-        return assertCall(() -> new CompositeDataSupport(GAUGE_64_TYPE, result));
+        return callUnchecked(() -> new CompositeDataSupport(GAUGE_64_TYPE, result));
     }
 
     private static void fillFlag(final Flag flag, final CompositeDataFields fields){
@@ -553,6 +552,6 @@ public final class MetricsConverter {
     public static CompositeData fromFlag(final Flag flag){
         final CompositeDataFields fields = new CompositeDataFields(FLAG_TYPE);
         fillFlag(flag, fields);
-        return assertCall(() -> new CompositeDataSupport(FLAG_TYPE, fields));
+        return callUnchecked(() -> new CompositeDataSupport(FLAG_TYPE, fields));
     }
 }

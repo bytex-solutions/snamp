@@ -10,11 +10,13 @@ import com.bytex.snamp.connector.composite.functions.FunctionParser;
 import com.bytex.snamp.connector.composite.functions.FunctionParserException;
 
 import javax.management.Descriptor;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
 import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.MapUtils.getValueAsInt;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -29,6 +31,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     private static final String SOURCE_PARAM = "source";
     private static final String FORMULA_PARAM = "formula";
     private static final String RATE_FORMULA_PARAM = "rate()";
+    private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
 
     private static final LazyValue<CompositeResourceConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(CompositeResourceConfigurationDescriptor::new);
 
@@ -69,6 +72,11 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
 
     String parseSeparator(final Map<String, String> parameters){
         return getValue(parameters, SEPARATOR_PARAM, Function.identity(), () -> ";");
+    }
+
+    Duration parseSyncPeriod(final Map<String, String> parameters){
+        final long period = getValueAsInt(parameters, SYNC_PERIOD_PARAM, Integer::parseInt, () -> 5000);
+        return Duration.ofMillis(period);
     }
 
     static String parseSource(final Descriptor descriptor) throws AbsentCompositeConfigurationParameterException {

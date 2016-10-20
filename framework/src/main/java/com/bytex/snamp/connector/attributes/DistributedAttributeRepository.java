@@ -1,22 +1,19 @@
 package com.bytex.snamp.connector.attributes;
 
 import com.bytex.snamp.Box;
-import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.concurrent.Timeout;
 import org.osgi.framework.BundleContext;
 
 import javax.management.MBeanAttributeInfo;
 import java.io.Serializable;
 import java.time.Duration;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 
 import static com.bytex.snamp.core.DistributedServices.getDistributedStorage;
 import static com.bytex.snamp.core.DistributedServices.isActiveNode;
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import static com.bytex.snamp.internal.Utils.*;
 
 /**
  * Represents repository for attributes which state can be synchronized across cluster nodes.
@@ -144,7 +141,10 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
 
     @Override
     public void close() {
-        //syncThread.close();
         super.close();
+        callUnchecked(() -> {
+            syncThread.close();
+            return null;
+        });
     }
 }

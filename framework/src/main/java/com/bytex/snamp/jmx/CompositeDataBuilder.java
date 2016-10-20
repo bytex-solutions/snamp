@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.function.Supplier;
+import static com.bytex.snamp.internal.Utils.convertTo;
 
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeData} instance.
@@ -81,7 +82,7 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      */
     @Override
     public Object remove(final Object itemName) {
-        return itemName instanceof String ? remove((String)itemName) : null;
+        return convertTo(itemName, String.class, this::remove);
     }
 
     /**

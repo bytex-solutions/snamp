@@ -11,12 +11,17 @@ import com.bytex.snamp.jmx.WellKnownType;
 import javax.management.*;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.bytex.snamp.internal.Utils.*;
 
 /**
  * @author Roman Sakno
@@ -31,11 +36,22 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     AttributeComposition(final String resourceName,
                          final AttributeSupportProvider provider,
                          final ExecutorService threadPool,
+                         final Duration syncPeriod,
                          final Logger logger){
-        super(resourceName, AbstractCompositeAttribute.class, false);
+        super(resourceName, AbstractCompositeAttribute.class, false, syncPeriod);
         attributeSupportProvider = Objects.requireNonNull(provider);
         this.logger = Objects.requireNonNull(logger);
         this.threadPool = Objects.requireNonNull(threadPool);
+    }
+
+    /**
+     * Gets thread pool used to synchronize attribute states across cluster.
+     *
+     * @return Thread pool instance.
+     */
+    @Override
+    protected ExecutorService getThreadPool() {
+        return threadPool;
     }
 
     private Object resolveAs(final String operand, final WellKnownType expectedType) throws Exception{
@@ -45,23 +61,23 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
         final Object value = attribute.getValue(attributeSupportProvider);
         switch (expectedType){
             case INT:
-                return value instanceof Number ? ((Number)value).intValue() : Integer.parseInt(value.toString());
+                return convertToInt(value, Number.class, Number::intValue, v -> Integer.parseInt(v.toString()));
             case BYTE:
-                return value instanceof Number ? ((Number)value).byteValue() : Byte.parseByte(value.toString());
+                return convertTo(value, Number.class, Number::byteValue, v -> Byte.parseByte(v.toString()));
             case SHORT:
-                return value instanceof Number ? ((Number)value).shortValue() :Short.parseShort(value.toString());
+                return convertTo(value, Number.class, Number::shortValue, v -> Short.parseShort(v.toString()));
             case LONG:
-                return value instanceof Number ? ((Number)value).longValue() : Long.parseLong(value.toString());
+                return convertToLong(value, Number.class, Number::longValue, v -> Long.parseLong(v.toString()));
             case FLOAT:
-                return value instanceof Number ? ((Number)value).floatValue() : Float.parseFloat(value.toString());
+                return convertTo(value, Number.class, Number::floatValue, v -> Float.parseFloat(v.toString()));
             case DOUBLE:
-                return value instanceof Number ? ((Number)value).doubleValue() : Double.parseDouble(value.toString());
+                return convertToDouble(value, Number.class, Number::doubleValue, v -> Double.parseDouble(v.toString()));
             case BIG_INT:
                 return new BigInteger(value.toString());
             case BIG_DECIMAL:
                 return new BigDecimal(value.toString());
             case BOOL:
-                return value instanceof Boolean ? ((Boolean)value) : Boolean.parseBoolean(value.toString());
+                return convertTo(value, Boolean.class, Function.identity(), v -> Boolean.parseBoolean(v.toString()));
             case STRING:
                 return value.toString();
             case CHAR:
@@ -70,6 +86,28 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
             default:
                 throw new ClassCastException(String.format("Unable cast '%s' to '%s'", value, expectedType));
         }
+    }
+
+    /**
+     * Takes snapshot of the attribute to distribute it across cluster.
+     *
+     * @param attribute The attribute that should be synchronized across cluster.
+     * @return Serializable state of the attribute; or {@literal null}, if attribute doesn't support synchronization across cluster.
+     */
+    @Override
+    protected Serializable takeSnapshot(final AbstractCompositeAttribute attribute) {
+        return convertTo(attribute, DistributedAttribute.class, DistributedAttribute::takeSnapshot);
+    }
+
+    /**
+     * Initializes state of the attribute using its serializable snapshot.
+     *
+     * @param attribute The attribute to initialize.
+     * @param snapshot  Serializable snapshot used for initialization.
+     */
+    @Override
+    protected void loadFromSnapshot(final AbstractCompositeAttribute attribute, final Serializable snapshot) {
+
     }
 
     @Override
@@ -94,10 +132,9 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     protected AbstractCompositeAttribute connectAttribute(final String attributeName,
-                                                          final AttributeDescriptor descriptor,
-                                                          final StateStorageFactory stateStorage) throws ReflectionException, AttributeNotFoundException, MBeanException, AbsentCompositeConfigurationParameterException, FunctionParserException {
+                                                          final AttributeDescriptor descriptor) throws ReflectionException, AttributeNotFoundException, MBeanException, AbsentCompositeConfigurationParameterException, FunctionParserException {
         if (CompositeResourceConfigurationDescriptor.isRateFormula(descriptor)) //rate attribute
-            return new NotificationRateAttribute(attributeName, descriptor, stateStorage.ofType(NotificationRateAttribute.STATE_TYPE));
+            return new NotificationRateAttribute(attributeName, descriptor);
         //regular attribute
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(descriptor);
         final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType);
@@ -128,7 +165,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
         parallelForEach(attribute -> {
             if (attribute instanceof NotificationListener)
                 ((NotificationListener) attribute).handleNotification(notification, handback);
-        }, threadPool);
+        }, getThreadPool());
     }
 
     @Override

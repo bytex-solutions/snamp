@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
 import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
+import static com.bytex.snamp.internal.Utils.convertTo;
 
 /**
  * Represents {@link org.snmp4j.smi.OctetString} format type.
@@ -54,9 +55,7 @@ enum OctetStringConversionFormat implements SnmpObjectConverter<OctetString> {
     BYTE_ARRAY(SnmpConnectorHelpers.arrayType(SimpleType.BYTE, true)) {
         @Override
         public OctetString convert(final Object value) throws InvalidAttributeValueException {
-            return value instanceof byte[] ?
-                OctetString.fromByteArray((byte[])value):
-                new OctetString(Objects.toString(value, ""));
+            return convertTo(value, byte[].class, OctetString::fromByteArray, v -> new OctetString(Objects.toString(v, "")));
         }
 
         @Override

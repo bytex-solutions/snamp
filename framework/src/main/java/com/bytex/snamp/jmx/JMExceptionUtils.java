@@ -3,8 +3,6 @@ package com.bytex.snamp.jmx;
 import javax.management.AttributeNotFoundException;
 import javax.management.ListenerNotFoundException;
 import javax.management.NotificationListener;
-import java.util.concurrent.Callable;
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Provides various methods for working with JMX exceptions.
@@ -23,9 +21,5 @@ public final class JMExceptionUtils {
 
     public static ListenerNotFoundException listenerNotFound(final NotificationListener listener) {
         return new ListenerNotFoundException(String.format("Listener %s doesn't exist.", listener));
-    }
-
-    static <V> V assertCall(final Callable<V> task) {
-        return callAndWrapException(task, e -> new AssertionError("Unexpected exception", e));
     }
 }

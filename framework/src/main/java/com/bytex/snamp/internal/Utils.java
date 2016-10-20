@@ -14,9 +14,7 @@ import java.lang.reflect.Method;
 import java.util.Spliterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -31,6 +29,16 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
+    private static final MethodHandle CALL_SILENT_HANDLE = interfaceStaticInitialize(() -> {
+        final MethodHandles.Lookup lookup = MethodHandles.lookup();
+        final CallSite site = LambdaMetafactory.metafactory(lookup,
+                "get",
+                MethodType.methodType(Supplier.class, Callable.class),
+                MethodType.methodType(Object.class),
+                lookup.unreflect(Callable.class.getMethod("call")),
+                MethodType.methodType(Object.class));
+        return site.getTarget();
+    });
 
     private Utils(){
         throw new InstantiationError();
@@ -206,17 +214,6 @@ public final class Utils {
         parallelForEach(collection.spliterator(), action, threadPool);
     }
 
-    private static final MethodHandle CALL_SILENT_HANDLE = interfaceStaticInitialize(() -> {
-        final MethodHandles.Lookup lookup = MethodHandles.lookup();
-        final CallSite site = LambdaMetafactory.metafactory(lookup,
-                "get",
-                MethodType.methodType(Supplier.class, Callable.class),
-                MethodType.methodType(Object.class),
-                lookup.unreflect(Callable.class.getMethod("call")),
-                MethodType.methodType(Object.class));
-        return site.getTarget();
-    });
-
     @SuppressWarnings("unchecked")
     public static <V> Supplier<? extends V> suspendException(final Callable<? extends V> callable){
         final Supplier result;
@@ -228,7 +225,41 @@ public final class Utils {
         return result;
     }
 
-    public static <V> V callAsUnchecked(final Callable<V> callable){
+    public static <V> V callUnchecked(final Callable<V> callable){
         return suspendException(callable).get();
+    }
+
+    public static <C, I, O> O convertTo(final C input,
+                                        final Class<I> expectedType,
+                                        final Function<? super I, ? extends O> then,
+                                        final Function<? super C, ? extends O> fallback){
+        return expectedType.isInstance(input) ? then.apply(expectedType.cast(input)) : fallback.apply(input);
+    }
+
+    public static <C, I, O> O convertTo(final C input,
+                                        final Class<I> expectedType,
+                                        final Function<? super I, ? extends O> then){
+        return expectedType.isInstance(input) ? then.apply(expectedType.cast(input)) : null;
+    }
+
+    public static <C, I> int convertToInt(final C input,
+                                   final Class<I> expectedType,
+                                   final ToIntFunction<? super I> then,
+                                          final ToIntFunction<? super C> fallback){
+        return expectedType.isInstance(input) ? then.applyAsInt(expectedType.cast(input)) : fallback.applyAsInt(input);
+    }
+
+    public static <C, I> long convertToLong(final C input,
+                                            final Class<I> expectedType,
+                                            final ToLongFunction<? super I> then,
+                                            final ToLongFunction<? super C> fallback){
+        return expectedType.isInstance(input) ? then.applyAsLong(expectedType.cast(input)) : fallback.applyAsLong(input);
+    }
+
+    public static <C, I> double convertToDouble(final C input,
+                                              final Class<I> expectedType,
+                                              final ToDoubleFunction<? super I> then,
+                                                final ToDoubleFunction<? super C> fallback){
+        return expectedType.isInstance(input) ? then.applyAsDouble(expectedType.cast(input)) : fallback.applyAsDouble(input);
     }
 }

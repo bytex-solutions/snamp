@@ -17,9 +17,11 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import static com.bytex.snamp.ArrayUtils.emptyByteArray;
+import static com.bytex.snamp.internal.Utils.convertTo;
 
 /**
  * Represents parser for command-line output result.
@@ -173,8 +175,7 @@ public class XmlParserDefinition {
 
         @Override
         public BigInteger parseAsBigInteger(final String input) throws ParseException {
-            final Number n = parse(input);
-            return n instanceof BigInteger ? (BigInteger)n : BigInteger.valueOf(n.longValue());
+            return convertTo(parse(input), BigInteger.class, Function.identity(), v -> BigInteger.valueOf(v.longValue()));
         }
 
         @Override
