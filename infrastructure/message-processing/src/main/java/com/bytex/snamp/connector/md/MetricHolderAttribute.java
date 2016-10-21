@@ -1,17 +1,15 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.concurrent.Timeout;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.metrics.Metric;
-import org.osgi.framework.BundleContext;
+import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
-import java.time.Duration;
-import java.util.concurrent.ConcurrentMap;
-import static com.bytex.snamp.core.DistributedServices.isActiveNode;
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import java.io.Serializable;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Represents a holder for metric.
@@ -19,37 +17,45 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 2.0
  * @since 2.0
  */
-abstract class MetricHolderAttribute<M extends Metric> extends MessageDrivenAttribute {
+abstract class MetricHolderAttribute<M extends Metric & Serializable> extends MessageDrivenAttribute<CompositeData> {
     private static final long serialVersionUID = 2645456225474793148L;
-    private final Timeout timeout;
+    private volatile M metric;
+    private final Predicate<Object> isInstance;
 
     MetricHolderAttribute(final String name,
                           final CompositeType type,
                           final String description,
-                          final Duration synchronizationPeriod,
-                          final AttributeDescriptor descriptor) {
+                          final AttributeDescriptor descriptor,
+                          final Function<? super String, ? extends M> metricFactory) {
         super(name, type, description, AttributeSpecifier.READ_ONLY, descriptor);
-        timeout = new Timeout(synchronizationPeriod);
+        metric = metricFactory.apply(name);
+        assert metric != null;
+        isInstance = metric.getClass()::isInstance;
     }
 
-    private BundleContext getBundleContext(){
-        return getBundleContextOfObject(this);
-    }
+    abstract CompositeData getValue(final M metric);
 
-    private void updateMetric(final ConcurrentMap<String, Object> storage){
-        if(isActiveNode(getBundleContext())){
-            //overwrite internal state in the map
-
-        }
+    @Override
+    final CompositeData getValue() {
+        return getValue(metric);
     }
 
     @Override
-    CompositeData getValue(final ConcurrentMap<String, Object> storage) throws Exception {
-        timeout.acceptIfExpired(this, storage, MetricHolderAttribute::updateMetric);
-        return null;
+    final M takeSnapshot() {
+        return metric;
     }
 
-    abstract M getMetric();
+    @SuppressWarnings("unchecked")
+    @Override
+    final void loadFromSnapshot(final Serializable snapshot) {
+        if(isInstance.test(snapshot))
+            metric = (M) snapshot;
+    }
 
-    abstract boolean setMetric(final Metric value);
+    abstract boolean updateMetric(final M metric, final MeasurementNotification notification);
+
+    @Override
+    final boolean accept(final MeasurementNotification notification) {
+        return updateMetric(metric, notification);
+    }
 }

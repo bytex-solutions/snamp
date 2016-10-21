@@ -3,13 +3,11 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
-import com.bytex.snamp.core.DistributedServices;
 
-import java.util.Optional;
-import java.util.concurrent.ConcurrentMap;
+import java.io.Serializable;
+import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * @author Roman Sakno
@@ -17,13 +15,13 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 1.0
  */
 final class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> {
-
-    private final ConcurrentMap<String, Object> storage;
+    private final ExecutorService threadPool;
 
     MessageDrivenAttributeRepository(final String resourceName,
-                                     final ExecutorService threadPool) {
-        super(resourceName, MessageDrivenAttribute.class, false, threadPool);
-        this.storage = DistributedServices.getDistributedStorage(getBundleContextOfObject(this), resourceName.concat("-attributes"));
+                                     final ExecutorService threadPool,
+                                     final Duration syncPeriod) {
+        super(resourceName, MessageDrivenAttribute.class, false, syncPeriod);
+        this.threadPool = Objects.requireNonNull(threadPool);
     }
 
     @Override
@@ -37,6 +35,38 @@ final class MessageDrivenAttributeRepository extends DistributedAttributeReposit
     }
 
     /**
+     * Gets thread pool used to synchronize attribute states across cluster.
+     *
+     * @return Thread pool instance.
+     */
+    @Override
+    protected ExecutorService getThreadPool() {
+        return threadPool;
+    }
+
+    /**
+     * Takes snapshot of the attribute to distribute it across cluster.
+     *
+     * @param attribute The attribute that should be synchronized across cluster.
+     * @return Serializable state of the attribute; or {@literal null}, if attribute doesn't support synchronization across cluster.
+     */
+    @Override
+    protected Serializable takeSnapshot(final MessageDrivenAttribute attribute) {
+        return attribute.takeSnapshot();
+    }
+
+    /**
+     * Initializes state of the attribute using its serializable snapshot.
+     *
+     * @param attribute The attribute to initialize.
+     * @param snapshot  Serializable snapshot used for initialization.
+     */
+    @Override
+    protected void loadFromSnapshot(final MessageDrivenAttribute attribute, final Serializable snapshot) {
+        attribute.loadFromSnapshot(snapshot);
+    }
+
+    /**
      * Obtains the value of a specific attribute of the managed resource.
      *
      * @param metadata The metadata of the attribute.
@@ -45,7 +75,7 @@ final class MessageDrivenAttributeRepository extends DistributedAttributeReposit
      */
     @Override
     protected Object getAttribute(final MessageDrivenAttribute metadata) throws Exception {
-        return metadata.getValue(storage);
+        return metadata.getValue();
     }
 
     @Override
