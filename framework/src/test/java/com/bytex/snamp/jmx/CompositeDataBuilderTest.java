@@ -21,7 +21,7 @@ public final class CompositeDataBuilderTest extends Assert {
             .put("boolItem", "description", true)
             .put("stringItem", "description", "Hello, world!")
             .put("intItem", "description", 42)
-            .call();
+            .build();
         assertTrue(getBoolean(dict, "boolItem", false));
         assertEquals("Hello, world!", getString(dict, "stringItem", ""));
         assertEquals(42, getInteger(dict, "intItem", 0));

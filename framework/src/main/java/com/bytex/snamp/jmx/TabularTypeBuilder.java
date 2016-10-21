@@ -1,6 +1,7 @@
 package com.bytex.snamp.jmx;
 
 import javax.management.openmbean.*;
+import java.io.Serializable;
 import java.util.*;
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
@@ -12,7 +13,8 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @since 1.0
  * @see javax.management.openmbean.TabularType
  */
-public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, Iterable<String> {
+public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, Iterable<String>, Serializable {
+    private static final long serialVersionUID = -3909990870658711437L;
     private String typeName;
     private String typeDescription;
     private final CompositeTypeBuilder rowBuilder;
@@ -129,8 +131,8 @@ public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, I
         return this;
     }
 
-    CompositeType buildRowType() throws OpenDataException {
-        return rowBuilder.call();
+    private CompositeType buildRowType() throws OpenDataException {
+        return rowBuilder.build();
     }
 
     int size(){
@@ -152,21 +154,11 @@ public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, I
      * @return A new instance of {@link javax.management.openmbean.TabularType}.
      * @throws OpenDataException Unable to construct type.
      */
-    public TabularType call() throws OpenDataException{
+    public TabularType build() throws OpenDataException{
         return new TabularType(typeName,
                 typeDescription,
                 buildRowType(),
                 indexes.stream().toArray(String[]::new));
-    }
-
-    /**
-     * Constructs a new instance of {@link javax.management.openmbean.TabularType}.
-     * @return A new instance of {@link javax.management.openmbean.TabularType}.
-     * @throws java.lang.IllegalStateException Unable to construct type.
-     */
-    @Override
-    public TabularType get() throws IllegalStateException{
-        return callAndWrapException(this, IllegalStateException::new);
     }
 
     /**

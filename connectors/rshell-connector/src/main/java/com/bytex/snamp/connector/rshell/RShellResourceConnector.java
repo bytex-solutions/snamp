@@ -123,7 +123,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
             });
             builder.setTypeName(String.format("%sTabularType", descriptor.getName(attributeName)), true);
             builder.setDescription(RShellAttributeInfo.getDescription(descriptor), true);
-            return builder.call();
+            return builder.build();
         }
 
         private TabularData convert(final List<? extends Map<String, ?>> rows) throws OpenDataException{
@@ -173,7 +173,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
             });
             builder.setTypeName(String.format("%sCompositeType", descriptor.getName(attributeName)));
             builder.setDescription(RShellAttributeInfo.getDescription(descriptor));
-            return builder.call();
+            return builder.build();
         }
 
         private CompositeData convert(final Map<String, ?> value) throws OpenDataException{

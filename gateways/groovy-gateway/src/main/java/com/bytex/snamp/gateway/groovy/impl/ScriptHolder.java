@@ -3,7 +3,8 @@ package com.bytex.snamp.gateway.groovy.impl;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.groovy.GatewayScript;
-import com.bytex.snamp.VolatileBox;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Represents simple container for {@link GatewayScript} object.
@@ -12,7 +13,7 @@ import com.bytex.snamp.VolatileBox;
  * @version 2.0
  * @since 1.0
  */
-final class ScriptHolder extends VolatileBox<GatewayScript> implements AutoCloseable, NotificationListener {
+final class ScriptHolder extends AtomicReference<GatewayScript> implements AutoCloseable, NotificationListener {
     private static final long serialVersionUID = 1639929721374659443L;
 
     @Override

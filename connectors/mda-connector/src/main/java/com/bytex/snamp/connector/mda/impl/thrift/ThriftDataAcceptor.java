@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.mda.impl.thrift;
 
-import com.bytex.snamp.SimpleBox;
+import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.connector.mda.DataAcceptor;
 import com.bytex.snamp.internal.Utils;
 import org.apache.thrift.TException;
@@ -75,7 +76,7 @@ final class ThriftDataAcceptor extends DataAcceptor implements TProcessor {
 
     @Override
     public boolean process(final TProtocol in, final TProtocol out) throws TException {
-        final SimpleBox<String> entityName = new SimpleBox<>();
+        final Box<String> entityName = BoxFactory.create(null);
         final TMessage message = in.readMessageBegin();
         final MessageType messageType = MessageType.get(message, entityName);
         if (messageType != null) {

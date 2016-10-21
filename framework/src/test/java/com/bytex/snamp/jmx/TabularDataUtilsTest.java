@@ -19,7 +19,7 @@ public final class TabularDataUtilsTest extends Assert {
         final TabularType type = new KeyValueTypeBuilder<String, Integer>()
                 .setKeyColumn("key", "descr", SimpleType.STRING)
                 .setValueColumn("value", "descr", SimpleType.INTEGER)
-                .call();
+                .build();
         assertNotNull(type);
         assertEquals(1, type.getIndexNames().size());
         assertTrue(type.getIndexNames().contains("key"));

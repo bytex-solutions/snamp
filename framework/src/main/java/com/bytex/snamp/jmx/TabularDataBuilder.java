@@ -16,7 +16,7 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @version 2.0
  * @since 1.0
  */
-public class TabularDataBuilder extends LinkedList<CompositeData> implements Supplier<TabularData>, Callable<TabularData> {
+public class TabularDataBuilder extends LinkedList<CompositeData> {
     private static final long serialVersionUID = 6161683440252406652L;
     private final TabularTypeBuilder columns = new TabularTypeBuilder();
 
@@ -93,20 +93,9 @@ public class TabularDataBuilder extends LinkedList<CompositeData> implements Sup
      * @return A new {@link javax.management.openmbean.TabularData} instance.
      * @throws javax.management.openmbean.OpenDataException Unable to construct table.
      */
-    @Override
-    public final TabularData call() throws OpenDataException{
-        final TabularDataSupport result = new TabularDataSupport(this.columns.call());
+    public final TabularData build() throws OpenDataException{
+        final TabularDataSupport result = new TabularDataSupport(this.columns.build());
         forEach(result::put);
         return result;
-    }
-
-    /**
-     * Constructs a new {@link javax.management.openmbean.TabularData} instance.
-     * @return A new {@link javax.management.openmbean.TabularData} instance.
-     * @throws IllegalStateException Unable to construct table.
-     */
-    @Override
-    public final TabularData get() throws IllegalStateException{
-        return callAndWrapException(this, IllegalStateException::new);
     }
 }

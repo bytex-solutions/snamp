@@ -174,7 +174,7 @@ public final class HttpToJmxGateway extends AbstractJmxConnectorTest<TestOpenMBe
                     .addColumn("col2", "desc", SimpleType.INTEGER, false)
                     .addColumn("col3", "desc", SimpleType.STRING, true))
                 .add(false, 2, "pp")
-                .call();
+                .build();
         final Gson formatter = JsonUtils.registerOpenTypeAdapters(new GsonBuilder()).create();
         testAttribute("7.1", formatter.toJsonTree(data));
     }
@@ -186,7 +186,7 @@ public final class HttpToJmxGateway extends AbstractJmxConnectorTest<TestOpenMBe
             .put("col1", "desc", false)
             .put("col2", "desc", 42)
             .put("col3", "desc", "Hello, world!")
-            .call();
+            .build();
         final Gson formatter = JsonUtils.registerOpenTypeAdapters(new GsonBuilder()).create();
         testAttribute("6.1", formatter.toJsonTree(data));
 

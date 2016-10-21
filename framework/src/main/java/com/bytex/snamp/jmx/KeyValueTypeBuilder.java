@@ -105,26 +105,12 @@ public final class KeyValueTypeBuilder<K, V> implements OpenTypeBuilder<TabularT
      * @throws OpenDataException Unable to construct type.
      */
     @Override
-    public TabularType call() throws OpenDataException {
+    public TabularType build() throws OpenDataException {
         return new TabularTypeBuilder()
                 .setTypeName(typeName, true)
                 .setDescription(typeDescription, true)
                 .addColumn(keyColumn, keyColumnDescr, keyColumnType, true)
                 .addColumn(valueColumn, valueColumnDescr, valueColumnType, false)
-                .call();
-    }
-
-    /**
-     * Constructs a new type that holds key/value pairs.
-     * @return A new tabular type.
-     * @throws IllegalStateException Unable to construct type.
-     */
-    @Override
-    public TabularType get() throws IllegalStateException {
-        try {
-            return call();
-        } catch (final OpenDataException e) {
-            throw new IllegalStateException(e);
-        }
+                .build();
     }
 }

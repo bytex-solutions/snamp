@@ -110,7 +110,7 @@ public abstract class ManagedResourceAttributeScript extends ManagedResourceFeat
                 final OpenType<?> itemType = getType((Map) item.getValue());
                 builder.addItem(itemName, itemDescription, itemType);
             }
-        return builder.call();
+        return builder.build();
     }
 
     private static CompositeData asDictionary(final CompositeType type,
@@ -182,7 +182,7 @@ public abstract class ManagedResourceAttributeScript extends ManagedResourceFeat
                 final boolean indexed = isIndexed((Map) column.getValue());
                 builder.addColumn(columnName, columnDescr, columnType, indexed);
             }
-        return builder.call();
+        return builder.build();
     }
 
     /**

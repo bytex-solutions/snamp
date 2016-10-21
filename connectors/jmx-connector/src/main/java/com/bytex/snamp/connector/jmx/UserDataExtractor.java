@@ -36,7 +36,7 @@ final class UserDataExtractor {
             result = result.put("oldValue", "The old value of the attribute which has changed", (OpenType)oldValueType.getOpenType(), n.getOldValue());
         if(newValueType != null && newValueType.isOpenType())
             result = result.put("newValue", "The new value of the attribute which has changed", (OpenType)newValueType.getOpenType(), n.getNewValue());
-        return result.call();
+        return result.build();
     }
 
     private static CompositeData getUserData(final MonitorNotification n) throws OpenDataException{
@@ -45,7 +45,7 @@ final class UserDataExtractor {
         return new CompositeDataBuilder(TYPE_NAME, DESCRIPTION)
                 .put("observedAttribute", "The observed attribute of this monitor notification.", n.getObservedAttribute())
                 .put("observedObject", "The observed object of this monitor notification.", n.getObservedObject())
-                .call();
+                .build();
     }
 
     private static Integer getUserData(final TimerNotification n) throws OpenDataException{
@@ -60,7 +60,7 @@ final class UserDataExtractor {
                 .put("relationType", "The relation type name of created/removed/updated relation.", n.getRelationTypeName())
                 .put("relationID", "The relation identifier of created/removed/updated relation.", n.getRelationId())
                 .put("objectName", "The ObjectName of the created/removed/updated relation", n.getObjectName())
-                .call();
+                .build();
     }
 
     static Object getUserData(final Notification n) throws OpenDataException {

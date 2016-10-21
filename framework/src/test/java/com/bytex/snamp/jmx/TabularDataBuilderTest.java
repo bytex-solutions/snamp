@@ -29,7 +29,7 @@ public final class TabularDataBuilderTest extends Assert {
                 .add(1, "First")
                 .add(2, "Second")
                 .add(3, "Third")
-                .call();
+                .build();
         assertEquals(3, table.size());
         for(final Object row: table.values()){
             assertTrue(row instanceof CompositeData);

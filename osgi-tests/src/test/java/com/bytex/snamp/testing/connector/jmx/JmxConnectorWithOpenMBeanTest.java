@@ -192,7 +192,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
                         .addColumn("col3", "dummy column", SimpleType.STRING, true))
                 .add(true, 42, "Frank Underwood")
                 .add(true, 43, "Peter Russo")
-                .call();
+                .build();
         testAttribute("7.1", TypeToken.of(TabularData.class), table, (o1, o2) -> o1.size() == o2.size() && o1.values().containsAll(o2.values()));
     }
 
@@ -204,7 +204,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
                 .put("col1", "descr", true)
                 .put("col2", "descr", 42)
                 .put("col3", "descr", "Frank Underwood")
-                .call();
+                .build();
         testAttribute("6.1", TypeToken.of(CompositeData.class), dict, Objects::equals);
     }
 

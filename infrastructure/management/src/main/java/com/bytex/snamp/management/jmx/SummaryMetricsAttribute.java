@@ -27,7 +27,7 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
             .addItem(ATTRIBUTES_WRITES_FIELD, "Rate of attribute writes", RATE_TYPE)
             .addItem(NOTIFICATIONS_FIELD, "Rate of received notifications", RATE_TYPE)
             .addItem(INVOCATIONS_FIELD, "Rate of invoked operations", RATE_TYPE)
-            .call());
+            .build());
 
     private static void collectMetrics(final AttributeMetric metrics, final Map<String, CompositeData> output) {
         final Rate attributeReads;

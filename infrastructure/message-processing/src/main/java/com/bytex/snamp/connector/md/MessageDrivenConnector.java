@@ -33,7 +33,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         final String componentName = descriptor.parseComponentName(parameters);
         source = new MeasurementSource(componentName, componentInstance);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
-        attributes = new MessageDrivenAttributeRepository(resourceName, threadPool);
+        attributes = new MessageDrivenAttributeRepository(resourceName, threadPool, null);
         parser = descriptor.createNotificationParser(parameters);
     }
 

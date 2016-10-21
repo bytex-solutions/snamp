@@ -1,11 +1,11 @@
 package com.bytex.snamp.jmx;
 
 import javax.management.openmbean.*;
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeType} instances.
@@ -14,8 +14,9 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @since 1.0
  * @see javax.management.openmbean.CompositeType
  */
-public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType>, Iterable<String> {
+public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType>, Iterable<String>, Serializable {
     final static int DEFAULT_CAPACITY = 10;
+    private static final long serialVersionUID = 392284311930753280L;
 
     private String typeName;
     private String typeDescription;
@@ -109,7 +110,7 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
      * @throws javax.management.openmbean.OpenDataException Invalid composite type.
      */
     @Override
-    public CompositeType call() throws OpenDataException {
+    public CompositeType build() throws OpenDataException {
         return build(typeName,
                 typeDescription,
                 items);
@@ -136,21 +137,11 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
      * @throws OpenDataException Invalid items.
      */
     public CompositeData build(final Map<String, ?> items) throws OpenDataException {
-        return new CompositeDataSupport(call(), items);
+        return new CompositeDataSupport(build(), items);
     }
 
     int size(){
         return items.size();
-    }
-
-    /**
-     * Constructs a new instance of the {@link javax.management.openmbean.CompositeType} instance.
-     * @return A new instance of the {@link javax.management.openmbean.CompositeType} instance.
-     * @throws java.lang.IllegalStateException Invalid composite type.
-     */
-    @Override
-    public CompositeType get() throws IllegalStateException{
-        return callAndWrapException(this, IllegalStateException::new);
     }
 
     /**

@@ -35,7 +35,7 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
             .addItem(IS_MANAGEABLE_COLUMN, "SNAMP component supports command-line interaction", SimpleType.BOOLEAN)
             .addItem(IS_CONFIG_DESCR_AVAIL_COLUMN, "SNAMP component provides description of its configuration schema", SimpleType.BOOLEAN);
 
-    private static final CompositeType INSTALLED_COMPONENT = interfaceStaticInitialize(INSTALLED_COMPONENT_BUILDER);
+    private static final CompositeType INSTALLED_COMPONENT = interfaceStaticInitialize(INSTALLED_COMPONENT_BUILDER::build);
     private static final TabularType INSTALLED_COMPONENTS_MAP = interfaceStaticInitialize(() -> new TabularType("com.bytex.snamp.management.SnampComponents",
             "A set of SNAMP components", INSTALLED_COMPONENT, new String[]{NAME_COLUMN}));
 
