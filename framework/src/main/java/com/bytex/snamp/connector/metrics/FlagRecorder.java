@@ -57,7 +57,7 @@ public class FlagRecorder extends AbstractMetric implements Flag {
         writeValue(next);
     }
 
-    public final void accept(final boolean value, final BooleanBinaryOperator operator){
+    public final void updateValue(final boolean value, final BooleanBinaryOperator operator){
         boolean next, prev;
         do {
             next = operator.applyAsBoolean(prev = this.value.get(), value);
@@ -73,15 +73,15 @@ public class FlagRecorder extends AbstractMetric implements Flag {
     }
 
     public final void or(final boolean value){
-        accept(value, (current, provided) -> current | provided);
+        updateValue(value, (current, provided) -> current | provided);
     }
 
     public final void and(final boolean value){
-        accept(value, (current, provided) -> current & provided);
+        updateValue(value, (current, provided) -> current & provided);
     }
 
     public final void xor(final boolean value){
-        accept(value, (current, provided) -> current ^ provided);
+        updateValue(value, (current, provided) -> current ^ provided);
     }
 
     /**

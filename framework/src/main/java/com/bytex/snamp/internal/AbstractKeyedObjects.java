@@ -25,11 +25,6 @@ public abstract class AbstractKeyedObjects<K, V> extends HashMap<K, V> implement
     private AbstractKeyedObjects(){
     }
 
-    @Override
-    public final boolean putIfAbsent(final V item) {
-        return putIfAbsent(getKey(item), item) == null;
-    }
-
     /**
      * Puts an item into this map.
      *

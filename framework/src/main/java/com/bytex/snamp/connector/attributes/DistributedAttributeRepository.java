@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.attributes;
 
-import com.bytex.snamp.Box;
 import com.bytex.snamp.concurrent.Repeater;
 import org.osgi.framework.BundleContext;
 
@@ -13,7 +12,8 @@ import java.util.concurrent.ExecutorService;
 
 import static com.bytex.snamp.core.DistributedServices.getDistributedStorage;
 import static com.bytex.snamp.core.DistributedServices.isActiveNode;
-import static com.bytex.snamp.internal.Utils.*;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents repository for attributes which state can be synchronized across cluster nodes.
@@ -25,23 +25,6 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
     private static final String STORAGE_NAME_POSTFIX = "-attributes";
     private static final double ACTIVE_SYNC_TIME_FACTOR = Math.sqrt(2);
     private static final int SYNC_THREAD_PRIORITY = Thread.MIN_PRIORITY;
-
-    /**
-     * Factory used to instantiate internal state storage of the specified type.
-     */
-    protected static final class StateStorageFactory{
-        private final String storageKey;
-        private final ConcurrentMap<String, Object> storage;
-
-        private StateStorageFactory(final ConcurrentMap<String, Object> storage, final String storageKey){
-            this.storageKey = storageKey;
-            this.storage = storage;
-        }
-
-        public <T extends Serializable> Box<T> ofType(final Class<T> storageType){
-            return new AttributeStateStorage<>(storage, storageKey, storageType);
-        }
-    }
 
     private final class SynchronizationJob extends Repeater{
         private final ConcurrentMap<String, Object> storage;

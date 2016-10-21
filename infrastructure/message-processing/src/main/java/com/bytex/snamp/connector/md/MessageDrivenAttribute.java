@@ -15,10 +15,10 @@ import java.io.Serializable;
  * @version 2.0
  * @since 2.0
  */
-abstract class MessageDrivenAttribute<T> extends OpenMBeanAttributeInfoImpl {
+public abstract class MessageDrivenAttribute<T> extends OpenMBeanAttributeInfoImpl {
     private static final long serialVersionUID = -2361230399455752656L;
 
-    MessageDrivenAttribute(final String name,
+    protected MessageDrivenAttribute(final String name,
                            final OpenType<T> type,
                            final String description,
                            final AttributeSpecifier specifier,
@@ -26,13 +26,11 @@ abstract class MessageDrivenAttribute<T> extends OpenMBeanAttributeInfoImpl {
         super(name, type, description, specifier, descriptor);
     }
 
-    abstract T getValue();
+    protected abstract T getValue();
 
-    abstract Serializable takeSnapshot();
+    protected abstract Serializable takeSnapshot();
 
-    abstract void loadFromSnapshot(final Serializable snapshot);
+    protected abstract void loadFromSnapshot(final Serializable snapshot);
 
-    abstract boolean accept(final MeasurementNotification notification);
-
-
+    protected abstract boolean accept(final MeasurementNotification notification);
 }

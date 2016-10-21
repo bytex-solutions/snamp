@@ -36,18 +36,18 @@ abstract class MetricHolderAttribute<M extends Metric & Serializable> extends Me
     abstract CompositeData getValue(final M metric);
 
     @Override
-    final CompositeData getValue() {
+    protected final CompositeData getValue() {
         return getValue(metric);
     }
 
     @Override
-    final M takeSnapshot() {
+    protected final M takeSnapshot() {
         return metric;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    final void loadFromSnapshot(final Serializable snapshot) {
+    protected final void loadFromSnapshot(final Serializable snapshot) {
         if(isInstance.test(snapshot))
             metric = (M) snapshot;
     }
@@ -55,7 +55,7 @@ abstract class MetricHolderAttribute<M extends Metric & Serializable> extends Me
     abstract boolean updateMetric(final M metric, final MeasurementNotification notification);
 
     @Override
-    final boolean accept(final MeasurementNotification notification) {
+    protected final boolean accept(final MeasurementNotification notification) {
         return updateMetric(metric, notification);
     }
 }

@@ -13,7 +13,7 @@ import java.util.function.ObjDoubleConsumer;
  * @since 2.0
  * @version 2.0
  */
-public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, DoubleConsumer, ObjDoubleConsumer<DoubleBinaryOperator> {
+public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, DoubleConsumer {
     private static final long serialVersionUID = 8109332123969613035L;
     private final AtomicDouble maxValue;
     private final AtomicDouble minValue;
@@ -50,8 +50,7 @@ public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, Do
         writeValue(next);
     }
 
-    @Override
-    public final void accept(final DoubleBinaryOperator operator, final double value) {
+    public final void updateValue(final DoubleBinaryOperator operator, final double value) {
         double current, next;
         do{
             next = operator.applyAsDouble(current = lastValue.get(), value);

@@ -10,11 +10,12 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 /**
+ * Represents repository with message-driven attributes.
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
-final class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> {
+public class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> {
     private final ExecutorService threadPool;
 
     MessageDrivenAttributeRepository(final String resourceName,

@@ -22,20 +22,20 @@ import java.util.logging.Level;
  */
 public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector implements NotificationListener {
     private final MeasurementSource source;
-    private final MessageDrivenAttributeRepository attributes;
     private NotificationParser parser;
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
                                      final MessageDrivenConnectorConfigurationDescriptor descriptor) {
-
         final String componentInstance = descriptor.parseComponentInstance(parameters, resourceName);
         final String componentName = descriptor.parseComponentName(parameters);
         source = new MeasurementSource(componentName, componentInstance);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
-        attributes = new MessageDrivenAttributeRepository(resourceName, threadPool, null);
         parser = descriptor.createNotificationParser(parameters);
     }
+
+    @Aggregation
+    protected abstract MessageDrivenAttributeRepository getAttributes();
 
     protected Notification parseNotification(final Map<String, ?> headers,
                                              final Object body) throws Exception{
@@ -45,7 +45,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
         if (notification instanceof MeasurementNotification)
-            attributes.post((MeasurementNotification) notification);
+            getAttributes().post((MeasurementNotification) notification);
     }
 
     public final void postMessage(final Map<String, ?> headers,
@@ -64,17 +64,17 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     @Override
     public final void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes);
+        addResourceEventListener(listener, getAttributes());
     }
 
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes);
+        removeResourceEventListener(listener, getAttributes());
     }
 
     @Override
     public void close() throws Exception {
-        attributes.close();
+        getAttributes().close();
         super.close();
     }
 }

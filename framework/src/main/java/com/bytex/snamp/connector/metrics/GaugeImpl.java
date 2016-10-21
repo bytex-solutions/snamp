@@ -19,7 +19,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  * @since 2.0
  */
-class GaugeImpl<V extends Comparable<V> & Serializable> extends AbstractMetric implements Gauge<V>, Consumer<V>, BiConsumer<BinaryOperator<V>, V> {
+class GaugeImpl<V extends Comparable<V> & Serializable> extends AbstractMetric implements Gauge<V>, Consumer<V>{
     private static final long serialVersionUID = 7899285535676342920L;
     private final AtomicReference<V> maxValue;
     private final AtomicReference<V> minValue;
@@ -90,8 +90,7 @@ class GaugeImpl<V extends Comparable<V> & Serializable> extends AbstractMetric i
         writeValue(next);
     }
 
-    @Override
-    public final void accept(final BinaryOperator<V> operator, final V value) {
+    public final void updateValue(final BinaryOperator<V> operator, final V value) {
         writeValue(lastValue.accumulateAndGet(value, operator));
     }
 

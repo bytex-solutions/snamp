@@ -9,7 +9,7 @@ import java.util.function.*;
  * @version 2.0
  * @since 2.0
  */
-public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, LongConsumer, ObjLongConsumer<LongBinaryOperator> {
+public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, LongConsumer {
     private static final long serialVersionUID = 7528670309055651559L;
     private final AtomicLong maxValue;
     private final AtomicLong minValue;
@@ -40,8 +40,7 @@ public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, Lo
         writeValue(next);
     }
 
-    @Override
-    public final void accept(final LongBinaryOperator operator, final long value) {
+    public final void updateValue(final LongBinaryOperator operator, final long value) {
         writeValue(lastValue.accumulateAndGet(value, operator));
     }
 
