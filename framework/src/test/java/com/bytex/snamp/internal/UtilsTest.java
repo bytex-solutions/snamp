@@ -58,4 +58,10 @@ public final class UtilsTest extends Assert {
         });
         sup.get();
     }
+
+    @Test
+    public void callUncheckedTest(){
+        final String s = Utils.callUnchecked(() -> new StringBuilder().append("Hello").append(", ").append("world").toString());
+        assertEquals("Hello, world", s);
+    }
 }

@@ -122,12 +122,14 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
         return Optional.of(AttributeDescriptor.getName(attribute));
     }
 
+    private Void stopSyncThread() throws InterruptedException {
+        syncThread.close();
+        return null;
+    }
+
     @Override
     public void close() {
         super.close();
-        callUnchecked(() -> {
-            syncThread.close();
-            return null;
-        });
+        callUnchecked(this::stopSyncThread);
     }
 }

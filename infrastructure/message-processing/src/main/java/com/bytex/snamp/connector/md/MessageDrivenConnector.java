@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.notifications.measurement.MeasurementSource;
 
 import javax.management.Notification;
 import javax.management.NotificationListener;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -23,6 +24,8 @@ import java.util.logging.Level;
 public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector implements NotificationListener {
     private final MeasurementSource source;
     private NotificationParser parser;
+    @Aggregation
+    protected final MessageDrivenAttributeRepository attributes;
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
@@ -32,10 +35,20 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         source = new MeasurementSource(componentName, componentInstance);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
         parser = descriptor.createNotificationParser(parameters);
+        attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
+        assert attributes != null;
+        attributes.init(threadPool, getLogger());
     }
 
-    @Aggregation
-    protected abstract MessageDrivenAttributeRepository getAttributes();
+    /**
+     * Creates a new instance of repository for attributes.
+     * @param resourceName Resource name.
+     * @param syncPeriod Cluster-wide synchronization period. Cannot be {@literal null}.
+     * @return A new instance of repository.
+     */
+    protected MessageDrivenAttributeRepository createAttributeRepository(final String resourceName, final Duration syncPeriod){
+        return new MessageDrivenAttributeRepository(resourceName, syncPeriod);
+    }
 
     protected Notification parseNotification(final Map<String, ?> headers,
                                              final Object body) throws Exception{
@@ -45,7 +58,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
         if (notification instanceof MeasurementNotification)
-            getAttributes().post((MeasurementNotification) notification);
+            attributes.post((MeasurementNotification) notification);
     }
 
     public final void postMessage(final Map<String, ?> headers,
@@ -64,17 +77,17 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     @Override
     public final void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, getAttributes());
+        addResourceEventListener(listener, attributes);
     }
 
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, getAttributes());
+        removeResourceEventListener(listener, attributes);
     }
 
     @Override
     public void close() throws Exception {
-        getAttributes().close();
+        attributes.close();
         super.close();
     }
 }

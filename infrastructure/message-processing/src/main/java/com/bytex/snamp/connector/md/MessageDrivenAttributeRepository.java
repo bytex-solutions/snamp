@@ -1,13 +1,16 @@
 package com.bytex.snamp.connector.md;
 
+import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
 import java.io.Serializable;
 import java.time.Duration;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents repository with message-driven attributes.
@@ -16,23 +19,36 @@ import java.util.concurrent.ExecutorService;
  * @since 2.0
  */
 public class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> {
-    private final ExecutorService threadPool;
+    private final WriteOnceRef<ExecutorService> threadPool;
+    private final WriteOnceRef<Logger> logger;
 
-    MessageDrivenAttributeRepository(final String resourceName,
-                                     final ExecutorService threadPool,
+    protected MessageDrivenAttributeRepository(final String resourceName,
                                      final Duration syncPeriod) {
         super(resourceName, MessageDrivenAttribute.class, false, syncPeriod);
-        this.threadPool = Objects.requireNonNull(threadPool);
+        threadPool = new WriteOnceRef<>();
+        logger = new WriteOnceRef<>();
+    }
+
+    final void init(final ExecutorService threadPool, final Logger logger) {
+        this.threadPool.set(threadPool);
+        this.logger.set(logger);
+    }
+
+    protected final Logger getLogger(){
+        return logger.get();
     }
 
     @Override
     protected MessageDrivenAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
-        return null;
+        final Function<? super String, ? extends MessageDrivenAttribute<?>> factory = AttributeParser.parseAttribute(descriptor);
+        if(factory == null)
+            throw new UnrecognizedAttributeTypeException(attributeName);
+        return factory.apply(attributeName);
     }
 
     @Override
     protected void failedToConnectAttribute(final String attributeName, final Exception e) {
-
+        failedToConnectAttribute(getLogger(), Level.SEVERE, attributeName, e);
     }
 
     /**
@@ -41,8 +57,8 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
      * @return Thread pool instance.
      */
     @Override
-    protected ExecutorService getThreadPool() {
-        return threadPool;
+    protected final ExecutorService getThreadPool() {
+        return threadPool.get();
     }
 
     /**
@@ -52,7 +68,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
      * @return Serializable state of the attribute; or {@literal null}, if attribute doesn't support synchronization across cluster.
      */
     @Override
-    protected Serializable takeSnapshot(final MessageDrivenAttribute attribute) {
+    protected final Serializable takeSnapshot(final MessageDrivenAttribute attribute) {
         return attribute.takeSnapshot();
     }
 
@@ -63,7 +79,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
      * @param snapshot  Serializable snapshot used for initialization.
      */
     @Override
-    protected void loadFromSnapshot(final MessageDrivenAttribute attribute, final Serializable snapshot) {
+    protected final void loadFromSnapshot(final MessageDrivenAttribute attribute, final Serializable snapshot) {
         attribute.loadFromSnapshot(snapshot);
     }
 
@@ -81,7 +97,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
 
     @Override
     protected void failedToGetAttribute(final String attributeID, final Exception e) {
-
+        failedToConnectAttribute(logger.get(), Level.SEVERE, attributeID, e);
     }
 
     @Override
@@ -91,10 +107,10 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
 
     @Override
     protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-
+        failedToSetAttribute(logger.get(), Level.SEVERE, attributeID, value, e);
     }
 
-    void post(final MeasurementNotification notification) {
+    final void post(final MeasurementNotification notification) {
         parallelForEach(attribute -> attribute.accept(notification), null);
     }
 }
