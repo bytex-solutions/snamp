@@ -1,18 +1,20 @@
-package com.bytex.snamp.connector.composite.functions;
+package com.bytex.snamp.parser;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
 /**
- * Represents parser token.
+ * Represents abstract class for all tokens.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-abstract class Token implements CharSequence {
+public abstract class Token implements CharSequence, Serializable {
+    private static final long serialVersionUID = -3845708480333446910L;
     private final CharSequence value;
 
-    Token(final CharSequence value){
+    protected Token(final CharSequence value){
         this.value = Objects.requireNonNull(value);
     }
 

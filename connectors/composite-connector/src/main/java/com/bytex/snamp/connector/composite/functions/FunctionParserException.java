@@ -1,11 +1,14 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import com.bytex.snamp.parser.ParseException;
+import com.bytex.snamp.parser.Token;
+
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public final class FunctionParserException extends Exception {
+final class FunctionParserException extends ParseException {
     private static final long serialVersionUID = 8017093670029336552L;
 
     private FunctionParserException(final String message){

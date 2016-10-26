@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.composite.functions.FunctionParserException;
 
 import javax.management.*;
 
@@ -28,7 +27,7 @@ class CompositeAttribute extends AbstractCompositeAttribute implements Composite
     }
 
     CompositeAttribute(final String connectorType,
-                       final MBeanAttributeInfo info) throws FunctionParserException {
+                       final MBeanAttributeInfo info) {
         this(connectorType, info.getName(), info.getType(), info.getDescription(), info.isReadable(), info.isWritable(), info.isIs(), info.getDescriptor());
     }
 

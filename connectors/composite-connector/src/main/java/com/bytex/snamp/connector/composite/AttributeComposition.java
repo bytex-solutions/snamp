@@ -4,9 +4,9 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
-import com.bytex.snamp.connector.composite.functions.FunctionParserException;
 import com.bytex.snamp.connector.composite.functions.NameResolver;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.bytex.snamp.parser.ParseException;
 
 import javax.management.*;
 import javax.management.openmbean.OpenType;
@@ -132,7 +132,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     protected AbstractCompositeAttribute connectAttribute(final String attributeName,
-                                                          final AttributeDescriptor descriptor) throws ReflectionException, AttributeNotFoundException, MBeanException, AbsentCompositeConfigurationParameterException, FunctionParserException {
+                                                          final AttributeDescriptor descriptor) throws ReflectionException, AttributeNotFoundException, MBeanException, AbsentCompositeConfigurationParameterException, ParseException {
         if (CompositeResourceConfigurationDescriptor.isRateFormula(descriptor)) //rate attribute
             return new NotificationRateAttribute(attributeName, descriptor);
         //regular attribute

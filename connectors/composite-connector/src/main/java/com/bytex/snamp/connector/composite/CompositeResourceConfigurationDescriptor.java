@@ -8,6 +8,7 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.FunctionParser;
 import com.bytex.snamp.connector.composite.functions.FunctionParserException;
+import com.bytex.snamp.parser.ParseException;
 
 import javax.management.Descriptor;
 import java.time.Duration;
@@ -87,7 +88,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
         return getField(descriptor, FORMULA_PARAM, RATE_FORMULA_PARAM::equals, () -> false);
     }
 
-    static AggregationFunction<?> parseFormula(final AttributeDescriptor descriptor) throws FunctionParserException {
+    static AggregationFunction<?> parseFormula(final AttributeDescriptor descriptor) throws ParseException {
         final String formula = getField(descriptor, FORMULA_PARAM, Objects::toString, () -> "");
         if(isNullOrEmpty(formula))
             return null;
