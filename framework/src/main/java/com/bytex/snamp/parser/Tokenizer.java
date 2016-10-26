@@ -28,9 +28,14 @@ public class Tokenizer implements SafeCloseable {
     }
 
     private final CharReader reader;
+    private final CharSequence source;
 
     public Tokenizer(final CharSequence sequence){
-        reader = new CharReader(sequence);
+        reader = new CharReader(this.source = sequence);
+    }
+
+    public CharSequence getSource(){
+        return source;
     }
 
     protected PunctuationToken getPunctuationToken(final char ch){

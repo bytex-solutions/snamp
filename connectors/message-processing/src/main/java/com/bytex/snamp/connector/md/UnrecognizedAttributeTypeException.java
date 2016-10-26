@@ -1,13 +1,13 @@
 package com.bytex.snamp.connector.md;
 
-import javax.management.AttributeNotFoundException;
+import com.bytex.snamp.parser.ParseException;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-final class UnrecognizedAttributeTypeException extends AttributeNotFoundException {
+final class UnrecognizedAttributeTypeException extends ParseException {
     private static final long serialVersionUID = -9155555226277765316L;
 
     UnrecognizedAttributeTypeException(final String attributeName){

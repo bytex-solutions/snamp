@@ -1,32 +1,32 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.parser.NameToken;
 import com.bytex.snamp.parser.ParseException;
 import com.bytex.snamp.parser.Tokenizer;
-
-import java.util.function.Function;
 
 /**
  * Represents parser of attributes.
  * @since 2.0
+ * @version 2.0
  */
 final class AttributeParser {
     private AttributeParser(){
         throw new InstantiationError();
     }
 
-    private static Function<? super String, ? extends MessageDrivenAttribute<?>> parseAttribute(final Tokenizer tokenizer) throws ParseException{
-        return null;
-    }
-
-    private static Function<? super String, ? extends MessageDrivenAttribute<?>> parseAttribute(final String attributeType) throws ParseException {
-        try(final Tokenizer tokenizer = new Tokenizer(attributeType)){
-            return parseAttribute(tokenizer);
+    private static MessageDrivenAttributeFactory parseAttribute(final Tokenizer tokenizer) throws ParseException{
+        final NameToken token = tokenizer.nextToken(NameToken.class);
+        switch (token.toString()){
+            case Gauge64Attribute.NAME:
+                return Gauge64Attribute::new;
+            default:
+                throw new UnrecognizedAttributeTypeException(tokenizer.getSource().toString());
         }
     }
 
-    static Function<? super String, ? extends MessageDrivenAttribute<?>> parseAttribute(final MessageDrivenConnectorConfigurationDescriptor descriptionProvider,
-                                                                                        final AttributeDescriptor descriptor) throws MessageDrivenConnectorAbsentConfigurationParameterException, ParseException {
-        return parseAttribute(descriptionProvider.parseAttributeType(descriptor));
+    static MessageDrivenAttributeFactory parseAttribute(final String attributeType) throws ParseException {
+        try(final Tokenizer tokenizer = new Tokenizer(attributeType)){
+            return parseAttribute(tokenizer);
+        }
     }
 }

@@ -95,14 +95,6 @@ public final class CharReader extends Reader implements SafeCloseable {
         return sequence.charAt(position);
     }
 
-    public char readAsChar() throws IOException {
-        ensureOpen();
-        if (hasMore())
-            return sequence.charAt(position++);
-        else
-            throw new IOException("End of stream is reached");
-    }
-
     @Override
     public synchronized int read() throws IOException {
         ensureOpen();
@@ -135,7 +127,7 @@ public final class CharReader extends Reader implements SafeCloseable {
 
     @Override
     public synchronized String toString() {
-        return Objects.toString(sequence, "<STREAM IS CLOSED>");
+        return sequence == null ? "<STREAM IS CLOSED>" : String.format("Source: [%s]. Position: [%s]", sequence, position);
     }
 
     @Override

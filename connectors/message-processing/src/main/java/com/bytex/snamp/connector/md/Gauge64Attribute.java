@@ -18,6 +18,7 @@ import static com.bytex.snamp.jmx.MetricsConverter.RATED_GAUGE_64_TYPE;
  */
 final class Gauge64Attribute extends MetricHolderAttribute<RatedGauge64Recorder> {
     private static final CompositeType TYPE = RATED_GAUGE_64_TYPE;
+    static final String NAME = "gauge64";
     private static final String DESCRIPTION = "Represents 64-bit gauge";
     private static final long serialVersionUID = -5234028741040752357L;
 
