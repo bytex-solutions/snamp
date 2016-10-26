@@ -12,10 +12,11 @@ import java.time.Duration;
 import java.util.BitSet;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class IOUtils {
@@ -70,12 +71,12 @@ public final class IOUtils {
         if (serializedForm == null || serializedForm.length == 0)
             return null;
         else
-            try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
-                 final ObjectInputStream deserializer = new CustomObjectInputStream(stream, resolver)) {
-                return TypeTokens.cast(deserializer.readObject(), expectedType);
-            } catch (final ClassNotFoundException | ClassCastException e) {
-                throw new IOException(e);
-            }
+            return callAndWrapException(() -> {
+                try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
+                     final ObjectInputStream deserializer = new CustomObjectInputStream(stream, resolver)) {
+                    return TypeTokens.cast(deserializer.readObject(), expectedType);
+                }
+            }, IOException::new);
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
@@ -86,7 +87,7 @@ public final class IOUtils {
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
                                                          final TypeToken<T> expectedType) throws IOException {
-        return deserialize(serializedForm, expectedType, expectedType.getClass().getClassLoader());
+        return deserialize(serializedForm, expectedType, expectedType.getRawType().getClassLoader());
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,

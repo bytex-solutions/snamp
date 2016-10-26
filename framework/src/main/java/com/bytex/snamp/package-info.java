@@ -3,7 +3,7 @@
  * <p>You can use these classes in your code directly.
  * There are the following useful classes:
  * <ul>
- *     <li>Simple containers: {@link com.bytex.snamp.Wrapper}, {@link com.bytex.snamp.Box}</li>
+ *     <li>Simple containers: {@link com.bytex.snamp.Wrapper}, {@link com.bytex.snamp.SimpleBox}</li>
  *     <li>Syntactic sugar: {@link com.bytex.snamp.Switch}</li>
  *     <li>Functional interfaces: {@link com.bytex.snamp.Acceptor}</li>
  *     <li>Array helpers: {@link com.bytex.snamp.ArrayUtils}</li>

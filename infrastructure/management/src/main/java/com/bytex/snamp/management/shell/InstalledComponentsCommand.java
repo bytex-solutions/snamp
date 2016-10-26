@@ -10,14 +10,14 @@ import java.io.IOException;
 
 import static com.bytex.snamp.management.shell.Utils.appendln;
 import static com.bytex.snamp.management.shell.Utils.getStateString;
-import static com.bytex.snamp.management.shell.InstalledAdaptersCommand.writeAdapter;
+import static com.bytex.snamp.management.shell.InstalledGatewaysCommand.writeGateway;
 import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeConnector;
 
 /**
  * Prints list of installed SNAMP components.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -29,7 +29,7 @@ public final class InstalledComponentsCommand extends OsgiCommandSupport impleme
     private static void writeComponent(final SnampComponentDescriptor component, final StringBuilder output) {
         appendln(output, "%s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
-                component.getDescription(null),
+                component.toString(null),
                 component.getVersion(),
                 getStateString(component));
     }
@@ -37,8 +37,8 @@ public final class InstalledComponentsCommand extends OsgiCommandSupport impleme
     @Override
     protected CharSequence doExecute() throws IOException{
         final StringBuilder result = new StringBuilder(42);
-        for(final SnampComponentDescriptor component: manager.getInstalledResourceAdapters())
-            writeAdapter(component, result);
+        for(final SnampComponentDescriptor component: manager.getInstalledGateways())
+            writeGateway(component, result);
         for(final SnampComponentDescriptor component: manager.getInstalledResourceConnectors())
             writeConnector(component, result);
         for(final SnampComponentDescriptor component: manager.getInstalledComponents())

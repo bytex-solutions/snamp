@@ -4,23 +4,26 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 
 /**
  * Represents lightweight timer that is used to repeat some action in time.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class Repeater implements AutoCloseable, Runnable {
     /**
      * Represents state of this timer.
      * @author Roman Sakno
-     * @version 1.2
+     * @version 2.0
      * @since 1.0
      */
     public enum RepeaterState {
@@ -63,9 +66,8 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @throws java.lang.IllegalArgumentException period is {@literal null}.
      */
     protected Repeater(final Duration period){
-        if(period == null) throw new IllegalArgumentException("period is null.");
         this.state = RepeaterState.STOPPED;
-        this.period = period;
+        this.period = Objects.requireNonNull(period);
         this.exception = null;
         this.repeatThread = null;
         this.monitor = new ReentrantLock();
@@ -75,7 +77,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * Initializes a new repeater.
      * @param period Time between successive task executions, in millis.
      */
-    protected Repeater(final long period){
+    protected Repeater(final long period) {
         this(Duration.ofMillis(period));
     }
 
@@ -99,7 +101,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * Returns time between successive task executions.
      * @return Time between successive task executions.
      */
-    public final Duration getPeriod(){
+    public Duration getPeriod(){
         return period;
     }
 
@@ -188,14 +190,14 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     }
 
     private final static class RepeaterThreadImpl extends Thread implements RepeaterThread{
-        private final long period;
+        private final Supplier<Duration> period;
 
         private RepeaterThreadImpl(final RepeaterWorker worker,
                                    final String threadName,
                                    final int priority,
-                                   final Duration period){
+                                   final Supplier<Duration> period){
             super(worker, threadName);
-            this.period = period.toMillis();
+            this.period = period;
             setDaemon(true);
             setPriority(priority);
             setUncaughtExceptionHandler(worker);
@@ -206,7 +208,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
             while (!isInterrupted()){
                 //sleep for a specified time
                 try{
-                    Thread.sleep(period);
+                    Thread.sleep(period.get().toMillis());
                 }
                 catch (final InterruptedException e){
                     return;
@@ -239,7 +241,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                         fault(e);
                     }
                 };
-                repeatThread = new RepeaterThreadImpl(worker, generateThreadName(), getPriority(), period);
+                repeatThread = new RepeaterThreadImpl(worker, generateThreadName(), getPriority(), this::getPeriod);
                 //execute periodic thread
                 repeatThread.start();
                 stateChanged(state = RepeaterState.STARTED);
@@ -280,13 +282,13 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                 break;
             case STARTED:
                 repeatThread.interrupt();
-                state = RepeaterState.STOPPING;
+                stateChanged(state = RepeaterState.STOPPING);
                 join(repeatThread, timeoutMillis);
                 break;
             default:
                 return false;
         }
-        state = RepeaterState.STOPPED;
+        stateChanged(state = RepeaterState.STOPPED);
         repeatThread = null;
         return true;
     }
@@ -319,22 +321,9 @@ public abstract class Repeater implements AutoCloseable, Runnable {
 
     private void closeImpl(){
         if(repeatThread != null) repeatThread.interrupt();
-        state = RepeaterState.CLOSED;
+        stateChanged(state = RepeaterState.CLOSED);
         repeatThread = null;
         exception = null;
-    }
-
-    private void close(final long millis) throws InterruptedException, TimeoutException {
-        long duration = System.currentTimeMillis();
-        if (monitor.tryLock(millis, TimeUnit.MILLISECONDS)) {
-            duration = System.currentTimeMillis() - duration;
-            try {
-                tryStop(millis - duration);
-                closeImpl();    //must be closed before lock will be released
-            } finally {
-                monitor.unlock();
-            }
-        } else throw new TimeoutException("Too small timeout " + millis);
     }
 
     /**
@@ -345,7 +334,16 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @throws InterruptedException The blocked thread is interrupted.
      */
     public final void close(final Duration timeout) throws TimeoutException, InterruptedException{
-        close(timeout.toMillis());
+        long duration = System.currentTimeMillis();
+        if (monitor.tryLock(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
+            duration = System.currentTimeMillis() - duration;
+            try {
+                tryStop(timeout.toMillis() - duration);
+                closeImpl();    //must be closed before lock will be released
+            } finally {
+                monitor.unlock();
+            }
+        } else throw new TimeoutException("Too small timeout " + timeout);
     }
 
     /**

@@ -2,6 +2,10 @@ package com.bytex.snamp;
 
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents an object that aggregates another objects.<br/>
@@ -22,7 +26,7 @@ import java.util.Objects;
  *         }
  *     }</pre>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  * @see AbstractAggregator
  */
@@ -68,5 +72,24 @@ public interface Aggregator {
         }
 
         return new AggregatorComposition(other);
+    }
+
+    static <I, O> Optional<O> queryAndApply(final Aggregator a, final Class<I> type, final Function<? super I, ? extends O> processing) {
+        final I obj = a.queryObject(type);
+        return obj != null ? Optional.of(processing.apply(obj)) : Optional.empty();
+    }
+
+    static <I, O> O queryAndApply(final Aggregator a, final Class<I> type, final Function<? super I, ? extends O> processing, final Supplier<? extends O> fallback) {
+        final Optional<O> result = queryAndApply(a, type, processing);
+        return result.isPresent() ? result.get() : fallback.get();
+    }
+
+    static <I> boolean queryAndAccept(final Aggregator a, final Class<I> type, final Consumer<? super I> processing){
+        final I obj = a.queryObject(type);
+        if(obj != null){
+            processing.accept(obj);
+            return true;
+        } else
+            return false;
     }
 }

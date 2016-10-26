@@ -8,87 +8,77 @@ import com.google.common.reflect.TypeToken;
 import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.InvalidKeyException;
-import java.lang.management.ManagementFactory;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 
 /**
  * Represents a set of distributed services.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class DistributedServices {
-    private static final class InMemoryStorage extends ConcurrentHashMap<String, Object>{
-        private static final long serialVersionUID = 2412615001344706359L;
-    }
-
-    private static final class InMemoryLongCounter extends AtomicLong implements LongCounter {
-        private static final long serialVersionUID = 498408165929062468L;
-
-        InMemoryLongCounter(){
-            super(0L);
-        }
-
-        @Override
-        public long increment() {
-            return getAndIncrement();
-        }
-    }
-
-    private static final class InMemoryServiceCacheKey<S>{
-        private final TypeToken<S> serviceType;
+    private static final class LocalServiceKey<S> {
         private final String serviceName;
+        private final TypeToken<S> serviceType;
 
-        private InMemoryServiceCacheKey(final String serviceName, final TypeToken<S> serviceType){
-            this.serviceType = Objects.requireNonNull(serviceType);
+        private LocalServiceKey(final String serviceName, final TypeToken<S> serviceType){
             this.serviceName = Objects.requireNonNull(serviceName);
+            this.serviceType = Objects.requireNonNull(serviceType);
         }
 
-        private boolean equals(final InMemoryServiceCacheKey other){
+        private boolean equals(final LocalServiceKey other){
             return serviceName.equals(other.serviceName) && serviceType.equals(other.serviceType);
         }
 
         @Override
         public boolean equals(final Object other) {
-            return other instanceof InMemoryServiceCacheKey && equals((InMemoryServiceCacheKey)other);
+            return other instanceof LocalServiceKey && equals((LocalServiceKey)other);
         }
 
         @Override
         public int hashCode() {
-            return serviceType.hashCode() ^ serviceName.hashCode();
+            return Objects.hash(serviceName, serviceType);
         }
     }
+
     //in-memory services should be stored as soft-reference. This strategy helps to avoid memory
     //leaks in long-running scenarios
-    private static LoadingCache<InMemoryServiceCacheKey, Object> IN_MEMORY_SERVICES = CacheBuilder.newBuilder()
+    private static LoadingCache<LocalServiceKey, Object> LOCAL_SERVICES = CacheBuilder.newBuilder()
             .softValues()
-            .build(new CacheLoader<InMemoryServiceCacheKey, Object>() {
+            .build(new CacheLoader<LocalServiceKey, Object>() {
+
                 @Override
-                public Object load(final InMemoryServiceCacheKey key) throws InvalidKeyException {
+                public Object load(final LocalServiceKey key) throws InvalidKeyException {
                     if(ClusterMember.IDGEN_SERVICE.equals(key.serviceType))
-                        return new InMemoryLongCounter();
+                        return new LocalLongCounter();
                     else if(ClusterMember.STORAGE_SERVICE.equals(key.serviceType))
-                        return new InMemoryStorage();
+                        return new LocalStorage();
+                    else if(ClusterMember.COMMUNICATION_SERVICE.equals(key.serviceType))
+                        return new LocalCommunicator();
                     else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
                 }
             });
 
     private DistributedServices(){
+        throw new InstantiationError();
     }
 
     private static <S> S getProcessLocalService(final String serviceName, final TypeToken<S> serviceType) {
-        final InMemoryServiceCacheKey<S> key = new InMemoryServiceCacheKey<>(serviceName, serviceType);
+        final LocalServiceKey<S> key = new LocalServiceKey<>(serviceName, serviceType);
         try {
-            return TypeTokens.cast(IN_MEMORY_SERVICES.get(key), serviceType);
+            return TypeTokens.cast(LOCAL_SERVICES.get(key), serviceType);
         } catch (final ExecutionException e) {
             return null;
         }
+    }
+
+    public static Communicator getProcessLocalCommunicator(final String channelName){
+        return getProcessLocalService(channelName, ClusterMember.COMMUNICATION_SERVICE);
     }
 
     /**
@@ -117,10 +107,33 @@ public final class DistributedServices {
         else return def.get();
     }
 
+    private static int processClusterNodeAsInt(final BundleContext context,
+                                               final ToIntFunction<? super ClusterMember> processor,
+                                               final int def) {
+        final ServiceHolder<ClusterMember> holder = ServiceHolder.tryCreate(context, ClusterMember.class);
+        if (holder != null)
+            try {
+                return processor.applyAsInt(holder.getService());
+            } finally {
+                holder.release(context);
+            }
+        else return def;
+    }
+
     private static <S> S getService(final BundleContext context,
                                     final String serviceName,
                                     final TypeToken<S> serviceType) {
         return processClusterNode(context, node -> node.getService(serviceName, serviceType), () -> getProcessLocalService(serviceName, serviceType));
+    }
+
+    /**
+     * Gets distributed {@link Communicator}.
+     * @param context Context of the caller OSGi bundle.
+     * @param channelName Name of the communicator.
+     * @return Distributed or process-local communicator.
+     */
+    public static Communicator getDistributedCommunicator(final BundleContext context, final String channelName){
+        return getService(context, channelName, ClusterMember.COMMUNICATION_SERVICE);
     }
 
     /**
@@ -151,7 +164,7 @@ public final class DistributedServices {
      * @return {@literal true}, the caller code hosted in active cluster node; otherwise, {@literal false}.
      */
     public static boolean isActiveNode(final BundleContext context) {
-        return processClusterNode(context, ClusterMember::isActive, () -> true);
+        return processClusterNode(context, ClusterMember::isActive, LocalMember.INSTANCE::isActive);
     }
 
     /**
@@ -160,7 +173,7 @@ public final class DistributedServices {
      * @return {@literal true}, if this method is called in clustered environment; otherwise, {@literal false}.
      */
     public static boolean isInCluster(final BundleContext context) {
-        return processClusterNode(context, member -> true, () -> false);
+        return processClusterNode(context, Objects::nonNull, () -> false);
     }
 
     /**
@@ -169,6 +182,10 @@ public final class DistributedServices {
      * @return Name of the cluster node.
      */
     public static String getLocalMemberName(final BundleContext context){
-        return processClusterNode(context, ClusterMember::getName, () -> ManagementFactory.getRuntimeMXBean().getName());
+        return processClusterNode(context, ClusterMember::getName, LocalMember.INSTANCE::getName);
+    }
+
+    public static int getNeighbors(final BundleContext context){
+        return processClusterNodeAsInt(context, ClusterMember::getNeighbors, 0);
     }
 }

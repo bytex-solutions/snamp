@@ -1,6 +1,7 @@
 package com.bytex.snamp.internal;
 
 import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SpecialUse;
 import org.junit.Assert;
 import org.junit.Test;
@@ -8,6 +9,7 @@ import org.junit.Test;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -43,9 +45,23 @@ public final class UtilsTest extends Assert {
     @SuppressWarnings("unchecked")
     @Test
     public void reflectSetterTest() throws ReflectiveOperationException{
-        final Box<String> box = new Box<>("");
+        final Box<String> box = BoxFactory.create("");
         final Consumer<String> setter = reflectSetter(MethodHandles.lookup(), box, box.getClass().getDeclaredMethod("set", Object.class));
         setter.accept("Frank Underwood");
         assertEquals("Frank Underwood", box.get());
+    }
+
+    @Test(expected = MalformedURLException.class)
+    public void suspendExceptionsTest(){
+        final Supplier<? extends String> sup = Utils.suspendException(() -> {
+            throw new MalformedURLException();
+        });
+        sup.get();
+    }
+
+    @Test
+    public void callUncheckedTest(){
+        final String s = Utils.callUnchecked(() -> new StringBuilder().append("Hello").append(", ").append("world").toString());
+        assertEquals("Hello, world", s);
     }
 }

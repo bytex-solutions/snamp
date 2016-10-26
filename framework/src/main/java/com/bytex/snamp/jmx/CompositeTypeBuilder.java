@@ -1,6 +1,7 @@
 package com.bytex.snamp.jmx;
 
 import javax.management.openmbean.*;
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -9,12 +10,13 @@ import java.util.Objects;
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeType} instances.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  * @see javax.management.openmbean.CompositeType
  */
-public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType>, Iterable<String> {
+public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType>, Iterable<String>, Serializable {
     final static int DEFAULT_CAPACITY = 10;
+    private static final long serialVersionUID = 392284311930753280L;
 
     private String typeName;
     private String typeDescription;
@@ -45,6 +47,18 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
      */
     public CompositeTypeBuilder setTypeName(final String value){
         this.typeName = Objects.requireNonNull(value, "value is null.");
+        return this;
+    }
+
+    /**
+     * Imports items from the specified composite type.
+     * @param type A source of import.
+     * @return This builder.
+     * @since 2.0
+     */
+    public CompositeTypeBuilder importFrom(final CompositeType type) {
+        for (final String itemName : type.keySet())
+            addItem(itemName, type.getDescription(itemName), type.getType(itemName));
         return this;
     }
 
@@ -95,15 +109,16 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
      * @return A new instance of the {@link javax.management.openmbean.CompositeType} instance.
      * @throws javax.management.openmbean.OpenDataException Invalid composite type.
      */
+    @Override
     public CompositeType build() throws OpenDataException {
         return build(typeName,
                 typeDescription,
                 items);
     }
 
-    static CompositeType build(final String typeName,
-                               final String typeDescription,
-                               final Map<String, ? extends CompositeTypeItem> items) throws OpenDataException {
+    private static CompositeType build(final String typeName,
+                                       final String typeDescription,
+                                       final Map<String, ? extends CompositeTypeItem> items) throws OpenDataException {
         final String[] itemNames = items.keySet().stream().toArray(String[]::new);
         final String[] itemDescriptions = new String[itemNames.length];
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
@@ -127,20 +142,6 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
 
     int size(){
         return items.size();
-    }
-
-    /**
-     * Constructs a new instance of the {@link javax.management.openmbean.CompositeType} instance.
-     * @return A new instance of the {@link javax.management.openmbean.CompositeType} instance.
-     * @throws java.lang.IllegalStateException Invalid composite type.
-     */
-    @Override
-    public CompositeType get() throws IllegalStateException{
-        try {
-            return build();
-        } catch (final OpenDataException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     /**

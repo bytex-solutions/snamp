@@ -11,12 +11,10 @@ import org.osgi.framework.ServiceReference;
 import java.lang.invoke.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Properties;
+import java.util.Spliterator;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.concurrent.ExecutorService;
+import java.util.function.*;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -26,27 +24,24 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  *     You should not use this class directly in your code.
  * </p>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Internal
 public final class Utils {
+    private static final MethodHandle CALL_SILENT_HANDLE = interfaceStaticInitialize(() -> {
+        final MethodHandles.Lookup lookup = MethodHandles.lookup();
+        final CallSite site = LambdaMetafactory.metafactory(lookup,
+                "get",
+                MethodType.methodType(Supplier.class, Callable.class),
+                MethodType.methodType(Object.class),
+                lookup.unreflect(Callable.class.getMethod("call")),
+                MethodType.methodType(Object.class));
+        return site.getTarget();
+    });
 
     private Utils(){
         throw new InstantiationError();
-    }
-
-    public static String getFullyQualifiedResourceName(final Class<?> locator, String name){
-        if(locator.isArray())
-            return getFullyQualifiedResourceName(locator.getComponentType(), name);
-        else if (!name.startsWith("/")) {
-            final String baseName = locator.getName();
-            final int index = baseName.lastIndexOf('.');
-            if (index != -1)
-                name = String.format("%s/%s", baseName.substring(0, index).replace('.', '/'), name);
-        }
-        else name = name.substring(1);
-        return name;
     }
 
     public static BundleContext getBundleContext(final Class<?> classFromBundle){
@@ -79,128 +74,8 @@ public final class Utils {
         return isInstanceOf(serviceRef, serviceType.getName());
     }
 
-    /**
-     * Gets value from the map in type-safe manner.
-     * @param map The map to read. Cannot be {@literal null}.
-     * @param propertyKey The key in the map to get.
-     * @param propertyType The expected value type.
-     * @param <K> Type of the map key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value obtained from the map.
-     * @throws ClassCastException Unable to cast property value to the specified propertyType.
-     * @throws IndexOutOfBoundsException The specified key doesn't exist.
-     * @throws IllegalArgumentException map is {@literal null}.
-     */
-    public static <K, V> V getProperty(final Map<K, ?> map,
-                                       final K propertyKey,
-                                       final Class<V> propertyType)
-            throws ClassCastException,
-                IndexOutOfBoundsException,
-                IllegalArgumentException{
-        if(map == null) throw new IllegalArgumentException("map is null.");
-        else if(map.containsKey(propertyKey)){
-            final Object value = map.get(propertyKey);
-            if(propertyType.isInstance(value)) return propertyType.cast(value);
-            else throw new ClassCastException(String.format("Unable to cast %s value to %s type.", value, propertyType));
-        }
-        else throw new IndexOutOfBoundsException(String.format("Key %s doesn't exist.", propertyKey));
-    }
-
-    /**
-     * Gets value from the map in type-safe manner.
-     * @param map The map to read.
-     * @param propertyKey The key in the map to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the map key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the map.
-     */
-    public static <K, V> V getProperty(final Map<K, ?> map,
-                                       final K propertyKey,
-                                       final Class<V> propertyType,
-                                       final V defaultValue){
-        return getProperty(map, propertyKey, propertyType, (Supplier<V>) () -> defaultValue);
-    }
-
-    /**
-     * Gets value from the map in type-safe manner.
-     * @param map The map to read.
-     * @param propertyKey The key in the map to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the map key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the map.
-     */
-    public static <K, V> V getProperty(final Map<K, ?> map,
-                                       final K propertyKey,
-                                       final Class<V> propertyType,
-                                       final Supplier<V> defaultValue){
-        if(defaultValue == null) return getProperty(map, propertyKey, propertyType, (Supplier<V>) () -> null);
-        else if(map == null) return defaultValue.get();
-        else if(map.containsKey(propertyKey)){
-            final Object value = map.get(propertyKey);
-            return propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
-        }
-        else return defaultValue.get();
-    }
-
-    /**
-     * Gets value from the dictionary in type-safe manner.
-     * @param dict The dictionary to read.
-     * @param propertyKey The key in the dictionary to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the dictionary key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the dictionary.
-     */
-    public static <K, V> V getProperty(final Dictionary<K, ?> dict,
-                                       final K propertyKey,
-                                       final Class<V> propertyType,
-                                       final Supplier<V> defaultValue){
-        if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, (Supplier<V>) () -> null);
-        else if(dict == null) return defaultValue.get();
-        final Object value = dict.get(propertyKey);
-        return value != null && propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
-    }
-
-    public static <K, V> boolean setProperty(final Dictionary<K, ? super V> dict,
-                                     final K propertyKey,
-                                     final V value) {
-        if (dict == null) return false;
-        dict.put(propertyKey, value);
-        return true;
-    }
-
-    /**
-     * Gets value from the dictionary in type-safe manner.
-     * @param dict The dictionary to read.
-     * @param propertyKey The key in the dictionary to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the dictionary key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the dictionary.
-     */
-    public static <K, V> V getProperty(final Dictionary<K, ?> dict,
-                                     final K propertyKey,
-                                     final Class<V> propertyType,
-                                     final V defaultValue){
-        return getProperty(dict, propertyKey, propertyType, (Supplier<V>) () -> defaultValue);
-    }
-
     public static <V> V withContextClassLoader(final ClassLoader loader, final Supplier<? extends V> action) {
-        try {
-            return withContextClassLoader(loader, (Callable<V>)action::get);
-        } catch (final Exception e) {
-            throw new AssertionError("Should never be happened", e);
-        }
+        return callAndWrapException(() -> withContextClassLoader(loader, (Callable<V>)action::get), e -> new AssertionError("Should never be happened", e));
     }
 
     public static <V> V withContextClassLoader(final ClassLoader loader, final Callable<? extends V> action) throws Exception {
@@ -248,17 +123,15 @@ public final class Utils {
      * @throws ExceptionInInitializerError the exception in initializer error
      */
     public static <T> T interfaceStaticInitialize(final Callable<T> initializer){
-        try {
-            return initializer.call();
-        } catch (final Exception e) {
-            throw new ExceptionInInitializerError(e);
-        }
+        return callAndWrapException(initializer, ExceptionInInitializerError::new);
     }
 
-    public static Properties toProperties(final Map<String, String> params){
-        final Properties props = new Properties();
-        props.putAll(params);
-        return props;
+    public static <T, E extends Throwable> T callAndWrapException(final Callable<T> task, final Function<? super Exception, ? extends E> wrapper) throws E{
+        try {
+            return task.call();
+        } catch (final Exception e) {
+            throw wrapper.apply(e);
+        }
     }
 
     private static java.util.function.Supplier reflectGetter(final MethodHandles.Lookup lookup,
@@ -302,7 +175,7 @@ public final class Utils {
             instantiatedMethodType = MethodType.methodType(void.class, setter.type().parameterType(1));//zero index points to 'this' reference
         }
         try {
-            final CallSite site = LambdaMetafactory.metafactory(lookup, "accept",
+            final CallSite site = LambdaMetafactory.metafactory(lookup, "updateValue",
                     invokedType,
                     MethodType.methodType(void.class, Object.class),
                     setter,
@@ -319,5 +192,70 @@ public final class Utils {
                                                                final Object owner,
                                                                final Method setter) throws ReflectiveOperationException {
         return reflectSetter(lookup, owner, lookup.unreflect(setter));
+    }
+
+    public static <T> void parallelForEach(final Spliterator<T> spliterator,
+                                                                       final Consumer<? super T> action,
+                                                                       final ExecutorService threadPool) {
+        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
+            final Spliterator<T> subset = spliterator.trySplit();
+            if (subset == null) return;
+            threadPool.submit(() -> subset.forEachRemaining(action::accept));
+        }
+    }
+
+    public static <T> void parallelForEach(final Iterable<T> collection,
+                                              final Consumer<? super T> action,
+                                              final ExecutorService threadPool){
+        parallelForEach(collection.spliterator(), action, threadPool);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <V> Supplier<? extends V> suspendException(final Callable<? extends V> callable){
+        final Supplier result;
+        try{
+            result = (Supplier) CALL_SILENT_HANDLE.invokeExact(callable);
+        } catch (final Throwable e) {
+            throw new AssertionError("Invalid call site", e);
+        }
+        return result;
+    }
+
+    public static <V> V callUnchecked(final Callable<V> callable){
+        return suspendException(callable).get();
+    }
+
+    public static <C, I, O> O convertTo(final C input,
+                                        final Class<I> expectedType,
+                                        final Function<? super I, ? extends O> then,
+                                        final Function<? super C, ? extends O> fallback){
+        return expectedType.isInstance(input) ? then.apply(expectedType.cast(input)) : fallback.apply(input);
+    }
+
+    public static <C, I, O> O convertTo(final C input,
+                                        final Class<I> expectedType,
+                                        final Function<? super I, ? extends O> then){
+        return expectedType.isInstance(input) ? then.apply(expectedType.cast(input)) : null;
+    }
+
+    public static <C, I> int convertToInt(final C input,
+                                   final Class<I> expectedType,
+                                   final ToIntFunction<? super I> then,
+                                          final ToIntFunction<? super C> fallback){
+        return expectedType.isInstance(input) ? then.applyAsInt(expectedType.cast(input)) : fallback.applyAsInt(input);
+    }
+
+    public static <C, I> long convertToLong(final C input,
+                                            final Class<I> expectedType,
+                                            final ToLongFunction<? super I> then,
+                                            final ToLongFunction<? super C> fallback){
+        return expectedType.isInstance(input) ? then.applyAsLong(expectedType.cast(input)) : fallback.applyAsLong(input);
+    }
+
+    public static <C, I> double convertToDouble(final C input,
+                                              final Class<I> expectedType,
+                                              final ToDoubleFunction<? super I> then,
+                                                final ToDoubleFunction<? super C> fallback){
+        return expectedType.isInstance(input) ? then.applyAsDouble(expectedType.cast(input)) : fallback.applyAsDouble(input);
     }
 }

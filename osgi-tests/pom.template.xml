@@ -5,12 +5,12 @@
     <parent>
         <artifactId>snamp</artifactId>
         <groupId>com.bytex.snamp</groupId>
-        <version>1.2.0</version>
+        <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>SNAMP Integration Tests</name>
-    <description>Tests for connectors/adapters</description>
+    <description>Tests for connectors/gateways</description>
     <artifactId>osgi-tests</artifactId>
     <version>${project.parent.version}</version>
     <properties>
@@ -68,7 +68,6 @@
                         <com.sun.management.jmxremote.port>3334</com.sun.management.jmxremote.port>
                         <com.sun.management.jmxremote.authenticate>false</com.sun.management.jmxremote.authenticate>
                         <com.sun.management.jmxremote.ssl>false</com.sun.management.jmxremote.ssl>
-                        <com.bytex.snamp.login.config.boot>./jaas.json</com.bytex.snamp.login.config.boot>
                         <pax.exam.osgi.unresolved.fail>true</pax.exam.osgi.unresolved.fail>
                         <mavenLocalRepository>${settings.localRepository}</mavenLocalRepository>
                     </systemPropertyVariables>
@@ -289,7 +288,7 @@
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>rshell-connector</artifactId>
-            <version>${snamp.connectors.rshell.version}</version>
+            <version>${snamp.connector.rshell.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -320,14 +319,14 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>xmpp-adapter</artifactId>
-            <version>${snamp.adapters.xmpp.version}</version>
+            <artifactId>xmpp-gateway</artifactId>
+            <version>${snamp.gateway.xmpp.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>modbus-connector</artifactId>
-            <version>${snamp.connectors.modbus.version}</version>
+            <version>${snamp.connector.modbus.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -340,12 +339,6 @@
             <groupId>org.atmosphere</groupId>
             <artifactId>wasync</artifactId>
             <version>2.0.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jolokia</groupId>
-            <artifactId>jolokia-osgi</artifactId>
-            <version>${jolokia.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -369,7 +362,7 @@
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>mq-connector</artifactId>
-            <version>${snamp.connectors.mq.version}</version>
+            <version>${snamp.connector.mq.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

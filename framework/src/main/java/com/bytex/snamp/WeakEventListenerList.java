@@ -15,7 +15,7 @@ import java.util.stream.StreamSupport;
  * <p>
  *    This class works like {@link java.util.concurrent.CopyOnWriteArrayList}.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @ThreadSafe

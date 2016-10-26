@@ -6,7 +6,6 @@
         <!-- Third-party features -->
         <feature version="[${karaf.version}, ${karaf.maxVersion})">eventadmin</feature>
         <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
-        <feature version="[${jolokia.version}, 2)">jolokia</feature>
         <!-- Third-party bundles -->
         <bundle>mvn:org.bouncycastle/bcpg-jdk15on/${bouncycastle.version}</bundle>
         <bundle>mvn:org.bouncycastle/bcpkix-jdk15on/${bouncycastle.version}</bundle>

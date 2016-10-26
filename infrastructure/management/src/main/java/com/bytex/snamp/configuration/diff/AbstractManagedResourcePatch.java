@@ -1,12 +1,12 @@
 package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 abstract class AbstractManagedResourcePatch implements ManagedResourcePatch {
@@ -20,12 +20,12 @@ abstract class AbstractManagedResourcePatch implements ManagedResourcePatch {
     }
 
     @Override
-    public final String getResourceName() {
+    public final String getEntityID() {
         return resourceName;
     }
 
     @Override
-    public final ManagedResourceConfiguration getResource() {
+    public final ManagedResourceConfiguration getEntity() {
         return resourceConfig;
     }
 

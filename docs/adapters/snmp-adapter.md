@@ -257,9 +257,9 @@ These parameters can be specified on JVM level and affects all instances of SNMP
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-com.bytex.snamp.adapters.snmp.oidPrefix | OID | No | OID prefix applied to attributes and notifications when `oid` configuration of such attributes and notifications are not specified. Default value is `1.1.1`. Postfix will be generated automatically. Therefore, OID of the attribute without `oid` configuration parameter looks like `1.1.1.X`.  | `3000`
+com.bytex.snamp.gateway.snmp.oidPrefix | OID | No | OID prefix applied to attributes and notifications when `oid` configuration of such attributes and notifications are not specified. Default value is `1.1.1`. Postfix will be generated automatically. Therefore, OID of the attribute without `oid` configuration parameter looks like `1.1.1.X`.  | `3000`
 
 ## Compatibility with Smart mode
-In the Smart mode of the connector each attribute or notification is registered automatically - you cannot specify `oid` configuration parameter directly in SNAMP configuration. SNMP Resource Adapter generates OID for each attribute automatically using prefix specified in `com.bytex.snamp.adapters.snmp.oidPrefix` system-level property. By default, each attribute will be registered within `1.1.1.X` context.
+In the Smart mode of the connector each attribute or notification is registered automatically - you cannot specify `oid` configuration parameter directly in SNAMP configuration. SNMP Resource Adapter generates OID for each attribute automatically using prefix specified in `com.bytex.snamp.gateway.snmp.oidPrefix` system-level property. By default, each attribute will be registered within `1.1.1.X` context.
 
 Notifications of the connector in Smart mode cannot be exposed via SNMP Resource Adapter.

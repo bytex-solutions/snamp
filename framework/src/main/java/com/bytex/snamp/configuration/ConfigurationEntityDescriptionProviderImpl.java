@@ -1,15 +1,14 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
+import com.google.common.collect.ImmutableList;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class ConfigurationEntityDescriptionProviderImpl extends AbstractAggregator implements ConfigurationEntityDescriptionProvider {
@@ -19,9 +18,8 @@ public class ConfigurationEntityDescriptionProviderImpl extends AbstractAggregat
      * Initializes a new instance of the configuration description provider.
      * @param descriptions A set of available descriptors.
      */
-    @SafeVarargs
-    public ConfigurationEntityDescriptionProviderImpl(final ConfigurationEntityDescription<? extends EntityConfiguration>... descriptions){
-        this.descriptions = Arrays.asList(descriptions);
+    public ConfigurationEntityDescriptionProviderImpl(final ConfigurationEntityDescription<?>... descriptions){
+        this.descriptions = ImmutableList.copyOf(descriptions);
     }
 
     /**

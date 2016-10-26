@@ -1,28 +1,26 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.*;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.management.shell.Utils.appendln;
 import static com.bytex.snamp.management.shell.Utils.newLine;
 
 /**
  * Displays configuration of the managed resource.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "resource",
     description = "Display configuration of the managed resource")
-public final class ResourceInfoCommand extends ConfigurationCommand {
+public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of configured resource to display")
     @SpecialUse
     private String resourceName = "";
@@ -38,6 +36,10 @@ public final class ResourceInfoCommand extends ConfigurationCommand {
     @SpecialUse
     @Option(name = "-o", aliases = {"--operations"}, description = "Show resource operations", required = false, multiValued = false)
     private boolean showOperations = false;
+
+    public ResourceInfoCommand(){
+        super(ManagedResourceConfiguration.class);
+    }
 
     private static void printParameters(final FeatureConfiguration feature, final StringBuilder output){
         for(final Map.Entry<String, String> param: feature.getParameters().entrySet())
@@ -62,11 +64,11 @@ public final class ResourceInfoCommand extends ConfigurationCommand {
     }
 
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) throws InterruptedException {
-        if (configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)) {
-            final ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
+    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) throws InterruptedException {
+        if (configuration.containsKey(resourceName)) {
+            final ManagedResourceConfiguration resource = configuration.get(resourceName);
             appendln(output, "Resource Name: %s", resourceName);
-            appendln(output, "Connection Type: %s", resource.getConnectionType());
+            appendln(output, "Connection Type: %s", resource.getType());
             appendln(output, "Connection String: %s", resource.getConnectionString());
             appendln(output, "Configuration parameters:");
             for (final Map.Entry<String, String> pair : resource.getParameters().entrySet())

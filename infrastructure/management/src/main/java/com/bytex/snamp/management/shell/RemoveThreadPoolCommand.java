@@ -1,10 +1,10 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.ThreadPoolRepository;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
 
 /**
  * Removes thread pool.
@@ -17,15 +17,14 @@ public final class RemoveThreadPoolCommand extends AbstractThreadPoolCommand {
     @SpecialUse
     private String poolName = "";
 
-    @Option(name = "-t", aliases = {"--terminate"}, required = false, description = "Terminate all scheduled tasks in the thread pool")
-    @SpecialUse
-    private boolean terminateTasks = false;
-
     @Override
-    void doExecute(final ThreadPoolRepository repository, final StringBuilder output) {
-        if (repository.unregisterThreadPool(poolName, terminateTasks))
-            output.append("Thread pool unregistered successfully").append(System.lineSeparator());
-        else
+    boolean doExecute(final EntityMap<? extends ThreadPoolConfiguration> repository, final StringBuilder output) {
+        if (repository.remove(poolName) == null) {
             output.append("Thread pool doesn't exist").append(System.lineSeparator());
+            return false;
+        } else {
+            output.append("Thread pool unregistered successfully").append(System.lineSeparator());
+            return true;
+        }
     }
 }

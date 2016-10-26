@@ -5,10 +5,10 @@
     <parent>
         <artifactId>connectors-features</artifactId>
         <groupId>com.bytex.snamp</groupId>
-        <version>1.2.0</version>
+        <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>${snamp.connectors.groovy.version}</version>
+    <version>${snamp.connector.groovy.version}</version>
     <artifactId>groovy-connector-feature</artifactId>
     <name>Groovy Resource Karaf Feature</name>
     <packaging>kar</packaging>

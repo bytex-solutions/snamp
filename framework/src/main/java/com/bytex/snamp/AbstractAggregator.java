@@ -18,6 +18,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents a basic support for aggregation.
@@ -39,7 +40,7 @@ import java.util.function.Supplier;
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public abstract class AbstractAggregator implements Aggregator {
     private interface AggregationSupplier {
@@ -55,11 +56,7 @@ public abstract class AbstractAggregator implements Aggregator {
 
         @Override
         public Object get(final Aggregator owner) throws InvocationTargetException {
-            try {
-                return callable.call();
-            } catch (final Exception e) {
-                throw new InvocationTargetException(e);
-            }
+            return callAndWrapException(callable, InvocationTargetException::new);
         }
 
         @Override
@@ -299,7 +296,7 @@ public abstract class AbstractAggregator implements Aggregator {
      * Identifies that the parameterless method or field holds the aggregated object.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD})

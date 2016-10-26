@@ -1,7 +1,7 @@
 package com.bytex.snamp.management;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.Descriptive;
+import com.bytex.snamp.Localizable;
 import com.bytex.snamp.core.SupportService;
 import org.osgi.framework.Version;
 
@@ -11,18 +11,18 @@ import java.util.Map;
 /**
  * Describes SNAMP component.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-public interface SnampComponentDescriptor extends Descriptive, Map<String, String> {
+public interface SnampComponentDescriptor extends Localizable, Map<String, String> {
     /**
-     * Represents name of the property that contains connector name.
+     * Represents name of the property that contains connector type.
      */
-    String CONNECTOR_SYSTEM_NAME_PROPERTY = "connectorType";
+    String CONNECTOR_TYPE_PROPERTY = "connectorType";
     /**
-     * Represents name of the property that contains adapter name.
+     * Represents name of the property that contains gateway type.
      */
-    String ADAPTER_SYSTEM_NAME_PROPERTY = "adapterName";
+    String GATEWAY_TYPE_PROPERTY = "gatewayType";
 
     /**
      * Represents name of the property that contains bundle identifier.
@@ -64,7 +64,7 @@ public interface SnampComponentDescriptor extends Descriptive, Map<String, Strin
      * @return {@literal true}, if the requested service is invoked; otherwise, {@literal false}.
      * @throws E An exception raised by service invoker.
      * @see com.bytex.snamp.management.Maintainable
-     * @see com.bytex.snamp.connectors.discovery.DiscoveryService
+     * @see com.bytex.snamp.connector.discovery.DiscoveryService
      * @see com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider
      */
     <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E;

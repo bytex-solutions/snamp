@@ -2,6 +2,7 @@ package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -19,7 +20,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Provides helper methods that allows to create and
  * manipulate of {@link javax.management.openmbean.TabularData} instances.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class TabularDataUtils {
@@ -105,8 +106,8 @@ public final class TabularDataUtils {
     public static TabularData makeKeyValuePairs(final TabularType type, final Map<?, ?> pairs) throws OpenDataException {
         checkKeyValuePairType(type);
         //check entry type: one column must be indexed and another not
-        final Box<String> indexName = new Box<>("");
-        final Box<String> valueName = new Box<>("");
+        final Box<String> indexName = BoxFactory.create("");
+        final Box<String> valueName = BoxFactory.create("");
         getKeyValueColumn(type, indexName, valueName);
         assert !isNullOrEmpty(indexName.get()) : indexName;
         assert !isNullOrEmpty(valueName.get()) : valueName;
@@ -119,8 +120,8 @@ public final class TabularDataUtils {
 
     public static Map<?, ?> makeKeyValuePairs(final TabularData table) throws OpenDataException {
         checkKeyValuePairType(table.getTabularType());
-        final Box<String> keyColumn = new Box<>("");
-        final Box<String> valueColumn = new Box<>("");
+        final Box<String> keyColumn = BoxFactory.create("");
+        final Box<String> valueColumn = BoxFactory.create("");
         getKeyValueColumn(table.getTabularType(), keyColumn, valueColumn);
         assert !isNullOrEmpty(keyColumn.get()) : keyColumn;
         assert !isNullOrEmpty(valueColumn.get()) : valueColumn;

@@ -13,11 +13,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents a collection of default values for each possible OpenType.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class DefaultValues {
@@ -90,11 +91,7 @@ public final class DefaultValues {
             final CompositeType ctype = (CompositeType) type;
             final Map<String, Object> items = ctype.keySet().stream()
                     .collect(Collectors.toMap(Function.identity(), itemName -> get(ctype.getType(itemName))));
-            try {
-                return (T) new CompositeDataSupport(ctype, items);
-            } catch (final OpenDataException e) {
-                throw new UncheckedOpenDataException(e);
-            }
+            return callUnchecked(() -> (T) new CompositeDataSupport(ctype, items));
         } else return (T) values.get(type);
     }
 }

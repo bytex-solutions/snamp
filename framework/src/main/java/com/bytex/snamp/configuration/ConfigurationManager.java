@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
 
@@ -11,10 +12,10 @@ import java.util.function.Function;
  * Represents SNAMP configuration manager that is accessible as OSGi service.
  * <p>
  *     This interface must return an instance of {@link com.bytex.snamp.configuration.internal.CMManagedResourceParser} or
- *     {@link com.bytex.snamp.configuration.internal.CMResourceAdapterParser} when {@link com.bytex.snamp.Aggregator#queryObject(Class)} is called
+ *     {@link CMGatewayParser} when {@link com.bytex.snamp.Aggregator#queryObject(Class)} is called
  *     with suitable arguments.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface ConfigurationManager extends FrameworkService {
@@ -66,13 +67,13 @@ public interface ConfigurationManager extends FrameworkService {
     /**
      * Creates a new instance of entity configuration.
      * @param context Class loader of caller code. Cannot be {@literal null}.
-     * @param entityType Type of entity. Can be {@link AgentConfiguration.ManagedResourceConfiguration},
-     *                  {@link AgentConfiguration.ResourceAdapterConfiguration}. {@link AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration}, {@link AgentConfiguration.ManagedResourceConfiguration.EventConfiguration}, {@link AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration}.
+     * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
+     *                  {@link GatewayConfiguration}. {@link AttributeConfiguration}, {@link EventConfiguration}, {@link OperationConfiguration}.
      * @param <E> Type of requested entity.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      * @since 1.2
      */
-    static <E extends AgentConfiguration.EntityConfiguration> E createEntityConfiguration(final ClassLoader context, final Class<E> entityType){
+    static <E extends EntityConfiguration> E createEntityConfiguration(final ClassLoader context, final Class<E> entityType){
         final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
         if(manager != null)
             try{

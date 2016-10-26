@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
+    <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
+        <details>${project.description}</details>
+        <feature version="[${snamp.framework.version}, ${snamp.framework.maxVersion})">platform-feature</feature>
+        <bundle start="true">mvn:org.apache.aries.jndi/org.apache.aries.jndi.core/${aries.jndi.core.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries.jndi/org.apache.aries.jndi.url/${aries.jndi.url.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries.jndi/org.apache.aries.jndi.api/${aries.jndi.api.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries.jndi/org.apache.aries.jndi.rmi/${aries.jndi.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries/org.apache.aries.util/${aries.util.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries.proxy/org.apache.aries.proxy.api/${aries.proxy.api.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/snmp4j/${snmp4j.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/snmp-gateway/${project.version}</bundle>
+    </feature>
+</features>

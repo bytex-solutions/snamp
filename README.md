@@ -100,5 +100,5 @@ But versioning policy of SNAMP distribution package based the following rules:
 
 * Every MINOR change in the component cause increment of the MINOR version of distribution package
 * Every PATCH change in the component cause increment of the PATCH version of distribution package
-* Every MAJOR change in the adapter/connector = `MINOR + 2` version of distribution package
-* Every MAJOR change in the core bundle cause recursive changes in adapters/connectors. Therefore, MAJOR version of package should be changed
+* Every MAJOR change in the gateway/connector = `MINOR + 2` version of distribution package
+* Every MAJOR change in the core bundle cause recursive changes in gateways/connectors. Therefore, MAJOR version of package should be changed

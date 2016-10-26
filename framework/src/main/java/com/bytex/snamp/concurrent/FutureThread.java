@@ -9,10 +9,10 @@ import java.util.function.Function;
 /**
  * Represents standalone future which computation can be executed in the separated thread.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-public class FutureThread<V> extends Thread implements Future<V>, CompletionStage<V>{
+public class FutureThread<V> extends Thread implements ComputationPipeline<V>{
 
     private final Callable<V> implementation;
     private final CompletableFuture<V> result;

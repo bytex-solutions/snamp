@@ -1,8 +1,8 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.LazyValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents an abstract class for building Open MBeans.
@@ -29,7 +30,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
  *     </ul>
  * </p>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class OpenMBean extends NotificationBroadcasterSupport implements DynamicMBean {
@@ -39,7 +40,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @param <T> Type of the provided MBean feature.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      * @see OpenMBean.OpenNotification
      * @see OpenMBean.OpenOperation
      * @see OpenMBean.OpenAttribute
@@ -79,7 +80,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @param <N> Type of the native notification.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public static abstract class OpenNotification<N> extends OpenMBeanElement<MBeanNotificationInfo>{
         private final String[] types;
@@ -614,13 +615,10 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     @Override
     public final AttributeList getAttributes(final String[] names) {
         final AttributeList result = new AttributeList();
-        for(final String name: names)
-            try{
-                result.add(new Attribute(name, getAttribute(name)));
-            }
-            catch(final Exception ignored){
-
-            }
+        for (final String name : names) {
+            final Object value = callUnchecked(() -> getAttribute(name));
+            result.add(new Attribute(name, value));
+        }
         return result;
     }
 
@@ -635,14 +633,13 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     @Override
     public final AttributeList setAttributes(final AttributeList attributes) {
         final AttributeList result = new AttributeList();
-        for(final Object attr: attributes)
-            try{
+        for(final Object attr: attributes){
+            callUnchecked(() -> {
                 setAttribute((Attribute)attr);
-                result.add(attr);
-            }
-            catch (final Exception ignored){
-
-            }
+                return null;
+            });
+            result.add(attr);
+        }
         return result;
     }
 

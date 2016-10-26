@@ -1,22 +1,22 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 /**
  * Deletes configuration parameter from event.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-event-param",
     description = "Delete configuration parameter from event")
-public final class DeleteEventParameterCommand extends ConfigurationCommand {
+public final class DeleteEventParameterCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     @SpecialUse
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to modify")
     private String resourceName = "";
@@ -29,11 +29,15 @@ public final class DeleteEventParameterCommand extends ConfigurationCommand {
     @Argument(index = 2, name = "parameter", required = true, description = "Name of parameter to remove")
     private String paramName = "";
 
+    public DeleteEventParameterCommand(){
+        super(ManagedResourceConfiguration.class);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName))
-            if(configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName).getFeatures(EventConfiguration.class).containsKey(userDefinedName)){
-                configuration.getEntities(ManagedResourceConfiguration.class)
+    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
+        if(configuration.containsKey(resourceName))
+            if(configuration.get(resourceName).getFeatures(EventConfiguration.class).containsKey(userDefinedName)){
+                configuration
                         .get(resourceName)
                         .getFeatures(EventConfiguration.class)
                         .get(userDefinedName)

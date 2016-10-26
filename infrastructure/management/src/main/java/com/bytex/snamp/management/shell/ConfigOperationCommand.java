@@ -2,26 +2,25 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.OperationConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
-import java.time.temporal.ChronoUnit;
-
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
+import java.time.Duration;
 
 /**
  * Configures operation.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "configure-operation",
     description = "Configure new or existing operation")
-public final class ConfigOperationCommand extends ConfigurationCommand {
+public final class ConfigOperationCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     private static final long INFINITE_TIMEOUT = -1;
 
     @SpecialUse
@@ -33,20 +32,24 @@ public final class ConfigOperationCommand extends ConfigurationCommand {
     private String name = "";
 
     @SpecialUse
-    @Argument(index = 2, name = "readWriteTimeout", required = false, description = "Invocation timeout for operation, in millis")
-    private long readWriteTimeout = INFINITE_TIMEOUT;
+    @Argument(index = 2, name = "invocationTimeout", required = false, description = "Invocation timeout for operation, in millis")
+    private long invocationTimeout = INFINITE_TIMEOUT;
 
     @SpecialUse
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, description = "Configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
+    public ConfigOperationCommand(){
+        super(ManagedResourceConfiguration.class);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)){
-            final ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
+    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
+        if(configuration.containsKey(resourceName)){
+            final ManagedResourceConfiguration resource = configuration.get(resourceName);
             final OperationConfiguration operation = resource.getFeatures(OperationConfiguration.class).getOrAdd(name);
-            if(readWriteTimeout > INFINITE_TIMEOUT)
-                operation.setInvocationTimeout(readWriteTimeout, ChronoUnit.MILLIS);
+            if(invocationTimeout > INFINITE_TIMEOUT)
+                operation.setInvocationTimeout(Duration.ofMillis(invocationTimeout));
             if(!ArrayUtils.isNullOrEmpty(parameters))
                 for(final String param: parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);

@@ -4,23 +4,25 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.Internal;
 
 import javax.management.openmbean.*;
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.nio.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Describes a well-known type that should be supported by
- * resource connector and understood by resource adapter.
+ * resource connector and understood by gateway.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Class<?>> {
@@ -299,7 +301,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
         }
     }
 
-    private static final LoadingCache<Object, WellKnownType> cache =
+    private static final LoadingCache<Object, WellKnownType> CACHE =
             CacheBuilder.newBuilder().weakKeys().build(new WellKnownTypeCacheLoader());
 
     private final OpenType<?> openType;
@@ -308,23 +310,14 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
 
     <T> WellKnownType(final String name, final SimpleType<T> openType){
         this.openType = Objects.requireNonNull(openType, "openType is null.");
-        try {
-            this.javaType = Class.forName(openType.getClassName());
-        } catch (final ClassNotFoundException e) {
-            throw new ExceptionInInitializerError(e);
-        }
+        this.javaType = callUnchecked(() -> Class.forName(openType.getClassName()));
         this.displayName = name;
     }
 
     <A> WellKnownType(final String name, final SimpleType<?> componentType,
                       final boolean primitive){
-        try {
-            this.openType = new ArrayType<A>(componentType, primitive);
-            this.javaType = Class.forName(openType.getClassName());
-        }
-        catch (final OpenDataException | ClassNotFoundException e) {
-            throw new ExceptionInInitializerError(e);
-        }
+        this.openType = callUnchecked(() -> new ArrayType<A>(componentType, primitive));
+        this.javaType = callUnchecked(() -> Class.forName(openType.getClassName()));
         this.displayName = name;
     }
 
@@ -511,7 +504,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
     public static WellKnownType getType(final String className) {
         if(className == null || className.isEmpty()) return null;
         else try {
-            return cache.get(className);
+            return CACHE.get(className);
         } catch (ExecutionException ignored) {
             return null;
         }
@@ -547,7 +540,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
                 return TABLE_ARRAY;
         }
         try {
-            return cache.get(openType);
+            return CACHE.get(openType);
         } catch (final ExecutionException ignored) {
             return null;
         }
@@ -574,7 +567,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
     public static WellKnownType getType(final TypeToken<?> token){
         if(token == null) return null;
         else try {
-            return cache.get(token);
+            return CACHE.get(token);
         } catch (final ExecutionException ignored) {
             return null;
         }
@@ -629,9 +622,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
         return getItemType(type.getRowType(), itemName);
     }
 
-    @Internal
-    static long cacheSize(){
-        return cache.size();
+    public Object cast(final Object value){
+        return getJavaType().cast(value);
     }
 
     @Override

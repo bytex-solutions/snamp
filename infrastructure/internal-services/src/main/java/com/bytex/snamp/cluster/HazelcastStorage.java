@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class HazelcastStorage implements ConcurrentMap<String, Object> {
@@ -103,9 +103,5 @@ final class HazelcastStorage implements ConcurrentMap<String, Object> {
     @Override
     public String toString(){
         return underlyingMap.toString();
-    }
-
-    static void release(final HazelcastInstance hazelcast, final String collectionName) {
-        hazelcast.getMap(collectionName).destroy();
     }
 }

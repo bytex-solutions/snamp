@@ -1,11 +1,11 @@
 package com.bytex.snamp.configuration.diff;
 
-import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class RemoveManagedResourcePatchImpl extends AbstractManagedResourcePatch implements RemoveManagedResourcePatch {
@@ -16,6 +16,6 @@ final class RemoveManagedResourcePatchImpl extends AbstractManagedResourcePatch 
 
     @Override
     protected void applyTo(final EntityMap<? extends ManagedResourceConfiguration> baseline) {
-        baseline.remove(getResourceName());
+        baseline.remove(getEntityID());
     }
 }

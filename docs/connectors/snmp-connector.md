@@ -174,7 +174,7 @@ These parameters can be specified at JVM level and affects all instances of SNMP
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-com.bytex.snamp.connectors.snmp.discoveryTimeout | Integer | No | Timeout value (in millis) used when walking through available OIDs. Walking will be performed while using discovery functionality or smart mode | `3000`
+com.bytex.snamp.connector.snmp.discoveryTimeout | Integer | No | Timeout value (in millis) used when walking through available OIDs. Walking will be performed while using discovery functionality or smart mode | `3000`
 
 ## Clustering
 Only SNAMP active node with SNMP Resource Connector routes SNMP traps to the adapters.

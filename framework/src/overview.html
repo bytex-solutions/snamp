@@ -1,22 +1,22 @@
 <body>
 SNAMP is a middleware solution for monitoring of the software components in your enterprise IT-infrastructure.
-This solution is running on top of OSGi Framework and can be hosted in every OSGi R4.3-compliant containers,
+This solution is running on top of OSGi Framework and can be hosted in every OSGi R5.0-compliant containers,
 such as Apache Felix, Knopflerfish, Eclipse Equinox.
 It consists of the following parts (bundles):
 <ul>
     <li>SNAMP Framework - reusable set of classes and interfaces used to write SNAMP components.</li>
     <li>Resource Connector - provides connection to the managed resource such as server.
         This is a back-end component of the SNAMP solution.</li>
-    <li>Resource Adapter - provides access to the managed resource in protocol-specific manner (such as SNMP).
-    Resource adapter provides conversion between management protocol and resource connector interface.
+    <li>Gateway - provides access to the managed resource in protocol-specific manner (such as SNMP).
+    Gateway provides conversion between management protocol and resource connector interface.
     This is a front-end of the SNAMP solution.</li>
     <li>Configuration Manager - provides SNAMP management interface for configuring SNAMP, such as Web console or
     command-line interface.</li>
 </ul>
 For each architectural component the SNAMP solution provides separated Java package:
 <ul>
-    <li>{@link com.bytex.snamp.connectors} for management connectors.</li>
-    <li>{@link com.bytex.snamp.adapters} for adapters.</li>
+    <li>{@link com.bytex.snamp.connector} for resource connectors.</li>
+    <li>{@link com.bytex.snamp.gateway} for management gateways.</li>
     <li>{@link com.bytex.snamp.configuration} for configuring SNAMP components.</li>
 </ul>
 </body>

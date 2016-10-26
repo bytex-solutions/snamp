@@ -31,7 +31,6 @@
     <aries.jndi.url.version>1.1.0</aries.jndi.url.version>
     <aries.jndi.api.version>1.1.0</aries.jndi.api.version>
     <aries.jmx.api.version>1.1.1</aries.jmx.api.version>
-    <jolokia.version>1.3.0</jolokia.version>     <!--Jolokia version should be aligned with HawtIO used in SNAMP Management Console-->
     <hazelcast.version>3.4.2</hazelcast.version>
     <thrift.version>0.9.3</thrift.version>
     <atmosphere.version>2.2.9</atmosphere.version>
@@ -45,36 +44,34 @@
     <snmp4j.version>2.5.0</snmp4j.version>
     <snmp4j.agent.version>2.5.1</snmp4j.agent.version>
     <sshj.version>0.10.0</sshj.version>
-    <snamp.framework.version>1.2.0</snamp.framework.version>
-    <snamp.framework.maxVersion>2</snamp.framework.maxVersion>
+    <snamp.framework.version>2.0.0</snamp.framework.version>
+    <snamp.framework.maxVersion>3</snamp.framework.maxVersion>
 
-    <snamp.adapters.http.version>1.2.0</snamp.adapters.http.version>
-    <snamp.adapters.jmx.version>1.2.0</snamp.adapters.jmx.version>
-    <snamp.adapters.nagios.version>1.2.0</snamp.adapters.nagios.version>
-    <snamp.adapters.nrdp.version>1.2.0</snamp.adapters.nrdp.version>
-    <snamp.adapters.nsca.version>1.2.0</snamp.adapters.nsca.version>
-    <snamp.adapters.snmp.version>1.2.0</snamp.adapters.snmp.version>
-    <snamp.adapters.ssh.version>1.2.0</snamp.adapters.ssh.version>
-    <snamp.adapters.syslog.version>1.2.0</snamp.adapters.syslog.version>
-    <snamp.adapters.xmpp.version>1.2.0</snamp.adapters.xmpp.version>
-    <snamp.adapters.groovy.version>1.2.0</snamp.adapters.groovy.version>
-    <snamp.adapters.decanter.version>1.2.0</snamp.adapters.decanter.version>
+    <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
+    <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
+    <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
+    <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
+    <snamp.gateway.nsca.version>2.0.0</snamp.gateway.nsca.version>
+    <snamp.gateway.snmp.version>2.0.0</snamp.gateway.snmp.version>
+    <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
+    <snamp.gateway.syslog.version>2.0.0</snamp.gateway.syslog.version>
+    <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
+    <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
 
-    <snamp.jmxhelper.version>1.2.0</snamp.jmxhelper.version>
-    <snamp.management.version>1.2.0</snamp.management.version>
-    <snamp.services.version>1.2.0</snamp.services.version>
+    <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
+    <snamp.management.version>2.0.0</snamp.management.version>
+    <snamp.services.version>2.0.0</snamp.services.version>
 
-    <snamp.connectors.rshell.version>1.2.0</snamp.connectors.rshell.version>
-    <snamp.connectors.aggregator.version>1.2.0</snamp.connectors.aggregator.version>
-    <snamp.connectors.groovy.version>1.2.0</snamp.connectors.groovy.version>
-    <snamp.connectors.ibmwmq.version>1.2.0</snamp.connectors.ibmwmq.version>
-    <snamp.connectors.jmx.version>1.2.0</snamp.connectors.jmx.version>
-    <snamp.connectors.mda.version>1.2.0</snamp.connectors.mda.version>
-    <snamp.connectors.snmp.version>1.2.0</snamp.connectors.snmp.version>
-    <snamp.connectors.modbus.version>1.2.0</snamp.connectors.modbus.version>
-    <snamp.connectors.mq.version>1.2.0</snamp.connectors.mq.version>
+    <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
+    <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
+    <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
+    <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
+    <snamp.connector.mda.version>2.0.0</snamp.connector.mda.version>
+    <snamp.connector.snmp.version>2.0.0</snamp.connector.snmp.version>
+    <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
+    <snamp.connector.mq.version>2.0.0</snamp.connector.mq.version>
   </properties>
-  <version>1.2.0</version>
+  <version>2.0.0</version>
   <organization>
         <name>Bytex</name>
         <url>http://www.bytex.solutions/</url>
@@ -290,14 +287,14 @@
   <modules>
     <module>framework</module>
     <module>connectors</module>
-    <module>adapters</module>
+    <module>gateways</module>
     <module>third-party-libs/bundlized/snmp4j</module>
     <module>third-party-libs/bundlized/sshj</module>
     <module>infrastructure/jmx-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
     <module>features/platform-feature</module>
-    <module>features/adapters-features</module>
+    <module>features/gateways-features</module>
     <module>features/connectors-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>osgi-tests</module>

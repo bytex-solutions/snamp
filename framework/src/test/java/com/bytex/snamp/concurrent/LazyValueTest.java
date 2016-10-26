@@ -1,5 +1,7 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.LazyValueFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -13,7 +15,7 @@ public final class LazyValueTest extends Assert {
     public void illegalStateTest(){
         final LazyValue<BigInteger> lazy = LazyValueFactory.THREAD_SAFE.of(() -> BigInteger.TEN);
         assertFalse(lazy.isActivated());
-        lazy.getIfActivated();
+        lazy.getIfPresent();
     }
 
     @Test

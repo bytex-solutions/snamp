@@ -31,7 +31,7 @@ import java.util.stream.StreamSupport;
  *     Derived class should not be inner private.
  * @param <T> Type of the enum that describes all maintenance actions supported by this class.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  * @see MaintenanceActionInfo
  */
@@ -41,7 +41,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * Indicates that the annotated method is used for action invocation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -66,7 +66,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * from your code.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected static final class ActionHandle{
         private final MethodHandle handle;
@@ -325,7 +325,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @throws java.util.NoSuchElementException Action with the specified name doesn't exist.
      */
     public static <T extends Enum<T> & MaintenanceActionInfo> String getActionDescription(final Set<T> actions, final String actionName, final Locale loc){
-        return getAction(actions, actionName).getDescription(loc);
+        return getAction(actions, actionName).toString(loc);
     }
 
     /**

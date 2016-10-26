@@ -12,7 +12,7 @@ import java.util.Objects;
  * @param <V> Type of the values.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public final class KeyValueTypeBuilder<K, V> implements OpenTypeBuilder<TabularType> {
     /**
@@ -112,19 +112,5 @@ public final class KeyValueTypeBuilder<K, V> implements OpenTypeBuilder<TabularT
                 .addColumn(keyColumn, keyColumnDescr, keyColumnType, true)
                 .addColumn(valueColumn, valueColumnDescr, valueColumnType, false)
                 .build();
-    }
-
-    /**
-     * Constructs a new type that holds key/value pairs.
-     * @return A new tabular type.
-     * @throws IllegalStateException Unable to construct type.
-     */
-    @Override
-    public TabularType get() throws IllegalStateException {
-        try {
-            return build();
-        } catch (final OpenDataException e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

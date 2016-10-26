@@ -1,0 +1,52 @@
+package com.bytex.snamp.gateway.nrdp;
+
+import ch.shamu.jsendnrdp.NRDPException;
+import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
+import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
+import ch.shamu.jsendnrdp.impl.NagiosCheckSenderImpl;
+import com.google.common.collect.ImmutableList;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
+
+/**
+ * @author Roman Sakno
+ * @version 2.0
+ * @since 1.0
+ */
+final class ConcurrentPassiveCheckSender extends NagiosCheckSenderImpl {
+    private final ExecutorService threadPool;
+
+    ConcurrentPassiveCheckSender(final NRDPServerConnectionSettings settings,
+                                 final ExecutorService threadPool) {
+        super(settings);
+        this.threadPool = threadPool;
+    }
+
+    void send(final NagiosCheckResult checkResult){
+        send(ImmutableList.of(checkResult));
+    }
+
+    <I> void send(final Function<? super I, NagiosCheckResult> checkResult, final I input) {
+        threadPool.submit(() -> {
+            final NagiosCheckResult result = checkResult.apply(input);
+            if (result != null)
+                ConcurrentPassiveCheckSender.super.send(ImmutableList.of(result));
+            return result;
+        });
+    }
+
+    @Override
+    public void send(final Collection<NagiosCheckResult> results) {
+        threadPool.submit(new Callable<Void>() {
+            @Override
+            public Void call() throws IOException, NRDPException {
+                ConcurrentPassiveCheckSender.super.send(results);
+                return null;
+            }
+        });
+    }
+}

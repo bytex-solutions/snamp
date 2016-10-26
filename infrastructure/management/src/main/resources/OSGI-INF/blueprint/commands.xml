@@ -2,7 +2,7 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
-            <action class="com.bytex.snamp.management.shell.InstalledAdaptersCommand"/>
+            <action class="com.bytex.snamp.management.shell.InstalledGatewaysCommand"/>
         </command>
         <command>
             <action class="com.bytex.snamp.management.shell.InstalledConnectorsCommand"/>
@@ -14,34 +14,34 @@
             <action class="com.bytex.snamp.management.shell.RestartCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.ConfiguredAdaptersCommand"/>
+            <action class="com.bytex.snamp.management.shell.SendBroadcastMessageCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.ConfigAdapterInstanceCommand"/>
+            <action class="com.bytex.snamp.management.shell.ReceiveMessageCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.DeleteAdapterInstanceCommand"/>
+            <action class="com.bytex.snamp.management.shell.ConfiguredGatewaysCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.DeleteAdapterParameterCommand"/>
+            <action class="com.bytex.snamp.management.shell.ConfigGatewayInstanceCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.StartAdapterCommand"/>
+            <action class="com.bytex.snamp.management.shell.DeleteGatewayInstanceCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.StopAdapterCommand"/>
+            <action class="com.bytex.snamp.management.shell.DeleteGatewayParameterCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.StartConnectorCommand"/>
+            <action class="com.bytex.snamp.management.shell.EnableGatewayCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.StopConnectorCommand"/>
+            <action class="com.bytex.snamp.management.shell.DisableGatewayCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.DumpJaasConfigurationCommand"/>
+            <action class="com.bytex.snamp.management.shell.EnableConnectorCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.SetupJaasConfiguration"/>
+            <action class="com.bytex.snamp.management.shell.DisableConnectorCommand"/>
         </command>
         <command>
             <action class="com.bytex.snamp.management.shell.ConfiguredResourcesCommand"/>
@@ -80,7 +80,7 @@
             <action class="com.bytex.snamp.management.shell.ResourceInfoCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.AdapterInstanceInfoCommand"/>
+            <action class="com.bytex.snamp.management.shell.GatewayInstanceInfoCommand"/>
         </command>
         <command>
             <action class="com.bytex.snamp.management.shell.ConfigOperationCommand"/>
@@ -99,12 +99,6 @@
         </command>
         <command>
             <action class="com.bytex.snamp.management.shell.ReadAttributesCommand"/>
-        </command>
-        <command>
-            <action class="com.bytex.snamp.management.shell.SuspendEventsCommand"/>
-        </command>
-        <command>
-            <action class="com.bytex.snamp.management.shell.ResumeEventsCommand"/>
         </command>
         <command>
             <action class="com.bytex.snamp.management.shell.ListenEventsCommand"/>

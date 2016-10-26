@@ -9,7 +9,7 @@ import java.util.logging.Logger;
  * Represents an abstract class for building SNAMP platform services.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 @Internal
 public abstract class AbstractFrameworkService extends AbstractAggregator implements FrameworkService {

@@ -8,7 +8,7 @@ import java.util.Objects;
  * Represents weak reference to the record in the map.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class MapKeyRef<K, V> extends WeakReference<Map<K, V>> implements Map.Entry<K, V> {

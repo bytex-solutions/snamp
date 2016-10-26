@@ -1,22 +1,17 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.management.AbstractSnampManager;
-import com.bytex.snamp.security.LoginConfigurationManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.logging.Logger;
 
 /**
  * The type Snamp manager impl.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class SnampManagerImpl extends AbstractSnampManager {
@@ -33,15 +28,15 @@ public final class SnampManagerImpl extends AbstractSnampManager {
         }
     }
 
-    private final static class ResourceAdapterDescriptorImpl extends ResourceAdapterDescriptor{
+    private final static class GatewayDescriptorImpl extends GatewayDescriptor {
         private static final long serialVersionUID = 6911837979438477985L;
 
         /**
-         * Instantiates a new Resource adapter descriptor impl.
+         * Instantiates a new gateway descriptor impl.
          *
          * @param systemName the system name
          */
-        private ResourceAdapterDescriptorImpl(final String systemName) {
+        private GatewayDescriptorImpl(final String systemName) {
             super(systemName);
         }
     }
@@ -58,14 +53,14 @@ public final class SnampManagerImpl extends AbstractSnampManager {
     }
 
     /**
-     * Creates a new instance of the resource adapter descriptor.
+     * Creates a new instance of the gateway descriptor.
      *
-     * @param systemName The system name of the adapter.
-     * @return A new instance of the resource adapter descriptor.
+     * @param gatewayType Type of gateway.
+     * @return A new instance of the gateway descriptor.
      */
     @Override
-    protected ResourceAdapterDescriptorImpl createResourceAdapterDescriptor(final String systemName) {
-        return new ResourceAdapterDescriptorImpl(systemName);
+    protected GatewayDescriptorImpl createGatewayDescriptor(final String gatewayType) {
+        return new GatewayDescriptorImpl(gatewayType);
     }
 
     /**
@@ -75,44 +70,17 @@ public final class SnampManagerImpl extends AbstractSnampManager {
      */
     @Override
     public Logger getLogger() {
-        return MonitoringUtils.getLogger();
+        return SnampCoreMBean.getLoggerImpl();
     }
 
     public static void restart(final BundleContext context) throws BundleException {
-        //first, stop all adapters
-        ResourceAdapterActivator.stopResourceAdapters(context);
-        //second, stop all connectors
-        ManagedResourceActivator.stopResourceConnectors(context);
-        //third, start all connectors
-        ManagedResourceActivator.startResourceConnectors(context);
-        //fourth, start all adapters
-        ResourceAdapterActivator.startResourceAdapters(context);
-    }
-
-    public static void dumpJaasConfiguration(final BundleContext context, final Writer out) throws IOException {
-        final ServiceHolder<LoginConfigurationManager> manager = ServiceHolder.tryCreate(context, LoginConfigurationManager.class);
-        if (manager != null)
-            try {
-                manager.get().dumpConfiguration(out);
-            } finally {
-                manager.release(context);
-            }
-    }
-
-    public static void saveJaasConfiguration(final BundleContext context, final Reader in) throws IOException {
-        final ServiceHolder<LoginConfigurationManager> manager = ServiceHolder.tryCreate(context, LoginConfigurationManager.class);
-        if (manager != null)
-            try {
-                if (in == null)
-                    manager.get().resetConfiguration();
-                else
-                    manager.get().loadConfiguration(in);
-            } catch (final IOException e) {
-                throw e;
-            } catch (final Exception e) {
-                throw new IOException(e);
-            } finally {
-                manager.release(context);
-            }
+        //first, stop all gateway
+        GatewayActivator.disableGateways(context);
+        //second, stop all connector
+        ManagedResourceActivator.disableConnectors(context);
+        //third, start all connector
+        ManagedResourceActivator.enableConnectors(context);
+        //fourth, start all gateway
+        GatewayActivator.enableGateways(context);
     }
 }

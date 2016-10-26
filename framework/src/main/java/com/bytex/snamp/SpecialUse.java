@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Marks the method, field, constructor or parameter as an element with special use.
  * This means that the program element is used by Reflection or native code
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Target({ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER})

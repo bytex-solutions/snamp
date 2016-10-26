@@ -3,7 +3,7 @@ import org.osgi.service.cm.Configuration;
 
 import java.io.IOException;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
+import com.bytex.snamp.configuration.EntityConfiguration;
 
 /**
  * Provides parsing of SNAMP configuration from data provided by {@link org.osgi.service.cm.Configuration}.
@@ -12,7 +12,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
  *     configuration storage provided and this interface will be deprecated.
  * @param <E> Type of configuration section.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 public interface CMConfigurationParser<E extends EntityConfiguration> {

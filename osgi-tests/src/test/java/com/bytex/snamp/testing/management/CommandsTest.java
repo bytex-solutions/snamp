@@ -1,16 +1,13 @@
 package com.bytex.snamp.testing.management;
 
-import com.bytex.snamp.concurrent.ThreadPoolConfig;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.PlatformVersion;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import org.apache.felix.service.command.CommandProcessor;
 import org.apache.felix.service.command.CommandSession;
 import org.junit.Test;
@@ -20,18 +17,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-
 /**
  * Shell commands test.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-@SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_ADAPTER})
+@SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_GATEWAY})
 public final class CommandsTest extends AbstractSnampIntegrationTest {
     private Object runCommand(String command) throws Exception{
         final ServiceHolder<CommandProcessor> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), CommandProcessor.class);
@@ -68,11 +60,14 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     public void threadPoolConfigTest() throws Exception{
         final Object result = runCommand("snamp:thread-pool-add -m 3 -M 5 -t 2000 tp1");
         assertTrue(result instanceof CharSequence);
+        Thread.sleep(1000); //adding thread pool is async operation
         final ServiceHolder<ThreadPoolRepository> threadPoolRepo = ServiceHolder.tryCreate(getTestBundleContext(), ThreadPoolRepository.class);
+        final ServiceHolder<ConfigurationManager> configManager = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationManager.class);
         assertNotNull(threadPoolRepo);
+        assertNotNull(configManager);
         try{
-            final ThreadPoolConfig config = threadPoolRepo.get().getConfiguration("tp1");
-            assertTrue(config.isInfiniteQueue());
+            final ThreadPoolConfiguration config = configManager.get().transformConfiguration(cfg -> cfg.getEntities(ThreadPoolConfiguration.class).get("tp1"));
+            assertEquals(ThreadPoolConfiguration.INFINITE_QUEUE_SIZE, config.getQueueSize());
             assertEquals(3, config.getMinPoolSize());
             assertEquals(5, config.getMaxPoolSize());
             assertEquals(2000, config.getKeepAliveTime().toMillis());
@@ -80,13 +75,14 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
             final Future<Integer> task = executor.submit(() -> 10);
             assertEquals(Integer.valueOf(10), task.get());
         }   finally {
+            configManager.release(getTestBundleContext());
             threadPoolRepo.release(getTestBundleContext());
         }
     }
 
     @Test
-    public void installedAdaptersTest() throws Exception {
-        assertTrue(runCommand("snamp:installed-adapters").toString().startsWith("Groovy Resource Adapter"));
+    public void installedGatewaysTest() throws Exception {
+        assertTrue(runCommand("snamp:installed-gateways").toString().startsWith("Groovy Gateway"));
     }
 
     @Test
@@ -101,58 +97,46 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void adapterInstancesTest() throws Exception{
-        assertTrue(runCommand("snamp:adapter-instances").toString().startsWith("Instance: adapterInst"));
+    public void gatewayInstancesTest() throws Exception{
+        assertTrue(runCommand("snamp:gateway-instances").toString().startsWith("Instance: gatewayInst"));
     }
 
     @Test
-    public void adapterConfigurationTest() throws Exception {
-        runCommand("snamp:configure-adapter -p k=v -p key=value instance2 dummy");
+    public void gatewayConfigurationTest() throws Exception {
+        runCommand("snamp:configure-gateway -p k=v -p key=value instance2 dummy");
         //saving configuration is asynchronous process therefore it is necessary to wait
         Thread.sleep(500);
         processConfiguration(config -> {
-            assertTrue(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
-            assertEquals("dummy", config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getAdapterName());
-            assertEquals("v", config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getParameters().get("k"));
+            assertTrue(config.getEntities(GatewayConfiguration.class).containsKey("instance2"));
+            assertEquals("dummy", config.getEntities(GatewayConfiguration.class).get("instance2").getType());
+            assertEquals("v", config.getEntities(GatewayConfiguration.class).get("instance2").getParameters().get("k"));
             return false;
         });
-        runCommand("snamp:delete-adapter-param instance2 k");
+        runCommand("snamp:delete-gateway-param instance2 k");
         Thread.sleep(500);
         processConfiguration(config -> {
-            assertTrue(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
-            assertFalse(config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getParameters().containsKey("k"));
+            assertTrue(config.getEntities(GatewayConfiguration.class).containsKey("instance2"));
+            assertFalse(config.getEntities(GatewayConfiguration.class).get("instance2").getParameters().containsKey("k"));
             return false;
         });
-        runCommand("snamp:delete-adapter instance2");
+        runCommand("snamp:delete-gateway instance2");
         Thread.sleep(500);
         processConfiguration(config -> {
-            assertFalse(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
+            assertFalse(config.getEntities(GatewayConfiguration.class).containsKey("instance2"));
             return false;
         });
     }
 
     @Test
-    public void startStopAdapterTest() throws Exception {
-        runCommand("snamp:stop-adapter groovy");
-        runCommand("snamp:start-adapter groovy");
+    public void startStopGatewayTest() throws Exception {
+        runCommand("snamp:disable-gateway groovy");
+        runCommand("snamp:enable-gateway groovy");
     }
 
     @Test
     public void startStopConnectorTest() throws Exception{
-        runCommand("snamp:stop-connector jmx");
-        runCommand("snamp:start-connector jmx");
-    }
-
-    @Test
-    public void jaasConfigTest() throws Exception{
-        runCommand(String.format("snamp:setup-jaas %s", getPathToFileInProjectRoot("jaas.json")));
-        final File jaasConfig = File.createTempFile("snamp", "jaas");
-        runCommand(String.format("snamp:dump-jaas %s", jaasConfig.getPath()));
-        try(final Reader reader = new FileReader(jaasConfig)){
-            final Gson formatter = new Gson();
-            final JsonElement element = formatter.fromJson(reader, JsonElement.class);
-            assertNotNull(element);
-        }
+        runCommand("snamp:disable-connector jmx");
+        runCommand("snamp:enable-connector jmx");
     }
 
     @Test
@@ -168,7 +152,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         Thread.sleep(500);
         processConfiguration(config -> {
             assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
-            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getType());
             assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
             assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
             return false;
@@ -198,7 +182,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         Thread.sleep(500);
         processConfiguration(config -> {
             assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
-            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getType());
             assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
             assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
             return false;
@@ -245,7 +229,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         Thread.sleep(500);
         processConfiguration(config -> {
             assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
-            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getType());
             assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
             assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
             return false;
@@ -285,9 +269,9 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void adapterInstanceInfoTest() throws Exception{
-        final String result = runCommand("snamp:adapter adapterInst").toString();
-        assertTrue(result.contains("System Name: dummyAdapter"));
+    public void gatewayInstanceInfoTest() throws Exception {
+        final String result = runCommand("snamp:gateway-instance gatewayInst").toString();
+        assertTrue(result.contains("System Name: dummyGateway"));
     }
 
     @Test
@@ -338,12 +322,12 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-        final ResourceAdapterConfiguration adapter =
-                config.getEntities(ResourceAdapterConfiguration.class).getOrAdd("adapterInst");
-        adapter.setAdapterName("dummyAdapter");
+        final GatewayConfiguration gatewayInstance =
+                config.getEntities(GatewayConfiguration.class).getOrAdd("gatewayInst");
+        gatewayInstance.setType("dummyGateway");
         final ManagedResourceConfiguration resource =
                 config.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
-        resource.setConnectionType("dummyConnector");
+        resource.setType("dummyConnector");
         resource.setConnectionString("http://acme.com");
     }
 }

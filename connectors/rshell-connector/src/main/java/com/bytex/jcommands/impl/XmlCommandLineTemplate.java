@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Represents XML-serializable template of the command-line tool.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @XmlRootElement(name = "template", namespace = XmlConstants.NAMESPACE)
@@ -122,7 +122,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @return The command to apply.
      * @throws java.lang.IllegalStateException The command template is not specified.
      */
-    @ThreadSafe(true)
+    @ThreadSafe()
     public final String renderCommand(final Map<String, ?> channelParameters) throws IllegalStateException {
         return renderCommand(channelParameters, Collections.emptyMap());
     }

@@ -1,118 +1,63 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.connectors.metrics.*;
+import com.bytex.snamp.connector.metrics.*;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
+import com.bytex.snamp.management.SummaryMetrics;
 import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
 import java.util.Map;
 
 import static com.bytex.snamp.jmx.OpenMBean.OpenAttribute;
+import static com.bytex.snamp.jmx.MetricsConverter.*;
 
 /**
  * Provides global metrics.
  */
 final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, CompositeType> {
-    private static final String NUM_OF_WRITES = "numberOfAttributeWrites";
-    private static final String NUM_OF_WRITES_MINUTE = NUM_OF_WRITES.concat("LastMinute");
-    private static final String NUM_OF_WRITES_HOUR = NUM_OF_WRITES.concat("LastHour");
-    private static final String NUM_OF_WRITES_DAY = NUM_OF_WRITES.concat("Last24Hours");
+    private static final String ATTRIBUTES_WRITES_FIELD = "attributesWrites";
+    private static final String ATTRIBUTE_READS_FIELD = "attributeReads";
+    private static final String NOTIFICATIONS_FIELD = "notifications";
+    private static final String INVOCATIONS_FIELD = "invocations";
 
-    private static final String NUM_OF_READS = "numberOfAttributeReads";
-    private static final String NUM_OF_READS_MINUTE = NUM_OF_READS.concat("LastMinute");
-    private static final String NUM_OF_READS_HOUR = NUM_OF_READS.concat("LastHour");
-    private static final String NUM_OF_READS_DAY = NUM_OF_READS.concat("Last24Hours");
-
-    private static final String NUM_OF_EMITTED = "numberOfEmittedNotifications";
-    private static final String NUM_OF_EMITTED_MINUTE = NUM_OF_READS.concat("LastMinute");
-    private static final String NUM_OF_EMITTED_HOUR = NUM_OF_READS.concat("LastHour");
-    private static final String NUM_OF_EMITTED_DAY = NUM_OF_READS.concat("Last24Hours");
-
-    private static final String NUM_OF_INVOKED = "numberOfOperationInvocations";
-    private static final String NUM_OF_INVOKED_MINUTE = NUM_OF_READS.concat("LastMinute");
-    private static final String NUM_OF_INVOKED_HOUR = NUM_OF_READS.concat("LastHour");
-    private static final String NUM_OF_INVOKED_DAY = NUM_OF_READS.concat("Last24Hours");
 
     static final CompositeType TYPE = Utils.interfaceStaticInitialize(() -> new CompositeTypeBuilder("Metrics", "Consolidated set of metrics")
-            .addItem(NUM_OF_WRITES, "Total number of attribute writes", SimpleType.LONG)
-            .addItem(NUM_OF_WRITES_MINUTE, "Number of attribute writes for the last minute", SimpleType.LONG)
-            .addItem(NUM_OF_WRITES_HOUR, "Number of attribute writes for the last hour", SimpleType.LONG)
-            .addItem(NUM_OF_WRITES_DAY, "Number of attribute writes for the last 24 hours", SimpleType.LONG)
-
-            .addItem(NUM_OF_READS, "Total number of attribute reads", SimpleType.LONG)
-            .addItem(NUM_OF_READS_MINUTE, "Number of attribute reads for the last minute", SimpleType.LONG)
-            .addItem(NUM_OF_READS_HOUR, "Number of attribute reads for the last hour", SimpleType.LONG)
-            .addItem(NUM_OF_READS_DAY, "Number of attribute reads for the last 24 hours", SimpleType.LONG)
-
-            .addItem(NUM_OF_EMITTED, "Total number of emitted notifications", SimpleType.LONG)
-            .addItem(NUM_OF_EMITTED_MINUTE, "Number of emitted notifications for the last minute", SimpleType.LONG)
-            .addItem(NUM_OF_EMITTED_HOUR, "Number of emitted notifications for the last hour", SimpleType.LONG)
-            .addItem(NUM_OF_EMITTED_DAY, "Number of emitted notifications for the last day", SimpleType.LONG)
-
-            .addItem(NUM_OF_INVOKED, "Total number of emitted notifications", SimpleType.LONG)
-            .addItem(NUM_OF_INVOKED_MINUTE, "Number of emitted notifications for the last minute", SimpleType.LONG)
-            .addItem(NUM_OF_INVOKED_HOUR, "Number of emitted notifications for the last hour", SimpleType.LONG)
-            .addItem(NUM_OF_INVOKED_DAY, "Number of emitted notifications for the last day", SimpleType.LONG)
+            .addItem(ATTRIBUTE_READS_FIELD, "Rate of attribute reads", RATE_TYPE)
+            .addItem(ATTRIBUTES_WRITES_FIELD, "Rate of attribute writes", RATE_TYPE)
+            .addItem(NOTIFICATIONS_FIELD, "Rate of received notifications", RATE_TYPE)
+            .addItem(INVOCATIONS_FIELD, "Rate of invoked operations", RATE_TYPE)
             .build());
 
-    private static void collectMetrics(final AttributeMetrics metrics, final Map<String, Long> output) {
-        if (metrics == null) {
-            output.put(NUM_OF_WRITES, 0L);
-            output.put(NUM_OF_WRITES_MINUTE, 0L);
-            output.put(NUM_OF_WRITES_HOUR, 0L);
-            output.put(NUM_OF_WRITES_DAY, 0L);
-
-            output.put(NUM_OF_READS, 0L);
-            output.put(NUM_OF_READS_MINUTE, 0L);
-            output.put(NUM_OF_READS_HOUR, 0L);
-            output.put(NUM_OF_READS_DAY, 0L);
-        } else {
-            output.put(NUM_OF_WRITES, metrics.getNumberOfWrites());
-            output.put(NUM_OF_WRITES_MINUTE, metrics.getNumberOfWrites(MetricsInterval.MINUTE));
-            output.put(NUM_OF_WRITES_HOUR, metrics.getNumberOfWrites(MetricsInterval.HOUR));
-            output.put(NUM_OF_WRITES_DAY, metrics.getNumberOfWrites(MetricsInterval.DAY));
-
-            output.put(NUM_OF_READS, metrics.getNumberOfReads());
-            output.put(NUM_OF_READS_MINUTE, metrics.getNumberOfWrites(MetricsInterval.MINUTE));
-            output.put(NUM_OF_READS_HOUR, metrics.getNumberOfWrites(MetricsInterval.HOUR));
-            output.put(NUM_OF_READS_DAY, metrics.getNumberOfWrites(MetricsInterval.DAY));
+    private static void collectMetrics(final AttributeMetric metrics, final Map<String, CompositeData> output) {
+        final Rate attributeReads;
+        final Rate attributeWrites;
+        if(metrics == null)
+            attributeReads = attributeWrites = Rate.EMPTY;
+        else {
+            attributeReads = metrics.reads();
+            attributeWrites = metrics.writes();
         }
+        output.put(ATTRIBUTE_READS_FIELD, fromRate(attributeReads));
+        output.put(ATTRIBUTES_WRITES_FIELD, fromRate(attributeWrites));
     }
 
-    private static void collectMetrics(final NotificationMetrics metrics, final Map<String, Long> output) {
-        if (metrics == null) {
-            output.put(NUM_OF_EMITTED, 0L);
-            output.put(NUM_OF_EMITTED_MINUTE, 0L);
-            output.put(NUM_OF_EMITTED_HOUR, 0L);
-            output.put(NUM_OF_EMITTED_DAY, 0L);
-        } else {
-            output.put(NUM_OF_EMITTED, metrics.getNumberOfEmitted());
-            output.put(NUM_OF_EMITTED_MINUTE, metrics.getNumberOfEmitted(MetricsInterval.MINUTE));
-            output.put(NUM_OF_EMITTED_HOUR, metrics.getNumberOfEmitted(MetricsInterval.HOUR));
-            output.put(NUM_OF_EMITTED_DAY, metrics.getNumberOfEmitted(MetricsInterval.DAY));
-        }
+    private static void collectMetrics(final NotificationMetric metrics, final Map<String, CompositeData> output) throws OpenDataException {
+        output.put(NOTIFICATIONS_FIELD, fromRate(metrics == null ? Rate.EMPTY : metrics.notifications()));
     }
 
-    private static void collectMetrics(final OperationMetrics metrics, final Map<String, Long> output) {
-        if (metrics == null) {
-            output.put(NUM_OF_INVOKED, 0L);
-            output.put(NUM_OF_INVOKED_MINUTE, 0L);
-            output.put(NUM_OF_INVOKED_HOUR, 0L);
-            output.put(NUM_OF_INVOKED_DAY, 0L);
-        } else {
-            output.put(NUM_OF_INVOKED, metrics.getNumberOfInvocations());
-            output.put(NUM_OF_INVOKED_MINUTE, metrics.getNumberOfInvocations(MetricsInterval.MINUTE));
-            output.put(NUM_OF_INVOKED_HOUR, metrics.getNumberOfInvocations(MetricsInterval.HOUR));
-            output.put(NUM_OF_INVOKED_DAY, metrics.getNumberOfInvocations(MetricsInterval.DAY));
-        }
+    private static void collectMetrics(final OperationMetric metrics, final Map<String, CompositeData> output) throws OpenDataException {
+        output.put(INVOCATIONS_FIELD, fromRate(metrics == null ? Rate.EMPTY : metrics.invocations()));
     }
 
-    static CompositeData collectMetrics(final MetricsReader metrics) throws OpenDataException {
-        final Map<String, Long> entries = Maps.newHashMapWithExpectedSize(TYPE.keySet().size());
-        collectMetrics(metrics.queryObject(AttributeMetrics.class), entries);
-        collectMetrics(metrics.queryObject(NotificationMetrics.class), entries);
-        collectMetrics(metrics.queryObject(OperationMetrics.class), entries);
+    static CompositeData collectMetrics(final MetricsSupport metrics) throws OpenDataException {
+        final Map<String, CompositeData> entries = Maps.newHashMapWithExpectedSize(TYPE.keySet().size());
+        for(final AttributeMetric metric: metrics.getMetrics(AttributeMetric.class))
+            collectMetrics(metric, entries);
+        for(final NotificationMetric metric: metrics.getMetrics(NotificationMetric.class))
+            collectMetrics(metric, entries);
+        for(final OperationMetric metric: metrics.getMetrics(OperationMetric.class))
+            collectMetrics(metric, entries);
         return new CompositeDataSupport(TYPE, entries);
     }
 

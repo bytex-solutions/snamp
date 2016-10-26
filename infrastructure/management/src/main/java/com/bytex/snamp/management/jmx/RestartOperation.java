@@ -6,7 +6,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 
 /**
- * The type Restart operation.
+ * Restart all SNAMP components inside of Karaf container.
  * @author Evgeniy Kirichenko
  */
 final class RestartOperation extends OpenMBean.OpenOneWayOperation {

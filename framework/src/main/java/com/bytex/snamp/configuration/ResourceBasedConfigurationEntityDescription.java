@@ -6,13 +6,12 @@ import com.google.common.collect.ImmutableSet;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents resource-based configuration entity descriptor.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class ResourceBasedConfigurationEntityDescription<T extends EntityConfiguration> extends ResourceReader implements ConfigurationEntityDescription<T> {
@@ -62,10 +61,10 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * Returns a type of the configuration entity.
      *
      * @return A type of the configuration entity.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
+     * @see GatewayConfiguration
+     * @see ManagedResourceConfiguration
+     * @see EventConfiguration
+     * @see AttributeConfiguration
      */
     @Override
     public final Class<T> getEntityType() {
@@ -138,7 +137,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * Represents parameter descriptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected class ParameterDescriptionImpl implements ParameterDescription{
         private final String parameterName;
@@ -157,7 +156,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
         }
 
         @Override
-        public final String getDescription(final Locale loc) {
+        public final String toString(final Locale loc) {
             return getParameterDescription(parameterName, loc);
         }
 

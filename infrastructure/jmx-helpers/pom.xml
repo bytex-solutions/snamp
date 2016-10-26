@@ -5,11 +5,11 @@
   <parent>
     <groupId>com.bytex.snamp</groupId>
     <artifactId>snamp</artifactId>
-    <version>1.2.0</version>
+    <version>2.0.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>jmx-helpers</artifactId>
-  <version>1.2.0</version>
+  <version>2.0.0</version>
   <packaging>bundle</packaging>
   <name>JMX Support Library</name>
   <description>A small library for converting JMX data types into JSON/XML and vice versa</description>
@@ -25,7 +25,7 @@
     <dependency>
       <groupId>com.bytex.snamp</groupId>
       <artifactId>framework</artifactId>
-      <version>1.2.0</version>
+      <version>2.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -1,9 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.Box;
-import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.*;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -15,13 +12,14 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents SNAMP configuration manager that uses {@link ConfigurationAdmin}
  * to store and read SNAMP configuration.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @ThreadSafe
@@ -32,7 +30,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     @Aggregation(cached = true)
     private final CMManagedResourceParserImpl resourceParser;
     @Aggregation(cached = true)
-    private final CMResourceAdapterParserImpl adapterParser;
+    private final CMGatewayParserImpl gatewayInstanceParser;
+    private final CMThreadPoolParser threadPoolParser;
+    private final CMManagedResourceGroupParser groupParser;
 
     /**
      * Initializes a new configuration manager.
@@ -43,31 +43,62 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         logger = Logger.getLogger(getClass().getName());
         configurationLock = new ReentrantReadWriteLock();
         resourceParser = new CMManagedResourceParserImpl();
-        adapterParser = new CMResourceAdapterParserImpl();
+        gatewayInstanceParser = new CMGatewayParserImpl();
+        threadPoolParser = new CMThreadPoolParser();
+        groupParser = new CMManagedResourceGroupParser();
+    }
+
+    private void mergeResourcesWithGroups(final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources,
+                                          final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups) {
+        //migrate attributes, events, operations and properties from modified groups into resources
+        groups.modifiedEntries((groupName, groupConfig) -> {
+            resources.values().parallelStream()                 //attempt to increase performance with many registered resources
+                    .filter(resource -> resource.getGroupName().equals(groupName))
+                    .forEach(resource -> {
+                        //overwrite all properties in resource but hold user-defined properties
+                        resource.getParameters().putAll(groupConfig.getParameters());
+                        //overwrite all attributes
+                        resource.getAttributes().putAll(groupConfig.getAttributes());
+                        //overwrite all events
+                        resource.getEvents().putAll(groupConfig.getEvents());
+                        //overwrite all operations
+                        resource.getOperations().putAll(groupConfig.getOperations());
+                    });
+            return true;
+        });
     }
 
     private void save(final SerializableAgentConfiguration config) throws IOException {
-        if (config.isEmpty()) {
+        if (config.hasNoInnerItems()) {
             resourceParser.removeAll(admin);
-            adapterParser.removeAll(admin);
+            gatewayInstanceParser.removeAll(admin);
+            threadPoolParser.removeAll(admin);
+            groupParser.removeAll(admin);
         } else {
-            adapterParser.saveChanges(config, admin);
+            mergeResourcesWithGroups(config.getManagedResources(), config.getManagedResourceGroups());
+            gatewayInstanceParser.saveChanges(config, admin);
             resourceParser.saveChanges(config, admin);
+            threadPoolParser.saveChanges(config, admin);
+            groupParser.saveChanges(config, admin);
         }
+        //save SNAMP config
+        CMAgentParserImpl.saveParameters(admin, config);
     }
 
     private <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler, final Lock synchronizer) throws E, IOException {
         //obtain lock on configuration
-        try {
+        callAndWrapException(() -> {
             synchronizer.lockInterruptibly();
-        } catch (final InterruptedException e) {
-            throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);
         //Process configuration protected by lock.
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
-            adapterParser.readAdapters(admin, config.getResourceAdapters());
-            resourceParser.readResources(admin, config.getManagedResources());
+            gatewayInstanceParser.fill(admin, config.getGatewayInstances());
+            resourceParser.fill(admin, config.getManagedResources());
+            threadPoolParser.fill(admin, config.getThreadPools());
+            groupParser.fill(admin, config.getManagedResourceGroups());
+            CMAgentParserImpl.loadParameters(admin, config);
             if(handler.process(config))
                 save(config);
         } finally {
@@ -115,7 +146,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      */
     @Override
     public <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException {
-        final Box<O> result = new Box<>();
+        final Box<O> result = BoxFactory.create(null);
         readConfiguration(result.changeConsumingType(handler));
         return result.get();
     }

@@ -1,11 +1,14 @@
 package com.bytex.snamp;
 
-import com.bytex.snamp.connectors.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Spliterator;
 
 /**
  * @author Roman Sakno
@@ -60,7 +63,7 @@ public final class AggregationTest extends Assert {
         assertNotNull(provider.queryObject(SubInterface.class));
         assertNotNull(provider.queryObject(BigInteger.class));
         assertNotNull(provider.queryObject(BigDecimal.class));
-        assertNull(provider.queryObject(MetricsReader.class));
+        assertNull(provider.queryObject(MetricsSupport.class));
     }
 
     @Test
@@ -113,5 +116,21 @@ public final class AggregationTest extends Assert {
         assertEquals(Boolean.TRUE, aggregator.queryObject(Boolean.class));
         assertEquals(BigInteger.TEN, aggregator.queryObject(BigInteger.class));
         //assertEquals(BigDecimal.ONE, aggregator.queryObject(BigDecimal.class));
+    }
+
+    @Test
+    public void splitTest(){
+        final Integer[] array = {10, 30, 50, 90, 110, 0, 9, 8, 2, 10, 45, 32, 86};
+        final List<Integer> list = Arrays.asList(array);
+        final Spliterator<Integer> split = list.spliterator();
+        final Spliterator<Integer> split1 = split.trySplit();
+        System.out.println("Split1");
+        split1.forEachRemaining(System.out::println);
+        final Spliterator<Integer> split2 = split.trySplit();
+        System.out.println("Split2");
+        split2.forEachRemaining(System.out::println);
+        final Spliterator<Integer> split3 = split.trySplit();
+        System.out.println("Split3");
+        split3.forEachRemaining(System.out::println);
     }
 }

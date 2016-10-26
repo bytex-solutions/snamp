@@ -3,6 +3,6 @@
  * from JMX data types into JSON and vice versa.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 package com.bytex.snamp.jmx.json;

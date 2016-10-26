@@ -19,16 +19,17 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents advanced routines to work with arrays.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class ArrayUtils {
     @FunctionalInterface
-    private interface ByteArrayConverter<T>{
+    private interface ToByteArrayConverter<T>{
         byte[] convert(final T array, final int index);
     }
 
@@ -106,6 +107,15 @@ public final class ArrayUtils {
         if (arrayType.isArray())
             return arrayType.cast(emptyArrayImpl(arrayType.getComponentType()));
         else throw new IllegalArgumentException("Invalid array type: " + arrayType);
+    }
+
+    /**
+     * Gets cached empty array of bytes.
+     * @return Cached empty array of bytes.
+     * @since 2.0
+     */
+    public static byte[] emptyByteArray(){
+        return emptyArray(byte[].class);
     }
 
     /**
@@ -314,16 +324,21 @@ public final class ArrayUtils {
      * @throws IllegalArgumentException Incorrect array type.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader){
-        if(arrayType.getDimension() > 1)
+    public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader) {
+        if (arrayType.getDimension() > 1)
             throw new IllegalArgumentException("Wrong number of dimensions: " + arrayType.getDimension());
-        final Class<?> elementType;
-        try{
-            elementType = Class.forName(arrayType.getClassName(), true, loader).getComponentType();
-        } catch (final ClassNotFoundException e) {
-            throw new IllegalArgumentException(e);
-        }
-        return (T)emptyArrayImpl(elementType);
+        final Class<?> elementType = callAndWrapException(
+                () -> Class.forName(arrayType.getClassName(), true, loader).getComponentType(),
+                IllegalArgumentException::new);
+        return (T) emptyArrayImpl(elementType);
+    }
+
+    public static <T> T getLast(final T[] array, final T defval){
+        return array.length > 0 ? array[array.length - 1] : defval;
+    }
+
+    public static <T> T getLast(final T[] array) {
+        return getLast(array, null);
     }
 
     /**
@@ -347,12 +362,16 @@ public final class ArrayUtils {
         return getFirst(array, null);
     }
 
-    private static boolean isNullOrEmptyArray(final Object array){
+    private static boolean isNullOrEmptyImpl(final Object array){
         return array == null || Array.getLength(array) == 0;
     }
 
     public static boolean isNullOrEmpty(final Object[] array) {
-        return isNullOrEmptyArray(array);
+        return isNullOrEmptyImpl(array);
+    }
+
+    public static boolean isNullOrEmpty(final byte[] array){
+        return isNullOrEmptyImpl(array);
     }
 
     private static <T extends Comparable<T> & Serializable> Object toArray(final byte[] array,
@@ -469,7 +488,7 @@ public final class ArrayUtils {
     }
 
     private static <T> byte[] toByteArray(final T array,
-                                          final ByteArrayConverter<T> converter,
+                                          final ToByteArrayConverter<T> converter,
                                           final int componentSize) {
         final byte[] result = new byte[Array.getLength(array) * componentSize];
         for (int sourcePosition = 0, destPosition = 0; sourcePosition < Array.getLength(array); sourcePosition++)
@@ -540,7 +559,8 @@ public final class ArrayUtils {
         return result.toByteArray();
     }
 
-    public static <T> IntFunction<T[]> arrayConstructor(final Class<T> elementType){
-        return length -> ObjectArrays.newArray(elementType, length);
+    @SuppressWarnings("unchecked")
+    public static <T> IntFunction<T[]> arrayConstructor(final Class<T> elementType) {
+        return length -> length == 0 ? (T[]) emptyArrayImpl(elementType) : ObjectArrays.newArray(elementType, length);
     }
 }

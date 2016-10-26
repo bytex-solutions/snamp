@@ -2,24 +2,23 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-
 /**
  * Configures resource event.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "configure-event",
     description = "Configure resource event")
-public final class ConfigEventCommand extends ConfigurationCommand {
+public final class ConfigEventCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     @SpecialUse
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to modify")
     private String resourceName = "";
@@ -32,10 +31,14 @@ public final class ConfigEventCommand extends ConfigurationCommand {
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, description = "Event configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
+    public ConfigEventCommand(){
+        super(ManagedResourceConfiguration.class);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)){
-            final AgentConfiguration.ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
+    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
+        if(configuration.containsKey(resourceName)){
+            final ManagedResourceConfiguration resource = configuration.get(resourceName);
             final EventConfiguration event = resource.getFeatures(EventConfiguration.class).getOrAdd(category);
             if(!ArrayUtils.isNullOrEmpty(parameters))
                 for(final String param: parameters) {

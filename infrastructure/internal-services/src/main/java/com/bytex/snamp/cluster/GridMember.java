@@ -3,18 +3,21 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.core.LongCounter;
 import com.google.common.reflect.TypeToken;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
- * @version 1.2.0
+ * @version 2.0.0
  * @since 1.0
  */
 public final class GridMember extends AbstractFrameworkService implements ClusterMember, AutoCloseable {
@@ -49,18 +52,28 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
 
     private final HazelcastInstance hazelcast;
     private LeaderElectionThread electionThread;
+    private final boolean shutdownHazelcast;
 
-    public GridMember(final HazelcastInstance hazelcastInstance){
+    private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdown){
         this.electionThread = new LeaderElectionThread(hazelcastInstance);
         this.hazelcast = hazelcastInstance;
         electionThread.start();
+        this.shutdownHazelcast = shutdown;
+    }
+
+    public GridMember(final HazelcastInstance hazelcastInstance){
+        this(hazelcastInstance, false);
+    }
+
+    GridMember(){
+        this(Hazelcast.newHazelcastInstance(), true);
     }
 
     /**
      * Determines whether this node is active.
      * <p/>
-     * Passive SNAMP node ignores any notifications received by resource connectors.
-     * As a result, all resource adapters will not route notifications to the connected
+     * Passive SNAMP node ignores any notifications received by resource connector.
+     * As a result, all gateways will not route notifications to the connected
      * monitoring tools. But you can still read any attributes.
      *
      * @return {@literal true}, if this node is active; otherwise, {@literal false}.
@@ -89,6 +102,21 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         electionThread.start();
     }
 
+    @Override
+    public int getNeighbors() {
+        return hazelcast.getCluster().getMembers().size() - 1;
+    }
+
+    /**
+     * Gets attributes associated with this member.
+     *
+     * @return The attributes associated with this member.
+     */
+    @Override
+    public Map<String, ?> getAttributes() {
+        return hazelcast.getCluster().getLocalMember().getAttributes();
+    }
+
     /**
      * Gets unique name of this node.
      *
@@ -108,11 +136,27 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
      */
     @Override
     public <S> S getService(final String serviceName, final TypeToken<S> serviceType) {
-        if(STORAGE_SERVICE.equals(serviceType))
-            return TypeTokens.cast(new HazelcastStorage(hazelcast, serviceName), serviceType);
-        else if(IDGEN_SERVICE.equals(serviceType))
-            return TypeTokens.cast(new HazelcastLongCounter(hazelcast, serviceName), serviceType);
+        final Object result;
+        if (STORAGE_SERVICE.equals(serviceType))
+            result = getStorage(serviceName);
+        else if (IDGEN_SERVICE.equals(serviceType))
+            result = getLongCounter(serviceName);
+        else if(COMMUNICATION_SERVICE.equals(serviceType))
+            result = getCommunicator(serviceName);
         else return null;
+        return TypeTokens.cast(result, serviceType);
+    }
+
+    private HazelcastCommunicator getCommunicator(final String serviceName) {
+        return new HazelcastCommunicator(hazelcast, this::isActive, serviceName);
+    }
+
+    private HazelcastStorage getStorage(final String collectionName){
+        return new HazelcastStorage(hazelcast, collectionName);
+    }
+
+    private LongCounter getLongCounter(final String counterName){
+        return hazelcast.getAtomicLong(counterName)::getAndIncrement;
     }
 
     /**
@@ -124,9 +168,17 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
     @Override
     public void releaseService(final String serviceName, final TypeToken<?> serviceType) {
         if(STORAGE_SERVICE.equals(serviceType))
-            HazelcastStorage.release(hazelcast, serviceName);
+            releaseStorage(serviceName);
         else if(IDGEN_SERVICE.equals(serviceType))
-            HazelcastLongCounter.release(hazelcast, serviceName);
+            releaseLongCounter(serviceName);
+    }
+
+    private void releaseStorage(final String collectionName) {
+        hazelcast.getMap(collectionName).destroy();
+    }
+
+    private void releaseLongCounter(final String generatorName) {
+        hazelcast.getIdGenerator(generatorName).destroy();
     }
 
     /**
@@ -158,6 +210,8 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         }finally {
             electionThread.resign();
             electionThread = null;
+            if(shutdownHazelcast)
+                hazelcast.shutdown();
             clearCache();
         }
     }

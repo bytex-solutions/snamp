@@ -1,6 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityConfiguration;
 
 import java.io.IOException;
 
@@ -10,7 +10,7 @@ import java.io.IOException;
  * This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 abstract class PersistentConfigurationException extends IOException {
     private static final long serialVersionUID = -518115699501252969L;
@@ -22,10 +22,10 @@ abstract class PersistentConfigurationException extends IOException {
     /**
      * Represents type of the configuration entity that cannot be restored from storage.
      */
-    final Class<? extends AgentConfiguration.EntityConfiguration> entityType;
+    final Class<? extends EntityConfiguration> entityType;
 
     PersistentConfigurationException(final String pid,
-                                     final Class<? extends AgentConfiguration.EntityConfiguration> entityType,
+                                     final Class<? extends EntityConfiguration> entityType,
                                      final Throwable e){
         super(String.format("Unable to read SNAMP %s configuration", pid), e);
         this.persistenceID = pid;
