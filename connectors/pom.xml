@@ -20,5 +20,6 @@
     <module>modbus-connector</module>
     <module>mda-connector</module>
     <module>mq-connector</module>
+    <module>message-processing</module>
   </modules>
 </project>
