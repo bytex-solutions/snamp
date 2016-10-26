@@ -37,7 +37,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         parser = descriptor.createNotificationParser(parameters);
         attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
         assert attributes != null;
-        attributes.init(threadPool, getLogger());
+        attributes.init(threadPool, getLogger(), descriptor);
     }
 
     /**

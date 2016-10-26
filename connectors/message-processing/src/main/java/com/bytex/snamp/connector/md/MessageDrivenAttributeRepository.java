@@ -21,17 +21,20 @@ import java.util.logging.Logger;
 public class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> {
     private final WriteOnceRef<ExecutorService> threadPool;
     private final WriteOnceRef<Logger> logger;
+    private final WriteOnceRef<MessageDrivenConnectorConfigurationDescriptor> descriptionProvider;
 
     protected MessageDrivenAttributeRepository(final String resourceName,
                                      final Duration syncPeriod) {
         super(resourceName, MessageDrivenAttribute.class, false, syncPeriod);
         threadPool = new WriteOnceRef<>();
         logger = new WriteOnceRef<>();
+        descriptionProvider = new WriteOnceRef<>();
     }
 
-    final void init(final ExecutorService threadPool, final Logger logger) {
+    final void init(final ExecutorService threadPool, final Logger logger, final MessageDrivenConnectorConfigurationDescriptor descriptor) {
         this.threadPool.set(threadPool);
         this.logger.set(logger);
+        this.descriptionProvider.set(descriptor);
     }
 
     protected final Logger getLogger(){
@@ -40,7 +43,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
 
     @Override
     protected MessageDrivenAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
-        final Function<? super String, ? extends MessageDrivenAttribute<?>> factory = AttributeParser.parseAttribute(descriptor);
+        final Function<? super String, ? extends MessageDrivenAttribute<?>> factory = AttributeParser.parseAttribute(descriptionProvider.get(), descriptor);
         if(factory == null)
             throw new UnrecognizedAttributeTypeException(attributeName);
         return factory.apply(attributeName);

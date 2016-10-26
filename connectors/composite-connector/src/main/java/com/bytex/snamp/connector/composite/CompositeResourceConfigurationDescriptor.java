@@ -7,7 +7,6 @@ import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.FunctionParser;
-import com.bytex.snamp.connector.composite.functions.FunctionParserException;
 import com.bytex.snamp.parser.ParseException;
 
 import javax.management.Descriptor;

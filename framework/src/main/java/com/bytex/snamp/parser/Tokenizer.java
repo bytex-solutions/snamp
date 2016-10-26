@@ -29,7 +29,7 @@ public class Tokenizer implements SafeCloseable {
 
     private final CharReader reader;
 
-    protected Tokenizer(final CharSequence sequence){
+    public Tokenizer(final CharSequence sequence){
         reader = new CharReader(sequence);
     }
 
