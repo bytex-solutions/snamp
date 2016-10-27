@@ -34,7 +34,6 @@
     <junit.version>4.12</junit.version>
     <snmp4j.version>2.5.0</snmp4j.version>
     <gson.version>2.7</gson.version>
-    <snamp.connector.mq.version>2.0.0</snamp.connector.mq.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
     <karaf.version>3.0.7</karaf.version>
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
@@ -72,7 +71,6 @@
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
     <jline.version>2.13</jline.version>
-    <snamp.connector.mda.version>2.0.0</snamp.connector.mda.version>
     <jersey.version>1.18.1</jersey.version>
     <snamp.services.version>2.0.0</snamp.services.version>
     <snamp.framework.maxVersion>3</snamp.framework.maxVersion>

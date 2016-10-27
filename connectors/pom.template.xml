@@ -18,8 +18,6 @@
       <module>composite-connector</module>
       <module>groovy-connector</module>
       <module>modbus-connector</module>
-      <module>mda-connector</module>
-      <module>mq-connector</module>
       <module>message-processing</module>
   </modules>
 </project>

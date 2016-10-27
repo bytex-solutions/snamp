@@ -176,22 +176,6 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>com.bytex.snamp</groupId>
-                  <artifactId>mda-connector-feature</artifactId>
-                  <version>${snamp.connector.mda.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>mq-connector-feature</artifactId>
-                  <version>${snamp.connector.mq.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
                   <artifactId>groovy-gateway-feature</artifactId>
                   <version>${snamp.gateway.groovy.version}</version>
                   <type>kar</type>
