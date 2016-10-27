@@ -48,4 +48,7 @@ public interface StringGauge extends Gauge<String> {
      */
     @Override
     String getLastValue();
+
+    @Override
+    StringGauge clone();
 }

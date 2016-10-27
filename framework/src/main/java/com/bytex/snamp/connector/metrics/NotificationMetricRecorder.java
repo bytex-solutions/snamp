@@ -20,6 +20,16 @@ public class NotificationMetricRecorder extends AbstractMetric implements Notifi
         this(DEFAULT_NAME);
     }
 
+    protected NotificationMetricRecorder(final NotificationMetricRecorder source){
+        super(source);
+        notificationsRate = source.notificationsRate.clone();
+    }
+
+    @Override
+    public NotificationMetricRecorder clone() {
+        return new NotificationMetricRecorder(this);
+    }
+
     public void update(){
         notificationsRate.mark();
     }

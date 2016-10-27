@@ -7,4 +7,6 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public interface RatedFlag extends Flag, Rate {
+    @Override
+    RatedFlag clone();
 }

@@ -10,4 +10,7 @@ interface NumericGauge extends Metric {
     double getDeviation();
     double getQuantile(final double quantile);
     double getMeanValue(final MetricsInterval interval);
+
+    @Override
+    NumericGauge clone();
 }

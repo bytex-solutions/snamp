@@ -24,7 +24,18 @@ public final class Summary {
      * @return A new aggregated {@link Rate}.
      */
     public static Rate summaryRate(final String name, final Supplier<? extends Stream<? extends Rate>> rates){
-        return new Rate() {
+        final class SummaryRate implements Rate {
+
+            @Override
+            public SummaryRate clone() {
+                return new SummaryRate();
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
             private long sum(final ToLongFunction<? super Rate> extractor){
                 return rates.get().mapToLong(extractor).sum();
             }
@@ -69,15 +80,12 @@ public final class Summary {
             }
 
             @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
             public void reset() {
                 rates.get().forEach(Rate::reset);
             }
-        };
+        }
+
+        return new SummaryRate();
     }
 
     /**

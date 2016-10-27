@@ -20,6 +20,16 @@ public class RatedStringGaugeRecorder extends StringGaugeRecorder implements Rat
         rate = new RateRecorder(name);
     }
 
+    protected RatedStringGaugeRecorder(final RatedStringGaugeRecorder source){
+        super(source);
+        rate = source.rate.clone();
+    }
+
+    @Override
+    public RatedStringGaugeRecorder clone() {
+        return new RatedStringGaugeRecorder(this);
+    }
+
     @Override
     protected void writeValue(final String value) {
         rate.mark();

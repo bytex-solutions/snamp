@@ -3,6 +3,8 @@ package com.bytex.snamp.connector.metrics;
 import com.bytex.snamp.math.DoubleReservoir;
 import com.bytex.snamp.math.ExponentialMovingAverage;
 
+import java.util.function.Supplier;
+
 /**
  * Abstract class for numeric gauges.
  * @author Roman Sakno
@@ -15,11 +17,20 @@ abstract class AbstractNumericGauge extends AbstractMetric implements NumericGau
     private final DoubleReservoir reservoir;
     private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;
 
+    AbstractNumericGauge(final AbstractNumericGauge source) {
+        super(source);
+        reservoir = ((Supplier<DoubleReservoir>) source.reservoir.takeSnapshot()).get();
+        meanValues = new MetricsIntervalMap<>(source.meanValues, ExponentialMovingAverage::clone);
+    }
+
     AbstractNumericGauge(final String name, final int samplingSize) {
         super(name);
         reservoir = new DoubleReservoir(samplingSize);
         meanValues = new MetricsIntervalMap<>(MetricsInterval::createEMA);
     }
+
+    @Override
+    public abstract AbstractNumericGauge clone();
 
     final void updateReservoir(final double value){
         reservoir.add(value);

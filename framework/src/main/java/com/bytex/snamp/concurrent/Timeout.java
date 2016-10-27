@@ -38,6 +38,11 @@ public class Timeout implements Stateful, Serializable {
         this(ttl.toMillis());
     }
 
+    Timeout(final Timeout source){
+        timer = new AtomicLong(source.timer.get());
+        timeout = source.timeout;
+    }
+
     public Timeout(final long timeout, final TimeUnit unit){
         this(unit.toMillis(timeout));
     }

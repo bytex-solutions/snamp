@@ -84,4 +84,12 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
         if (newResource == null) throw new IllegalArgumentException("newResource is null.");
         writeLock.accept(SingleResourceGroup.INSTANCE, newResource, this::changeResourceImpl);
     }
+
+    private void changeResourceImpl(final R newResource){
+        resource = newResource;
+    }
+
+    public final void changeResource(final R newResource) {
+        writeLock.accept(SingleResourceGroup.INSTANCE, this, newResource, ConcurrentResourceAccessor<R>::changeResourceImpl);
+    }
 }

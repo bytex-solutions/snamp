@@ -20,6 +20,16 @@ public class RatedGaugeFPRecorder extends GaugeFPRecorder implements RatedGaugeF
         rate = new RateRecorder(name);
     }
 
+    protected RatedGaugeFPRecorder(final RatedGaugeFPRecorder source){
+        super(source);
+        rate = source.rate.clone();
+    }
+
+    @Override
+    public RatedGaugeFPRecorder clone() {
+        return new RatedGaugeFPRecorder(this);
+    }
+
     @Override
     protected void writeValue(final double value) {
         rate.mark();

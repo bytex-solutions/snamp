@@ -34,4 +34,7 @@ public interface Arrivals extends Metric {
      * @return The correlation between arrivals and response time.
      */
     double getCorrelation();
+
+    @Override
+    Arrivals clone();
 }

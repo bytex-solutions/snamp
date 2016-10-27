@@ -12,4 +12,7 @@ public interface OperationMetric extends Metric {
      * @return Rate of all invocations.
      */
     Rate invocations();
+
+    @Override
+    OperationMetric clone();
 }

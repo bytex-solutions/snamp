@@ -38,4 +38,7 @@ public interface GaugeFP extends NumericGauge {
      * @return The last presented value.
      */
     double getLastValue();
+
+    @Override
+    GaugeFP clone();
 }

@@ -4,7 +4,7 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SafeCloseable;
 
 import java.time.Duration;
-import java.util.EnumMap;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -194,5 +194,75 @@ public abstract class LockManager {
                 return scope;
             }
         };
+    }
+
+    private static boolean lockInterruptibly(final Lock lock){
+        try {
+            lock.lockInterruptibly();
+        } catch (final InterruptedException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static <I1, I2> boolean lockAndAccept(final Lock lock, final I1 input1, final I2 input2, final BiConsumer<? super I1, ? super I2> consumer) {
+        final boolean success;
+        if (success = lockInterruptibly(lock))
+            try {
+                consumer.accept(input1, input2);
+            } finally {
+                lock.unlock();
+            }
+        return success;
+    }
+
+    public static <I, O> Optional<O> lockAndApply(final Lock lock, final I input, final Function<? super I, ? extends O> fn) {
+        if (lockInterruptibly(lock))
+            try {
+                return Optional.of(fn.apply(input));
+            } finally {
+                lock.unlock();
+            }
+        return Optional.empty();
+    }
+
+    public static <I1, I2, O> Optional<O> lockAndApply(final Lock lock, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> fn) {
+        if (lockInterruptibly(lock))
+            try {
+                return Optional.of(fn.apply(input1, input2));
+            } finally {
+                lock.unlock();
+            }
+        return Optional.empty();
+    }
+
+    public static <I1, I2> OptionalLong lockAndApplyAsLong(final Lock lock, final I1 input1, final I2 input2, final ToLongBiFunction<? super I1, ? super I2> fn){
+        if (lockInterruptibly(lock))
+            try {
+                return OptionalLong.of(fn.applyAsLong(input1, input2));
+            } finally {
+                lock.unlock();
+            }
+        return OptionalLong.empty();
+    }
+
+    public static <I1, I2> OptionalInt lockAndApplyAsInt(final Lock lock, final I1 input1, final I2 input2, final ToIntBiFunction<? super I1, ? super I2> fn){
+        if (lockInterruptibly(lock))
+            try {
+                return OptionalInt.of(fn.applyAsInt(input1, input2));
+            } finally {
+                lock.unlock();
+            }
+        return OptionalInt.empty();
+    }
+
+    public static <I1, I2> OptionalDouble lockAndApplyAsDouble(final Lock lock, final I1 input1, final I2 input2, final ToDoubleBiFunction<? super I1, ? super I2> fn){
+        if (lockInterruptibly(lock))
+            try {
+                return OptionalDouble.of(fn.applyAsDouble(input1, input2));
+            } finally {
+                lock.unlock();
+            }
+        return OptionalDouble.empty();
     }
 }

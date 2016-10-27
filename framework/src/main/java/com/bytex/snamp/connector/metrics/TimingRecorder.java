@@ -1,13 +1,13 @@
 package com.bytex.snamp.connector.metrics;
 
 
+import com.bytex.snamp.io.SerializedState;
 import com.bytex.snamp.math.DoubleReservoir;
 import com.bytex.snamp.math.ExponentialMovingAverage;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.DoubleFunction;
 import java.util.function.Supplier;
 
 /**
@@ -39,6 +39,20 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
 
     public TimingRecorder(final String name){
         this(name, AbstractNumericGauge.DEFAULT_SAMPLING_SIZE);
+    }
+
+    protected TimingRecorder(final TimingRecorder source){
+        super(source);
+        meanValues = new MetricsIntervalMap<>(source.meanValues, ExponentialMovingAverage::clone);
+        count = new AtomicLong(source.count.get());
+        reservoir = ((SerializedState<DoubleReservoir>)source.reservoir.takeSnapshot()).get();
+        summary = new AtomicReference<>(source.summary.get());
+        timeScaleFactor = source.timeScaleFactor;
+    }
+
+    @Override
+    public TimingRecorder clone() {
+        return new TimingRecorder(this);
     }
 
     /**

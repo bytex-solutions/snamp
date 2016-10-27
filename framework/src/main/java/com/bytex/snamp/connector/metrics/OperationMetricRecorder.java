@@ -16,6 +16,16 @@ public class OperationMetricRecorder extends AbstractMetric implements Operation
         invocationsRate = new RateRecorder(name);
     }
 
+    protected OperationMetricRecorder(final OperationMetricRecorder source){
+        super(source);
+        invocationsRate = source.invocationsRate.clone();
+    }
+
+    @Override
+    public OperationMetricRecorder clone() {
+        return new OperationMetricRecorder(this);
+    }
+
     public OperationMetricRecorder(){
         this(DEFAULT_NAME);
     }

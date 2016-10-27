@@ -9,13 +9,20 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-abstract class AbstractMetric implements Metric, Serializable {
+public abstract class AbstractMetric implements Metric, Serializable {
     private static final long serialVersionUID = -8381259894349243894L;
     private final String name;
 
-    AbstractMetric(final String name){
+    protected AbstractMetric(final AbstractMetric source){
+        this.name = source.name;
+    }
+
+    protected AbstractMetric(final String name){
         this.name = Objects.requireNonNull(name);
     }
+
+    @Override
+    public abstract AbstractMetric clone();
 
     /**
      * Gets name of this metric.

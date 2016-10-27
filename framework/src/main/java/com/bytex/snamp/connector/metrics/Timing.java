@@ -52,4 +52,7 @@ public interface Timing extends Gauge<Duration>, Metric {
     Duration getLastMeanValue(final MetricsInterval interval);
 
     Duration getMeanValue();
+
+    @Override
+    Timing clone();
 }

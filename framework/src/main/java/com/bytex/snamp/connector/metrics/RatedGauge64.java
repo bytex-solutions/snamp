@@ -7,4 +7,6 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public interface RatedGauge64 extends Gauge64, Rate {
+    @Override
+    RatedGauge64 clone();
 }

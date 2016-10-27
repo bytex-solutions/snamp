@@ -16,4 +16,13 @@ public class StringGaugeRecorder extends GaugeImpl<String> implements StringGaug
     public StringGaugeRecorder(final String name) {
         super(name, "");
     }
+
+    protected StringGaugeRecorder(final StringGaugeRecorder source){
+        super(source);
+    }
+
+    @Override
+    public StringGaugeRecorder clone() {
+        return new StringGaugeRecorder(this);
+    }
 }

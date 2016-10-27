@@ -6,7 +6,6 @@ import com.bytex.snamp.io.SerializableBinaryOperator;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -37,6 +36,21 @@ class GaugeImpl<V extends Comparable<V> & Serializable> extends AbstractMetric i
         lastValue = new AtomicReference<>();
         lastMinValues = new MetricsIntervalMap<>(interval -> interval.createTemporaryBox(null, (SerializableBinaryOperator<V>)GaugeImpl::minValue));
         lastMaxValues = new MetricsIntervalMap<>(interval -> interval.createTemporaryBox(null, (SerializableBinaryOperator<V>)GaugeImpl::maxValue));
+    }
+
+    GaugeImpl(final GaugeImpl<V> source){
+        super(source);
+        initialValue = source.initialValue;
+        maxValue = new AtomicReference<>(source.getMaxValue());
+        minValue = new AtomicReference<>(source.getMinValue());
+        lastValue = new AtomicReference<>(source.getLastValue());
+        lastMaxValues = new MetricsIntervalMap<>(source.lastMaxValues, TimeLimitedObject::clone);
+        lastMinValues = new MetricsIntervalMap<>(source.lastMinValues, TimeLimitedObject::clone);
+    }
+
+    @Override
+    public GaugeImpl<V> clone(){
+        return new GaugeImpl<>(this);
     }
 
     /**

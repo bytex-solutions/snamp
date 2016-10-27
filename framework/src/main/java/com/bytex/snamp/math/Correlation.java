@@ -16,14 +16,37 @@ import java.util.function.DoubleSupplier;
  * @since 2.0
  */
 @ThreadSafe
-public final class Correlation implements DoubleBinaryOperator, Stateful, DoubleSupplier, Serializable {
+public final class Correlation implements DoubleBinaryOperator, Stateful, DoubleSupplier, Serializable, Cloneable {
     private static final long serialVersionUID = 2580693283449732060L;
-    private final AtomicDouble sumX = new AtomicDouble(0D);
-    private final AtomicDouble sumY = new AtomicDouble(0D);
-    private final AtomicDouble prodX = new AtomicDouble(0D);
-    private final AtomicDouble prodY = new AtomicDouble(0D);
-    private final AtomicDouble prodXY = new AtomicDouble(0D);
-    private final AtomicLong count = new AtomicLong(0L);
+    private final AtomicDouble sumX;
+    private final AtomicDouble sumY;
+    private final AtomicDouble prodX;
+    private final AtomicDouble prodY;
+    private final AtomicDouble prodXY;
+    private final AtomicLong count;
+
+    public Correlation(){
+        sumX = new AtomicDouble(0D);
+        sumY = new AtomicDouble(0D);
+        prodX = new AtomicDouble(0D);
+        prodY = new AtomicDouble(0D);
+        prodXY = new AtomicDouble(0D);
+        count = new AtomicLong(0L);
+    }
+
+    private Correlation(final Correlation source){
+        sumX = new AtomicDouble(source.sumX.get());
+        sumY = new AtomicDouble(source.sumY.get());
+        prodX = new AtomicDouble(source.prodX.get());
+        prodY = new AtomicDouble(source.prodY.get());
+        prodXY = new AtomicDouble(source.prodXY.get());
+        count = new AtomicLong(source.count.get());
+    }
+
+    @Override
+    public Correlation clone(){
+        return new Correlation(this);
+    }
 
     @Override
     public void reset() {

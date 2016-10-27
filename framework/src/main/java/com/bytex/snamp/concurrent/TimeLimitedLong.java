@@ -1,6 +1,5 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
 
 import java.time.Duration;
@@ -16,8 +15,8 @@ import java.util.function.LongSupplier;
  * @since 1.0
  */
 @ThreadSafe
-public abstract class TimeLimitedLong extends Timeout implements LongSupplier, LongConsumer {
-    @SpecialUse
+public abstract class TimeLimitedLong extends Timeout implements LongSupplier, LongConsumer, Cloneable {
+    private static final long serialVersionUID = 121651486836570455L;
     private final AtomicLong current;
     private final long initialValue;
 
@@ -31,6 +30,14 @@ public abstract class TimeLimitedLong extends Timeout implements LongSupplier, L
         super(ttl);
         current = new AtomicLong(this.initialValue = initialValue);
     }
+
+    protected TimeLimitedLong(final TimeLimitedLong source){
+        super(source);
+        current = new AtomicLong(source.current.get());
+        initialValue = source.initialValue;
+    }
+
+    public abstract TimeLimitedLong clone();
 
     private void setInitialValue(){
         current.set(initialValue);
@@ -125,46 +132,106 @@ public abstract class TimeLimitedLong extends Timeout implements LongSupplier, L
     }
 
     public static TimeLimitedLong create(final long initialValue, final Duration ttl, final LongBinaryOperator accumulator){
-        return new TimeLimitedLong(initialValue, ttl) {
+        final class SimpleTimeLimitedLong extends TimeLimitedLong{
             private static final long serialVersionUID = 1320724085739486292L;
+
+            private SimpleTimeLimitedLong(){
+                super(initialValue, ttl);
+            }
+
+            private SimpleTimeLimitedLong(final SimpleTimeLimitedLong source){
+                super(source);
+            }
+
+            @Override
+            public SimpleTimeLimitedLong clone() {
+                return new SimpleTimeLimitedLong(this);
+            }
 
             @Override
             protected long accumulate(final long value) {
                 return accumulateAndGet(value, accumulator);
             }
-        };
+        }
+
+        return new SimpleTimeLimitedLong();
     }
 
     public static TimeLimitedLong peak(final long initialValue, final Duration ttl){
-        return new TimeLimitedLong(initialValue, ttl) {
+        final class PeakDetector extends TimeLimitedLong{
             private static final long serialVersionUID = -5273127638188299543L;
+
+            private PeakDetector(){
+                super(initialValue, ttl);
+            }
+
+            private PeakDetector(final PeakDetector source){
+                super(source);
+            }
+
+            @Override
+            public PeakDetector clone() {
+                return new PeakDetector(this);
+            }
 
             @Override
             protected long accumulate(final long value) {
                 return accumulateAndGet(value, Math::max);
             }
-        };
+        }
+
+        return new PeakDetector();
     }
 
     public static TimeLimitedLong min(final long initialValue, final Duration ttl){
-        return new TimeLimitedLong(initialValue, ttl) {
+        final class MinValueDetector extends TimeLimitedLong{
             private static final long serialVersionUID = -5273127638188299543L;
+
+            private MinValueDetector(){
+                super(initialValue, ttl);
+            }
+
+            private MinValueDetector(final MinValueDetector source){
+                super(source);
+            }
+
+            @Override
+            public MinValueDetector clone() {
+                return new MinValueDetector(this);
+            }
 
             @Override
             protected long accumulate(final long value) {
                 return accumulateAndGet(value, Math::min);
             }
-        };
+        }
+
+        return new MinValueDetector();
     }
 
     public static TimeLimitedLong adder(final long initialValue, final Duration ttl) {
-        return new TimeLimitedLong(initialValue, ttl) {
+        final class Adder extends TimeLimitedLong{
             private static final long serialVersionUID = -5273127638188299543L;
+
+            private Adder(){
+                super(initialValue, ttl);
+            }
+
+            private Adder(final Adder source){
+                super(source);
+            }
+
+            @Override
+            public Adder clone() {
+                return new Adder(this);
+            }
 
             @Override
             protected long accumulate(final long delta) {
                 return addAndGet(delta);
             }
-        };
+        }
+
+        return new Adder();
     }
 }

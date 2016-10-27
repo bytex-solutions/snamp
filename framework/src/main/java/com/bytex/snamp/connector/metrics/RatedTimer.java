@@ -6,4 +6,6 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  */
 public interface RatedTimer extends Rate, Timing {
+    @Override
+    RatedTimer clone();
 }

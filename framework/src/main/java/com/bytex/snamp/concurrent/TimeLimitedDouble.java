@@ -12,7 +12,7 @@ import java.util.function.DoubleSupplier;
  * @since 2.0
  * @version 2.0
  */
-public abstract class TimeLimitedDouble extends Timeout implements DoubleSupplier, DoubleConsumer {
+public abstract class TimeLimitedDouble extends Timeout implements DoubleSupplier, DoubleConsumer, Cloneable {
     private static final long serialVersionUID = 5932747666389586277L;
     private final AtomicDouble current;
     private final double initialValue;
@@ -21,6 +21,14 @@ public abstract class TimeLimitedDouble extends Timeout implements DoubleSupplie
         super(ttl);
         current = new AtomicDouble(this.initialValue = initialValue);
     }
+
+    protected TimeLimitedDouble(final TimeLimitedDouble source){
+        super(source);
+        current = new AtomicDouble(source.current.get());
+        initialValue = source.initialValue;
+    }
+
+    public abstract TimeLimitedDouble clone();
 
     private void setInitialValue(){
         current.set(initialValue);
@@ -61,46 +69,106 @@ public abstract class TimeLimitedDouble extends Timeout implements DoubleSupplie
     }
 
     public static TimeLimitedDouble create(final double initialValue, final Duration ttl, final DoubleBinaryOperator operator){
-        return new TimeLimitedDouble(initialValue, ttl) {
+        final class SimpleTimeLimitedDouble extends TimeLimitedDouble{
             private static final long serialVersionUID = -4958526938290025839L;
+
+            private SimpleTimeLimitedDouble(){
+                super(initialValue, ttl);
+            }
+
+            private SimpleTimeLimitedDouble(final SimpleTimeLimitedDouble source){
+                super(source);
+            }
+
+            @Override
+            public SimpleTimeLimitedDouble clone() {
+                return new SimpleTimeLimitedDouble(this);
+            }
 
             @Override
             protected double accumulate(final double value) {
                 return accumulateAndGet(value, operator);
             }
-        };
+        }
+
+        return new SimpleTimeLimitedDouble();
     }
 
     public static TimeLimitedDouble adder(final double initialValue, final Duration ttl) {
-        return new TimeLimitedDouble(initialValue, ttl) {
+        final class Adder extends TimeLimitedDouble{
             private static final long serialVersionUID = 8102533948810260223L;
+
+            private Adder(){
+                super(initialValue, ttl);
+            }
+
+            private Adder(final Adder source){
+                super(source);
+            }
+
+            @Override
+            public Adder clone() {
+                return new Adder(this);
+            }
 
             @Override
             protected double accumulate(final double value) {
                 return addAndGet(value);
             }
-        };
+        }
+
+        return new Adder();
     }
 
     public static TimeLimitedDouble peak(final double initialValue, final Duration ttl){
-        return new TimeLimitedDouble(initialValue, ttl) {
+        final class PeakDetector extends TimeLimitedDouble{
             private static final long serialVersionUID = -3373087026614450343L;
+
+            private PeakDetector(){
+                super(initialValue, ttl);
+            }
+
+            private PeakDetector(final PeakDetector source){
+                super(source);
+            }
+
+            @Override
+            public PeakDetector clone() {
+                return new PeakDetector(this);
+            }
 
             @Override
             protected double accumulate(final double value) {
                 return accumulateAndGet(value, Math::max);
             }
-        };
+        }
+
+        return new PeakDetector();
     }
 
     public static TimeLimitedDouble min(final double initialValue, final Duration ttl){
-        return new TimeLimitedDouble(initialValue, ttl) {
+        final class MinValueDetector extends TimeLimitedDouble{
             private static final long serialVersionUID = 1548315628295478141L;
+
+            private MinValueDetector(){
+                super(initialValue, ttl);
+            }
+
+            private MinValueDetector(final MinValueDetector source){
+                super(source);
+            }
+
+            @Override
+            public MinValueDetector clone() {
+                return new MinValueDetector(this);
+            }
 
             @Override
             protected double accumulate(final double value) {
                 return accumulateAndGet(value, Math::min);
             }
-        };
+        }
+
+        return new MinValueDetector();
     }
 }

@@ -21,6 +21,16 @@ public class RatedTimerRecorder extends TimingRecorder implements RatedTimer {
         rate = new RateRecorder(name);
     }
 
+    protected RatedTimerRecorder(final RatedTimerRecorder source){
+        super(source);
+        rate = source.rate.clone();
+    }
+
+    @Override
+    public RatedTimerRecorder clone() {
+        return new RatedTimerRecorder(this);
+    }
+
     @Override
     public void reset() {
         super.reset();

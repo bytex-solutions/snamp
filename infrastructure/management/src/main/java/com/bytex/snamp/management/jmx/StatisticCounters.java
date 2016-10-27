@@ -20,6 +20,15 @@ final class StatisticCounters {
             super(0L, Duration.ofMillis(timeout));
         }
 
+        private LogEventCounter(final LogEventCounter source){
+            super(source);
+        }
+
+        @Override
+        public LogEventCounter clone() {
+            return new LogEventCounter(this);
+        }
+
         @Override
         protected long accumulate(final long delta) {
             return addAndGet(delta);

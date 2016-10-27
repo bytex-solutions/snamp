@@ -26,6 +26,18 @@ public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, Lo
         this(name, DEFAULT_SAMPLING_SIZE);
     }
 
+    protected Gauge64Recorder(final Gauge64Recorder source){
+        super(source);
+        maxValue = new AtomicLong(source.maxValue.get());
+        minValue = new AtomicLong(source.minValue.get());
+        lastValue = new AtomicLong(source.lastValue.get());
+    }
+
+    @Override
+    public Gauge64Recorder clone() {
+        return new Gauge64Recorder(this);
+    }
+
     protected void writeValue(final long value){
         updateReservoir(value);
         maxValue.accumulateAndGet(value, Math::max);

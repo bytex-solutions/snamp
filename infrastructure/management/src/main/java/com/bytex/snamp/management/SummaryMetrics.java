@@ -50,6 +50,14 @@ public final class SummaryMetrics extends ImmutableMetrics {
             this.context = Objects.requireNonNull(context);
         }
 
+        private SummaryMetric(final SummaryMetric<M> source){
+            metricsType = source.metricsType;
+            context = source.context;
+        }
+
+        @Override
+        public abstract SummaryMetric<M> clone();
+
         final <O> Stream<O> toStream(final Function<? super M, ? extends O> reader) {
             return ManagedResourceConnectorClient.getConnectors(context).values().stream()
                     .flatMap(connectorRef -> {
@@ -80,6 +88,17 @@ public final class SummaryMetrics extends ImmutableMetrics {
             super(AttributeMetric.class, context);
             readRate = Summary.summaryRate(NAME, this::readsStream);
             writeRate = Summary.summaryRate(NAME, this::writesStream);
+        }
+
+        private SummaryAttributeMetric(final SummaryAttributeMetric source){
+            super(source);
+            readRate = source.readRate.clone();
+            writeRate = source.writeRate.clone();
+        }
+
+        @Override
+        public SummaryAttributeMetric clone() {
+            return new SummaryAttributeMetric(this);
         }
 
         private Stream<Rate> readsStream() {
@@ -115,6 +134,16 @@ public final class SummaryMetrics extends ImmutableMetrics {
             rate = Summary.summaryRate(NAME, this);
         }
 
+        private SummaryNotificationMetric(final SummaryNotificationMetric source){
+            super(source);
+            rate = source.rate.clone();
+        }
+
+        @Override
+        public SummaryNotificationMetric clone() {
+            return new SummaryNotificationMetric(this);
+        }
+
         @Override
         public Stream<Rate> get() {
             return toStream(NotificationMetric::notifications);
@@ -138,6 +167,16 @@ public final class SummaryMetrics extends ImmutableMetrics {
         private SummaryOperationMetric(final BundleContext context) {
             super(OperationMetric.class, context);
             rate = Summary.summaryRate(NAME, this);
+        }
+
+        private SummaryOperationMetric(final SummaryOperationMetric source){
+            super(source);
+            rate = source.rate.clone();
+        }
+
+        @Override
+        public SummaryOperationMetric clone() {
+            return new SummaryOperationMetric(this);
         }
 
         @Override

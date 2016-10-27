@@ -18,4 +18,7 @@ public interface AttributeMetric extends Metric {
      * @return Rate of attribute reads.
      */
     Rate reads();
+
+    @Override
+    AttributeMetric clone();
 }

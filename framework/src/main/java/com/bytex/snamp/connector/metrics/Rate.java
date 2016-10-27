@@ -55,6 +55,11 @@ public interface Rate extends Metric {
         public void reset() {
 
         }
+
+        @Override
+        public Rate clone() {
+            return this;
+        }
     };
 
     /**
@@ -105,4 +110,7 @@ public interface Rate extends Metric {
      * @return The max rate of actions received per second for the last time.
      */
     long getLastMaxRatePerMinute(final MetricsInterval interval);
+
+    @Override
+    Rate clone();
 }

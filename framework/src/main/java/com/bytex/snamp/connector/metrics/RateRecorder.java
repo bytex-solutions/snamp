@@ -36,6 +36,22 @@ public class RateRecorder extends AbstractMetric implements Rate {
         lastMaxRatePerMinute = new MetricsIntervalMap<>(MetricsInterval.MINUTE.greater(), interval -> interval.createLongPeakDetector(0L));
     }
 
+    protected RateRecorder(final RateRecorder source){
+        super(source);
+        startTime = new AtomicReference<>(source.getStartTime());
+        totalRate = new AtomicLong(source.totalRate.get());
+        maxRate = new MetricsIntervalMap<>(source.maxRate, al -> new AtomicLong(al.get()));
+        meanRate = new MetricsIntervalMap<>(source.meanRate, ExponentialMovingAverage::clone);
+        lastRate = new MetricsIntervalMap<>(source.lastRate, TimeLimitedLong::clone);
+        lastMaxRatePerSecond = new MetricsIntervalMap<>(source.lastMaxRatePerSecond, TimeLimitedLong::clone);
+        lastMaxRatePerMinute = new MetricsIntervalMap<>(source.lastMaxRatePerMinute, TimeLimitedLong::clone);
+    }
+
+    @Override
+    public RateRecorder clone() {
+        return new RateRecorder(this);
+    }
+
     public void mark() {
         totalRate.incrementAndGet();
         for (final MetricsInterval interval : ALL_INTERVALS) {

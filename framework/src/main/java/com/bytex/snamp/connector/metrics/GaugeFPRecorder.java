@@ -6,7 +6,6 @@ import com.google.common.util.concurrent.AtomicDouble;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.ObjDoubleConsumer;
 
 /**
  * Represents implementation of {@link GaugeFP}.
@@ -32,6 +31,20 @@ public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, Do
 
     public GaugeFPRecorder(final String name){
         this(name, DEFAULT_SAMPLING_SIZE);
+    }
+
+    protected GaugeFPRecorder(final GaugeFPRecorder source){
+        super(source);
+        maxValue = new AtomicDouble(source.maxValue.get());
+        minValue = new AtomicDouble(source.minValue.get());
+        lastValue = new AtomicDouble(source.lastValue.get());
+        lastMaxValues = new MetricsIntervalMap<>(source.lastMaxValues, TimeLimitedDouble::clone);
+        lastMinValues = new MetricsIntervalMap<>(source.lastMinValues, TimeLimitedDouble::clone);
+    }
+
+    @Override
+    public GaugeFPRecorder clone() {
+        return new GaugeFPRecorder(this);
     }
 
     protected void writeValue(final double value){

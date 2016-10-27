@@ -7,4 +7,6 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public interface RatedGaugeFP extends GaugeFP, Rate {
+    @Override
+    RatedGaugeFP clone();
 }

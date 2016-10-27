@@ -15,7 +15,7 @@ import java.util.function.*;
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average">Exponential moving average</a>
  */
-public final class ExponentialMovingAverage extends AtomicDouble implements DoubleConsumer, DoubleSupplier, LongSupplier, Stateful, DoubleUnaryOperator {
+public final class ExponentialMovingAverage extends AtomicDouble implements DoubleConsumer, DoubleSupplier, LongSupplier, Stateful, DoubleUnaryOperator, Cloneable {
     private static final Duration PRECISION = Duration.ofSeconds(1L);
     private static final Duration INTERVAL = PRECISION.multipliedBy(1L);
     private static final long serialVersionUID = -8885874345563930420L;
@@ -41,6 +41,17 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
 
     public ExponentialMovingAverage(final long interval, final TimeUnit unit){
         this(unit.toSeconds(interval));
+    }
+
+    private ExponentialMovingAverage(final ExponentialMovingAverage source){
+        super(source.get());
+        accumulator = new AtomicDouble(source.accumulator.get());
+        alpha = source.alpha;
+        startTime = source.startTime;
+    }
+
+    public ExponentialMovingAverage clone(){
+        return new ExponentialMovingAverage(this);
     }
 
     private double getAverage() {

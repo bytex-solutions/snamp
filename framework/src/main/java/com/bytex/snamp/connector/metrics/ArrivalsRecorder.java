@@ -32,6 +32,18 @@ public final class ArrivalsRecorder extends AbstractMetric implements Consumer<D
         this(name, AbstractNumericGauge.DEFAULT_SAMPLING_SIZE);
     }
 
+    private ArrivalsRecorder(final ArrivalsRecorder source){
+        super(source);
+        requestRate = source.requestRate.clone();
+        responseTime = source.responseTime.clone();
+        rpsAndTimeCorrelation = source.rpsAndTimeCorrelation.clone();
+    }
+
+    @Override
+    public ArrivalsRecorder clone() {
+        return new ArrivalsRecorder(this);
+    }
+
     public void setStartTime(final Instant value){
         requestRate.setStartTime(value);
     }

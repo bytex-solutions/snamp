@@ -30,4 +30,7 @@ public interface Flag extends Metric, BooleanSupplier {
      * @return Ratio between true values and false values
      */
     double getLastRatio(final MetricsInterval interval);
+
+    @Override
+    Flag clone();
 }

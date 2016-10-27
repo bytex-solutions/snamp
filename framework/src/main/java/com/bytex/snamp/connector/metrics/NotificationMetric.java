@@ -12,4 +12,7 @@ public interface NotificationMetric extends Metric {
      * @return Rate of all emitted notifications.
      */
     Rate notifications();
+
+    @Override
+    NotificationMetric clone();
 }

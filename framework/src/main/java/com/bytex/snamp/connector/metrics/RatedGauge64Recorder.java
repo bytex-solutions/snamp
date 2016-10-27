@@ -20,6 +20,16 @@ public class RatedGauge64Recorder extends Gauge64Recorder implements RatedGauge6
         rate = new RateRecorder(name);
     }
 
+    protected RatedGauge64Recorder(final RatedGauge64Recorder source){
+        super(source);
+        rate = source.rate.clone();
+    }
+
+    @Override
+    public RatedGauge64Recorder clone() {
+        return new RatedGauge64Recorder(this);
+    }
+
     @Override
     protected void writeValue(final long value) {
         rate.mark();

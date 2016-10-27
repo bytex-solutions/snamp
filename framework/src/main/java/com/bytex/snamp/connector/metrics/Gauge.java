@@ -39,4 +39,7 @@ interface Gauge<V extends Comparable<V>> extends Metric {
      * @return The last presented value.
      */
     V getLastValue();
+
+    @Override
+    Gauge<V> clone();
 }

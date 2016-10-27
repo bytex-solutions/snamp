@@ -15,6 +15,16 @@ public class RatedFlagRecorder extends FlagRecorder implements RatedFlag {
         rate = new RateRecorder(name);
     }
 
+    protected RatedFlagRecorder(final RatedFlagRecorder source){
+        super(source);
+        rate = source.rate.clone();
+    }
+
+    @Override
+    public RatedFlagRecorder clone() {
+        return new RatedFlagRecorder(this);
+    }
+
     @Override
     protected void writeValue(final boolean value) {
         rate.mark();

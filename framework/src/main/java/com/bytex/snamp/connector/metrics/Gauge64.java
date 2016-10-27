@@ -38,4 +38,7 @@ public interface Gauge64 extends NumericGauge {
      * @return The last presented value.
      */
     long getLastValue();
+
+    @Override
+    Gauge64 clone();
 }

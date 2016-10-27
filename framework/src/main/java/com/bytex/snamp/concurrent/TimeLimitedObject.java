@@ -15,7 +15,8 @@ import java.util.function.Supplier;
  * @see TimeLimitedLong
  * @see TimeLimitedInt
  */
-public final class TimeLimitedObject<V> extends Timeout implements Consumer<V>, Supplier<V> {
+public final class TimeLimitedObject<V> extends Timeout implements Consumer<V>, Supplier<V>, Cloneable {
+    private static final long serialVersionUID = -4520377005117627998L;
     private final AtomicReference<V> storage;
     private final V initialValue;
     private final BinaryOperator<V> operator;
@@ -24,6 +25,17 @@ public final class TimeLimitedObject<V> extends Timeout implements Consumer<V>, 
         super(ttl);
         storage = new AtomicReference<>(this.initialValue = initialValue);
         this.operator = Objects.requireNonNull(operator);
+    }
+
+    private TimeLimitedObject(final TimeLimitedObject<V> source) {
+        super(source);
+        storage = new AtomicReference<>(source.storage.get());
+        initialValue = source.initialValue;
+        operator = source.operator;
+    }
+
+    public TimeLimitedObject<V> clone(){
+        return new TimeLimitedObject<>(this);
     }
 
     private void setInitialValue(){

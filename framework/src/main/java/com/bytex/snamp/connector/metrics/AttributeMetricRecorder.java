@@ -18,8 +18,19 @@ public class AttributeMetricRecorder extends AbstractMetric implements Attribute
         writeRate = new RateRecorder(name);
     }
 
+    protected AttributeMetricRecorder(final AttributeMetricRecorder source){
+        super(source);
+        readRate = source.readRate.clone();
+        writeRate = source.writeRate.clone();
+    }
+
     public AttributeMetricRecorder(){
         this(DEFAULT_NAME);
+    }
+
+    @Override
+    public AttributeMetricRecorder clone() {
+        return new AttributeMetricRecorder(this);
     }
 
     /**

@@ -13,7 +13,7 @@ import java.util.function.UnaryOperator;
  * @version 2.0
  * @since 2.0
  */
-public interface Box<T> extends Serializable, Cloneable, Supplier<T>, Consumer<T>, Acceptor<T, ExceptionPlaceholder> {
+public interface Box<T> extends Serializable, Supplier<T>, Consumer<T>, Acceptor<T, ExceptionPlaceholder> {
     /**
      * Gets value stored in this container.
      * @return Value stored in this container.
