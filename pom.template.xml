@@ -68,6 +68,7 @@
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
     <snamp.connector.snmp.version>2.0.0</snamp.connector.snmp.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
+    <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
   </properties>
   <version>2.0.0</version>
   <organization>
@@ -291,10 +292,12 @@
     <module>infrastructure/jmx-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
+    <module>infrastructure/webconsole</module>
     <module>features/platform-feature</module>
     <module>features/gateways-features</module>
     <module>features/connectors-features</module>
     <module>features/wrapped-libs-for-tests</module>
+    <module>features/webconsole-feature</module>
     <module>osgi-tests</module>
 
   </modules>

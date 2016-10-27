@@ -50,6 +50,7 @@
                         <feature>war</feature>
                         <feature>http-whiteboard</feature>
                         <feature>cellar</feature>
+                        <feature>scr</feature>
                     </installedFeatures>
                 </configuration>
             </plugin>
@@ -209,6 +210,14 @@
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.bytex.snamp</groupId>
+                                    <artifactId>snamp-webconsole-feature</artifactId>
+                                    <version>${snamp.webconsole.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
                             </artifactItems>
                         </configuration>
                     </execution>
@@ -224,14 +233,6 @@
             <version>${karaf.version}</version>
             <scope>compile</scope>
             <type>kar</type>
-        </dependency>
-        <dependency>
-            <groupId>io.hawt</groupId>
-            <artifactId>hawtio-karaf</artifactId>
-            <version>${hawtio.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>

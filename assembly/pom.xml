@@ -26,14 +26,6 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>io.hawt</groupId>
-      <artifactId>hawtio-karaf</artifactId>
-      <version>1.4.55</version>
-      <type>xml</type>
-      <classifier>features</classifier>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
       <groupId>com.bytex.snamp</groupId>
       <artifactId>platform-feature</artifactId>
       <version>${project.version}</version>
@@ -97,6 +89,7 @@
             <feature>war</feature>
             <feature>http-whiteboard</feature>
             <feature>cellar</feature>
+            <feature>scr</feature>
           </installedFeatures>
         </configuration>
       </plugin>
@@ -250,6 +243,14 @@
                   <groupId>com.bytex.snamp</groupId>
                   <artifactId>xmpp-gateway-feature</artifactId>
                   <version>${snamp.gateway.xmpp.version}</version>
+                  <type>kar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.bytex.snamp</groupId>
+                  <artifactId>snamp-webconsole-feature</artifactId>
+                  <version>${snamp.webconsole.version}</version>
                   <type>kar</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>

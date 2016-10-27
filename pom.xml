@@ -20,10 +20,12 @@
     <module>infrastructure/jmx-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
+    <module>infrastructure/webconsole</module>
     <module>features/platform-feature</module>
     <module>features/gateways-features</module>
     <module>features/connectors-features</module>
     <module>features/wrapped-libs-for-tests</module>
+    <module>features/webconsole-feature</module>
     <module>osgi-tests</module>
   </modules>
   <properties>
@@ -82,6 +84,7 @@
     <activemq.version>5.13.3</activemq.version>
     <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
     <snamp.framework.version>2.0.0</snamp.framework.version>
+    <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <bouncycastle.version>1.54</bouncycastle.version>
   </properties>
   <dependencyManagement>
@@ -204,6 +207,12 @@
       <dependency>
         <groupId>org.apache.karaf.shell</groupId>
         <artifactId>org.apache.karaf.shell.console</artifactId>
+        <version>${karaf.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.karaf.jaas</groupId>
+        <artifactId>org.apache.karaf.jaas.command</artifactId>
         <version>${karaf.version}</version>
         <scope>provided</scope>
       </dependency>

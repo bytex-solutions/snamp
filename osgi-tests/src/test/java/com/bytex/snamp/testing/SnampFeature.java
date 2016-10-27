@@ -24,7 +24,8 @@ public enum SnampFeature {
     XMPP_GATEWAY("xmpp-gateway-feature", "2.0.0"),
     GROOVY_CONNECTOR("groovy-connector-feature", "2.0.0"),
     GROOVY_GATEWAY("groovy-gateway-feature", "2.0.0"),
-    MODBUS_CONNECTOR("modbus-connector-feature", "2.0.0");
+    MODBUS_CONNECTOR("modbus-connector-feature", "2.0.0"),
+    WEBCONSOLE("snamp-webconsole-feature", "2.0.0");
 
     final String featureName;
     final String version;
