@@ -3,10 +3,10 @@
  * <p>You can use these classes in your code directly.
  * There are the following useful classes:
  * <ul>
- *     <li>Simple containers: {@link com.bytex.snamp.Wrapper}, {@link com.bytex.snamp.SimpleBox}</li>
- *     <li>Syntactic sugar: {@link com.bytex.snamp.Switch}</li>
+ *     <li>Mutable containers: {@link com.bytex.snamp.BoxFactory}, {@link com.bytex.snamp.Box}, {@link com.bytex.snamp.BooleanBox}, {@link com.bytex.snamp.IntBox}</li>
+ *     <li>Lazy initialization: {@link com.bytex.snamp.LazyValueFactory}, {@link com.bytex.snamp.LazyValue}</li>
  *     <li>Functional interfaces: {@link com.bytex.snamp.Acceptor}</li>
- *     <li>Array helpers: {@link com.bytex.snamp.ArrayUtils}</li>
+ *     <li>Type helpers: {@link com.bytex.snamp.ArrayUtils}, {@link com.bytex.snamp.MapUtils}</li>
  *     <li>Specialized collections and iterators: {@link com.bytex.snamp.ResettableIterator}, {@link com.bytex.snamp.WeakEventListenerList}</li>
  * </ul>
  * </p>

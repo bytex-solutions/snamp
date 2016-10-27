@@ -3,6 +3,7 @@ package com.bytex.snamp;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.*;
@@ -15,6 +16,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -57,28 +59,33 @@ public final class ArrayUtils {
                     .maximumSize(20)
                     .softValues()
                     .build(new CacheLoader<OpenType<?>, Class<?>>() {
-                        private final Switch<OpenType<?>, Class<?>> mappings = new Switch<OpenType<?>, Class<?>>()
-                                .equals(SimpleType.BYTE, Byte.class)
-                                .equals(SimpleType.CHARACTER, Character.class)
-                                .equals(SimpleType.SHORT, Short.class)
-                                .equals(SimpleType.INTEGER, Integer.class)
-                                .equals(SimpleType.LONG, Long.class)
-                                .equals(SimpleType.BOOLEAN, Boolean.class)
-                                .equals(SimpleType.FLOAT, Float.class)
-                                .equals(SimpleType.DOUBLE, Double.class)
-                                .equals(SimpleType.VOID, Void.class)
-                                .equals(SimpleType.STRING, String.class)
-                                .equals(SimpleType.BIGDECIMAL, BigDecimal.class)
-                                .equals(SimpleType.BIGINTEGER, BigInteger.class)
-                                .equals(SimpleType.OBJECTNAME, ObjectName.class)
-                                .equals(SimpleType.DATE, Date.class)
-                                .instanceOf(CompositeType.class, CompositeData.class)
-                                .instanceOf(TabularType.class, TabularData.class);
+                        private final Map<OpenType<?>, Class<?>> simpleTypeMapping = ImmutableMap.<OpenType<?>, Class<?>>builder()
+                                .put(SimpleType.BYTE, Byte.class)
+                                .put(SimpleType.CHARACTER, Character.class)
+                                .put(SimpleType.SHORT, Short.class)
+                                .put(SimpleType.INTEGER, Integer.class)
+                                .put(SimpleType.LONG, Long.class)
+                                .put(SimpleType.BOOLEAN, Boolean.class)
+                                .put(SimpleType.FLOAT, Float.class)
+                                .put(SimpleType.DOUBLE, Double.class)
+                                .put(SimpleType.VOID, Void.class)
+                                .put(SimpleType.STRING, String.class)
+                                .put(SimpleType.BIGDECIMAL, BigDecimal.class)
+                                .put(SimpleType.BIGINTEGER, BigInteger.class)
+                                .put(SimpleType.OBJECTNAME, ObjectName.class)
+                                .put(SimpleType.DATE, Date.class)
+                                .build();
 
                         @Override
                         public Class<?> load(final OpenType<?> elementType) throws ClassNotFoundException {
-                            final Class<?> result = mappings.apply(elementType);
-                            return result == null ? Class.forName(elementType.getClassName()) : result;
+                            if(elementType instanceof CompositeType)
+                                return CompositeData.class;
+                            else if(elementType instanceof TabularType)
+                                return TabularData.class;
+                            else {
+                                final Class<?> result = simpleTypeMapping.get(elementType);
+                                return result == null ? Class.forName(elementType.getClassName()) : result;
+                            }
                         }
                     });
 
