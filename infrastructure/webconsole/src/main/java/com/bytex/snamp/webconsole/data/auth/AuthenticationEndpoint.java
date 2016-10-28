@@ -1,6 +1,10 @@
 package com.bytex.snamp.webconsole.data.auth;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import javax.ws.rs.*;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
 /**
@@ -27,7 +31,7 @@ public class AuthenticationEndpoint {
             String token = issueToken(username);
 
             // Return the token on the response
-            return Response.ok(token).build();
+            return Response.ok(new Gson().toJson(token)).build();
 
         } catch (Exception e) {
             return Response.status(Response.Status.UNAUTHORIZED).build();

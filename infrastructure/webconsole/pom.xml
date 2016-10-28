@@ -84,7 +84,8 @@
             <Import-Package>javax.ws.rs.*,
               com.sun.jersey.api.core,
               com.sun.jersey.spi.container.servlet,
-              com.sun.jersey.spi.*
+              com.sun.jersey.spi.*,
+              com.google.gson.*
             </Import-Package>
             <Web-ContextPath>snamp-webconsole</Web-ContextPath>
             <Webapp-Context>snamp-webconsole</Webapp-Context>
