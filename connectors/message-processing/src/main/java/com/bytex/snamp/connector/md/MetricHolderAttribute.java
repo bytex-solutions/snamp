@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.*;
@@ -114,5 +115,16 @@ abstract class MetricHolderAttribute<M extends AbstractMetric> extends MessageDr
     @Override
     protected final boolean accept(final MeasurementNotification notification) {
         return lockAndApply(lockManager.readLock(), this, notification, MetricHolderAttribute::acceptImpl).orElse(Boolean.FALSE);
+    }
+
+    @Override
+    public final void close() throws InterruptedException {
+        final Lock writeLock = lockManager.writeLock();
+        writeLock.lockInterruptibly();
+        try{
+            metric = null;
+        } finally {
+            writeLock.unlock();
+        }
     }
 }

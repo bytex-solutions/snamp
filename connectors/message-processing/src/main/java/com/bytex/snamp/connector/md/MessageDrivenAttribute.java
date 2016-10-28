@@ -15,7 +15,7 @@ import java.io.Serializable;
  * @version 2.0
  * @since 2.0
  */
-public abstract class MessageDrivenAttribute<T> extends OpenMBeanAttributeInfoImpl {
+public abstract class MessageDrivenAttribute<T> extends OpenMBeanAttributeInfoImpl implements AutoCloseable {
     private static final long serialVersionUID = -2361230399455752656L;
 
     protected MessageDrivenAttribute(final String name,

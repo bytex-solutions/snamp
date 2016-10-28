@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents repository with message-driven attributes.
@@ -49,6 +50,19 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     @Override
     protected void failedToConnectAttribute(final String attributeName, final Exception e) {
         failedToConnectAttribute(getLogger(), Level.SEVERE, attributeName, e);
+    }
+
+    /**
+     * Removes the attribute from the connector.
+     *
+     * @param attributeInfo An attribute metadata.
+     */
+    @Override
+    protected void disconnectAttribute(final MessageDrivenAttribute attributeInfo) {
+        callUnchecked(() -> {
+            attributeInfo.close();
+            return null;
+        });
     }
 
     /**
