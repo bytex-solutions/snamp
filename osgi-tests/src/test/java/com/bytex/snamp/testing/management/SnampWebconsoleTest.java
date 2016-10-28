@@ -22,7 +22,7 @@ import java.nio.charset.Charset;
 @SnampDependencies(SnampFeature.WEBCONSOLE)
 public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
 
-    @Test
+    //  @Test
     public void testBasicGet() throws IOException, InterruptedException {
         final URL attributeQuery = new URL("http://localhost:8181/snamp-webconsole/rest/get-data");
         // we should wait a while before it becomes reachable
@@ -48,7 +48,7 @@ public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
 
     }
 
-    //@Test
+    @Test
     public void dummyTest() throws InterruptedException {
         Thread.sleep(10000000);
     }

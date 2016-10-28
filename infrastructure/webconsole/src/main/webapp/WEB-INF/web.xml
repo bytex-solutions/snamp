@@ -12,24 +12,42 @@
     </welcome-file-list>
 
     <servlet>
-        <servlet-name>MyServlet</servlet-name>
+        <servlet-name>RestServlet</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
 
         <init-param>
             <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>com.bytex.snamp.webconsole.data.api</param-value>
+            <param-value>com.bytex.snamp.webconsole.data.api,com.bytex.snamp.webconsole.filter</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
+            <param-value>com.bytex.snamp.webconsole.filter.AuthenticationFilter</param-value>
         </init-param>
 
         <load-on-startup>1</load-on-startup>
     </servlet>
 
-    <!--
-        The web context being "rest-bundle" (check the POM),
-        the REST services will found under "rest-bundle/rest/".
-     -->
+    <servlet>
+        <servlet-name>AuthServlet</servlet-name>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+
+        <init-param>
+            <param-name>com.sun.jersey.config.property.packages</param-name>
+            <param-value>com.bytex.snamp.webconsole.data.auth</param-value>
+        </init-param>
+
+        <load-on-startup>1</load-on-startup>
+    </servlet>
 
     <servlet-mapping>
-        <servlet-name>MyServlet</servlet-name>
-        <url-pattern>/rest/*</url-pattern>
+        <servlet-name>RestServlet</servlet-name>
+        <url-pattern>/rest/api/*</url-pattern>
     </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>AuthServlet</servlet-name>
+        <url-pattern>/rest/auth/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>
