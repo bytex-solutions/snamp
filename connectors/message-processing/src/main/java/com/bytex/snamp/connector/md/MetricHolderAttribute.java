@@ -8,6 +8,10 @@ import com.bytex.snamp.connector.notifications.measurement.MeasurementNotificati
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import java.io.Serializable;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.*;
@@ -42,32 +46,32 @@ abstract class MetricHolderAttribute<M extends AbstractMetric> extends MessageDr
         return extractor.applyAsLong(metric);
     }
 
-    final long extractAsLong(final ToLongFunction<? super M> extractor, final long defval){
-        return lockAndApplyAsLong(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractAsLongImpl).orElse(defval);
+    final OptionalLong extractAsLong(final ToLongFunction<? super M> extractor){
+        return lockAndApplyAsLong(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractAsLongImpl);
     }
 
     private int extractAsIntImpl(final ToIntFunction<? super M> extractor){
         return extractor.applyAsInt(metric);
     }
 
-    final int extractAsInt(final ToIntFunction<? super M> extractor, final int defval){
-        return lockAndApplyAsInt(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractAsIntImpl).orElse(defval);
+    final OptionalInt extractAsInt(final ToIntFunction<? super M> extractor){
+        return lockAndApplyAsInt(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractAsIntImpl);
     }
 
     private <O> O extractImpl(final Function<? super M, ? extends O> extractor){
         return extractor.apply(metric);
     }
 
-    final <O> O extract(final Function<? super M, O> extractor, final O defval){
-        return lockAndApply(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractImpl).orElse(defval);
+    final <O> Optional<O> extract(final Function<? super M, O> extractor){
+        return lockAndApply(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractImpl);
     }
 
     private double extractAsDoubleImpl(final ToDoubleFunction<? super M> extractor){
         return extractor.applyAsDouble(metric);
     }
 
-    final double extractAsDouble(final ToDoubleFunction<? super M> extractor, final double defval){
-        return lockAndApplyAsDouble(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractAsDoubleImpl).orElse(defval);
+    final OptionalDouble extractAsDouble(final ToDoubleFunction<? super M> extractor){
+        return lockAndApplyAsDouble(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractAsDoubleImpl);
     }
 
     abstract CompositeData getValue(final M metric);
