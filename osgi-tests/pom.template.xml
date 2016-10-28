@@ -359,11 +359,5 @@
             <version>1.1.1</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>mq-connector</artifactId>
-            <version>${snamp.connector.mq.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 </project>

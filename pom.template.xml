@@ -11,7 +11,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <!--Global dependencies-->
-    <karaf.version>3.0.7</karaf.version>
+    <karaf.version>3.0.8</karaf.version>
     <karaf.maxVersion>4</karaf.maxVersion>
     <osgi.version>5.0.0</osgi.version>
     <junit.version>4.12</junit.version>

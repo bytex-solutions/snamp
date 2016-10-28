@@ -37,7 +37,7 @@
     <snmp4j.version>2.5.0</snmp4j.version>
     <gson.version>2.7</gson.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
-    <karaf.version>3.0.7</karaf.version>
+    <karaf.version>3.0.8</karaf.version>
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
     <aries.util.version>1.1.1</aries.util.version>
     <hawtio.version>1.4.55</hawtio.version>
