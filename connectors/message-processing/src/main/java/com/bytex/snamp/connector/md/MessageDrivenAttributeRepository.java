@@ -10,7 +10,8 @@ import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static com.bytex.snamp.internal.Utils.callUnchecked;
+
+import static com.bytex.snamp.internal.Utils.convertTo;
 
 /**
  * Represents repository with message-driven attributes.
@@ -39,7 +40,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     }
 
     @Override
-    protected MessageDrivenAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
+    protected MessageDrivenAttribute<?> connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
         final String attributeType = descriptor.getName(attributeName);
         final MessageDrivenAttributeFactory factory = AttributeParser.parseAttribute(attributeType);
         if(factory == null)
@@ -50,19 +51,6 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     @Override
     protected void failedToConnectAttribute(final String attributeName, final Exception e) {
         failedToConnectAttribute(getLogger(), Level.SEVERE, attributeName, e);
-    }
-
-    /**
-     * Removes the attribute from the connector.
-     *
-     * @param attributeInfo An attribute metadata.
-     */
-    @Override
-    protected void disconnectAttribute(final MessageDrivenAttribute attributeInfo) {
-        callUnchecked(() -> {
-            attributeInfo.close();
-            return null;
-        });
     }
 
     /**
@@ -83,7 +71,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
      */
     @Override
     protected final Serializable takeSnapshot(final MessageDrivenAttribute attribute) {
-        return attribute.takeSnapshot();
+        return convertTo(attribute, DistributedAttribute.class, DistributedAttribute::takeSnapshot, attr -> null);
     }
 
     /**
@@ -94,7 +82,8 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
      */
     @Override
     protected final void loadFromSnapshot(final MessageDrivenAttribute attribute, final Serializable snapshot) {
-        attribute.loadFromSnapshot(snapshot);
+        if (attribute instanceof DistributedAttribute<?>)
+            ((DistributedAttribute<?>) attribute).loadFromSnapshot(snapshot);
     }
 
     /**
@@ -105,22 +94,30 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
      * @throws Exception Internal connector error.
      */
     @Override
-    protected Object getAttribute(final MessageDrivenAttribute metadata) throws Exception {
-        return null;
+    protected final Object getAttribute(final MessageDrivenAttribute metadata) throws Exception {
+        if (metadata instanceof DistributedAttribute<?>)
+            return ((DistributedAttribute<?>) metadata).getValue();
+        else if (metadata instanceof ProcessingAttribute<?>)
+            return ((ProcessingAttribute<?>) metadata).getValue(this);
+        else
+            throw new UnrecognizedAttributeTypeException(metadata.getClass());
     }
 
     @Override
-    protected void failedToGetAttribute(final String attributeID, final Exception e) {
+    protected final void failedToGetAttribute(final String attributeID, final Exception e) {
         failedToConnectAttribute(logger.get(), Level.SEVERE, attributeID, e);
     }
 
     @Override
-    protected void setAttribute(final MessageDrivenAttribute attribute, final Object value) throws Exception {
-
+    protected final void setAttribute(final MessageDrivenAttribute attribute, final Object value) throws Exception {
+        if(attribute instanceof ProcessingAttribute<?>)
+            ((ProcessingAttribute<?>) attribute).setRawValue(this, value);
+        else
+            throw MessageDrivenAttribute.cannotBeModified(attribute);
     }
 
     @Override
-    protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
+    protected final void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
         failedToSetAttribute(logger.get(), Level.SEVERE, attributeID, value, e);
     }
 

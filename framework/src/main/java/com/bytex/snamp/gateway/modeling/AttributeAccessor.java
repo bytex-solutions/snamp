@@ -2,14 +2,14 @@ package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.TypeTokens;
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.connector.attributes.AttributeAddedEvent;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeRemovingEvent;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.jmx.DescriptorUtils;
+import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.reflect.TypeToken;
 
@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.Objects;
+
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
@@ -49,8 +51,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     }
 
     private AttributeSupport attributeSupport;
-    private final LazyValue<WellKnownType> wellKnownType;
-    private final LazyValue<OpenType<?>> openType;
+    private final LazyReference<WellKnownType> wellKnownType;
+    private final LazyReference<OpenType<?>> openType;
 
     /**
      * Initializes a new attribute accessor.
@@ -59,8 +61,21 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public AttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
         attributeSupport = null;
-        wellKnownType = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> AttributeDescriptor.getType(getMetadata()));
-        openType = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> AttributeDescriptor.getOpenType(getMetadata()));
+        wellKnownType = new LazyReference<>();
+        openType = new LazyReference<>();
+    }
+
+    public AttributeAccessor(final String attributeName, final AttributeSupport support) throws AttributeNotFoundException{
+        this(getMetadata(attributeName, support));
+        attributeSupport = Objects.requireNonNull(support);
+    }
+
+    private static MBeanAttributeInfo getMetadata(final String attributeName, final AttributeSupport attributeSupport) throws AttributeNotFoundException {
+        final MBeanAttributeInfo attributeInfo = attributeSupport.getAttributeInfo(attributeName);
+        if(attributeInfo == null)
+            throw JMExceptionUtils.attributeNotFound(attributeName);
+        else
+            return attributeInfo;
     }
 
     /**
@@ -74,7 +89,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
         return attributeSupport != null;
     }
 
-    private AttributeSupport verifyOnDisconnected() throws AttributeNotFoundException {
+    private AttributeSupport ensureConnected() throws AttributeNotFoundException {
         final AttributeSupport as = attributeSupport;
         if(as == null)
             throw new AttributeNotFoundException(String.format("Attribute %s is disconnected", getName()));
@@ -104,8 +119,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     @Override
     public final void close() {
         attributeSupport = null;
-        wellKnownType.reset();
-        openType.reset();
+        wellKnownType.set(null);
+        openType.set(null);
     }
 
     /**
@@ -120,8 +135,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * Gets type of this attribute.
      * @return The type of this attribute.
      */
-    public final WellKnownType getType(){
-        return wellKnownType.get();
+    public final WellKnownType getType() {
+        return wellKnownType.<FeatureAccessor<MBeanAttributeInfo>>lazyGet(this, accessor -> AttributeDescriptor.getType(accessor.getMetadata()));
     }
 
     /**
@@ -129,7 +144,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * @return The type of this attribute.
      */
     public final OpenType<?> getOpenType() {
-        return openType.get();
+        return openType.<FeatureAccessor<MBeanAttributeInfo>>lazyGet(this, accessor -> AttributeDescriptor.getOpenType(accessor.getMetadata()));
     }
 
     /**
@@ -141,7 +156,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * @throws javax.management.InvalidAttributeValueException Value type mismatch.
      */
     public final void setValue(final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        verifyOnDisconnected().setAttribute(new Attribute(getName(), interceptSet(value)));
+        ensureConnected().setAttribute(new Attribute(getName(), interceptSet(value)));
     }
 
     /**
@@ -164,7 +179,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * @throws javax.management.ReflectionException Internal connector error.
      */
     public final Object getValue() throws MBeanException, AttributeNotFoundException, ReflectionException {
-        return interceptGet(verifyOnDisconnected().getAttribute(getName()));
+        return interceptGet(ensureConnected().getAttribute(getName()));
     }
 
     /**

@@ -93,6 +93,17 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
     }
 
     /**
+     * Removes the attribute from the connector.
+     *
+     * @param attributeInfo An attribute metadata.
+     */
+    @Override
+    protected void disconnectAttribute(final M attributeInfo) {
+        getStorageKey(attributeInfo).ifPresent(syncThread.storage::remove);
+        super.disconnectAttribute(attributeInfo);
+    }
+
+    /**
      * Gets thread pool used to synchronize attribute states across cluster.
      * @return Thread pool instance.
      */

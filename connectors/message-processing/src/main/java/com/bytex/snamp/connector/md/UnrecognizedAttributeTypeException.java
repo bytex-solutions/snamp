@@ -13,4 +13,8 @@ final class UnrecognizedAttributeTypeException extends ParseException {
     UnrecognizedAttributeTypeException(final String attributeName){
         super(String.format("Attribute '%s' is not recognized by MD connector", attributeName));
     }
+
+    UnrecognizedAttributeTypeException(final Class<? extends MessageDrivenAttribute> type){
+        super(String.format("Unsupported attribute type '%s'", type));
+    }
 }

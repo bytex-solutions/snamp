@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Provides a base support of management attributes.
@@ -472,6 +473,13 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param attributeInfo An attribute metadata.
      */
     protected void disconnectAttribute(final M attributeInfo) {
+        if (attributeInfo instanceof AutoCloseable) {
+            final AutoCloseable closeable = (AutoCloseable) attributeInfo;
+            callUnchecked(() -> {
+                closeable.close();
+                return null;
+            });
+        }
     }
 
     private M removeImpl(final String attributeID) {
