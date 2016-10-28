@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.snmp;
 
-import com.bytex.snamp.LazyValueFactory;
-import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -89,7 +88,7 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
         }
     }
 
-    private static final LazyValue<SnmpConnectorDescriptionProvider> INSTANCE = LazyValueFactory.THREAD_SAFE.of(SnmpConnectorDescriptionProvider::new);
+    private static final LazySoftReference<SnmpConnectorDescriptionProvider> INSTANCE = new LazySoftReference<>();
 
     private SnmpConnectorDescriptionProvider(){
         super(new ConnectorConfigurationDescriptor(),
@@ -98,7 +97,7 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
     }
 
     static SnmpConnectorDescriptionProvider getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(SnmpConnectorDescriptionProvider::new);
     }
 
     static Duration getResponseTimeout(final AttributeDescriptor attributeParams){

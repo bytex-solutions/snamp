@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -33,7 +32,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     private static final String RATE_FORMULA_PARAM = "rate()";
     private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
 
-    private static final LazyValue<CompositeResourceConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(CompositeResourceConfigurationDescriptor::new);
+    private static final LazySoftReference<CompositeResourceConfigurationDescriptor> INSTANCE = new LazySoftReference<>();
 
     private static final class ResourceConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private ResourceConfigurationDescription(){
@@ -67,7 +66,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     }
 
     static CompositeResourceConfigurationDescriptor getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(CompositeResourceConfigurationDescriptor::new);
     }
 
     String parseSeparator(final Map<String, String> parameters){

@@ -1,8 +1,7 @@
 package com.bytex.snamp.gateway.snmp;
 
 
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import org.snmp4j.mp.MPv3;
@@ -130,14 +129,14 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
         }
     }
 
-    private static final LazyValue<SnmpGatewayDescriptionProvider> INSTANCE = LazyValueFactory.THREAD_SAFE.of(SnmpGatewayDescriptionProvider::new);
+    private static final LazySoftReference<SnmpGatewayDescriptionProvider> INSTANCE = new LazySoftReference<>();
 
     private SnmpGatewayDescriptionProvider(){
         super(new GatewayConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());
     }
 
     static SnmpGatewayDescriptionProvider getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(SnmpGatewayDescriptionProvider::new);
     }
 
     OID parseContext(final Map<String, String> parameters) throws SnmpGatewayAbsentParameterException {

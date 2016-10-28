@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.syslog;
 
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.cloudbees.syslog.Facility;
@@ -74,7 +73,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
         }
     }
 
-    private static final LazyValue<SysLogConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(SysLogConfigurationDescriptor::new);
+    private static final LazySoftReference<SysLogConfigurationDescriptor> INSTANCE = new LazySoftReference<>();
 
     private SysLogConfigurationDescriptor(){
         super(new GatewayConfigurationInfo(),
@@ -83,7 +82,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
     }
 
     static SysLogConfigurationDescriptor getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(SysLogConfigurationDescriptor::new);
     }
 
     static String getApplicationName(final Descriptor descr, final String defaultValue){

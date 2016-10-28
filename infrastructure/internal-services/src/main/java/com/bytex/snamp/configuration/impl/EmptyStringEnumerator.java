@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazyStrongReference;
 
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
@@ -13,14 +12,14 @@ import java.util.NoSuchElementException;
  * @since 1.0
  */
 final class EmptyStringEnumerator implements Enumeration<String> {
-    private static final LazyValue<? extends Enumeration<String>> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(EmptyStringEnumerator::new);
+    private static final LazyStrongReference<EmptyStringEnumerator> INSTANCE = new LazyStrongReference<>();
 
     private EmptyStringEnumerator(){
 
     }
 
     static Enumeration<String> getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(EmptyStringEnumerator::new);
     }
 
     @Override

@@ -1,8 +1,7 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -11,6 +10,8 @@ import org.osgi.framework.BundleContext;
 import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
+
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static com.bytex.snamp.internal.Utils.getBundleContext;
 
@@ -22,17 +23,20 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 final class GatewayEventBus {
-    private static final LazyValue<ExecutorService> LOCAL_EVENT_EXECUTOR = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> newSingleThreadExecutor(new GroupedThreadFactory("GATEWAY_EVENT_BUS")));
+    private static final LazySoftReference<ExecutorService> LOCAL_EVENT_EXECUTOR = new LazySoftReference<>();
 
     private static final Multimap<String, WeakReference<GatewayEventListener>> listeners =
             HashMultimap.create(10, 3);
 
     private static ExecutorService getEventExecutor() {
         final BundleContext context = getBundleContext(GatewayEventBus.class);
-        ExecutorService result = context == null ? LOCAL_EVENT_EXECUTOR.get() : ThreadPoolRepository.getDefaultThreadPool(context);
-        if (result == null)
-            result = LOCAL_EVENT_EXECUTOR.get();
-        return result;
+        if (context != null) {
+            final ExecutorService result = ThreadPoolRepository.getDefaultThreadPool(context);
+            if (result != null)
+                return result;
+        }
+        final Supplier<? extends ExecutorService> DEFAULT_EXECUTOR_FACTORY = () -> newSingleThreadExecutor(new GroupedThreadFactory("GATEWAY_EVENT_BUS"));
+        return LOCAL_EVENT_EXECUTOR.lazyGet(DEFAULT_EXECUTOR_FACTORY);
     }
 
     private GatewayEventBus(){

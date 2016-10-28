@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.jmx;
 
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.SelectableConnectorParameterDescriptor;
@@ -117,14 +116,14 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
         }
     }
 
-    private static final LazyValue<JmxConnectorDescriptionProvider> INSTANCE = LazyValueFactory.THREAD_SAFE.of(JmxConnectorDescriptionProvider::new);
+    private static final LazySoftReference<JmxConnectorDescriptionProvider> INSTANCE = new LazySoftReference<>();
 
     private JmxConnectorDescriptionProvider(){
         super(new AttributeConfigurationInfo(), new ConnectorConfigurationInfo(), new EventConfigurationInfo());
     }
 
     static JmxConnectorDescriptionProvider getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(JmxConnectorDescriptionProvider::new);
     }
 
     static boolean useRegexpOption(final Descriptor options) {

@@ -3,8 +3,7 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.Localizable;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.metrics.Metric;
@@ -40,10 +39,10 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @version 2.0
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Localizable {
-    private final LazyValue<MetricsSupport> metrics;
+    private final LazySoftReference<MetricsSupport> metrics;
 
     protected AbstractManagedResourceConnector() {
-        metrics = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(this::createMetricsReader);
+        metrics = new LazySoftReference<>();
     }
 
     /**
@@ -69,7 +68,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     @ThreadSafe(false)
     public void close() throws Exception {
         //change state of the connector
-        metrics.reset();
+        metrics.set(null);
         clearCache();
     }
 
@@ -218,10 +217,10 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @return Connector metrics.
      * @throws IllegalStateException This connector is closed.
      */
-    @Aggregation(cached = true)
+    @Aggregation    //already cached in the field
     @SpecialUse
-    public final MetricsSupport getMetrics(){
-        return metrics.get();
+    public final MetricsSupport getMetrics() {
+        return metrics.lazyGet(this, AbstractManagedResourceConnector::createMetricsReader);
     }
 
     /**

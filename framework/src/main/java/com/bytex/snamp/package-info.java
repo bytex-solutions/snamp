@@ -4,8 +4,7 @@
  * There are the following useful classes:
  * <ul>
  *     <li>Mutable containers: {@link com.bytex.snamp.BoxFactory}, {@link com.bytex.snamp.Box}, {@link com.bytex.snamp.BooleanBox}, {@link com.bytex.snamp.IntBox}</li>
- *     <li>Lazy initialization: {@link com.bytex.snamp.LazyValueFactory}, {@link com.bytex.snamp.LazyValue}</li>
- *     <li>Functional interfaces: {@link com.bytex.snamp.Acceptor}</li>
+ *     <li>Functional interfaces: {@link com.bytex.snamp.Acceptor}, {@link com.bytex.snamp.BooleanUnaryOperator}, {@link com.bytex.snamp.BooleanBinaryOperator}</li>
  *     <li>Type helpers: {@link com.bytex.snamp.ArrayUtils}, {@link com.bytex.snamp.MapUtils}</li>
  *     <li>Specialized collections and iterators: {@link com.bytex.snamp.ResettableIterator}, {@link com.bytex.snamp.WeakEventListenerList}</li>
  * </ul>

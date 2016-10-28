@@ -1,8 +1,7 @@
 package com.bytex.snamp.gateway.nrdp;
 
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -70,7 +69,7 @@ final class NRDPGatewayConfigurationDescriptor extends ConfigurationEntityDescri
         }
     }
 
-    private static final LazyValue<NRDPGatewayConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE.of(NRDPGatewayConfigurationDescriptor::new);
+    private static final LazySoftReference<NRDPGatewayConfigurationDescriptor> INSTANCE = new LazySoftReference<>();
 
     private NRDPGatewayConfigurationDescriptor() {
         super(new GatewayConfigurationInfo(),
@@ -79,7 +78,7 @@ final class NRDPGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     static NRDPGatewayConfigurationDescriptor getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(NRDPGatewayConfigurationDescriptor::new);
     }
 
     NRDPServerConnectionSettings parseSettings(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {

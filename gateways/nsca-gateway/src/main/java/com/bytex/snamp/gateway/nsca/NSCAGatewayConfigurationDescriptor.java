@@ -1,9 +1,8 @@
 package com.bytex.snamp.gateway.nsca;
 
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
-import com.bytex.snamp.LazyValueFactory;
-import com.bytex.snamp.LazyValue;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.googlecode.jsendnsca.core.Encryption;
 import com.googlecode.jsendnsca.core.NagiosSettings;
@@ -72,7 +71,7 @@ final class NSCAGatewayConfigurationDescriptor extends ConfigurationEntityDescri
                     PASSIVE_CHECK_SEND_PERIOD_PARAM);
         }
     }
-    private static final LazyValue<NSCAGatewayConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE.of(NSCAGatewayConfigurationDescriptor::new);
+    private static final LazySoftReference<NSCAGatewayConfigurationDescriptor> INSTANCE = new LazySoftReference<>();
 
     private NSCAGatewayConfigurationDescriptor() {
         super(new GatewayConfigurationInfo(),
@@ -81,7 +80,7 @@ final class NSCAGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     static NSCAGatewayConfigurationDescriptor getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(NSCAGatewayConfigurationDescriptor::new);
     }
 
     NagiosSettings parseSettings(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {

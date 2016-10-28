@@ -1,21 +1,22 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.LazyValueFactory;
-import com.bytex.snamp.LazyValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
-import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
 
 /**
  * Represents an abstract class for building Open MBeans.
@@ -338,7 +339,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * Represents type of the attribute.
          */
         protected final T openType;
-        private final LazyValue<Class<V>> javaType;
+        private final Class<V> javaType;
         private final ThreadLocal<OpenMBean> owner;
 
         /**
@@ -349,7 +350,9 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         protected OpenAttribute(final String attributeName, final T openType){
             super(attributeName);
             this.openType = openType;
-            javaType = LazyValueFactory.THREAD_SAFE.of(() -> null);
+            @SuppressWarnings("unchecked")
+            final Class<V> jt= (Class<V>) callUnchecked(() -> Class.forName(openType.getClassName()));
+            this.javaType = jt;
             owner = new ThreadLocal<>();
         }
 
@@ -418,7 +421,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         private void setValueInternal(final Object value, final OpenMBean owner) throws MBeanException, ReflectionException, InvalidAttributeValueException{
             this.owner.set(owner);
             try{
-                setValue(getJavaType().cast(value));
+                setValue(javaType.cast(value));
             }
             catch (final MBeanException | ReflectionException | InvalidAttributeValueException e){
                 throw e;
@@ -445,17 +448,6 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             return owner.get();
         }
 
-        @SuppressWarnings("unchecked")
-        private Class<V> getJavaType() throws ClassNotFoundException {
-            try {
-                return javaType.get(() -> (Class<V>) Class.forName(openType.getClassName()));
-            } catch (final ClassNotFoundException e) {
-                throw e;
-            } catch (final Exception e) {
-                throw new ClassNotFoundException(String.format("Unable to load class for type '%s'", openType), e);
-            }
-        }
-
         /**
          * Determines whether this attribute is readable.
          * @return {@literal true}, if this method is readable.
@@ -476,7 +468,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          */
         public final boolean isWritable(){
             try {
-                final Method getter = getClass().getMethod(SET_VALUE_METHOD, getJavaType());
+                final Method getter = getClass().getMethod(SET_VALUE_METHOD, javaType);
                 return getClass().equals(getter.getDeclaringClass());
             }
             catch (final ReflectiveOperationException e) {

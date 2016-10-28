@@ -1,14 +1,12 @@
 package com.bytex.snamp.connector.groovy.impl;
 
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 
 import java.util.Map;
-
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 
 /**
  * @author Roman Sakno
@@ -38,13 +36,13 @@ final class GroovyResourceConfigurationDescriptor extends ConfigurationEntityDes
         }
     }
 
-    private static final LazyValue<GroovyResourceConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(GroovyResourceConfigurationDescriptor::new);
+    private static final LazySoftReference<GroovyResourceConfigurationDescriptor> INSTANCE = new LazySoftReference<>();
 
     private GroovyResourceConfigurationDescriptor(){
         super(new ConnectorConfigurationInfo());
     }
 
     static GroovyResourceConfigurationDescriptor getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(GroovyResourceConfigurationDescriptor::new);
     }
 }

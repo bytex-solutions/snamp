@@ -1,7 +1,5 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.*;
@@ -15,6 +13,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static com.bytex.snamp.internal.Utils.*;
 
@@ -368,7 +368,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         }
     }
 
-    private static final LazyValue<ExecutorService> LOCAL_MESSAGE_SENDER = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> newSingleThreadExecutor(new GroupedThreadFactory("LocalCommunicator")));
+    private static final LazySoftReference<ExecutorService> LOCAL_MESSAGE_SENDER = new LazySoftReference<>();
     private final LongCounter idGenerator;
     private final HeadMessageListenerNode firstNode;
     private final TailMessageListenerNode lastNode;
@@ -384,10 +384,13 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
 
     private ExecutorService getExecutorService() {
         final BundleContext context = getBundleContextOfObject(this);
-        ExecutorService result = context == null ? LOCAL_MESSAGE_SENDER.get() : ThreadPoolRepository.getDefaultThreadPool(context);
-        if (result == null)
-            result = LOCAL_MESSAGE_SENDER.get();
-        return result;
+        if (context != null) {
+            final ExecutorService result = ThreadPoolRepository.getDefaultThreadPool(context);
+            if (result != null)
+                return result;
+        }
+        final Supplier<ExecutorService> DEFAULT_SENDER_FACTORY = () -> newSingleThreadExecutor(new GroupedThreadFactory("LocalCommunicator"));
+        return LOCAL_MESSAGE_SENDER.lazyGet(DEFAULT_SENDER_FACTORY);
     }
 
     @Override

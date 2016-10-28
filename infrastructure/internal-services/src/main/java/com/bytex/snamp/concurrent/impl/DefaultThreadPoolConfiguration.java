@@ -1,7 +1,6 @@
 package com.bytex.snamp.concurrent.impl;
 
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 
 import java.time.Duration;
@@ -12,14 +11,14 @@ import java.util.Map;
  * Represents default settings of thread pool.
  */
 final class DefaultThreadPoolConfiguration implements ThreadPoolConfiguration {
-    private static final LazyValue<? extends ThreadPoolConfiguration> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(DefaultThreadPoolConfiguration::new);
+    private static final LazySoftReference<DefaultThreadPoolConfiguration> INSTANCE = new LazySoftReference<>();
 
     private DefaultThreadPoolConfiguration(){
 
     }
 
     static ThreadPoolConfiguration getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(DefaultThreadPoolConfiguration::new);
     }
 
     @Override

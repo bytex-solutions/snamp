@@ -1,13 +1,12 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.LazyValueFactory;
-import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import org.osgi.framework.Version;
 
-import java.io.IOException;
 import java.io.InputStream;
-import static com.bytex.snamp.internal.Utils.callUnchecked;
+import java.util.function.Supplier;
 
 /**
  * Represents version of SNAMP platform.
@@ -17,13 +16,9 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 1.0
  */
 public final class PlatformVersion extends Version {
-    private static final LazyValue<PlatformVersion> CURRENT_VERSION = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> callUnchecked(PlatformVersion::getCurrentVersionImpl));
+    private static final LazySoftReference<PlatformVersion> CURRENT_VERSION = new LazySoftReference<>();
 
-    private PlatformVersion(final String version){
-        super(version);
-    }
-
-    private static PlatformVersion getCurrentVersionImpl() throws IOException {
+    private static final Supplier<PlatformVersion> INITIALIZER = Utils.suspendException(() -> {
         try (final InputStream versionStream = PlatformVersion.class.getClassLoader().getResourceAsStream("PlatformVersion")) {
             String version = IOUtils.toString(versionStream);
             /*
@@ -33,6 +28,10 @@ public final class PlatformVersion extends Version {
             version = version.replace("\n", "");
             return new PlatformVersion(version);
         }
+    });
+
+    private PlatformVersion(final String version){
+        super(version);
     }
 
     /**
@@ -40,6 +39,6 @@ public final class PlatformVersion extends Version {
      * @return Version of SNAMP platform.
      */
     public static PlatformVersion get() {
-        return CURRENT_VERSION.get();
+        return CURRENT_VERSION.lazyGet(INITIALIZER);
     }
 }

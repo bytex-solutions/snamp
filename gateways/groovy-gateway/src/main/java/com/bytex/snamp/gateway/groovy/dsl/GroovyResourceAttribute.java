@@ -1,8 +1,7 @@
 package com.bytex.snamp.gateway.groovy.dsl;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.LazyValueFactory;
-import com.bytex.snamp.LazyValue;
+import com.bytex.snamp.concurrent.LazyStrongReference;
 import groovy.lang.GroovyObjectSupport;
 
 import javax.management.*;
@@ -18,7 +17,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
     private final AttributesView attributes;
     private final String attributeName;
     private final String resourceName;
-    private final LazyValue<GroovyFeatureMetadata<MBeanAttributeInfo>> metadataCache;
+    private final LazyStrongReference<GroovyFeatureMetadata<MBeanAttributeInfo>> metadataCache;
 
     GroovyResourceAttribute(final AttributesView attributes,
                             final String resourceName,
@@ -26,13 +25,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
         this.attributes = attributes;
         this.attributeName = attributeName;
         this.resourceName = resourceName;
-        this.metadataCache = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() ->
-                attributes.getAttributesMetadata(resourceName).stream()
-                        .filter(metadata -> attributeName.equals(metadata.getName()))
-                        .map(GroovyFeatureMetadata::new)
-                        .findFirst()
-                        .orElseGet(() -> null)
-        );
+        this.metadataCache = new LazyStrongReference<>();
     }
 
     @SpecialUse
@@ -45,9 +38,17 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
         return attributes.getAttributeValue(resourceName, attributeName);
     }
 
+    private GroovyFeatureMetadata<MBeanAttributeInfo> detectMetadata(){
+        return attributes.getAttributesMetadata(resourceName).stream()
+                        .filter(metadata -> attributeName.equals(metadata.getName()))
+                        .map(GroovyFeatureMetadata::new)
+                        .findFirst()
+                        .orElseGet(() -> null);
+    }
+
     @SpecialUse
     public GroovyFeatureMetadata<MBeanAttributeInfo> getMetadata() {
-        return metadataCache.get();
+        return metadataCache.lazyGet(this, GroovyResourceAttribute::detectMetadata);
     }
 
     @Override

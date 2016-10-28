@@ -1,9 +1,8 @@
 package com.bytex.snamp.gateway.ssh;
 
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.bytex.snamp.gateway.SelectableGatewayParameterDescriptor;
-import com.bytex.snamp.LazyValueFactory;
-import com.bytex.snamp.LazyValue;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
@@ -87,14 +86,14 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
         }
     }
 
-    private static final LazyValue<SshGatewayDescriptionProvider> INSTANCE = LazyValueFactory.THREAD_SAFE.of(SshGatewayDescriptionProvider::new);
+    private static final LazySoftReference<SshGatewayDescriptionProvider> INSTANCE = new LazySoftReference<>();
 
     private SshGatewayDescriptionProvider() {
         super(new GatewayConfigurationInfo());
     }
 
     static SshGatewayDescriptionProvider getInstance(){
-        return INSTANCE.get();
+        return INSTANCE.lazyGet(SshGatewayDescriptionProvider::new);
     }
 
     String getHost(final Map<String, String> parameters){

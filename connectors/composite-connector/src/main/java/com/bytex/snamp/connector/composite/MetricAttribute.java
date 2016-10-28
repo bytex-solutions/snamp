@@ -1,8 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.metrics.Metric;
-import org.osgi.framework.BundleContext;
+import com.bytex.snamp.connector.metrics.AbstractMetric;
 
 import javax.management.MBeanException;
 import javax.management.openmbean.CompositeData;
@@ -12,14 +11,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-abstract class MetricAttribute<M extends Metric & Serializable> extends AbstractCompositeAttribute implements DistributedAttribute {
+abstract class MetricAttribute<M extends AbstractMetric> extends AbstractCompositeAttribute implements DistributedAttribute {
     private static final long serialVersionUID = -2642294369415157342L;
     private volatile M metric;
     private final Predicate<Object> isInstance;
@@ -33,10 +30,6 @@ abstract class MetricAttribute<M extends Metric & Serializable> extends Abstract
         metric = metricFactory.apply(name);
         assert metric != null;
         this.isInstance = metric.getClass()::isInstance;
-    }
-
-    final BundleContext getBundleContext(){
-        return getBundleContextOfObject(this);
     }
 
     protected final void updateMetric(final Consumer<M> updater){

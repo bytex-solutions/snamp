@@ -211,7 +211,7 @@ public final class Utils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <V> Supplier<? extends V> suspendException(final Callable<? extends V> callable){
+    public static <V> Supplier<V> suspendException(final Callable<V> callable){
         final Supplier result;
         try{
             result = (Supplier) CALL_SILENT_HANDLE.invokeExact(callable);

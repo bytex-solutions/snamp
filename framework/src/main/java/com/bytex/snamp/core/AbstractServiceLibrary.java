@@ -3,8 +3,7 @@ package com.bytex.snamp.core;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.LazyValue;
-import com.bytex.snamp.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
@@ -348,7 +347,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <TService> Type of the dynamic service.
      */
     public static abstract class DynamicServiceManager<TService> extends ProvidedService<ManagedServiceFactory, ManagedServiceFactoryImpl<TService>>{
-        private final LazyValue<String> factoryPID;
+        private final LazyStrongReference<String> factoryPID;
 
         /**
          * Initializes a new holder for the provided service.
@@ -358,10 +357,14 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         protected DynamicServiceManager(final RequiredService<?>... dependencies) {
             super(ManagedServiceFactory.class, dependencies);
-            factoryPID = LazyValueFactory.THREAD_SAFE.of(this::getFactoryPIDImpl);
+            factoryPID = new LazyStrongReference<>();
         }
 
-        private String getFactoryPIDImpl(){
+        final String getCachedFactoryPID(){
+            return factoryPID.lazyGet(this, DynamicServiceManager::discoverFactoryPID);
+        }
+
+        private String discoverFactoryPID(){
             return getFactoryPID(super.ownDependencies.stream().toArray(RequiredService<?>[]::new));
         }
 
@@ -444,11 +447,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         LogicalOperation createLogicalOperationForUpdate(final String servicePID){
-            return DynamicServiceLogicalOperation.update(factoryPID.get(), servicePID);
+            return DynamicServiceLogicalOperation.update(getCachedFactoryPID(), servicePID);
         }
 
         LogicalOperation createLogicalOperationForDelete(final String servicePID){
-            return DynamicServiceLogicalOperation.delete(factoryPID.get(), servicePID);
+            return DynamicServiceLogicalOperation.delete(getCachedFactoryPID(), servicePID);
         }
 
         /**
@@ -460,7 +463,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final ManagedServiceFactoryImpl<TService> activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            final String factoryPID = this.factoryPID.get();
+            final String factoryPID = getCachedFactoryPID();
             identity.put(Constants.SERVICE_PID, factoryPID);
             return new ManagedServiceFactoryImpl<TService>(){
                 private static final long serialVersionUID = -7596205835324011065L;
@@ -629,12 +632,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         @Override
         final LogicalOperation createLogicalOperationForUpdate(final String servicePID) {
-            return SubRegistryLogicalOperation.update(super.factoryPID.get(), servicePID, serviceContract);
+            return SubRegistryLogicalOperation.update(getCachedFactoryPID(), servicePID, serviceContract);
         }
 
         @Override
         final LogicalOperation createLogicalOperationForDelete(final String servicePID) {
-            return SubRegistryLogicalOperation.delete(super.factoryPID.get(), servicePID, serviceContract);
+            return SubRegistryLogicalOperation.delete(getCachedFactoryPID(), servicePID, serviceContract);
         }
 
         /**
