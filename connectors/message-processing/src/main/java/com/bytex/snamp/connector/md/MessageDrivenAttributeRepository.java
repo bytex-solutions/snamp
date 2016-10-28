@@ -106,7 +106,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
      */
     @Override
     protected Object getAttribute(final MessageDrivenAttribute metadata) throws Exception {
-        return metadata.getValue();
+        return null;
     }
 
     @Override

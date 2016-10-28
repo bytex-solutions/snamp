@@ -9,7 +9,7 @@ import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.connector.attributes.OpenMBeanAttributeInfoImpl;
+import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
@@ -41,7 +41,7 @@ import static com.bytex.snamp.TypeTokens.cast;
  * @since 1.0
  */
 final class RShellResourceConnector extends AbstractManagedResourceConnector {
-    private static abstract class RShellAttributeInfo extends OpenMBeanAttributeInfoImpl {
+    private static abstract class RShellAttributeInfo extends AbstractOpenAttributeInfo {
         private static final long serialVersionUID = -403897890533078455L;
         final XmlCommandLineToolProfile commandProfile;
         private final Map<String, ?> parameters;

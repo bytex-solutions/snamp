@@ -10,7 +10,7 @@ import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.connector.attributes.OpenMBeanAttributeInfoImpl;
+import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
@@ -243,7 +243,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static abstract class SnmpAttributeInfo<V extends Variable> extends OpenMBeanAttributeInfoImpl implements SnmpObjectConverter<V> {
+    private static abstract class SnmpAttributeInfo<V extends Variable> extends AbstractOpenAttributeInfo implements SnmpObjectConverter<V> {
         private static final long serialVersionUID = 4948510436343027716L;
 
         private SnmpAttributeInfo(final String attributeID,

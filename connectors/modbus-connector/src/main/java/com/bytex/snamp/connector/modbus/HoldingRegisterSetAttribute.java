@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.modbus;
 
+import com.bytex.snamp.connector.modbus.transport.ModbusMaster;
 import com.ghgande.j2mod.modbus.procimg.Register;
 import com.ghgande.j2mod.modbus.procimg.SimpleRegister;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -13,19 +14,18 @@ import javax.management.openmbean.SimpleType;
 /**
  * Provides access to a set of holding registers.
  */
-final class HoldingRegisterSetAttribute extends ModbusArrayAttributeInfo<short[], HoldingRegisterAccess> {
+final class HoldingRegisterSetAttribute extends ModbusArrayAttributeInfo<short[]> {
     private static final String DESCRIPTION = "A set of holding registers";
     private static final long serialVersionUID = -6206738073781348952L;
 
     HoldingRegisterSetAttribute(final String attributeID,
-                                final AttributeDescriptor descriptor,
-                                final HoldingRegisterAccess deviceAccess) throws OpenDataException {
-        super(attributeID, DESCRIPTION, new ArrayType<>(SimpleType.SHORT, true), AttributeSpecifier.READ_WRITE, descriptor, deviceAccess);
+                                final AttributeDescriptor descriptor) throws OpenDataException {
+        super(attributeID, DESCRIPTION, new ArrayType<>(SimpleType.SHORT, true), AttributeSpecifier.READ_WRITE, descriptor);
     }
 
 
     @Override
-    protected short[] getValue(final HoldingRegisterAccess deviceAccess) throws Exception {
+    short[] getValue(final ModbusMaster deviceAccess) throws Exception {
         final IntegerRange range = getRange();
         final Register[] registers = deviceAccess.readHoldingRegisters(getUnitID(), range.getLowerBound(), range.size());
         final short[] result = new short[registers.length];
@@ -35,7 +35,7 @@ final class HoldingRegisterSetAttribute extends ModbusArrayAttributeInfo<short[]
     }
 
     @Override
-    protected void setValue(final HoldingRegisterAccess deviceAccess, final short[] value) throws Exception {
+    void setValue(final ModbusMaster deviceAccess, final short[] value) throws Exception {
         final Register[] registers = new Register[value.length];
         for (int i = 0; i < value.length; i++)
             (registers[i] = new SimpleRegister()).setValue(value[i]);

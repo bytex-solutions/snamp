@@ -77,8 +77,7 @@ abstract class MetricHolderAttribute<M extends AbstractMetric> extends MessageDr
 
     abstract CompositeData getValue(final M metric);
 
-    @Override
-    protected final CompositeData getValue() {
+    final CompositeData getValue() {
         return getValue(metric);
     }
 

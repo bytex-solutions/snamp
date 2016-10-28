@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.modbus;
 
+import com.bytex.snamp.connector.modbus.transport.ModbusMaster;
 import com.ghgande.j2mod.modbus.ModbusException;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
@@ -15,20 +16,18 @@ import static com.bytex.snamp.connector.modbus.ModbusResourceConnectorConfigurat
  * @version 2.0
  * @since 1.0
  */
-final class FileAttribute extends ModbusArrayAttributeInfo<short[], FileAccess> {
+final class FileAttribute extends ModbusArrayAttributeInfo<short[]> {
     static final String NAME = "file";
     private static final String DESCRIPTION = "Read or write file records";
     private static final long serialVersionUID = 94068295080475933L;
 
     FileAttribute(final String attributeID,
-                  final AttributeDescriptor descriptor,
-                  final FileAccess deviceAccess) throws OpenDataException {
+                  final AttributeDescriptor descriptor) throws OpenDataException {
         super(attributeID,
                 DESCRIPTION,
                 new ArrayType<>(SimpleType.SHORT, true),
                 AttributeSpecifier.READ_WRITE,
-                descriptor,
-                deviceAccess);
+                descriptor);
     }
 
     private int getRecordSize() throws ModbusAbsentConfigurationParameterException {
@@ -36,12 +35,12 @@ final class FileAttribute extends ModbusArrayAttributeInfo<short[], FileAccess> 
     }
 
     @Override
-    protected short[] getValue(final FileAccess deviceAccess) throws ModbusAbsentConfigurationParameterException, ModbusException {
+    short[] getValue(final ModbusMaster deviceAccess) throws ModbusAbsentConfigurationParameterException, ModbusException {
         return deviceAccess.readFile(getUnitID(), getOffset(), getCount(), getRecordSize());
     }
 
     @Override
-    protected void setValue(final FileAccess deviceAccess, final short[] value) throws ModbusAbsentConfigurationParameterException, ModbusException {
+    void setValue(final ModbusMaster deviceAccess, final short[] value) throws ModbusAbsentConfigurationParameterException, ModbusException {
         deviceAccess.writeFile(getUnitID(), getOffset(), getRecordSize(), value);
     }
 }

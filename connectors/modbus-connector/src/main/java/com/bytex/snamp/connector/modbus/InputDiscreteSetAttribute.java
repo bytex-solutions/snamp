@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.modbus;
 
+import com.bytex.snamp.connector.modbus.transport.ModbusMaster;
 import com.ghgande.j2mod.modbus.ModbusException;
 import com.ghgande.j2mod.modbus.util.BitVector;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -13,19 +14,17 @@ import javax.management.openmbean.SimpleType;
 /**
  * Provides access to a range of input discretes.
  */
-final class InputDiscreteSetAttribute extends ModbusArrayAttributeInfo<boolean[], InputDiscreteAccess> {
+final class InputDiscreteSetAttribute extends ModbusArrayAttributeInfo<boolean[]> {
     private static final String DESCRIPTION = "A set of input discretes";
     private static final long serialVersionUID = 5270513533820737433L;
 
     InputDiscreteSetAttribute(final String attributeID,
-                              final AttributeDescriptor descriptor,
-                              final InputDiscreteAccess deviceAccess) throws OpenDataException {
-        super(attributeID, DESCRIPTION, new ArrayType<>(SimpleType.BOOLEAN, true), AttributeSpecifier.READ_ONLY, descriptor, deviceAccess);
+                              final AttributeDescriptor descriptor) throws OpenDataException {
+        super(attributeID, DESCRIPTION, new ArrayType<>(SimpleType.BOOLEAN, true), AttributeSpecifier.READ_ONLY, descriptor);
     }
 
-
     @Override
-    protected boolean[] getValue(final InputDiscreteAccess deviceAccess) throws ModbusException, ModbusAbsentConfigurationParameterException {
+    boolean[] getValue(final ModbusMaster deviceAccess) throws ModbusException, ModbusAbsentConfigurationParameterException {
         final IntegerRange range = getRange();
         final BitVector coils = deviceAccess.readInputDiscretes(getUnitID(), range.getLowerBound(), range.size());
         final boolean[] result = new boolean[coils.size()];

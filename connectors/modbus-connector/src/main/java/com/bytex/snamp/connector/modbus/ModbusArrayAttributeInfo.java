@@ -11,7 +11,7 @@ import static com.bytex.snamp.connector.modbus.ModbusResourceConnectorConfigurat
 /**
  * Provides access to a set of things such as coils and registers.
  */
-abstract class ModbusArrayAttributeInfo<T, A extends SlaveDeviceAccess> extends ModbusAttributeInfo<T, A> {
+abstract class ModbusArrayAttributeInfo<T> extends ModbusAttributeInfo<T> {
 
     private static final long serialVersionUID = 8018051076191542627L;
 
@@ -19,9 +19,8 @@ abstract class ModbusArrayAttributeInfo<T, A extends SlaveDeviceAccess> extends 
                              final String description,
                              final ArrayType<T> attributeType,
                              final AttributeSpecifier specifier,
-                             final AttributeDescriptor descriptor,
-                             final A deviceAccess) {
-        super(attributeID, description, attributeType, specifier, descriptor, deviceAccess);
+                             final AttributeDescriptor descriptor) {
+        super(attributeID, description, attributeType, specifier, descriptor);
     }
 
     final int getCount() throws ModbusAbsentConfigurationParameterException {

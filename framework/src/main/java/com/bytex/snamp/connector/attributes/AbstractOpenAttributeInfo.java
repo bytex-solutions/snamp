@@ -9,7 +9,7 @@ import java.util.Set;
  * @version 2.0
  * @since 1.0
  */
-public class OpenMBeanAttributeInfoImpl extends AbstractAttributeInfo implements OpenMBeanAttributeInfo {
+public class AbstractOpenAttributeInfo extends AbstractAttributeInfo implements OpenMBeanAttributeInfo {
     private static final long serialVersionUID = -7592242456297020895L;
     private final OpenType<?> openType;
 
@@ -22,11 +22,11 @@ public class OpenMBeanAttributeInfoImpl extends AbstractAttributeInfo implements
      * @param specifier   Attribute access specifier. Cannot be {@literal null}.
      * @param descriptor  The descriptor for the attribute.  This may be null
      */
-    public OpenMBeanAttributeInfoImpl(final String name,
-                                      final OpenType<?> type,
-                                      final String description,
-                                      final AttributeSpecifier specifier,
-                                      final AttributeDescriptor descriptor) {
+    public AbstractOpenAttributeInfo(final String name,
+                                     final OpenType<?> type,
+                                     final String description,
+                                     final AttributeSpecifier specifier,
+                                     final AttributeDescriptor descriptor) {
         super(name, type.getClassName(), descriptor.getDescription(description), specifier, descriptor);
         this.openType = type;
     }
