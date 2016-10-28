@@ -1,9 +1,7 @@
 package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 
-import javax.management.MBeanException;
 import javax.management.openmbean.SimpleType;
 import java.io.Serializable;
 
@@ -12,8 +10,8 @@ import java.io.Serializable;
  * @version 2.0
  * @since 2.0
  */
-abstract class Gauge64ExtractionAttribute<T extends Serializable> extends UnaryFunctionAttribute<T> {
-    private static final long serialVersionUID = -8981662276608894554L;
+abstract class Gauge64ExtractionAttribute<T extends Serializable> extends MetricExtractionAttribute<T, Gauge64Attribute> {
+    private static final long serialVersionUID = 7911853190086552218L;
 
     Gauge64ExtractionAttribute(final String name,
                                final String sourceAttribute,
@@ -23,13 +21,11 @@ abstract class Gauge64ExtractionAttribute<T extends Serializable> extends UnaryF
         super(name, sourceAttribute, type, description, descriptor);
     }
 
-    protected abstract T getValue(final MetricHolderAttribute<?> metric) throws Exception;
+    @Override
+    final Class<Gauge64Attribute> getMetricAttributeType() {
+        return Gauge64Attribute.class;
+    }
 
     @Override
-    protected final T getValue(final AttributeAccessor operand) throws Exception {
-        if(operand.getMetadata() instanceof MetricHolderAttribute<?>)
-            return getValue((MetricHolderAttribute<?>) operand.getMetadata());
-        else
-            throw new MBeanException(new IllegalStateException("Metric attribute expected but found " + operand.getName()));
-    }
+    abstract T getValue(final Gauge64Attribute metric);
 }

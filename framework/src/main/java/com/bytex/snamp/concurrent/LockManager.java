@@ -205,6 +205,14 @@ public abstract class LockManager {
         return true;
     }
 
+    private static <E extends Throwable> void lockInterruptibly(final Lock lock, final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
+        try {
+            lock.lockInterruptibly();
+        } catch (final InterruptedException e) {
+            throw exceptionFactory.apply(e);
+        }
+    }
+
     public static <I1, I2> boolean lockAndAccept(final Lock lock, final I1 input1, final I2 input2, final BiConsumer<? super I1, ? super I2> consumer) {
         final boolean success;
         if (success = lockInterruptibly(lock))
@@ -236,6 +244,19 @@ public abstract class LockManager {
         return Optional.empty();
     }
 
+    public static <I1, I2, O, E extends Throwable> O lockAndApply(final Lock lock,
+                                                                        final I1 input1,
+                                                                        final I2 input2,
+                                                                        final BiFunction<? super I1, ? super I2, ? extends O> fn,
+                                                                        final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
+        lockInterruptibly(lock, exceptionFactory);
+        try {
+            return fn.apply(input1, input2);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public static <I1, I2> OptionalLong lockAndApplyAsLong(final Lock lock, final I1 input1, final I2 input2, final ToLongBiFunction<? super I1, ? super I2> fn){
         if (lockInterruptibly(lock))
             try {
@@ -244,6 +265,19 @@ public abstract class LockManager {
                 lock.unlock();
             }
         return OptionalLong.empty();
+    }
+
+    public static <I1, I2, E extends Throwable> long lockAndApplyAsLong(final Lock lock,
+                                                                        final I1 input1,
+                                                                        final I2 input2,
+                                                                        final ToLongBiFunction<? super I1, ? super I2> fn,
+                                                                        final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
+        lockInterruptibly(lock, exceptionFactory);
+        try {
+            return fn.applyAsLong(input1, input2);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public static <I1, I2> OptionalInt lockAndApplyAsInt(final Lock lock, final I1 input1, final I2 input2, final ToIntBiFunction<? super I1, ? super I2> fn){
@@ -256,6 +290,19 @@ public abstract class LockManager {
         return OptionalInt.empty();
     }
 
+    public static <I1, I2, E extends Throwable> int lockAndApplyAsInt(final Lock lock,
+                                                                        final I1 input1,
+                                                                        final I2 input2,
+                                                                        final ToIntBiFunction<? super I1, ? super I2> fn,
+                                                                        final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
+        lockInterruptibly(lock, exceptionFactory);
+        try {
+            return fn.applyAsInt(input1, input2);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public static <I1, I2> OptionalDouble lockAndApplyAsDouble(final Lock lock, final I1 input1, final I2 input2, final ToDoubleBiFunction<? super I1, ? super I2> fn){
         if (lockInterruptibly(lock))
             try {
@@ -264,5 +311,18 @@ public abstract class LockManager {
                 lock.unlock();
             }
         return OptionalDouble.empty();
+    }
+
+    public static <I1, I2, E extends Throwable> double lockAndApplyAsDouble(final Lock lock,
+                                                                        final I1 input1,
+                                                                        final I2 input2,
+                                                                        final ToDoubleBiFunction<? super I1, ? super I2> fn,
+                                                                        final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
+        lockInterruptibly(lock, exceptionFactory);
+        try {
+            return fn.applyAsDouble(input1, input2);
+        } finally {
+            lock.unlock();
+        }
     }
 }

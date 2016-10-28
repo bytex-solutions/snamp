@@ -31,7 +31,7 @@ public abstract class UnaryFunctionAttribute<T extends Serializable> extends Pro
     protected abstract T getValue(final AttributeAccessor operand) throws Exception;
 
     @Override
-    protected T getValue(final AttributeSupport support) throws Exception {
+    protected final T getValue(final AttributeSupport support) throws Exception {
         try(final AttributeAccessor accessor = new AttributeAccessor(sourceAttribute, support)){
             return getValue(accessor);
         }
