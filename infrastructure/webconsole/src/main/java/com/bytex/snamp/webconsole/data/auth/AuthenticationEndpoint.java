@@ -1,10 +1,9 @@
 package com.bytex.snamp.webconsole.data.auth;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
+import javax.security.auth.login.LoginContext;
 import javax.ws.rs.*;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
 /**
@@ -41,6 +40,8 @@ public class AuthenticationEndpoint {
     private void authenticate(String username, String password) throws Exception {
         // Authenticate against a database, LDAP, file or whatever
         // Throw an Exception if the credentials are invalid
+        LoginContext ctx = new LoginContext("karaf", new NamePasswordHandler(username, password));
+        ctx.login();
     }
 
     private String issueToken(String username) {
