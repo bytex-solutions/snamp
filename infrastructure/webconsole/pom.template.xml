@@ -93,11 +93,15 @@
                             com.sun.jersey.api.core,
                             com.sun.jersey.spi.container.servlet,
                             com.sun.jersey.spi.*,
+                            org.osgi.framework.*,
+                            org.osgi.util.*,
+                            org.osgi.service.*,
+                            javax.servlet.*,
                             com.google.gson.*,
-                            javax.security.auth.*
-                        </Import-Package>
-                        <Web-ContextPath>snamp-webconsole</Web-ContextPath>
-                        <Webapp-Context>snamp-webconsole</Webapp-Context>
+                            javax.security.auth.*</Import-Package>
+                        <Bundle-Activator>com.bytex.snamp.webconsole.WebconsoleActivator</Bundle-Activator>
+                        <Web-ContextPath>snamp</Web-ContextPath>
+                        <Webapp-Context>snamp</Webapp-Context>
                         <_wab>src/main/resources/webapp</_wab>
                         <Embed-Dependency>*;scope=compile</Embed-Dependency>
                     </instructions>
