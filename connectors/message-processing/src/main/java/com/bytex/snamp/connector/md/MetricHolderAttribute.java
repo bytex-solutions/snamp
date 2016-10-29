@@ -7,12 +7,13 @@ import com.bytex.snamp.connector.notifications.measurement.MeasurementNotificati
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import java.io.Serializable;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import static com.bytex.snamp.concurrent.LockManager.*;
+import static com.bytex.snamp.concurrent.LockManager.lockAndAccept;
+import static com.bytex.snamp.concurrent.LockManager.lockAndApply;
 
 /**
  * Represents a holder for metric.
@@ -24,6 +25,10 @@ abstract class MetricHolderAttribute<M extends AbstractMetric> extends Distribut
     private static final long serialVersionUID = 2645456225474793148L;
     private M metric;
     private final Predicate<? super Serializable> isInstance;
+    /*
+        Handling notification and reading metric can be parallel, therefore, read lock is used
+        Taking snapshot and state recovery must be executed with exclusive access, therefore, write lock is used
+     */
     private final ReadWriteLock lockManager;
 
     MetricHolderAttribute(final String name,
@@ -38,47 +43,15 @@ abstract class MetricHolderAttribute<M extends AbstractMetric> extends Distribut
         lockManager = new ReentrantReadWriteLock();
     }
 
-    private long extractAsLongImpl(final ToLongFunction<? super M> extractor){
-        return extractor.applyAsLong(metric);
-    }
-
-    private static IllegalStateException metricIsNotAvailable(final InterruptedException e){
-        return new IllegalStateException("Metric is inaccessible", e);
-    }
-
-    final long extractAsLong(final ToLongFunction<? super M> extractor){
-        return lockAndApplyAsLong(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractAsLongImpl, MetricHolderAttribute::metricIsNotAvailable);
-    }
-
-    private int extractAsIntImpl(final ToIntFunction<? super M> extractor){
-        return extractor.applyAsInt(metric);
-    }
-
-    final int extractAsInt(final ToIntFunction<? super M> extractor){
-        return lockAndApplyAsInt(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractAsIntImpl, MetricHolderAttribute::metricIsNotAvailable);
-    }
-
-    private <O> O extractImpl(final Function<? super M, ? extends O> extractor){
-        return extractor.apply(metric);
-    }
-
-    final <O> O extract(final Function<? super M, O> extractor){
-        return lockAndApply(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractImpl, MetricHolderAttribute::metricIsNotAvailable);
-    }
-
-    private double extractAsDoubleImpl(final ToDoubleFunction<? super M> extractor){
-        return extractor.applyAsDouble(metric);
-    }
-
-    final double extractAsDouble(final ToDoubleFunction<? super M> extractor){
-        return lockAndApplyAsDouble(lockManager.readLock(), this, extractor, MetricHolderAttribute<M>::extractAsDoubleImpl, MetricHolderAttribute::metricIsNotAvailable);
-    }
-
     abstract CompositeData getValue(final M metric);
 
-    @Override
-    protected final CompositeData getValue() {
+    private CompositeData getValueImpl(){
         return getValue(metric);
+    }
+
+    @Override
+    protected final CompositeData getValue() throws InterruptedException {
+        return lockAndApply(lockManager.readLock(), this, MetricHolderAttribute::getValueImpl, Function.identity());
     }
 
     @SuppressWarnings("unchecked")
@@ -116,14 +89,12 @@ abstract class MetricHolderAttribute<M extends AbstractMetric> extends Distribut
         return lockAndApply(lockManager.readLock(), this, notification, MetricHolderAttribute::acceptImpl).orElse(Boolean.FALSE);
     }
 
+    private void closeImpl() {
+        metric = null;
+    }
+
     @Override
     public final void close() throws InterruptedException {
-        final Lock writeLock = lockManager.writeLock();
-        writeLock.lockInterruptibly();
-        try{
-            metric = null;
-        } finally {
-            writeLock.unlock();
-        }
+        lockAndAccept(lockManager.writeLock(), this, MetricHolderAttribute::closeImpl, Function.identity());
     }
 }

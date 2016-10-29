@@ -4,12 +4,11 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SafeCloseable;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.*;
 
 /**
@@ -174,28 +173,6 @@ public abstract class LockManager {
         }
     }
 
-    public static <G extends Enum<G>> LockManager reentrantLockManager(final Class<G> resourceGroupDef){
-        final class ReentrantLockScope extends ReentrantLock implements SafeCloseable{
-            private static final long serialVersionUID = -1714568000375347533L;
-
-            @Override
-            public void close() {
-                unlock();
-            }
-        }
-        final EnumMap<G, ReentrantLockScope> groups = new EnumMap<>(resourceGroupDef);
-        for(final G item: resourceGroupDef.getEnumConstants())
-            groups.put(item, new ReentrantLockScope());
-        return new LockManager() {
-            @Override
-            <E extends Throwable> SafeCloseable acquireLock(final Enum<?> resourceGroup, final Acceptor<? super Lock, E> acceptor) throws E {
-                final ReentrantLockScope scope = groups.get(resourceGroup);
-                acceptor.accept(scope);
-                return scope;
-            }
-        };
-    }
-
     private static boolean lockInterruptibly(final Lock lock){
         try {
             lock.lockInterruptibly();
@@ -210,6 +187,29 @@ public abstract class LockManager {
             lock.lockInterruptibly();
         } catch (final InterruptedException e) {
             throw exceptionFactory.apply(e);
+        }
+    }
+
+    public static <I> boolean lockAndAccept(final Lock lock, final I input, final Consumer<? super I> consumer){
+        final boolean success;
+        if(success = lockInterruptibly(lock))
+            try{
+                consumer.accept(input);
+            } finally {
+                lock.unlock();
+            }
+        return success;
+    }
+
+    public static <I, E extends Throwable> void lockAndAccept(final Lock lock,
+                                         final I input,
+                                         final Consumer<? super I> consumer,
+                                         final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E{
+        lockInterruptibly(lock, exceptionFactory);
+        try {
+            consumer.accept(input);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -234,6 +234,18 @@ public abstract class LockManager {
         return Optional.empty();
     }
 
+    public static <I, O, E extends Throwable> O lockAndApply(final Lock lock,
+                                                  final I input,
+                                                  final Function<? super I, ? extends O> fn,
+                                                                       final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
+        lockInterruptibly(lock, exceptionFactory);
+        try{
+            return fn.apply(input);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public static <I1, I2, O> Optional<O> lockAndApply(final Lock lock, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> fn) {
         if (lockInterruptibly(lock))
             try {
@@ -245,82 +257,13 @@ public abstract class LockManager {
     }
 
     public static <I1, I2, O, E extends Throwable> O lockAndApply(final Lock lock,
-                                                                        final I1 input1,
-                                                                        final I2 input2,
-                                                                        final BiFunction<? super I1, ? super I2, ? extends O> fn,
-                                                                        final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
+                                                                  final I1 input1,
+                                                                  final I2 input2,
+                                                                  final BiFunction<? super I1, ? super I2, ? extends O> fn,
+                                                                  final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
         lockInterruptibly(lock, exceptionFactory);
-        try {
+        try{
             return fn.apply(input1, input2);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public static <I1, I2> OptionalLong lockAndApplyAsLong(final Lock lock, final I1 input1, final I2 input2, final ToLongBiFunction<? super I1, ? super I2> fn){
-        if (lockInterruptibly(lock))
-            try {
-                return OptionalLong.of(fn.applyAsLong(input1, input2));
-            } finally {
-                lock.unlock();
-            }
-        return OptionalLong.empty();
-    }
-
-    public static <I1, I2, E extends Throwable> long lockAndApplyAsLong(final Lock lock,
-                                                                        final I1 input1,
-                                                                        final I2 input2,
-                                                                        final ToLongBiFunction<? super I1, ? super I2> fn,
-                                                                        final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
-        lockInterruptibly(lock, exceptionFactory);
-        try {
-            return fn.applyAsLong(input1, input2);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public static <I1, I2> OptionalInt lockAndApplyAsInt(final Lock lock, final I1 input1, final I2 input2, final ToIntBiFunction<? super I1, ? super I2> fn){
-        if (lockInterruptibly(lock))
-            try {
-                return OptionalInt.of(fn.applyAsInt(input1, input2));
-            } finally {
-                lock.unlock();
-            }
-        return OptionalInt.empty();
-    }
-
-    public static <I1, I2, E extends Throwable> int lockAndApplyAsInt(final Lock lock,
-                                                                        final I1 input1,
-                                                                        final I2 input2,
-                                                                        final ToIntBiFunction<? super I1, ? super I2> fn,
-                                                                        final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
-        lockInterruptibly(lock, exceptionFactory);
-        try {
-            return fn.applyAsInt(input1, input2);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public static <I1, I2> OptionalDouble lockAndApplyAsDouble(final Lock lock, final I1 input1, final I2 input2, final ToDoubleBiFunction<? super I1, ? super I2> fn){
-        if (lockInterruptibly(lock))
-            try {
-                return OptionalDouble.of(fn.applyAsDouble(input1, input2));
-            } finally {
-                lock.unlock();
-            }
-        return OptionalDouble.empty();
-    }
-
-    public static <I1, I2, E extends Throwable> double lockAndApplyAsDouble(final Lock lock,
-                                                                        final I1 input1,
-                                                                        final I2 input2,
-                                                                        final ToDoubleBiFunction<? super I1, ? super I2> fn,
-                                                                        final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
-        lockInterruptibly(lock, exceptionFactory);
-        try {
-            return fn.applyAsDouble(input1, input2);
         } finally {
             lock.unlock();
         }

@@ -4,9 +4,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
-import java.util.function.DoubleFunction;
-import java.util.function.Function;
-import java.util.function.LongFunction;
 
 /**
  * Represents notification with the new instant value.
@@ -14,7 +11,7 @@ import java.util.function.LongFunction;
  * @version 2.0
  * @since 2.0
  */
-public class ValueChangedNotification extends MeasurementNotification implements LongFunction<OptionalLong>, DoubleFunction<OptionalDouble>, Function<String, Optional<String>> {
+public class ValueChangedNotification extends MeasurementNotification {
     private static final long serialVersionUID = -7177935916249311678L;
 
     /**
@@ -79,22 +76,19 @@ public class ValueChangedNotification extends MeasurementNotification implements
         modification = Objects.requireNonNull(value);
     }
 
-    @Override
-    public OptionalDouble apply(final double currentValue){
+    public OptionalDouble applyAsDouble(final double currentValue){
         return OptionalDouble.empty();
     }
 
-    @Override
-    public OptionalLong apply(final long currentValue){
+    public OptionalLong applyAsLong(final long currentValue){
         return OptionalLong.empty();
     }
 
-    public Optional<Boolean> apply(final boolean currentValue){
+    public Optional<Boolean> applyAsBoolean(final boolean currentValue){
         return Optional.empty();
     }
 
-    @Override
-    public Optional<String> apply(final String currentValue){
+    public Optional<String> applyAsString(final String currentValue){
         return Optional.empty();
     }
 
@@ -111,7 +105,7 @@ public class ValueChangedNotification extends MeasurementNotification implements
             }
 
             @Override
-            public Optional<String> apply(final String currentValue) {
+            public Optional<String> applyAsString(final String currentValue) {
                 return Optional.of(super.modification.apply(currentValue, value));
             }
         };
@@ -130,12 +124,12 @@ public class ValueChangedNotification extends MeasurementNotification implements
             }
 
             @Override
-            public OptionalDouble apply(final double currentValue) {
+            public OptionalDouble applyAsDouble(final double currentValue) {
                 return OptionalDouble.of(super.modification.apply(currentValue, value));
             }
 
             @Override
-            public OptionalLong apply(final long currentValue) {
+            public OptionalLong applyAsLong(final long currentValue) {
                 return OptionalLong.of(super.modification.apply(currentValue, value));
             }
         };
@@ -154,17 +148,17 @@ public class ValueChangedNotification extends MeasurementNotification implements
             }
 
             @Override
-            public OptionalDouble apply(final double currentValue) {
+            public OptionalDouble applyAsDouble(final double currentValue) {
                 return OptionalDouble.of(super.modification.apply(currentValue, value ? 1D : 0D));
             }
 
             @Override
-            public OptionalLong apply(final long currentValue) {
+            public OptionalLong applyAsLong(final long currentValue) {
                 return OptionalLong.of(super.modification.apply(currentValue, value ? 1L : 0L));
             }
 
             @Override
-            public Optional<Boolean> apply(final boolean currentValue) {
+            public Optional<Boolean> applyAsBoolean(final boolean currentValue) {
                 return Optional.of(super.modification.apply(currentValue, value));
             }
         };
@@ -183,7 +177,7 @@ public class ValueChangedNotification extends MeasurementNotification implements
             }
 
             @Override
-            public OptionalDouble apply(final double currentValue) {
+            public OptionalDouble applyAsDouble(final double currentValue) {
                 return OptionalDouble.of(super.modification.apply(currentValue, value));
             }
         };

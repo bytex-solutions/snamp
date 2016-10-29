@@ -14,18 +14,18 @@ import javax.management.openmbean.OpenType;
  * @since 2.0
  * @implNote By default, this attribute doesn't respond to the received measurement notifications.
  */
-public abstract class ProcessingAttribute extends MessageDrivenAttribute {
+public abstract class ProcessingAttribute<T> extends MessageDrivenAttribute {
     private static final long serialVersionUID = 2475124771284618979L;
 
     protected ProcessingAttribute(final String name,
-                                  final OpenType<?> type,
+                                  final OpenType<T> type,
                                   final String description,
                                   final AttributeSpecifier specifier,
                                   final AttributeDescriptor descriptor) {
         super(name, type, description, specifier, descriptor);
     }
 
-    protected abstract Object getValue(final AttributeSupport support) throws Exception;
+    protected abstract T getValue(final AttributeSupport support) throws Exception;
 
     @Override
     protected boolean accept(final MeasurementNotification notification) {

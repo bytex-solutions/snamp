@@ -35,7 +35,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
         this.logger.set(logger);
     }
 
-    protected final Logger getLogger(){
+    private Logger getLogger(){
         return logger.get();
     }
 
@@ -97,8 +97,8 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     protected final Object getAttribute(final MessageDrivenAttribute metadata) throws Exception {
         if (metadata instanceof DistributedAttribute<?>)
             return ((DistributedAttribute<?>) metadata).getValue();
-        else if (metadata instanceof ProcessingAttribute)
-            return ((ProcessingAttribute) metadata).getValue(this);
+        else if (metadata instanceof ProcessingAttribute<?>)
+            return ((ProcessingAttribute<?>) metadata).getValue(this);
         else
             throw new UnrecognizedAttributeTypeException(metadata.getClass());
     }
@@ -118,7 +118,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
         failedToSetAttribute(logger.get(), Level.SEVERE, attributeID, value, e);
     }
 
-    final void post(final MeasurementNotification notification) {
+    public final void post(final MeasurementNotification notification) {
         parallelForEach(attribute -> attribute.accept(notification), null);
     }
 }

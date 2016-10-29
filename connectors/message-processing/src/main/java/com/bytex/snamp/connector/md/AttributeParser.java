@@ -26,6 +26,9 @@ final class AttributeParser extends Tokenizer {
             case Gauge64Attribute.NAME:
                 metricType = Gauge64Attribute.TYPE;
                 break;
+            case GaugeFPAttribute.NAME:
+                metricType = GaugeFPAttribute.TYPE;
+                break;
             default:
                 throw new UnrecognizedGaugeTypeException(gaugeType);
         }
@@ -49,7 +52,9 @@ final class AttributeParser extends Tokenizer {
         final NameToken token = nextToken(NameToken.class);
         switch (token.toString()){
             case Gauge64Attribute.NAME:
-                return Gauge64Attribute::new; //gauge64
+                return Gauge64Attribute::new;   //gauge64
+            case GaugeFPAttribute.NAME:
+                return GaugeFPAttribute::new;   //gaugeFP
             case "get":
                 return parseExtractionAttribute();
             default:

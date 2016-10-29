@@ -19,6 +19,7 @@ final class DecomposerAttribute extends UnaryFunctionAttribute {
     private final String fieldName;
     private final CompositeType compositeType;
 
+    @SuppressWarnings("unchecked")
     DecomposerAttribute(final String name,
                         final String sourceAttribute,
                         final String fieldName,

@@ -4,12 +4,11 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.RatedGauge64Recorder;
 import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 import com.bytex.snamp.connector.notifications.measurement.ValueChangedNotification;
-import com.bytex.snamp.jmx.MetricsConverter;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 
-import static com.bytex.snamp.jmx.MetricsConverter.RATED_GAUGE_64_TYPE;
+import static com.bytex.snamp.jmx.MetricsConverter.*;
 
 /**
  * Holds {@link com.bytex.snamp.connector.metrics.RatedGauge64} as attribute.
@@ -28,12 +27,12 @@ final class Gauge64Attribute extends MetricHolderAttribute<RatedGauge64Recorder>
 
     @Override
     CompositeData getValue(final RatedGauge64Recorder metric) {
-        return MetricsConverter.fromRatedGauge64(metric);
+        return fromRatedGauge64(metric);
     }
 
-    private boolean updateMetric(final RatedGauge64Recorder metric, final ValueChangedNotification notification) {
+    private static boolean updateMetric(final RatedGauge64Recorder metric, final ValueChangedNotification notification) {
         if (notification.isInteger()) {
-            metric.updateValue(x -> notification.apply(x).orElse(x));
+            metric.updateValue(x -> notification.applyAsLong(x).orElse(x));
             return true;
         } else
             return false;

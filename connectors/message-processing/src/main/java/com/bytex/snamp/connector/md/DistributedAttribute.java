@@ -7,9 +7,10 @@ import javax.management.openmbean.OpenType;
 import java.io.Serializable;
 
 /**
+ * Represents attribute which state can be synchronized across cluster.
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
 public abstract class DistributedAttribute<T> extends MessageDrivenAttribute {
     private static final long serialVersionUID = 1695985515176219703L;
