@@ -34,7 +34,7 @@ public class Tokenizer implements SafeCloseable {
         reader = new CharReader(this.source = sequence);
     }
 
-    public CharSequence getSource(){
+    protected final CharSequence getSource(){
         return source;
     }
 
@@ -69,25 +69,37 @@ public class Tokenizer implements SafeCloseable {
         return null;
     }
 
+    protected boolean ignore(final char ch){
+        return Character.isWhitespace(ch);
+    }
+
     public final Token nextToken() throws NoSuchElementException, ParseException {
         try {
-            if(reader.getRemaining() > 0){
+            while (reader.getRemaining() > 0) {
                 final char ch = reader.get();
+                //skip ignored chars
+                if (ignore(ch)) {
+                    reader.skip();
+                    continue;
+                }
+                //parse regular token
                 final TokenParser parser = getTokenParser(ch);
-                if(parser == null)
+                if (parser == null)
                     throw new UnexpectedCharException(ch);
                 else
                     return parser.parseToken(reader);
             }
-            else
-                throw new ParseException(); //EOS reached
+            throw new ParseException(); //EOS reached
         } catch (final IOException e) {
             throw new ParseException(e);
         }
     }
 
-    public final Token nextToken(final Predicate<? super Token> expectedToken) throws ParseException {
-        final Token token = nextToken();
+    private static Predicate<Token> predicateFor(final Class<? extends Token> tokenType){
+        return tokenType::isInstance;
+    }
+
+    private static Token expectToken(final Token token, final Predicate<? super Token> expectedToken) throws ParseException {
         if (token == null)
             throw new ParseException();
         else if (!expectedToken.test(token))
@@ -96,8 +108,24 @@ public class Tokenizer implements SafeCloseable {
             return token;
     }
 
+    public final Token skip(final Predicate<? super Token> skipRule) throws ParseException {
+        Token token;
+        do {
+            token = nextToken();
+        } while (skipRule.test(token));
+        return token;
+    }
+
+    public final Token skip(final Class<? extends Token> tokenToSkip) throws ParseException{
+        return skip(predicateFor(tokenToSkip));
+    }
+
+    public final Token nextToken(final Predicate<? super Token> expectedToken) throws ParseException {
+        return expectToken(nextToken(), expectedToken);
+    }
+
     public final <T extends Token> T nextToken(final Class<T> expectedToken) throws ParseException {
-        return expectedToken.cast(nextToken(expectedToken::isInstance));
+        return expectedToken.cast(nextToken(predicateFor(expectedToken)));
     }
 
     @Override

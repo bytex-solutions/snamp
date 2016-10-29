@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.NameResolver;
@@ -19,27 +20,25 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @version 2.0
  * @since 2.0
  */
-final class AggregationAttribute extends CompositeAttribute implements OpenMBeanAttributeInfo {
+final class AggregationAttribute extends AbstractCompositeAttribute implements OpenMBeanAttributeInfo {
     private static final long serialVersionUID = 2597653763554514237L;
     private final AggregationFunction<?> function;
     private final NameResolver resolver;
 
-    AggregationAttribute(final String connectorType,
+    AggregationAttribute(final String name,
                          final AggregationFunction<?> function,
                          final NameResolver resolver,
-                         final MBeanAttributeInfo info){
-        super(connectorType, info.getName(), function.getReturnType().getClassName(), info.getDescription(), info.isReadable(), false, info.isIs(), info.getDescriptor());
+                         final AttributeDescriptor descriptor){
+        super(name, function.getReturnType().getClassName(), function.toString(), true, false, false, descriptor);
         this.function = function;
         this.resolver = Objects.requireNonNull(resolver);
     }
 
-    @Override
     Object getValue(final AttributeSupport support) throws ReflectionException, AttributeNotFoundException, MBeanException {
         final Object attributeValue = support.getAttribute(getName());
         return callAndWrapException(() -> function.invoke(resolver, attributeValue), ReflectionException::new);
     }
 
-    @Override
     void setValue(final AttributeSupport support, final Object value) throws AttributeNotFoundException, MBeanException, InvalidAttributeValueException, ReflectionException {
         throw new MBeanException(new UnsupportedOperationException(String.format("Attribute '%s' is read only", getName())));
     }

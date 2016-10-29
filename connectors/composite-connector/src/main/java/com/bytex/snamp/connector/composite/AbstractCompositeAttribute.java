@@ -20,10 +20,6 @@ abstract class AbstractCompositeAttribute extends MBeanAttributeInfo {
         super(name, type, description, isReadable, isWritable, isIs, descriptor);
     }
 
-    abstract Object getValue(final AttributeSupportProvider provider) throws Exception;
-
-    abstract void setValue(final AttributeSupportProvider provider, final Object value) throws AttributeNotFoundException, MBeanException, InvalidAttributeValueException, ReflectionException;
-
     static AttributeNotFoundException attributeNotFound(final String connectorType, final String attributeName) {
         return new AttributeNotFoundException(String.format("Connector of type '%s' is not defined in connection string. Attribute '%s' cannot be resolved", connectorType, attributeName));
     }

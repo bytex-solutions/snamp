@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.composite;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.AbstractMetric;
 
-import javax.management.MBeanException;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import java.io.Serializable;
@@ -32,7 +31,7 @@ abstract class MetricAttribute<M extends AbstractMetric> extends AbstractComposi
         this.isInstance = metric.getClass()::isInstance;
     }
 
-    protected final void updateMetric(final Consumer<M> updater){
+    final void updateMetric(final Consumer<M> updater){
         updater.accept(metric);
     }
 
@@ -50,13 +49,7 @@ abstract class MetricAttribute<M extends AbstractMetric> extends AbstractComposi
             metric = (M) state;
     }
 
-    @Override
-    final CompositeData getValue(final AttributeSupportProvider provider){
+    final CompositeData getValue(){
         return getValue(metric);
-    }
-
-    @Override
-    final void setValue(final AttributeSupportProvider provider, final Object value) throws MBeanException {
-        throw new MBeanException(new UnsupportedOperationException(String.format("Attribute %s is read-only", getName())));
     }
 }

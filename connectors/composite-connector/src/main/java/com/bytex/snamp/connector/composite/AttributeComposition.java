@@ -9,7 +9,6 @@ import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.parser.ParseException;
 
 import javax.management.*;
-import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -55,10 +54,9 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     }
 
     private Object resolveAs(final String operand, final WellKnownType expectedType) throws Exception{
-        final AbstractCompositeAttribute attribute = get(operand);
-        if(attribute == null)
+        if(getAttributeInfo(operand) == null)
             throw new IllegalArgumentException(String.format("Could not find suitable attribute for operand '%s'", operand));
-        final Object value = attribute.getValue(attributeSupportProvider);
+        final Object value = getAttribute(operand);
         switch (expectedType){
             case INT:
                 return convertToInt(value, Number.class, Number::intValue, v -> Integer.parseInt(v.toString()));
@@ -107,7 +105,8 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
      */
     @Override
     protected void loadFromSnapshot(final AbstractCompositeAttribute attribute, final Serializable snapshot) {
-
+        if (attribute instanceof DistributedAttribute)
+            ((DistributedAttribute) attribute).loadFromSnapshot(snapshot);
     }
 
     @Override
@@ -135,6 +134,10 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
                                                           final AttributeDescriptor descriptor) throws ReflectionException, AttributeNotFoundException, MBeanException, AbsentCompositeConfigurationParameterException, ParseException {
         if (CompositeResourceConfigurationDescriptor.isRateFormula(descriptor)) //rate attribute
             return new NotificationRateAttribute(attributeName, descriptor);
+        //aggregation
+        final AggregationFunction<?> function = CompositeResourceConfigurationDescriptor.parseFormula(descriptor);
+        if (function != null)
+            return new AggregationAttribute(attributeName, function, this, descriptor);
         //regular attribute
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(descriptor);
         final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType);
@@ -145,17 +148,8 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
             final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor);
             if (underlyingAttribute == null)
                 throw CompositeAttribute.attributeNotFound(connectorType, attributeName);
-            final AggregationFunction<?> function = CompositeResourceConfigurationDescriptor.parseFormula(descriptor);
             //check whether the type of function is compatible with type of attribute
-            if (function == null) {
-                return new CompositeAttribute(connectorType, underlyingAttribute);
-            } else {
-                final OpenType<?> attributeType = AttributeDescriptor.getOpenType(underlyingAttribute);
-                if (function.canAccept(0, attributeType))
-                    return new AggregationAttribute(connectorType, function, this, underlyingAttribute);
-                else
-                    throw new MBeanException(new IllegalStateException(String.format("Function '%s' cannot be applied to attribute '%s'", function, underlyingAttribute)));
-            }
+            return new CompositeAttribute(connectorType, underlyingAttribute);
         }
     }
 
@@ -175,7 +169,14 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     protected Object getAttribute(final AbstractCompositeAttribute metadata) throws Exception {
-        return metadata.getValue(attributeSupportProvider);
+        if(metadata instanceof CompositeAttribute)
+            return ((CompositeAttribute) metadata).getValue(attributeSupportProvider);
+        else if(metadata instanceof AggregationAttribute)
+            return ((AggregationAttribute) metadata).getValue(this);
+        else if(metadata instanceof MetricAttribute<?>)
+            return ((MetricAttribute<?>) metadata).getValue();
+        else
+            throw new UnsupportedOperationException();
     }
 
     @Override
@@ -185,7 +186,10 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     protected void setAttribute(final AbstractCompositeAttribute attribute, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        attribute.setValue(attributeSupportProvider, value);
+        if(attribute instanceof CompositeAttribute)
+            ((CompositeAttribute) attribute).setValue(attributeSupportProvider, value);
+        else if(attribute instanceof AggregationAttribute)
+            ((AggregationAttribute) attribute).setValue(this, value);
     }
 
     @Override

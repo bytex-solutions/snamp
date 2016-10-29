@@ -27,4 +27,13 @@ public final class TokenizerTest extends Assert {
             assertEquals(123, tokenizer.nextToken(IntegerToken.class).getAsLong());
         }
     }
+
+    @Test
+    public void skipTest() throws ParseException{
+        try(final Tokenizer tokenizer = new Tokenizer("\t  123 abc de")){
+            assertEquals(123, tokenizer.nextToken(IntegerToken.class).getAsLong());
+            assertEquals("abc", tokenizer.nextToken(NameToken.class).toString());
+            assertEquals("de", tokenizer.nextToken(NameToken.class).toString());
+        }
+    }
 }

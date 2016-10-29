@@ -11,7 +11,7 @@ import java.io.Serializable;
  * @version 1.0
  * @since 1.0
  */
-public abstract class DistributedAttribute<T> extends MessageDrivenAttribute<T> {
+public abstract class DistributedAttribute<T> extends MessageDrivenAttribute {
     private static final long serialVersionUID = 1695985515176219703L;
 
     protected DistributedAttribute(final String name,

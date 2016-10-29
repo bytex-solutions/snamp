@@ -6,7 +6,6 @@ import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 
 import javax.management.openmbean.OpenType;
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -15,36 +14,25 @@ import java.util.Objects;
  * @version 2.0
  * @author Roman Sakno
  */
-public abstract class UnaryFunctionAttribute<T extends Serializable> extends ProcessingAttribute<T> {
+public abstract class UnaryFunctionAttribute extends ProcessingAttribute {
     private static final long serialVersionUID = 3652422235984102814L;
     private final String sourceAttribute;
 
     protected UnaryFunctionAttribute(final String name,
                            final String sourceAttribute,
-                           final OpenType<T> type,
+                           final OpenType<?> type,
                            final String description,
                            final AttributeDescriptor descriptor) {
         super(name, type, description, AttributeSpecifier.READ_ONLY, descriptor);
         this.sourceAttribute = Objects.requireNonNull(sourceAttribute);
     }
 
-    protected abstract T getValue(final AttributeAccessor operand) throws Exception;
+    protected abstract Object getValue(final AttributeAccessor operand) throws Exception;
 
     @Override
-    protected final T getValue(final AttributeSupport support) throws Exception {
+    protected final Object getValue(final AttributeSupport support) throws Exception {
         try(final AttributeAccessor accessor = new AttributeAccessor(sourceAttribute, support)){
             return getValue(accessor);
-        }
-    }
-
-    protected void setValue(final T value, final AttributeAccessor operand) throws Exception{
-        throw cannotBeModified(this);
-    }
-
-    @Override
-    protected final void setValue(final AttributeSupport support, final T value) throws Exception {
-        try(final AttributeAccessor accessor = new AttributeAccessor(sourceAttribute, support)){
-            setValue(value, accessor);
         }
     }
 }

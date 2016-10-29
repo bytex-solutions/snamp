@@ -40,7 +40,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     }
 
     @Override
-    protected MessageDrivenAttribute<?> connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
+    protected MessageDrivenAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
         final String attributeType = descriptor.getName(attributeName);
         final MessageDrivenAttributeFactory factory = AttributeParser.parseAttribute(attributeType);
         if(factory == null)
@@ -97,8 +97,8 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     protected final Object getAttribute(final MessageDrivenAttribute metadata) throws Exception {
         if (metadata instanceof DistributedAttribute<?>)
             return ((DistributedAttribute<?>) metadata).getValue();
-        else if (metadata instanceof ProcessingAttribute<?>)
-            return ((ProcessingAttribute<?>) metadata).getValue(this);
+        else if (metadata instanceof ProcessingAttribute)
+            return ((ProcessingAttribute) metadata).getValue(this);
         else
             throw new UnrecognizedAttributeTypeException(metadata.getClass());
     }
@@ -110,10 +110,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
 
     @Override
     protected final void setAttribute(final MessageDrivenAttribute attribute, final Object value) throws Exception {
-        if(attribute instanceof ProcessingAttribute<?>)
-            ((ProcessingAttribute<?>) attribute).setRawValue(this, value);
-        else
-            throw MessageDrivenAttribute.cannotBeModified(attribute);
+        throw MessageDrivenAttribute.cannotBeModified(attribute);
     }
 
     @Override

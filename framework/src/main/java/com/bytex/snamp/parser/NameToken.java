@@ -19,6 +19,10 @@ public class NameToken extends Token {
         super(name);
     }
 
+    public NameToken(final String name) {
+        this((CharSequence) name);
+    }
+
     static boolean isValidCharacter(final char ch) {
         return Character.isLetter(ch) || ch == '_';
     }

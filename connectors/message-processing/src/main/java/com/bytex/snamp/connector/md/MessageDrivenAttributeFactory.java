@@ -10,5 +10,5 @@ import java.util.function.BiFunction;
  * @since 2.0
  */
 @FunctionalInterface
-interface MessageDrivenAttributeFactory extends BiFunction<String, AttributeDescriptor, MessageDrivenAttribute<?>> {
+interface MessageDrivenAttributeFactory extends BiFunction<String, AttributeDescriptor, MessageDrivenAttribute> {
 }

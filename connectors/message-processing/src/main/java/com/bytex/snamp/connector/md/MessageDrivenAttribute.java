@@ -16,11 +16,11 @@ import javax.management.openmbean.OpenType;
  * @see DistributedAttribute
  * @see ProcessingAttribute
  */
-public abstract class MessageDrivenAttribute<T> extends AbstractOpenAttributeInfo {
+public abstract class MessageDrivenAttribute extends AbstractOpenAttributeInfo {
     private static final long serialVersionUID = -2361230399455752656L;
 
     MessageDrivenAttribute(final String name,
-                           final OpenType<T> type,
+                           final OpenType<?> type,
                            final String description,
                            final AttributeSpecifier specifier,
                            final AttributeDescriptor descriptor) {

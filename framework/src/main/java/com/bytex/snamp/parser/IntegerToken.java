@@ -29,7 +29,7 @@ public class IntegerToken extends Token implements LongSupplier {
         return Character.isDigit(ch);
     }
 
-    private static Token parse(final CharReader reader) throws IOException {
+    private static CharSequence parse(final CharReader reader) throws IOException {
         final StringBuilder value = new StringBuilder();
         do {
             final char currentChar = reader.get();
@@ -39,6 +39,6 @@ public class IntegerToken extends Token implements LongSupplier {
             } else
                 break;
         } while (reader.getRemaining() > 0);
-        return new IntegerToken(value);
+        return value;
     }
 }

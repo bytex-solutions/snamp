@@ -10,19 +10,19 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Represents parser for function expressiong.
+ * Represents parser for function expression.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public final class FunctionParser {
-    private FunctionParser(){
-        throw new InstantiationError();
+public final class FunctionParser extends Tokenizer {
+    private FunctionParser(final CharSequence input){
+        super(input);
     }
 
-    private static TimeUnit parseTimeUnit(final CustomTokenizer lexer) throws ParseException {
+    private TimeUnit parseTimeUnit() throws ParseException {
         final String unitName;
-        switch (unitName = lexer.nextToken(NameToken.class).toString()){
+        switch (unitName = nextToken(NameToken.class).toString()) {
             case "s":
             case "sec":
             case "seconds":
@@ -47,88 +47,88 @@ public final class FunctionParser {
         }
     }
 
-    private static AverageFunction parseAvgFunction(final CustomTokenizer lexer) throws ParseException{
-        lexer.nextToken(LeftBracketToken.class);
-        final long interval = lexer.nextToken(IntegerToken.class).getAsLong();
-        final TimeUnit unit = parseTimeUnit(lexer);
-        lexer.nextToken(RightBracketToken.class);
+    private AverageFunction parseAvgFunction() throws ParseException{
+        nextToken(LeftBracketToken.class);
+        final long interval = nextToken(IntegerToken.class).getAsLong();
+        final TimeUnit unit = parseTimeUnit();
+        nextToken(RightBracketToken.class);
         return new AverageFunction(interval, unit);
     }
 
-    private static PercentileFunction parsePercentileFunction(final CustomTokenizer lexer) throws ParseException{
-        lexer.nextToken(LeftBracketToken.class);
-        final long percentile = lexer.nextToken(IntegerToken.class).getAsLong();
-        lexer.nextToken(RightBracketToken.class);
+    private PercentileFunction parsePercentileFunction() throws ParseException{
+        nextToken(LeftBracketToken.class);
+        final long percentile = nextToken(IntegerToken.class).getAsLong();
+        nextToken(RightBracketToken.class);
         return new PercentileFunction(percentile);
     }
 
-    private static SumFunction parseSumFunction(final CustomTokenizer lexer) throws ParseException{
-        lexer.nextToken(LeftBracketToken.class);
-        final long interval = lexer.nextToken(IntegerToken.class).getAsLong();
-        final TimeUnit unit = parseTimeUnit(lexer);
-        lexer.nextToken(RightBracketToken.class);
+    private SumFunction parseSumFunction() throws ParseException{
+        nextToken(LeftBracketToken.class);
+        final long interval = nextToken(IntegerToken.class).getAsLong();
+        final TimeUnit unit = parseTimeUnit();
+        nextToken(RightBracketToken.class);
         return new SumFunction(interval, unit);
     }
 
-    private static CorrelationFunction parseCorrelationFunction(final CustomTokenizer lexer) throws ParseException{
-        lexer.nextToken(LeftBracketToken.class);
+    private CorrelationFunction parseCorrelationFunction() throws ParseException{
+        nextToken(LeftBracketToken.class);
         //parse reference
-        lexer.nextToken(DollarToken.class);
-        final String operand = lexer.nextToken(NameToken.class).toString();
-        lexer.nextToken(RightBracketToken.class);
+        nextToken(DollarToken.class);
+        final String operand = nextToken(NameToken.class).toString();
+        nextToken(RightBracketToken.class);
         return new CorrelationFunction(operand);
     }
 
-    private static AbstractExtractFunction<?> parseExtractFunction(final CustomTokenizer lexer, final Function<? super Collection<String>, ? extends AbstractExtractFunction<?>> factory) throws ParseException {
+    private AbstractExtractFunction<?> parseExtractFunction(final Function<? super Collection<String>, ? extends AbstractExtractFunction<?>> factory) throws ParseException {
         final List<String> path = new LinkedList<>();
-        for (Token lookup = lexer.nextToken(LeftBracketToken.class); !(lookup instanceof RightBracketToken); lookup = lexer.nextToken(token -> token instanceof SlashToken || token instanceof RightBracketToken)) {
-            lookup = lexer.nextToken(NameToken.class);
+        for (Token lookup = nextToken(LeftBracketToken.class); !(lookup instanceof RightBracketToken); lookup = nextToken(token -> token instanceof SlashToken || token instanceof RightBracketToken)) {
+            lookup = nextToken(NameToken.class);
             path.add(lookup.toString());
         }
         return factory.apply(path);
     }
 
-    private static <F extends AggregationFunction<?>> F parseTrivialFunction(final CustomTokenizer lexer, final Supplier<? extends F> factory) throws ParseException {
-        lexer.nextToken(LeftBracketToken.class);
-        lexer.nextToken(RightBracketToken.class);
+    private <F extends AggregationFunction<?>> F parseTrivialFunction(final Supplier<? extends F> factory) throws ParseException {
+        nextToken(LeftBracketToken.class);
+        nextToken(RightBracketToken.class);
         return factory.get();
     }
 
-    private static AggregationFunction<?> parseFunction(final String functionName, final CustomTokenizer lexer) throws ParseException{
+    private AggregationFunction<?> parseFunction(final String functionName) throws ParseException{
         switch (functionName){
             case "max":
-                return parseTrivialFunction(lexer, NumericUnaryFunction::max);
+                return parseTrivialFunction(NumericUnaryFunction::max);
             case "min":
-                return parseTrivialFunction(lexer, NumericUnaryFunction::min);
+                return parseTrivialFunction(NumericUnaryFunction::min);
             case "gauge_fp":
-                return parseTrivialFunction(lexer, GaugeFPFunction::new);
+                return parseTrivialFunction(GaugeFPFunction::new);
             case "gauge_int":
-                return parseTrivialFunction(lexer, GaugeIntFunction::new);
+                return parseTrivialFunction(GaugeIntFunction::new);
             case "sum":
-                return parseSumFunction(lexer);
+                return parseSumFunction();
             case "avg":
-                return parseAvgFunction(lexer);
+                return parseAvgFunction();
             case "percentile":
-                return parsePercentileFunction(lexer);
+                return parsePercentileFunction();
             case "correl":
-                return parseCorrelationFunction(lexer);
+                return parseCorrelationFunction();
             case "extract":
-                return parseExtractFunction(lexer, ExtractAsStringFunction::new);
+                return parseExtractFunction(ExtractAsStringFunction::new);
             case "extract_fp":
-                return parseExtractFunction(lexer, ExtractAsDoubleFunction::new);
+                return parseExtractFunction(ExtractAsDoubleFunction::new);
             case "extract_int":
-                return parseExtractFunction(lexer, ExtractAsIntFunction::new);
+                return parseExtractFunction(ExtractAsIntFunction::new);
             default:
                 throw FunctionParserException.unknownFunctionName(functionName);
         }
     }
 
-    private static Expression parse(final CustomTokenizer lexer) throws ParseException {
-        final Token token = lexer.nextToken();
+    private Expression parse() throws ParseException {
+        final Token token = nextToken();
         if (token == null)
             throw new FunctionParserException();
         else if (token instanceof NameToken)
-            return parseFunction(token.toString(), lexer);
+            return parseFunction(token.toString());
         else
             throw new UnexpectedTokenException(token);
     }
@@ -139,10 +139,13 @@ public final class FunctionParser {
      * @return Parsed function.
      * @throws ParseException Invalid formula expression.
      */
-    public static AggregationFunction<?> parse(final CharSequence input) throws ParseException{
-        final Expression result = parse(new CustomTokenizer(input));
-        if(result instanceof AggregationFunction<?>)
-            return (AggregationFunction<?>)result;
+    public static AggregationFunction<?> parse(final CharSequence input) throws ParseException {
+        final Expression result;
+        try (final FunctionParser parser = new FunctionParser(input)) {
+            result = parser.parse();
+        }
+        if (result instanceof AggregationFunction<?>)
+            return (AggregationFunction<?>) result;
         else
             throw new FunctionParserException(result);
     }
