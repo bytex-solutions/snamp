@@ -1,17 +1,16 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.Box;
 import com.bytex.snamp.SafeCloseable;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * @author Roman Sakno
@@ -19,6 +18,14 @@ import java.util.function.Function;
  * @since 1.0
  */
 public final class LocalServicesTest extends Assert {
+    @Test
+    public void boxTest(){
+        final Box<Object> box = DistributedServices.getProcessLocalBox("testBox");
+        Object result = box.setIfAbsent(() -> "Str");
+        assertEquals("Str", result);
+        result = box.setIfAbsent(() -> "Frank Underwood");
+        assertEquals("Str", result);
+    }
 
     @Test
     public void idGeneratorTest(){

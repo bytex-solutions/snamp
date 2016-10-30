@@ -16,7 +16,7 @@ public interface BooleanBox extends Box<Boolean>, BooleanSupplier, Comparable<Bo
 
     boolean accumulateAndGet(final boolean right, final BooleanBinaryOperator operator);
 
-    boolean accumulateAndGet(final BooleanUnaryOperator operator);
+    boolean updateAndGet(final BooleanUnaryOperator operator);
 
     int compareTo(final boolean value);
 }

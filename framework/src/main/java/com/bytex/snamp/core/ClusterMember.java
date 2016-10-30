@@ -1,5 +1,6 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.Box;
 import com.google.common.reflect.TypeToken;
 
 import java.util.concurrent.ConcurrentMap;
@@ -33,6 +34,11 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
      * Represents communication service.
      */
     TypeToken<Communicator> COMMUNICATION_SERVICE = TypeToken.of(Communicator.class);
+
+    /**
+     * Represents distributed box.
+     */
+    TypeToken<Box<Object>> BOX = new TypeToken<Box<Object>>() {};
 
     /**
      * Gets number of neighborhood nodes in the cluster.

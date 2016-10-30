@@ -14,7 +14,7 @@ public interface IntBox extends Box<Integer>, IntSupplier, IntConsumer, Comparab
     int getAndIncrement();
     int incrementAndGet();
     int accumulateAndGet(final int right, final IntBinaryOperator operator);
-    int accumulateAndGet(final IntUnaryOperator operator);
+    int updateAndGet(final IntUnaryOperator operator);
     int compareTo(final int newValue);
     <R> R get(final IntFunction<? extends R> fn);
 }

@@ -143,8 +143,14 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
             result = getLongCounter(serviceName);
         else if(COMMUNICATION_SERVICE.equals(serviceType))
             result = getCommunicator(serviceName);
+        else if(BOX.equals(serviceType))
+            result = getBox(serviceName);
         else return null;
         return TypeTokens.cast(result, serviceType);
+    }
+
+    private HazelcastBox getBox(final String boxName){
+        return new HazelcastBox(hazelcast, boxName);
     }
 
     private HazelcastCommunicator getCommunicator(final String serviceName) {

@@ -51,7 +51,7 @@ final class MutableInteger extends Number implements IntBox {
     }
 
     @Override
-    public int accumulateAndGet(final IntUnaryOperator operator) {
+    public int updateAndGet(final IntUnaryOperator operator) {
         return value = operator.applyAsInt(value);
     }
 
@@ -76,7 +76,7 @@ final class MutableInteger extends Number implements IntBox {
     }
 
     @Override
-    public Integer accumulateAndGet(final UnaryOperator<Integer> operator) {
+    public Integer updateAndGet(final UnaryOperator<Integer> operator) {
         return value = operator.apply(value);
     }
 

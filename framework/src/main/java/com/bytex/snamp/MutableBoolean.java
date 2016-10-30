@@ -60,7 +60,7 @@ final class MutableBoolean implements BooleanBox {
     }
 
     @Override
-    public boolean accumulateAndGet(final BooleanUnaryOperator operator) {
+    public boolean updateAndGet(final BooleanUnaryOperator operator) {
         return value = operator.applyAsBoolean(value);
     }
 
@@ -80,7 +80,7 @@ final class MutableBoolean implements BooleanBox {
     }
 
     @Override
-    public Boolean accumulateAndGet(final UnaryOperator<Boolean> operator) {
+    public Boolean updateAndGet(final UnaryOperator<Boolean> operator) {
         return value = operator.apply(value);
     }
 

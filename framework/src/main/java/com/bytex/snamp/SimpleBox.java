@@ -71,7 +71,7 @@ final class SimpleBox<T> implements Box<T>, Supplier<T>, Consumer<T>, Acceptor<T
     }
 
     @Override
-    public T accumulateAndGet(final UnaryOperator<T> operator) {
+    public T updateAndGet(final UnaryOperator<T> operator) {
         return value = operator.apply(value);
     }
 

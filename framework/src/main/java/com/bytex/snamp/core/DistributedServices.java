@@ -1,5 +1,6 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.Box;
 import com.bytex.snamp.TypeTokens;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -60,6 +61,8 @@ public final class DistributedServices {
                         return new LocalStorage();
                     else if(ClusterMember.COMMUNICATION_SERVICE.equals(key.serviceType))
                         return new LocalCommunicator();
+                    else if(ClusterMember.BOX.equals(key.serviceType))
+                        return new LocalBox();
                     else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
                 }
             });
@@ -79,6 +82,10 @@ public final class DistributedServices {
 
     public static Communicator getProcessLocalCommunicator(final String channelName){
         return getProcessLocalService(channelName, ClusterMember.COMMUNICATION_SERVICE);
+    }
+
+    public static Box<Object> getProcessLocalBox(final String boxName){
+        return getProcessLocalService(boxName, ClusterMember.BOX);
     }
 
     /**
@@ -156,6 +163,10 @@ public final class DistributedServices {
     public static LongCounter getDistributedCounter(final BundleContext context,
                                                     final String generatorName){
         return getService(context, generatorName, ClusterMember.IDGEN_SERVICE);
+    }
+
+    public static Box<Object> getDistributedBox(final BundleContext context, final String boxName){
+        return getService(context, boxName, ClusterMember.BOX);
     }
 
     /**

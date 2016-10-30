@@ -31,7 +31,7 @@ public interface Box<T> extends Serializable, Supplier<T>, Consumer<T>, Acceptor
 
     T accumulateAndGet(final T right, final BinaryOperator<T> operator);
 
-    T accumulateAndGet(final UnaryOperator<T> operator);
+    T updateAndGet(final UnaryOperator<T> operator);
 
     T getAndSet(final T newValue);
 
