@@ -2,6 +2,7 @@ package com.bytex.snamp.webconsole;
 
 import javax.security.auth.callback.*;
 import java.io.IOException;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * The type Name password handler.
@@ -10,10 +11,9 @@ import java.io.IOException;
  * @version 2.0
  * @since 2.0
  */
-public class NamePasswordHandler implements CallbackHandler {
-
-    private String userName;
-    private String password;
+final class NamePasswordHandler implements CallbackHandler {
+    private final String userName;
+    private final String password;
 
     /**
      * Instantiates a new Name password handler.
@@ -21,28 +21,21 @@ public class NamePasswordHandler implements CallbackHandler {
      * @param user the user
      * @param pass the pass
      */
-    public NamePasswordHandler(String user , String pass){
+    NamePasswordHandler(final String user, final String pass){
         this.userName = user;
         this.password = pass;
     }
 
-    public void handle(Callback[] suppliedCallback) throws IOException,UnsupportedCallbackException {
-
-        for (int i = 0; i < suppliedCallback.length; i++) {
-            if (suppliedCallback[i] instanceof NameCallback) {
-                if (userName != null) {
-                    ((NameCallback)suppliedCallback[i]).setName(userName);
-                }
-            }
-            else if (suppliedCallback[i] instanceof PasswordCallback) {
-                if (password != null) {
-                    ((PasswordCallback)suppliedCallback[i]).setPassword(password.toCharArray());
-                }
-            }
-            else {
-                throw new UnsupportedCallbackException(suppliedCallback[i]);
+    @Override
+    public void handle(final Callback[] suppliedCallback) throws IOException,UnsupportedCallbackException {
+        for (final Callback callback : suppliedCallback) {
+            if (callback instanceof NameCallback && !isNullOrEmpty(userName)) {
+                ((NameCallback) callback).setName(userName);
+            } else if (callback instanceof PasswordCallback && !isNullOrEmpty(password)) {
+                ((PasswordCallback) callback).setPassword(password.toCharArray());
+            } else {
+                throw new UnsupportedCallbackException(callback);
             }
         }
-
     }
 }
