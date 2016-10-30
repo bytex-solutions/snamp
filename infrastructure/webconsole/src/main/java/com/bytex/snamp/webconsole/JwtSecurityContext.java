@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.util.logging.Logger;
 
 /**
  * Represents security context initialized from JWT token.
@@ -22,6 +23,8 @@ final class JwtSecurityContext implements SecurityContext {
     private final JwtPrincipal principal;
     private final boolean secure;
 
+    private static final Logger logger = Logger.getLogger(JwtSecurityContext.class.getName());
+
     JwtSecurityContext(final HttpRequestContext request) throws WebApplicationException{
         secure = request.isSecure();
         // Get the HTTP Authorization header from the request
@@ -32,6 +35,10 @@ final class JwtSecurityContext implements SecurityContext {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         // Extract the token from the HTTP Authorization header
         final String token = authorizationHeader.substring("Bearer".length()).trim();
+        if (token.isEmpty() || token.equalsIgnoreCase("undefined")) {
+            logger.info("Empty token received");
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
         try {
             principal = new JwtPrincipal(token);
         } catch (final JWTVerifyException | NoSuchAlgorithmException | IOException

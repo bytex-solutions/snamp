@@ -99,9 +99,14 @@ public final class WebConsoleService implements AutoCloseable {
         return signer.sign(claims);
     }
 
+    /**
+     * Dummy method with empty response - just to check if the index.html page was opened with necessary token.
+     * @return 200 by default. If something goes wrong - auth filter will throw the exception
+     */
+    @Path("/check")
     @GET
-    public Response seyHello() {
-        return Response.ok().entity( "Yes, it works." ).build();
+    public Response checkAuth() {
+        return Response.noContent().build();
     }
 
     @Override
