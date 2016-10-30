@@ -1,34 +1,48 @@
 package com.bytex.snamp.connector.metrics;
 
 import java.time.Duration;
+import java.time.Instant;
 
 /**
  * Represents implementation of {@link RatedTimer}.
  * @since 2.0
  * @version 2.0
  */
-public class RatedTimerRecorder extends TimingRecorder implements RatedTimer {
+public class RatedTimeRecorder extends TimeRecorder implements RatedTimer {
     private static final long serialVersionUID = -1501369457653393355L;
     private final RateRecorder rate;
 
-    public RatedTimerRecorder(final String name, final int samplingSize) {
+    public RatedTimeRecorder(final String name, final int samplingSize) {
         super(name, samplingSize);
         rate = new RateRecorder(name);
     }
 
-    public RatedTimerRecorder(final String name) {
+    RatedTimeRecorder(final String name, final int samplingSize, final double scaleFactor){
+        super(name, samplingSize, scaleFactor);
+        rate = new RateRecorder(name);
+    }
+
+    public RatedTimeRecorder(final String name) {
         super(name);
         rate = new RateRecorder(name);
     }
 
-    protected RatedTimerRecorder(final RatedTimerRecorder source){
+    protected RatedTimeRecorder(final RatedTimeRecorder source){
         super(source);
         rate = source.rate.clone();
     }
 
+    public final void setStartTime(final Instant startTime){
+        rate.setStartTime(startTime);
+    }
+
+    public final Instant getStartTime(){
+        return rate.getStartTime();
+    }
+
     @Override
-    public RatedTimerRecorder clone() {
-        return new RatedTimerRecorder(this);
+    public RatedTimeRecorder clone() {
+        return new RatedTimeRecorder(this);
     }
 
     @Override

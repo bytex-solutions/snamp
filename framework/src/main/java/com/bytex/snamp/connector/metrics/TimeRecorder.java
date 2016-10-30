@@ -11,12 +11,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
- * Represents implementation of {@link Timing}.
+ * Represents implementation of {@link Timer}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
+public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
     private static final long serialVersionUID = 7250210436685797077L;
     private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;
     private final AtomicLong count;
@@ -24,7 +24,7 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
     private final AtomicReference<Duration> summary;
     private final double timeScaleFactor;
 
-    TimingRecorder(final String name, final int samplingSize, final double scaleFactor){
+    TimeRecorder(final String name, final int samplingSize, final double scaleFactor){
         super(name, Duration.ZERO);
         meanValues = new MetricsIntervalMap<>(MetricsInterval::createEMA);
         reservoir = new DoubleReservoir(samplingSize);
@@ -33,15 +33,15 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
         count = new AtomicLong(0L);
     }
 
-    public TimingRecorder(final String name, final int samplingSize) {
+    public TimeRecorder(final String name, final int samplingSize) {
         this(name, samplingSize, 1000D);    //store duration in reservoir in microseconds
     }
 
-    public TimingRecorder(final String name){
+    public TimeRecorder(final String name){
         this(name, AbstractNumericGauge.DEFAULT_SAMPLING_SIZE);
     }
 
-    protected TimingRecorder(final TimingRecorder source){
+    protected TimeRecorder(final TimeRecorder source){
         super(source);
         meanValues = new MetricsIntervalMap<>(source.meanValues, ExponentialMovingAverage::clone);
         count = new AtomicLong(source.count.get());
@@ -51,8 +51,8 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
     }
 
     @Override
-    public TimingRecorder clone() {
-        return new TimingRecorder(this);
+    public TimeRecorder clone() {
+        return new TimeRecorder(this);
     }
 
     /**
@@ -113,28 +113,6 @@ public class TimingRecorder extends GaugeImpl<Duration> implements Timing {
     @Override
     public final Duration getDeviation() {
         return fromDouble(Math.round(reservoir.getDeviation()));
-    }
-
-    /**
-     * Computes a percent of durations that are greater than or equal to the specified duration.
-     *
-     * @param value A value to compute.
-     * @return A percent of durations that are greater that or equal to the specified duration.
-     */
-    @Override
-    public final double lessThanOrEqualDuration(final Duration value) {
-        return reservoir.lessThanOrEqualValues(toDouble(value));
-    }
-
-    /**
-     * Computes a percent of durations that are less than or equal to the specified duration.
-     *
-     * @param value A value to compute.
-     * @return A percent of durations that are greater that or less to the specified duration.
-     */
-    @Override
-    public final double greaterThanOrEqualDuration(final Duration value) {
-        return reservoir.greaterThanOrEqualValues(toDouble(value));
     }
 
     /**

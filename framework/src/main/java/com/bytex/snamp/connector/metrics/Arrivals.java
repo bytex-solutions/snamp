@@ -6,7 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 2.0
  */
-public interface Arrivals extends Metric {
+public interface Arrivals extends RatedTimer {
     double getMeanAvailability(final int channels);
 
     double getInstantAvailability(final int channels);
@@ -16,18 +16,6 @@ public interface Arrivals extends Metric {
      * @return Utilization of server uptime, in percents.
      */
     double getEfficiency();
-
-    /**
-     * Gets rate of arrivals.
-     * @return Rate of arrivals.
-     */
-    Rate getRequestRate();
-
-    /**
-     * Gets measurement of response time.
-     * @return Measurement of response time.
-     */
-    Timing getResponseTiming();
 
     /**
      * Gets correlation between arrivals and response time.

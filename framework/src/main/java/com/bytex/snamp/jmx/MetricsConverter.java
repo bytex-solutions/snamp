@@ -15,7 +15,7 @@ import static com.bytex.snamp.internal.Utils.*;
  * @since 2.0
  */
 public final class MetricsConverter {
-    private static final class CompositeDataFields extends HashMap<String, Number>{
+    private static final class CompositeDataFields extends HashMap<String, Comparable<?>>{
         private static final long serialVersionUID = -1438136908623683624L;
 
         private CompositeDataFields(final CompositeType prototype) {
@@ -28,6 +28,16 @@ public final class MetricsConverter {
         }
 
         private CompositeDataFields put(final String name, final double value){
+            super.put(name, value);
+            return this;
+        }
+
+        private CompositeDataFields put(final String name, final String value){
+            super.put(name, value);
+            return this;
+        }
+
+        private CompositeDataFields put(final String name, final boolean value){
             super.put(name, value);
             return this;
         }
@@ -133,9 +143,35 @@ public final class MetricsConverter {
     private static final String RATIO_FOR_LAST_DAY_FIELD = "ratioLastDay";
 
     /**
+     * Represents Open Type equivalent of {@link StringGauge}.
+     */
+    public static final CompositeType STRING_GAUGE_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.StringGauge", "StringGauge")
+            .addItem(MAX_VALUE_FIELD, "Maximum value ever presented", SimpleType.STRING)
+            .addItem(LAST_VALUE_FIELD, "The last presented value", SimpleType.STRING)
+            .addItem(MIN_VALUE_FIELD, "Minimum value ever presented", SimpleType.STRING)
+            //max values
+            .addItem(MAX_VALUE_FOR_LAST_SECOND_FIELD, "Maximum value for the last second", SimpleType.STRING)
+            .addItem(MAX_VALUE_FOR_LAST_MINUTE_FIELD, "Maximum value for the last minute", SimpleType.STRING)
+            .addItem(MAX_VALUE_FOR_LAST_5_MINUTES_FIELD, "Maximum value for the last five minutes", SimpleType.STRING)
+            .addItem(MAX_VALUE_FOR_LAST_15_MINUTES_FIELD, "Maximum value for the last fifteen minutes", SimpleType.STRING)
+            .addItem(MAX_VALUE_FOR_LAST_HOUR_FIELD, "Maximum value for the last hour", SimpleType.STRING)
+            .addItem(MAX_VALUE_FOR_LAST_12_HOURS_FIELD, "Maximum value for the last twelve hours", SimpleType.STRING)
+            .addItem(MAX_VALUE_FOR_LAST_DAY_FIELD, "Maximum value for the last day", SimpleType.STRING)
+            //min values
+            .addItem(MIN_VALUE_FOR_LAST_SECOND_FIELD, "Minimum value for the last second", SimpleType.STRING)
+            .addItem(MIN_VALUE_FOR_LAST_MINUTE_FIELD, "Minimum value for the last minute", SimpleType.STRING)
+            .addItem(MIN_VALUE_FOR_LAST_5_MINUTES_FIELD, "Minimum value for the last five minutes", SimpleType.STRING)
+            .addItem(MIN_VALUE_FOR_LAST_15_MINUTES_FIELD, "Minimum value for the last fifteen minutes", SimpleType.STRING)
+            .addItem(MIN_VALUE_FOR_LAST_HOUR_FIELD, "Minimum value for the last hour", SimpleType.STRING)
+            .addItem(MIN_VALUE_FOR_LAST_12_HOURS_FIELD, "Minimum value for the last twelve hours", SimpleType.STRING)
+            .addItem(MIN_VALUE_FOR_LAST_DAY_FIELD, "Minimum value for the last day", SimpleType.STRING)
+            .build());
+
+    /**
      * Represents Open Type equivalent of {@link Flag}.
      */
     public static final CompositeType FLAG_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Flag", "Flag")
+        .addItem(LAST_VALUE_FIELD, "Last value submitted to gauge", SimpleType.BOOLEAN)
         .addItem(TRUE_TOTAL_COUNT_FIELD, "Total count of 'true' values", SimpleType.LONG)
         .addItem(FALSE_TOTAL_COUNT_FIELD, "Total count of 'false' values", SimpleType.LONG)
         //true count
@@ -298,6 +334,14 @@ public final class MetricsConverter {
      */
     public static final CompositeType RATED_GAUGE_FP_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedGaugeFP", "Floating-point gauge with rate support")
             .importFrom(GAUGE_FP_TYPE)
+            .importFrom(RATE_TYPE)
+            .build());
+
+    /**
+     * Represents Open Type equivalent of {@link RatedStringGauge}.
+     */
+    public static final CompositeType RATED_STRING_GAUGE_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedStringGauge", "Rated StringGauge")
+            .importFrom(STRING_GAUGE_TYPE)
             .importFrom(RATE_TYPE)
             .build());
 
@@ -466,6 +510,52 @@ public final class MetricsConverter {
         return callUnchecked(() -> new CompositeDataSupport(GAUGE_FP_TYPE, result));
     }
 
+    private static void fillStringGauge(final StringGauge gauge, final CompositeDataFields output){
+        output
+                .put(MAX_VALUE_FIELD, gauge.getMaxValue())
+                .put(LAST_VALUE_FIELD, gauge.getLastValue())
+                .put(MIN_VALUE_FIELD, gauge.getMinValue())
+                //max values
+                .put(MAX_VALUE_FOR_LAST_SECOND_FIELD, gauge.getLastMaxValue(MetricsInterval.SECOND))
+                .put(MAX_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getLastMaxValue(MetricsInterval.MINUTE))
+                .put(MAX_VALUE_FOR_LAST_5_MINUTES_FIELD, gauge.getLastMaxValue(MetricsInterval.FIVE_MINUTES))
+                .put(MAX_VALUE_FOR_LAST_15_MINUTES_FIELD, gauge.getLastMaxValue(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MAX_VALUE_FOR_LAST_HOUR_FIELD, gauge.getLastMaxValue(MetricsInterval.HOUR))
+                .put(MAX_VALUE_FOR_LAST_12_HOURS_FIELD, gauge.getLastMaxValue(MetricsInterval.TWELVE_HOURS))
+                .put(MAX_VALUE_FOR_LAST_DAY_FIELD, gauge.getLastMaxValue(MetricsInterval.DAY))
+                //min values
+                .put(MIN_VALUE_FOR_LAST_SECOND_FIELD, gauge.getLastMinValue(MetricsInterval.SECOND))
+                .put(MIN_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getLastMinValue(MetricsInterval.MINUTE))
+                .put(MIN_VALUE_FOR_LAST_5_MINUTES_FIELD, gauge.getLastMinValue(MetricsInterval.FIVE_MINUTES))
+                .put(MIN_VALUE_FOR_LAST_15_MINUTES_FIELD, gauge.getLastMinValue(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MIN_VALUE_FOR_LAST_HOUR_FIELD, gauge.getLastMinValue(MetricsInterval.HOUR))
+                .put(MIN_VALUE_FOR_LAST_12_HOURS_FIELD, gauge.getLastMinValue(MetricsInterval.TWELVE_HOURS))
+                .put(MIN_VALUE_FOR_LAST_DAY_FIELD, gauge.getLastMinValue(MetricsInterval.DAY));
+    }
+
+    /**
+     * Converts {@link StringGauge} into {@link CompositeData}.
+     * @param gauge A gauge to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains data from gauge.
+     */
+    public static CompositeData fromStringGauge(final StringGauge gauge){
+        final CompositeDataFields fields = new CompositeDataFields(STRING_GAUGE_TYPE);
+        fillStringGauge(gauge, fields);
+        return callUnchecked(() -> new CompositeDataSupport(STRING_GAUGE_TYPE, fields));
+    }
+
+    /**
+     * Converts {@link RatedStringGauge} into {@link CompositeData}.
+     * @param gauge A gauge to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains data from gauge.
+     */
+    public static CompositeData fromRatedStringGauge(final RatedStringGauge gauge){
+        final CompositeDataFields fields = new CompositeDataFields(STRING_GAUGE_TYPE);
+        fillStringGauge(gauge, fields);
+        fillRate(gauge, fields);
+        return callUnchecked(() -> new CompositeDataSupport(RATED_STRING_GAUGE_TYPE, fields));
+    }
+
     private static void fillGauge64(final Gauge64 gauge, final CompositeDataFields output) {
         output
                 .put(MAX_VALUE_FIELD, gauge.getMaxValue())
@@ -515,6 +605,7 @@ public final class MetricsConverter {
 
     private static void fillFlag(final Flag flag, final CompositeDataFields fields){
         fields
+                .put(LAST_VALUE_FIELD, flag.getAsBoolean())
                 .put(TRUE_TOTAL_COUNT_FIELD, flag.getTotalCount(true))
                 .put(FALSE_TOTAL_COUNT_FIELD, flag.getTotalCount(false))
                 //true count

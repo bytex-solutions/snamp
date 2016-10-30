@@ -8,6 +8,7 @@ import javax.management.openmbean.CompositeData;
 
 import static com.bytex.snamp.jmx.CompositeDataUtils.getDouble;
 import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
+import static com.bytex.snamp.jmx.CompositeDataUtils.getString;
 
 /**
  * Represents tests for {@link MetricsConverter}.
@@ -106,5 +107,18 @@ public final class MetricsConverterTest extends Assert {
         assertEquals(1, getLong(data, "totalCountOfFalseValues", 0L));
         assertEquals(2D, getDouble(data, "ratio", Double.NaN), 0.1D);
         assertEquals(3L, getLong(data, "totalRate", 0L));
+    }
+
+    @Test
+    public void ratedStringGaugeConversion(){
+        final RatedStringGaugeRecorder recorder = new RatedStringGaugeRecorder("testGauge");
+        recorder.accept("3");
+        recorder.accept("1");
+        recorder.accept("2");
+        final CompositeData data = MetricsConverter.fromRatedStringGauge(recorder);
+        assertNotNull(data);
+        assertEquals("3", getString(data, "maxValue", ""));
+        assertEquals("1", getString(data, "minValue", ""));
+        assertEquals("2", getString(data, "lastValue", ""));
     }
 }

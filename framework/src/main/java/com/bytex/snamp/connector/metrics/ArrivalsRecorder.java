@@ -4,7 +4,6 @@ import com.bytex.snamp.math.Correlation;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.function.Consumer;
 
 /**
  * Represents a gauge for queuing system with denials where
@@ -14,17 +13,13 @@ import java.util.function.Consumer;
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/M/M/1_queue">M/M/1 queue</a>
  */
-public final class ArrivalsRecorder extends AbstractMetric implements Consumer<Duration>, Arrivals {
+public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrivals {
     private static final double NANOS_IN_SECOND = 1_000_000_000D;
     private static final long serialVersionUID = 6146322787615499495L;
-    private final RateRecorder requestRate;
-    private final TimingRecorder responseTime;
     private final Correlation rpsAndTimeCorrelation;  //correlation between rps and response time.
 
     public ArrivalsRecorder(final String name, final int samplingSize){
-        super(name);
-        requestRate = new RateRecorder(name);
-        responseTime = new TimingRecorder(name, samplingSize, NANOS_IN_SECOND);
+        super(name, samplingSize, NANOS_IN_SECOND);
         rpsAndTimeCorrelation = new Correlation();
     }
 
@@ -34,8 +29,6 @@ public final class ArrivalsRecorder extends AbstractMetric implements Consumer<D
 
     private ArrivalsRecorder(final ArrivalsRecorder source){
         super(source);
-        requestRate = source.requestRate.clone();
-        responseTime = source.responseTime.clone();
         rpsAndTimeCorrelation = source.rpsAndTimeCorrelation.clone();
     }
 
@@ -44,21 +37,16 @@ public final class ArrivalsRecorder extends AbstractMetric implements Consumer<D
         return new ArrivalsRecorder(this);
     }
 
-    public void setStartTime(final Instant value){
-        requestRate.setStartTime(value);
-    }
-
     private static double toSeconds(final Duration value){
         //value.toMillis() may return 0 when duration is less than 1 second
         return value.toNanos() / NANOS_IN_SECOND;
     }
 
     @Override
-    public void accept(final Duration rt){
-        requestRate.mark();
-        responseTime.accept(rt);
-        final double lastMeanRate = requestRate.getLastMeanRate(MetricsInterval.SECOND);
-        final double lastMeanResponseTime = toSeconds(responseTime.getLastMeanValue(MetricsInterval.SECOND));
+    protected void writeValue(final Duration value) {
+        super.writeValue(value);
+        final double lastMeanRate = getLastMeanRate(MetricsInterval.SECOND);
+        final double lastMeanResponseTime = toSeconds(getLastMeanValue(MetricsInterval.SECOND));
         rpsAndTimeCorrelation.applyAsDouble(/*rps*/lastMeanRate, /*response time*/lastMeanResponseTime);
     }
 
@@ -92,7 +80,7 @@ public final class ArrivalsRecorder extends AbstractMetric implements Consumer<D
     }
 
     public double getMeanAvailability(final MetricsInterval interval, final int channels){
-        return getAvailability(requestRate.getMeanRate(interval), toSeconds(responseTime.getMeanValue()), channels);
+        return getAvailability(getMeanRate(interval), toSeconds(getMeanValue()), channels);
     }
 
     public double getMeanAvailability(final MetricsInterval interval){
@@ -106,7 +94,7 @@ public final class ArrivalsRecorder extends AbstractMetric implements Consumer<D
 
     @Override
     public double getInstantAvailability(final int channels){
-        return getAvailability(requestRate.getLastRate(MetricsInterval.SECOND), toSeconds(responseTime.getLastValue()), channels);
+        return getAvailability(getLastRate(MetricsInterval.SECOND), toSeconds(getLastValue()), channels);
     }
 
     /**
@@ -123,27 +111,9 @@ public final class ArrivalsRecorder extends AbstractMetric implements Consumer<D
      */
     @Override
     public double getEfficiency(){
-        final double summaryDuration = toSeconds(responseTime.getSummaryValue());
-        final double uptime = toSeconds(Duration.between(requestRate.getStartTime(), Instant.now()));
+        final double summaryDuration = toSeconds(getSummaryValue());
+        final double uptime = toSeconds(Duration.between(getStartTime(), Instant.now()));
         return summaryDuration / uptime;
-    }
-
-    /**
-     * Gets rate of arrivals.
-     * @return Rate of arrivals.
-     */
-    @Override
-    public Rate getRequestRate(){
-        return requestRate;
-    }
-
-    /**
-     * Gets measurement of response time.
-     * @return Measurement of response time.
-     */
-    @Override
-    public Timing getResponseTiming(){
-        return responseTime;
     }
 
     /**
@@ -160,8 +130,7 @@ public final class ArrivalsRecorder extends AbstractMetric implements Consumer<D
      */
     @Override
     public void reset() {
-        requestRate.reset();
-        responseTime.reset();
+        super.reset();
         rpsAndTimeCorrelation.reset();
     }
 }

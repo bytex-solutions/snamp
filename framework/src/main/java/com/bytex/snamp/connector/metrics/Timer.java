@@ -8,7 +8,7 @@ import java.time.Duration;
  * @version 2.0
  * @since 2.0
  */
-public interface Timing extends Gauge<Duration>, Metric {
+public interface Timer extends Gauge<Duration>, Metric {
 
     /**
      * Gets duration at the specified quantile.
@@ -30,20 +30,6 @@ public interface Timing extends Gauge<Duration>, Metric {
     double getMinNumberOfCompletedTasks(final MetricsInterval interval);
 
     /**
-     * Computes a percent of durations that are greater than or equal to the specified duration.
-     * @param value A value to compute.
-     * @return A percent of durations that are greater that or equal to the specified duration.
-     */
-    double lessThanOrEqualDuration(final Duration value);
-
-    /**
-     * Computes a percent of durations that are less than or equal to the specified duration.
-     * @param value A value to compute.
-     * @return A percent of durations that are greater that or less to the specified duration.
-     */
-    double greaterThanOrEqualDuration(final Duration value);
-
-    /**
      * Gets summary duration of all events.
      * @return The summary duration of all events.
      */
@@ -54,5 +40,5 @@ public interface Timing extends Gauge<Duration>, Metric {
     Duration getMeanValue();
 
     @Override
-    Timing clone();
+    Timer clone();
 }

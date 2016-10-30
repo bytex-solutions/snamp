@@ -19,7 +19,7 @@ public final class ArrivalsTest extends Assert {
         final ArrivalsRecorder recorder = new ArrivalsRecorder("testGauge");
         recorder.accept(Duration.ofSeconds(1L));
         recorder.accept(Duration.ofSeconds(1L));
-        assertEquals(2, recorder.getRequestRate().getTotalRate());
+        assertEquals(2, recorder.getTotalRate());
         Thread.sleep(1001);//wait for second and push three requests with linearly increased response time
         recorder.accept(Duration.ofSeconds(2L));
         recorder.accept(Duration.ofSeconds(2L));
@@ -52,6 +52,6 @@ public final class ArrivalsTest extends Assert {
         recorder.accept(Duration.ofSeconds(1L));
         final byte[] serializationData = IOUtils.serialize(recorder);
         recorder = IOUtils.deserialize(serializationData, ArrivalsRecorder.class);
-        assertEquals(2, recorder.getRequestRate().getTotalRate());
+        assertEquals(2, recorder.getTotalRate());
     }
 }

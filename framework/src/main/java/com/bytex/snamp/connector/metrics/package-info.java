@@ -7,7 +7,7 @@
  *     <li>{@link com.bytex.snamp.connector.metrics.Flag} for instant {@code boolean} values</li>
  *     <li>{@link com.bytex.snamp.connector.metrics.StringGauge} for instant {@link java.lang.String} values</li>
  *     <li>{@link com.bytex.snamp.connector.metrics.Rate} for measurement of request rate</li>
- *     <li>{@link com.bytex.snamp.connector.metrics.Timing} for measurement of response time</li>
+ *     <li>{@link com.bytex.snamp.connector.metrics.Timer} for measurement of response time</li>
  * </ul>
  * Complex metrics:
  * <ul>
