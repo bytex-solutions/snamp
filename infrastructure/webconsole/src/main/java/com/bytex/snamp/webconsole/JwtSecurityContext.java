@@ -1,5 +1,6 @@
 package com.bytex.snamp.webconsole;
 
+import com.auth0.jwt.JWTVerifyException;
 import com.sun.jersey.api.core.HttpRequestContext;
 
 import javax.ws.rs.WebApplicationException;
@@ -27,7 +28,11 @@ final class JwtSecurityContext implements SecurityContext {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         // Extract the token from the HTTP Authorization header
         final String token = authorizationHeader.substring("Bearer".length()).trim();
-        principal = new JwtPrincipal(token);
+        try {
+            principal = new JwtPrincipal(token);
+        } catch (final JWTVerifyException e) {
+            throw new WebApplicationException(e, Response.Status.UNAUTHORIZED);
+        }
     }
 
     @Override

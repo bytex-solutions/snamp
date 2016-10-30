@@ -1,5 +1,7 @@
 package com.bytex.snamp.webconsole;
 
+import com.auth0.jwt.JWTVerifyException;
+
 import javax.security.auth.Subject;
 import java.security.Principal;
 
@@ -9,7 +11,7 @@ import java.security.Principal;
  * @since 2.0
  */
 final class JwtPrincipal implements Principal {
-    JwtPrincipal(final String token){
+    JwtPrincipal(final String token) throws JWTVerifyException{
 
     }
 
