@@ -18,8 +18,11 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     @Override
     public ContainerRequest filter(final ContainerRequest requestContext) {
-        final JwtSecurityContext context = new JwtSecurityContext(requestContext);
-        requestContext.setSecurityContext(context);
+        // if user goes to auth method - we do not apply this filter
+        if (!requestContext.getPath().equalsIgnoreCase("auth")) {
+            final JwtSecurityContext context = new JwtSecurityContext(requestContext);
+            requestContext.setSecurityContext(context);
+        }
         return requestContext;
     }
 }

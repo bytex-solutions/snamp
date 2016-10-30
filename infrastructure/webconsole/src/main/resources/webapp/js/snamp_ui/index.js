@@ -28,7 +28,6 @@ function showRequest(formData, jqForm, options) {
 // post-submit callback
 function redirect(data)  {
     $('.errorBlock').css("display", "none");
-    Cookies.set('JWT_token', data);
     window.location.href = "index.html"
 }
 // error handler

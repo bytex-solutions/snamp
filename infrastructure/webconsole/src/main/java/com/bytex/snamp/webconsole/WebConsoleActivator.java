@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import static com.bytex.snamp.internal.Utils.acceptWithContextClassLoader;
 
 public final class WebConsoleActivator extends AbstractBundleActivator {
-    private static final String SERVLET_CONTEXT = "/snamp/webapi";
+    private static final String SERVLET_CONTEXT = "/snamp/console";
 
     private WebConsoleService consoleAPI;
     private ManagementService managementAPI;
@@ -24,7 +24,7 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
     }
 
-    private static Dictionary<String, String> getServletInitParams(){
+    private static Dictionary<String, String>   getServletInitParams(){
         final Dictionary<String, String> params = new Hashtable<>();
         params.put("com.sun.jersey.api.json.POJOMappingFeature", "true");
         return params;

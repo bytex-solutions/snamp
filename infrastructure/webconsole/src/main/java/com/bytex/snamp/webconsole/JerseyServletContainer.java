@@ -18,11 +18,14 @@ final class JerseyServletContainer extends ServletContainer {
         super(createAppConfig(consoleAPI, managementAPI));
     }
 
+    // We ignore unchecked warning because we know that ContainerRequestFilters
+    // contains instances of ContainerRequestFilter class
+    @SuppressWarnings("unchecked")
     private static Application createAppConfig(final WebConsoleService consoleAPI, final ManagementService managementAPI){
         final DefaultResourceConfig result = new DefaultResourceConfig();
         result.getSingletons().add(consoleAPI);
         result.getSingletons().add(managementAPI);
-        result.getClasses().add(AuthenticationFilter.class);
+        result.getContainerRequestFilters().add(AuthenticationFilter.class);
         return result;
     }
 }

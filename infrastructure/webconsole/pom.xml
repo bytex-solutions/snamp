@@ -84,6 +84,10 @@
       <artifactId>org.apache.karaf.jaas.command</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.karaf.jaas</groupId>
+      <artifactId>org.apache.karaf.jaas.boot</artifactId>
+    </dependency>
+    <dependency>
       <groupId>javax.annotation</groupId>
       <artifactId>javax.annotation-api</artifactId>
       <version>1.2</version>
@@ -111,6 +115,8 @@
                   com.google.gson.*,
                   com.bytex.snamp.core.*,
                   com.bytex.snamp.*,
+                  javax.crypto.*,
+                  com.google.common.base.*,
                   javax.security.auth.*</Import-Package>
             <Bundle-Activator>com.bytex.snamp.webconsole.WebConsoleActivator</Bundle-Activator>
             <Web-ContextPath>snamp</Web-ContextPath>

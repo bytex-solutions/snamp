@@ -7,6 +7,10 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 
 /**
  * Represents security context initialized from JWT token.
@@ -30,7 +34,8 @@ final class JwtSecurityContext implements SecurityContext {
         final String token = authorizationHeader.substring("Bearer".length()).trim();
         try {
             principal = new JwtPrincipal(token);
-        } catch (final JWTVerifyException e) {
+        } catch (final JWTVerifyException | NoSuchAlgorithmException | IOException
+                | SignatureException | InvalidKeyException  e) {
             throw new WebApplicationException(e, Response.Status.UNAUTHORIZED);
         }
     }
