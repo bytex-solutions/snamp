@@ -2,6 +2,7 @@ package com.bytex.snamp.webconsole;
 
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.*;
@@ -40,13 +41,16 @@ public final class WebConsoleService implements AutoCloseable {
         } catch (final LoginException e){
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
+        final Subject user = context.getSubject();
+        if(user == null)
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         return Response
                 .noContent()
-                .cookie(new NewCookie(AUTH_COOKIE, issueAuthToken(userName)))
+                .cookie(new NewCookie(AUTH_COOKIE, issueAuthToken(user)))
                 .build();
     }
 
-    private static String issueAuthToken(final String userName){
+    private static String issueAuthToken(final Subject user){
         return "";
     }
 
