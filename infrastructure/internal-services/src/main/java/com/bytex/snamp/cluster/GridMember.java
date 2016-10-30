@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public final class GridMember extends AbstractFrameworkService implements ClusterMember, AutoCloseable {
-    private static final class LeaderElectionThread extends Thread{
+    private static final class LeaderElectionThread extends Thread implements AutoCloseable{
         private final ILock masterLock;
         private volatile boolean lockAcquired;
 
@@ -32,11 +32,6 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
             this.masterLock = hazelcast.getLock("SnampMasterLock");
         }
 
-        private void resign(){
-            masterLock.forceUnlock();
-            lockAcquired = false;
-        }
-
         @Override
         public void run() {
             while (!lockAcquired)
@@ -44,8 +39,20 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
                     //try to become a master
                     lockAcquired = masterLock.tryLock(3, TimeUnit.MILLISECONDS);
                 } catch (final InterruptedException e) {
+                    lockAcquired = false;
                     break;
                 }
+        }
+
+        @Override
+        public void close() throws InterruptedException {
+            interrupt();
+            try {
+                join();
+            } finally {
+                masterLock.forceUnlock();
+                lockAcquired = false;
+            }
         }
     }
     private final Logger logger = Logger.getLogger("com.bytex.snamp.cluster");
@@ -88,15 +95,11 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
      */
     @Override
     public synchronized void resign() {
-        electionThread.interrupt();
         try {
-            electionThread.join();
+            electionThread.close();
         } catch (final InterruptedException e) {
             getLogger().log(Level.SEVERE, "Election thread interrupted", e);
             return;
-        }
-        finally {
-            electionThread.resign();
         }
         electionThread = new LeaderElectionThread(hazelcast);
         electionThread.start();
@@ -210,13 +213,11 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
 
     @Override
     public synchronized void close() throws InterruptedException {
-        electionThread.interrupt();
         try {
-            electionThread.join();
+            electionThread.close();
         }finally {
-            electionThread.resign();
             electionThread = null;
-            if(shutdownHazelcast)
+            if (shutdownHazelcast)
                 hazelcast.shutdown();
             clearCache();
         }
