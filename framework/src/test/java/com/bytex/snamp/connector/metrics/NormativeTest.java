@@ -21,5 +21,8 @@ public final class NormativeTest extends Assert {
         assertEquals(1, recorder.getCountOfGreaterThanNormative());
         assertEquals(2, recorder.getCountOfLessThanNormative());
         assertEquals(0, recorder.getCountOfNormalValues());
+        assertEquals(1, recorder.getCountOfGreaterThanNormative(MetricsInterval.MINUTE));
+        assertEquals(2, recorder.getCountOfLessThanNormative(MetricsInterval.MINUTE));
+        assertEquals(0, recorder.getCountOfNormalValues(MetricsInterval.MINUTE));
     }
 }

@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import javax.management.openmbean.CompositeData;
 
+import java.time.Duration;
+
 import static com.bytex.snamp.jmx.CompositeDataUtils.getDouble;
 import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
 import static com.bytex.snamp.jmx.CompositeDataUtils.getString;
@@ -120,5 +122,19 @@ public final class MetricsConverterTest extends Assert {
         assertEquals("3", getString(data, "maxValue", ""));
         assertEquals("1", getString(data, "minValue", ""));
         assertEquals("2", getString(data, "lastValue", ""));
+    }
+
+    @Test
+    public void ratedTimerConversion(){
+        final RatedTimeRecorder recorder = new RatedTimeRecorder("testTimer");
+        recorder.accept(Duration.ofMillis(10));
+        recorder.accept(Duration.ofMillis(50));
+        recorder.accept(Duration.ofMillis(30));
+        assertEquals(Duration.ofMillis(30), recorder.getMeanValue());
+        final CompositeData data = MetricsConverter.fromRatedTimer(recorder);
+        assertNotNull(data);
+        assertEquals(0.01D, getDouble(data, "minValue", 0D), 0.001D);
+        assertEquals(0.05D, getDouble(data, "maxValue", 0D), 0.001D);
+        assertEquals(0.03D, getDouble(data, "meanValue", 0D), 0.001D);
     }
 }

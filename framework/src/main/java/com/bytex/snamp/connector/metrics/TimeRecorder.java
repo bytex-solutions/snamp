@@ -130,17 +130,17 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
     }
 
     @Override
-    public final double getMeanNumberOfCompletedTasks(final MetricsInterval interval) {
-        return getNumberOfCompletedTasks(interval, this::getMeanValue);
+    public final double getMeanNumberOfCompletedTasks(final MetricsInterval scale) {
+        return getNumberOfCompletedTasks(scale, this::getMeanValue);
     }
 
     @Override
-    public final double getMaxNumberOfCompletedTasks(final MetricsInterval interval){
-        return getNumberOfCompletedTasks(interval, this::getMinValue);
+    public final double getMaxNumberOfCompletedTasks(final MetricsInterval scale){
+        return getNumberOfCompletedTasks(scale, this::getMinValue);
     }
 
     @Override
-    public final double getMinNumberOfCompletedTasks(final MetricsInterval interval){
-        return getNumberOfCompletedTasks(interval, this::getMaxValue);
+    public final double getMinNumberOfCompletedTasks(final MetricsInterval scale){
+        return getNumberOfCompletedTasks(scale, this::getMaxValue);
     }
 }

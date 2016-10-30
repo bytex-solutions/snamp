@@ -8,7 +8,7 @@ import java.time.Duration;
  * @version 2.0
  * @since 2.0
  */
-public interface Timer extends Gauge<Duration>, Metric {
+public interface Timer extends Gauge<Duration> {
 
     /**
      * Gets duration at the specified quantile.
@@ -23,11 +23,11 @@ public interface Timer extends Gauge<Duration>, Metric {
      */
     Duration getDeviation();
 
-    double getMeanNumberOfCompletedTasks(final MetricsInterval interval);
+    double getMeanNumberOfCompletedTasks(final MetricsInterval scale);
 
-    double getMaxNumberOfCompletedTasks(final MetricsInterval interval);
+    double getMaxNumberOfCompletedTasks(final MetricsInterval scale);
 
-    double getMinNumberOfCompletedTasks(final MetricsInterval interval);
+    double getMinNumberOfCompletedTasks(final MetricsInterval scale);
 
     /**
      * Gets summary duration of all events.

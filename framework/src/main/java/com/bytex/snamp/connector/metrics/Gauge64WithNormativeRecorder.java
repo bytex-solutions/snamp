@@ -56,8 +56,8 @@ public class Gauge64WithNormativeRecorder extends Normative64Recorder implements
     }
 
     @Override
-    public final double getMeanValue(final MetricsInterval interval) {
-        return gauge64.getMeanValue(interval);
+    public final double getLastMeanValue(final MetricsInterval interval) {
+        return gauge64.getLastMeanValue(interval);
     }
 
     /**

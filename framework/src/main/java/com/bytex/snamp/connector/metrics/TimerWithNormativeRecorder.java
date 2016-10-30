@@ -130,18 +130,18 @@ public class TimerWithNormativeRecorder extends AbstractNormativeRecorder implem
     }
 
     @Override
-    public final double getMeanNumberOfCompletedTasks(final MetricsInterval interval) {
-        return timer.getMaxNumberOfCompletedTasks(interval);
+    public final double getMeanNumberOfCompletedTasks(final MetricsInterval scale) {
+        return timer.getMaxNumberOfCompletedTasks(scale);
     }
 
     @Override
-    public final double getMaxNumberOfCompletedTasks(final MetricsInterval interval) {
-        return timer.getMaxNumberOfCompletedTasks(interval);
+    public final double getMaxNumberOfCompletedTasks(final MetricsInterval scale) {
+        return timer.getMaxNumberOfCompletedTasks(scale);
     }
 
     @Override
-    public final double getMinNumberOfCompletedTasks(final MetricsInterval interval) {
-        return timer.getMinNumberOfCompletedTasks(interval);
+    public final double getMinNumberOfCompletedTasks(final MetricsInterval scale) {
+        return timer.getMinNumberOfCompletedTasks(scale);
     }
 
     /**

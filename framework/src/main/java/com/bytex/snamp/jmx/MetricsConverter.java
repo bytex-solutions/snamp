@@ -3,7 +3,10 @@ package com.bytex.snamp.jmx;
 import com.bytex.snamp.connector.metrics.*;
 
 import javax.management.openmbean.*;
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.Objects;
+import java.util.concurrent.Callable;
 
 import static com.bytex.snamp.internal.Utils.*;
 
@@ -15,31 +18,46 @@ import static com.bytex.snamp.internal.Utils.*;
  * @since 2.0
  */
 public final class MetricsConverter {
-    private static final class CompositeDataFields extends HashMap<String, Comparable<?>>{
+    private static final class CompositeDataBuilder extends HashMap<String, Comparable<?>> implements Callable<CompositeData>{
         private static final long serialVersionUID = -1438136908623683624L;
+        private final CompositeType type;
 
-        private CompositeDataFields(final CompositeType prototype) {
+        private CompositeDataBuilder(final CompositeType prototype) {
             super(Math.round(prototype.keySet().size() * 1.5F));
+            this.type = Objects.requireNonNull(prototype);
         }
 
-        private CompositeDataFields put(final String name, final long value){
+        @Override
+        public CompositeData call() throws OpenDataException {
+            return new CompositeDataSupport(type, this);
+        }
+
+        private CompositeData build() {
+            return callUnchecked(this);
+        }
+
+        private CompositeDataBuilder put(final String name, final long value){
             super.put(name, value);
             return this;
         }
 
-        private CompositeDataFields put(final String name, final double value){
+        private CompositeDataBuilder put(final String name, final double value){
             super.put(name, value);
             return this;
         }
 
-        private CompositeDataFields put(final String name, final String value){
+        private CompositeDataBuilder put(final String name, final String value){
             super.put(name, value);
             return this;
         }
 
-        private CompositeDataFields put(final String name, final boolean value){
+        private CompositeDataBuilder put(final String name, final boolean value){
             super.put(name, value);
             return this;
+        }
+
+        private CompositeDataBuilder put(final String name, final Duration value){
+            return put(name, value.toNanos() / 1_000_000_000D);     //convert to seconds
         }
     }
     //rate fields
@@ -141,6 +159,94 @@ public final class MetricsConverter {
     private static final String RATIO_FOR_LAST_HOUR_FIELD = "ratioLastHour";
     private static final String RATIO_FOR_LAST_12_HOURS_FIELD = "ratioLast12Hours";
     private static final String RATIO_FOR_LAST_DAY_FIELD = "ratioLastDay";
+    //timer fields
+    private static final String SUMMARY_VALUE_FIELD = "summaryValue";
+    private static final String MEAN_DURATION_FIELD = "meanValue";
+    private static final String MEAN_TASKS_PER_SECOND_FIELD = "meanTasksPerSecond";
+    private static final String MEAN_TASKS_PER_MINUTE_FIELD = "meanTasksPerMinute";
+    private static final String MEAN_TASKS_FOR_5_MINUTES_FIELD = "meanTasksFor5Minutes";
+    private static final String MEAN_TASKS_FOR_15_MINUTES_FIELD = "meanTasksFor15Minutes";
+    private static final String MEAN_TASKS_PER_HOUR_FIELD = "meanTasksPerHour";
+    private static final String MEAN_TASKS_FOR_12_HOURS_FIELD = "meanTasksFor12Hours";
+    private static final String MEAN_TASKS_PER_DAY_FIELD = "meanTasksPerDay";
+    private static final String MAX_TASKS_PER_SECOND_FIELD = "maxTasksPerSecond";
+    private static final String MAX_TASKS_PER_MINUTE_FIELD = "maxTasksPerMinute";
+    private static final String MAX_TASKS_FOR_5_MINUTES_FIELD = "maxTasksFor5Minutes";
+    private static final String MAX_TASKS_FOR_15_MINUTES_FIELD = "maxTasksFor15Minutes";
+    private static final String MAX_TASKS_PER_HOUR_FIELD = "maxTasksPerHour";
+    private static final String MAX_TASKS_FOR_12_HOURS_FIELD = "maxTasksFor12Hours";
+    private static final String MAX_TASKS_PER_DAY_FIELD = "maxTasksPerDay";
+    private static final String MIN_TASKS_PER_SECOND_FIELD = "minTasksPerSecond";
+    private static final String MIN_TASKS_PER_MINUTE_FIELD = "minTasksPerMinute";
+    private static final String MIN_TASKS_FOR_5_MINUTES_FIELD = "minTasksFor5Minutes";
+    private static final String MIN_TASKS_FOR_15_MINUTES_FIELD = "minTasksFor15Minutes";
+    private static final String MIN_TASKS_PER_HOUR_FIELD = "minTasksPerHour";
+    private static final String MIN_TASKS_FOR_12_HOURS_FIELD = "minTasksFor12Hours";
+    private static final String MIN_TASKS_PER_DAY_FIELD = "minTasksPerDay";
+
+    /**
+     * Represents Open Type equivalent for {@link Timer}.
+     */
+    public static final CompositeType TIMER_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Timer", "Timing measurement")
+            .addItem(SUMMARY_VALUE_FIELD, "Summary duration of all operations", SimpleType.DOUBLE)
+            .addItem(MEAN_DURATION_FIELD, "Mean duration", SimpleType.DOUBLE)
+            .addItem(MAX_VALUE_FIELD, "Maximum duration ever presented", SimpleType.DOUBLE)
+            .addItem(LAST_VALUE_FIELD, "The last presented duration", SimpleType.DOUBLE)
+            .addItem(MIN_VALUE_FIELD, "Minimum duration ever presented", SimpleType.DOUBLE)
+            .addItem(STD_DEV_FIELD, "Standard deviation of duration", SimpleType.DOUBLE)
+            .addItem(MEDIAN_VALUE_FIELD, "Median duration in historical perspective", SimpleType.DOUBLE)
+            .addItem(PERCENTILE_90_FIELD, "Percentile 90", SimpleType.DOUBLE)
+            .addItem(PERCENTILE_95_FIELD, "Percentile 95", SimpleType.DOUBLE)
+            .addItem(PERCENTILE_97_FIELD, "Percentile 97", SimpleType.DOUBLE)
+            //mean values
+            .addItem(MEAN_VALUE_FOR_LAST_SECOND_FIELD, "Mean duration for the last second", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, "Mean duration for the last minute", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, "Mean duration for the last five minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, "Mean duration for the last fifteen minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_FOR_LAST_HOUR_FIELD, "Mean duration for the last hour", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, "Mean duration for the last twelve hours", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_FOR_LAST_DAY_FIELD, "Mean duration for the last day", SimpleType.DOUBLE)
+            //max values
+            .addItem(MAX_VALUE_FOR_LAST_SECOND_FIELD, "Maximum duration for the last second", SimpleType.DOUBLE)
+            .addItem(MAX_VALUE_FOR_LAST_MINUTE_FIELD, "Maximum duration for the last minute", SimpleType.DOUBLE)
+            .addItem(MAX_VALUE_FOR_LAST_5_MINUTES_FIELD, "Maximum duration for the last five minutes", SimpleType.DOUBLE)
+            .addItem(MAX_VALUE_FOR_LAST_15_MINUTES_FIELD, "Maximum duration for the last fifteen minutes", SimpleType.DOUBLE)
+            .addItem(MAX_VALUE_FOR_LAST_HOUR_FIELD, "Maximum duration for the last hour", SimpleType.DOUBLE)
+            .addItem(MAX_VALUE_FOR_LAST_12_HOURS_FIELD, "Maximum duration for the last twelve hours", SimpleType.DOUBLE)
+            .addItem(MAX_VALUE_FOR_LAST_DAY_FIELD, "Maximum duration for the last day", SimpleType.DOUBLE)
+            //min values
+            .addItem(MIN_VALUE_FOR_LAST_SECOND_FIELD, "Minimum duration for the last second", SimpleType.DOUBLE)
+            .addItem(MIN_VALUE_FOR_LAST_MINUTE_FIELD, "Minimum duration for the last minute", SimpleType.DOUBLE)
+            .addItem(MIN_VALUE_FOR_LAST_5_MINUTES_FIELD, "Minimum duration for the last five minutes", SimpleType.DOUBLE)
+            .addItem(MIN_VALUE_FOR_LAST_15_MINUTES_FIELD, "Minimum duration for the last fifteen minutes", SimpleType.DOUBLE)
+            .addItem(MIN_VALUE_FOR_LAST_HOUR_FIELD, "Minimum duration for the last hour", SimpleType.DOUBLE)
+            .addItem(MIN_VALUE_FOR_LAST_12_HOURS_FIELD, "Minimum duration for the last twelve hours", SimpleType.DOUBLE)
+            .addItem(MIN_VALUE_FOR_LAST_DAY_FIELD, "Minimum duration for the last day", SimpleType.DOUBLE)
+            //mean number of completed tasks
+            .addItem(MEAN_TASKS_PER_SECOND_FIELD, "Mean number of completed tasks per second", SimpleType.DOUBLE)
+            .addItem(MEAN_TASKS_PER_MINUTE_FIELD, "Mean number of completed tasks per minute", SimpleType.DOUBLE)
+            .addItem(MEAN_TASKS_FOR_5_MINUTES_FIELD, "Mean number of completed tasks for 5 minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_TASKS_FOR_15_MINUTES_FIELD, "Mean number of completed tasks for 15 minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_TASKS_PER_HOUR_FIELD, "Mean number of completed tasks per hour", SimpleType.DOUBLE)
+            .addItem(MEAN_TASKS_FOR_12_HOURS_FIELD, "Mean number of completed tasks for 12 hours", SimpleType.DOUBLE)
+            .addItem(MEAN_TASKS_PER_DAY_FIELD, "Mean number of completed tasks per day", SimpleType.DOUBLE)
+            //min number of completed tasks
+            .addItem(MIN_TASKS_PER_SECOND_FIELD, "Min number of completed tasks per second", SimpleType.DOUBLE)
+            .addItem(MIN_TASKS_PER_MINUTE_FIELD, "Min number of completed tasks per minute", SimpleType.DOUBLE)
+            .addItem(MIN_TASKS_FOR_5_MINUTES_FIELD, "Min number of completed tasks for 5 minutes", SimpleType.DOUBLE)
+            .addItem(MIN_TASKS_FOR_15_MINUTES_FIELD, "Min number of completed tasks for 15 minutes", SimpleType.DOUBLE)
+            .addItem(MIN_TASKS_PER_HOUR_FIELD, "Min number of completed tasks per hour", SimpleType.DOUBLE)
+            .addItem(MIN_TASKS_FOR_12_HOURS_FIELD, "Min number of completed tasks for 12 hours", SimpleType.DOUBLE)
+            .addItem(MIN_TASKS_PER_DAY_FIELD, "Min number of completed tasks per day", SimpleType.DOUBLE)
+            //max number of completed tasks
+            .addItem(MAX_TASKS_PER_SECOND_FIELD, "Min number of completed tasks per second", SimpleType.DOUBLE)
+            .addItem(MAX_TASKS_PER_MINUTE_FIELD, "Min number of completed tasks per minute", SimpleType.DOUBLE)
+            .addItem(MAX_TASKS_FOR_5_MINUTES_FIELD, "Min number of completed tasks for 5 minutes", SimpleType.DOUBLE)
+            .addItem(MAX_TASKS_FOR_15_MINUTES_FIELD, "Min number of completed tasks for 15 minutes", SimpleType.DOUBLE)
+            .addItem(MAX_TASKS_PER_HOUR_FIELD, "Min number of completed tasks per hour", SimpleType.DOUBLE)
+            .addItem(MAX_TASKS_FOR_12_HOURS_FIELD, "Min number of completed tasks for 12 hours", SimpleType.DOUBLE)
+            .addItem(MAX_TASKS_PER_DAY_FIELD, "Min number of completed tasks per day", SimpleType.DOUBLE)
+            .build());
 
     /**
      * Represents Open Type equivalent of {@link StringGauge}.
@@ -362,15 +468,23 @@ public final class MetricsConverter {
             .build());
 
     /**
+     * Represents Open Type equivalent for {@link RatedTimer}.
+     */
+    public static final CompositeType RATED_TIMER_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedTimer", "Timing measurements with rate")
+            .importFrom(TIMER_TYPE)
+            .importFrom(RATE_TYPE)
+            .build());
+
+    /**
      * Converts {@link RatedFlag} into {@link CompositeData}.
      * @param flag A gauge to convert. Cannot be {@literal null}.
      * @return A {@link CompositeData} which contains gauge data.
      */
     public static CompositeData fromRatedFlag(final RatedFlag flag){
-        final CompositeDataFields fields = new CompositeDataFields(RATED_FLAG_TYPE);
+        final CompositeDataBuilder fields = new CompositeDataBuilder(RATED_FLAG_TYPE);
         fillFlag(flag, fields);
         fillRate(flag, fields);
-        return callUnchecked(() -> new CompositeDataSupport(RATED_FLAG_TYPE, fields));
+        return fields.build();
     }
 
     /**
@@ -379,10 +493,10 @@ public final class MetricsConverter {
      * @return A {@link CompositeData} which contains gauge data.
      */
     public static CompositeData fromRatedGauge64(final RatedGauge64 gauge){
-        final CompositeDataFields fields = new CompositeDataFields(RATED_GAUGE_64_TYPE);
+        final CompositeDataBuilder fields = new CompositeDataBuilder(RATED_GAUGE_64_TYPE);
         fillRate(gauge, fields);
         fillGauge64(gauge, fields);
-        return callUnchecked(() -> new CompositeDataSupport(RATED_GAUGE_64_TYPE, fields));
+        return fields.build();
     }
 
     /**
@@ -391,10 +505,10 @@ public final class MetricsConverter {
      * @return A {@link CompositeData} which contains gauge data.
      */
     public static CompositeData fromRatedGaugeFP(final RatedGaugeFP gauge){
-        final CompositeDataFields fields = new CompositeDataFields(RATED_GAUGE_FP_TYPE);
+        final CompositeDataBuilder fields = new CompositeDataBuilder(RATED_GAUGE_FP_TYPE);
         fillRate(gauge, fields);
         fillGaugeFP(gauge, fields);
-        return callUnchecked(() -> new CompositeDataSupport(RATED_GAUGE_FP_TYPE, fields));
+        return fields.build();
     }
 
     private MetricsConverter(){
@@ -402,7 +516,7 @@ public final class MetricsConverter {
     }
 
 
-    private static void fillRate(final Rate rate, final CompositeDataFields output){
+    private static void fillRate(final Rate rate, final CompositeDataBuilder output){
         output
                 .put(TOTAL_RATE_FIELD, rate.getTotalRate())
                 //mean rate for the last time
@@ -458,12 +572,12 @@ public final class MetricsConverter {
      * @return A {@link CompositeData} which contains counter data.
      */
     public static CompositeData fromRate(final Rate rate) {
-        final CompositeDataFields result = new CompositeDataFields(RATE_TYPE);
+        final CompositeDataBuilder result = new CompositeDataBuilder(RATE_TYPE);
         fillRate(rate, result);
-        return callUnchecked(() -> new CompositeDataSupport(RATE_TYPE, result));
+        return result.build();
     }
 
-    private static void fillGaugeFP(final GaugeFP gauge, final CompositeDataFields output) {
+    private static void fillGaugeFP(final GaugeFP gauge, final CompositeDataBuilder output) {
         output
                 .put(MAX_VALUE_FIELD, gauge.getMaxValue())
                 .put(LAST_VALUE_FIELD, gauge.getLastValue())
@@ -474,13 +588,13 @@ public final class MetricsConverter {
                 .put(PERCENTILE_95_FIELD, gauge.getQuantile(0.95D))
                 .put(PERCENTILE_97_FIELD, gauge.getQuantile(0.97D))
                 //mean values
-                .put(MEAN_VALUE_FOR_LAST_SECOND_FIELD, gauge.getMeanValue(MetricsInterval.SECOND))
-                .put(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getMeanValue(MetricsInterval.MINUTE))
-                .put(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, gauge.getMeanValue(MetricsInterval.FIVE_MINUTES))
-                .put(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, gauge.getMeanValue(MetricsInterval.FIFTEEN_MINUTES))
-                .put(MEAN_VALUE_FOR_LAST_HOUR_FIELD, gauge.getMeanValue(MetricsInterval.HOUR))
-                .put(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, gauge.getMeanValue(MetricsInterval.TWELVE_HOURS))
-                .put(MEAN_VALUE_FOR_LAST_DAY_FIELD, gauge.getMeanValue(MetricsInterval.DAY))
+                .put(MEAN_VALUE_FOR_LAST_SECOND_FIELD, gauge.getLastMeanValue(MetricsInterval.SECOND))
+                .put(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getLastMeanValue(MetricsInterval.MINUTE))
+                .put(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, gauge.getLastMeanValue(MetricsInterval.FIVE_MINUTES))
+                .put(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, gauge.getLastMeanValue(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MEAN_VALUE_FOR_LAST_HOUR_FIELD, gauge.getLastMeanValue(MetricsInterval.HOUR))
+                .put(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, gauge.getLastMeanValue(MetricsInterval.TWELVE_HOURS))
+                .put(MEAN_VALUE_FOR_LAST_DAY_FIELD, gauge.getLastMeanValue(MetricsInterval.DAY))
                 //max values
                 .put(MAX_VALUE_FOR_LAST_SECOND_FIELD, gauge.getLastMaxValue(MetricsInterval.SECOND))
                 .put(MAX_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getLastMaxValue(MetricsInterval.MINUTE))
@@ -505,12 +619,12 @@ public final class MetricsConverter {
      * @return A {@link CompositeData} which contains data from gauge.
      */
     public static CompositeData fromGaugeFP(final GaugeFP gauge) {
-        final CompositeDataFields result = new CompositeDataFields(GAUGE_FP_TYPE);
+        final CompositeDataBuilder result = new CompositeDataBuilder(GAUGE_FP_TYPE);
         fillGaugeFP(gauge, result);
-        return callUnchecked(() -> new CompositeDataSupport(GAUGE_FP_TYPE, result));
+        return result.build();
     }
 
-    private static void fillStringGauge(final StringGauge gauge, final CompositeDataFields output){
+    private static void fillStringGauge(final StringGauge gauge, final CompositeDataBuilder output){
         output
                 .put(MAX_VALUE_FIELD, gauge.getMaxValue())
                 .put(LAST_VALUE_FIELD, gauge.getLastValue())
@@ -539,9 +653,9 @@ public final class MetricsConverter {
      * @return A {@link CompositeData} which contains data from gauge.
      */
     public static CompositeData fromStringGauge(final StringGauge gauge){
-        final CompositeDataFields fields = new CompositeDataFields(STRING_GAUGE_TYPE);
+        final CompositeDataBuilder fields = new CompositeDataBuilder(STRING_GAUGE_TYPE);
         fillStringGauge(gauge, fields);
-        return callUnchecked(() -> new CompositeDataSupport(STRING_GAUGE_TYPE, fields));
+        return fields.build();
     }
 
     /**
@@ -550,13 +664,13 @@ public final class MetricsConverter {
      * @return A {@link CompositeData} which contains data from gauge.
      */
     public static CompositeData fromRatedStringGauge(final RatedStringGauge gauge){
-        final CompositeDataFields fields = new CompositeDataFields(STRING_GAUGE_TYPE);
+        final CompositeDataBuilder fields = new CompositeDataBuilder(STRING_GAUGE_TYPE);
         fillStringGauge(gauge, fields);
         fillRate(gauge, fields);
-        return callUnchecked(() -> new CompositeDataSupport(RATED_STRING_GAUGE_TYPE, fields));
+        return fields.build();
     }
 
-    private static void fillGauge64(final Gauge64 gauge, final CompositeDataFields output) {
+    private static void fillGauge64(final Gauge64 gauge, final CompositeDataBuilder output) {
         output
                 .put(MAX_VALUE_FIELD, gauge.getMaxValue())
                 .put(LAST_VALUE_FIELD, gauge.getLastValue())
@@ -567,13 +681,13 @@ public final class MetricsConverter {
                 .put(PERCENTILE_95_FIELD, gauge.getQuantile(0.95D))
                 .put(PERCENTILE_97_FIELD, gauge.getQuantile(0.97D))
                 //mean values
-                .put(MEAN_VALUE_FOR_LAST_SECOND_FIELD, gauge.getMeanValue(MetricsInterval.SECOND))
-                .put(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getMeanValue(MetricsInterval.MINUTE))
-                .put(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, gauge.getMeanValue(MetricsInterval.FIVE_MINUTES))
-                .put(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, gauge.getMeanValue(MetricsInterval.FIFTEEN_MINUTES))
-                .put(MEAN_VALUE_FOR_LAST_HOUR_FIELD, gauge.getMeanValue(MetricsInterval.HOUR))
-                .put(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, gauge.getMeanValue(MetricsInterval.TWELVE_HOURS))
-                .put(MEAN_VALUE_FOR_LAST_DAY_FIELD, gauge.getMeanValue(MetricsInterval.DAY))
+                .put(MEAN_VALUE_FOR_LAST_SECOND_FIELD, gauge.getLastMeanValue(MetricsInterval.SECOND))
+                .put(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getLastMeanValue(MetricsInterval.MINUTE))
+                .put(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, gauge.getLastMeanValue(MetricsInterval.FIVE_MINUTES))
+                .put(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, gauge.getLastMeanValue(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MEAN_VALUE_FOR_LAST_HOUR_FIELD, gauge.getLastMeanValue(MetricsInterval.HOUR))
+                .put(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, gauge.getLastMeanValue(MetricsInterval.TWELVE_HOURS))
+                .put(MEAN_VALUE_FOR_LAST_DAY_FIELD, gauge.getLastMeanValue(MetricsInterval.DAY))
                 //max values
                 .put(MAX_VALUE_FOR_LAST_SECOND_FIELD, gauge.getLastMaxValue(MetricsInterval.SECOND))
                 .put(MAX_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getLastMaxValue(MetricsInterval.MINUTE))
@@ -598,12 +712,12 @@ public final class MetricsConverter {
      * @return A {@link CompositeData} which contains data from gauge.
      */
     public static CompositeData fromGauge64(final Gauge64 gauge){
-        final CompositeDataFields result = new CompositeDataFields(GAUGE_64_TYPE);
+        final CompositeDataBuilder result = new CompositeDataBuilder(GAUGE_64_TYPE);
         fillGauge64(gauge, result);
-        return callUnchecked(() -> new CompositeDataSupport(GAUGE_64_TYPE, result));
+        return result.build();
     }
 
-    private static void fillFlag(final Flag flag, final CompositeDataFields fields){
+    private static void fillFlag(final Flag flag, final CompositeDataBuilder fields){
         fields
                 .put(LAST_VALUE_FIELD, flag.getAsBoolean())
                 .put(TRUE_TOTAL_COUNT_FIELD, flag.getTotalCount(true))
@@ -641,8 +755,93 @@ public final class MetricsConverter {
      * @return A {@link CompositeData} which contains data from gauge.
      */
     public static CompositeData fromFlag(final Flag flag){
-        final CompositeDataFields fields = new CompositeDataFields(FLAG_TYPE);
+        final CompositeDataBuilder fields = new CompositeDataBuilder(FLAG_TYPE);
         fillFlag(flag, fields);
-        return callUnchecked(() -> new CompositeDataSupport(FLAG_TYPE, fields));
+        return fields.build();
+    }
+
+    private static void fillTimer(final Timer timer, final CompositeDataBuilder output) {
+        output
+                .put(SUMMARY_VALUE_FIELD, timer.getSummaryValue())
+                .put(MEAN_DURATION_FIELD, timer.getMeanValue())
+                .put(MAX_VALUE_FIELD, timer.getMaxValue())
+                .put(LAST_VALUE_FIELD, timer.getLastValue())
+                .put(MIN_VALUE_FIELD, timer.getMinValue())
+                .put(STD_DEV_FIELD, timer.getDeviation())
+                .put(MEDIAN_VALUE_FIELD, timer.getQuantile(0.5D))
+                .put(PERCENTILE_90_FIELD, timer.getQuantile(0.9D))
+                .put(PERCENTILE_95_FIELD, timer.getQuantile(0.95D))
+                .put(PERCENTILE_97_FIELD, timer.getQuantile(0.97D))
+                //mean values
+                .put(MEAN_VALUE_FOR_LAST_SECOND_FIELD, timer.getLastMeanValue(MetricsInterval.SECOND))
+                .put(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, timer.getLastMeanValue(MetricsInterval.MINUTE))
+                .put(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, timer.getLastMeanValue(MetricsInterval.FIVE_MINUTES))
+                .put(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, timer.getLastMeanValue(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MEAN_VALUE_FOR_LAST_HOUR_FIELD, timer.getLastMeanValue(MetricsInterval.HOUR))
+                .put(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, timer.getLastMeanValue(MetricsInterval.TWELVE_HOURS))
+                .put(MEAN_VALUE_FOR_LAST_DAY_FIELD, timer.getLastMeanValue(MetricsInterval.DAY))
+                //max values
+                .put(MAX_VALUE_FOR_LAST_SECOND_FIELD, timer.getLastMaxValue(MetricsInterval.SECOND))
+                .put(MAX_VALUE_FOR_LAST_MINUTE_FIELD, timer.getLastMaxValue(MetricsInterval.MINUTE))
+                .put(MAX_VALUE_FOR_LAST_5_MINUTES_FIELD, timer.getLastMaxValue(MetricsInterval.FIVE_MINUTES))
+                .put(MAX_VALUE_FOR_LAST_15_MINUTES_FIELD, timer.getLastMaxValue(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MAX_VALUE_FOR_LAST_HOUR_FIELD, timer.getLastMaxValue(MetricsInterval.HOUR))
+                .put(MAX_VALUE_FOR_LAST_12_HOURS_FIELD, timer.getLastMaxValue(MetricsInterval.TWELVE_HOURS))
+                .put(MAX_VALUE_FOR_LAST_DAY_FIELD, timer.getLastMaxValue(MetricsInterval.DAY))
+                //min values
+                .put(MIN_VALUE_FOR_LAST_SECOND_FIELD, timer.getLastMinValue(MetricsInterval.SECOND))
+                .put(MIN_VALUE_FOR_LAST_MINUTE_FIELD, timer.getLastMinValue(MetricsInterval.MINUTE))
+                .put(MIN_VALUE_FOR_LAST_5_MINUTES_FIELD, timer.getLastMinValue(MetricsInterval.FIVE_MINUTES))
+                .put(MIN_VALUE_FOR_LAST_15_MINUTES_FIELD, timer.getLastMinValue(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MIN_VALUE_FOR_LAST_HOUR_FIELD, timer.getLastMinValue(MetricsInterval.HOUR))
+                .put(MIN_VALUE_FOR_LAST_12_HOURS_FIELD, timer.getLastMinValue(MetricsInterval.TWELVE_HOURS))
+                .put(MIN_VALUE_FOR_LAST_DAY_FIELD, timer.getLastMinValue(MetricsInterval.DAY))
+                //mean number of completed tasks
+                .put(MEAN_TASKS_PER_SECOND_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.SECOND))
+                .put(MEAN_TASKS_PER_MINUTE_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.MINUTE))
+                .put(MEAN_TASKS_FOR_5_MINUTES_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.FIVE_MINUTES))
+                .put(MEAN_TASKS_FOR_15_MINUTES_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MEAN_TASKS_PER_HOUR_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.HOUR))
+                .put(MEAN_TASKS_FOR_12_HOURS_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.TWELVE_HOURS))
+                .put(MEAN_TASKS_PER_DAY_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.DAY))
+                //min number of completed tasks
+                .put(MIN_TASKS_PER_SECOND_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.SECOND))
+                .put(MIN_TASKS_PER_MINUTE_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.MINUTE))
+                .put(MIN_TASKS_FOR_5_MINUTES_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.FIVE_MINUTES))
+                .put(MIN_TASKS_FOR_15_MINUTES_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MIN_TASKS_PER_HOUR_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.HOUR))
+                .put(MIN_TASKS_FOR_12_HOURS_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.TWELVE_HOURS))
+                .put(MIN_TASKS_PER_DAY_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.DAY))
+                //max number of completed tasks
+                .put(MAX_TASKS_PER_SECOND_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.SECOND))
+                .put(MAX_TASKS_PER_MINUTE_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.MINUTE))
+                .put(MAX_TASKS_FOR_5_MINUTES_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.FIVE_MINUTES))
+                .put(MAX_TASKS_FOR_15_MINUTES_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MAX_TASKS_PER_HOUR_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.HOUR))
+                .put(MAX_TASKS_FOR_12_HOURS_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.TWELVE_HOURS))
+                .put(MAX_TASKS_PER_DAY_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.DAY));
+    }
+
+    /**
+     * Converts {@link Timer} into {@link CompositeData}.
+     * @param timer A timer to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains data from timer.
+     */
+    public static CompositeData fromTimer(final Timer timer){
+        final CompositeDataBuilder fields = new CompositeDataBuilder(TIMER_TYPE);
+        fillTimer(timer, fields);
+        return fields.build();
+    }
+
+    /**
+     * Converts {@link RatedTimer} into {@link CompositeData}.
+     * @param timer A timer to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains data from timer.
+     */
+    public static CompositeData fromRatedTimer(final RatedTimer timer){
+        final CompositeDataBuilder fields = new CompositeDataBuilder(RATED_TIMER_TYPE);
+        fillTimer(timer, fields);
+        fillRate(timer, fields);
+        return fields.build();
     }
 }

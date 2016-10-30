@@ -55,8 +55,8 @@ public class GaugeFPWithNormativeRecorder extends NormativeFPRecorder implements
     }
 
     @Override
-    public final double getMeanValue(final MetricsInterval interval) {
-        return gaugeFP.getMeanValue(interval);
+    public final double getLastMeanValue(final MetricsInterval interval) {
+        return gaugeFP.getLastMeanValue(interval);
     }
 
     /**
