@@ -109,6 +109,8 @@
                   org.osgi.service.*,
                   javax.servlet.*,
                   com.google.gson.*,
+                  com.bytex.snamp.core.*,
+                  com.bytex.snamp.*,
                   javax.security.auth.*</Import-Package>
             <Bundle-Activator>com.bytex.snamp.webconsole.WebConsoleActivator</Bundle-Activator>
             <Web-ContextPath>snamp</Web-ContextPath>
