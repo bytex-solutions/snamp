@@ -1,7 +1,6 @@
 package com.bytex.snamp.webconsole;
 
 import com.bytex.snamp.core.AbstractBundleActivator;
-import static com.bytex.snamp.internal.Utils.acceptWithContextClassLoader;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.http.HttpService;
@@ -9,6 +8,8 @@ import org.osgi.service.http.HttpService;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Hashtable;
+
+import static com.bytex.snamp.internal.Utils.acceptWithContextClassLoader;
 
 public final class WebConsoleActivator extends AbstractBundleActivator {
     private static final String SERVLET_CONTEXT = "/snamp/webapi";
@@ -53,5 +54,6 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
     protected void shutdown(final BundleContext context) throws Exception {
         publisher = null;
         consoleAPI = null;
+        managementAPI = null;
     }
 }
