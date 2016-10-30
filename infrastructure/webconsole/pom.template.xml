@@ -23,6 +23,12 @@
             <artifactId>org.osgi.compendium</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>framework</artifactId>
+            <version>${snamp.framework.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
         </dependency>
@@ -99,7 +105,7 @@
                             javax.servlet.*,
                             com.google.gson.*,
                             javax.security.auth.*</Import-Package>
-                        <Bundle-Activator>com.bytex.snamp.webconsole.WebconsoleActivator</Bundle-Activator>
+                        <Bundle-Activator>com.bytex.snamp.webconsole.WebConsoleActivator</Bundle-Activator>
                         <Web-ContextPath>snamp</Web-ContextPath>
                         <Webapp-Context>snamp</Webapp-Context>
                         <_wab>src/main/resources/webapp</_wab>

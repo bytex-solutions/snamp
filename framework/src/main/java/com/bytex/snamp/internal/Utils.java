@@ -1,5 +1,6 @@
 package com.bytex.snamp.internal;
 
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Internal;
 import com.google.common.base.Joiner;
@@ -74,16 +75,36 @@ public final class Utils {
         return isInstanceOf(serviceRef, serviceType.getName());
     }
 
-    public static <V> V withContextClassLoader(final ClassLoader loader, final Supplier<? extends V> action) {
-        return callAndWrapException(() -> withContextClassLoader(loader, (Callable<V>)action::get), e -> new AssertionError("Should never be happened", e));
+    public static <V> V getWithContextClassLoader(final ClassLoader loader, final Supplier<? extends V> action) {
+        final Thread currentThread = Thread.currentThread();
+        final ClassLoader previous = currentThread.getContextClassLoader();
+        currentThread.setContextClassLoader(loader);
+        try{
+            return action.get();
+        }
+        finally {
+            currentThread.setContextClassLoader(previous);
+        }
     }
 
-    public static <V> V withContextClassLoader(final ClassLoader loader, final Callable<? extends V> action) throws Exception {
+    public static <V> V callWithContextClassLoader(final ClassLoader loader, final Callable<? extends V> action) throws Exception {
         final Thread currentThread = Thread.currentThread();
         final ClassLoader previous = currentThread.getContextClassLoader();
         currentThread.setContextClassLoader(loader);
         try{
             return action.call();
+        }
+        finally {
+            currentThread.setContextClassLoader(previous);
+        }
+    }
+
+    public static <I, E extends Throwable> void acceptWithContextClassLoader(final ClassLoader loader, final I input, final Acceptor<? super I, E> acceptor) throws E{
+        final Thread currentThread = Thread.currentThread();
+        final ClassLoader previous = currentThread.getContextClassLoader();
+        currentThread.setContextClassLoader(loader);
+        try{
+            acceptor.accept(input);
         }
         finally {
             currentThread.setContextClassLoader(previous);

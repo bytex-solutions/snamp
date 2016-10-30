@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole.filter;
+package com.bytex.snamp.webconsole;
 
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;

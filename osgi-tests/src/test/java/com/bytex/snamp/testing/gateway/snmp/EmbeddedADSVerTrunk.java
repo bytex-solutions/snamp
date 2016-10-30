@@ -54,7 +54,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 
 /**
@@ -230,7 +229,7 @@ public class EmbeddedADSVerTrunk{
         final CacheService cacheService = new CacheService();
         //this line is necessary to valid loading of EHCACHE ReadWriteCopyStrategy
         //see CopyStrategyConfiguration, line 69
-        final Partition userPartition = Utils.withContextClassLoader(cacheService.getClass().getClassLoader(), (Callable<Partition>) () -> {
+        final Partition userPartition = Utils.callWithContextClassLoader(cacheService.getClass().getClassLoader(), () -> {
                 cacheService.initialize( service.getInstanceLayout() );
                 service.setCacheService( cacheService );
                 // first load the schema

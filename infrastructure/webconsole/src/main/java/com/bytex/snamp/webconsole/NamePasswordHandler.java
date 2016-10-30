@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole.data.auth;
+package com.bytex.snamp.webconsole;
 
 import javax.security.auth.callback.*;
 import java.io.IOException;

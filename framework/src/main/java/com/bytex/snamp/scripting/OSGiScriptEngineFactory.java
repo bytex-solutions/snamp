@@ -6,7 +6,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
  * This is a wrapper class for the ScriptEngineFactory class that deals with context class loader issues
@@ -82,7 +81,7 @@ final class OSGiScriptEngineFactory implements ScriptEngineFactory{
         return new ForwardingScriptEngine() {
             @Override
             protected ScriptEngine delegate() {
-                return Utils.withContextClassLoader(contextClassLoader, (Supplier<ScriptEngine>) factory::getScriptEngine);
+                return Utils.getWithContextClassLoader(contextClassLoader, factory::getScriptEngine);
             }
 
             @Override

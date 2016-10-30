@@ -534,7 +534,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType, final T defaultValue){
         return new ActivationProperty<T>() {
-            private static final long serialVersionUID = -2754311111835732097L;
 
             @Override
             public TypeToken<T> getType() {
@@ -578,7 +577,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType, final T defaultValue){
         return new NamedActivationProperty<T>() {
-            private static final long serialVersionUID = -5801941853707054641L;
             private final TypeToken<T> pType = TypeToken.of(propertyType);
 
             @Override
