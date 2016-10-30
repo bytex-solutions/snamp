@@ -42,7 +42,7 @@ final class JwtSecurityContext implements SecurityContext {
 
     @Override
     public boolean isSecure() {
-        return false;
+        return secure;
     }
 
     @Override
