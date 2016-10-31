@@ -166,7 +166,7 @@ final class JwtPrincipal implements Principal {
         return roles;
     }
 
-    String asJwtString(final String secret){
+    String createJwtToken(final String secret){
         final ImmutableMap<String, Object> claims = ImmutableMap.of(
                 SUBJECT_FIELD, name,
                 ISSUED_AT_FIELD, createdAt,

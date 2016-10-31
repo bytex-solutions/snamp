@@ -82,7 +82,7 @@ public final class WebConsoleService implements AutoCloseable {
     static String issueAuthToken(final Subject user){
         final JwtPrincipal principal = new JwtPrincipal(user);
         logger.fine(String.format("Forming JWT token for user %s with following params: %s", principal.getName(), principal));
-        return principal.asJwtString(JwtSecurityContext.SECRET);
+        return principal.createJwtToken(JwtSecurityContext.SECRET);
     }
 
     /**
