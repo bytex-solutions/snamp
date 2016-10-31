@@ -26,6 +26,7 @@ final class JerseyServletContainer extends ServletContainer {
         result.getSingletons().add(consoleAPI);
         result.getSingletons().add(managementAPI);
         result.getContainerRequestFilters().add(AuthenticationFilter.class);
+        result.getContainerResponseFilters().add(TokenRefreshFilter.class);
         return result;
     }
 }

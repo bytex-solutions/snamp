@@ -22,6 +22,11 @@ import java.nio.charset.Charset;
 @SnampDependencies(SnampFeature.WEBCONSOLE)
 public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
 
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
     //  @Test
     public void testBasicGet() throws IOException, InterruptedException {
         final URL attributeQuery = new URL("http://localhost:8181/snamp-webconsole/rest/get-data");

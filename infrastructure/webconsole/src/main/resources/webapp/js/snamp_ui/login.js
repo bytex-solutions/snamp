@@ -18,7 +18,22 @@ $(document).ready(function() {
         // always return false to prevent standard browser submit and page navigation
         return false;
     });
+
+    if ($.urlParam("tokenExpired") == "true") {
+        invalidCredentials("Token has been expired", "", "Token has been expired. Please re-login")
+
+    }
 });
+
+$.urlParam = function(name){
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results==null){
+       return null;
+    }
+    else{
+       return results[1] || 0;
+    }
+}
 
 // pre-submit callback
 function showRequest(formData, jqForm, options) {

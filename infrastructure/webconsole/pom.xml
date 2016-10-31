@@ -115,6 +115,7 @@
                   com.google.gson.*,
                   com.bytex.snamp.core.*,
                   com.bytex.snamp.*,
+                  com.google.common.collect.*,
                   javax.crypto.*,
                   com.google.common.base.*,
                   javax.security.auth.*</Import-Package>

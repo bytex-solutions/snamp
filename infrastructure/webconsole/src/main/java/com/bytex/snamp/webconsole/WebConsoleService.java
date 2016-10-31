@@ -26,13 +26,31 @@ import java.util.stream.Collectors;
 @Path("/")
 public final class WebConsoleService implements AutoCloseable {
     private static final String JAAS_REALM = "karaf";
-    private static final String AUTH_COOKIE = "snamp-auth-token";
-    private final ConfigurationAdmin configAdmin;
 
+    /**
+     * The constant AUTH_COOKIE.
+     */
+    static final String AUTH_COOKIE = "snamp-auth-token";
+
+    /**
+     * The Token lifetime.
+     */
+    static final long TOKEN_LIFETIME = 604800L;
+
+    /**
+     * The Secret.
+     */
     static final String secret = "{{secret used for signing}}";
+
+    private final ConfigurationAdmin configAdmin;
 
     private static final Logger logger = Logger.getLogger(WebConsoleService.class.getName());
 
+    /**
+     * Instantiates a new Web console service.
+     *
+     * @param configAdmin the config admin
+     */
     WebConsoleService(final ConfigurationAdmin configAdmin){
         this.configAdmin = Objects.requireNonNull(configAdmin);
     }
@@ -71,11 +89,17 @@ public final class WebConsoleService implements AutoCloseable {
                 .build();
     }
 
-    private static String issueAuthToken(final Subject user){
+    /**
+     * Issue auth token string.
+     *
+     * @param user the user
+     * @return the string
+     */
+    static String issueAuthToken(final Subject user){
         final JWTSigner signer = new JWTSigner(secret);
         final HashMap<String, Object> claims = new HashMap<>();
         final long iat = System.currentTimeMillis() / 1000L; // issued at claim
-        final long exp = iat + 604800L; // expires claim. In this case the token expires in 1 week
+        final long exp = iat + TOKEN_LIFETIME; // expires claim. In this case the token expires in 1 week
 
         final String roles = user.getPrincipals(RolePrincipal.class)
                 .stream()

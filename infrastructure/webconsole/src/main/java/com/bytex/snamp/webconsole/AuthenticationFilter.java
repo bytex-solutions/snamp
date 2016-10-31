@@ -13,7 +13,6 @@ import javax.ws.rs.ext.Provider;
  * @since 2.0
  */
 @Provider
-@Priority(1)
 public class AuthenticationFilter implements ContainerRequestFilter {
 
     @Override

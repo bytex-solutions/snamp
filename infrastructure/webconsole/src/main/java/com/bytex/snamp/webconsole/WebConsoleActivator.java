@@ -11,6 +11,9 @@ import java.util.Hashtable;
 
 import static com.bytex.snamp.internal.Utils.acceptWithContextClassLoader;
 
+/**
+ * The type Web console activator.
+ */
 public final class WebConsoleActivator extends AbstractBundleActivator {
     private static final String SERVLET_CONTEXT = "/snamp/console";
 
