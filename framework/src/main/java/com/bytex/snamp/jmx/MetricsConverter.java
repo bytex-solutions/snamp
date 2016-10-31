@@ -746,7 +746,7 @@ public final class MetricsConverter {
      * @return A {@link CompositeData} which contains data from gauge.
      */
     public static CompositeData fromRatedStringGauge(final RatedStringGauge gauge){
-        final CompositeDataBuilder fields = new CompositeDataBuilder(STRING_GAUGE_TYPE);
+        final CompositeDataBuilder fields = new CompositeDataBuilder(RATED_STRING_GAUGE_TYPE);
         fillStringGauge(gauge, fields);
         fillRate(gauge, fields);
         return fields.build();

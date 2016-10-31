@@ -22,7 +22,7 @@ public class RangedTimerRecorder extends AbstractRangedRecorder implements Range
         rangeEnd = source.rangeEnd;
     }
 
-    protected RangedTimerRecorder(final String name, final Duration from, final Duration to) {
+    public RangedTimerRecorder(final String name, final Duration from, final Duration to) {
         super(name);
         timer = new TimeRecorder(name);
         if(from.compareTo(to) > 0)
