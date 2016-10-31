@@ -1,6 +1,8 @@
 package com.bytex.snamp.webconsole;
 
 import com.auth0.jwt.JWTVerifyException;
+import com.bytex.snamp.Box;
+import com.bytex.snamp.core.DistributedServices;
 import com.sun.jersey.api.core.HttpRequestContext;
 
 import javax.ws.rs.WebApplicationException;
@@ -9,6 +11,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -18,10 +21,20 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 final class JwtSecurityContext implements SecurityContext {
+
+    static {
+        final Box<Object> box = DistributedServices.getProcessLocalBox("JWT_SECRET");
+        SECRET = box.hasValue() ? String.valueOf(box.get()) :
+                String.valueOf(box.setIfAbsent(() -> UUID.randomUUID().toString()));
+/*        if (!box.hasValue()) {
+            box.setIfAbsent(() -> UUID.randomUUID().toString());
+        }
+        SECRET = String.valueOf(box.get());*/
+    }
     /**
      * The Secret.
      */
-    static final String SECRET = "{{secret used for signing}}";
+    static final String SECRET;
 
     private final JwtPrincipal principal;
     private final boolean secure;
