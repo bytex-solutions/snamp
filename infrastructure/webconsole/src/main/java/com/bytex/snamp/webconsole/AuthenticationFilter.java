@@ -17,7 +17,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     @Override
     public ContainerRequest filter(final ContainerRequest requestContext) {
         // if user goes to auth method - we do not apply this filter
-        if (!requestContext.getPath().equalsIgnoreCase("auth")) {
+        if (!requestContext.getPath().equalsIgnoreCase(WebConsoleService.AUTHENTICATE_PATH)) {
             final JwtSecurityContext context = new JwtSecurityContext(requestContext);
             requestContext.setSecurityContext(context);
         }

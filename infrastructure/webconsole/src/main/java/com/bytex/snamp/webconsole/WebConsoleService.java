@@ -26,6 +26,8 @@ public final class WebConsoleService implements AutoCloseable {
      */
     static final String AUTH_COOKIE = "snamp-auth-token";
 
+    static final String AUTHENTICATE_PATH = "auth";
+
     private final ConfigurationAdmin configAdmin;
 
     private static final Logger logger = Logger.getLogger(WebConsoleService.class.getName());
@@ -39,7 +41,7 @@ public final class WebConsoleService implements AutoCloseable {
         this.configAdmin = Objects.requireNonNull(configAdmin);
     }
 
-    @Path("/auth")
+    @Path(AUTHENTICATE_PATH)
     @POST
     @Consumes("application/x-www-form-urlencoded")
     public Response authenticate(@FormParam("username") final String userName, @FormParam("password") final String password) throws WebApplicationException{

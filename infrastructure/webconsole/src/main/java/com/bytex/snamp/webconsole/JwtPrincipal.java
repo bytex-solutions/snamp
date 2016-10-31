@@ -34,6 +34,7 @@ final class JwtPrincipal implements Principal {
     private static final String ROLE_SPLITTER_STR = ";";
     private static final Joiner ROLE_JOINER = Joiner.on(ROLE_SPLITTER_STR).skipNulls();
     private static final Splitter ROLE_SPLITTER = Splitter.on(ROLE_SPLITTER_STR).trimResults();
+
     /**
      * The Token lifetime.
      */
@@ -42,6 +43,8 @@ final class JwtPrincipal implements Principal {
     private static final String ROLES_FIELD = "roles";
     private static final String ISSUED_AT_FIELD = "iat";
     private static final String EXPIRATION_FIELD = "exp";
+
+    public static final String ANONYMOUS_USER_NAME = "anonymous";
 
     /**
      * Difference between rest time of the token and its whole lifetime.
@@ -61,7 +64,13 @@ final class JwtPrincipal implements Principal {
     private final long createdAt;
     private final long expiredAt;
 
-    JwtPrincipal(final String userName, final Collection<String> roles){
+    /**
+     * Instantiates a new Jwt principal.
+     *
+     * @param userName the user name
+     * @param roles    the roles
+     */
+    private JwtPrincipal(final String userName, final Collection<String> roles){
         createdAt = System.currentTimeMillis();
         expiredAt = createdAt + TOKEN_LIFETIME.toMillis();
         name = Objects.requireNonNull(userName);
@@ -131,13 +140,19 @@ final class JwtPrincipal implements Principal {
     }
 
     /**
+     * Refresh if required.
+     */
+    JwtPrincipal refreshToken() {
+        return new JwtPrincipal(this.getName(), this.getRoles());
+    }
+
+    /**
      * Defines if the token should be refreshed on response filter stage.
      *
      * @return the boolean
      */
     boolean isRefreshRequired() {
-        final long currentTime = System.currentTimeMillis();
-        return expiredAt - currentTime < (expiredAt - createdAt) * EXPIRATION_RATE;
+        return expiredAt - System.currentTimeMillis() < (expiredAt - createdAt) * EXPIRATION_RATE;
     }
 
     /**

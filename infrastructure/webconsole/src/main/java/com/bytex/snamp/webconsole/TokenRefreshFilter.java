@@ -29,7 +29,7 @@ public class TokenRefreshFilter implements ContainerResponseFilter {
     @Override
     public ContainerResponse filter(final ContainerRequest containerRequest, final ContainerResponse containerResponse) {
         // if user goes to auth method - we do not apply this filter
-        if (!containerRequest.getPath().equalsIgnoreCase("auth")) {
+        if (!containerRequest.getPath().equalsIgnoreCase(WebConsoleService.AUTHENTICATE_PATH)) {
             final JwtPrincipal jwtPrincipal;
             if (containerRequest.getSecurityContext() instanceof JwtSecurityContext) {
                 jwtPrincipal = ((JwtSecurityContext)
@@ -44,20 +44,13 @@ public class TokenRefreshFilter implements ContainerResponseFilter {
             logger.fine(String.format("TokenRefreshFilter is being applied. JWT principle is %s.", jwtPrincipal));
             // check if the token requires to be updated
             if (jwtPrincipal.isRefreshRequired()) {
-                logger.fine("Update required. Doing...");
-                final Subject subject = new Subject(false,
-                    ImmutableSet.<Principal>builder()
-                            .add(new UserPrincipal(jwtPrincipal.getName()))
-                            .addAll(jwtPrincipal.getRoles().stream().map(RolePrincipal::new)
-                                    .collect(Collectors.toList()))
-                            .build(),
-                    Collections.emptySet(),
-                    Collections.emptySet()
-                );
-                logger.fine(String.format("Constructed subject: %s", subject));
+                logger.fine(String.format("Refresh of the token for user %s is required", jwtPrincipal.getName()));
                 containerResponse.getHttpHeaders()
                         .add("Set-Cookie", String.format("%s=%s; Path=/;",
-                                WebConsoleService.AUTH_COOKIE, WebConsoleService.issueAuthToken(subject)));
+                                    WebConsoleService.AUTH_COOKIE,
+                                    jwtPrincipal.refreshToken().createJwtToken(JwtSecurityContext.SECRET)
+                                )
+                        );
 
                 logger.fine(String.format("Token for user %s was refreshed. New token is %s",
                         jwtPrincipal.getName(), containerResponse.getHttpHeaders().get("Set-Cookie")));
