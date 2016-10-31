@@ -31,11 +31,10 @@ final class Gauge64Attribute extends MetricHolderAttribute<RatedGauge64Recorder>
     }
 
     private static boolean updateMetric(final RatedGauge64Recorder metric, final ValueChangedNotification notification) {
-        if (notification.isInteger()) {
+        final boolean success;
+        if (success = notification.isInteger())
             metric.updateValue(x -> notification.applyAsLong(x).orElse(x));
-            return true;
-        } else
-            return false;
+        return success;
     }
 
     @Override

@@ -12,7 +12,7 @@ import javax.management.openmbean.CompositeType;
  * @version 2.0
  */
 final class AttributeParser extends Tokenizer {
-    private static final NameToken OF_KEYWORD = new NameToken("of");
+    private static final NameToken FROM_KEYWORD = new NameToken("from");
 
     private AttributeParser(final String input){
         super(input);
@@ -29,6 +29,12 @@ final class AttributeParser extends Tokenizer {
             case GaugeFPAttribute.NAME:
                 metricType = GaugeFPAttribute.TYPE;
                 break;
+            case FlagAttribute.NAME:
+                metricType = FlagAttribute.TYPE;
+                break;
+            case StringGaugeAttribute.NAME:
+                metricType = StringGaugeAttribute.TYPE;
+                break;
             default:
                 throw new UnrecognizedGaugeTypeException(gaugeType);
         }
@@ -39,9 +45,9 @@ final class AttributeParser extends Tokenizer {
     }
 
     private MessageDrivenAttributeFactory parseExtractionAttribute() throws ParseException {
-        //get <extraction-operator> of <gauge-type> <source-attribute>
+        //get <extraction-operator> from <gauge-type> <source-attribute>
         final NameToken operator = nextToken(NameToken.class);
-        nextToken(OF_KEYWORD::equals);
+        nextToken(FROM_KEYWORD::equals);
         final NameToken gaugeType = nextToken(NameToken.class);
         final NameToken sourceAttribute = nextToken(NameToken.class);
         //operator name depends on gauge type
@@ -55,6 +61,10 @@ final class AttributeParser extends Tokenizer {
                 return Gauge64Attribute::new;   //gauge64
             case GaugeFPAttribute.NAME:
                 return GaugeFPAttribute::new;   //gaugeFP
+            case FlagAttribute.NAME:
+                return FlagAttribute::new;      //flag
+            case StringGaugeAttribute.NAME:
+                return StringGaugeAttribute::new;
             case "get":
                 return parseExtractionAttribute();
             default:

@@ -32,11 +32,10 @@ final class GaugeFPAttribute extends MetricHolderAttribute<RatedGaugeFPRecorder>
     }
 
     private static boolean updateMetric(final RatedGaugeFPRecorder metric, final ValueChangedNotification notification) {
-        if (notification.isFloatingPoint()) {
+        final boolean success;
+        if (success = notification.isFloatingPoint())
             metric.updateValue(x -> notification.applyAsDouble(x).orElse(x));
-            return true;
-        } else
-            return false;
+        return success;
     }
 
     @Override
