@@ -22,6 +22,7 @@ import java.util.function.LongSupplier;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
+import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 /**
@@ -103,14 +104,15 @@ final class JwtPrincipal implements Principal {
     JwtPrincipal(final String token, final String secret) throws JWTVerifyException, SignatureException, NoSuchAlgorithmException, InvalidKeyException, IOException {
         final JWTVerifier verifier = new JWTVerifier(secret);
         final Map<String, Object> claims = verifier.verify(token);
+        //extract subject name from JWT
         if(claims.containsKey(SUBJECT_FIELD))
             name = Objects.toString(claims.get(SUBJECT_FIELD));
         else
             throw new JWTVerifyException("Subject is not specified");
+
+        //extract set of roles from JWT
         if(claims.containsKey(ROLES_FIELD))
-            roles = ImmutableSet.copyOf(
-                ROLE_SPLITTER.split(Objects.toString(claims.get(ROLES_FIELD)))
-            );
+            roles = ImmutableSet.copyOf(ROLE_SPLITTER.split(getValue(claims, ROLES_FIELD, Objects::toString, () -> "")));
         else
             throw new JWTVerifyException("Roles are not specified");
 
