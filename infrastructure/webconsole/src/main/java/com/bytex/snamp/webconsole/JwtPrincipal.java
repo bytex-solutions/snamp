@@ -90,7 +90,7 @@ final class JwtPrincipal implements Principal {
                 .stream()
                 .map(UserPrincipal::getName)
                 .findFirst()
-                .orElse("anonymous");
+                .orElse(ANONYMOUS_USER_NAME);
     }
 
     private static Set<String> getRoles(final Subject subj){
