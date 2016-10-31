@@ -55,7 +55,7 @@ final class JwtPrincipal implements Principal {
     /**
      * Array of roles (string mode).
      */
-    private final Set<String> roles;
+    private final ImmutableSet<String> roles;
 
     private final long createdAt;
     private final long expiredAt;
