@@ -1,8 +1,5 @@
 package com.bytex.snamp.webconsole;
 
-import com.auth0.jwt.JWTSigner;
-import org.apache.karaf.jaas.boot.principal.RolePrincipal;
-import org.apache.karaf.jaas.boot.principal.UserPrincipal;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.security.auth.Subject;
@@ -11,11 +8,8 @@ import javax.security.auth.login.LoginException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-import java.util.HashMap;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Provides API for SNAMP Web Console.
@@ -31,16 +25,6 @@ public final class WebConsoleService implements AutoCloseable {
      * The constant AUTH_COOKIE.
      */
     static final String AUTH_COOKIE = "snamp-auth-token";
-
-    /**
-     * The Token lifetime.
-     */
-    static final long TOKEN_LIFETIME = 604800L;
-
-    /**
-     * The Secret.
-     */
-    static final String secret = "{{secret used for signing}}";
 
     private final ConfigurationAdmin configAdmin;
 
@@ -96,31 +80,9 @@ public final class WebConsoleService implements AutoCloseable {
      * @return the string
      */
     static String issueAuthToken(final Subject user){
-        final JWTSigner signer = new JWTSigner(secret);
-        final HashMap<String, Object> claims = new HashMap<>();
-        final long iat = System.currentTimeMillis() / 1000L; // issued at claim
-        final long exp = iat + TOKEN_LIFETIME; // expires claim. In this case the token expires in 1 week
-
-        final String roles = user.getPrincipals(RolePrincipal.class)
-                .stream()
-                .map(RolePrincipal::getName)
-                .collect(Collectors.joining(";"));
-
-        final Set<UserPrincipal> userPrincipal = user.getPrincipals(UserPrincipal.class);
-        if (userPrincipal.isEmpty()) {
-            logger.warning("For some reasons Subject does not contain user principal");
-        }
-        final String userName = userPrincipal
-                .stream()
-                .map(UserPrincipal::getName)
-                .collect(Collectors.joining(";"));
-
-        claims.put("sub", userName);
-        claims.put("roles", roles);
-        claims.put("exp", exp);
-        claims.put("iat", iat);
-        logger.fine(String.format("Forming JWT token for user %s with following params: %s", userName, claims));
-        return signer.sign(claims);
+        final JwtPrincipal principal = new JwtPrincipal(user);
+        logger.fine(String.format("Forming JWT token for user %s with following params: %s", principal.getName(), principal));
+        return principal.asJwtString(JwtSecurityContext.SECRET);
     }
 
     /**

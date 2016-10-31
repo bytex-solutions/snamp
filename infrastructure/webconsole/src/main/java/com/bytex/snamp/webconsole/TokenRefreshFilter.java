@@ -27,7 +27,7 @@ public class TokenRefreshFilter implements ContainerResponseFilter {
     private static final Logger logger = Logger.getLogger(TokenRefreshFilter.class.getName());
 
     @Override
-    public ContainerResponse filter(ContainerRequest containerRequest, ContainerResponse containerResponse) {
+    public ContainerResponse filter(final ContainerRequest containerRequest, final ContainerResponse containerResponse) {
         // if user goes to auth method - we do not apply this filter
         if (!containerRequest.getPath().equalsIgnoreCase("auth")) {
             final JwtPrincipal jwtPrincipal;

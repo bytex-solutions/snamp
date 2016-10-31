@@ -3,7 +3,6 @@ package com.bytex.snamp.webconsole;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
 
-import javax.annotation.Priority;
 import javax.ws.rs.ext.Provider;
 
 /**

@@ -1,16 +1,28 @@
 package com.bytex.snamp.webconsole;
 
+import com.auth0.jwt.JWTSigner;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.apache.karaf.jaas.boot.principal.RolePrincipal;
+import org.apache.karaf.jaas.boot.principal.UserPrincipal;
 
+import javax.security.auth.Subject;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SignatureException;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
+import java.time.Duration;
+import java.util.*;
+import java.util.function.LongSupplier;
+import java.util.function.ToLongFunction;
+import java.util.stream.Collectors;
+
+import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 /**
  * @author Roman Sakno, Evgeniy Kirichenko
@@ -18,65 +30,112 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 final class JwtPrincipal implements Principal {
+    private static final String ROLE_SPLITTER_STR = ";";
+    private static final Joiner ROLE_JOINER = Joiner.on(ROLE_SPLITTER_STR).skipNulls();
+    private static final Splitter ROLE_SPLITTER = Splitter.on(ROLE_SPLITTER_STR).trimResults();
+    /**
+     * The Token lifetime.
+     */
+    private static final Duration TOKEN_LIFETIME = Duration.ofDays(7);
+    private static final String SUBJECT_FIELD = "sub";
+    private static final String ROLES_FIELD = "roles";
+    private static final String ISSUED_AT_FIELD = "iat";
+    private static final String EXPIRATION_FIELD = "exp";
 
     /**
      * Difference between rest time of the token and its whole lifetime.
      */
-    private static final double EXPIRATION_RATE = 0.3;
-
-    private static final Logger logger = Logger.getLogger(JwtPrincipal.class.getName());
-
-    final String secret = "{{secret used for signing}}";
+    private static final float EXPIRATION_RATE = 0.3F;
 
     /**
      * Principle name.
      */
-    final String name;
+    private final String name;
 
     /**
      * Array of roles (string mode).
      */
-    final List<String> roles;
+    private final Set<String> roles;
+
+    private final long createdAt;
+    private final long expiredAt;
+
+    JwtPrincipal(final String userName, final Collection<String> roles){
+        createdAt = System.currentTimeMillis();
+        expiredAt = createdAt + TOKEN_LIFETIME.toMillis();
+        name = Objects.requireNonNull(userName);
+        this.roles = ImmutableSet.copyOf(roles);
+    }
 
     /**
-     * Defines if the token should be refreshed on response filter stage.
+     * Reconstructs JWT principal using authenticated subject.
+     * @param subj Authenticated subject. Cannot be {@literal null}.
      */
-    final boolean refreshRequired;
+    JwtPrincipal(final Subject subj){
+        this(getUserName(subj), getRoles(subj));
+    }
 
+    private static String getUserName(final Subject subj){
+        return subj.getPrincipals(UserPrincipal.class)
+                .stream()
+                .map(UserPrincipal::getName)
+                .findFirst()
+                .orElse("anonymous");
+    }
+
+    private static Set<String> getRoles(final Subject subj){
+        return subj.getPrincipals(RolePrincipal.class)
+                .stream()
+                .map(RolePrincipal::getName)
+                .collect(Collectors.toSet());
+    }
 
     /**
-     * Basic constructor to varify token and fill principle's fields.
-     * @param token - JWT token
+     * Basic constructor to verify token and fill principle's fields.
+     * @param token JWT token
+     * @param secret A secret used to verify JWT token.
      * @throws JWTVerifyException
      * @throws SignatureException
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeyException
      * @throws IOException
      */
-    JwtPrincipal(final String token) throws JWTVerifyException, SignatureException, NoSuchAlgorithmException, InvalidKeyException, IOException {
+    JwtPrincipal(final String token, final String secret) throws JWTVerifyException, SignatureException, NoSuchAlgorithmException, InvalidKeyException, IOException {
         final JWTVerifier verifier = new JWTVerifier(secret);
         final Map<String, Object> claims = verifier.verify(token);
-        name = (String) claims.get("sub");
-        roles = java.util.Arrays.asList(((String) claims.get("roles")).split(";"));
+        if(claims.containsKey(SUBJECT_FIELD))
+            name = Objects.toString(claims.get(SUBJECT_FIELD));
+        else
+            throw new JWTVerifyException("Subject is not specified");
+        if(claims.containsKey(ROLES_FIELD))
+            roles = ImmutableSet.copyOf(
+                ROLE_SPLITTER.split(Objects.toString(claims.get(ROLES_FIELD)))
+            );
+        else
+            throw new JWTVerifyException("Roles are not specified");
 
-        long tokenCreated = claims.containsKey("iat")? (int) claims.get("iat") :0;
-        long expiration = claims.containsKey("exp")? (int) claims.get("exp") :0;
-        final long currentTime = System.currentTimeMillis() / 1000L;
+        final ToLongFunction<Object> OBJ_TO_INT = iat -> iat instanceof Number ? ((Number)iat).longValue() : 0L;
+        final LongSupplier ZERO = () -> 0;
 
-        refreshRequired = expiration - currentTime < (expiration - tokenCreated)* EXPIRATION_RATE;
+        createdAt = getValueAsLong(claims, ISSUED_AT_FIELD, OBJ_TO_INT, ZERO);
+        expiredAt = getValueAsLong(claims, EXPIRATION_FIELD, OBJ_TO_INT, ZERO);
+    }
 
-        logger.fine(String.format("Time rest: %s, whole time: %s, time to check: %s, update required: %s",
-                expiration - currentTime, expiration - tokenCreated,
-                (expiration - tokenCreated)* EXPIRATION_RATE, refreshRequired));
+    @Override
+    public boolean implies(final Subject subject) {
+        final String userName = getUserName(subject);
+        final Set<String> roles = getRoles(subject);
+        return name.equals(userName) && this.roles.equals(roles);
     }
 
     /**
-     * Is refresh required boolean.
+     * Defines if the token should be refreshed on response filter stage.
      *
      * @return the boolean
      */
-    public boolean isRefreshRequired() {
-        return this.refreshRequired;
+    boolean isRefreshRequired() {
+        final long currentTime = System.currentTimeMillis();
+        return expiredAt - currentTime < (expiredAt - createdAt) * EXPIRATION_RATE;
     }
 
     /**
@@ -103,17 +162,26 @@ final class JwtPrincipal implements Principal {
      *
      * @return the roles
      */
-    public List<String> getRoles() {
+    Set<String> getRoles() {
         return roles;
+    }
+
+    String asJwtString(final String secret){
+        final ImmutableMap<String, Object> claims = ImmutableMap.of(
+                SUBJECT_FIELD, name,
+                ISSUED_AT_FIELD, createdAt,
+                EXPIRATION_FIELD, expiredAt,
+                ROLES_FIELD, ROLE_JOINER.join(roles)
+        );
+        return new JWTSigner(secret).sign(claims);
     }
 
     @Override
     public String toString() {
         return "JwtPrincipal{" +
-                "secret='" + secret + '\'' +
                 ", name='" + name + '\'' +
                 ", roles=" + roles +
-                ", refreshRequired=" + refreshRequired +
+                ", refreshRequired=" + isRefreshRequired() +
                 '}';
     }
 }

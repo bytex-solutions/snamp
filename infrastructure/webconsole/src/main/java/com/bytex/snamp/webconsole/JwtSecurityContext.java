@@ -8,9 +8,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.security.GeneralSecurityException;
 import java.util.logging.Logger;
 
 /**
@@ -20,12 +18,17 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 final class JwtSecurityContext implements SecurityContext {
+    /**
+     * The Secret.
+     */
+    static final String SECRET = "{{secret used for signing}}";
+
     private final JwtPrincipal principal;
     private final boolean secure;
 
     private static final Logger logger = Logger.getLogger(JwtSecurityContext.class.getName());
 
-    JwtSecurityContext(final HttpRequestContext request) throws WebApplicationException{
+    JwtSecurityContext(final HttpRequestContext request) throws WebApplicationException {
         secure = request.isSecure();
         // Get the HTTP Authorization header from the request
         final String authorizationHeader = request.getHeaderValue(HttpHeaders.AUTHORIZATION);
@@ -40,9 +43,8 @@ final class JwtSecurityContext implements SecurityContext {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            principal = new JwtPrincipal(token);
-        } catch (final JWTVerifyException | NoSuchAlgorithmException | IOException
-                | SignatureException | InvalidKeyException  e) {
+            principal = new JwtPrincipal(token, SECRET);
+        } catch (final JWTVerifyException | GeneralSecurityException | IOException e) {
             throw new WebApplicationException(e, Response.Status.UNAUTHORIZED);
         }
     }
