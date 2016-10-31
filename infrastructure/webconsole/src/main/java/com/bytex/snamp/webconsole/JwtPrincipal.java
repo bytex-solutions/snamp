@@ -127,7 +127,7 @@ final class JwtPrincipal implements Principal {
     public boolean implies(final Subject subject) {
         final String userName = getUserName(subject);
         final Set<String> roles = getRoles(subject);
-        return name.equals(userName) && this.roles.equals(roles);
+        return name.equals(userName) && roles.containsAll(this.roles);
     }
 
     /**
