@@ -8,18 +8,18 @@ import java.util.function.DoubleConsumer;
  * @version 2.0
  * @since 2.0
  */
-public class NormativeFPRecorder extends AbstractNormativeRecorder implements DoubleConsumer {
+public class RangedValueFPRecorder extends AbstractRangedRecorder implements DoubleConsumer {
     private static final long serialVersionUID = -5078974473014037352L;
     private final double rangeStart;
     private final double rangeEnd;
 
-    protected NormativeFPRecorder(final NormativeFPRecorder source) {
+    protected RangedValueFPRecorder(final RangedValueFPRecorder source) {
         super(source);
         rangeStart = source.rangeStart;
         rangeEnd = source.rangeEnd;
     }
 
-    public NormativeFPRecorder(final String name, final double from, final double to) {
+    public RangedValueFPRecorder(final String name, final double from, final double to) {
         super(name);
         rangeStart = from;
         rangeEnd = to;
@@ -36,7 +36,7 @@ public class NormativeFPRecorder extends AbstractNormativeRecorder implements Do
     }
 
     @Override
-    public NormativeFPRecorder clone() {
-        return new NormativeFPRecorder(this);
+    public RangedValueFPRecorder clone() {
+        return new RangedValueFPRecorder(this);
     }
 }

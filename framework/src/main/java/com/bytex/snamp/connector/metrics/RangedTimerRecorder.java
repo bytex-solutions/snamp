@@ -9,20 +9,20 @@ import java.util.function.Consumer;
  * @version 2.0
  * @since 2.0
  */
-public class TimerWithNormativeRecorder extends AbstractNormativeRecorder implements TimerWithNormative, Consumer<Duration> {
+public class RangedTimerRecorder extends AbstractRangedRecorder implements RangedTimer, Consumer<Duration> {
     private static final long serialVersionUID = -6020447472626416864L;
     private final TimeRecorder timer;
     private final Duration rangeStart;
     private final Duration rangeEnd;
 
-    protected TimerWithNormativeRecorder(final TimerWithNormativeRecorder source) {
+    protected RangedTimerRecorder(final RangedTimerRecorder source) {
         super(source);
         timer = source.timer.clone();
         rangeStart = source.rangeStart;
         rangeEnd = source.rangeEnd;
     }
 
-    protected TimerWithNormativeRecorder(final String name, final Duration from, final Duration to) {
+    protected RangedTimerRecorder(final String name, final Duration from, final Duration to) {
         super(name);
         timer = new TimeRecorder(name);
         if(from.compareTo(to) > 0)
@@ -32,8 +32,8 @@ public class TimerWithNormativeRecorder extends AbstractNormativeRecorder implem
     }
 
     @Override
-    public TimerWithNormativeRecorder clone() {
-        return new TimerWithNormativeRecorder(this);
+    public RangedTimerRecorder clone() {
+        return new RangedTimerRecorder(this);
     }
 
     /**

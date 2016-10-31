@@ -6,16 +6,16 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 2.0
  */
-public class Gauge64WithNormativeRecorder extends Normative64Recorder implements Gauge64WithNormative {
+public class RangedGauge64Recorder extends RangedValue64Recorder implements RangedGauge64 {
     private static final long serialVersionUID = -8084771859605410577L;
     private final Gauge64Recorder gauge64;
 
-    protected Gauge64WithNormativeRecorder(final Gauge64WithNormativeRecorder source) {
+    protected RangedGauge64Recorder(final RangedGauge64Recorder source) {
         super(source);
         gauge64 = source.gauge64.clone();
     }
 
-    public Gauge64WithNormativeRecorder(final String name, final long from, final long to) {
+    public RangedGauge64Recorder(final String name, final long from, final long to) {
         super(name, from, to);
         gauge64 = new Gauge64Recorder(name);
     }
@@ -41,8 +41,8 @@ public class Gauge64WithNormativeRecorder extends Normative64Recorder implements
     }
 
     @Override
-    public Gauge64WithNormativeRecorder clone() {
-        return new Gauge64WithNormativeRecorder(this);
+    public RangedGauge64Recorder clone() {
+        return new RangedGauge64Recorder(this);
     }
 
     @Override

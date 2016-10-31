@@ -5,7 +5,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 2.0
  */
-public interface Gauge64WithNormative extends Normative, RatedGauge64 {
+public interface RangedGauge64 extends Ranged, RatedGauge64 {
     @Override
-    Gauge64WithNormative clone();
+    RangedGauge64 clone();
 }

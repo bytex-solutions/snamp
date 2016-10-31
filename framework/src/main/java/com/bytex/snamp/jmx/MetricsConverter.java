@@ -183,6 +183,64 @@ public final class MetricsConverter {
     private static final String MIN_TASKS_PER_HOUR_FIELD = "minTasksPerHour";
     private static final String MIN_TASKS_FOR_12_HOURS_FIELD = "minTasksFor12Hours";
     private static final String MIN_TASKS_PER_DAY_FIELD = "minTasksPerDay";
+    //ranged fields
+    private static final String LESS_THAN_RANGE_FIELD = "lessThanRange";
+    private static final String LESS_THAN_RANGE_LAST_SECOND_FIELD = "lessThanRangeLastSecond";
+    private static final String LESS_THAN_RANGE_LAST_MINUTE_FIELD = "lessThanRangeLastMinute";
+    private static final String LESS_THAN_RANGE_LAST_5_MINUTES_FIELD = "lessThanRangeLast5Minutes";
+    private static final String LESS_THAN_RANGE_LAST_15_MINUTES_FIELD = "lessThanRangeLast15Minutes";
+    private static final String LESS_THAN_RANGE_LAST_HOUR_FIELD = "lessThanRangeLastHour";
+    private static final String LESS_THAN_RANGE_LAST_12_HOURS_FIELD = "lessThanRangeLast12Hours";
+    private static final String LESS_THAN_RANGE_LAST_DAY_FIELD = "lessThanRangeLastDay";
+    private static final String GREATER_THAN_RANGE_FIELD = "greaterThanRange";
+    private static final String GREATER_THAN_RANGE_LAST_SECOND_FIELD = "greaterThanRangeLastSecond";
+    private static final String GREATER_THAN_RANGE_LAST_MINUTE_FIELD = "greaterThanRangeLastMinute";
+    private static final String GREATER_THAN_RANGE_LAST_5_MINUTES_FIELD = "greaterThanRangeLast5Minutes";
+    private static final String GREATER_THAN_RANGE_LAST_15_MINUTES_FIELD = "greaterThanRangeLast15Minutes";
+    private static final String GREATER_THAN_RANGE_LAST_HOUR_FIELD = "greaterThanRangeLastHour";
+    private static final String GREATER_THAN_RANGE_LAST_12_HOURS_FIELD = "greaterThanRangeLast12Hours";
+    private static final String GREATER_THAN_RANGE_LAST_DAY_FIELD = "greaterThanRangeLastDay";
+    private static final String IS_IN_RANGE_FIELD = "isInRange";
+    private static final String IS_IN_RANGE_LAST_SECOND_FIELD = "isInRangeLastSecond";
+    private static final String IS_IN_RANGE_LAST_MINUTE_FIELD = "isInRangeLastMinute";
+    private static final String IS_IN_RANGE_LAST_5_MINUTES_FIELD = "isInRangeLast5Minutes";
+    private static final String IS_IN_RANGE_LAST_15_MINUTES_FIELD = "isInRangeLast15Minutes";
+    private static final String IS_IN_RANGE_LAST_HOUR_FIELD = "isInRangeLastHour";
+    private static final String IS_IN_RANGE_LAST_12_HOURS_FIELD = "isInRangeLast12Hours";
+    private static final String IS_IN_RANGE_LAST_DAY_FIELD = "isInRangeLastDay";
+
+    /**
+     * Represents Open Type equivalent for {@link Ranged}.
+     */
+    public static final CompositeType RANGED_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Ranged", "Ranged metric")
+            //less than
+            .addItem(LESS_THAN_RANGE_FIELD, "Number of recorded values that are less than normative", SimpleType.DOUBLE)
+            .addItem(LESS_THAN_RANGE_LAST_SECOND_FIELD, "Number of recorded values that are less than normative for the last second", SimpleType.DOUBLE)
+            .addItem(LESS_THAN_RANGE_LAST_MINUTE_FIELD, "Number of recorded values that are less than normative for the last minute", SimpleType.DOUBLE)
+            .addItem(LESS_THAN_RANGE_LAST_5_MINUTES_FIELD, "Number of recorded values that are less than normative for the last 5 minutes", SimpleType.DOUBLE)
+            .addItem(LESS_THAN_RANGE_LAST_15_MINUTES_FIELD, "Number of recorded values that are less than normative for the last 15 minutes", SimpleType.DOUBLE)
+            .addItem(LESS_THAN_RANGE_LAST_HOUR_FIELD, "Number of recorded values that are less than normative for the last hour", SimpleType.DOUBLE)
+            .addItem(LESS_THAN_RANGE_LAST_12_HOURS_FIELD, "Number of recorded values that are less than normative for the last 12 hours", SimpleType.DOUBLE)
+            .addItem(LESS_THAN_RANGE_LAST_DAY_FIELD, "Number of recorded values that are less than normative for the last day", SimpleType.DOUBLE)
+            //greater than
+            .addItem(GREATER_THAN_RANGE_FIELD, "Number of recorded values that are less than normative", SimpleType.DOUBLE)
+            .addItem(GREATER_THAN_RANGE_LAST_SECOND_FIELD, "Number of recorded values that are less than normative for the last second", SimpleType.DOUBLE)
+            .addItem(GREATER_THAN_RANGE_LAST_MINUTE_FIELD, "Number of recorded values that are less than normative for the last minute", SimpleType.DOUBLE)
+            .addItem(GREATER_THAN_RANGE_LAST_5_MINUTES_FIELD, "Number of recorded values that are less than normative for the last 5 minutes", SimpleType.DOUBLE)
+            .addItem(GREATER_THAN_RANGE_LAST_15_MINUTES_FIELD, "Number of recorded values that are less than normative for the last 15 minutes", SimpleType.DOUBLE)
+            .addItem(GREATER_THAN_RANGE_LAST_HOUR_FIELD, "Number of recorded values that are less than normative for the last hour", SimpleType.DOUBLE)
+            .addItem(GREATER_THAN_RANGE_LAST_12_HOURS_FIELD, "Number of recorded values that are less than normative for the last 12 hours", SimpleType.DOUBLE)
+            .addItem(GREATER_THAN_RANGE_LAST_DAY_FIELD, "Number of recorded values that are less than normative for the last day", SimpleType.DOUBLE)
+            //normal values
+            .addItem(IS_IN_RANGE_FIELD, "Number of recorded values that are less than normative", SimpleType.DOUBLE)
+            .addItem(IS_IN_RANGE_LAST_SECOND_FIELD, "Number of recorded values that are less than normative for the last second", SimpleType.DOUBLE)
+            .addItem(IS_IN_RANGE_LAST_MINUTE_FIELD, "Number of recorded values that are less than normative for the last minute", SimpleType.DOUBLE)
+            .addItem(IS_IN_RANGE_LAST_5_MINUTES_FIELD, "Number of recorded values that are less than normative for the last 5 minutes", SimpleType.DOUBLE)
+            .addItem(IS_IN_RANGE_LAST_15_MINUTES_FIELD, "Number of recorded values that are less than normative for the last 15 minutes", SimpleType.DOUBLE)
+            .addItem(IS_IN_RANGE_LAST_HOUR_FIELD, "Number of recorded values that are less than normative for the last hour", SimpleType.DOUBLE)
+            .addItem(IS_IN_RANGE_LAST_12_HOURS_FIELD, "Number of recorded values that are less than normative for the last 12 hours", SimpleType.DOUBLE)
+            .addItem(IS_IN_RANGE_LAST_DAY_FIELD, "Number of recorded values that are less than normative for the last day", SimpleType.DOUBLE)
+            .build());
 
     /**
      * Represents Open Type equivalent for {@link Timer}.
@@ -473,6 +531,30 @@ public final class MetricsConverter {
     public static final CompositeType RATED_TIMER_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedTimer", "Timing measurements with rate")
             .importFrom(TIMER_TYPE)
             .importFrom(RATE_TYPE)
+            .build());
+
+    /**
+     * Represents Open Type equivalent for {@link RangedGauge64}.
+     */
+    public static final CompositeType RANGED_GAUGE_64_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RangedGauge64", "Gauge64 with normative range")
+            .importFrom(RANGED_TYPE)
+            .importFrom(RATED_GAUGE_64_TYPE)
+            .build());
+
+    /**
+     * Represents Open Type equivalent for {@link RangedGaugeFP}.
+     */
+    public static final CompositeType RANGED_GAUGE_FP_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RangedGaugeFP", "GaugeFP with normative range")
+            .importFrom(RANGED_TYPE)
+            .importFrom(RATED_GAUGE_FP_TYPE)
+            .build());
+
+    /**
+     * Represents Open Type equivalent for {@link RangedTimer}.
+     */
+    public static final CompositeType RANGED_TIMER_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RangedTimer", "Timer with normative time limits")
+            .importFrom(RANGED_TYPE)
+            .importFrom(RATED_TIMER_TYPE)
             .build());
 
     /**
@@ -805,21 +887,21 @@ public final class MetricsConverter {
                 .put(MEAN_TASKS_FOR_12_HOURS_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.TWELVE_HOURS))
                 .put(MEAN_TASKS_PER_DAY_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.DAY))
                 //min number of completed tasks
-                .put(MIN_TASKS_PER_SECOND_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.SECOND))
-                .put(MIN_TASKS_PER_MINUTE_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.MINUTE))
-                .put(MIN_TASKS_FOR_5_MINUTES_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.FIVE_MINUTES))
-                .put(MIN_TASKS_FOR_15_MINUTES_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.FIFTEEN_MINUTES))
-                .put(MIN_TASKS_PER_HOUR_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.HOUR))
-                .put(MIN_TASKS_FOR_12_HOURS_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.TWELVE_HOURS))
-                .put(MIN_TASKS_PER_DAY_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.DAY))
+                .put(MIN_TASKS_PER_SECOND_FIELD, timer.getMinNumberOfCompletedTasks(MetricsInterval.SECOND))
+                .put(MIN_TASKS_PER_MINUTE_FIELD, timer.getMinNumberOfCompletedTasks(MetricsInterval.MINUTE))
+                .put(MIN_TASKS_FOR_5_MINUTES_FIELD, timer.getMinNumberOfCompletedTasks(MetricsInterval.FIVE_MINUTES))
+                .put(MIN_TASKS_FOR_15_MINUTES_FIELD, timer.getMinNumberOfCompletedTasks(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MIN_TASKS_PER_HOUR_FIELD, timer.getMinNumberOfCompletedTasks(MetricsInterval.HOUR))
+                .put(MIN_TASKS_FOR_12_HOURS_FIELD, timer.getMinNumberOfCompletedTasks(MetricsInterval.TWELVE_HOURS))
+                .put(MIN_TASKS_PER_DAY_FIELD, timer.getMinNumberOfCompletedTasks(MetricsInterval.DAY))
                 //max number of completed tasks
-                .put(MAX_TASKS_PER_SECOND_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.SECOND))
-                .put(MAX_TASKS_PER_MINUTE_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.MINUTE))
-                .put(MAX_TASKS_FOR_5_MINUTES_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.FIVE_MINUTES))
-                .put(MAX_TASKS_FOR_15_MINUTES_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.FIFTEEN_MINUTES))
-                .put(MAX_TASKS_PER_HOUR_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.HOUR))
-                .put(MAX_TASKS_FOR_12_HOURS_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.TWELVE_HOURS))
-                .put(MAX_TASKS_PER_DAY_FIELD, timer.getMeanNumberOfCompletedTasks(MetricsInterval.DAY));
+                .put(MAX_TASKS_PER_SECOND_FIELD, timer.getMaxNumberOfCompletedTasks(MetricsInterval.SECOND))
+                .put(MAX_TASKS_PER_MINUTE_FIELD, timer.getMaxNumberOfCompletedTasks(MetricsInterval.MINUTE))
+                .put(MAX_TASKS_FOR_5_MINUTES_FIELD, timer.getMaxNumberOfCompletedTasks(MetricsInterval.FIVE_MINUTES))
+                .put(MAX_TASKS_FOR_15_MINUTES_FIELD, timer.getMaxNumberOfCompletedTasks(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MAX_TASKS_PER_HOUR_FIELD, timer.getMaxNumberOfCompletedTasks(MetricsInterval.HOUR))
+                .put(MAX_TASKS_FOR_12_HOURS_FIELD, timer.getMaxNumberOfCompletedTasks(MetricsInterval.TWELVE_HOURS))
+                .put(MAX_TASKS_PER_DAY_FIELD, timer.getMaxNumberOfCompletedTasks(MetricsInterval.DAY));
     }
 
     /**
@@ -842,6 +924,87 @@ public final class MetricsConverter {
         final CompositeDataBuilder fields = new CompositeDataBuilder(RATED_TIMER_TYPE);
         fillTimer(timer, fields);
         fillRate(timer, fields);
+        return fields.build();
+    }
+
+    private static void fillRanged(final Ranged ranged, final CompositeDataBuilder output){
+        output
+                //less than
+                .put(LESS_THAN_RANGE_FIELD, ranged.getPercentOfLessThanRange())
+                .put(LESS_THAN_RANGE_LAST_SECOND_FIELD, ranged.getPercentOfLessThanRange(MetricsInterval.SECOND))
+                .put(LESS_THAN_RANGE_LAST_MINUTE_FIELD, ranged.getPercentOfLessThanRange(MetricsInterval.MINUTE))
+                .put(LESS_THAN_RANGE_LAST_5_MINUTES_FIELD, ranged.getPercentOfLessThanRange(MetricsInterval.FIVE_MINUTES))
+                .put(LESS_THAN_RANGE_LAST_15_MINUTES_FIELD, ranged.getPercentOfLessThanRange(MetricsInterval.FIFTEEN_MINUTES))
+                .put(LESS_THAN_RANGE_LAST_HOUR_FIELD, ranged.getPercentOfLessThanRange(MetricsInterval.HOUR))
+                .put(LESS_THAN_RANGE_LAST_12_HOURS_FIELD, ranged.getPercentOfLessThanRange(MetricsInterval.TWELVE_HOURS))
+                .put(LESS_THAN_RANGE_LAST_DAY_FIELD, ranged.getPercentOfLessThanRange(MetricsInterval.DAY))
+                //greater than
+                .put(GREATER_THAN_RANGE_FIELD, ranged.getPercentOfGreaterThanRange())
+                .put(GREATER_THAN_RANGE_LAST_SECOND_FIELD, ranged.getPercentOfGreaterThanRange(MetricsInterval.SECOND))
+                .put(GREATER_THAN_RANGE_LAST_MINUTE_FIELD, ranged.getPercentOfGreaterThanRange(MetricsInterval.MINUTE))
+                .put(GREATER_THAN_RANGE_LAST_5_MINUTES_FIELD, ranged.getPercentOfGreaterThanRange(MetricsInterval.FIVE_MINUTES))
+                .put(GREATER_THAN_RANGE_LAST_15_MINUTES_FIELD, ranged.getPercentOfGreaterThanRange(MetricsInterval.FIFTEEN_MINUTES))
+                .put(GREATER_THAN_RANGE_LAST_HOUR_FIELD, ranged.getPercentOfGreaterThanRange(MetricsInterval.HOUR))
+                .put(GREATER_THAN_RANGE_LAST_12_HOURS_FIELD, ranged.getPercentOfGreaterThanRange(MetricsInterval.TWELVE_HOURS))
+                .put(GREATER_THAN_RANGE_LAST_DAY_FIELD, ranged.getPercentOfGreaterThanRange(MetricsInterval.DAY))
+                //normative
+                .put(IS_IN_RANGE_FIELD, ranged.getPercentOfValuesIsInRange())
+                .put(IS_IN_RANGE_LAST_SECOND_FIELD, ranged.getPercentOfValuesIsInRange(MetricsInterval.SECOND))
+                .put(IS_IN_RANGE_LAST_MINUTE_FIELD, ranged.getPercentOfValuesIsInRange(MetricsInterval.MINUTE))
+                .put(IS_IN_RANGE_LAST_5_MINUTES_FIELD, ranged.getPercentOfValuesIsInRange(MetricsInterval.FIVE_MINUTES))
+                .put(IS_IN_RANGE_LAST_15_MINUTES_FIELD, ranged.getPercentOfValuesIsInRange(MetricsInterval.FIFTEEN_MINUTES))
+                .put(IS_IN_RANGE_LAST_HOUR_FIELD, ranged.getPercentOfValuesIsInRange(MetricsInterval.HOUR))
+                .put(IS_IN_RANGE_LAST_12_HOURS_FIELD, ranged.getPercentOfValuesIsInRange(MetricsInterval.TWELVE_HOURS))
+                .put(IS_IN_RANGE_LAST_DAY_FIELD, ranged.getPercentOfValuesIsInRange(MetricsInterval.DAY));
+    }
+
+    /**
+     * Converts {@link Ranged} into {@link CompositeData}.
+     * @param ranged A normative to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains data from normative.
+     */
+    public static CompositeData fromRanged(final Ranged ranged){
+        final CompositeDataBuilder fields = new CompositeDataBuilder(RANGED_TYPE);
+        fillRanged(ranged, fields);
+        return fields.build();
+    }
+
+    /**
+     * Converts {@link RangedGauge64} into {@link CompositeData}.
+     * @param normative A normative to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains data from normative.
+     */
+    public static CompositeData fromRanged64(final RangedGauge64 normative) {
+        final CompositeDataBuilder fields = new CompositeDataBuilder(RANGED_GAUGE_64_TYPE);
+        fillRanged(normative, fields);
+        fillRate(normative, fields);
+        fillGauge64(normative, fields);
+        return fields.build();
+    }
+
+    /**
+     * Converts {@link RangedGaugeFP} into {@link CompositeData}.
+     * @param normative A normative to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains data from normative.
+     */
+    public static CompositeData fromRangedFP(final RangedGaugeFP normative) {
+        final CompositeDataBuilder fields = new CompositeDataBuilder(RANGED_GAUGE_FP_TYPE);
+        fillRanged(normative, fields);
+        fillRate(normative, fields);
+        fillGaugeFP(normative, fields);
+        return fields.build();
+    }
+
+    /**
+     * Converts {@link RangedTimer} into {@link CompositeData}.
+     * @param normative A normative to convert. Cannot be {@literal null}.
+     * @return A {@link CompositeData} which contains data from normative.
+     */
+    public static CompositeData fromRangedTimer(final RangedTimer normative){
+        final CompositeDataBuilder fields = new CompositeDataBuilder(RANGED_TIMER_TYPE);
+        fillRanged(normative, fields);
+        fillTimer(normative, fields);
+        fillRate(normative, fields);
         return fields.build();
     }
 }

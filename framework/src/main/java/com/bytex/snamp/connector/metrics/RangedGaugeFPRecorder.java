@@ -5,16 +5,16 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 2.0
  */
-public class GaugeFPWithNormativeRecorder extends NormativeFPRecorder implements GaugeFPWithNormative {
+public class RangedGaugeFPRecorder extends RangedValueFPRecorder implements RangedGaugeFP {
     private static final long serialVersionUID = 7803345140265603197L;
     private final GaugeFPRecorder gaugeFP;
 
-    protected GaugeFPWithNormativeRecorder(final GaugeFPWithNormativeRecorder source) {
+    protected RangedGaugeFPRecorder(final RangedGaugeFPRecorder source) {
         super(source);
         gaugeFP = source.gaugeFP.clone();
     }
 
-    public GaugeFPWithNormativeRecorder(final String name, final double from, final double to) {
+    public RangedGaugeFPRecorder(final String name, final double from, final double to) {
         super(name, from, to);
         gaugeFP = new GaugeFPRecorder(name);
     }
@@ -31,8 +31,8 @@ public class GaugeFPWithNormativeRecorder extends NormativeFPRecorder implements
     }
 
     @Override
-    public GaugeFPWithNormativeRecorder clone() {
-        return new GaugeFPWithNormativeRecorder(this);
+    public RangedGaugeFPRecorder clone() {
+        return new RangedGaugeFPRecorder(this);
     }
 
     /**

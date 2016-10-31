@@ -8,12 +8,12 @@ import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Represents abstract implementation of {@link Normative}.
+ * Represents abstract implementation of {@link Ranged}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public abstract class AbstractNormativeRecorder extends AbstractMetric implements Normative {
+public abstract class AbstractRangedRecorder extends AbstractMetric implements Ranged {
     private static final long serialVersionUID = 555166925381054756L;
 
     /**
@@ -56,7 +56,7 @@ public abstract class AbstractNormativeRecorder extends AbstractMetric implement
     private final EnumMap<HitResult, MetricsIntervalMap<TimeLimitedLong>> intervalHits;
     private final RateRecorder rate;
 
-    protected AbstractNormativeRecorder(final AbstractNormativeRecorder source) {
+    protected AbstractRangedRecorder(final AbstractRangedRecorder source) {
         super(source);
         this.hits = new EnumMap<>(source.hits);
         intervalHits = new EnumMap<>(HitResult.class);
@@ -67,7 +67,7 @@ public abstract class AbstractNormativeRecorder extends AbstractMetric implement
         this.rate = source.rate.clone();
     }
 
-    protected AbstractNormativeRecorder(final String name) {
+    protected AbstractRangedRecorder(final String name) {
         super(name);
         hits = new EnumMap<>(HitResult.class);
         intervalHits = new EnumMap<>(HitResult.class);
@@ -85,7 +85,7 @@ public abstract class AbstractNormativeRecorder extends AbstractMetric implement
     }
 
     @Override
-    public abstract AbstractNormativeRecorder clone();
+    public abstract AbstractRangedRecorder clone();
 
     /**
      * Gets the total rate.
@@ -175,13 +175,7 @@ public abstract class AbstractNormativeRecorder extends AbstractMetric implement
         }
     }
 
-    /**
-     * Gets total count of received measurements that are less than confidence interval.
-     *
-     * @return Total count of received measurements that are less than confidence interval.
-     */
-    @Override
-    public final long getCountOfLessThanNormative() {
+    private long getCountOfLessThanNormative() {
         return hits.get(HitResult.LESS_THAN_NORMATIVE).get();
     }
 
@@ -191,19 +185,12 @@ public abstract class AbstractNormativeRecorder extends AbstractMetric implement
      * @return Percent of received measurements that are less than confidence interval.
      */
     @Override
-    public final double getPercentOfLessThanNormative() {
+    public final double getPercentOfLessThanRange() {
         final double totalCount = getTotalRate();
         return getCountOfLessThanNormative() / totalCount;
     }
 
-    /**
-     * Gets count of received measurements for the last time that are less than confidence interval.
-     *
-     * @param interval
-     * @return Count of received measurements for the last time that are less than confidence interval.
-     */
-    @Override
-    public final long getCountOfLessThanNormative(final MetricsInterval interval) {
+    private long getCountOfLessThanNormative(final MetricsInterval interval) {
         return intervalHits.get(HitResult.LESS_THAN_NORMATIVE).getAsLong(interval, TimeLimitedLong::getAsLong);
     }
 
@@ -214,18 +201,12 @@ public abstract class AbstractNormativeRecorder extends AbstractMetric implement
      * @return Percent of received measurements for the last time that are less than confidence interval.
      */
     @Override
-    public final double getPercentOfLessThanNormative(final MetricsInterval interval) {
+    public final double getPercentOfLessThanRange(final MetricsInterval interval) {
         final double totalCount = getLastRate(interval);
         return getCountOfLessThanNormative(interval) / totalCount;
     }
 
-    /**
-     * Gets total count of received measurements that are greater than confidence interval.
-     *
-     * @return Total count of received measurements that are less than confidence interval.
-     */
-    @Override
-    public final long getCountOfGreaterThanNormative() {
+    private long getCountOfGreaterThanNormative() {
         return hits.get(HitResult.GREATER_THAN_NORMATIVE).get();
     }
 
@@ -235,19 +216,12 @@ public abstract class AbstractNormativeRecorder extends AbstractMetric implement
      * @return Percent of received measurements that are less than confidence interval.
      */
     @Override
-    public final double getPercentOfGreaterThanNormative() {
+    public final double getPercentOfGreaterThanRange() {
         final double totalCount = getTotalRate();
         return getCountOfGreaterThanNormative() / totalCount;
     }
 
-    /**
-     * Gets count of received measurements for the last time that are greater than confidence interval.
-     *
-     * @param interval
-     * @return Count of received measurements for the last time that are less than confidence interval.
-     */
-    @Override
-    public final long getCountOfGreaterThanNormative(final MetricsInterval interval) {
+    private long getCountOfGreaterThanNormative(final MetricsInterval interval) {
         return intervalHits.get(HitResult.GREATER_THAN_NORMATIVE).getAsLong(interval, TimeLimitedLong::getAsLong);
     }
 
@@ -258,18 +232,12 @@ public abstract class AbstractNormativeRecorder extends AbstractMetric implement
      * @return Percent of received measurements for the last time that are less than confidence interval.
      */
     @Override
-    public final double getPercentOfGreaterThanNormative(final MetricsInterval interval) {
+    public final double getPercentOfGreaterThanRange(final MetricsInterval interval) {
         final double totalCount = getLastRate(interval);
         return getCountOfGreaterThanNormative(interval) / totalCount;
     }
 
-    /**
-     * Gets total count of received measurements that are in normal range.
-     *
-     * @return Total count of received measurements that are in normal range.
-     */
-    @Override
-    public final long getCountOfNormalValues() {
+    private long getCountOfNormalValues() {
         return hits.get(HitResult.NORMAL).get();
     }
 
@@ -279,19 +247,12 @@ public abstract class AbstractNormativeRecorder extends AbstractMetric implement
      * @return Percent of received measurements that are in normal range.
      */
     @Override
-    public final double getPercentOfNormalValues() {
+    public final double getPercentOfValuesIsInRange() {
         final double totalCount = getTotalRate();
         return getCountOfNormalValues() / totalCount;
     }
 
-    /**
-     * Gets count of received measurements for the last time that are in normal range.
-     *
-     * @param interval
-     * @return Count of received measurements for the last time that are in normal range.
-     */
-    @Override
-    public final long getCountOfNormalValues(final MetricsInterval interval) {
+    private long getCountOfNormalValues(final MetricsInterval interval) {
         return intervalHits.get(HitResult.NORMAL).getAsLong(interval, TimeLimitedLong::getAsLong);
     }
 
@@ -302,7 +263,7 @@ public abstract class AbstractNormativeRecorder extends AbstractMetric implement
      * @return Percent of received measurements for the last time that are in normal range.
      */
     @Override
-    public final double getPercentOfNormalValues(final MetricsInterval interval) {
+    public final double getPercentOfValuesIsInRange(final MetricsInterval interval) {
         final double totalCount = getLastRate(interval);
         return getCountOfNormalValues(interval) / totalCount;
     }

@@ -5,7 +5,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 2.0
  */
-public interface TimerWithNormative extends RatedTimer, Normative {
+public interface RangedGaugeFP extends Ranged, RatedGaugeFP {
     @Override
-    TimerWithNormative clone();
+    RangedGaugeFP clone();
 }

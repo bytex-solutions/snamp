@@ -14,7 +14,7 @@ final class PercentileFunction extends NumericFunction {
     private final double quantile;
 
     PercentileFunction(final long percentile){
-        reservoir = new DoubleReservoir(1024);
+        reservoir = new DoubleReservoir(4096);
         quantile = percentile / 100D;
     }
 

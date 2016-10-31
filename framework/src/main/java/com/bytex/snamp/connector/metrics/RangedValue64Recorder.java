@@ -8,18 +8,18 @@ import java.util.function.LongConsumer;
  * @version 2.0
  * @since 2.0
  */
-public class Normative64Recorder extends AbstractNormativeRecorder implements LongConsumer {
+public class RangedValue64Recorder extends AbstractRangedRecorder implements LongConsumer {
     private static final long serialVersionUID = 2992622425510225162L;
     private final long rangeStart;
     private final long rangeEnd;
 
-    protected Normative64Recorder(final Normative64Recorder source) {
+    protected RangedValue64Recorder(final RangedValue64Recorder source) {
         super(source);
         rangeStart = source.rangeStart;
         rangeEnd = source.rangeEnd;
     }
 
-    public Normative64Recorder(final String name, final long from, final long to) {
+    public RangedValue64Recorder(final String name, final long from, final long to) {
         super(name);
         if(from > to)
             throw new IllegalArgumentException("Incorrect range");
@@ -38,7 +38,7 @@ public class Normative64Recorder extends AbstractNormativeRecorder implements Lo
     }
 
     @Override
-    public Normative64Recorder clone() {
-        return new Normative64Recorder(this);
+    public RangedValue64Recorder clone() {
+        return new RangedValue64Recorder(this);
     }
 }

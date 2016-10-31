@@ -12,7 +12,7 @@ import java.util.function.Supplier;
  * @since 2.0
  */
 abstract class AbstractNumericGauge extends AbstractMetric implements NumericGauge {
-    static final int DEFAULT_SAMPLING_SIZE = 1024;
+    static final int DEFAULT_SAMPLING_SIZE = 4096;
     private static final long serialVersionUID = 6307047277703768318L;
     private final DoubleReservoir reservoir;
     private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;
