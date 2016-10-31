@@ -26,10 +26,6 @@ final class JwtSecurityContext implements SecurityContext {
         final Box<Object> box = DistributedServices.getProcessLocalBox("JWT_SECRET");
         SECRET = box.hasValue() ? String.valueOf(box.get()) :
                 String.valueOf(box.setIfAbsent(() -> UUID.randomUUID().toString()));
-/*        if (!box.hasValue()) {
-            box.setIfAbsent(() -> UUID.randomUUID().toString());
-        }
-        SECRET = String.valueOf(box.get());*/
     }
     /**
      * The Secret.
