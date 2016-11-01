@@ -7,14 +7,10 @@ import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
-import com.bytex.snamp.testing.ImportPackages;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
-import javax.ws.rs.WebApplicationException;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
@@ -60,12 +56,12 @@ public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
         // we should wait a while before it becomes reachable
         Thread.sleep(2000);
         //write attribute
-        final HttpURLConnection connection = (HttpURLConnection)query.openConnection();
+        final HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("POST");
-        connection.setDoOutput( true );
-        connection.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded");
-        connection.setRequestProperty( "charset", "utf-8");
-        connection.setInstanceFollowRedirects( false );
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        connection.setRequestProperty("charset", "utf-8");
+        connection.setInstanceFollowRedirects(false);
         IOUtils.writeString(String.format("username=%s&password=%s", username, password),
                 connection.getOutputStream(), Charset.defaultCharset());
         connection.connect();
@@ -145,6 +141,46 @@ public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
             failed = true;
         }
         assertTrue("Authentication with invalid credentials has been done successfully", failed);
+    }
+
+    /**
+     * Test check simple resource with and without token.
+     *
+     * @throws IOException              the io exception
+     * @throws InterruptedException     the interrupted exception
+     * @throws NoSuchAlgorithmException the no such algorithm exception
+     * @throws JWTVerifyException       the jwt verify exception
+     * @throws InvalidKeyException      the invalid key exception
+     * @throws SignatureException       the signature exception
+     */
+    @Test
+    public void testCheckSimpleResourceWithAndWithoutToken() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+            InvalidKeyException, SignatureException {
+        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+        final URL query = new URL("http://localhost:8181/snamp/console/check");
+        //write attribute
+        HttpURLConnection connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(false);
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            assertEquals(String.format("Wrong response code (%s) received on the authentication phase",
+                    connection.getResponseCode()), HttpURLConnection.HTTP_NO_CONTENT, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
+
+        connection = (HttpURLConnection)query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(false);
+        connection.connect();
+        try {
+            assertEquals(String.format("Wrong response code (%s) received on the authentication phase",
+                    connection.getResponseCode()), HttpURLConnection.HTTP_UNAUTHORIZED, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
     }
 
     //@Test
