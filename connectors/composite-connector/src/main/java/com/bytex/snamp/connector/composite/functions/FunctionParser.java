@@ -122,6 +122,8 @@ public final class FunctionParser extends Tokenizer {
                     return parseExtractFunction(ExtractAsDoubleFunction::new);
                 case "extract_int":
                     return parseExtractFunction(ExtractAsIntFunction::new);
+                case "flag":
+                    return parseTrivialFunction(FlagFunction::new);
                 default:
                     throw FunctionParserException.unknownFunctionName(token.toString());
             }
