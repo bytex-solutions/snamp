@@ -1,9 +1,6 @@
 package com.bytex.snamp.webconsole;
 
 import com.auth0.jwt.JWTVerifyException;
-import com.bytex.snamp.Box;
-import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.internal.Utils;
 import com.sun.jersey.api.core.HttpRequestContext;
 
 import javax.ws.rs.WebApplicationException;
@@ -12,7 +9,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -23,24 +19,12 @@ import java.util.logging.Logger;
  */
 final class JwtSecurityContext implements SecurityContext {
 
-    /**
-     * The Secret.
-     */
-    static final String SECRET;
-
     private static final Logger logger = Logger.getLogger(JwtSecurityContext.class.getName());
-
-    static {
-        final Box<Object> box = DistributedServices.getDistributedBox(
-                Utils.getBundleContext(JwtSecurityContext.class),"JWT_SECRET"
-        );
-        SECRET = box.hasValue() ? String.valueOf(box.get()) :
-                String.valueOf(box.setIfAbsent(() -> UUID.randomUUID().toString()));
-
-    }
 
     private final JwtPrincipal principal;
     private final boolean secure;
+
+
 
     JwtSecurityContext(final HttpRequestContext request) throws WebApplicationException {
         secure = request.isSecure();
@@ -57,7 +41,7 @@ final class JwtSecurityContext implements SecurityContext {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            principal = new JwtPrincipal(token, SECRET);
+            principal = new JwtPrincipal(token);
         } catch (final JWTVerifyException | GeneralSecurityException | IOException e) {
             throw new WebApplicationException(e, Response.Status.UNAUTHORIZED);
         }

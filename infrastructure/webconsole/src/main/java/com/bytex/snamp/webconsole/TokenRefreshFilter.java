@@ -1,19 +1,11 @@
 package com.bytex.snamp.webconsole;
 
-import com.google.common.collect.ImmutableSet;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerResponse;
 import com.sun.jersey.spi.container.ContainerResponseFilter;
 
-import org.apache.karaf.jaas.boot.principal.RolePrincipal;
-import org.apache.karaf.jaas.boot.principal.UserPrincipal;
-
-import javax.security.auth.Subject;
 import javax.ws.rs.ext.Provider;
-import java.security.Principal;
-import java.util.Collections;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Filter for JWT based auth - refreshes token in case it has 1/3 time to live.
@@ -48,7 +40,7 @@ public class TokenRefreshFilter implements ContainerResponseFilter {
                 containerResponse.getHttpHeaders()
                         .add("Set-Cookie", String.format("%s=%s; Path=/;",
                                     WebConsoleService.AUTH_COOKIE,
-                                    jwtPrincipal.refreshToken().createJwtToken(JwtSecurityContext.SECRET)
+                                    jwtPrincipal.refreshToken().createJwtToken()
                                 )
                         );
 
