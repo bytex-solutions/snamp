@@ -211,7 +211,13 @@ public final class MetricsConverter {
     //arrivals
     private static final String EFFICIENCY_FIELD = "efficiency";
     private static final String CORRELATION_FIELD = "correlation";
-    private static final String MEAN_AVAILABILITY_FIELD = "meanAvailability";
+    private static final String MEAN_AVAILABILITY_LAST_SECOND_FIELD = "meanAvailabilityLastSecond";
+    private static final String MEAN_AVAILABILITY_LAST_MINUTE_FIELD = "meanAvailabilityLastMinute";
+    private static final String MEAN_AVAILABILITY_LAST_5_MINUTES_FIELD = "meanAvailabilityLast5Minutes";
+    private static final String MEAN_AVAILABILITY_LAST_15_MINUTES_FIELD = "meanAvailabilityLast15Minutes";
+    private static final String MEAN_AVAILABILITY_LAST_HOUR_FIELD = "meanAvailabilityLastHour";
+    private static final String MEAN_AVAILABILITY_LAST_12_HOURS_FIELD = "meanAvailabilityLast12Hours";
+    private static final String MEAN_AVAILABILITY_LAST_DAY_FIELD = "meanAvailabilityLastDay";
     private static final String INSTANT_AVAILABILITY_FIELD = "availability";
 
     /**
@@ -567,8 +573,16 @@ public final class MetricsConverter {
      */
     public static final CompositeType ARRIVALS_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Arrivals", "Timer with normative ")
             .importFrom(RATED_TIMER_TYPE)
-            .addItem(MEAN_AVAILABILITY_FIELD, "Mean availability", SimpleType.DOUBLE)
+            .addItem(MEAN_AVAILABILITY_LAST_SECOND_FIELD, "Mean availability for the last second", SimpleType.DOUBLE)
+            .addItem(MEAN_AVAILABILITY_LAST_MINUTE_FIELD, "Mean availability for the last minute", SimpleType.DOUBLE)
+            .addItem(MEAN_AVAILABILITY_LAST_5_MINUTES_FIELD, "Mean availability for the last 5 minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_AVAILABILITY_LAST_15_MINUTES_FIELD, "Mean availability for the last 15 minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_AVAILABILITY_LAST_HOUR_FIELD, "Mean availability for the last hour", SimpleType.DOUBLE)
+            .addItem(MEAN_AVAILABILITY_LAST_12_HOURS_FIELD, "Mean availability for the last 12 hours", SimpleType.DOUBLE)
+            .addItem(MEAN_AVAILABILITY_LAST_DAY_FIELD, "Mean availability for the last day", SimpleType.DOUBLE)
             .addItem(INSTANT_AVAILABILITY_FIELD, "Instant availability", SimpleType.DOUBLE)
+            .addItem(EFFICIENCY_FIELD, "Ratio between summary duration of all requests and server uptime", SimpleType.DOUBLE)
+            .addItem(CORRELATION_FIELD, "Correlation between arrivals and response time", SimpleType.DOUBLE)
             .build());
 
     /**
@@ -1026,7 +1040,15 @@ public final class MetricsConverter {
         fillTimer(arrivals, output);
         fillRate(arrivals, output);
         output
-                .put(MEAN_AVAILABILITY_FIELD, arrivals.getMeanAvailability(channels))
+                .put(EFFICIENCY_FIELD, arrivals.getEfficiency())
+                .put(CORRELATION_FIELD, arrivals.getCorrelation())
+                .put(MEAN_AVAILABILITY_LAST_SECOND_FIELD, arrivals.getMeanAvailability(MetricsInterval.SECOND, channels))
+                .put(MEAN_AVAILABILITY_LAST_MINUTE_FIELD, arrivals.getMeanAvailability(MetricsInterval.MINUTE, channels))
+                .put(MEAN_AVAILABILITY_LAST_5_MINUTES_FIELD, arrivals.getMeanAvailability(MetricsInterval.FIVE_MINUTES, channels))
+                .put(MEAN_AVAILABILITY_LAST_15_MINUTES_FIELD, arrivals.getMeanAvailability(MetricsInterval.FIFTEEN_MINUTES, channels))
+                .put(MEAN_AVAILABILITY_LAST_HOUR_FIELD, arrivals.getMeanAvailability(MetricsInterval.HOUR, channels))
+                .put(MEAN_AVAILABILITY_LAST_12_HOURS_FIELD, arrivals.getMeanAvailability(MetricsInterval.TWELVE_HOURS, channels))
+                .put(MEAN_AVAILABILITY_LAST_DAY_FIELD, arrivals.getMeanAvailability(MetricsInterval.DAY, channels))
                 .put(INSTANT_AVAILABILITY_FIELD, arrivals.getInstantAvailability(channels));
     }
 

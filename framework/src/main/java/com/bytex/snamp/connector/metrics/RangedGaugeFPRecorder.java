@@ -1,5 +1,8 @@
 package com.bytex.snamp.connector.metrics;
 
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
+
 /**
  * @author Roman Sakno
  * @version 2.0
@@ -28,6 +31,18 @@ public class RangedGaugeFPRecorder extends RangedValueFPRecorder implements Rang
     public void accept(final double value) {
         super.accept(value);
         gaugeFP.accept(value);
+    }
+
+    public final double updateValue(final DoubleUnaryOperator operator) {
+        final double result = gaugeFP.updateValue(operator);
+        super.accept(result);
+        return result;
+    }
+
+    public final double updateValue(final DoubleBinaryOperator operator, final long value) {
+        final double result = gaugeFP.updateValue(operator, value);
+        super.accept(result);
+        return result;
     }
 
     @Override

@@ -1,7 +1,8 @@
 package com.bytex.snamp.connector.notifications.measurement;
 
-import com.bytex.snamp.io.SerializableMap;
+import com.bytex.snamp.Identifier;
 import com.bytex.snamp.TypeTokens;
+import com.bytex.snamp.io.SerializableMap;
 import com.google.common.reflect.TypeToken;
 
 import java.util.HashMap;
@@ -35,15 +36,14 @@ public final class SpanNotification extends StopwatchNotification {
 
     private static final long serialVersionUID = 6986676615521377795L;
 
-    private final Comparable<?> spanID;
-    private Comparable<?> parentSpan;
+    private final Identifier correlationID;
 
-    public SpanNotification(final Comparable<?> spanID,
+    public SpanNotification(final Identifier correlationID,
                             final String componentName,
                             final String instanceName,
                             final String message){
         super(TYPE, componentName, instanceName, message);
-        this.spanID = Objects.requireNonNull(spanID);
+        this.correlationID = Objects.requireNonNull(correlationID);
         setUserData(new SpanContext());
     }
 
@@ -74,26 +74,10 @@ public final class SpanNotification extends StopwatchNotification {
     }
 
     /**
-     * Gets parent span.
-     * @return The identifier of the parent span.
+     * Gets correlation identifier of this span.
+     * @return Correlation identifier of this span.
      */
-    public final Comparable<?> getParentSpan(){
-        return parentSpan;
-    }
-
-    /**
-     * Sets parent span.
-     * @param value The identifier of the parent span.
-     */
-    public final void setParentSpan(final Comparable<?> value){
-        parentSpan = value;
-    }
-
-    /**
-     * Gets identifier of this span.
-     * @return The identifier of this span.
-     */
-    public final Comparable<?> getIdentifier(){
-        return spanID;
+    public Identifier getCorrelationID(){
+        return correlationID;
     }
 }

@@ -7,9 +7,9 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public interface Arrivals extends RatedTimer {
-    double getMeanAvailability(final int channels);
+    double getMeanAvailability(final MetricsInterval interval, final long channels);
 
-    double getInstantAvailability(final int channels);
+    double getInstantAvailability(final long channels);
 
     /**
      * Gets ratio between summary duration of all requests and server uptime.

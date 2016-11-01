@@ -14,8 +14,9 @@ import java.util.function.Function;
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsLong;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.GROUP_NAME_PROPERTY;
+import static com.bytex.snamp.jmx.DescriptorUtils.getField;
+import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
  * Represents configuration descriptor for message-driven connectors.
@@ -30,6 +31,7 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
     protected static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
     protected static final String RANGE_START_PARAM = "from";
     protected static final String RANGE_END_PARAM = "to";
+    protected static final String CHANNELS_PARAM = "channels";
 
     protected MessageDrivenConnectorConfigurationDescriptor(final ConfigurationEntityDescription<AttributeConfiguration> attributeDescriptor,
                                                             final ConfigurationEntityDescription<EventConfiguration> eventDescription){
@@ -64,19 +66,35 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
         return Double.parseDouble(String.valueOf(value));
     }
 
-    public static long parseRangeStartAsLong(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+    private static Duration objToDuration(final Object value){
+        return Duration.parse(String.valueOf(value));
+    }
+
+    static long parseRangeStartAsLong(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
         return getFieldIfPresent(descriptor, RANGE_START_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToLong, MDConnectorAbsentConfigurationParameterException::new);
     }
 
-    public static long parseRangeEndAsLong(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+    static long parseRangeEndAsLong(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
         return getFieldIfPresent(descriptor, RANGE_END_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToLong, MDConnectorAbsentConfigurationParameterException::new);
     }
 
-    public static double parseRangeStartAsDouble(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+    static double parseRangeStartAsDouble(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
         return getFieldIfPresent(descriptor, RANGE_START_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToDouble, MDConnectorAbsentConfigurationParameterException::new);
     }
 
-    public static double parseRangeEndAsDouble(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+    static double parseRangeEndAsDouble(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
         return getFieldIfPresent(descriptor, RANGE_END_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToDouble, MDConnectorAbsentConfigurationParameterException::new);
+    }
+
+    static Duration parseRangeStartAsDuration(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_START_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToDuration, MDConnectorAbsentConfigurationParameterException::new);
+    }
+
+    static Duration parseRangeEndAsDuration(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_END_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToDuration, MDConnectorAbsentConfigurationParameterException::new);
+    }
+
+    static long parseChannels(final AttributeDescriptor descriptor){
+        return getField(descriptor, CHANNELS_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToLong, () -> 1L);
     }
 }

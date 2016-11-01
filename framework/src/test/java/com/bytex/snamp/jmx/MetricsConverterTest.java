@@ -186,7 +186,7 @@ public final class MetricsConverterTest extends Assert {
         recorder.accept(Duration.ofSeconds(2L));
         Thread.sleep(1001);
         final CompositeData data = MetricsConverter.fromArrivals(recorder, 1);
-        final double avail = getDouble(data, "meanAvailability", Double.NaN) * 100;
+        final double avail = getDouble(data, "meanAvailabilityLastSecond", Double.NaN) * 100;
         assertTrue(avail > 20D);
     }
 }

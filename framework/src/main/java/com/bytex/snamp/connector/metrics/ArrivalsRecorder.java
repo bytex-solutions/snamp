@@ -59,7 +59,7 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
         return result;
     }
 
-    private static double getAvailability(final double rps, final double responseTimeInSeconds, final int channels) {
+    private static double getAvailability(final double rps, final double responseTimeInSeconds, final long channels) {
         if (channels == 0)
             return 0;
         else if (responseTimeInSeconds == 0D || rps == 0D)
@@ -79,30 +79,14 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
         }
     }
 
-    public double getMeanAvailability(final MetricsInterval interval, final int channels){
+    @Override
+    public double getMeanAvailability(final MetricsInterval interval, final long channels){
         return getAvailability(getMeanRate(interval), toSeconds(getMeanValue()), channels);
     }
 
-    public double getMeanAvailability(final MetricsInterval interval){
-        return getMeanAvailability(interval, 1);
-    }
-
     @Override
-    public double getMeanAvailability(final int channels){
-        return getMeanAvailability(MetricsInterval.SECOND, channels);
-    }
-
-    @Override
-    public double getInstantAvailability(final int channels){
+    public double getInstantAvailability(final long channels){
         return getAvailability(getLastRate(MetricsInterval.SECOND), toSeconds(getLastValue()), channels);
-    }
-
-    /**
-     * Gets instant availability of the single channel using characteristics of arrivals measured by this object.
-     * @return Instant availability.
-     */
-    public double getInstantAvailability(){
-        return getInstantAvailability(1);
     }
 
     /**

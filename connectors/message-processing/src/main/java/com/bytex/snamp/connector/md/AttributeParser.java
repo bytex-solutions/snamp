@@ -72,6 +72,10 @@ final class AttributeParser extends Tokenizer {
                 return TimerAttribute::new;         //timer
             case RangedGauge64Attribute.NAME:
                 return RangedGauge64Attribute::new;     //rangedGauge64
+            case RangedGaugeFPAttribute.NAME:
+                return RangedGaugeFPAttribute::new;     //rangeGaugeFP
+            case RangedTimerAttribute.NAME:
+                return RangedTimerAttribute::new;       //rangedTimer
             case "get":
                 return parseExtractionAttribute();
             default:
