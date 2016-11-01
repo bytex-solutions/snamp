@@ -14,10 +14,8 @@ import org.apache.karaf.jaas.boot.principal.UserPrincipal;
 
 import javax.security.auth.Subject;
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.security.SignatureException;
+import java.math.BigInteger;
+import java.security.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.function.LongSupplier;
@@ -36,6 +34,7 @@ final class JwtPrincipal implements Principal {
     private static final String ROLE_SPLITTER_STR = ";";
     private static final Joiner ROLE_JOINER = Joiner.on(ROLE_SPLITTER_STR).skipNulls();
     private static final Splitter ROLE_SPLITTER = Splitter.on(ROLE_SPLITTER_STR).trimResults();
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     /**
      * The Token lifetime.
@@ -47,18 +46,6 @@ final class JwtPrincipal implements Principal {
     private static final String EXPIRATION_FIELD = "exp";
     private static final String ANONYMOUS_USER_NAME = "anonymous";
     private static final String JWT_SECRET_BOX_NAME = "JWT_SECRET";
-
-    /**
-     * Get secret string.
-     *
-     * @return the string
-     */
-    private String getSecret() {
-        return String.valueOf(
-                DistributedServices.getDistributedBox(Utils.getBundleContextOfObject(this), JWT_SECRET_BOX_NAME)
-                        .setIfAbsent(UUID::randomUUID)
-        );
-    }
 
     /**
      * Difference between rest time of the token and its whole lifetime.
@@ -124,7 +111,7 @@ final class JwtPrincipal implements Principal {
      * @throws IOException
      */
     JwtPrincipal(final String token) throws JWTVerifyException, SignatureException, NoSuchAlgorithmException, InvalidKeyException, IOException {
-        final JWTVerifier verifier = new JWTVerifier(getSecret());
+        final JWTVerifier verifier = new JWTVerifier(getSharedSecret());
         final Map<String, Object> claims = verifier.verify(token);
         //extract subject name from JWT
         if(claims.containsKey(SUBJECT_FIELD))
@@ -143,6 +130,18 @@ final class JwtPrincipal implements Principal {
 
         createdAt = getValueAsLong(claims, ISSUED_AT_FIELD, OBJ_TO_INT, ZERO);
         expiredAt = getValueAsLong(claims, EXPIRATION_FIELD, OBJ_TO_INT, ZERO);
+    }
+
+    /**
+     * Get secret string.
+     *
+     * @return the string
+     */
+    private String getSharedSecret() {
+        return String.valueOf(
+                DistributedServices.getDistributedBox(Utils.getBundleContextOfObject(this), JWT_SECRET_BOX_NAME)
+                        .setIfAbsent(() -> new BigInteger(130, RANDOM))
+        );
     }
 
     @Override
@@ -203,7 +202,7 @@ final class JwtPrincipal implements Principal {
                 EXPIRATION_FIELD, expiredAt,
                 ROLES_FIELD, ROLE_JOINER.join(roles)
         );
-        return new JWTSigner(getSecret()).sign(claims);
+        return new JWTSigner(getSharedSecret()).sign(claims);
     }
 
     @Override

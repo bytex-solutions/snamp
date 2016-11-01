@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 final class JwtSecurityContext implements SecurityContext {
 
-    private static final Logger logger = Logger.getLogger(JwtSecurityContext.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(JwtSecurityContext.class.getName());
 
     private final JwtPrincipal principal;
     private final boolean secure;
@@ -37,7 +37,7 @@ final class JwtSecurityContext implements SecurityContext {
         // Extract the token from the HTTP Authorization header
         final String token = authorizationHeader.substring("Bearer".length()).trim();
         if (token.isEmpty() || token.equalsIgnoreCase("undefined")) {
-            logger.info("Empty token received");
+            LOGGER.info("Empty token received");
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
