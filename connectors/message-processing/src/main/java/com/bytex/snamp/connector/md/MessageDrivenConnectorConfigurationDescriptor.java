@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 
 import java.time.Duration;
 import java.util.Map;
@@ -14,6 +15,7 @@ import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsLong;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.GROUP_NAME_PROPERTY;
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
  * Represents configuration descriptor for message-driven connectors.
@@ -26,6 +28,8 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
     protected static final String PARSER_LANGUAGE_PARAM = "parserLanguage";
     protected static final String PARSER_SCRIPT_PARAM = "parserScript";
     protected static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
+    protected static final String RANGE_START_PARAM = "from";
+    protected static final String RANGE_END_PARAM = "to";
 
     protected MessageDrivenConnectorConfigurationDescriptor(final ConfigurationEntityDescription<AttributeConfiguration> attributeDescriptor,
                                                             final ConfigurationEntityDescription<EventConfiguration> eventDescription){
@@ -50,5 +54,29 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
     protected Duration parseSyncPeriod(final Map<String, String> parameters) {
         final long period = getValueAsLong(parameters, SYNC_PERIOD_PARAM, Long::parseLong, () -> 5000L);
         return Duration.ofMillis(period);
+    }
+
+    private static Long objToLong(final Object value){
+        return Long.parseLong(String.valueOf(value));
+    }
+
+    private static Double objToDouble(final Object value){
+        return Double.parseDouble(String.valueOf(value));
+    }
+
+    public static long parseRangeStartAsLong(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_START_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToLong, MDConnectorAbsentConfigurationParameterException::new);
+    }
+
+    public static long parseRangeEndAsLong(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_END_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToLong, MDConnectorAbsentConfigurationParameterException::new);
+    }
+
+    public static double parseRangeStartAsDouble(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_START_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToDouble, MDConnectorAbsentConfigurationParameterException::new);
+    }
+
+    public static double parseRangeEndAsDouble(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_END_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToDouble, MDConnectorAbsentConfigurationParameterException::new);
     }
 }

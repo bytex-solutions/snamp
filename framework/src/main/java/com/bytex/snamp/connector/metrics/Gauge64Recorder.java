@@ -44,16 +44,19 @@ public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, Lo
         minValue.accumulateAndGet(value, Math::min);
     }
 
-    public final void updateValue(final LongUnaryOperator operator) {
+    public final long updateValue(final LongUnaryOperator operator) {
         long current, next;
         do {
             next = operator.applyAsLong(current = lastValue.get());
         } while (!lastValue.compareAndSet(current, next));
         writeValue(next);
+        return next;
     }
 
-    public final void updateValue(final LongBinaryOperator operator, final long value) {
-        writeValue(lastValue.accumulateAndGet(value, operator));
+    public final long updateValue(final LongBinaryOperator operator, final long value) {
+        final long result;
+        writeValue(result = lastValue.accumulateAndGet(value, operator));
+        return result;
     }
 
     @Override

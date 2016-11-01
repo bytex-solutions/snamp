@@ -96,16 +96,19 @@ class GaugeImpl<V extends Comparable<V> & Serializable> extends AbstractMetric i
         lastMinValues.forEachAccept(value, TimeLimitedObject::accept);
     }
 
-    public final void updateValue(final UnaryOperator<V> operator){
+    public final V updateValue(final UnaryOperator<V> operator){
         V prev, next;
         do{
             next = operator.apply(prev = lastValue.get());
         } while (!lastValue.compareAndSet(prev, next));
         writeValue(next);
+        return next;
     }
 
-    public final void updateValue(final BinaryOperator<V> operator, final V value) {
-        writeValue(lastValue.accumulateAndGet(value, operator));
+    public final V updateValue(final BinaryOperator<V> operator, final V value) {
+        final V result;
+        writeValue(result = lastValue.accumulateAndGet(value, operator));
+        return result;
     }
 
     @Override

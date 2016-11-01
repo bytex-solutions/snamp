@@ -45,7 +45,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
         final MessageDrivenAttributeFactory factory = AttributeParser.parseAttribute(attributeType);
         if(factory == null)
             throw new UnrecognizedAttributeTypeException(attributeType);
-        return factory.apply(attributeName, descriptor);
+        return factory.createAttribute(attributeName, descriptor);
     }
 
     @Override

@@ -1,5 +1,8 @@
 package com.bytex.snamp.connector.metrics;
 
+import java.util.function.LongBinaryOperator;
+import java.util.function.LongUnaryOperator;
+
 /**
  * Measures normative recorder for 64-bit signed integers.
  * @author Roman Sakno
@@ -38,6 +41,18 @@ public class RangedGauge64Recorder extends RangedValue64Recorder implements Rang
     public void accept(final long value) {
         super.accept(value);
         gauge64.accept(value);
+    }
+
+    public final long updateValue(final LongUnaryOperator operator) {
+        final long result = gauge64.updateValue(operator);
+        super.accept(result);
+        return result;
+    }
+
+    public final long updateValue(final LongBinaryOperator operator, final long value) {
+        final long result = gauge64.updateValue(operator, value);
+        super.accept(result);
+        return result;
     }
 
     @Override

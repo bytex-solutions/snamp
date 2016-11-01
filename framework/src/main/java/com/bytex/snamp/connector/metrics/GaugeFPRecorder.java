@@ -55,20 +55,22 @@ public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, Do
         lastMinValues.forEachAcceptDouble(value, TimeLimitedDouble::accept);
     }
 
-    public final void updateValue(final DoubleUnaryOperator operator){
+    public final double updateValue(final DoubleUnaryOperator operator){
         double current, next;
         do{
             next = operator.applyAsDouble(current = lastValue.get());
         } while (!lastValue.compareAndSet(current, next));
         writeValue(next);
+        return next;
     }
 
-    public final void updateValue(final DoubleBinaryOperator operator, final double value) {
+    public final double updateValue(final DoubleBinaryOperator operator, final double value) {
         double current, next;
         do{
             next = operator.applyAsDouble(current = lastValue.get(), value);
         } while (!lastValue.compareAndSet(current, next));
         writeValue(next);
+        return next;
     }
 
     @Override
