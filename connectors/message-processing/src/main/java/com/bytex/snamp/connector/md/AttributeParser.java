@@ -35,6 +35,9 @@ final class AttributeParser extends Tokenizer {
             case StringGaugeAttribute.NAME:
                 metricType = StringGaugeAttribute.TYPE;
                 break;
+            case TimerAttribute.NAME:
+                metricType = TimerAttribute.TYPE;
+                break;
             default:
                 throw new UnrecognizedGaugeTypeException(gaugeType);
         }
@@ -64,7 +67,9 @@ final class AttributeParser extends Tokenizer {
             case FlagAttribute.NAME:
                 return FlagAttribute::new;      //flag
             case StringGaugeAttribute.NAME:
-                return StringGaugeAttribute::new;
+                return StringGaugeAttribute::new;   //stringGauge
+            case TimerAttribute.NAME:
+                return TimerAttribute::new;         //timer
             case "get":
                 return parseExtractionAttribute();
             default:

@@ -208,6 +208,11 @@ public final class MetricsConverter {
     private static final String IS_IN_RANGE_LAST_HOUR_FIELD = "isInRangeLastHour";
     private static final String IS_IN_RANGE_LAST_12_HOURS_FIELD = "isInRangeLast12Hours";
     private static final String IS_IN_RANGE_LAST_DAY_FIELD = "isInRangeLastDay";
+    //arrivals
+    private static final String EFFICIENCY_FIELD = "efficiency";
+    private static final String CORRELATION_FIELD = "correlation";
+    private static final String MEAN_AVAILABILITY_FIELD = "meanAvailability";
+    private static final String INSTANT_AVAILABILITY_FIELD = "availability";
 
     /**
      * Represents Open Type equivalent for {@link Ranged}.
@@ -555,6 +560,15 @@ public final class MetricsConverter {
     public static final CompositeType RANGED_TIMER_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RangedTimer", "Timer with normative time limits")
             .importFrom(RANGED_TYPE)
             .importFrom(RATED_TIMER_TYPE)
+            .build());
+
+    /**
+     * Represents Open Type equivalent for {@link Arrivals}.
+     */
+    public static final CompositeType ARRIVALS_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Arrivals", "Timer with normative ")
+            .importFrom(RATED_TIMER_TYPE)
+            .addItem(MEAN_AVAILABILITY_FIELD, "Mean availability", SimpleType.DOUBLE)
+            .addItem(INSTANT_AVAILABILITY_FIELD, "Instant availability", SimpleType.DOUBLE)
             .build());
 
     /**
@@ -1005,6 +1019,26 @@ public final class MetricsConverter {
         fillRanged(normative, fields);
         fillTimer(normative, fields);
         fillRate(normative, fields);
+        return fields.build();
+    }
+
+    private static void fillArrivals(final Arrivals arrivals, final CompositeDataBuilder output, final int channels){
+        fillTimer(arrivals, output);
+        fillRate(arrivals, output);
+        output
+                .put(MEAN_AVAILABILITY_FIELD, arrivals.getMeanAvailability(channels))
+                .put(INSTANT_AVAILABILITY_FIELD, arrivals.getInstantAvailability(channels));
+    }
+
+    /**
+     * Converts {@link Arrivals} into {@link CompositeData}.
+     * @param arrivals Arrivals collector to convert. Cannot be {@literal null}.
+     * @param channels Number of receiving channels used to compute mean and instant availability of these channels.
+     * @return A {@link CompositeData} which contains data from arrivals collector.
+     */
+    public static CompositeData fromArrivals(final Arrivals arrivals, final int channels){
+        final CompositeDataBuilder fields = new CompositeDataBuilder(ARRIVALS_TYPE);
+        fillArrivals(arrivals, fields, channels);
         return fields.build();
     }
 }
