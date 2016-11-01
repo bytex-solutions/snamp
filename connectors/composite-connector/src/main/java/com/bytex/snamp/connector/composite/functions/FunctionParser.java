@@ -94,41 +94,37 @@ public final class FunctionParser extends Tokenizer {
         return factory.get();
     }
 
-    private AggregationFunction<?> parseFunction(final String functionName) throws ParseException{
-        switch (functionName){
-            case "max":
-                return parseTrivialFunction(NumericUnaryFunction::max);
-            case "min":
-                return parseTrivialFunction(NumericUnaryFunction::min);
-            case "gauge_fp":
-                return parseTrivialFunction(GaugeFPFunction::new);
-            case "gauge_int":
-                return parseTrivialFunction(GaugeIntFunction::new);
-            case "sum":
-                return parseSumFunction();
-            case "avg":
-                return parseAvgFunction();
-            case "percentile":
-                return parsePercentileFunction();
-            case "correl":
-                return parseCorrelationFunction();
-            case "extract":
-                return parseExtractFunction(ExtractAsStringFunction::new);
-            case "extract_fp":
-                return parseExtractFunction(ExtractAsDoubleFunction::new);
-            case "extract_int":
-                return parseExtractFunction(ExtractAsIntFunction::new);
-            default:
-                throw FunctionParserException.unknownFunctionName(functionName);
-        }
-    }
-
     private Expression parse() throws ParseException {
         final Token token = nextToken();
         if (token == null)
             throw new FunctionParserException();
         else if (token instanceof NameToken)
-            return parseFunction(token.toString());
+            switch (token.toString()){
+                case "max":
+                    return parseTrivialFunction(NumericUnaryFunction::max);
+                case "min":
+                    return parseTrivialFunction(NumericUnaryFunction::min);
+                case "gauge_fp":
+                    return parseTrivialFunction(GaugeFPFunction::new);
+                case "gauge_int":
+                    return parseTrivialFunction(GaugeIntFunction::new);
+                case "sum":
+                    return parseSumFunction();
+                case "avg":
+                    return parseAvgFunction();
+                case "percentile":
+                    return parsePercentileFunction();
+                case "correl":
+                    return parseCorrelationFunction();
+                case "extract":
+                    return parseExtractFunction(ExtractAsStringFunction::new);
+                case "extract_fp":
+                    return parseExtractFunction(ExtractAsDoubleFunction::new);
+                case "extract_int":
+                    return parseExtractFunction(ExtractAsIntFunction::new);
+                default:
+                    throw FunctionParserException.unknownFunctionName(token.toString());
+            }
         else
             throw new UnexpectedTokenException(token);
     }

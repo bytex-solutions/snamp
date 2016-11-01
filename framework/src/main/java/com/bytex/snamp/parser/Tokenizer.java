@@ -50,6 +50,8 @@ public class Tokenizer implements SafeCloseable {
                 return RightBracketToken.INSTANCE;
             case LeftBracketToken.VALUE:
                 return LeftBracketToken.INSTANCE;
+            case ColonToken.VALUE:
+                return ColonToken.INSTANCE;
             default: return null;
         }
     }
@@ -126,6 +128,14 @@ public class Tokenizer implements SafeCloseable {
 
     public final <T extends Token> T nextToken(final Class<T> expectedToken) throws ParseException {
         return expectedToken.cast(nextToken(predicateFor(expectedToken)));
+    }
+
+    /**
+     * Read all characters from the current position to the end of underlying stream.
+     * @return All characters from the current position to the end of underlying stream.
+     */
+    public CharSequence readToEnd(){
+        return reader.readToEnd();
     }
 
     @Override

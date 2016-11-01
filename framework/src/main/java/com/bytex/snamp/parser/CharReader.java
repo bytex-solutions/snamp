@@ -62,6 +62,16 @@ public final class CharReader extends Reader implements SafeCloseable {
     }
 
     /**
+     * Read all characters from the current position to the end of underlying stream.
+     * @return All characters from the current position to the end of underlying stream.
+     */
+    public synchronized CharSequence readToEnd(){
+        final CharSequence result = sequence.subSequence(position, sequence.length());
+        position = sequence.length();
+        return result;
+    }
+
+    /**
      * Skip single character.
      * @return {@literal true}, if character is skipped successfully; otherwise, {@link false}.
      * @throws IOException Reader is closed.

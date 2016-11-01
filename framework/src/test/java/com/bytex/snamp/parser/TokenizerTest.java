@@ -36,4 +36,12 @@ public final class TokenizerTest extends Assert {
             assertEquals("de", tokenizer.nextToken(NameToken.class).toString());
         }
     }
+
+    @Test
+    public void readToEndTest() throws ParseException {
+        try(final Tokenizer tokenizer = new Tokenizer("js:a+b")){
+            assertEquals("js", tokenizer.nextToken(NameToken.class).toString());
+            assertEquals(":a+b", tokenizer.readToEnd());
+        }
+    }
 }
