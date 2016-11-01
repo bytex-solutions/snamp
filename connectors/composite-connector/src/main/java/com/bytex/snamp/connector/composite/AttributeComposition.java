@@ -188,8 +188,8 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     protected void setAttribute(final AbstractCompositeAttribute attribute, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
         if(attribute instanceof CompositeAttribute)
             ((CompositeAttribute) attribute).setValue(attributeSupportProvider, value);
-        else if(attribute instanceof AggregationAttribute)
-            ((AggregationAttribute) attribute).setValue(this, value);
+        else
+            throw new UnsupportedOperationException();
     }
 
     @Override

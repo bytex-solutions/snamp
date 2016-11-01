@@ -72,18 +72,21 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     }
 
     @Test
-    public void intAttributeTest() throws JMException{
+    public void intAttributeTest() throws JMException, InterruptedException {
         testAttribute("int", TypeToken.of(Integer.class), 100);
         testAttribute("maxInt", TypeToken.of(Double.class), 100D, true);
+        Thread.sleep(1001);
         testAttribute("avgInt", TypeToken.of(Double.class), 100D, true);
 
         testAttribute("int", TypeToken.of(Integer.class), 50);
         testAttribute("maxInt", TypeToken.of(Double.class), 100D, true);
-        testAttribute("avgInt", TypeToken.of(Double.class), (100D + 50D) / 2D, true);
+        Thread.sleep(1001);
+        testAttribute("avgInt", TypeToken.of(Double.class), 0D, (expected, actual) -> actual < 100D, true);
 
         testAttribute("int", TypeToken.of(Integer.class), 30);
         testAttribute("maxInt", TypeToken.of(Double.class), 100D, true);
-        testAttribute("avgInt", TypeToken.of(Double.class), (100D + 50D + 30D) / 3D, true);
+        Thread.sleep(1001);
+        testAttribute("avgInt", TypeToken.of(Double.class), 0D, (expected, actual) -> actual < 100D, true);
     }
 
     @Test
@@ -275,51 +278,37 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
         });
 
         attributes.addAndConsume("maxInt", attribute -> {
-            attribute.setAlternativeName("int32");
+            attribute.setAlternativeName("int");
             attribute.getParameters().put("formula", "max()");
-            attribute.getParameters().put("source", "jmx");
-            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         });
 
         attributes.addAndConsume("avgInt", attribute -> {
-            attribute.setAlternativeName("int32");
-            attribute.getParameters().put("source", "jmx");
+            attribute.setAlternativeName("int");
             attribute.getParameters().put("formula", "avg(10s)");
-            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         });
 
         attributes.addAndConsume("gauge_fp", attribute -> {
-            attribute.setAlternativeName("int32");
+            attribute.setAlternativeName("int");
             attribute.getParameters().put("formula", "gauge_fp()");
-            attribute.getParameters().put("source", "jmx");
-            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         });
 
         attributes.addAndConsume("gauge_int", attribute -> {
-            attribute.setAlternativeName("int32");
+            attribute.setAlternativeName("int");
             attribute.getParameters().put("formula", "gauge_int()");
-            attribute.getParameters().put("source", "jmx");
-            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         });
 
         attributes.addAndConsume("extr", attribute -> {
-            attribute.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
-            attribute.getParameters().put("format", "-m");
-            attribute.getParameters().put("source", "rshell");
+            attribute.setAlternativeName("ms");
             attribute.getParameters().put("formula", "extract(total)");
         });
 
         attributes.addAndConsume("extr_int", attribute -> {
-            attribute.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
-            attribute.getParameters().put("format", "-m");
-            attribute.getParameters().put("source", "rshell");
+            attribute.setAlternativeName("ms");
             attribute.getParameters().put("formula", "extract_int(total)");
         });
 
         attributes.addAndConsume("extr_fp", attribute -> {
-            attribute.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
-            attribute.getParameters().put("format", "-m");
-            attribute.getParameters().put("source", "rshell");
+            attribute.setAlternativeName("ms");
             attribute.getParameters().put("formula", "extract_fp(total)");
         });
 

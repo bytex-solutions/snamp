@@ -5,12 +5,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.management.openmbean.CompositeData;
-
 import java.time.Duration;
 
-import static com.bytex.snamp.jmx.CompositeDataUtils.getDouble;
-import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
-import static com.bytex.snamp.jmx.CompositeDataUtils.getString;
+import static com.bytex.snamp.jmx.CompositeDataUtils.*;
 
 /**
  * Represents tests for {@link MetricsConverter}.
@@ -179,5 +176,17 @@ public final class MetricsConverterTest extends Assert {
         assertEquals(3D/5D, getDouble(data, "lessThanRange", Double.NaN), 0.01D);
         assertEquals(1D/5D, getDouble(data, "isInRange", Double.NaN), 0.01D);
         assertEquals(1D/5D, getDouble(data, "greaterThanRange", Double.NaN), 0.01D);
+    }
+
+    @Test
+    public void arrivalsConversion() throws InterruptedException {
+        final ArrivalsRecorder recorder = new ArrivalsRecorder("testGauge");
+        recorder.accept(Duration.ofSeconds(1L));
+        recorder.accept(Duration.ofSeconds(1L));
+        recorder.accept(Duration.ofSeconds(2L));
+        Thread.sleep(1001);
+        final CompositeData data = MetricsConverter.fromArrivals(recorder, 1);
+        final double avail = getDouble(data, "meanAvailability", Double.NaN) * 100;
+        assertTrue(avail > 20D);
     }
 }

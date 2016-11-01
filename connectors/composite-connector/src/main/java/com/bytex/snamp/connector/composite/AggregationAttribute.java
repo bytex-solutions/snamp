@@ -35,12 +35,8 @@ final class AggregationAttribute extends AbstractCompositeAttribute implements O
     }
 
     Object getValue(final AttributeSupport support) throws ReflectionException, AttributeNotFoundException, MBeanException {
-        final Object attributeValue = support.getAttribute(getName());
+        final Object attributeValue = support.getAttribute(AttributeDescriptor.getName(this));
         return callAndWrapException(() -> function.invoke(resolver, attributeValue), ReflectionException::new);
-    }
-
-    void setValue(final AttributeSupport support, final Object value) throws AttributeNotFoundException, MBeanException, InvalidAttributeValueException, ReflectionException {
-        throw new MBeanException(new UnsupportedOperationException(String.format("Attribute '%s' is read only", getName())));
     }
 
     /**
