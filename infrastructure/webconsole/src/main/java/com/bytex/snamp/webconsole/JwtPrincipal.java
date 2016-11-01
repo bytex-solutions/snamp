@@ -125,11 +125,11 @@ final class JwtPrincipal implements Principal {
         else
             throw new JWTVerifyException("Roles are not specified");
 
-        final ToLongFunction<Object> OBJ_TO_INT = iat -> iat instanceof Number ? ((Number)iat).longValue() : 0L;
-        final LongSupplier ZERO = () -> 0;
+        final ToLongFunction<Object> OBJ_TO_LONG = iat -> iat instanceof Number ? ((Number)iat).longValue() : 0L;
+        final LongSupplier ZERO = () -> 0L;
 
-        createdAt = getValueAsLong(claims, ISSUED_AT_FIELD, OBJ_TO_INT, ZERO);
-        expiredAt = getValueAsLong(claims, EXPIRATION_FIELD, OBJ_TO_INT, ZERO);
+        createdAt = getValueAsLong(claims, ISSUED_AT_FIELD, OBJ_TO_LONG, ZERO);
+        expiredAt = getValueAsLong(claims, EXPIRATION_FIELD, OBJ_TO_LONG, ZERO);
     }
 
     /**
