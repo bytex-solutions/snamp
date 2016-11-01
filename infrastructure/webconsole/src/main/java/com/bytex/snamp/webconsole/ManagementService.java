@@ -2,7 +2,7 @@ package com.bytex.snamp.webconsole;
 
 import org.osgi.service.cm.ConfigurationAdmin;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import java.util.Objects;
@@ -21,7 +21,7 @@ public final class ManagementService {
         this.configAdmin = Objects.requireNonNull(configAdmin);
     }
 
-    @GET
+    @POST
     public Response seyHello() {
         return Response.ok().entity( "Yes, it works." ).build();
     }
