@@ -5,6 +5,7 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
+import javax.management.Notification;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
@@ -118,7 +119,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
         failedToSetAttribute(logger.get(), Level.SEVERE, attributeID, value, e);
     }
 
-    public final void post(final MeasurementNotification notification) {
+    public final void post(final Notification notification) {
         parallelForEach(attribute -> attribute.handleNotification(notification, this), getThreadPool());
     }
 }
