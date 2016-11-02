@@ -53,19 +53,13 @@
     <dependencies>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>internal-services</artifactId>
-            <version>${snamp.services.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <scope>provided</scope>
-            <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.framework.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>scripting</artifactId>
+            <version>${snamp.scripting.version}</version>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
@@ -89,6 +83,17 @@
         <dependency>
             <groupId>org.apache.ivy</groupId>
             <artifactId>ivy</artifactId>
+        </dependency>
+        <!--Test dependencies-->
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>internal-services</artifactId>
+            <version>${snamp.services.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
 </project>

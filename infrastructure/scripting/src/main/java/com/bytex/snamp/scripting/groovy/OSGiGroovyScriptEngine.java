@@ -69,7 +69,21 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
      * @throws ScriptException   if there is a problem parsing the script
      */
     @Override
-    public B createScript(final String scriptName, final Binding binding) throws ResourceException, ScriptException {
+    public final B createScript(final String scriptName, final Binding binding) throws ResourceException, ScriptException {
+        return createScript(scriptName, binding, baseScriptClass);
+    }
+
+    /**
+     * Creates a Script with a given scriptName and binding.
+     *
+     * @param scriptName name of the script to run
+     * @param binding    the binding to pass to the script
+     * @param baseScriptClass Parent class of Groovy script.
+     * @return the script object
+     * @throws ResourceException if there is a problem accessing the script
+     * @throws ScriptException   if there is a problem parsing the script
+     */
+    public <C extends B> C createScript(final String scriptName, final Binding binding, final Class<C> baseScriptClass) throws ResourceException, ScriptException{
         final Script result;
         final Binding bindingUnion = concatBindings(rootBinding, binding);
         try {

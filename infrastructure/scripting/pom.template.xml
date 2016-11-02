@@ -11,8 +11,9 @@
     <modelVersion>4.0.0</modelVersion>
     <name>SNAMP Scripting Framework</name>
     <description>Scripting helpers for Groovy and JavaScript languages</description>
-    <artifactId>groovy-helpers</artifactId>
+    <artifactId>scripting</artifactId>
     <version>${snamp.scripting.version}</version>
+    <packaging>bundle</packaging>
     <dependencies>
         <dependency>
             <groupId>com.bytex.snamp</groupId>

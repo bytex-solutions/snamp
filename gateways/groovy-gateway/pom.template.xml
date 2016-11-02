@@ -44,6 +44,11 @@
             <version>${snamp.framework.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>scripting</artifactId>
+            <version>${snamp.scripting.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>
