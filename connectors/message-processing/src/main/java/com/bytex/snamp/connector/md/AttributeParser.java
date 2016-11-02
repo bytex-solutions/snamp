@@ -38,6 +38,18 @@ final class AttributeParser extends Tokenizer {
             case TimerAttribute.NAME:
                 metricType = TimerAttribute.TYPE;
                 break;
+            case RangedGauge64Attribute.NAME:
+                metricType = RangedGauge64Attribute.TYPE;
+                break;
+            case RangedGaugeFPAttribute.NAME:
+                metricType = RangedGaugeFPAttribute.TYPE;
+                break;
+            case RangedTimerAttribute.NAME:
+                metricType = RangedTimerAttribute.TYPE;
+                break;
+            case ArrivalsAttribute.NAME:
+                metricType = ArrivalsAttribute.TYPE;
+                break;
             default:
                 throw new UnrecognizedGaugeTypeException(gaugeType);
         }
@@ -76,6 +88,8 @@ final class AttributeParser extends Tokenizer {
                 return RangedGaugeFPAttribute::new;     //rangeGaugeFP
             case RangedTimerAttribute.NAME:
                 return RangedTimerAttribute::new;       //rangedTimer
+            case ArrivalsAttribute.NAME:
+                return ArrivalsAttribute::new;          //arrivals
             case "get":
                 return parseExtractionAttribute();
             default:
