@@ -20,10 +20,9 @@ final class GaugeFPAttribute extends MetricHolderAttribute<RatedGaugeFPRecorder>
     private static final long serialVersionUID = 4113436567386321873L;
     static final CompositeType TYPE = RATED_GAUGE_FP_TYPE;
     static final String NAME = "gaugeFP";
-    private static final String DESCRIPTION = "Represents 64-bit gauge";
 
     GaugeFPAttribute(final String name, final AttributeDescriptor descriptor) {
-        super(name, TYPE, DESCRIPTION, descriptor, RatedGaugeFPRecorder::new);
+        super(name, TYPE, descriptor, RatedGaugeFPRecorder::new);
     }
 
     @Override

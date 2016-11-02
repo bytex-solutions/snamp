@@ -20,11 +20,10 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRangedTimer;
 final class RangedTimerAttribute extends MetricHolderAttribute<RangedTimerRecorder> {
     static final CompositeType TYPE = RANGED_TIMER_TYPE;
     static final String NAME = "rangedTimer";
-    private static final String DESCRIPTION = "Represents timing measurements with range";
     private static final long serialVersionUID = -5234028741040752357L;
 
     private RangedTimerAttribute(final String name, final AttributeDescriptor descriptor, final Duration rangeStart, final Duration rangeEnd){
-        super(name, TYPE, DESCRIPTION, descriptor, (n) -> new RangedTimerRecorder(n, rangeStart, rangeEnd));
+        super(name, TYPE, descriptor, (n) -> new RangedTimerRecorder(n, rangeStart, rangeEnd));
     }
 
     RangedTimerAttribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {

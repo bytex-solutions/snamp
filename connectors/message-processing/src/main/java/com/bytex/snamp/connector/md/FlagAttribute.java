@@ -17,11 +17,10 @@ import static com.bytex.snamp.jmx.MetricsConverter.*;
 final class FlagAttribute extends MetricHolderAttribute<RatedFlagRecorder> {
     static final CompositeType TYPE = RATED_FLAG_TYPE;
     static final String NAME = "flag";
-    private static final String DESCRIPTION = "Represents statistical data about input stream of bits (flags)";
     private static final long serialVersionUID = -5234028741040752357L;
 
     FlagAttribute(final String name, final AttributeDescriptor descriptor) {
-        super(name, TYPE, DESCRIPTION, descriptor, RatedFlagRecorder::new);
+        super(name, TYPE, descriptor, RatedFlagRecorder::new);
     }
 
     @Override

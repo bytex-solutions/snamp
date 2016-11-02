@@ -571,7 +571,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent for {@link Arrivals}.
      */
-    public static final CompositeType ARRIVALS_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Arrivals", "Timer with normative ")
+    public static final CompositeType ARRIVALS_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Arrivals", "Queue metrics")
             .importFrom(RATED_TIMER_TYPE)
             .addItem(MEAN_AVAILABILITY_LAST_SECOND_FIELD, "Mean availability for the last second", SimpleType.DOUBLE)
             .addItem(MEAN_AVAILABILITY_LAST_MINUTE_FIELD, "Mean availability for the last minute", SimpleType.DOUBLE)
@@ -1036,7 +1036,7 @@ public final class MetricsConverter {
         return fields.build();
     }
 
-    private static void fillArrivals(final Arrivals arrivals, final CompositeDataBuilder output, final int channels){
+    private static void fillArrivals(final Arrivals arrivals, final CompositeDataBuilder output, final long channels){
         fillTimer(arrivals, output);
         fillRate(arrivals, output);
         output
@@ -1058,7 +1058,7 @@ public final class MetricsConverter {
      * @param channels Number of receiving channels used to compute mean and instant availability of these channels.
      * @return A {@link CompositeData} which contains data from arrivals collector.
      */
-    public static CompositeData fromArrivals(final Arrivals arrivals, final int channels){
+    public static CompositeData fromArrivals(final Arrivals arrivals, final long channels){
         final CompositeDataBuilder fields = new CompositeDataBuilder(ARRIVALS_TYPE);
         fillArrivals(arrivals, fields, channels);
         return fields.build();

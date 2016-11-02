@@ -20,11 +20,10 @@ import static com.bytex.snamp.jmx.MetricsConverter.*;
 final class StringGaugeAttribute extends MetricHolderAttribute<RatedStringGaugeRecorder> {
     static final CompositeType TYPE = RATED_STRING_GAUGE_TYPE;
     static final String NAME = "stringGauge";
-    private static final String DESCRIPTION = "Represents statistical data about input stream of strings";
     private static final long serialVersionUID = -5234028741040752357L;
 
     StringGaugeAttribute(final String name, final AttributeDescriptor descriptor) {
-        super(name, TYPE, DESCRIPTION, descriptor, RatedStringGaugeRecorder::new);
+        super(name, TYPE, descriptor, RatedStringGaugeRecorder::new);
     }
 
     @Override

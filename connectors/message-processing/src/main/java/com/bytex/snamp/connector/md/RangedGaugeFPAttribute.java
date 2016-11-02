@@ -19,11 +19,10 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRangedFP;
 final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRecorder> {
     static final CompositeType TYPE = RANGED_GAUGE_FP_TYPE;
     static final String NAME = "rangedGaugeFP";
-    private static final String DESCRIPTION = "Represents floating-point gauge with range";
     private static final long serialVersionUID = -5234028741040752357L;
 
     private RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor, final double rangeStart, final double rangeEnd){
-        super(name, TYPE, DESCRIPTION, descriptor, (n) -> new RangedGaugeFPRecorder(n, rangeStart, rangeEnd));
+        super(name, TYPE, descriptor, (n) -> new RangedGaugeFPRecorder(n, rangeStart, rangeEnd));
     }
 
     RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {

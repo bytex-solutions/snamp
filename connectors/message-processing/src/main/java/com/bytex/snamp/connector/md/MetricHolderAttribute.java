@@ -33,10 +33,9 @@ abstract class MetricHolderAttribute<M extends AbstractMetric> extends Distribut
 
     MetricHolderAttribute(final String name,
                           final CompositeType type,
-                          final String description,
                           final AttributeDescriptor descriptor,
                           final Function<? super String, ? extends M> metricFactory) {
-        super(name, type, description, descriptor);
+        super(name, type, type.getDescription(), descriptor);
         metric = metricFactory.apply(name);
         assert metric != null;
         isInstance = metric.getClass()::isInstance;

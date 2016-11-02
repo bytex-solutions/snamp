@@ -19,11 +19,10 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRatedGauge64;
 final class RangedGauge64Attribute extends MetricHolderAttribute<RangedGauge64Recorder> {
     static final CompositeType TYPE = RANGED_GAUGE_64_TYPE;
     static final String NAME = "rangedGauge64";
-    private static final String DESCRIPTION = "Represents 64-bit gauge with range";
     private static final long serialVersionUID = -5234028741040752357L;
 
     private RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor, final long rangeStart, final long rangeEnd){
-        super(name, TYPE, DESCRIPTION, descriptor, (n) -> new RangedGauge64Recorder(n, rangeStart, rangeEnd));
+        super(name, TYPE, descriptor, (n) -> new RangedGauge64Recorder(n, rangeStart, rangeEnd));
     }
 
     RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {

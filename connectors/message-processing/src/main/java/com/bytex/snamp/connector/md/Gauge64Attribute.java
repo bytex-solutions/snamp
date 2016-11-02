@@ -18,11 +18,10 @@ import static com.bytex.snamp.jmx.MetricsConverter.*;
 final class Gauge64Attribute extends MetricHolderAttribute<RatedGauge64Recorder> {
     static final CompositeType TYPE = RATED_GAUGE_64_TYPE;
     static final String NAME = "gauge64";
-    private static final String DESCRIPTION = "Represents 64-bit gauge";
     private static final long serialVersionUID = -5234028741040752357L;
 
     Gauge64Attribute(final String name, final AttributeDescriptor descriptor) {
-        super(name, TYPE, DESCRIPTION, descriptor, RatedGauge64Recorder::new);
+        super(name, TYPE, descriptor, RatedGauge64Recorder::new);
     }
 
     @Override

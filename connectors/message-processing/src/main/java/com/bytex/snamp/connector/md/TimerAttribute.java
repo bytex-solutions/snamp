@@ -16,11 +16,10 @@ import static com.bytex.snamp.jmx.MetricsConverter.*;
 final class TimerAttribute extends MetricHolderAttribute<RatedTimeRecorder> {
     static final CompositeType TYPE = RATED_TIMER_TYPE;
     static final String NAME = "timer";
-    private static final String DESCRIPTION = "Represents timing recorder";
     private static final long serialVersionUID = -5234028741040752357L;
 
     TimerAttribute(final String name, final AttributeDescriptor descriptor) {
-        super(name, TYPE, DESCRIPTION, descriptor, RatedTimeRecorder::new);
+        super(name, TYPE, descriptor, RatedTimeRecorder::new);
     }
 
     @Override
