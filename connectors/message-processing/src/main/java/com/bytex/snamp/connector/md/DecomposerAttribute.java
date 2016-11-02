@@ -25,7 +25,7 @@ final class DecomposerAttribute extends UnaryFunctionAttribute {
                         final String fieldName,
                         final CompositeType compositeType,
                         final AttributeDescriptor descriptor) {
-        super(name, sourceAttribute, compositeType.getType(fieldName), fieldName, descriptor);
+        super(name, sourceAttribute, compositeType.getType(fieldName), compositeType.getDescription(fieldName), descriptor);
         this.fieldName = fieldName;
         this.compositeType = compositeType;
     }
