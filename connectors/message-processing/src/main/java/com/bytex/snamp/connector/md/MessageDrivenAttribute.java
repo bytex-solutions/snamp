@@ -6,6 +6,8 @@ import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
 import javax.management.MBeanException;
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import javax.management.openmbean.OpenType;
 
 /**
@@ -16,7 +18,7 @@ import javax.management.openmbean.OpenType;
  * @see DistributedAttribute
  * @see ProcessingAttribute
  */
-public abstract class MessageDrivenAttribute extends AbstractOpenAttributeInfo {
+public abstract class MessageDrivenAttribute extends AbstractOpenAttributeInfo implements NotificationListener {
     private static final long serialVersionUID = -2361230399455752656L;
 
     MessageDrivenAttribute(final String name,
@@ -26,8 +28,6 @@ public abstract class MessageDrivenAttribute extends AbstractOpenAttributeInfo {
                            final AttributeDescriptor descriptor) {
         super(name, type, description, specifier, descriptor);
     }
-
-    protected abstract boolean accept(final MeasurementNotification notification);
 
     static MBeanException cannotBeModified(final MessageDrivenAttribute attribute){
         return new MBeanException(new UnsupportedOperationException(String.format("Attribute '%s' cannot be modified", attribute)));

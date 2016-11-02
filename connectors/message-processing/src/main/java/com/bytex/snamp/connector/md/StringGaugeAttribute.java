@@ -17,13 +17,13 @@ import static com.bytex.snamp.jmx.MetricsConverter.*;
  * @since 2.0
  * @version 2.0
  */
-final class StringGaugeAttribute extends MetricHolderAttribute<RatedStringGaugeRecorder> {
+final class StringGaugeAttribute extends MetricHolderAttribute<RatedStringGaugeRecorder, ValueChangedNotification> {
     static final CompositeType TYPE = RATED_STRING_GAUGE_TYPE;
     static final String NAME = "stringGauge";
     private static final long serialVersionUID = -5234028741040752357L;
 
     StringGaugeAttribute(final String name, final AttributeDescriptor descriptor) {
-        super(name, TYPE, descriptor, RatedStringGaugeRecorder::new);
+        super(ValueChangedNotification.class, name, TYPE, descriptor, RatedStringGaugeRecorder::new);
     }
 
     @Override
@@ -31,15 +31,9 @@ final class StringGaugeAttribute extends MetricHolderAttribute<RatedStringGaugeR
         return fromRatedStringGauge(metric);
     }
 
-    private static boolean updateMetric(final RatedStringGaugeRecorder metric, final ValueChangedNotification notification) {
-        final boolean success;
-        if (success = notification.isString())
-            metric.updateValue(current -> notification.applyAsString(current).orElse(current));
-        return success;
-    }
-
     @Override
-    boolean updateMetric(final RatedStringGaugeRecorder metric, final MeasurementNotification notification) {
-        return notification instanceof ValueChangedNotification && updateMetric(metric, (ValueChangedNotification) notification);
+    void updateMetric(final RatedStringGaugeRecorder metric, final ValueChangedNotification notification) {
+        if (notification.isString())
+            metric.updateValue(current -> notification.applyAsString(current).orElse(current));
     }
 }

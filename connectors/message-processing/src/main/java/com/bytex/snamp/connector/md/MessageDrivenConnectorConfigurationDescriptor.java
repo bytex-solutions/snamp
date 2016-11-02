@@ -7,9 +7,12 @@ import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 
+import javax.management.NotificationFilter;
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsLong;
@@ -32,6 +35,7 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
     protected static final String RANGE_START_PARAM = "from";
     protected static final String RANGE_END_PARAM = "to";
     protected static final String CHANNELS_PARAM = "channels";
+    protected static final String FILTER_PARAM = "filter";
 
     protected MessageDrivenConnectorConfigurationDescriptor(final ConfigurationEntityDescription<AttributeConfiguration> attributeDescriptor,
                                                             final ConfigurationEntityDescription<EventConfiguration> eventDescription){
@@ -96,5 +100,13 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
 
     static long parseChannels(final AttributeDescriptor descriptor){
         return getField(descriptor, CHANNELS_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToLong, () -> 1L);
+    }
+
+    static NotificationFilter parseNotificationFilter(final AttributeDescriptor descriptor){
+        final String filter = getField(descriptor, FILTER_PARAM, String::valueOf, () -> "");
+        if(filter.isEmpty())
+            return notification -> true;
+        final Predicate<String> messageFilter = Pattern.compile(filter).asPredicate();
+        return notification -> messageFilter.test(notification.getMessage());
     }
 }

@@ -4,6 +4,7 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.AbstractMetric;
 import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
+import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import java.io.Serializable;
@@ -17,11 +18,13 @@ import static com.bytex.snamp.concurrent.LockManager.lockAndApply;
 
 /**
  * Represents a holder for metric.
+ * @param <M> Type of metric recorder
+ * @param <N> Type of notifications that can be handled by this attribute
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-abstract class MetricHolderAttribute<M extends AbstractMetric> extends DistributedAttribute<CompositeData> implements AutoCloseable {
+abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notification> extends DistributedAttribute<CompositeData, N> implements AutoCloseable {
     private static final long serialVersionUID = 2645456225474793148L;
     private M metric;
     private final Predicate<? super Serializable> isInstance;
@@ -31,11 +34,12 @@ abstract class MetricHolderAttribute<M extends AbstractMetric> extends Distribut
      */
     private final ReadWriteLock lockManager;
 
-    MetricHolderAttribute(final String name,
+    MetricHolderAttribute(final Class<N> notificationType,
+                          final String name,
                           final CompositeType type,
                           final AttributeDescriptor descriptor,
                           final Function<? super String, ? extends M> metricFactory) {
-        super(name, type, type.getDescription(), descriptor);
+        super(notificationType, name, type, type.getDescription(), descriptor);
         metric = metricFactory.apply(name);
         assert metric != null;
         isInstance = metric.getClass()::isInstance;
@@ -77,15 +81,15 @@ abstract class MetricHolderAttribute<M extends AbstractMetric> extends Distribut
         lockAndAccept(lockManager.writeLock(), this, snapshot, MetricHolderAttribute::loadFromSnapshotImpl);
     }
 
-    abstract boolean updateMetric(final M metric, final MeasurementNotification notification);
+    abstract void updateMetric(final M metric, final N notification);
 
-    private boolean acceptImpl(final MeasurementNotification notification){
-        return updateMetric(metric, notification);
+    private void handleNotificationImpl(final N notification) {
+        updateMetric(metric, notification);
     }
 
     @Override
-    protected final boolean accept(final MeasurementNotification notification) {
-        return lockAndApply(lockManager.readLock(), this, notification, MetricHolderAttribute::acceptImpl).orElse(Boolean.FALSE);
+    protected final void handleNotification(final N notification) {
+        lockAndAccept(lockManager.readLock(), this, notification, MetricHolderAttribute<M, N>::handleNotificationImpl);
     }
 
     private void closeImpl() {

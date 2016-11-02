@@ -2,24 +2,24 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.RatedTimeRecorder;
-import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 import com.bytex.snamp.connector.notifications.measurement.StopwatchNotification;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 
-import static com.bytex.snamp.jmx.MetricsConverter.*;
+import static com.bytex.snamp.jmx.MetricsConverter.RATED_TIMER_TYPE;
+import static com.bytex.snamp.jmx.MetricsConverter.fromRatedTimer;
 
 /**
  * Collects timing measurements.
  */
-final class TimerAttribute extends MetricHolderAttribute<RatedTimeRecorder> {
+final class TimerAttribute extends MetricHolderAttribute<RatedTimeRecorder, StopwatchNotification> {
     static final CompositeType TYPE = RATED_TIMER_TYPE;
     static final String NAME = "timer";
     private static final long serialVersionUID = -5234028741040752357L;
 
     TimerAttribute(final String name, final AttributeDescriptor descriptor) {
-        super(name, TYPE, descriptor, RatedTimeRecorder::new);
+        super(StopwatchNotification.class, name, TYPE, descriptor, RatedTimeRecorder::new);
     }
 
     @Override
@@ -27,15 +27,8 @@ final class TimerAttribute extends MetricHolderAttribute<RatedTimeRecorder> {
         return fromRatedTimer(metric);
     }
 
-    private static void updateMetric(final RatedTimeRecorder metric, final StopwatchNotification notification){
-        metric.accept(notification.getDuration());
-    }
-
     @Override
-    boolean updateMetric(final RatedTimeRecorder metric, final MeasurementNotification notification) {
-        final boolean success;
-        if (success = notification instanceof StopwatchNotification)
-            updateMetric(metric, (StopwatchNotification) notification);
-        return success;
+    void updateMetric(final RatedTimeRecorder metric, final StopwatchNotification notification) {
+        metric.accept(notification.getDuration());
     }
 }

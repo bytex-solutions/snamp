@@ -82,8 +82,8 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
      */
     @Override
     protected final void loadFromSnapshot(final MessageDrivenAttribute attribute, final Serializable snapshot) {
-        if (attribute instanceof DistributedAttribute<?>)
-            ((DistributedAttribute<?>) attribute).loadFromSnapshot(snapshot);
+        if (attribute instanceof DistributedAttribute<?, ?>)
+            ((DistributedAttribute<?, ?>) attribute).loadFromSnapshot(snapshot);
     }
 
     /**
@@ -95,8 +95,8 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
      */
     @Override
     protected final Object getAttribute(final MessageDrivenAttribute metadata) throws Exception {
-        if (metadata instanceof DistributedAttribute<?>)
-            return ((DistributedAttribute<?>) metadata).getValue();
+        if (metadata instanceof DistributedAttribute<?, ?>)
+            return ((DistributedAttribute<?, ?>) metadata).getValue();
         else if (metadata instanceof ProcessingAttribute<?>)
             return ((ProcessingAttribute<?>) metadata).getValue(this);
         else
@@ -119,6 +119,6 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     }
 
     public final void post(final MeasurementNotification notification) {
-        parallelForEach(attribute -> attribute.accept(notification), null);
+        parallelForEach(attribute -> attribute.handleNotification(notification, this), getThreadPool());
     }
 }

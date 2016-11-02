@@ -1,10 +1,12 @@
 package com.bytex.snamp.connector.md;
 
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
+import javax.management.Notification;
 import javax.management.openmbean.OpenType;
 
 /**
@@ -28,7 +30,8 @@ public abstract class ProcessingAttribute<T> extends MessageDrivenAttribute {
     protected abstract T getValue(final AttributeSupport support) throws Exception;
 
     @Override
-    protected boolean accept(final MeasurementNotification notification) {
-        return false;
+    @MethodStub
+    public void handleNotification(final Notification notification, final Object handback) {
+
     }
 }
