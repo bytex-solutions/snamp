@@ -18,7 +18,7 @@ public final class ResourceConnectorInfo {
     /**
      * The name of the Groovy Resource Connector.
      */
-    public static final String NAME = "groovy";
+    private static final String NAME = "groovy";
     private ResourceConnectorInfo(){
     }
 

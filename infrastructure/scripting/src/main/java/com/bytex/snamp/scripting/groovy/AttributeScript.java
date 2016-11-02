@@ -123,4 +123,17 @@ public interface AttributeScript extends ScriptingAPI {
 
     Object getValue() throws Exception;
     Object setValue(final Object value) throws Exception;
+
+    static CompositeData asDictionary(final CompositeType type,
+                                      final Map<String, ?> items) throws OpenDataException {
+        return new CompositeDataSupport(type, items);
+    }
+
+    static TabularData asTable(final TabularType type,
+                                       final Collection<Map<String, ?>> rows) throws OpenDataException {
+        final TabularDataSupport result = new TabularDataSupport(type, rows.size() + 5, 0.75f);
+        for (final Map<String, ?> row : rows)
+            result.put(asDictionary(type.getRowType(), row));
+        return result;
+    }
 }

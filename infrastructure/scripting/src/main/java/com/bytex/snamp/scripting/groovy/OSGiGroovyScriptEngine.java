@@ -82,7 +82,16 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
      */
     @Override
     public final B createScript(final String scriptName, final Binding binding) throws ResourceException, ScriptException {
-        return createScript(scriptName, binding, baseScriptClass);
+        final Script result;
+        final Binding bindingUnion = concatBindings(rootBinding, binding);
+        try {
+            result = Utils.callWithContextClassLoader(getGroovyClassLoader(), () -> super.createScript(scriptName, bindingUnion));
+        } catch (final ResourceException | ScriptException e){
+            throw e;
+        } catch (final Exception e) {
+            throw new ScriptException(e);
+        }
+        return baseScriptClass.cast(result);
     }
 
     /**
@@ -95,15 +104,20 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
      * @throws ResourceException if there is a problem accessing the script
      * @throws ScriptException   if there is a problem parsing the script
      */
-    public <C extends B> C createScript(final String scriptName, final Binding binding, final Class<C> baseScriptClass) throws ResourceException, ScriptException{
+    public final <C extends B> C createScript(final String scriptName, final Binding binding, final Class<C> baseScriptClass) throws ResourceException, ScriptException{
         final Script result;
         final Binding bindingUnion = concatBindings(rootBinding, binding);
+
+        final String previousBaseClass = getConfig().getScriptBaseClass();
+        getConfig().setScriptBaseClass(baseScriptClass.getName());
         try {
             result = Utils.callWithContextClassLoader(getGroovyClassLoader(), () -> super.createScript(scriptName, bindingUnion));
         } catch (final ResourceException | ScriptException e){
             throw e;
         } catch (final Exception e) {
             throw new ScriptException(e);
+        } finally {
+            getConfig().setScriptBaseClass(previousBaseClass);
         }
         return baseScriptClass.cast(result);
     }

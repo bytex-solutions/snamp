@@ -2,9 +2,12 @@ package com.bytex.snamp.connector.groovy;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
+import com.bytex.snamp.scripting.groovy.AttributeScript;
 
-import javax.management.openmbean.OpenType;
+import javax.management.openmbean.*;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -27,6 +30,20 @@ public abstract class ManagedResourceAttributeScript extends ManagedResourceFeat
     @SpecialUse
     public final void type(final OpenType<?> value) {
         this.openType = Objects.requireNonNull(value);
+    }
+
+    @Override
+    public final CompositeData asDictionary(final Map<String, ?> items) throws OpenDataException {
+        if (openType instanceof CompositeType)
+            return AttributeScript.asDictionary((CompositeType) openType, items);
+        else throw new OpenDataException(String.format("Expected dictionary type but '%s' found", openType));
+    }
+
+    @Override
+    public final TabularData asTable(final Collection<Map<String, ?>> rows) throws OpenDataException {
+        if (openType instanceof TabularType)
+            return AttributeScript.asTable((TabularType) openType, rows);
+        else throw new OpenDataException(String.format("Expected dictionary type but '%s' found", openType));
     }
 
     /**

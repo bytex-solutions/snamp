@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.groovy;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
 import com.google.common.collect.ImmutableList;
-import groovy.lang.Binding;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -19,6 +18,7 @@ public abstract class ManagedResourceInitializationScript extends ManagedResourc
     private final Collection<AttributeConfiguration> attributes = new LinkedList<>();
     private final Collection<EventConfiguration> events = new LinkedList<>();
     private ClassLoader contextRef;
+    private boolean isDiscovery;
 
     final void setContext(final ClassLoader context){
         this.contextRef = context;
@@ -79,9 +79,12 @@ public abstract class ManagedResourceInitializationScript extends ManagedResourc
         events.clear();
     }
 
+    final void setDiscovery(final boolean value){
+        isDiscovery = value;
+    }
+
     @SpecialUse
     protected final boolean isDiscovery() {
-        final Binding b = getBinding();
-        return b == null || !b.hasVariable(RESOURCE_NAME_VAR);
+        return isDiscovery;
     }
 }

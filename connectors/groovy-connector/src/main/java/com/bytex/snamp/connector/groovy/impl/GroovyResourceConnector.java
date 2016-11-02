@@ -257,7 +257,6 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final String RESOURCE_NAME_VAR = ManagedResourceScriptBase.RESOURCE_NAME_VAR;
     @Aggregation(cached = true)
     private final GroovyAttributeRepository attributes;
     private final ManagedResourceInfo groovyConnector;
@@ -279,12 +278,11 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                 getClass().getClassLoader(),
                 toProperties(params),
                 paths);
-        engine.getGlobalVariables().setVariable(RESOURCE_NAME_VAR, resourceName);
 
         final String initScript = GroovyResourceConfigurationDescriptor.getInitScriptFile(params);
         groovyConnector = isNullOrEmpty(initScript) ?
                 null :
-                engine.init(initScript, params);
+                engine.init(initScript, false, params);
         attributes = new GroovyAttributeRepository(resourceName, engine);
         final ExecutorService threadPool = GroovyResourceConfigurationDescriptor.getInstance().parseThreadPool(params);
         events = new GroovyNotificationRepository(resourceName, engine, threadPool, Utils.getBundleContextOfObject(this));

@@ -8,5 +8,5 @@ import com.bytex.snamp.scripting.groovy.ScriptingAPISupport;
  * @version 2.0
  * @since 1.0
  */
-abstract class ManagedResourceScript extends ScriptingAPISupport implements ManagedResourceScriptBase {
+public abstract class ManagedResourceScript extends ScriptingAPISupport {
 }

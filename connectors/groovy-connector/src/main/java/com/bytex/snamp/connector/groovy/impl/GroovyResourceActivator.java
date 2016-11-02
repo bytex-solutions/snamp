@@ -49,7 +49,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
                         GroovyResourceConnector.toProperties(connectionOptions),
                         paths);
                 final String initScript = GroovyResourceConfigurationDescriptor.getInitScriptFile(connectionOptions);
-                return engine.init(initScript, connectionOptions);
+                return engine.init(initScript, true, connectionOptions);
             }
 
             @Override

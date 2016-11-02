@@ -16,20 +16,20 @@ def changeBooleanAttribute(){
     assert res./boolean/.metadata.objectName instanceof String
     assert res./boolean/.metadata.readable
     assert res./boolean/.metadata.writable
-    communicator.post res./boolean/.value
+    communicator.sendSignal res./boolean/.value
 }
 
 def changeIntegerAttribute(){
     resources.setAttributeValue resourceName, 'int32', 1020
-    communicator.post resources.getAttributeValue(resourceName, 'int32')
+    communicator.sendSignal resources.getAttributeValue(resourceName, 'int32')
 }
 
 def changeBigIntegerAttribute(){
     resources./test-target/./bigint/.value = 1020G
-    communicator.post resources./test-target/./bigint/.value
+    communicator.sendSignal resources./test-target/./bigint/.value
 }
 
-def listen(message){
+void listen(message){
     switch(message){
         case 'changeStringAttributeSilent':
             changeStringAttributeSilent()
@@ -50,11 +50,11 @@ def listen(message){
 }
 
 def handleNotification(metadata, notif){
-    communicator.post(notif)
+    communicator.sendSignal(notif)
 }
 
 //register incoming message listener
-communicator.register asListener(this.&listen)
+communicator.addMessageListener(this.&listen, {msg -> true})
 
 void close(){
     communicator = null

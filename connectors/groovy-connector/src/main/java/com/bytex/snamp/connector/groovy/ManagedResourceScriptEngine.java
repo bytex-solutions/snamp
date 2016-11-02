@@ -76,9 +76,11 @@ public final class ManagedResourceScriptEngine extends OSGiGroovyScriptEngine<Ma
     }
 
     public ManagedResourceInfo init(final String initScript,
+                                    final boolean isDiscovery,
                      final Map<String, ?> initParams) throws ResourceException, ScriptException {
         final ManagedResourceInitializationScript result = createScript(initScript, new Binding(initParams), ManagedResourceInitializationScript.class);
         result.setContext(getClass().getClassLoader());
+        result.setDiscovery(isDiscovery);
         result.run();
         return result;
     }
