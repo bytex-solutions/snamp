@@ -18,5 +18,6 @@
         <bundle start="true">mvn:com.bytex.snamp/management/${snamp.management.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/jmx-helpers/${snamp.jmxhelper.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/internal-services/${snamp.services.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/scripting/${snamp.scripting.version}</bundle>
     </feature>
 </features>

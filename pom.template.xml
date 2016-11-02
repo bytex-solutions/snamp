@@ -61,6 +61,7 @@
     <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <snamp.services.version>2.0.0</snamp.services.version>
+    <snamp.scripting.version>2.0.0</snamp.scripting.version>
 
     <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
     <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
@@ -298,6 +299,7 @@
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
     <module>infrastructure/webconsole</module>
+    <module>infrastructure/scripting</module>
     <module>features/platform-feature</module>
     <module>features/gateways-features</module>
     <module>features/connectors-features</module>
