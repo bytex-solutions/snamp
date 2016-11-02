@@ -104,7 +104,7 @@ public interface AttributeSupport {
      * @see #getAttribute
      */
     void setAttribute(final Attribute attribute) throws AttributeNotFoundException,
-            InvalidAttributeValueException, MBeanException, ReflectionException ;
+            InvalidAttributeValueException, MBeanException, ReflectionException;
 
     /**
      * Get the values of several attributes of the managed resource.

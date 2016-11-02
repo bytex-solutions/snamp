@@ -147,9 +147,9 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
             //process regular attribute
             final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor);
             if (underlyingAttribute == null)
-                throw CompositeAttribute.attributeNotFound(connectorType, attributeName);
+                throw AliasAttribute.attributeNotFound(connectorType, attributeName);
             //check whether the type of function is compatible with type of attribute
-            return new CompositeAttribute(connectorType, underlyingAttribute);
+            return new AliasAttribute(connectorType, underlyingAttribute);
         }
     }
 
@@ -169,9 +169,9 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     protected Object getAttribute(final AbstractCompositeAttribute metadata) throws Exception {
-        if(metadata instanceof CompositeAttribute)
-            return ((CompositeAttribute) metadata).getValue(attributeSupportProvider);
-        else if(metadata instanceof AggregationAttribute)
+        if(metadata instanceof AliasAttribute)
+            return ((AliasAttribute) metadata).getValue(attributeSupportProvider);
+        else if(metadata instanceof ProcessingAttribute)
             return ((AggregationAttribute) metadata).getValue(this);
         else if(metadata instanceof MetricAttribute<?>)
             return ((MetricAttribute<?>) metadata).getValue();
@@ -186,8 +186,8 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     protected void setAttribute(final AbstractCompositeAttribute attribute, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        if(attribute instanceof CompositeAttribute)
-            ((CompositeAttribute) attribute).setValue(attributeSupportProvider, value);
+        if(attribute instanceof AliasAttribute)
+            ((AliasAttribute) attribute).setValue(attributeSupportProvider, value);
         else
             throw new UnsupportedOperationException();
     }

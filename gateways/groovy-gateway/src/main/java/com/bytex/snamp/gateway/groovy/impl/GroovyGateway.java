@@ -96,6 +96,7 @@ final class GroovyGateway extends AbstractGateway {
     @Override
     protected synchronized void start(final Map<String, String> parameters) throws GroovyAbsentParameterConfigurationException, IOException, ResourceException, ScriptException {
         final GatewayScriptEngine engine = new GatewayScriptEngine(getClass().getClassLoader(),
+                getLogger(),
                 toProperties(parameters),
                 GroovyGatewayConfigurationProvider.getScriptPath(parameters));
         engine.getGlobalVariables().setVariable(GATEWAY_INSTANCE_NAME, getInstanceName());

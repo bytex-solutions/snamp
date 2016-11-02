@@ -5,17 +5,17 @@ import com.bytex.snamp.connector.attributes.AttributeSupport;
 import javax.management.*;
 
 /**
- * Provides access to the attribute of the resource participated in composition.
+ * Provides access to the attribute through its alias in another connector.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-final class CompositeAttribute extends AbstractCompositeAttribute implements CompositeFeature {
+final class AliasAttribute extends AbstractCompositeAttribute implements CompositeFeature {
     private static final long serialVersionUID = 8395290268605454780L;
     private final String connectorType;
 
-    CompositeAttribute(final String connectorType,
-                       final MBeanAttributeInfo info) {
+    AliasAttribute(final String connectorType,
+                   final MBeanAttributeInfo info) {
         super(info.getName(), info.getType(), info.getDescription(), info.isReadable(), info.isWritable(), info.isIs(), info.getDescriptor());
         this.connectorType = connectorType;
     }

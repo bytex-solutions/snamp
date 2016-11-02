@@ -53,6 +53,7 @@ public abstract class ManagedResourceAttributeScript extends ManagedResourceFeat
      * @throws Exception Unable to get attribute value.
      */
     @SpecialUse
+    @Override
     public Object getValue() throws Exception {
         throw new UnsupportedOperationException();
     }

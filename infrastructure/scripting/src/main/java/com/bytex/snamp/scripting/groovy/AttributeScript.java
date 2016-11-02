@@ -121,9 +121,6 @@ public interface AttributeScript extends ScriptingAPI {
 
     TabularData asTable(final Collection<Map<String, ?>> rows) throws OpenDataException;
 
-    Object getValue() throws Exception;
-    Object setValue(final Object value) throws Exception;
-
     static CompositeData asDictionary(final CompositeType type,
                                       final Map<String, ?> items) throws OpenDataException {
         return new CompositeDataSupport(type, items);

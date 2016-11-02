@@ -11,4 +11,6 @@ import com.bytex.snamp.scripting.groovy.AttributeScript;
  */
 public interface AttributeAccessor extends AttributeScript, AutoCloseable {
     AttributeSpecifier specifier();
+    Object getValue() throws Exception;
+    Object setValue(final Object value) throws Exception;
 }
