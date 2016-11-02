@@ -57,8 +57,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
-        if (notification instanceof MeasurementNotification)
-            attributes.post((MeasurementNotification) notification);
+        attributes.handleNotification(notification, handback);
     }
 
     public final void postMessage(final Map<String, ?> headers,
@@ -72,7 +71,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         }
         //dispatching notification
         if (notification != null)
-            handleNotification(notification, null);
+            handleNotification(notification, this);
     }
 
     @Override
