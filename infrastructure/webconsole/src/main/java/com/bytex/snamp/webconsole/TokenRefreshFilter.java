@@ -40,7 +40,7 @@ public class TokenRefreshFilter implements ContainerResponseFilter {
                 containerResponse.getHttpHeaders()
                         .add("Set-Cookie", String.format("%s=%s; Path=/;",
                                     WebConsoleService.AUTH_COOKIE,
-                                    jwtPrincipal.refreshToken().createJwtToken(TokenSecretHolder.getSecret(this))
+                                    jwtPrincipal.refreshToken().createJwtToken(TokenSecretHolder.getInstance().getSecret())
                                 )
                         );
 

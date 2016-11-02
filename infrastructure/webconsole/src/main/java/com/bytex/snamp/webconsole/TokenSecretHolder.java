@@ -1,27 +1,39 @@
 package com.bytex.snamp.webconsole;
 
-import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.internal.Utils;
-import org.osgi.framework.BundleContext;
+import com.bytex.snamp.concurrent.LazyStrongReference;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.function.Supplier;
+
+import static com.bytex.snamp.core.DistributedServices.getDistributedBox;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Provides access to secret used to verify and sign JWT token.
  */
-final class TokenSecretHolder {
+final class TokenSecretHolder extends SecureRandom implements Supplier<BigInteger> {
     private static final String JWT_SECRET_BOX_NAME = "JWT_SECRET";
-    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final long serialVersionUID = 2764002554365647124L;
+    private static final LazyStrongReference<TokenSecretHolder> INSTANCE = new LazyStrongReference<>();
 
     private TokenSecretHolder(){
-        throw new InstantiationError();
     }
 
-    static String getSecret(final Object caller) {
-        return String.valueOf(
-                DistributedServices.getDistributedBox(Utils.getBundleContextOfObject(caller), JWT_SECRET_BOX_NAME)
-                        .setIfAbsent(() -> new BigInteger(130, RANDOM))
-        );
+    /**
+     * Generates a new secret.
+     * @return Newly generated secret.
+     */
+    @Override
+    public BigInteger get() {
+        return new BigInteger(130, this);
+    }
+
+    static TokenSecretHolder getInstance() {
+        return INSTANCE.lazyGet(TokenSecretHolder::new);
+    }
+
+    String getSecret() {
+        return String.valueOf(getDistributedBox(getBundleContextOfObject(this), JWT_SECRET_BOX_NAME).setIfAbsent(this));
     }
 }
