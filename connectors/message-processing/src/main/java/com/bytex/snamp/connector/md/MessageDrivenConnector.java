@@ -21,11 +21,9 @@ import java.util.logging.Level;
  * @since 2.0
  * @version 2.0
  */
-public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector implements NotificationListener {
-    private final MeasurementSource source;
-    private NotificationParser parser;
-    @Aggregation
-    protected final MessageDrivenAttributeRepository attributes;
+public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector {
+    protected final MeasurementSource source;
+    protected final NotificationChannel channel;
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
@@ -34,10 +32,21 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         final String componentName = descriptor.parseComponentName(parameters);
         source = new MeasurementSource(componentName, componentInstance);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
-        parser = descriptor.createNotificationParser(parameters);
-        attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
+        final NotificationParser parser = createNotificationParser(parameters);
+        assert parser != null;
+        final MessageDrivenAttributeRepository attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
         assert attributes != null;
         attributes.init(threadPool, getLogger());
+        channel = new NotificationChannel(attributes, parser);
+    }
+
+    /**
+     * Creates a new notification parser.
+     * @param parameters Set of parameters that may be used by notification parser.
+     * @return A new instance of notification parser.
+     */
+    protected NotificationParser createNotificationParser(final Map<String, String> parameters){
+        return null;
     }
 
     /**
@@ -50,43 +59,23 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         return new MessageDrivenAttributeRepository(resourceName, syncPeriod);
     }
 
-    protected Notification parseNotification(final Map<String, ?> headers,
-                                             final Object body) throws Exception{
-        return parser.parse(headers, body);
-    }
-
-    @Override
-    public final void handleNotification(final Notification notification, final Object handback) {
-        attributes.handleNotification(notification, handback);
-    }
-
-    public final void postMessage(final Map<String, ?> headers,
-                                     final Object body) {
-        final Notification notification;
-        try {
-            notification = parseNotification(headers, body);
-        } catch (final Exception e) {
-            getLogger().log(Level.SEVERE, String.format("Unable to parse notification: %s", body), e);
-            return;
-        }
-        //dispatching notification
-        if (notification != null)
-            handleNotification(notification, this);
-    }
-
     @Override
     public final void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes);
+        addResourceEventListener(listener, channel.attributes);
     }
 
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes);
+        removeResourceEventListener(listener, channel.attributes);
     }
 
+    /**
+     * Releases all resources associated with this connector.
+     * @throws Exception Unable to release resource clearly.
+     */
     @Override
     public void close() throws Exception {
-        attributes.close();
+        channel.attributes.close();
         super.close();
     }
 }

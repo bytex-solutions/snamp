@@ -84,7 +84,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final KeyedObjects<String, M> notifications;
     private final NotificationListenerList listeners;
     private final NotificationMetricRecorder metrics;
-    private volatile boolean suspended;
     private final boolean expandable;
 
     /**
@@ -100,7 +99,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         notifications = AbstractKeyedObjects.create(metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()));
         listeners = new NotificationListenerList();
         metrics = new NotificationMetricRecorder();
-        suspended = false;
         this.expandable = expandable;
     }
 

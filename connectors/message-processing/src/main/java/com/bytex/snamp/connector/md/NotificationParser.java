@@ -10,7 +10,7 @@ import java.util.Map;
  * @since 2.0
  */
 @FunctionalInterface
-interface NotificationParser {
+public interface NotificationParser {
     /**
      * Converts headers and body into {@link Notification}.
      * @param headers A headers of the input message. Cannot be {@literal null}.

@@ -50,6 +50,9 @@ final class AttributeParser extends Tokenizer {
             case ArrivalsAttribute.NAME:
                 metricType = ArrivalsAttribute.TYPE;
                 break;
+            case NotificationRateAttribute.NAME:
+                metricType = NotificationRateAttribute.TYPE;
+                break;
             default:
                 throw new UnrecognizedGaugeTypeException(gaugeType);
         }
@@ -90,6 +93,8 @@ final class AttributeParser extends Tokenizer {
                 return RangedTimerAttribute::new;       //rangedTimer
             case ArrivalsAttribute.NAME:
                 return ArrivalsAttribute::new;          //arrivals
+            case NotificationRateAttribute.NAME:
+                return NotificationRateAttribute::new;  //rate of notifications
             case "get":
                 return parseExtractionAttribute();
             default:

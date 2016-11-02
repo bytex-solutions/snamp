@@ -50,13 +50,6 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
         return getValue(parameters, COMPONENT_NAME_PARAM, Function.identity(), () -> firstNonNull(parameters.get(GROUP_NAME_PROPERTY), "DEFAULT"));
     }
 
-    final NotificationParser createNotificationParser(final Map<String, String> parameters){
-        if(parameters.containsKey(PARSER_LANGUAGE_PARAM) && parameters.containsKey(PARSER_SCRIPT_PARAM)){
-            return null;
-        } else
-            return new DefaultNotificationParser();
-    }
-
     protected Duration parseSyncPeriod(final Map<String, String> parameters) {
         final long period = getValueAsLong(parameters, SYNC_PERIOD_PARAM, Long::parseLong, () -> 5000L);
         return Duration.ofMillis(period);
