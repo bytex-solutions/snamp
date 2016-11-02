@@ -4,6 +4,7 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
+import com.bytex.snamp.scripting.groovy.ScriptingAPISupport;
 import groovy.lang.Binding;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
@@ -11,6 +12,7 @@ import groovy.util.ScriptException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -19,16 +21,16 @@ import java.util.Properties;
  */
 public final class ManagedResourceScriptEngine extends OSGiGroovyScriptEngine<ManagedResourceScript> implements AttributeConnector, EventConnector {
     private static final String GROOVY_FILE_EXT = ".groovy";
+    private static final String RESOURCE_NAME_VAR = "resourceName";
 
-    public ManagedResourceScriptEngine(final ClassLoader rootClassLoader,
+    public ManagedResourceScriptEngine(final String resourceName,
+                                       final Logger logger,
+                                       final ClassLoader rootClassLoader,
                                        final Properties properties,
                                        final String... paths) throws IOException {
         super(rootClassLoader, properties, ManagedResourceScript.class, paths);
-    }
-
-    public ManagedResourceScriptEngine(final ClassLoader rootClassLoader,
-                                       final String... paths) throws IOException {
-        this(rootClassLoader, new Properties(), paths);
+        getGlobalVariables().setVariable(RESOURCE_NAME_VAR, resourceName);
+        ScriptingAPISupport.setLogger(getGlobalVariables(), logger);
     }
 
     private ManagedResourceAttributeScript loadAttribute(final String scriptFile, final Binding environment) throws ResourceException, ScriptException {

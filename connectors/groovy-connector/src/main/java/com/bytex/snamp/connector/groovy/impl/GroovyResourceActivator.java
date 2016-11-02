@@ -43,6 +43,8 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
             protected ManagedResourceInfo createProvider(final String connectionString, final Map<String, String> connectionOptions) throws IOException, ResourceException, ScriptException {
                 final String[] paths = IOUtils.splitPath(connectionString);
                 final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(
+                        connectionString,
+                        getLogger(),
                         getClass().getClassLoader(),
                         GroovyResourceConnector.toProperties(connectionOptions),
                         paths);

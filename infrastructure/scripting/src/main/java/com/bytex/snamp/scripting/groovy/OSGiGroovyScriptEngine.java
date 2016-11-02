@@ -8,6 +8,7 @@ import groovy.util.GroovyScriptEngine;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.osgi.framework.BundleReference;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +28,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  */
 public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine {
-    protected final Binding rootBinding;
+    public static final String BUNDLE_CONTEXT_VAR = "bundleContext";
+    private final Binding rootBinding;
     private final Class<B> baseScriptClass;
 
     public OSGiGroovyScriptEngine(final ClassLoader rootClassLoader,
@@ -38,6 +40,16 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
         setupCompilerConfiguration(getConfig(), properties, baseScriptClass);
         rootBinding = new Binding();
         this.baseScriptClass = Objects.requireNonNull(baseScriptClass);
+        if (rootClassLoader instanceof BundleReference)
+            rootBinding.setVariable(BUNDLE_CONTEXT_VAR, ((BundleReference) rootClassLoader).getBundle().getBundleContext());
+    }
+
+    /**
+     * Gets global variables which will be propagated into script.
+     * @return A collection of global variables.
+     */
+    public final Binding getGlobalVariables(){
+        return rootBinding;
     }
 
     private static void setupCompilerConfiguration(final CompilerConfiguration config,
@@ -98,25 +110,5 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
 
     public static Binding concatBindings(final Binding first, final Binding... other){
         return ForwardingBinding.create(first, other);
-    }
-
-    /**
-     * Sets value of the global variable visible to all scripts.
-     * @param name The name of the global variable.
-     * @param value The value of the global variable.
-     * @see #getGlobalVariable(String)
-     */
-    public final void setGlobalVariable(final String name, final Object value){
-        rootBinding.setVariable(name, value);
-    }
-
-    /**
-     * Gets value of the global variable.
-     * @param name The name of the global variable.
-     * @return The value of the global variable.
-     * @see #setGlobalVariable(String, Object)
-     */
-    public final Object getGlobalVariable(final String name){
-        return rootBinding.getVariable(name);
     }
 }

@@ -1,8 +1,7 @@
 package com.bytex.snamp.connector.groovy;
 
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-
-import javax.management.openmbean.OpenType;
+import com.bytex.snamp.scripting.groovy.AttributeScript;
 
 /**
  * Represents attribute accessor.
@@ -10,9 +9,6 @@ import javax.management.openmbean.OpenType;
  * @version 2.0
  * @since 1.0
  */
-public interface AttributeAccessor extends AutoCloseable {
-    OpenType<?> type();
+public interface AttributeAccessor extends AttributeScript, AutoCloseable {
     AttributeSpecifier specifier();
-    Object getValue() throws Exception;
-    Object setValue(final Object value) throws Exception;
 }

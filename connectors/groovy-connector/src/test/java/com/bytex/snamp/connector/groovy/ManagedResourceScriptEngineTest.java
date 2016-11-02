@@ -10,6 +10,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.temporal.ChronoUnit;
+import java.util.Properties;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
 
@@ -29,7 +31,7 @@ public final class ManagedResourceScriptEngineTest extends Assert {
     }
 
     public ManagedResourceScriptEngineTest() throws IOException {
-        engine = new ManagedResourceScriptEngine(getClass().getClassLoader(), getScriptDir());
+        engine = new ManagedResourceScriptEngine("testResource", Logger.getLogger("test"), getClass().getClassLoader(), new Properties(), getScriptDir());
     }
 
     @Test

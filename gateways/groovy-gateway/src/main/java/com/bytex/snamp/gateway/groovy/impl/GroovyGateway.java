@@ -98,8 +98,8 @@ final class GroovyGateway extends AbstractGateway {
         final GatewayScriptEngine engine = new GatewayScriptEngine(getClass().getClassLoader(),
                 toProperties(parameters),
                 GroovyGatewayConfigurationProvider.getScriptPath(parameters));
-        engine.setGlobalVariable(GATEWAY_INSTANCE_NAME, getInstanceName());
-        engine.setGlobalVariable(GatewayScript.MODEL_GLOBAL_VAR, repository);
+        engine.getGlobalVariables().setVariable(GATEWAY_INSTANCE_NAME, getInstanceName());
+        engine.getGlobalVariables().setVariable(GatewayScript.MODEL_GLOBAL_VAR, repository);
         final GatewayScript script = engine.createScript(GroovyGatewayConfigurationProvider.getScriptFile(parameters),
                 parameters);
         script.run();
