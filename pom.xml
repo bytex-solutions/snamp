@@ -45,6 +45,7 @@
     <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
     <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
     <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
+    <snamp.scripting.version>2.0.0</snamp.scripting.version>
     <atmosphere.version>2.2.9</atmosphere.version>
     <aries.jndi.version>1.0.0</aries.jndi.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -78,6 +79,7 @@
     <snamp.services.version>2.0.0</snamp.services.version>
     <snamp.framework.maxVersion>3</snamp.framework.maxVersion>
     <groovy.version>2.4.7</groovy.version>
+    <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <sshd.version>0.14.0</sshd.version>
     <thrift.version>0.9.3</thrift.version>
     <guava.version>19.0</guava.version>
@@ -85,7 +87,6 @@
     <activemq.version>5.13.3</activemq.version>
     <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
     <snamp.framework.version>2.0.0</snamp.framework.version>
-    <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <bouncycastle.version>1.54</bouncycastle.version>
   </properties>
   <dependencyManagement>
