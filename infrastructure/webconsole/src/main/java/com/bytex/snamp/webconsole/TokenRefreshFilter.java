@@ -27,24 +27,24 @@ public class TokenRefreshFilter implements ContainerResponseFilter {
                 jwtPrincipal = ((JwtSecurityContext)
                         containerRequest.getSecurityContext()).getUserPrincipal();
             } else {
-                logger.fine(String.format("RequestContext has Security context but no JwtSecurityContext. " +
+                logger.fine(() -> String.format("RequestContext has Security context but no JwtSecurityContext. " +
                          "Actual class is %s. Trying to create security context from token...",
                         containerRequest.getSecurityContext().getClass()));
 
                 jwtPrincipal =  new JwtSecurityContext(containerRequest).getUserPrincipal();
             }
-            logger.fine(String.format("TokenRefreshFilter is being applied. JWT principle is %s.", jwtPrincipal));
+            logger.fine(() -> String.format("TokenRefreshFilter is being applied. JWT principle is %s.", jwtPrincipal));
             // check if the token requires to be updated
             if (jwtPrincipal.isRefreshRequired()) {
-                logger.fine(String.format("Refresh of the token for user %s is required", jwtPrincipal.getName()));
+                logger.fine(() -> String.format("Refresh of the token for user %s is required", jwtPrincipal.getName()));
                 containerResponse.getHttpHeaders()
                         .add("Set-Cookie", String.format("%s=%s; Path=/;",
                                     WebConsoleService.AUTH_COOKIE,
-                                    jwtPrincipal.refreshToken().createJwtToken()
+                                    jwtPrincipal.refreshToken().createJwtToken(TokenSecretHolder.getSecret(this))
                                 )
                         );
 
-                logger.fine(String.format("Token for user %s was refreshed. New token is %s",
+                logger.fine(() -> String.format("Token for user %s was refreshed. New token is %s",
                         jwtPrincipal.getName(), containerResponse.getHttpHeaders().get("Set-Cookie")));
 
             }

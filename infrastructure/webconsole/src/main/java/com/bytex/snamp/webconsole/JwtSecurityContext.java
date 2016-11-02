@@ -41,7 +41,7 @@ final class JwtSecurityContext implements SecurityContext {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            principal = new JwtPrincipal(token);
+            principal = new JwtPrincipal(token, TokenSecretHolder.getSecret(this));
         } catch (final JWTVerifyException | GeneralSecurityException | IOException e) {
             throw new WebApplicationException(e, Response.Status.UNAUTHORIZED);
         }
