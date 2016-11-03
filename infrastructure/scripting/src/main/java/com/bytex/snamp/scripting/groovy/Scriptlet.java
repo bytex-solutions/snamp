@@ -23,12 +23,12 @@ import java.util.logging.Logger;
 import static com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine.BUNDLE_CONTEXT_VAR;
 
 /**
- * Represents implementation of {@link ScriptingAPISupport}.
+ * Represents implementation of {@link Scriptlet}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public abstract class ScriptingAPISupport extends Script implements ScriptingAPI {
+public abstract class Scriptlet extends Script implements ScriptingAPI {
     private static final String LOGGER_VAR = "logger";
 
     private static abstract class AttributeOperation<E extends JMException> implements Acceptor<ManagedResourceConnector, E> {

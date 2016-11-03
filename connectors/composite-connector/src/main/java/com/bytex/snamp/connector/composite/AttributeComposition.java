@@ -131,9 +131,11 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     protected AbstractCompositeAttribute connectAttribute(final String attributeName,
-                                                          final AttributeDescriptor descriptor) throws ReflectionException, AttributeNotFoundException, MBeanException, AbsentCompositeConfigurationParameterException, ParseException {
+                                                          final AttributeDescriptor descriptor) throws Exception {
         if (CompositeResourceConfigurationDescriptor.isRateFormula(descriptor)) //rate attribute
             return new NotificationRateAttribute(attributeName, descriptor);
+        else if(CompositeResourceConfigurationDescriptor.isGroovyFormula(descriptor))   //groovy attribute
+            return new GroovyAttribute(attributeName, getClass().getClassLoader(), logger, descriptor);
         //aggregation
         final AggregationFunction<?> function = CompositeResourceConfigurationDescriptor.parseFormula(descriptor);
         if (function != null)

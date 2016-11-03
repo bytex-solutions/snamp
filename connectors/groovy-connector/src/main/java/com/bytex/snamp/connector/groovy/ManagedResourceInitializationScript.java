@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.groovy;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.scripting.groovy.Scriptlet;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Collection;
@@ -14,7 +15,7 @@ import java.util.Map;
  * @version 2.0
  * @since 1.0
  */
-public abstract class ManagedResourceInitializationScript extends ManagedResourceScript implements ManagedResourceInfo {
+public abstract class ManagedResourceInitializationScript extends Scriptlet implements ManagedResourceInfo, ManagedResourceScript {
     private final Collection<AttributeConfiguration> attributes = new LinkedList<>();
     private final Collection<EventConfiguration> events = new LinkedList<>();
     private ClassLoader contextRef;

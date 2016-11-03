@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.groovy;
 
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
-import com.bytex.snamp.scripting.groovy.ScriptingAPISupport;
+import com.bytex.snamp.scripting.groovy.Scriptlet;
 import groovy.lang.Binding;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
@@ -24,7 +24,7 @@ public final class GatewayScriptEngine extends OSGiGroovyScriptEngine<GatewayScr
                                final Properties properties,
                                final String... paths) throws IOException {
         super(rootClassLoader, properties, GatewayScript.class, paths);
-        ScriptingAPISupport.setLogger(getGlobalVariables(), logger);
+        Scriptlet.setLogger(getGlobalVariables(), logger);
     }
 
     public GatewayScript createScript(final String scriptFile,

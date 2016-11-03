@@ -6,6 +6,7 @@ import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.FunctionParser;
+import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.parser.ParseException;
 
 import javax.management.Descriptor;
@@ -30,7 +31,9 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     private static final String SOURCE_PARAM = "source";
     private static final String FORMULA_PARAM = "formula";
     private static final String RATE_FORMULA_PARAM = "rate()";
+    private static final String GROOVY_FORMULA_PARAM = "groovy()";
     private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
+    private static final String GROOVY_PATH_PARAM = "groovyPath";
 
     private static final LazySoftReference<CompositeResourceConfigurationDescriptor> INSTANCE = new LazySoftReference<>();
 
@@ -82,8 +85,17 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
         return getFieldIfPresent(descriptor, SOURCE_PARAM, Objects::toString, AbsentCompositeConfigurationParameterException::new);
     }
 
+    static String[] parseGroovyPath(final AttributeDescriptor descriptor) throws AbsentCompositeConfigurationParameterException {
+        final String path = getFieldIfPresent(descriptor, GROOVY_PATH_PARAM, Objects::toString, AbsentCompositeConfigurationParameterException::new);
+        return IOUtils.splitPath(path);
+    }
+
     static boolean isRateFormula(final AttributeDescriptor descriptor){
         return getField(descriptor, FORMULA_PARAM, RATE_FORMULA_PARAM::equals, () -> false);
+    }
+
+    static boolean isGroovyFormula(final AttributeDescriptor descriptor){
+        return getField(descriptor, FORMULA_PARAM, GROOVY_FORMULA_PARAM::equals, () -> false);
     }
 
     static AggregationFunction<?> parseFormula(final AttributeDescriptor descriptor) throws ParseException {

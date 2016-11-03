@@ -4,7 +4,7 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
-import com.bytex.snamp.scripting.groovy.ScriptingAPISupport;
+import com.bytex.snamp.scripting.groovy.Scriptlet;
 import groovy.lang.Binding;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 1.0
  */
-public final class ManagedResourceScriptEngine extends OSGiGroovyScriptEngine<ManagedResourceScript> implements AttributeConnector, EventConnector {
+public final class ManagedResourceScriptEngine extends OSGiGroovyScriptEngine<Scriptlet> implements AttributeConnector, EventConnector {
     private static final String GROOVY_FILE_EXT = ".groovy";
     private static final String RESOURCE_NAME_VAR = "resourceName";
 
@@ -28,13 +28,13 @@ public final class ManagedResourceScriptEngine extends OSGiGroovyScriptEngine<Ma
                                        final ClassLoader rootClassLoader,
                                        final Properties properties,
                                        final String... paths) throws IOException {
-        super(rootClassLoader, properties, ManagedResourceScript.class, paths);
+        super(rootClassLoader, properties, Scriptlet.class, paths);
         getGlobalVariables().setVariable(RESOURCE_NAME_VAR, resourceName);
-        ScriptingAPISupport.setLogger(getGlobalVariables(), logger);
+        Scriptlet.setLogger(getGlobalVariables(), logger);
     }
 
-    private ManagedResourceAttributeScript loadAttribute(final String scriptFile, final Binding environment) throws ResourceException, ScriptException {
-        final ManagedResourceAttributeScript result = createScript(scriptFile, environment, ManagedResourceAttributeScript.class);
+    private ManagedResourceAttributeScriptlet loadAttribute(final String scriptFile, final Binding environment) throws ResourceException, ScriptException {
+        final ManagedResourceAttributeScriptlet result = createScript(scriptFile, environment, ManagedResourceAttributeScriptlet.class);
         result.run();
         return result;
     }

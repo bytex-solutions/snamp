@@ -1,9 +1,17 @@
 package com.bytex.snamp.connector.composite;
 
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
+import groovy.lang.Binding;
+import groovy.util.ResourceException;
+import groovy.util.ScriptException;
 
-import javax.management.Descriptor;
 import javax.management.openmbean.OpenType;
+import java.io.IOException;
+import java.util.Objects;
+import java.util.logging.Logger;
+
+import static com.bytex.snamp.connector.composite.CompositeResourceConfigurationDescriptor.parseGroovyPath;
 
 /**
  * Represents attribute which value can be computed using Groovy script.
@@ -13,11 +21,21 @@ import javax.management.openmbean.OpenType;
  */
 final class GroovyAttribute extends ProcessingAttribute {
     private static final long serialVersionUID = 5143149277819451314L;
-    private final AttributeScriptImpl script;
+    private final AggregationAttributeScriptlet script;
 
-    GroovyAttribute(final String name, final String type, final String description, final boolean isReadable, final boolean isWritable, final boolean isIs, final Descriptor descriptor) {
-        super(name, type, description, isReadable, isWritable, isIs, descriptor);
-        script = null;
+    private GroovyAttribute(final String name, final AggregationAttributeScriptlet scriptlet, final AttributeDescriptor descriptor){
+        super(name, scriptlet.type(), "Groovy Scriptlet", scriptlet.isReadable(), scriptlet.isWritable(), false, descriptor);
+        script = Objects.requireNonNull(scriptlet);
+    }
+
+    GroovyAttribute(final String name, final ClassLoader classLoader, final Logger logger, final AttributeDescriptor descriptor) throws ScriptException, ResourceException, AbsentCompositeConfigurationParameterException, IOException {
+        this(name, createScriptlet(name, classLoader, logger, descriptor), descriptor);
+    }
+
+    private static AggregationAttributeScriptlet createScriptlet(final String name, final ClassLoader classLoader, final Logger logger, final AttributeDescriptor descriptor) throws ScriptException, ResourceException, AbsentCompositeConfigurationParameterException, IOException {
+        final String[] path = parseGroovyPath(descriptor);
+        final ScriptLoader loader = new ScriptLoader(classLoader, logger, path);
+        return loader.createScript(descriptor.getName(name), null);
     }
 
     @Override

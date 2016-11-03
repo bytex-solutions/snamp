@@ -29,7 +29,7 @@ final class AggregationAttribute extends ProcessingAttribute implements OpenMBea
                          final AggregationFunction<?> function,
                          final NameResolver resolver,
                          final AttributeDescriptor descriptor){
-        super(name, function.getReturnType().getClassName(), function.toString(), true, false, false, descriptor);
+        super(name, function.getReturnType(), function.toString(), true, false, false, descriptor);
         this.function = function;
         this.resolver = Objects.requireNonNull(resolver);
     }
@@ -38,16 +38,5 @@ final class AggregationAttribute extends ProcessingAttribute implements OpenMBea
     Object getValue(final AttributeSupport support) throws ReflectionException, AttributeNotFoundException, MBeanException {
         final Object attributeValue = support.getAttribute(AttributeDescriptor.getName(this));
         return callAndWrapException(() -> function.invoke(resolver, attributeValue), ReflectionException::new);
-    }
-
-    /**
-     * Returns the <i>open type</i> of the values of the parameter
-     * described by this <tt>OpenMBeanParameterInfo</tt> instance.
-     *
-     * @return the open type.
-     */
-    @Override
-    public OpenType<?> getOpenType() {
-        return function.getReturnType();
     }
 }

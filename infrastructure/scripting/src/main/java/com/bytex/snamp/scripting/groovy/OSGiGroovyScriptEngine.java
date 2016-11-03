@@ -83,7 +83,7 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
     @Override
     public final B createScript(final String scriptName, final Binding binding) throws ResourceException, ScriptException {
         final Script result;
-        final Binding bindingUnion = concatBindings(rootBinding, binding);
+        final Binding bindingUnion = binding == null ? rootBinding : concatBindings(rootBinding, binding);
         try {
             result = Utils.callWithContextClassLoader(getGroovyClassLoader(), () -> super.createScript(scriptName, bindingUnion));
         } catch (final ResourceException | ScriptException e){
@@ -106,7 +106,7 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
      */
     public final <C extends B> C createScript(final String scriptName, final Binding binding, final Class<C> baseScriptClass) throws ResourceException, ScriptException{
         final Script result;
-        final Binding bindingUnion = concatBindings(rootBinding, binding);
+        final Binding bindingUnion = binding == null ? rootBinding : concatBindings(rootBinding, binding);
 
         final String previousBaseClass = getConfig().getScriptBaseClass();
         getConfig().setScriptBaseClass(baseScriptClass.getName());

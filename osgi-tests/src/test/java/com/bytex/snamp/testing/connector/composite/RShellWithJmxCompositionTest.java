@@ -23,6 +23,7 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -73,17 +74,17 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Test
     public void intAttributeTest() throws JMException, InterruptedException {
-        testAttribute("int", TypeToken.of(Integer.class), 100);
+        testAttribute("integer", TypeToken.of(Integer.class), 100);
         testAttribute("maxInt", TypeToken.of(Double.class), 100D, true);
         Thread.sleep(1001);
         testAttribute("avgInt", TypeToken.of(Double.class), 100D, true);
 
-        testAttribute("int", TypeToken.of(Integer.class), 50);
+        testAttribute("integer", TypeToken.of(Integer.class), 50);
         testAttribute("maxInt", TypeToken.of(Double.class), 100D, true);
         Thread.sleep(1001);
         testAttribute("avgInt", TypeToken.of(Double.class), 0D, (expected, actual) -> actual < 100D, true);
 
-        testAttribute("int", TypeToken.of(Integer.class), 30);
+        testAttribute("integer", TypeToken.of(Integer.class), 30);
         testAttribute("maxInt", TypeToken.of(Double.class), 100D, true);
         Thread.sleep(1001);
         testAttribute("avgInt", TypeToken.of(Double.class), 0D, (expected, actual) -> actual < 100D, true);
@@ -105,7 +106,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     @Test
     public void gaugeTest() throws JMException{
         //write
-        testAttribute("int", TypeToken.of(Integer.class), 70);
+        testAttribute("integer", TypeToken.of(Integer.class), 70);
         //test
         testAttribute("gauge_fp", TypeToken.of(CompositeData.class), null, (value1, value2) -> {
             assertEquals(70D, getDouble(value2, "lastValue", Double.NaN), 0.1D);
@@ -138,6 +139,12 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
             assertTrue(value2 > 0D);
             return true;
         }, true);
+    }
+
+    @Test
+    public void groovyTest() throws JMException {
+        testAttribute("integer", TypeToken.of(Integer.class), 100);
+        testAttribute("groovy", TypeToken.of(Long.class), 101L, true);
     }
 
     @Test
@@ -271,29 +278,29 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
             attribute.getParameters().put("source", "rshell");
         });
 
-        attributes.addAndConsume("int", attribute -> {
+        attributes.addAndConsume("integer", attribute -> {
             attribute.setAlternativeName("int32");
             attribute.getParameters().put("source", "jmx");
             attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
         });
 
         attributes.addAndConsume("maxInt", attribute -> {
-            attribute.setAlternativeName("int");
+            attribute.setAlternativeName("integer");
             attribute.getParameters().put("formula", "max()");
         });
 
         attributes.addAndConsume("avgInt", attribute -> {
-            attribute.setAlternativeName("int");
+            attribute.setAlternativeName("integer");
             attribute.getParameters().put("formula", "avg(10s)");
         });
 
         attributes.addAndConsume("gauge_fp", attribute -> {
-            attribute.setAlternativeName("int");
+            attribute.setAlternativeName("integer");
             attribute.getParameters().put("formula", "gauge_fp()");
         });
 
         attributes.addAndConsume("gauge_int", attribute -> {
-            attribute.setAlternativeName("int");
+            attribute.setAlternativeName("integer");
             attribute.getParameters().put("formula", "gauge_int()");
         });
 
@@ -315,6 +322,12 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
         attributes.addAndConsume("notifRate", attribute -> {
             attribute.setAlternativeName("attributeChange");
             attribute.getParameters().put("formula", "rate()");
+        });
+
+        attributes.addAndConsume("groovy", attribute -> {
+            attribute.setAlternativeName("Composition.groovy");
+            attribute.getParameters().put("formula", "groovy()");
+            attribute.getParameters().put("groovyPath", getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator);
         });
     }
 }

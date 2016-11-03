@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.groovy;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.scripting.groovy.Scriptlet;
 
 import java.lang.ref.WeakReference;
 
@@ -10,7 +11,7 @@ import java.lang.ref.WeakReference;
  * @version 2.0
  * @since 1.0
  */
-public abstract class ManagedResourceEventScript extends ManagedResourceScript implements NotificationEmitter {
+public abstract class ManagedResourceEventScript extends Scriptlet implements NotificationEmitter, ManagedResourceScript {
     private WeakReference<NotificationEmitter> emitter;
 
     @Override

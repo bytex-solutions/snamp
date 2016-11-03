@@ -1,8 +1,6 @@
-package com.bytex.snamp.connector.groovy;
+package com.bytex.snamp.scripting.groovy;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.scripting.groovy.AttributeScript;
 
 import javax.management.openmbean.*;
 import java.lang.reflect.Method;
@@ -11,16 +9,13 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Represents an abstract class for attribute handling script
- * @author Roman Sakno
- * @version 2.0
- * @since 1.0
+ * Represents base implementation of {@link AttributeScriptlet}.
  */
-public abstract class ManagedResourceAttributeScript extends ManagedResourceFeatureScript implements AttributeAccessor {
+public abstract class AbstractAttributeScriptlet extends Scriptlet implements AttributeScriptlet {
     private static final String GET_VALUE_METHOD = "getValue";
     private static final String SET_VALUE_METHOD = "setValue";
 
-    private OpenType<?> openType = STRING;
+    protected OpenType<?> openType = STRING;
 
     /**
      * Sets type of this attribute.
@@ -35,14 +30,14 @@ public abstract class ManagedResourceAttributeScript extends ManagedResourceFeat
     @Override
     public final CompositeData asDictionary(final Map<String, ?> items) throws OpenDataException {
         if (openType instanceof CompositeType)
-            return AttributeScript.asDictionary((CompositeType) openType, items);
+            return AttributeScriptlet.asDictionary((CompositeType) openType, items);
         else throw new OpenDataException(String.format("Expected dictionary type but '%s' found", openType));
     }
 
     @Override
     public final TabularData asTable(final Collection<Map<String, ?>> rows) throws OpenDataException {
         if (openType instanceof TabularType)
-            return AttributeScript.asTable((TabularType) openType, rows);
+            return AttributeScriptlet.asTable((TabularType) openType, rows);
         else throw new OpenDataException(String.format("Expected dictionary type but '%s' found", openType));
     }
 
@@ -53,7 +48,6 @@ public abstract class ManagedResourceAttributeScript extends ManagedResourceFeat
      * @throws Exception Unable to get attribute value.
      */
     @SpecialUse
-    @Override
     public Object getValue() throws Exception {
         throw new UnsupportedOperationException();
     }
@@ -101,21 +95,6 @@ public abstract class ManagedResourceAttributeScript extends ManagedResourceFeat
     }
 
     /**
-     * Releases all resources associated with this attribute.
-     *
-     * @throws Exception Releases all resources associated with this attribute.
-     */
-    @Override
-    @SpecialUse
-    public void close() throws Exception {
-        openType = null;
-    }
-
-    //</editor-fold>
-
-    //<editor-fold desc="Internal operations">
-
-    /**
      * Gets type of this attribute.
      *
      * @return The type of this attribute.
@@ -123,13 +102,5 @@ public abstract class ManagedResourceAttributeScript extends ManagedResourceFeat
     @Override
     public final OpenType<?> type() {
         return openType;
-    }
-
-    @Override
-    public final AttributeSpecifier specifier() {
-        return AttributeSpecifier
-                .NOT_ACCESSIBLE
-                .writable(isWritable())
-                .readable(isReadable());
     }
 }

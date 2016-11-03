@@ -42,7 +42,7 @@ public final class ManagedResourceScriptEngineTest extends Assert {
         config.setReadWriteTimeout(2, ChronoUnit.SECONDS);
 
         final AttributeAccessor scr = engine.loadAttribute("DummyAttribute", new AttributeDescriptor(config));
-        assertEquals(ManagedResourceAttributeScript.INT32, scr.type());
+        assertEquals(ManagedResourceAttributeScriptlet.INT32, scr.type());
         assertTrue(scr.specifier().canRead());
         assertTrue(scr.specifier().canWrite());
 

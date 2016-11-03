@@ -23,7 +23,7 @@ import javax.management.ReflectionException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
+import static com.bytex.snamp.MapUtils.toProperties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -262,12 +262,6 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     private final ManagedResourceInfo groovyConnector;
     @Aggregation(cached = true)
     private final GroovyNotificationRepository events;
-
-    static Properties toProperties(final Map<String, String> params){
-        final Properties props = new Properties();
-        props.putAll(params);
-        return props;
-    }
 
     GroovyResourceConnector(final String resourceName,
                             final String connectionString,

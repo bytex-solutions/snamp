@@ -40,6 +40,11 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         channel = new NotificationChannel(attributes, parser);
     }
 
+    @Aggregation
+    protected final MessageDrivenAttributeRepository getAttributes(){
+        return channel.attributes;
+    }
+
     /**
      * Creates a new notification parser.
      * @param parameters Set of parameters that may be used by notification parser.

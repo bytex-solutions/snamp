@@ -4,7 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.groovy.dsl.GroovyManagementModel;
-import com.bytex.snamp.scripting.groovy.ScriptingAPISupport;
+import com.bytex.snamp.scripting.groovy.Scriptlet;
 import groovy.lang.Closure;
 
 import javax.management.JMException;
@@ -16,7 +16,7 @@ import java.time.Duration;
  * @version 2.0
  * @since 1.0
  */
-public abstract class GatewayScript extends ScriptingAPISupport implements AutoCloseable, NotificationListener {
+public abstract class GatewayScript extends Scriptlet implements AutoCloseable, NotificationListener {
     public static final String MODEL_GLOBAL_VAR = "resources";
 
     private GroovyManagementModel getModel() {

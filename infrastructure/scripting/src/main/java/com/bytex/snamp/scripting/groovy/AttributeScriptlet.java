@@ -20,7 +20,7 @@ import static com.bytex.snamp.scripting.groovy.OpenDataScriptHelpers.*;
  * @version 2.0
  * @since 2.0
  */
-public interface AttributeScript extends ScriptingAPI {
+public interface AttributeScriptlet extends ScriptingAPI {
     @SpecialUse
     SimpleType<Byte> INT8 = SimpleType.BYTE;
     @SpecialUse

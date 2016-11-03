@@ -20,15 +20,15 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 public class ScriptingAPITest extends Assert {
-    private final OSGiGroovyScriptEngine<ScriptingAPISupport> engine;
+    private final OSGiGroovyScriptEngine<Scriptlet> engine;
 
     public ScriptingAPITest() throws IOException {
         final Path path = Paths.get(System.getProperty("DummyScriptFile"), OperatingSystem.isWindows() ? "sample-groovy-scripts\\" : "sample-groovy-scripts/");
         engine = new OSGiGroovyScriptEngine<>(getClass().getClassLoader(),
                 new Properties(),
-                ScriptingAPISupport.class,
+                Scriptlet.class,
                 path.toString());
-        ScriptingAPISupport.setLogger(engine.getGlobalVariables(), Logger.getLogger("TestLogger"));
+        Scriptlet.setLogger(engine.getGlobalVariables(), Logger.getLogger("TestLogger"));
     }
 
     @Test

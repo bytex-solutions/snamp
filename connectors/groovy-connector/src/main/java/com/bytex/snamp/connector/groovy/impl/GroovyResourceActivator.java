@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Logger;
+import static com.bytex.snamp.MapUtils.toProperties;
 
 
 /**
@@ -46,7 +47,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
                         connectionString,
                         getLogger(),
                         getClass().getClassLoader(),
-                        GroovyResourceConnector.toProperties(connectionOptions),
+                        toProperties(connectionOptions),
                         paths);
                 final String initScript = GroovyResourceConfigurationDescriptor.getInitScriptFile(connectionOptions);
                 return engine.init(initScript, true, connectionOptions);

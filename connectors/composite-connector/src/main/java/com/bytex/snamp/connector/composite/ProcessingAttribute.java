@@ -1,11 +1,13 @@
 package com.bytex.snamp.connector.composite;
 
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.ImmutableSet;
 
 import javax.management.Descriptor;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
+import javax.management.openmbean.OpenType;
 import java.util.Set;
 
 /**
@@ -15,9 +17,16 @@ import java.util.Set;
  */
 abstract class ProcessingAttribute extends AbstractCompositeAttribute implements OpenMBeanAttributeInfo {
     private static final long serialVersionUID = -2637191597713326303L;
+    private final OpenType<?> type;
 
-    ProcessingAttribute(final String name, final String type, final String description, final boolean isReadable, final boolean isWritable, final boolean isIs, final Descriptor descriptor) {
-        super(name, type, description, isReadable, isWritable, isIs, descriptor);
+    ProcessingAttribute(final String name, final OpenType<?> type, final String description, final boolean isReadable, final boolean isWritable, final boolean isIs, final AttributeDescriptor descriptor) {
+        super(name, type.getClassName(), description, isReadable, isWritable, isIs, descriptor);
+        this.type = type;
+    }
+
+    @Override
+    public OpenType<?> getOpenType() {
+        return type;
     }
 
     abstract Object getValue(final AttributeSupport support) throws Exception;
