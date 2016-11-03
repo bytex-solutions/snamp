@@ -6,7 +6,6 @@ import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.NameResolver;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.bytex.snamp.parser.ParseException;
 
 import javax.management.*;
 import javax.management.openmbean.SimpleType;
@@ -174,7 +173,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
         if(metadata instanceof AliasAttribute)
             return ((AliasAttribute) metadata).getValue(attributeSupportProvider);
         else if(metadata instanceof ProcessingAttribute)
-            return ((AggregationAttribute) metadata).getValue(this);
+            return ((ProcessingAttribute) metadata).getValue(this);
         else if(metadata instanceof MetricAttribute<?>)
             return ((MetricAttribute<?>) metadata).getValue();
         else

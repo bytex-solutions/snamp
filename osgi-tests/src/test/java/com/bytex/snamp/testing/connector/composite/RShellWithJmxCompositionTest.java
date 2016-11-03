@@ -144,7 +144,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     @Test
     public void groovyTest() throws JMException {
         testAttribute("integer", TypeToken.of(Integer.class), 100);
-        testAttribute("groovy", TypeToken.of(Long.class), 101L, true);
+        testAttribute("groovy", TypeToken.of(Long.class), 110L, true);
     }
 
     @Test

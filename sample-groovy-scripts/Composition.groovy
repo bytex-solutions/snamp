@@ -1,5 +1,5 @@
 type INT64
 
 def getValue() {
-    integer + 10
+    integer + 10L
 }

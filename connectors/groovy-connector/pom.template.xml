@@ -40,9 +40,7 @@
                         <Export-Package>
                             com.bytex.snamp.connector.groovy
                         </Export-Package>
-                        <DynamicImport-Package>
-                            *
-                        </DynamicImport-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                         <!--SNAMP specific header-->
                         <Provide-Capability>com.bytex.snamp.connector; type=groovy</Provide-Capability>
                     </instructions>

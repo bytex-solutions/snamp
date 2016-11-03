@@ -37,6 +37,7 @@
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.connector.composite</Bundle-SymbolicName>
                         <Bundle-Activator>com.bytex.snamp.connector.composite.CompositeResourceActivator</Bundle-Activator>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                         <!--SNAMP specific header-->
                         <Provide-Capability>com.bytex.snamp.connector; type=composite</Provide-Capability>
                     </instructions>
