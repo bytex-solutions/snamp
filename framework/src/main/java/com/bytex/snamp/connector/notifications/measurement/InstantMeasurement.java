@@ -11,7 +11,7 @@ import java.util.OptionalLong;
  * @version 2.0
  * @since 2.0
  */
-public class ValueChangedNotification extends MeasurementNotification {
+public class InstantMeasurement extends Measurement {
     private static final long serialVersionUID = -7177935916249311678L;
 
     /**
@@ -21,9 +21,9 @@ public class ValueChangedNotification extends MeasurementNotification {
 
     private ModificationType modification;
 
-    private ValueChangedNotification(final String componentName,
-                             final String instanceName,
-                             final String message) {
+    private InstantMeasurement(final String componentName,
+                               final String instanceName,
+                               final String message) {
         super(TYPE, componentName, instanceName, message);
         modification = ModificationType.NEW_VALUE;
     }
@@ -92,11 +92,11 @@ public class ValueChangedNotification extends MeasurementNotification {
         return Optional.empty();
     }
 
-    public static ValueChangedNotification ofString(final String componentName,
-                                                    final String instanceName,
-                                                    final String message,
-                                                    final String value){
-        return new ValueChangedNotification(componentName, instanceName, message){
+    public static InstantMeasurement ofString(final String componentName,
+                                              final String instanceName,
+                                              final String message,
+                                              final String value){
+        return new InstantMeasurement(componentName, instanceName, message){
             private static final long serialVersionUID = 6782560266045306772L;
 
             @Override
@@ -111,11 +111,11 @@ public class ValueChangedNotification extends MeasurementNotification {
         };
     }
 
-    public static ValueChangedNotification ofLong(final String componentName,
-                                                  final String instanceName,
-                                                  final String message,
-                                                  final long value){
-        return new ValueChangedNotification(componentName, instanceName, message){
+    public static InstantMeasurement ofLong(final String componentName,
+                                            final String instanceName,
+                                            final String message,
+                                            final long value){
+        return new InstantMeasurement(componentName, instanceName, message){
             private static final long serialVersionUID = -1182708770615184076L;
 
             @Override
@@ -135,11 +135,11 @@ public class ValueChangedNotification extends MeasurementNotification {
         };
     }
 
-    public static ValueChangedNotification ofBoolean(final String componentName,
-                                                     final String instanceName,
-                                                     final String message,
-                                                     final boolean value){
-        return new ValueChangedNotification(componentName, instanceName, message){
+    public static InstantMeasurement ofBoolean(final String componentName,
+                                               final String instanceName,
+                                               final String message,
+                                               final boolean value){
+        return new InstantMeasurement(componentName, instanceName, message){
             private static final long serialVersionUID = 4958445472595461806L;
 
             @Override
@@ -164,11 +164,11 @@ public class ValueChangedNotification extends MeasurementNotification {
         };
     }
 
-    public static ValueChangedNotification ofDouble(final String componentName,
-                                                    final String instanceName,
-                                                    final String message,
-                                                    final double value){
-        return new ValueChangedNotification(componentName, instanceName, message){
+    public static InstantMeasurement ofDouble(final String componentName,
+                                              final String instanceName,
+                                              final String message,
+                                              final double value){
+        return new InstantMeasurement(componentName, instanceName, message){
             private static final long serialVersionUID = -5581192241225949587L;
 
             @Override

@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
-import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
 import javax.management.Notification;
 import javax.management.NotificationListener;
@@ -25,7 +24,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     private final WriteOnceRef<ExecutorService> threadPool;
     private final WriteOnceRef<Logger> logger;
 
-    protected MessageDrivenAttributeRepository(final String resourceName,
+    public MessageDrivenAttributeRepository(final String resourceName,
                                      final Duration syncPeriod) {
         super(resourceName, MessageDrivenAttribute.class, false, syncPeriod);
         threadPool = new WriteOnceRef<>();
@@ -51,7 +50,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     }
 
     @Override
-    protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+    protected final void failedToConnectAttribute(final String attributeName, final Exception e) {
         failedToConnectAttribute(getLogger(), Level.SEVERE, attributeName, e);
     }
 

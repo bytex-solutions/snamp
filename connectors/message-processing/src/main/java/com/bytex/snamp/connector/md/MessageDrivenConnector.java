@@ -2,15 +2,12 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
-import com.bytex.snamp.connector.notifications.measurement.MeasurementSource;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
+import com.bytex.snamp.connector.notifications.measurement.NotificationSource;
 
-import javax.management.Notification;
-import javax.management.NotificationListener;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
 
 /**
  * Represents abstract class for message-driven resource connector.
@@ -22,7 +19,7 @@ import java.util.logging.Level;
  * @version 2.0
  */
 public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector {
-    protected final MeasurementSource source;
+    protected final NotificationSource source;
     protected final NotificationChannel channel;
 
     protected MessageDrivenConnector(final String resourceName,
@@ -30,19 +27,36 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
                                      final MessageDrivenConnectorConfigurationDescriptor descriptor) {
         final String componentInstance = descriptor.parseComponentInstance(parameters, resourceName);
         final String componentName = descriptor.parseComponentName(parameters);
-        source = new MeasurementSource(componentName, componentInstance);
+        source = new NotificationSource(componentName, componentInstance);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
+        //init parser
         final NotificationParser parser = createNotificationParser(parameters);
         assert parser != null;
+        //init attributes
         final MessageDrivenAttributeRepository attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
         assert attributes != null;
         attributes.init(threadPool, getLogger());
-        channel = new NotificationChannel(attributes, parser);
+        //init notifications
+        final MessageDrivenNotificationRepository notifications = createNotificationRepository(resourceName);
+        assert notifications != null;
+        notifications.init(threadPool, getLogger());
+
+        channel = new NotificationChannel(attributes, notifications, parser);
     }
 
-    @Aggregation
+    @Aggregation(cached = true)
     protected final MessageDrivenAttributeRepository getAttributes(){
         return channel.attributes;
+    }
+
+    @Aggregation(cached = true)
+    protected final MessageDrivenNotificationRepository getNotifications(){
+        return channel.notifications;
+    }
+
+    @Override
+    protected final MetricsSupport createMetricsReader() {
+        return assembleMetricsReader(channel.attributes, channel.notifications);
     }
 
     /**
@@ -64,14 +78,18 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         return new MessageDrivenAttributeRepository(resourceName, syncPeriod);
     }
 
+    protected MessageDrivenNotificationRepository createNotificationRepository(final String resourceName){
+        return new MessageDrivenNotificationRepository(resourceName);
+    }
+
     @Override
     public final void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, channel.attributes);
+        addResourceEventListener(listener, channel.attributes, channel.notifications);
     }
 
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, channel.attributes);
+        removeResourceEventListener(listener, channel.attributes, channel.notifications);
     }
 
     /**
@@ -81,6 +99,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     @Override
     public void close() throws Exception {
         channel.attributes.close();
+        channel.notifications.close();
         super.close();
     }
 }

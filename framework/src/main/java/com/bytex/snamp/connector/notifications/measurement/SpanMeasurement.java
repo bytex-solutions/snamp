@@ -15,7 +15,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class SpanNotification extends StopwatchNotification {
+public final class SpanMeasurement extends StopwatchMeasurement {
     private static final TypeToken<Map<String, String>> USER_DATA_TYPE = new TypeToken<Map<String, String>>() {};
 
     private static final class SpanContext extends HashMap<String, String> implements SerializableMap<String, String>{
@@ -36,14 +36,16 @@ public final class SpanNotification extends StopwatchNotification {
 
     private static final long serialVersionUID = 6986676615521377795L;
 
-    private final Identifier correlationID;
+    private final Identifier spanID;
+    private Identifier parentSpan;
+    private Identifier correlationID;
 
-    public SpanNotification(final Identifier correlationID,
-                            final String componentName,
-                            final String instanceName,
-                            final String message){
+    public SpanMeasurement(final Identifier spanID,
+                           final String componentName,
+                           final String instanceName,
+                           final String message){
         super(TYPE, componentName, instanceName, message);
-        this.correlationID = Objects.requireNonNull(correlationID);
+        this.spanID = Objects.requireNonNull(spanID);
         setUserData(new SpanContext());
     }
 
@@ -79,5 +81,29 @@ public final class SpanNotification extends StopwatchNotification {
      */
     public Identifier getCorrelationID(){
         return correlationID;
+    }
+
+    /**
+     * Sets correlation identifier of this span.
+     * @param value Correlation identifier of this span.
+     */
+    public void setCorrelationID(final Identifier value){
+        correlationID = value;
+    }
+
+    /**
+     * Gets unique identifier of this notification.
+     * @return Unique identifier of this notification.
+     */
+    public Identifier getSpanID(){
+        return spanID;
+    }
+
+    public Identifier getParentSpanID(){
+        return parentSpan;
+    }
+
+    public void setParentSpanID(final Identifier value){
+        parentSpan = value;
     }
 }

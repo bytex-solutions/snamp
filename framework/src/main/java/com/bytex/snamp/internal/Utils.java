@@ -14,7 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Spliterator;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.function.*;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
@@ -217,17 +217,17 @@ public final class Utils {
 
     public static <T> void parallelForEach(final Spliterator<T> spliterator,
                                                                        final Consumer<? super T> action,
-                                                                       final ExecutorService threadPool) {
+                                                                       final Executor threadPool) {
         for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
             final Spliterator<T> subset = spliterator.trySplit();
             if (subset == null) return;
-            threadPool.submit(() -> subset.forEachRemaining(action::accept));
+            threadPool.execute(() -> subset.forEachRemaining(action));
         }
     }
 
     public static <T> void parallelForEach(final Iterable<T> collection,
                                               final Consumer<? super T> action,
-                                              final ExecutorService threadPool){
+                                              final Executor threadPool){
         parallelForEach(collection.spliterator(), action, threadPool);
     }
 

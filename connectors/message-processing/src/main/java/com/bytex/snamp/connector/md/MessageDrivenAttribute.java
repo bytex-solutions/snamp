@@ -3,10 +3,8 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
 import javax.management.MBeanException;
-import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.openmbean.OpenType;
 

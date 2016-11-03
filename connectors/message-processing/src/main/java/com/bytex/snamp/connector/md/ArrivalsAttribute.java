@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.ArrivalsRecorder;
-import com.bytex.snamp.connector.notifications.measurement.StopwatchNotification;
+import com.bytex.snamp.connector.notifications.measurement.StopwatchMeasurement;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -15,14 +15,14 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromArrivals;
  * @since 2.0
  * @version 2.0
  */
-final class ArrivalsAttribute extends MetricHolderAttribute<ArrivalsRecorder, StopwatchNotification> {
+final class ArrivalsAttribute extends MetricHolderAttribute<ArrivalsRecorder, StopwatchMeasurement> {
     static final CompositeType TYPE = ARRIVALS_TYPE;
     static final String NAME = "arrivals";
     private static final long serialVersionUID = -5234028741040752357L;
     private final long channels;
 
     ArrivalsAttribute(final String name, final AttributeDescriptor descriptor) {
-        super(StopwatchNotification.class, name, TYPE, descriptor, ArrivalsRecorder::new);
+        super(StopwatchMeasurement.class, name, TYPE, descriptor, ArrivalsRecorder::new);
         channels = MessageDrivenConnectorConfigurationDescriptor.parseChannels(descriptor);
     }
 
@@ -32,7 +32,7 @@ final class ArrivalsAttribute extends MetricHolderAttribute<ArrivalsRecorder, St
     }
 
     @Override
-    void updateMetric(final ArrivalsRecorder metric, final StopwatchNotification notification) {
+    void updateMetric(final ArrivalsRecorder metric, final StopwatchMeasurement notification) {
         metric.accept(notification.getDuration());
     }
 }

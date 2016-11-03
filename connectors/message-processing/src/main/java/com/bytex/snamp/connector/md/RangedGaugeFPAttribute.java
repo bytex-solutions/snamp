@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.RangedGaugeFPRecorder;
-import com.bytex.snamp.connector.notifications.measurement.ValueChangedNotification;
+import com.bytex.snamp.connector.notifications.measurement.InstantMeasurement;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -15,13 +15,13 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRangedFP;
  * @since 2.0
  * @version 2.0
  */
-final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRecorder, ValueChangedNotification> {
+final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRecorder, InstantMeasurement> {
     static final CompositeType TYPE = RANGED_GAUGE_FP_TYPE;
     static final String NAME = "rangedGaugeFP";
     private static final long serialVersionUID = -5234028741040752357L;
 
     private RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor, final double rangeStart, final double rangeEnd){
-        super(ValueChangedNotification.class, name, TYPE, descriptor, (n) -> new RangedGaugeFPRecorder(n, rangeStart, rangeEnd));
+        super(InstantMeasurement.class, name, TYPE, descriptor, (n) -> new RangedGaugeFPRecorder(n, rangeStart, rangeEnd));
     }
 
     RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
@@ -37,7 +37,7 @@ final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRe
     }
 
     @Override
-    void updateMetric(RangedGaugeFPRecorder metric, ValueChangedNotification notification) {
+    void updateMetric(RangedGaugeFPRecorder metric, InstantMeasurement notification) {
         if (notification.isFloatingPoint())
             metric.updateValue(x -> notification.applyAsDouble(x).orElse(x));
     }

@@ -1,7 +1,11 @@
 package com.bytex.snamp.connector.notifications;
 
+import javax.management.Notification;
 import javax.management.NotificationListener;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+
+import static com.bytex.snamp.internal.Utils.parallelForEach;
 
 /**
  * Represents commonly used listener invocation strategies.
@@ -15,6 +19,20 @@ public final class NotificationListenerInvokerFactory {
         throw new InstantiationError();
     }
 
+    private static Consumer<? super NotificationListener> consumerOf(final Notification n, final Object handback){
+        return listener -> listener.handleNotification(n, handback);
+    }
+
+    private static Consumer<? super NotificationListener> consumerOf(final Notification n, final Object handback, final ExceptionHandler handler){
+        return listener -> {
+            try {
+                listener.handleNotification(n, handback);
+            } catch (final Throwable e){
+                handler.handle(e, listener);
+            }
+        };
+    }
+
     /**
      * Creates an invoker that invokes a list of listeners sequentially (one-by-one) in the caller thread.
      * <p>
@@ -23,7 +41,7 @@ public final class NotificationListenerInvokerFactory {
      * @return A new instance of the invoker.
      */
     public static NotificationListenerSequentialInvoker createSequentialInvoker(){
-        return (n, handback, listeners) -> listeners.forEach(listener -> listener.handleNotification(n, handback));
+        return (n, handback, listeners) -> listeners.forEach(consumerOf(n, handback));
     }
 
     /**
@@ -48,17 +66,10 @@ public final class NotificationListenerInvokerFactory {
      * @return A new instance of the listener invoker that uses {@link Executor} for listener invocation.
      */
     public static NotificationListenerInvoker createParallelInvoker(final Executor executor) {
-        return (n, handback, listeners) -> listeners.forEach(listener -> executor.execute(() -> listener.handleNotification(n, handback)));
+        return (n, handback, listeners) -> parallelForEach(listeners, consumerOf(n, handback), executor);
     }
 
     public static NotificationListenerInvoker createParallelExceptionResistantInvoker(final Executor executor, final ExceptionHandler handler){
-        return (n, handback, listeners) -> listeners.forEach(listener -> executor.execute(() -> {
-            try{
-                listener.handleNotification(n, handback);
-            }
-            catch (final Throwable e){
-                handler.handle(e, listener);
-            }
-        }));
+        return (n, handback, listeners) -> parallelForEach(listeners, consumerOf(n, handback, handler), executor);
     }
 }

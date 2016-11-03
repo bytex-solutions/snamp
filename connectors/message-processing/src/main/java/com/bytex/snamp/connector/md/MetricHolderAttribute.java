@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.AbstractMetric;
-import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
 import javax.management.Notification;
 import javax.management.openmbean.CompositeData;

@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.RangedGauge64Recorder;
-import com.bytex.snamp.connector.notifications.measurement.ValueChangedNotification;
+import com.bytex.snamp.connector.notifications.measurement.InstantMeasurement;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -15,13 +15,13 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRatedGauge64;
  * @since 2.0
  * @version 2.0
  */
-final class RangedGauge64Attribute extends MetricHolderAttribute<RangedGauge64Recorder, ValueChangedNotification> {
+final class RangedGauge64Attribute extends MetricHolderAttribute<RangedGauge64Recorder, InstantMeasurement> {
     static final CompositeType TYPE = RANGED_GAUGE_64_TYPE;
     static final String NAME = "rangedGauge64";
     private static final long serialVersionUID = -5234028741040752357L;
 
     private RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor, final long rangeStart, final long rangeEnd){
-        super(ValueChangedNotification.class, name, TYPE, descriptor, (n) -> new RangedGauge64Recorder(n, rangeStart, rangeEnd));
+        super(InstantMeasurement.class, name, TYPE, descriptor, (n) -> new RangedGauge64Recorder(n, rangeStart, rangeEnd));
     }
 
     RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
@@ -37,7 +37,7 @@ final class RangedGauge64Attribute extends MetricHolderAttribute<RangedGauge64Re
     }
 
     @Override
-    void updateMetric(final RangedGauge64Recorder metric, final ValueChangedNotification notification) {
+    void updateMetric(final RangedGauge64Recorder metric, final InstantMeasurement notification) {
         if (notification.isInteger())
             metric.updateValue(x -> notification.applyAsLong(x).orElse(x));
     }

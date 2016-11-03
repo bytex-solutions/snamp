@@ -10,19 +10,19 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public class StopwatchNotification extends MeasurementNotification {
+public class StopwatchMeasurement extends Measurement {
     private static final long serialVersionUID = -511699973106291280L;
     private Duration duration;
 
     public static final String TYPE = "com.bytex.measurement.stopwatch";
 
-    StopwatchNotification(final String type, final String componentName, final String instanceName, final String message) {
+    StopwatchMeasurement(final String type, final String componentName, final String instanceName, final String message) {
         super(type, componentName, instanceName, message);
         duration = Duration.ZERO;
         setTimeStamp(System.currentTimeMillis());
     }
 
-    public StopwatchNotification(final String componentName, final String instanceName, final String message){
+    public StopwatchMeasurement(final String componentName, final String instanceName, final String message){
         this(TYPE, componentName, instanceName, message);
     }
 

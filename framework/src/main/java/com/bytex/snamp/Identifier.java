@@ -15,8 +15,8 @@ import static com.bytex.snamp.ArrayUtils.toByteArray;
 /**
  * Represents unique identifier.
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
 public final class Identifier implements Serializable {
     private static final long serialVersionUID = -767298982099087481L;

@@ -12,9 +12,7 @@ import com.google.common.collect.ImmutableSet;
 
 import javax.management.*;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.LongSupplier;
+import java.util.function.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -141,29 +139,36 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     protected final boolean fire(final String category,
-                              final String message,
-                              final long sequenceNumber,
-                              final long timeStamp,
-                              final Object userData) {
+                                 final Function<? super M, ? extends Notification> notificationFactory){
         if(isSuspended())
             return false;
         final Collection<Notification> notifs = readLock.apply(SingleResourceGroup.INSTANCE, notifications, n -> n.values().stream()
                 .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder), category))
-                .map(holder -> new NotificationBuilder()
-                        .setTimeStamp(timeStamp)
-                        .setSequenceNumber(sequenceNumber)
-                        .setType(ArrayUtils.getFirst(holder.getNotifTypes()))
-                        .setSource(this)
-                        .setMessage(message)
-                        .setUserData(userData)
-                        .get()
-                ).
-                        collect(Collectors.toList()));
+                .map(holder -> {
+                    final Notification notification = notificationFactory.apply(holder);
+                    notification.setSource(this);
+                    return notification;
+                })
+                .collect(Collectors.toList()));
         final boolean hasNotifications = !notifs.isEmpty();
         //fire listeners
         fireListeners(notifs);
         notifs.clear();     //help GC
         return hasNotifications;
+    }
+
+    protected final boolean fire(final String category,
+                              final String message,
+                              final long sequenceNumber,
+                              final long timeStamp,
+                              final Object userData) {
+        return fire(category, holder -> new NotificationBuilder()
+                .setTimeStamp(timeStamp)
+                .setSequenceNumber(sequenceNumber)
+                .setType(ArrayUtils.getFirst(holder.getNotifTypes()))
+                .setMessage(message)
+                .setUserData(userData)
+                .get());
     }
 
     /**

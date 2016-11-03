@@ -1,12 +1,14 @@
 package com.bytex.snamp.connector.notifications.measurement;
 
+import java.io.Serializable;
+
 /**
  * Represents modification of gauge.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public enum ModificationType {
+public enum ModificationType implements Serializable {
     /**
      * A new gauge value must be computed as addition of newly supplied and existing value.
      */
