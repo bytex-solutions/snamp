@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.md;
 
+import com.bytex.snamp.Stateful;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.AbstractMetric;
 
@@ -23,7 +24,7 @@ import static com.bytex.snamp.concurrent.LockManager.lockAndApply;
  * @version 2.0
  * @since 2.0
  */
-abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notification> extends DistributedAttribute<CompositeData, N> implements AutoCloseable {
+abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notification> extends DistributedAttribute<CompositeData, N> implements AutoCloseable, Stateful {
     private static final long serialVersionUID = 2645456225474793148L;
     private M metric;
     private final Predicate<? super Serializable> isInstance;
@@ -43,6 +44,15 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
         assert metric != null;
         isInstance = metric.getClass()::isInstance;
         lockManager = new ReentrantReadWriteLock();
+    }
+
+    private void resetImpl(){
+        metric.reset();
+    }
+
+    @Override
+    public final void reset() {
+        lockAndAccept(lockManager.readLock(), this, MetricHolderAttribute::resetImpl);
     }
 
     abstract CompositeData getValue(final M metric);

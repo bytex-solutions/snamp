@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.jmx.OpenMBean;
+import com.bytex.snamp.jmx.OpenMBeanParameterInfoSupplier;
 
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
@@ -15,7 +16,7 @@ abstract class AbstractConnectorOperation extends OpenMBean.OpenOperation<Void, 
     /**
      * The CONNECTOR name param.
      */
-    private static final TypedParameterInfo<String> RESOURCE_NAME_PARAM = new TypedParameterInfo<>(
+    private static final OpenMBeanParameterInfoSupplier<String> RESOURCE_NAME_PARAM = new OpenMBeanParameterInfoSupplier<>(
             "resourceName",
             "Name of managed resource",
             SimpleType.STRING,

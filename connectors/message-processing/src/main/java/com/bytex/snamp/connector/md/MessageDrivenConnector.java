@@ -22,6 +22,8 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
      * Represents channel that can be used to process notifications.
      */
     protected final NotificationDispatcher channel;
+    @Aggregation(cached = true)
+    private final SpecialOperationsRepository operations;
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
@@ -42,6 +44,8 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         notifications.init(threadPool, getLogger());
 
         channel = new NotificationDispatcher(componentName, componentInstance, attributes, notifications, getLogger(), parser);
+
+        operations = new SpecialOperationsRepository(resourceName, channel.attributes, getLogger());
     }
 
     @Aggregation(cached = true)
@@ -83,12 +87,12 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     @Override
     public final void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, channel.attributes, channel.notifications);
+        addResourceEventListener(listener, channel.attributes, channel.notifications, operations);
     }
 
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, channel.attributes, channel.notifications);
+        removeResourceEventListener(listener, channel.attributes, channel.notifications, operations);
     }
 
     /**
@@ -99,6 +103,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     public void close() throws Exception {
         channel.attributes.close();
         channel.notifications.close();
+        operations.close();
         super.close();
     }
 }

@@ -231,7 +231,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
          */
         @Override
         protected Object invoke(final OperationCallInfo<JmxOperationInfo> callInfo) throws Exception {
-            return callInfo.getMetadata().invoke(connectionManager,
+            return callInfo.getOperation().invoke(connectionManager,
                     callInfo.toArray());
         }
 

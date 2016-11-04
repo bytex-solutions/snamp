@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.jmx.OpenMBean;
+import com.bytex.snamp.jmx.OpenMBeanParameterInfoSupplier;
 
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
@@ -12,7 +13,7 @@ import java.util.Map;
  * @version 2.0
  */
 abstract class AbstractGatewayOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> {
-    private static final TypedParameterInfo<String> GATEWAY_TYPE_PARAM = new TypedParameterInfo<>(
+    private static final OpenMBeanParameterInfoSupplier<String> GATEWAY_TYPE_PARAM = new OpenMBeanParameterInfoSupplier<>(
             "gatewayType",
             "Type of gateway",
             SimpleType.STRING,

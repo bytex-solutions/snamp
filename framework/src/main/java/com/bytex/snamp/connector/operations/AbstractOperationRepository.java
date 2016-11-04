@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,7 +36,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * from your code.
      * @param <M> Type of the operation metadata.
      */
-    protected static final class OperationCallInfo<M extends MBeanOperationInfo> extends AbstractList<Object> implements DescriptorRead, Supplier<Map<String, ?>> {
+    protected static final class OperationCallInfo<M extends MBeanOperationInfo> extends AbstractList<Object> implements DescriptorRead {
         private final M metadata;
         private final Object[] arguments;
         private final String[] signature;
@@ -64,8 +64,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
         @Override
         public <T> T[] toArray(T[] a) {
-            if (a == null) throw new NullPointerException();
-            else if (a.length == 0) a = ObjectArrays.newArray(a, arguments.length);
+            if (a.length == 0) a = ObjectArrays.newArray(a, arguments.length);
             System.arraycopy(arguments, 0, a, 0, a.length);
             return a;
         }
@@ -74,7 +73,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
          * Returns a metadata of the operation.
          * @return Metadata of the operation.
          */
-        public M getMetadata(){
+        public M getOperation(){
             return metadata;
         }
 
@@ -86,7 +85,16 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
          */
         @Override
         public Descriptor getDescriptor() {
-            return getMetadata().getDescriptor();
+            return getOperation().getDescriptor();
+        }
+
+        private <K, V> Map<K, V> toMap(final Function<? super MBeanParameterInfo, ? extends K> keyMapper,
+                             final Function<Object, ? extends V> valueMapper){
+            final Map<K, V> result = Maps.newHashMapWithExpectedSize(arguments.length);
+            final MBeanParameterInfo[] parameters = metadata.getSignature();
+            for(int i = 0; i < parameters.length; i++)
+                result.put(keyMapper.apply(parameters[i]), valueMapper.apply(arguments[i]));
+            return result;
         }
 
         /**
@@ -94,11 +102,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
          * @return A set of arguments bounded to its parameters.
          */
         public Map<String, ?> toNamedArguments(){
-            final Map<String, Object> result = Maps.newHashMapWithExpectedSize(arguments.length);
-            final MBeanParameterInfo[] parameters = metadata.getSignature();
-            for(int i = 0; i < parameters.length; i++)
-                result.put(parameters[i].getName(), arguments[i]);
-            return result;
+            return toMap(MBeanParameterInfo::getName, Function.identity());
         }
 
         /**
@@ -106,20 +110,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
          * @return A set of arguments bounded to its parameters.
          */
         public Map<MBeanParameterInfo, ?> toMap(){
-            final Map<MBeanParameterInfo, Object> result = Maps.newHashMapWithExpectedSize(arguments.length);
-            final MBeanParameterInfo[] parameters = metadata.getSignature();
-            for(int i = 0; i < parameters.length; i++)
-                result.put(parameters[i], arguments[i]);
-            return result;
-        }
-
-        /**
-         * Converts this list of arguments into the map of named arguments.
-         * @return A set of arguments bounded to its parameters.
-         */
-        @Override
-        public Map<String, ?> get(){
-            return toNamedArguments();
+            return toMap(Function.identity(), Function.identity());
         }
 
         /**

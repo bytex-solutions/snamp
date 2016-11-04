@@ -376,7 +376,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         @Override
         protected Object invoke(final OperationCallInfo<JavaBeanOperationInfo> callInfo) throws Exception {
             try {
-                return callInfo.invoke(callInfo.getMetadata().handle);
+                return callInfo.invoke(callInfo.getOperation().handle);
             } catch (final Exception | Error e) {
                 throw e;
             } catch (final Throwable e) {

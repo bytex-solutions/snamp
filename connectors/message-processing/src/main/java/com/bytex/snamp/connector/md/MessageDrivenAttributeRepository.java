@@ -9,6 +9,7 @@ import javax.management.NotificationListener;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,7 +21,7 @@ import static com.bytex.snamp.internal.Utils.convertTo;
  * @version 2.0
  * @since 2.0
  */
-public class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> implements NotificationListener {
+public class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> implements NotificationListener, AttributeLookup {
     private final WriteOnceRef<ExecutorService> threadPool;
     private final WriteOnceRef<Logger> logger;
 
@@ -36,9 +37,6 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
         this.logger.set(logger);
     }
 
-    private Logger getLogger(){
-        return logger.get();
-    }
 
     @Override
     protected MessageDrivenAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
@@ -51,7 +49,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
 
     @Override
     protected final void failedToConnectAttribute(final String attributeName, final Exception e) {
-        failedToConnectAttribute(getLogger(), Level.SEVERE, attributeName, e);
+        failedToConnectAttribute(logger.get(), Level.SEVERE, attributeName, e);
     }
 
     /**
@@ -122,5 +120,22 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
         parallelForEach(attribute -> attribute.handleNotification(notification, handback), getThreadPool());
+    }
+
+    @Override
+    public final <A extends MessageDrivenAttribute> void forEachAttribute(final Class<A> attributeType, final Consumer<? super A> handler) {
+        parallelForEach(attribute -> {
+            if (attributeType.isInstance(attribute))
+                handler.accept(attributeType.cast(attribute));
+        }, threadPool.get());
+    }
+
+    @Override
+    public final <A extends MessageDrivenAttribute> boolean acceptAttribute(final String name, final Class<A> type, final Consumer<? super A> handler) {
+        final MessageDrivenAttribute attribute = getAttributeInfo(name);
+        final boolean success;
+        if(success = type.isInstance(attribute))
+            handler.accept(type.cast(attribute));
+        return success;
     }
 }

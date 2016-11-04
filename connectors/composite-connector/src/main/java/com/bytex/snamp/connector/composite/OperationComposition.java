@@ -50,10 +50,10 @@ final class OperationComposition extends AbstractOperationRepository<CompositeOp
 
     @Override
     protected Object invoke(final OperationCallInfo<CompositeOperation> callInfo) throws Exception {
-        final OperationSupport support = provider.getOperationSupport(callInfo.getMetadata().getConnectorType());
+        final OperationSupport support = provider.getOperationSupport(callInfo.getOperation().getConnectorType());
         if (support == null)
-            throw operationsNotSupported(callInfo.getMetadata().getConnectorType());
-        return support.invoke(callInfo.getMetadata().getName(), callInfo.toArray(), callInfo.getSignature());
+            throw operationsNotSupported(callInfo.getOperation().getConnectorType());
+        return support.invoke(callInfo.getOperation().getName(), callInfo.toArray(), callInfo.getSignature());
     }
 
     @Override

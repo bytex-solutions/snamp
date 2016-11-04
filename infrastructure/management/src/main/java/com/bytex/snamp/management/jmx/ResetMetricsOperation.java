@@ -2,6 +2,7 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.jmx.OpenMBeanParameterInfoSupplier;
 import com.bytex.snamp.management.SummaryMetrics;
 import org.osgi.framework.BundleContext;
 
@@ -16,7 +17,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Resets metrics.
  */
 final class ResetMetricsOperation extends OpenOperation<Void, SimpleType<Void>> {
-    private static final TypedParameterInfo<String> RESOURCE_NAME_PARAM = new TypedParameterInfo<>("resourceName",
+    private static final OpenMBeanParameterInfoSupplier<String> RESOURCE_NAME_PARAM = new OpenMBeanParameterInfoSupplier<>("resourceName",
             "Name of the resource connector with metrics to reset",
             SimpleType.STRING);
 
