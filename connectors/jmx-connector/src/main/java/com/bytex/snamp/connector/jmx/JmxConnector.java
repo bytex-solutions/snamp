@@ -17,10 +17,7 @@ import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptorRead;
 
 import javax.management.*;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenMBeanAttributeInfo;
-import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
-import javax.management.openmbean.OpenType;
+import javax.management.openmbean.*;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -70,28 +67,68 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         int getImpact();
     }
 
-    private final static class JmxOperationInfo extends MBeanOperationInfo implements JmxOperationMetadata{
-        private static final long serialVersionUID = -2143203631423581065L;
-        private final ObjectName operationOwner;
+    private static abstract class JmxOperationInfo extends MBeanOperationInfo implements JmxOperationMetadata {
+        private static final long serialVersionUID = 3762430398491875048L;
         private final OperationDescriptor descriptor;
 
-        private JmxOperationInfo(final String operationID,
+        private JmxOperationInfo(final String name,
+                                final String description,
+                                final MBeanParameterInfo[] signature,
+                                final String type,
+                                final int impact,
+                                final OperationDescriptor descriptor) {
+            super(name, description, signature, type, impact, descriptor);
+            this.descriptor = descriptor;
+        }
+
+        @Override
+        public final String getAlias(){
+            return getDescriptor().getName(getName());
+        }
+
+        @Override
+        public final OperationDescriptor getDescriptor() {
+            return firstNonNull(descriptor, OperationDescriptor.EMPTY_DESCRIPTOR);
+        }
+
+        abstract Object invoke(final JmxConnectionManager connectionManager, final Object[] arguments) throws Exception;
+    }
+
+    private static final class JmxSimulateConnectionAbort extends JmxOperationInfo {
+        private static final String NAME = "simulateConnectionAbort";
+        private static final long serialVersionUID = -99848306646362293L;
+
+        private JmxSimulateConnectionAbort(final String name, final OperationDescriptor descriptor) {
+            super(name, "Simulates JMX connection abort", new MBeanParameterInfo[0], SimpleType.VOID.getClassName(), ACTION, descriptor);
+        }
+
+        @Override
+        public ObjectName getOwner() {
+            return null;
+        }
+
+        @Override
+        Void invoke(final JmxConnectionManager connectionManager, final Object[] arguments) throws IOException, InterruptedException {
+            connectionManager.simulateConnectionAbort();
+            return null;
+        }
+    }
+
+    private static final class JmxProxyOperation extends JmxOperationInfo {
+        private static final long serialVersionUID = -2143203631423581065L;
+        private final ObjectName operationOwner;
+
+        private JmxProxyOperation(final String operationID,
                                  final MBeanOperationInfo nativeOp,
                                  final ObjectName owner,
-                                 OperationDescriptor descriptor){
+                                 OperationDescriptor descriptor) {
             super(operationID,
                     nativeOp.getDescription(),
                     nativeOp.getSignature(),
                     nativeOp.getReturnType(),
                     nativeOp.getImpact(),
-                    descriptor = descriptor.setFields(nativeOp.getDescriptor()));
+                    descriptor.setFields(nativeOp.getDescriptor()));
             this.operationOwner = owner;
-            this.descriptor = descriptor;
-        }
-
-        @Override
-        public OperationDescriptor getDescriptor() {
-            return firstNonNull(descriptor, OperationDescriptor.EMPTY_DESCRIPTOR);
         }
 
         @Override
@@ -118,11 +155,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        public String getAlias(){
-            return getDescriptor().getName(getName());
-        }
-
-        private Object invoke(final JmxConnectionManager connectionManager,
+        Object invoke(final JmxConnectionManager connectionManager,
                               final Object[] arguments) throws Exception{
             return invoke(connectionManager,
                     getAlias(),
@@ -160,7 +193,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                 return null;
             });
             if(metadata != null)
-                return new JmxOperationInfo(operationName, metadata, owner, descriptor);
+                return new JmxProxyOperation(operationName, metadata, owner, descriptor);
             else throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist in '%s' object", descriptor.getName(operationName), owner)));
 
         }
@@ -181,7 +214,12 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         @Override
         protected JmxOperationInfo connectOperation(final String userDefinedName,
                                                     final OperationDescriptor descriptor) throws Exception {
-            return connectOperation(userDefinedName, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
+            switch (descriptor.getName(userDefinedName)){
+                case JmxSimulateConnectionAbort.NAME:
+                    return new JmxSimulateConnectionAbort(userDefinedName, descriptor);
+                default:
+                    return connectOperation(userDefinedName, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
+            }
         }
 
         /**

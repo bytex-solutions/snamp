@@ -5,16 +5,13 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
-import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Iterables;
-import com.google.common.util.concurrent.Futures;
 import org.osgi.framework.*;
 
 import javax.management.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -220,70 +217,6 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         }
         catch (final InvalidSyntaxException ignored) {
             throw unsupportedServiceRequest(connectorType, DiscoveryService.class);
-        }
-        finally {
-            if(ref != null) context.ungetService(ref);
-        }
-    }
-
-    /**
-     * Gets a collection of connector maintenance actions.
-     * <p>
-     *     The connector bundle should expose {@link com.bytex.snamp.management.Maintainable} service.
-     * </p>
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param connectorType The system name of the connector.
-     * @param loc The locale of the description. May be {@literal null}.
-     * @return A map of supported actions and its description.
-     * @throws UnsupportedOperationException Resource connector doesn't support maintenance.
-     */
-    public static Map<String, String> getMaintenanceActions(final BundleContext context,
-                                                            final String connectorType,
-                                                            final Locale loc) throws UnsupportedOperationException{
-        if(context == null) return Collections.emptyMap();
-        ServiceReference<Maintainable> ref = null;
-        try {
-            ref = getServiceReference(context, connectorType, null, Maintainable.class);
-            if(ref == null) throw unsupportedServiceRequest(connectorType, Maintainable.class);
-            final Maintainable service = context.getService(ref);
-            return service.getActions().stream()
-                    .collect(Collectors.toMap(Function.identity(), actionName -> service.getActionDescription(actionName, loc)));
-        }
-        catch (final InvalidSyntaxException ignored) {
-            throw unsupportedServiceRequest(connectorType, Maintainable.class);
-        }
-        finally {
-            if(ref != null) context.ungetService(ref);
-        }
-    }
-
-    /**
-     * Invokes maintenance action.
-     * <p>
-     *     The connector bundle should expose {@link com.bytex.snamp.management.Maintainable} service.
-     * </p>
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param connectorType The system name of the connector.
-     * @param actionName The name of the maintenance action to invoke.
-     * @param arguments Invocation arguments.
-     * @param resultLocale The locale of the input arguments and result.
-     * @return An object that represents asynchronous state of the action invocation.
-     * @throws UnsupportedOperationException
-     */
-    public static Future<String> invokeMaintenanceAction(final BundleContext context,
-                                                         final String connectorType,
-                                                         final String actionName,
-                                                         final String arguments,
-                                                         final Locale resultLocale) throws UnsupportedOperationException{
-        if(context == null) return null;
-        ServiceReference<Maintainable> ref = null;
-        try {
-            ref = getServiceReference(context, connectorType, null, Maintainable.class);
-            if(ref == null) throw unsupportedServiceRequest(connectorType, Maintainable.class);
-            return context.getService(ref).doAction(actionName, arguments, resultLocale);
-        }
-        catch (final InvalidSyntaxException e) {
-            return Futures.immediateFailedCheckedFuture(e);
         }
         finally {
             if(ref != null) context.ungetService(ref);

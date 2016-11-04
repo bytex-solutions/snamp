@@ -27,9 +27,11 @@ import javax.management.openmbean.TabularData;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
@@ -44,9 +46,11 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Override
     protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
-        OperationConfiguration operation = operations.getOrAdd("res");
-        operation.setAlternativeName("reverse");
-        operation.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        operations.addAndConsume("res", operation -> {
+            operation.setAlternativeName("reverse");
+            operation.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        });
+        operations.addAndConsume("connectionAbort", operation -> operation.setAlternativeName("simulateConnectionAbort"));
     }
 
     @Override
@@ -144,6 +148,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
             JMException {
         final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
         final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
+        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext()).queryObject(OperationSupport.class);
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
         assertEquals(2, notificationSupport.getNotificationInfo().length);
@@ -152,7 +157,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         notificationSupport.addNotificationListener(listener1, listener1, null);
         notificationSupport.addNotificationListener(listener2, listener2, null);
         //simulate connection abort
-        assertEquals("OK", ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, "simulateConnectionAbort", null, null).get(3, TimeUnit.SECONDS));
+        operationSupport.invoke("connectionAbort", ArrayUtils.emptyArray(Object[].class), ArrayUtils.emptyArray(String[].class));
         //force property changing
         attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
         final Notification notif1 = listener1.poll(5, TimeUnit.SECONDS);
@@ -332,15 +337,5 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
             assertTrue(config.getParameters().containsKey("objectName"));
             assertTrue(config.getParameters().containsKey(EventConfiguration.NAME_KEY));
         }
-    }
-
-    @Test
-    public void maintenanceActionTest() throws InterruptedException, ExecutionException, TimeoutException {
-        final Map<String, String> actions = ManagedResourceConnectorClient.getMaintenanceActions(getTestBundleContext(), CONNECTOR_NAME, null);
-        assertFalse(actions.isEmpty());
-        final String ACTION = "simulateConnectionAbort";
-        assertTrue(actions.containsKey(ACTION));
-        final Future<String> result = ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, ACTION, null, null);
-        assertEquals("OK", result.get(3, TimeUnit.SECONDS));
     }
 }

@@ -1,7 +1,7 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.management.SnampComponentDescriptor;
-import com.bytex.snamp.management.SnampManager;
+import com.bytex.snamp.core.SnampComponentDescriptor;
+import com.bytex.snamp.core.SnampManager;
 import com.bytex.snamp.management.jmx.SnampManagerImpl;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;

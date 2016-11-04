@@ -3,9 +3,8 @@ package com.bytex.snamp.management.jmx;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.OpenMBean;
-import com.bytex.snamp.management.Maintainable;
-import com.bytex.snamp.management.SnampComponentDescriptor;
-import com.bytex.snamp.management.SnampManager;
+import com.bytex.snamp.core.SnampComponentDescriptor;
+import com.bytex.snamp.core.SnampManager;
 import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
@@ -24,7 +23,6 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
     private static final String DESCRIPTION_COLUMN = "Description";
     private static final String VERSION_COLUMN = "Version";
     private static final String BUNDLE_STATE_COLUMN = "State";
-    private static final String IS_MANAGEABLE_COLUMN = "IsManageable";
     private static final String IS_CONFIG_DESCR_AVAIL_COLUMN = "IsConfigurationDescriptionAvailable";
 
     private static final CompositeTypeBuilder INSTALLED_COMPONENT_BUILDER = new CompositeTypeBuilder("com.bytex.snamp.management.SnampComponent","SNAMP component descriptor")
@@ -32,7 +30,6 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
             .addItem(DESCRIPTION_COLUMN, "Description of SNAMP component", SimpleType.STRING)
             .addItem(VERSION_COLUMN, "SNAMP component version", SimpleType.STRING)
             .addItem(BUNDLE_STATE_COLUMN, "State of the component inside of OSGI environment", SimpleType.INTEGER)
-            .addItem(IS_MANAGEABLE_COLUMN, "SNAMP component supports command-line interaction", SimpleType.BOOLEAN)
             .addItem(IS_CONFIG_DESCR_AVAIL_COLUMN, "SNAMP component provides description of its configuration schema", SimpleType.BOOLEAN);
 
     private static final CompositeType INSTALLED_COMPONENT = interfaceStaticInitialize(INSTALLED_COMPONENT_BUILDER::build);
@@ -57,9 +54,7 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
         row.put(DESCRIPTION_COLUMN, component.toString(null));
         row.put(VERSION_COLUMN, Objects.toString(component.getVersion(), "0.0"));
         row.put(BUNDLE_STATE_COLUMN, component.getState());
-        row.put(IS_MANAGEABLE_COLUMN, false);
         row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, false);
-        component.invokeSupportService(Maintainable.class, input -> row.put(IS_MANAGEABLE_COLUMN, input != null));
         component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, input -> row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, input != null));
         return INSTALLED_COMPONENT_BUILDER.build(row);
     }

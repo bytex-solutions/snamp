@@ -1,6 +1,4 @@
-package com.bytex.snamp.management;
-
-import com.bytex.snamp.core.SupportService;
+package com.bytex.snamp.core;
 
 import java.util.Collection;
 

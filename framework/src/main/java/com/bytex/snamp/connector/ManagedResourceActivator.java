@@ -16,7 +16,6 @@ import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.Bundle;
@@ -453,15 +452,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     protected static <T extends ConfigurationEntityDescriptionProvider> SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory){
         return configurationDescriptor(dependencies -> factory.get());
-    }
-
-    protected static <T extends Maintainable> SupportConnectorServiceManager<Maintainable,T> maintenanceService(final SupportServiceActivator<T> factory,
-                                                                                                                final RequiredService<?>... dependencies) {
-        return SupportConnectorServiceManager.create(Maintainable.class, factory, dependencies);
-    }
-
-    protected static <T extends Maintainable> SupportConnectorServiceManager<Maintainable,T> maintenanceService(final Supplier<T> factory){
-        return maintenanceService(dependencies -> factory.get());
     }
 
     protected static <T extends DiscoveryService> SupportConnectorServiceManager<DiscoveryService, T> discoveryService(final SupportServiceActivator<T> factory,

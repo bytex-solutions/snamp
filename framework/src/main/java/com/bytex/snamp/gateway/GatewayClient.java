@@ -7,21 +7,18 @@ import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
-import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
-import com.google.common.util.concurrent.Futures;
 import org.osgi.framework.*;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanFeatureInfo;
 import java.time.Duration;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
@@ -160,67 +157,6 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
         }
         finally {
             if(ref != null) context.ungetService(ref);
-        }
-    }
-
-    /**
-     * Gets a collection of gateway maintenance actions.
-     * <p>
-     *     The gateway bundle should expose {@link com.bytex.snamp.management.Maintainable} service.
-     * </p>
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param gatewayType Type of gateway.
-     * @param loc The locale of the description. May be {@literal null}.
-     * @return A map of supported actions and its description.
-     */
-    public static Map<String, String> getMaintenanceActions(final BundleContext context,
-                                                            final String gatewayType,
-                                                            final Locale loc) throws UnsupportedOperationException{
-        if(context == null) return Collections.emptyMap();
-        ServiceReference<Maintainable> ref = null;
-        try {
-            ref = getServiceReference(context, gatewayType, null, Maintainable.class);
-            if(ref == null) throw unsupportedServiceRequest(gatewayType, Maintainable.class);
-            final Maintainable service = context.getService(ref);
-            return service.getActions().stream()
-                    .collect(Collectors.toMap(Function.identity(), actionName -> service.getActionDescription(actionName, loc)));
-        }
-        catch (final InvalidSyntaxException ignored) {
-            ref = null;
-            return Collections.emptyMap();
-        }
-        finally {
-            if(ref != null) context.ungetService(ref);
-        }
-    }
-
-    /**
-     * Invokes maintenance action.
-     * <p>
-     *     The gateway bundle should expose {@link com.bytex.snamp.management.Maintainable} service.
-     * </p>
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param gatewayType Type of gateway.
-     * @param actionName The name of the maintenance action to invoke.
-     * @param arguments Invocation arguments.
-     * @param resultLocale The locale of the input arguments and result.
-     * @return An object that represents asynchronous state of the action invocation.
-     */
-    public static Future<String> invokeMaintenanceAction(final BundleContext context,
-                                                         final String gatewayType,
-                                                         final String actionName,
-                                                         final String arguments,
-                                                         final Locale resultLocale) throws UnsupportedOperationException {
-        if (context == null) return null;
-        ServiceReference<Maintainable> ref = null;
-        try {
-            ref = getServiceReference(context, gatewayType, null, Maintainable.class);
-            if (ref == null) throw unsupportedServiceRequest(gatewayType, Maintainable.class);
-            return context.getService(ref).doAction(actionName, arguments, resultLocale);
-        } catch (final InvalidSyntaxException e) {
-            return Futures.immediateFailedCheckedFuture(e);
-        } finally {
-            if (ref != null) context.ungetService(ref);
         }
     }
 

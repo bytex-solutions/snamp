@@ -2,6 +2,9 @@ package com.bytex.snamp.management;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.jmx.FrameworkMBean;
+import com.bytex.snamp.jmx.OpenMBeanServiceProvider;
+import com.bytex.snamp.core.SnampManager;
 import com.bytex.snamp.management.jmx.SnampClusterNodeMBean;
 import com.bytex.snamp.management.jmx.SnampCoreMBean;
 import com.bytex.snamp.management.jmx.SnampManagerImpl;
@@ -75,8 +78,8 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
-    private static final class SnampClusterNodeMBeanProvider extends OpenMBeanProvider<SnampClusterNodeMBean>{
-        private SnampClusterNodeMBeanProvider(){
+    private static final class SnampClusterNodeMBeanServiceProvider extends OpenMBeanServiceProvider<SnampClusterNodeMBean> {
+        private SnampClusterNodeMBeanServiceProvider(){
             super(SnampClusterNodeMBean.OBJECT_NAME);
         }
 
@@ -96,13 +99,13 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
-    private static final class SnampCoreMBeanProvider extends OpenMBeanProvider<SnampCoreMBean>{
+    private static final class SnampCoreMBeanServiceProvider extends OpenMBeanServiceProvider<SnampCoreMBean> {
 
         /**
          * Initializes a new holder for the MBean.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        private SnampCoreMBeanProvider() {
+        private SnampCoreMBeanServiceProvider() {
             super(SnampCoreMBean.OBJECT_NAME);
         }
 
@@ -155,8 +158,8 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
 
     public ManagementServiceLibrary() throws InvalidSyntaxException {
         super(new SnampManagerProvider(),
-                new SnampClusterNodeMBeanProvider(),
-                new SnampCoreMBeanProvider());
+                new SnampClusterNodeMBeanServiceProvider(),
+                new SnampCoreMBeanServiceProvider());
         this.listener = new LogEntryRouter();
     }
 

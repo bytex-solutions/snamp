@@ -3,7 +3,7 @@ package com.bytex.snamp.management.jmx;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.jmx.OpenMBean;
-import com.bytex.snamp.management.FrameworkMBean;
+import com.bytex.snamp.jmx.FrameworkMBean;
 
 import java.util.logging.Logger;
 

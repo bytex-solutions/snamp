@@ -2,7 +2,7 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.connector.ManagedResourceActivator;
-import com.bytex.snamp.management.AbstractSnampManager;
+import com.bytex.snamp.core.AbstractSnampManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 

@@ -1,4 +1,4 @@
-package com.bytex.snamp.management;
+package com.bytex.snamp.core;
 
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.Acceptor;
@@ -8,8 +8,6 @@ import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.core.AbstractFrameworkService;
-import com.bytex.snamp.core.SupportService;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -21,7 +19,7 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
 import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 /**
- * Represents partial implementation of {@link com.bytex.snamp.management.SnampManager} service.
+ * Represents partial implementation of {@link SnampManager} service.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

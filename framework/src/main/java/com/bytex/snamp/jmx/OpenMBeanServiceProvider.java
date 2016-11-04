@@ -1,6 +1,4 @@
-package com.bytex.snamp.management;
-
-import com.bytex.snamp.jmx.OpenMBean;
+package com.bytex.snamp.jmx;
 
 import javax.management.JMException;
 import javax.management.ObjectName;
@@ -10,14 +8,15 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import static com.bytex.snamp.core.AbstractServiceLibrary.ProvidedService;
-import static com.bytex.snamp.core.AbstractServiceLibrary.RequiredService;
+import static com.bytex.snamp.core.AbstractBundleActivator.RequiredService;
 
 /**
+ * Exposes JMX Bean as OSGi service.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
-public abstract class OpenMBeanProvider<T extends OpenMBean & FrameworkMBean> extends ProvidedService<FrameworkMBean, T> {
+public abstract class OpenMBeanServiceProvider<T extends OpenMBean & FrameworkMBean> extends ProvidedService<FrameworkMBean, T> {
     private final String objectName;
 
     /**
@@ -26,8 +25,8 @@ public abstract class OpenMBeanProvider<T extends OpenMBean & FrameworkMBean> ex
      * @param dependencies A collection of service dependencies.
      * @throws IllegalArgumentException contract is {@literal null}.
      */
-    protected OpenMBeanProvider(final String objectName,
-                                final RequiredService<?>... dependencies) {
+    protected OpenMBeanServiceProvider(final String objectName,
+                                       final RequiredService<?>... dependencies) {
         super(FrameworkMBean.class, dependencies);
         this.objectName = objectName;
     }

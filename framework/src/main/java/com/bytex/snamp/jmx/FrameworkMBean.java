@@ -1,4 +1,4 @@
-package com.bytex.snamp.management;
+package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.core.SupportService;
 

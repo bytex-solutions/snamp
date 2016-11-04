@@ -1,4 +1,4 @@
-package com.bytex.snamp.management;
+package com.bytex.snamp.core;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Localizable;

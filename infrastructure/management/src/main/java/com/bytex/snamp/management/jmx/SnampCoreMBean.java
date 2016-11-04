@@ -1,8 +1,8 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.jmx.OpenMBean;
-import com.bytex.snamp.management.AbstractSnampManager;
-import com.bytex.snamp.management.FrameworkMBean;
+import com.bytex.snamp.core.AbstractSnampManager;
+import com.bytex.snamp.jmx.FrameworkMBean;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogService;

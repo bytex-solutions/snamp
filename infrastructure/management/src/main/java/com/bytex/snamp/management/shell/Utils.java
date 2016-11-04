@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.management.SnampComponentDescriptor;
+import com.bytex.snamp.core.SnampComponentDescriptor;
 import org.osgi.framework.Bundle;
 
 /**

@@ -10,7 +10,7 @@ import com.bytex.snamp.connector.notifications.NotificationListenerList;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.bytex.snamp.management.OpenMBeanProvider;
+import com.bytex.snamp.jmx.OpenMBeanServiceProvider;
 import com.google.common.collect.ImmutableList;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -165,7 +165,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     void register(final BundleContext context, final ObjectName beanName){
-        registration = context.registerService(DynamicMBean.class, this, OpenMBeanProvider.createIdentity(beanName));
+        registration = context.registerService(DynamicMBean.class, this, OpenMBeanServiceProvider.createIdentity(beanName));
     }
 
     void register(final ObjectName beanName) throws NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException {
