@@ -29,8 +29,6 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 public abstract class MessageDrivenConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     protected static final String COMPONENT_INSTANCE_PARAM = "componentInstance";
     protected static final String COMPONENT_NAME_PARAM = "componentName";
-    protected static final String PARSER_LANGUAGE_PARAM = "parserLanguage";
-    protected static final String PARSER_SCRIPT_PARAM = "parserScript";
     protected static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
     protected static final String RANGE_START_PARAM = "from";
     protected static final String RANGE_END_PARAM = "to";

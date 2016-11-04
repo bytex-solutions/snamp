@@ -1,9 +1,12 @@
 package com.bytex.snamp.connector.md.groovy;
 
+import com.bytex.snamp.connector.md.MessageDrivenConnector;
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
+import static com.bytex.snamp.MapUtils.toProperties;
 
 /**
  * Represents loader of notification parsers written in Groovy language.
@@ -16,5 +19,11 @@ public final class GroovyNotificationLoader extends OSGiGroovyScriptEngine<Groov
                                     final Properties properties,
                                     final String... paths) throws IOException {
         super(rootClassLoader, properties, GroovyNotificationParser.class, paths);
+    }
+
+    public GroovyNotificationLoader(final Class<? extends MessageDrivenConnector> connectorType,
+                                    final Map<String, String> connectionParams,
+                                    final String... paths) throws IOException {
+        this(connectorType.getClassLoader(), toProperties(connectionParams), paths);
     }
 }

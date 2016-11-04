@@ -31,7 +31,8 @@ public final class GroovyNotificationParserTest extends Assert {
     @Test
     public void parserTest() throws Exception {
         final NotificationParser parser = loader.createScript("NotificationParser.groovy", null);
-        final Notification result = parser.parse(ImmutableMap.of(), "Body");
+        final Notification result = parser.parse(ImmutableMap.of("Content-Type", "application/xml"), "Body");
         assertNotNull(result);
+        assertEquals("application/xml", result.getUserData());
     }
 }

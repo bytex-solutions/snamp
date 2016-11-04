@@ -18,7 +18,10 @@ import java.util.concurrent.ExecutorService;
  * @version 2.0
  */
 public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector {
-    protected final NotificationChannel channel;
+    /**
+     * Represents channel that can be used to process notifications.
+     */
+    protected final NotificationDispatcher channel;
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
@@ -27,7 +30,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         final String componentName = descriptor.parseComponentName(parameters);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
         //init parser
-        final NotificationParser parser = createNotificationParser(parameters);
+        final NotificationParser parser = createNotificationParser(resourceName, parameters);
         assert parser != null;
         //init attributes
         final MessageDrivenAttributeRepository attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
@@ -38,7 +41,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         assert notifications != null;
         notifications.init(threadPool, getLogger());
 
-        channel = new NotificationChannel(componentName, componentInstance, attributes, notifications, parser);
+        channel = new NotificationDispatcher(componentName, componentInstance, attributes, notifications, getLogger(), parser);
     }
 
     @Aggregation(cached = true)
@@ -58,12 +61,11 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     /**
      * Creates a new notification parser.
+     * @param resourceName Resource name.
      * @param parameters Set of parameters that may be used by notification parser.
      * @return A new instance of notification parser.
      */
-    protected NotificationParser createNotificationParser(final Map<String, String> parameters){
-        return null;
-    }
+    protected abstract NotificationParser createNotificationParser(final String resourceName, final Map<String, String> parameters);
 
     /**
      * Creates a new instance of repository for attributes.
