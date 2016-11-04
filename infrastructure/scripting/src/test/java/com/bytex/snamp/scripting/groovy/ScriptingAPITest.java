@@ -1,16 +1,16 @@
 package com.bytex.snamp.scripting.groovy;
 
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.internal.OperatingSystem;
 import groovy.lang.Binding;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -22,12 +22,11 @@ import java.util.logging.Logger;
 public class ScriptingAPITest extends Assert {
     private final OSGiGroovyScriptEngine<Scriptlet> engine;
 
-    public ScriptingAPITest() throws IOException {
-        final Path path = Paths.get(System.getProperty("DummyScriptFile"), OperatingSystem.isWindows() ? "sample-groovy-scripts\\" : "sample-groovy-scripts/");
-        engine = new OSGiGroovyScriptEngine<>(getClass().getClassLoader(),
-                new Properties(),
-                Scriptlet.class,
-                path.toString());
+    public ScriptingAPITest() throws IOException, URISyntaxException {
+        final URL resource = getClass().getClassLoader().getResource("scripts/ApiTestScript.groovy");
+        assertNotNull(resource);
+        final String scriptPath = new File(resource.toURI()).getParent();
+        engine = new OSGiGroovyScriptEngine<>(getClass().getClassLoader(), new Properties(), Scriptlet.class, scriptPath);
         Scriptlet.setLogger(engine.getGlobalVariables(), Logger.getLogger("TestLogger"));
     }
 

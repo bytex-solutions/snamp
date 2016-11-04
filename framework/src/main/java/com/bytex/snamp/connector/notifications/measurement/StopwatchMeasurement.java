@@ -11,19 +11,76 @@ import java.util.Objects;
  * @since 2.0
  */
 public class StopwatchMeasurement extends Measurement {
+    public static final String TYPE = "com.bytex.measurement.stopwatch";
+
+    /**
+     * Represents builder for {@link StopwatchMeasurement}.
+     */
+    public static class Builder extends MeasurementBuilder<StopwatchMeasurement>{
+        private Duration duration;
+
+        Builder(){
+            duration = Duration.ZERO;
+        }
+
+        public final Builder setDuration(final Duration value){
+            duration = Objects.requireNonNull(value);
+            return this;
+        }
+
+        public final Builder setDuration(final long millis){
+            return setDuration(Duration.ofMillis(millis));
+        }
+
+        protected final Duration getDuration(){
+            return duration;
+        }
+
+        /**
+         * Gets type of notification.
+         *
+         * @return Type of notification.
+         */
+        @Override
+        public String getType() {
+            return TYPE;
+        }
+
+        /**
+         * Gets a result.
+         *
+         * @return a result
+         */
+        @Override
+        public StopwatchMeasurement get() {
+            final StopwatchMeasurement result = new StopwatchMeasurement(getSource(), getMessage());
+            result.setTimeStamp(getTimeStamp());
+            result.setUserData(getUserData());
+            result.setDuration(duration);
+            result.setSequenceNumber(getSequenceNumber(true));
+            return result;
+        }
+    }
+
     private static final long serialVersionUID = -511699973106291280L;
     private Duration duration;
 
-    public static final String TYPE = "com.bytex.measurement.stopwatch";
-
-    StopwatchMeasurement(final String type, final String componentName, final String instanceName, final String message) {
-        super(type, componentName, instanceName, message);
+    StopwatchMeasurement(final String type, final Object source, final String message) {
+        super(type, source, message);
         duration = Duration.ZERO;
         setTimeStamp(System.currentTimeMillis());
     }
 
-    public StopwatchMeasurement(final String componentName, final String instanceName, final String message){
-        this(TYPE, componentName, instanceName, message);
+    private StopwatchMeasurement(final Object source, final String message){
+        this(TYPE, source, message);
+    }
+
+    /**
+     * Constructs a new builder for {@link StopwatchMeasurement}.
+     * @return A new builder.
+     */
+    public static Builder builder(){
+        return new Builder();
     }
 
     /**

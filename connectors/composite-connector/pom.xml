@@ -14,17 +14,6 @@
   <description>SNAMP resource connector that allows to compose many connectors in one</description>
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math3</artifactId>
-      <version>3.6.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.bytex.snamp</groupId>
       <artifactId>scripting</artifactId>
       <version>2.0.0</version>
@@ -51,6 +40,17 @@
       <groupId>org.codehaus.groovy</groupId>
       <artifactId>groovy</artifactId>
       <classifier>indy</classifier>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>3.6.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>

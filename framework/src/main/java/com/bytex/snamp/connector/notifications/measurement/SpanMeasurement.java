@@ -1,9 +1,7 @@
 package com.bytex.snamp.connector.notifications.measurement;
 
 import com.bytex.snamp.Identifier;
-import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.io.SerializableMap;
-import com.google.common.reflect.TypeToken;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,63 +14,105 @@ import java.util.Objects;
  * @since 2.0
  */
 public final class SpanMeasurement extends StopwatchMeasurement {
-    private static final TypeToken<Map<String, String>> USER_DATA_TYPE = new TypeToken<Map<String, String>>() {};
-
-    private static final class SpanContext extends HashMap<String, String> implements SerializableMap<String, String>{
-        private static final long serialVersionUID = -7265377256048282163L;
-        private SpanContext(){
-
-        }
-
-        private SpanContext(final Map<String, String> values){
-            super(values);
-        }
-    }
-
     /**
      * Represents type of this notification.
      */
     public static final String TYPE = "com.bytex.measurement.span";
+
+    public static final class Builder extends StopwatchMeasurement.Builder{
+        private Identifier spanID;
+        private Identifier parentSpan;
+        private Identifier correlationID;
+        private final Map<String, String> context;
+
+        private Builder(){
+            context = new SpanContext();
+        }
+
+        public Builder setSpanID(final Identifier value){
+            spanID = Objects.requireNonNull(value);
+            return this;
+        }
+
+        public Builder setParentSpanID(final Identifier value){
+            parentSpan = value;
+            return this;
+        }
+
+        public Builder setCorrelationID(final Identifier value){
+            correlationID = value;
+            return this;
+        }
+
+        public Builder putInContext(final String key, final String value){
+            context.put(key, value);
+            return this;
+        }
+
+        public Builder putInContext(final Map<String, String> pairs){
+            context.putAll(pairs);
+            return this;
+        }
+
+        @Override
+        public String getType() {
+            return TYPE;
+        }
+
+        @Override
+        public SpanMeasurement get() {
+            final SpanMeasurement result = new SpanMeasurement(spanID, getSource(), getMessage());
+            result.getContext().putAll(context);
+            result.setDuration(getDuration());
+            result.setCorrelationID(correlationID);
+            result.setParentSpanID(parentSpan);
+            result.setSequenceNumber(getSequenceNumber(true));
+            result.setTimeStamp(getTimeStamp());
+            result.setUserData(getUserData());
+            return result;
+        }
+    }
+
+    /**
+     * Represents span context.
+     */
+    public static final class SpanContext extends HashMap<String, String> implements SerializableMap<String, String>{
+        private static final long serialVersionUID = -7265377256048282163L;
+
+        private SpanContext(){
+
+        }
+    }
 
     private static final long serialVersionUID = 6986676615521377795L;
 
     private final Identifier spanID;
     private Identifier parentSpan;
     private Identifier correlationID;
+    private final SpanContext context;
 
-    public SpanMeasurement(final Identifier spanID,
-                           final String componentName,
-                           final String instanceName,
+    private SpanMeasurement(final Identifier spanID,
+                           final Object source,
                            final String message){
-        super(TYPE, componentName, instanceName, message);
+        super(TYPE, source, message);
         this.spanID = Objects.requireNonNull(spanID);
-        setUserData(new SpanContext());
+        context = new SpanContext();
     }
 
     /**
-     * Gets context of this span.
-     * @return The context of this span.
+     * Constructs builder for {@link SpanMeasurement} class.
+     * @return A new builder.
      */
-    @Override
-    public final Map<String, String> getUserData() {
-        return TypeTokens.cast(super.getUserData(), USER_DATA_TYPE);
+    public static Builder builder(){
+        return new Builder();
     }
 
     /**
-     * Sets the context of this span.
-     * @param userData The context of this span.
+     * Gets context associated with this event.
+     * @return Notification context.
      */
-    public final void setUserData(final Map<String, String> userData){
-        super.setUserData(new SpanContext(userData));
-    }
-
-    /**
-     * Sets the context of this span.
-     * @param userData The context of this span. Should implements {@link Map}&lt;{@link String}, {@link String}&gt; interface.
-     */
-    @Override
-    public final void setUserData(final Object userData) {
-        super.setUserData(TypeTokens.cast(userData, USER_DATA_TYPE));
+    public SpanContext getContext(){
+        return context;
     }
 
     /**

@@ -9,6 +9,7 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>message-processing</artifactId>
+  <packaging>bundle</packaging>
   <name>Message Processing Framework</name>
   <description>Framework for writing connectors based on message processing</description>
   <dependencies>
@@ -32,6 +33,16 @@
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.bytex.snamp</groupId>
+      <artifactId>scripting</artifactId>
+      <version>2.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy</artifactId>
+      <classifier>indy</classifier>
+    </dependency>
+    <dependency>
       <groupId>org.apache.htrace</groupId>
       <artifactId>htrace-core4</artifactId>
       <version>4.2.0-incubating</version>
@@ -42,4 +53,29 @@
       <artifactId>junit</artifactId>
     </dependency>
   </dependencies>
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+      </testResource>
+    </testResources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>com.bytex.snamp.connector.md</Bundle-SymbolicName>
+            <Export-Package>com.bytex.snamp.connector.md.*</Export-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

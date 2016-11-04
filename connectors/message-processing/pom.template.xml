@@ -12,6 +12,32 @@
     <name>Message Processing Framework</name>
     <description>Framework for writing connectors based on message processing</description>
     <artifactId>message-processing</artifactId>
+    <packaging>bundle</packaging>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>com.bytex.snamp.connector.md</Bundle-SymbolicName>
+                        <Export-Package>com.bytex.snamp.connector.md.*</Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <dependencies>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
@@ -32,6 +58,17 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>scripting</artifactId>
+            <version>${snamp.scripting.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <classifier>indy</classifier>
+        </dependency>
+        <!--Test dependencies-->
         <dependency>
             <groupId>org.apache.htrace</groupId>
             <artifactId>htrace-core4</artifactId>

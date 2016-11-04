@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.connector.notifications.measurement.NotificationSource;
 
 import java.time.Duration;
 import java.util.Map;
@@ -19,7 +18,6 @@ import java.util.concurrent.ExecutorService;
  * @version 2.0
  */
 public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector {
-    protected final NotificationSource source;
     protected final NotificationChannel channel;
 
     protected MessageDrivenConnector(final String resourceName,
@@ -27,7 +25,6 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
                                      final MessageDrivenConnectorConfigurationDescriptor descriptor) {
         final String componentInstance = descriptor.parseComponentInstance(parameters, resourceName);
         final String componentName = descriptor.parseComponentName(parameters);
-        source = new NotificationSource(componentName, componentInstance);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
         //init parser
         final NotificationParser parser = createNotificationParser(parameters);
@@ -41,7 +38,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         assert notifications != null;
         notifications.init(threadPool, getLogger());
 
-        channel = new NotificationChannel(attributes, notifications, parser);
+        channel = new NotificationChannel(componentName, componentInstance, attributes, notifications, parser);
     }
 
     @Aggregation(cached = true)

@@ -12,14 +12,13 @@ public abstract class Measurement extends Notification {
     private static final long serialVersionUID = -5747719139937442378L;
 
     Measurement(final String type,
-                final String componentName,
-                final String instanceName,
+                final Object source,
                 final String message) {
-        super(type, new NotificationSource(componentName, instanceName), 0L, message);
+        super(type, source, 0L, message);
     }
 
-    public final void setSource(final String componentName, final String instanceName){
-        super.setSource(new NotificationSource(componentName, instanceName));
+    public final void setSource(final NotificationSource source){
+        super.setSource(source);
     }
 
     public final <T> Optional<T> getSource(final Class<T> sourceType){

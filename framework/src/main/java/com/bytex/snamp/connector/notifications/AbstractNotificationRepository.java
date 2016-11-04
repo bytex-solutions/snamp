@@ -69,9 +69,9 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                                final Object userData){
             for(final String category: metadata.getNotifTypes())
                 notifications.add(new NotificationBuilder()
+                        .setType(category)
                         .setTimeStamp(timeStamp)
                         .setSequenceNumber(sequenceNumber)
-                        .setType(category)
                         .setSource(AbstractNotificationRepository.this)
                         .setMessage(message)
                         .setUserData(userData)
@@ -163,9 +163,9 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                               final long timeStamp,
                               final Object userData) {
         return fire(category, holder -> new NotificationBuilder()
+                .setType(ArrayUtils.getFirst(holder.getNotifTypes()))
                 .setTimeStamp(timeStamp)
                 .setSequenceNumber(sequenceNumber)
-                .setType(ArrayUtils.getFirst(holder.getNotifTypes()))
                 .setMessage(message)
                 .setUserData(userData)
                 .get());
