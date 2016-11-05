@@ -246,37 +246,4 @@ public final class Utils {
         return suspendException(callable).get();
     }
 
-    public static <C, I, O> O convertTo(final C input,
-                                        final Class<I> expectedType,
-                                        final Function<? super I, ? extends O> then,
-                                        final Function<? super C, ? extends O> fallback){
-        return expectedType.isInstance(input) ? then.apply(expectedType.cast(input)) : fallback.apply(input);
-    }
-
-    public static <C, I, O> O convertTo(final C input,
-                                        final Class<I> expectedType,
-                                        final Function<? super I, ? extends O> then){
-        return expectedType.isInstance(input) ? then.apply(expectedType.cast(input)) : null;
-    }
-
-    public static <C, I> int convertToInt(final C input,
-                                   final Class<I> expectedType,
-                                   final ToIntFunction<? super I> then,
-                                          final ToIntFunction<? super C> fallback){
-        return expectedType.isInstance(input) ? then.applyAsInt(expectedType.cast(input)) : fallback.applyAsInt(input);
-    }
-
-    public static <C, I> long convertToLong(final C input,
-                                            final Class<I> expectedType,
-                                            final ToLongFunction<? super I> then,
-                                            final ToLongFunction<? super C> fallback){
-        return expectedType.isInstance(input) ? then.applyAsLong(expectedType.cast(input)) : fallback.applyAsLong(input);
-    }
-
-    public static <C, I> double convertToDouble(final C input,
-                                              final Class<I> expectedType,
-                                              final ToDoubleFunction<? super I> then,
-                                                final ToDoubleFunction<? super C> fallback){
-        return expectedType.isInstance(input) ? then.applyAsDouble(expectedType.cast(input)) : fallback.applyAsDouble(input);
-    }
 }

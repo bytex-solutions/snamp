@@ -1,9 +1,9 @@
 package com.bytex.snamp.gateway.snmp;
 
+import com.bytex.snamp.Convert;
 import org.snmp4j.agent.mo.snmp.RowStatus;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
-import static com.bytex.snamp.internal.Utils.convertTo;
 
 /**
  * Represents SMIv2 row status as defined in RFC 1903.
@@ -77,6 +77,6 @@ enum TableRowStatus {
     }
 
     public static TableRowStatus parse(final Variable value){
-        return convertTo(value, Integer32.class, TableRowStatus::parse, v -> ACTIVE);
+        return Convert.toType(value, Integer32.class, TableRowStatus::parse, v -> ACTIVE);
     }
 }

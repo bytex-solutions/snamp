@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connector;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.TypeTokens;
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceActivator;
@@ -204,7 +204,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         try{
             if(!readOnlyTest)
                 connector.setAttribute(new Attribute(attributeName, attributeValue));
-            final T newValue = TypeTokens.cast(connector.getAttribute(attributeName), attributeType);
+            final T newValue = Convert.toTypeToken(connector.getAttribute(attributeName), attributeType);
             assertNotNull(newValue);
             assertTrue(String.format("%s != %s", attributeValue, newValue), comparator.equate(attributeValue, newValue));
         }

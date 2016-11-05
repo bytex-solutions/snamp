@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
@@ -10,16 +11,11 @@ import com.bytex.snamp.jmx.WellKnownType;
 import javax.management.*;
 import javax.management.openmbean.SimpleType;
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.internal.Utils.*;
 
 /**
  * @author Roman Sakno
@@ -58,28 +54,27 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
         final Object value = getAttribute(operand);
         switch (expectedType){
             case INT:
-                return convertToInt(value, Number.class, Number::intValue, v -> Integer.parseInt(v.toString()));
+                return Convert.toInt(value);
             case BYTE:
-                return convertTo(value, Number.class, Number::byteValue, v -> Byte.parseByte(v.toString()));
+                return Convert.toByte(value);
             case SHORT:
-                return convertTo(value, Number.class, Number::shortValue, v -> Short.parseShort(v.toString()));
+                return Convert.toShort(value);
             case LONG:
-                return convertToLong(value, Number.class, Number::longValue, v -> Long.parseLong(v.toString()));
+                return Convert.toLong(value);
             case FLOAT:
-                return convertTo(value, Number.class, Number::floatValue, v -> Float.parseFloat(v.toString()));
+                return Convert.toFloat(value);
             case DOUBLE:
-                return convertToDouble(value, Number.class, Number::doubleValue, v -> Double.parseDouble(v.toString()));
+                return Convert.toDouble(value);
             case BIG_INT:
-                return new BigInteger(value.toString());
+                return Convert.toBigInteger(value);
             case BIG_DECIMAL:
-                return new BigDecimal(value.toString());
+                return Convert.toBigDecimal(value);
             case BOOL:
-                return convertTo(value, Boolean.class, Function.identity(), v -> Boolean.parseBoolean(v.toString()));
+                return Convert.toBoolean(value);
             case STRING:
                 return value.toString();
             case CHAR:
-                final String str = value.toString();
-                return str.length() > 0 ? str.charAt(0) : '\0';
+                return Convert.toChar(value);
             default:
                 throw new ClassCastException(String.format("Unable cast '%s' to '%s'", value, expectedType));
         }
@@ -93,7 +88,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
      */
     @Override
     protected Serializable takeSnapshot(final AbstractCompositeAttribute attribute) {
-        return convertTo(attribute, DistributedAttribute.class, DistributedAttribute::takeSnapshot);
+        return Convert.toType(attribute, DistributedAttribute.class, DistributedAttribute::takeSnapshot);
     }
 
     /**

@@ -1,7 +1,7 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.Box;
-import com.bytex.snamp.TypeTokens;
+import com.bytex.snamp.Convert;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -73,7 +73,7 @@ public final class DistributedServices {
     private static <S> S getProcessLocalService(final String serviceName, final TypeToken<S> serviceType) {
         final LocalServiceKey<S> key = new LocalServiceKey<>(serviceName, serviceType);
         try {
-            return TypeTokens.cast(LOCAL_SERVICES.get(key), serviceType);
+            return Convert.toTypeToken(LOCAL_SERVICES.get(key), serviceType);
         } catch (final ExecutionException e) {
             return null;
         }

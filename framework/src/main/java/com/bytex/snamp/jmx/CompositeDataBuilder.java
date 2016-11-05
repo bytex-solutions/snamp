@@ -1,13 +1,13 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.Convert;
+
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.concurrent.Callable;
-import static com.bytex.snamp.internal.Utils.convertTo;
 
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeData} instance.
@@ -82,7 +82,7 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> {
      */
     @Override
     public Object remove(final Object itemName) {
-        return convertTo(itemName, String.class, this::remove);
+        return Convert.toType(itemName, String.class, this::remove);
     }
 
     /**

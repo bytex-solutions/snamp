@@ -177,8 +177,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             if (propertyDef == null) return null;
             else if (containsKey(propertyDef)) {
                 final Object value = get(propertyDef);
-                return TypeTokens.isInstance(value, propertyDef.getType()) ?
-                        TypeTokens.cast(value, propertyDef.getType()) :
+                return Convert.isInstance(value, propertyDef.getType()) ?
+                        Convert.toTypeToken(value, propertyDef.getType()) :
                         propertyDef.getDefaultValue();
             } else return null;
         }
@@ -910,7 +910,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
             @Override
             public Object get(final Object key) {
-                return convertTo(key, String.class, this::get);
+                return Convert.toType(key, String.class, this::get);
             }
 
             @Override

@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.TypeTokens;
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.connector.attributes.AttributeAddedEvent;
@@ -195,7 +195,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public final  <T> T getValue(final TypeToken<T> valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException{
         final Object result = getValue();
         try {
-            return TypeTokens.cast(result, valueType);
+            return Convert.toTypeToken(result, valueType);
         }
         catch (final ClassCastException e){
             throw new InvalidAttributeValueException(e.getMessage());

@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.modeling;
 
+import com.bytex.snamp.Convert;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.jmx.WellKnownType;
 
 import javax.management.*;
@@ -82,7 +82,7 @@ public class AttributeValue extends Attribute implements AttributeValueReader {
     public final <T> T getValue(final TypeToken<T> valueType) throws InvalidAttributeValueException {
         final Object result = getValue();
         try {
-            return TypeTokens.cast(result, valueType);
+            return Convert.toTypeToken(result, valueType);
         }
         catch (final ClassCastException e){
             throw new InvalidAttributeValueException(e.getMessage());

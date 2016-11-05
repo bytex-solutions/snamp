@@ -1,9 +1,6 @@
 package com.bytex.jcommands.impl;
 
-import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.Internal;
-import com.bytex.snamp.ResettableIterator;
-import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.*;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -25,7 +22,6 @@ import java.util.regex.Pattern;
 
 import static com.bytex.snamp.ArrayUtils.emptyByteArray;
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
-import static com.bytex.snamp.internal.Utils.convertTo;
 
 /**
  * Represents parser for command-line output result.
@@ -179,7 +175,7 @@ public class XmlParserDefinition {
 
         @Override
         public BigInteger parseAsBigInteger(final String input) throws ParseException {
-            return convertTo(parse(input), BigInteger.class, Function.identity(), v -> BigInteger.valueOf(v.longValue()));
+            return Convert.toType(parse(input), BigInteger.class, Function.identity(), v -> BigInteger.valueOf(v.longValue()));
         }
 
         @Override
@@ -895,7 +891,7 @@ public class XmlParserDefinition {
             else if(templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
         }
-        assert com.bytex.snamp.TypeTokens.isInstance(result, TypeTokens.DICTIONARY_TYPE_TOKEN);
+        assert Convert.isInstance(result, TypeTokens.DICTIONARY_TYPE_TOKEN);
         return result;
     }
 
@@ -927,7 +923,7 @@ public class XmlParserDefinition {
             else if(templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
         }
-        assert com.bytex.snamp.TypeTokens.isInstance(table, TypeTokens.TABLE_TYPE_TOKEN);
+        assert Convert.isInstance(table, TypeTokens.TABLE_TYPE_TOKEN);
         return table;
     }
 

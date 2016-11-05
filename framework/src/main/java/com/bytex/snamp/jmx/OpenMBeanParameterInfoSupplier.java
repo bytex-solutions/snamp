@@ -1,5 +1,7 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.Convert;
+
 import javax.management.ImmutableDescriptor;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenMBeanParameterInfo;
@@ -101,7 +103,7 @@ public final class OpenMBeanParameterInfoSupplier<T> implements Supplier<OpenMBe
     public T getArgument(final Map<String, ?> arguments) throws OperationArgumentException {
         if (arguments.containsKey(parameter.getName())) {
             try {
-                return OpenMBean.cast(getOpenType(), arguments.get(parameter.getName()));
+                return Convert.toOpenType(arguments.get(parameter.getName()), getOpenType());
             } catch (final OpenDataException e) {
                 throw new OperationArgumentException(getOpenType(), e);
             }

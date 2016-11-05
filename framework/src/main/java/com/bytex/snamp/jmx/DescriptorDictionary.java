@@ -1,5 +1,6 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.ResettableIterator;
 import com.bytex.snamp.ThreadSafe;
 
@@ -7,7 +8,6 @@ import javax.management.Descriptor;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Objects;
-import static com.bytex.snamp.internal.Utils.convertTo;
 
 /**
  * Represents bridge between {@link javax.management.Descriptor} and {@link Dictionary}.
@@ -97,7 +97,7 @@ final class DescriptorDictionary extends Dictionary<String, Object> {
      */
     @Override
     public Object get(final Object key) {
-        return convertTo(key, String.class, this::get);
+        return Convert.toType(key, String.class, this::get);
     }
 
     /**
@@ -154,6 +154,6 @@ final class DescriptorDictionary extends Dictionary<String, Object> {
      */
     @Override
     public Object remove(final Object key) {
-        return convertTo(key, String.class, this::remove);
+        return Convert.toType(key, String.class, this::remove);
     }
 }

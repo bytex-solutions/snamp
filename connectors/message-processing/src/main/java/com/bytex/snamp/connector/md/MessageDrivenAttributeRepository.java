@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.md;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
@@ -12,8 +13,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.internal.Utils.convertTo;
 
 /**
  * Represents repository with message-driven attributes.
@@ -70,7 +69,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
      */
     @Override
     protected final Serializable takeSnapshot(final MessageDrivenAttribute attribute) {
-        return convertTo(attribute, DistributedAttribute.class, DistributedAttribute::takeSnapshot, attr -> null);
+        return Convert.toType(attribute, DistributedAttribute.class, DistributedAttribute::takeSnapshot, attr -> null);
     }
 
     /**

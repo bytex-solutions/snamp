@@ -18,9 +18,8 @@ import java.util.BitSet;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
+import java.util.function.*;
+
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
@@ -569,5 +568,68 @@ public final class ArrayUtils {
     @SuppressWarnings("unchecked")
     public static <T> IntFunction<T[]> arrayConstructor(final Class<T> elementType) {
         return length -> length == 0 ? (T[]) emptyArrayImpl(elementType) : ObjectArrays.newArray(elementType, length);
+    }
+
+    public static <I, O> O[] transform(final I[] array, final Class<O> elementType, final Function<? super I, ? extends O> transformer){
+        final O[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformByteArray(final byte[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformShortArray(final short[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformIntArray(final int[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformCharArray(final char[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformLongArray(final long[] array, final Class<T> elementType, final LongFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformFloatArray(final float[] array, final Class<T> elementType, final DoubleFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformDoubleArray(final double[] array, final Class<T> elementType, final DoubleFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformBooleanArray(final boolean[] array, final Class<T> elementType, final Function<? super Boolean, ? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
     }
 }

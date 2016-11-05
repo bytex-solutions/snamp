@@ -1,6 +1,6 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.TypeTokens;
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LongCounter;
@@ -149,7 +149,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         else if(BOX.equals(serviceType))
             result = getBox(serviceName);
         else return null;
-        return TypeTokens.cast(result, serviceType);
+        return Convert.toTypeToken(result, serviceType);
     }
 
     private HazelcastBox getBox(final String boxName){

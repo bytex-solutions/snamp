@@ -660,19 +660,4 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         }
     }
 
-    /**
-     * Casts value to the specified JMX Open Type.
-     * @param type JMX Open Type. Cannot be {@literal null}.
-     * @param value Value to cast.
-     * @param <T> Type of the conversion result.
-     * @return Converter value.
-     * @throws OpenDataException Unable to cast value to the specified JMX Open Type.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T cast(final OpenType<T> type, final Object value) throws OpenDataException{
-        if(type.isValue(value))
-            return (T)value;
-        else throw new OpenDataException(String.format("Unable cast %s to %s", value, type));
-    }
-
 }

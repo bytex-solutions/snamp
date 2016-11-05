@@ -1,6 +1,6 @@
 package com.bytex.snamp.io;
 
-import com.bytex.snamp.TypeTokens;
+import com.bytex.snamp.Convert;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.reflect.TypeToken;
@@ -74,7 +74,7 @@ public final class IOUtils {
             return callAndWrapException(() -> {
                 try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
                      final ObjectInputStream deserializer = new CustomObjectInputStream(stream, resolver)) {
-                    return TypeTokens.cast(deserializer.readObject(), expectedType);
+                    return Convert.toTypeToken(deserializer.readObject(), expectedType);
                 }
             }, IOException::new);
     }
