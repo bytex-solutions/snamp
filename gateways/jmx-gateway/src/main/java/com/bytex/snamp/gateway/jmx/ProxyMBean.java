@@ -35,9 +35,10 @@ import java.util.stream.Stream;
  * @since 1.0
  */
 final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, NotificationBroadcaster, NotificationListener, Closeable {
-    private enum MBeanResources{
+    private enum MBeanResources {
         NOTIFICATIONS,
-        ATTRIBUTES
+        ATTRIBUTES,
+        OPERATIONS
     }
 
     private static final class ReadOnlyAttributeAccessor extends JmxAttributeAccessor{
@@ -145,6 +146,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
 
     private final ResourceNotificationList<JmxNotificationAccessor> notifications;
     private final ResourceAttributeList<JmxAttributeAccessor> attributes;
+    private final ResourceOperationList<JmxOperationAccessor> operations;
     private final NotificationListenerList listeners;
     private final String resourceName;
     private ServiceRegistration<?> registration;
@@ -155,6 +157,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         this.resourceName = resourceName;
         this.notifications = new ResourceNotificationList<>();
         this.attributes = new ResourceAttributeList<>();
+        this.operations = new ResourceOperationList<>();
         this.listeners = new NotificationListenerList();
         this.registration = null;
         this.logger = Objects.requireNonNull(logger);
@@ -188,13 +191,16 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         unregister();
         attributes.clear();
         notifications.clear();
+        operations.clear();
         listeners.clear();
     }
 
     Stream<? extends FeatureAccessor<?>> getAccessorsAndClose(){
         final ImmutableList<JmxAttributeAccessor> attributes = ImmutableList.copyOf(this.attributes.values());
         final ImmutableList<JmxNotificationAccessor> notifications = ImmutableList.copyOf(this.notifications.values());
-        final Stream<? extends FeatureAccessor<?>> result = Stream.concat(attributes.stream(), notifications.stream());
+        final ImmutableList<JmxOperationAccessor> operations = ImmutableList.copyOf(this.operations.values());
+        final Stream<? extends FeatureAccessor<?>> result = Stream.concat(
+                Stream.concat(attributes.stream(), notifications.stream()),operations.stream());
         close();
         return result;
     }
@@ -213,6 +219,23 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
 
     NotificationAccessor removeNotification(final MBeanNotificationInfo metadata) {
         return writeLock.apply(MBeanResources.NOTIFICATIONS, metadata, (Function<MBeanNotificationInfo, NotificationAccessor>) notifications::remove);
+    }
+
+
+    private OperationAccessor addOperationImpl(final MBeanOperationInfo metadata){
+        final JmxOperationAccessor result;
+        if(operations.containsKey(metadata))
+            result = operations.get(metadata);
+        else operations.put(result = new JmxOperationAccessor(resourceName, metadata));
+        return result;
+    }
+
+    OperationAccessor addOperation(final MBeanOperationInfo metadata){
+        return writeLock.apply(MBeanResources.OPERATIONS, metadata, this::addOperationImpl);
+    }
+
+    OperationAccessor removeOperation(final MBeanOperationInfo metadata) {
+        return writeLock.apply(MBeanResources.OPERATIONS, metadata, (Function<MBeanOperationInfo, OperationAccessor>) operations::remove);
     }
 
     private AttributeAccessor addAttributeImpl(final MBeanAttributeInfo metadata){
@@ -368,8 +391,14 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
      * @throws javax.management.MBeanException      Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's invoked method.
      */
     @Override
-    public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException {
-        throw new MBeanException(new UnsupportedOperationException("Operation invocation is not supported."));
+    public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
+        try {
+            return writeLock.apply(MBeanResources.OPERATIONS, () -> operations.invoke(actionName, params, signature), null);
+        } catch (final ReflectionException | MBeanException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new ReflectionException(e);
+        }
     }
 
     private OpenMBeanAttributeInfo[] getAttributeInfo() {
@@ -377,6 +406,13 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                 attrs -> attrs.values().stream()
                         .map(JmxAttributeAccessor::cloneMetadata)
                         .toArray(OpenMBeanAttributeInfo[]::new));
+    }
+
+    private OpenMBeanOperationInfo[] getOperationInfo() {
+        return readLock.apply(MBeanResources.OPERATIONS, operations,
+                opers -> opers.values().stream()
+                        .map(JmxOperationAccessor::cloneMetadata)
+                        .toArray(OpenMBeanOperationInfo[]::new));
     }
 
     @Override
@@ -399,7 +435,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                 String.format("Represents %s resource as MBean", resourceName),
                 getAttributeInfo(),
                 ArrayUtils.emptyArray(OpenMBeanConstructorInfo[].class),
-                ArrayUtils.emptyArray(OpenMBeanOperationInfo[].class),
+                getOperationInfo(),
                 getNotificationInfo());
     }
 
@@ -469,6 +505,15 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         try(final SafeCloseable ignored = readLock.acquireLock(MBeanResources.NOTIFICATIONS)){
             for(final JmxNotificationAccessor accessor: notifications.values())
                 if(!notificationReader.read(resourceName, accessor))
+                    return false;
+            return true;
+        }
+    }
+
+    <E extends Exception> boolean forEachOperation(final EntryReader<String, ? super JmxOperationAccessor, E> operationReader) throws E {
+        try(final SafeCloseable ignored = readLock.acquireLock(MBeanResources.OPERATIONS)){
+            for(final JmxOperationAccessor accessor: operations.values())
+                if(!operationReader.read(resourceName, accessor))
                     return false;
             return true;
         }
