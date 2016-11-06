@@ -6,7 +6,8 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AbstractAttributeInfo;
+import com.bytex.snamp.connector.attributes.reflection.ManagementAttribute;
+import com.bytex.snamp.connector.attributes.reflection.ManagementAttributeMarshaller;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
@@ -63,14 +64,14 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
             }
 
             @Override
-            public String toJmxValue(final Object attributeValue, final AbstractAttributeInfo metadata) {
-                assertEquals("property1", metadata.getDescriptor().getAlternativeName());
+            public String toJmxValue(final Object attributeValue, final MBeanAttributeInfo metadata) {
+                assertEquals("property1", AttributeDescriptor.getName(metadata));
                 return attributeValue.toString();
             }
 
             @Override
-            public Object fromJmxValue(final String jmxValue, final AbstractAttributeInfo metadata) {
-                assertEquals("property1", metadata.getDescriptor().getAlternativeName());
+            public Object fromJmxValue(final String jmxValue, final MBeanAttributeInfo metadata) {
+                assertEquals("property1", AttributeDescriptor.getName(metadata));
                 return jmxValue;
             }
         }

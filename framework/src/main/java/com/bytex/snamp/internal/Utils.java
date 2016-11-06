@@ -196,7 +196,8 @@ public final class Utils {
             instantiatedMethodType = MethodType.methodType(void.class, setter.type().parameterType(1));//zero index points to 'this' reference
         }
         try {
-            final CallSite site = LambdaMetafactory.metafactory(lookup, "updateValue",
+            final CallSite site = LambdaMetafactory.metafactory(lookup,
+                    "accept",
                     invokedType,
                     MethodType.methodType(void.class, Object.class),
                     setter,

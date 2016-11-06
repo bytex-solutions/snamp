@@ -4,6 +4,7 @@ import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Localizable;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.*;
+import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeRepository;
 import com.bytex.snamp.connector.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
@@ -14,7 +15,7 @@ import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LongCounter;
 import static com.bytex.snamp.internal.Utils.*;
-import com.bytex.snamp.jmx.JMExceptionUtils;
+
 import com.bytex.snamp.jmx.WellKnownType;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ImmutableList;
@@ -32,8 +33,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -75,6 +75,7 @@ import java.util.stream.Collectors;
  * @version 2.0
  */
 public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector {
+    private static final Predicate<PropertyDescriptor> IS_RESERVED_PROPERTY = property -> Objects.equals(property.getName(), "logger");
 
     /**
      * Describes management notification type supported by this connector.
@@ -114,97 +115,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         public String toString(final Locale locale) {
             return getCategory();
         }
-    }
-
-    /**
-     * Represents provider of JMX Open Type.
-     * @param <T> Underlying Java native type.
-     */
-    protected interface OpenTypeProvider<T>{
-        /**
-         * Gets open type.
-         * @return JMX Open Type.
-         */
-        OpenType<T> getOpenType();
-    }
-
-    /**
-     * Represents attribute marshaller for custom attribute types.
-     * @param <T> JMX-compliant type.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    protected interface ManagementAttributeMarshaller<T> extends OpenTypeProvider<T>{
-        /**
-         * Gets JMX-compliant type of the attribute.
-         * @return JMX-compliant type of the attribute.
-         */
-        OpenType<T> getOpenType();
-
-        /**
-         * Converts attribute value to the JMX-compliant type.
-         * @param attributeValue The value of the attribute.
-         * @param metadata The metadata of the bean property.
-         * @return JMX-compliant attribute value.
-         */
-        T toJmxValue(final Object attributeValue, final AbstractAttributeInfo metadata);
-
-        /**
-         * Converts JMX-compliant attribute value into the native Java object.
-         * @param jmxValue The value to convert.
-         * @param metadata The metadata of the bean property.
-         * @return The converted attribute value.
-         */
-        Object fromJmxValue(final T jmxValue, final AbstractAttributeInfo metadata);
-    }
-
-    private static final class DefaultManagementAttributeMarshaller implements ManagementAttributeMarshaller<Object> {
-        @Override
-        public OpenType<Object> getOpenType() {
-            return null;
-        }
-
-        @Override
-        public Object toJmxValue(final Object attributeValue,
-                                 final AbstractAttributeInfo descriptor) {
-            return attributeValue;
-        }
-
-        @Override
-        public Object fromJmxValue(final Object jmxValue,
-                                   final AbstractAttributeInfo descriptor) {
-            return jmxValue;
-        }
-    }
-
-    /**
-     * Marks getter or setter as a management attribute.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
-    protected @interface ManagementAttribute {
-        /**
-         * Determines whether the attribute if cached.
-         * @return {@literal true}, if attribute value is cached in the private field; otherwise, {@literal false}.
-         */
-        boolean cached() default false;
-
-        /**
-         * Gets the description of the attribute.
-         * @return The description of the attribute.
-         */
-        String description() default "";
-
-        /**
-         * Represents attribute marshaller that is used to convert custom Java type to
-         * JMX-compliant value and vice versa.
-         * @return The attribute formatter.
-         */
-        Class<? extends ManagementAttributeMarshaller<?>> marshaller() default DefaultManagementAttributeMarshaller.class;
     }
 
     /**
@@ -385,254 +295,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
-    /**
-     * Represents an attribute declared as a Java property in this resource connector.
-     * This class cannot be inherited or instantiated directly in your code.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    private static class JavaBeanAttributeInfo extends AbstractAttributeInfo implements AttributeDescriptorRead{
-        private static final long serialVersionUID = -5047097712279607039L;
-        private final Supplier<?> getter;
-        private final Consumer setter;
-
-        /**
-         * Represents attribute formatter.
-         */
-        protected final ManagementAttributeMarshaller formatter;
-
-        private JavaBeanAttributeInfo(final String attributeName,
-                                      final PropertyDescriptor property,
-                                      final AttributeDescriptor descriptor,
-                                      final Object owner) throws ReflectionException {
-            super(attributeName,
-                    property.getPropertyType(),
-                    getDescription(property, descriptor),
-                    getSpecifier(property),
-                    descriptor);
-            final Method getter = property.getReadMethod();
-            final Method setter = property.getWriteMethod();
-            final ManagementAttribute info = getAdditionalInfo(getter, setter);
-            if(info != null)
-                this.formatter = callAndWrapException(() -> {
-                    final Class<? extends ManagementAttributeMarshaller> formatterClass =
-                            info.marshaller();
-                    return Objects.equals(formatterClass, DefaultManagementAttributeMarshaller.class) ?
-                            new DefaultManagementAttributeMarshaller():
-                            formatterClass.newInstance();
-                }, ReflectionException::new);
-            else formatter = new DefaultManagementAttributeMarshaller();
-            final MethodHandles.Lookup lookup = MethodHandles.lookup();
-            try{
-                this.setter = setter != null ? reflectSetter(lookup, owner, setter): null;
-                this.getter = getter != null ? reflectGetter(lookup, owner, getter): null;
-            } catch (final ReflectiveOperationException e) {
-                throw new ReflectionException(e);
-            }
-        }
-
-        final Object getValue() throws ReflectionException {
-            if (getter != null)
-                return formatter.toJmxValue(getter.get(), this);
-            else throw new ReflectionException(new UnsupportedOperationException("Attribute is write-only"));
-        }
-
-        @SuppressWarnings("unchecked")
-        final void setValue(final Object value) throws ReflectionException, InvalidAttributeValueException {
-            if (setter != null)
-                setter.accept(formatter.fromJmxValue(value, this));
-            else throw new ReflectionException(new UnsupportedOperationException("Attribute is read-only"));
-        }
-
-        private static AttributeSpecifier getSpecifier(final PropertyDescriptor descriptor){
-            AttributeSpecifier result = AttributeSpecifier.NOT_ACCESSIBLE;
-            if(descriptor.getReadMethod() != null){
-                result = result.readable(true);
-                result = descriptor.getReadMethod().getName().startsWith("is") ?
-                        result.flag(true):
-                        result;
-            }
-            result = result.writable(descriptor.getWriteMethod() != null);
-            return result;
-        }
-
-        private static ManagementAttribute getAdditionalInfo(final Method... methods){
-            for(final Method m: methods)
-                if(m != null && m.isAnnotationPresent(ManagementAttribute.class))
-                    return m.getAnnotation(ManagementAttribute.class);
-            return null;
-        }
-
-        private static String getDescription(final PropertyDescriptor property,
-                                             final AttributeDescriptor descriptor) {
-            String description = descriptor.getDescription();
-            if (description == null || description.isEmpty()) {
-                final ManagementAttribute attr = getAdditionalInfo(property.getReadMethod(), property.getWriteMethod());
-                description = attr != null ? attr.description() : null;
-                if (description == null || description.isEmpty())
-                    description = property.getName();
-            }
-            return description;
-        }
-    }
-
-    private static final class JavaBeanOpenAttributeInfo extends JavaBeanAttributeInfo implements OpenMBeanAttributeInfo{
-        private static final long serialVersionUID = -4173983412042130772L;
-        private final OpenType<?> openType;
-
-        private JavaBeanOpenAttributeInfo(final String attributeName,
-                                          final PropertyDescriptor property,
-                                          final AttributeDescriptor descriptor,
-                                          final Object owner) throws ReflectionException, OpenDataException {
-            super(attributeName, property, descriptor, owner);
-            OpenType<?> type = formatter.getOpenType();
-            //tries to detect open type via WellKnownType
-            if(type == null){
-                final WellKnownType knownType = WellKnownType.getType(property.getPropertyType());
-                if(knownType != null && knownType.isOpenType())
-                    type = knownType.getOpenType();
-                else throw new OpenDataException();
-            }
-            this.openType = type;
-        }
-
-        @Override
-        public OpenType<?> getOpenType() {
-            return openType;
-        }
-
-        @Override
-        public Object getDefaultValue() {
-            return null;
-        }
-
-        @Override
-        public Set<?> getLegalValues() {
-            return null;
-        }
-
-        @Override
-        public Comparable<?> getMinValue() {
-            return null;
-        }
-
-        @Override
-        public Comparable<?> getMaxValue() {
-            return null;
-        }
-
-        @Override
-        public boolean hasDefaultValue() {
-            return false;
-        }
-
-        @Override
-        public boolean hasLegalValues() {
-            return false;
-        }
-
-        @Override
-        public boolean hasMinValue() {
-            return false;
-        }
-
-        @Override
-        public boolean hasMaxValue() {
-            return false;
-        }
-
-        @Override
-        public boolean isValue(final Object obj) {
-            return openType.isValue(obj);
-        }
-    }
-
-    private static final class JavaBeanAttributeRepository extends AbstractAttributeRepository<JavaBeanAttributeInfo> {
-        private final Logger logger;
-        private final ImmutableList<PropertyDescriptor> properties;
-        private final WeakReference<? extends ManagedResourceConnector> connectorRef;
-
-        private <C extends ManagedResourceConnector> JavaBeanAttributeRepository(final String resourceName,
-                                            final C connector,
-                                            final PropertyDescriptor[] properties,
-                                            final Logger logger){
-            super(resourceName, JavaBeanAttributeInfo.class, true);
-            this.logger = Objects.requireNonNull(logger);
-            this.properties = ImmutableList.copyOf(properties);
-            this.connectorRef = new WeakReference<>(connector);
-        }
-
-        private static JavaBeanAttributeInfo createAttribute(final String attributeName,
-                                                             final PropertyDescriptor property,
-                                                             final AttributeDescriptor descriptor,
-                                                             final Object beanInstance) throws ReflectionException {
-            try{
-                //try to connect as Open Type attribute
-                return new JavaBeanOpenAttributeInfo(attributeName, property, descriptor, beanInstance);
-            }
-            catch (final OpenDataException e){
-                //bean property type is not Open Type
-                return new JavaBeanAttributeInfo(attributeName, property, descriptor, beanInstance);
-            }
-        }
-
-        @Override
-        protected JavaBeanAttributeInfo connectAttribute(final String attributeName,
-                                                         final AttributeDescriptor descriptor) throws AttributeNotFoundException, ReflectionException {
-            for(final PropertyDescriptor property: properties)
-                if(isReservedProperty(property)) continue;
-                else if(Objects.equals(property.getName(), descriptor.getName(attributeName)))
-                    return createAttribute(attributeName, property, descriptor, connectorRef.get());
-            throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
-        }
-
-        private ClassLoader getConnectorClassLoader(){
-            return connectorRef.get().getClass().getClassLoader();
-        }
-
-        @Override
-        public Collection<JavaBeanAttributeInfo> expandAttributes() {
-            return properties.stream()
-                    .filter(property -> !isReservedProperty(property))
-                    .map(property -> {
-                        final AttributeConfiguration config = createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
-                        assert config != null;
-                        config.setAlternativeName(property.getName());
-                        config.setAutomaticallyAdded(true);
-                        config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
-                        return addAttribute(property.getName(), new AttributeDescriptor(config));
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        }
-
-        @Override
-        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.SEVERE, attributeName, e);
-        }
-
-        @Override
-        protected Object getAttribute(final JavaBeanAttributeInfo metadata) throws ReflectionException {
-            return metadata.getValue();
-        }
-
-        @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-        }
-
-        @Override
-        protected void setAttribute(final JavaBeanAttributeInfo attribute, final Object value) throws ReflectionException, InvalidAttributeValueException {
-            attribute.setValue(value);
-        }
-
-        @Override
-        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
-        }
-    }
-
     private static final class JavaBeanNotificationRepository extends AbstractNotificationRepository<CustomNotificationInfo> {
         private final Logger logger;
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
@@ -719,7 +381,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         private Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
             return Arrays.stream(properties)
-                    .filter(descriptor -> !isReservedProperty(descriptor))
+                    .filter(IS_RESERVED_PROPERTY.negate())
                     .map(descriptor -> {
                         final AttributeConfiguration attribute = ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
                         assert attribute != null;
@@ -789,10 +451,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     protected <N extends Enum<N> & ManagementNotificationType<?>> ManagedResourceConnectorBean(final String resourceName,
                                                                                                final EnumSet<N> notifTypes) throws IntrospectionException {
         final BeanInfo beanInfo = getBeanInfo(getClass());
-        attributes = new<ManagedResourceConnectorBean> JavaBeanAttributeRepository(resourceName,
-                this,
-                beanInfo.getPropertyDescriptors(),
-                getLogger());
+        attributes = JavaBeanAttributeRepository.create(resourceName, this, beanInfo, IS_RESERVED_PROPERTY.negate());
         notifications = new JavaBeanNotificationRepository(resourceName,
                 notifTypes,
                 getBundleContextOfObject(this),
@@ -896,10 +555,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         final BeanInfo beanMetadata = getBeanInfo(getClass());
         final Set<? extends ManagementNotificationType<?>> notifTypes = notifications.notifTypes;
         return createDiscoveryService(beanMetadata, notifTypes, getLogger());
-    }
-
-    private static boolean isReservedProperty(final PropertyDescriptor property){
-        return Objects.equals(property.getName(), "logger");
     }
 
     /**
