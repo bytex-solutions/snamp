@@ -3,6 +3,7 @@ package com.bytex.snamp.internal;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Internal;
+import com.bytex.snamp.SpecialUse;
 import com.google.common.base.Joiner;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -30,16 +31,26 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
-    private static final MethodHandle CALL_SILENT_HANDLE = interfaceStaticInitialize(() -> {
+    @SuppressWarnings("unchecked")
+    private static final Function<Callable<?>, Object> CALL_SILENT_FN;
+
+    static {
         final MethodHandles.Lookup lookup = MethodHandles.lookup();
-        final CallSite site = LambdaMetafactory.metafactory(lookup,
-                "get",
-                MethodType.methodType(Supplier.class, Callable.class),
-                MethodType.methodType(Object.class),
-                lookup.unreflect(Callable.class.getMethod("call")),
-                MethodType.methodType(Object.class));
-        return site.getTarget();
-    });
+        final MethodType lambdaSignature = MethodType.methodType(Object.class, Callable.class);
+
+        try {
+            final CallSite site = LambdaMetafactory.metafactory(lookup,
+                    "apply",
+                    MethodType.methodType(Function.class),
+                    MethodType.methodType(Object.class, Object.class),
+                    lookup.findStatic(Utils.class, "callUncheckedImpl", lambdaSignature),
+                    lambdaSignature);
+
+            CALL_SILENT_FN = (Function<Callable<?>, Object>) site.getTarget().invokeExact();
+        } catch (final Throwable e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     private Utils(){
         throw new InstantiationError();
@@ -232,19 +243,13 @@ public final class Utils {
         parallelForEach(collection.spliterator(), action, threadPool);
     }
 
+    @SpecialUse
+    private static Object callUncheckedImpl(final Callable<?> callable) throws Exception{
+        return callable.call();
+    }
+
     @SuppressWarnings("unchecked")
-    public static <V> Supplier<V> suspendException(final Callable<V> callable){
-        final Supplier result;
-        try{
-            result = (Supplier) CALL_SILENT_HANDLE.invokeExact(callable);
-        } catch (final Throwable e) {
-            throw new AssertionError("Invalid call site", e);
-        }
-        return result;
-    }
-
     public static <V> V callUnchecked(final Callable<V> callable){
-        return suspendException(callable).get();
+        return (V) CALL_SILENT_FN.apply(callable);
     }
-
 }

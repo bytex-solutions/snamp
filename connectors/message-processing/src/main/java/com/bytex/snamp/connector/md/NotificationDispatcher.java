@@ -1,9 +1,6 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.notifications.measurement.NotificationSource;
-import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
-import com.bytex.snamp.connector.operations.reflection.OperationParameter;
 
 import javax.management.Notification;
 import javax.management.NotificationListener;
@@ -57,22 +54,6 @@ public final class NotificationDispatcher extends NotificationSource implements 
             handleNotification(n, context);
         else
             logger.warning(String.format("Notification '%s' with headers '%s' is ignored by parser", body, headers));
-        return success;
-    }
-
-    @SpecialUse
-    @ManagementOperation(description = "Resets all metrics")
-    public void resetAllMetrics(){
-        attributes.resetAllMetrics();
-    }
-
-    @SpecialUse
-    @ManagementOperation(description = "Resets the specified metrics")
-    public boolean resetMetric(@OperationParameter(name = "attributeName", description = "The name of the attribute to reset") final String attributeName) {
-        final MessageDrivenAttribute attribute = attributes.getAttributeInfo(attributeName);
-        final boolean success;
-        if (success = attribute instanceof MetricHolderAttribute<?, ?>)
-            ((MetricHolderAttribute<?, ?>) attribute).reset();
         return success;
     }
 }

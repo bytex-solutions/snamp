@@ -25,8 +25,7 @@ import static com.bytex.snamp.configuration.ConfigurationManager.createEntityCon
  * @since 2.0
  */
 public abstract class JavaBeanOperationRepository extends AbstractOperationRepository<JavaBeanOperationInfo> {
-
-    protected final Object owner;
+    private Object owner;
 
     protected JavaBeanOperationRepository(final String resourceName, final Object owner) {
         super(resourceName, JavaBeanOperationInfo.class, true);
@@ -52,7 +51,7 @@ public abstract class JavaBeanOperationRepository extends AbstractOperationRepos
     @Override
     public Collection<JavaBeanOperationInfo> expandOperations() {
         return getMethods().stream()
-                .filter(method -> method.getMethod().isAnnotationPresent(ManagementOperation.class))
+                .filter(JavaBeanOperationInfo::isValidDescriptor)
                 .map(method -> {
                     final OperationConfiguration config = createEntityConfiguration(getClassLoader(), OperationConfiguration.class);
                     assert config != null;
@@ -68,6 +67,15 @@ public abstract class JavaBeanOperationRepository extends AbstractOperationRepos
     @Override
     protected Object invoke(final OperationCallInfo<JavaBeanOperationInfo> callInfo) throws Exception {
         return callInfo.getOperation().invoke(owner, callInfo.toArray());
+    }
+
+    /**
+     * Removes all operations from this repository.
+     */
+    @Override
+    public void close() {
+        owner = null;
+        super.close();
     }
 
     public static JavaBeanOperationRepository create(final String resourceName,

@@ -1,12 +1,19 @@
 package com.bytex.snamp.connector.md;
 
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
+import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
+import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
+import com.bytex.snamp.connector.operations.reflection.OperationParameter;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents abstract class for message-driven resource connector.
@@ -23,7 +30,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
      */
     protected final NotificationDispatcher channel;
     @Aggregation(cached = true)
-    private final SpecialOperationsRepository operations;
+    private final JavaBeanOperationRepository operations;
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
@@ -45,7 +52,8 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
         channel = new NotificationDispatcher(componentName, componentInstance, attributes, notifications, getLogger(), parser);
 
-        operations = new SpecialOperationsRepository(resourceName, channel, getLogger());
+        final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
+        operations = JavaBeanOperationRepository.create(resourceName, this, info);
     }
 
     @Aggregation(cached = true)
@@ -61,6 +69,22 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     @Override
     protected final MetricsSupport createMetricsReader() {
         return assembleMetricsReader(channel.attributes, channel.notifications);
+    }
+
+    @SpecialUse
+    @ManagementOperation(description = "Resets all metrics")
+    public void resetAllMetrics(){
+        channel.attributes.resetAllMetrics();
+    }
+
+    @SpecialUse
+    @ManagementOperation(description = "Resets the specified metrics")
+    public boolean resetMetric(@OperationParameter(name = "attributeName", description = "The name of the attribute to reset") final String attributeName) {
+        final MessageDrivenAttribute attribute = channel.attributes.getAttributeInfo(attributeName);
+        final boolean success;
+        if (success = attribute instanceof MetricHolderAttribute<?, ?>)
+            ((MetricHolderAttribute<?, ?>) attribute).reset();
+        return success;
     }
 
     /**
