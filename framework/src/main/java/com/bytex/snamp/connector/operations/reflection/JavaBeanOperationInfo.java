@@ -27,6 +27,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public class JavaBeanOperationInfo extends OpenMBeanOperationInfoSupport {
     private static final long serialVersionUID = 5144309275413329193L;
     private final MethodHandle handle;
+    private final MethodHandle spreadHandle;
 
     public JavaBeanOperationInfo(final String operationName,
                                  final MethodDescriptor method,
@@ -38,6 +39,7 @@ public class JavaBeanOperationInfo extends OpenMBeanOperationInfoSupport {
                 getImpact(method),
                 descriptor);
         handle = callAndWrapException(() -> MethodHandles.publicLookup().unreflect(method.getMethod()), ReflectionException::new);
+        spreadHandle = MethodHandles.spreadInvoker(handle.type(), 1);
     }
 
     private static String getDescription(final MethodDescriptor method) {
@@ -105,7 +107,7 @@ public class JavaBeanOperationInfo extends OpenMBeanOperationInfoSupport {
      */
     public final Object invoke(final Object owner, final Object... args) throws ReflectionException{
         try {
-            return handle.bindTo(owner).invokeWithArguments(args);
+            return spreadHandle.invoke(handle, owner, args);
         } catch (final Exception e) {
             throw new ReflectionException(e);
         } catch (final Error e){

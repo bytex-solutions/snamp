@@ -8,6 +8,7 @@ import com.bytex.snamp.concurrent.SpinWait;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -35,6 +36,19 @@ public final class UtilsTest extends Assert {
     @SpecialUse
     private static BigInteger getBigInteger(){
         return BigInteger.TEN;
+    }
+
+    private BigInteger sum(final BigInteger v){
+        return getBigInteger().add(v);
+    }
+
+    @Test
+    public void spreaderTest() throws Throwable {
+        final MethodHandle handle = MethodHandles.lookup().unreflect(getClass().getDeclaredMethod("sum", BigInteger.class));
+        assertNotNull(handle);
+        final MethodHandle spreader = MethodHandles.spreadInvoker(handle.type(), 1);
+        final Object result = spreader.invoke(handle, this, new Object[]{BigInteger.ONE});
+        assertEquals(BigInteger.valueOf(11), result);
     }
 
     @Test
