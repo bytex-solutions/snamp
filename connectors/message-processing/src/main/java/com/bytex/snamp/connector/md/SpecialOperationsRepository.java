@@ -28,6 +28,8 @@ final class SpecialOperationsRepository extends AbstractOperationRepository<Spec
         switch (descriptor.getName(operationName)){
             case ResetAllMetricsOperation.NAME:
                 return new ResetAllMetricsOperation(operationName, descriptor);
+            case ResetMetricAttribute.NAME:
+                return new ResetMetricAttribute(operationName, descriptor);
             default:
                 throw new IllegalArgumentException(String.format("Operation '%s' is not supported", operationName));
         }
