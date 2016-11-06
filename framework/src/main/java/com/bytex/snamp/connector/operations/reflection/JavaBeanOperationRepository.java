@@ -25,7 +25,8 @@ import static com.bytex.snamp.configuration.ConfigurationManager.createEntityCon
  * @since 2.0
  */
 public abstract class JavaBeanOperationRepository extends AbstractOperationRepository<JavaBeanOperationInfo> {
-    private final Object owner;
+
+    protected final Object owner;
 
     protected JavaBeanOperationRepository(final String resourceName, final Object owner) {
         super(resourceName, JavaBeanOperationInfo.class, true);

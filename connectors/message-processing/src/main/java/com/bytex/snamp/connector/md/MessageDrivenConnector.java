@@ -45,7 +45,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
         channel = new NotificationDispatcher(componentName, componentInstance, attributes, notifications, getLogger(), parser);
 
-        operations = new SpecialOperationsRepository(resourceName, channel.attributes, getLogger());
+        operations = new SpecialOperationsRepository(resourceName, channel, getLogger());
     }
 
     @Aggregation(cached = true)
