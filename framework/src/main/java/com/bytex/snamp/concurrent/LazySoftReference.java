@@ -94,4 +94,14 @@ public final class LazySoftReference<V> extends AtomicReference<SoftReference<V>
     public void accept(final V newValue) {
         set(new SoftReference<>(newValue));
     }
+
+    /**
+     * Resets internal state of the object.
+     */
+    @Override
+    public void reset() {
+        final SoftReference<?> reference = getAndSet(null);
+        if(reference != null)
+            reference.clear();  //help GC
+    }
 }

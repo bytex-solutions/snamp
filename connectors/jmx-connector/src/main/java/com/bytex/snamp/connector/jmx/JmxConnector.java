@@ -632,7 +632,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
     /**
      * Represents an abstract class for building JMX attribute providers.
      */
-    private static class JmxAttributeInfo extends OpenMBeanAttributeInfoSupport implements JmxAttributeMetadata {
+    private static final class JmxAttributeInfo extends OpenMBeanAttributeInfoSupport implements JmxAttributeMetadata {
         private static final long serialVersionUID = 3262046901190396737L;
         private final ObjectName namespace;
         private final AttributeDescriptor descriptor;
@@ -691,12 +691,12 @@ final class JmxConnector extends AbstractManagedResourceConnector {
          * @return An owner of this attribute.
          */
         @Override
-        public final ObjectName getOwner(){
+        public ObjectName getOwner(){
             return namespace;
         }
 
         @Override
-        public final String getAlias(){
+        public String getAlias(){
             return getDescriptor().getName(getName());
         }
 
@@ -796,6 +796,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
      * @return A logger associated with this platform service.
      */
     @Override
+    @Aggregation(cached = true)
     public Logger getLogger() {
         return getLoggerImpl();
     }
@@ -804,7 +805,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         return getLogger(getType());
     }
 
-    static String getType(){
+    private static String getType(){
         return getConnectorType(JmxConnector.class);
     }
 

@@ -119,8 +119,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     @Override
     public final void close() {
         attributeSupport = null;
-        wellKnownType.set(null);
-        openType.set(null);
+        wellKnownType.reset();
+        openType.reset();
     }
 
     /**

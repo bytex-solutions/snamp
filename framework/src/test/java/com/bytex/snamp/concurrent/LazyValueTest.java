@@ -16,7 +16,7 @@ public final class LazyValueTest extends Assert {
         assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.TEN));
         assertNotNull(lazy.get());
         assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.ONE));
-        lazy.set(null);
+        lazy.reset();
         assertEquals(BigInteger.ZERO, lazy.lazyGet(() -> BigInteger.ZERO));
         assertEquals(BigInteger.ZERO, lazy.get());
     }
@@ -28,7 +28,7 @@ public final class LazyValueTest extends Assert {
         assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.TEN));
         assertNotNull(lazy.get());
         assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.ONE));
-        lazy.set(null);
+        lazy.reset();
         assertEquals(BigInteger.ZERO, lazy.lazyGet(() -> BigInteger.ZERO));
         assertEquals(BigInteger.ZERO, lazy.get().get());
     }

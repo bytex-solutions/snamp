@@ -1,6 +1,7 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.Stateful;
 
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -13,7 +14,7 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 2.0
  */
-interface LazyReference<V> extends Consumer<V> {
+interface LazyReference<V> extends Consumer<V>, Stateful {
     V lazyGet(final Supplier<? extends V> initializer);
     <I> V lazyGet(final I input, final Function<? super I, ? extends V> initializer);
     <I1, I2> V lazyGet(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends V> initializer);

@@ -12,9 +12,7 @@ import java.math.BigInteger;
 import java.nio.*;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.*;
 
@@ -228,7 +226,7 @@ public final class Convert {
         return TO_INT.lazyGet(CONVERTER).convert(value, exceptionFactory);
     }
 
-    public static <E extends Throwable> int toInt(final Object value) {
+    public static int toInt(final Object value) {
         return toInt(value, v -> new ClassCastException(String.format("Unable to convert '%s' to integer", v)));
     }
 

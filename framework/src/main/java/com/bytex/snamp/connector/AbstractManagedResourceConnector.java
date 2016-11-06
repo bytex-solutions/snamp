@@ -68,7 +68,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     @ThreadSafe(false)
     public void close() throws Exception {
         //change state of the connector
-        metrics.set(null);
+        metrics.reset();
         clearCache();
     }
 

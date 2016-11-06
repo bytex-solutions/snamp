@@ -34,7 +34,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  * @since 1.0
  */
-public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Class<?>> {
+public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Supplier<Class<?>> {
     /**
      * Represents {@link java.lang.Void} data type.
      */
@@ -90,8 +90,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      */
     SHORT("int16", SimpleType.SHORT) {
         @Override
-        public Object convert(final Object value) {
-            return Convert.toChar(value);
+        public Short convert(final Object value) {
+            return Convert.toShort(value);
         }
     },
 
@@ -110,7 +110,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      */
     LONG("int64", SimpleType.LONG) {
         @Override
-        public Object convert(final Object value) throws ClassCastException {
+        public Long convert(final Object value) throws ClassCastException {
             return Convert.toLong(value);
         }
     },
@@ -517,14 +517,14 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
             return new InvalidKeyException("Well-known type is not defined for class " + key);
         }
 
-        private static WellKnownType load(@SuppressWarnings("NullableProblems") final String className) throws InvalidKeyException {
+        private static WellKnownType load(final String className) throws InvalidKeyException {
             for (final WellKnownType type : values())
                 if (className.equals(type.getJavaType().getName()))
                     return type;
             throw cacheMissing(className);
         }
 
-        private static WellKnownType load(@SuppressWarnings("NullableProblems") final TypeToken<?> javaType) throws InvalidKeyException {
+        private static WellKnownType load(final TypeToken<?> javaType) throws InvalidKeyException {
             if(javaType.isPrimitive())
                 return load(javaType.wrap());
             else for(final WellKnownType type: values())
@@ -533,7 +533,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
             throw cacheMissing(javaType);
         }
 
-        private static WellKnownType load(@SuppressWarnings("NullableProblems") final OpenType<?> openType) throws InvalidKeyException {
+        private static WellKnownType load(final OpenType<?> openType) throws InvalidKeyException {
             if (openType instanceof CompositeType)
                 return DICTIONARY;
             else if (openType instanceof TabularType)
@@ -596,7 +596,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      * Gets display name of this type.
      * @return The display name of this type.
      */
-    public String getDisplayName(){
+    public final String getDisplayName(){
         return displayName;
     }
 
@@ -717,7 +717,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      * @return {@literal true}, if the specified object is an instance of this type;
      *      otherwise, {@literal false}.
      */
-    public boolean isInstance(final Object value){
+    public final boolean isInstance(final Object value){
         return openType != null ? openType.isValue(value) : javaType.isInstance(value);
     }
 
@@ -728,7 +728,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      *      otherwise, {@literal false}.
      */
     @Override
-    public boolean test(final Object value){
+    public final boolean test(final Object value){
         return isInstance(value);
     }
 
@@ -888,19 +888,25 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
     }
 
     /**
-     * Casts the specified value to the well known type.
+     * Casts the specified value to well-known type.
      * @param value A value to cast.
      * @return Cast result
      * @throws ClassCastException Unable to cast value.
      */
-    public Object cast(final Object value) throws ClassCastException{
+    public final Object cast(final Object value) throws ClassCastException{
         return getJavaType().cast(value);
     }
 
+    /**
+     * Converts the specified value into well-known type using conversion rules.
+     * @param value A value to convert.
+     * @return Conversion result.
+     * @throws ClassCastException Unable to convert value.
+     */
     public abstract Object convert(final Object value) throws ClassCastException;
 
     @Override
-    public String toString() {
+    public final String toString() {
         return javaType.getCanonicalName();
     }
 
@@ -909,7 +915,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      * @return The underlying Java type.
      */
     @Override
-    public Class<?> get() {
+    public final Class<?> get() {
         return getJavaType();
     }
 }

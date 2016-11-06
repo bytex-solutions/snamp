@@ -79,4 +79,12 @@ public final class LazyStrongReference<V> extends AtomicReference<V> implements 
     public void accept(final V newValue) {
         set(newValue);
     }
+
+    /**
+     * Resets internal state of the object.
+     */
+    @Override
+    public void reset() {
+        set(null);
+    }
 }

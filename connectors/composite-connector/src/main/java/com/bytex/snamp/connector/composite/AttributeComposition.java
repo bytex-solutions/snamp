@@ -49,35 +49,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     }
 
     private Object resolveAs(final String operand, final WellKnownType expectedType) throws Exception{
-        if(getAttributeInfo(operand) == null)
-            throw new IllegalArgumentException(String.format("Could not find suitable attribute for operand '%s'", operand));
-        final Object value = getAttribute(operand);
-        switch (expectedType){
-            case INT:
-                return Convert.toInt(value);
-            case BYTE:
-                return Convert.toByte(value);
-            case SHORT:
-                return Convert.toShort(value);
-            case LONG:
-                return Convert.toLong(value);
-            case FLOAT:
-                return Convert.toFloat(value);
-            case DOUBLE:
-                return Convert.toDouble(value);
-            case BIG_INT:
-                return Convert.toBigInteger(value);
-            case BIG_DECIMAL:
-                return Convert.toBigDecimal(value);
-            case BOOL:
-                return Convert.toBoolean(value);
-            case STRING:
-                return value.toString();
-            case CHAR:
-                return Convert.toChar(value);
-            default:
-                throw new ClassCastException(String.format("Unable cast '%s' to '%s'", value, expectedType));
-        }
+        return expectedType.convert(getAttribute(operand));
     }
 
     /**
@@ -106,7 +78,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     @Override
     @SuppressWarnings("unchecked")
     public <T> T resolveAs(final String name, final SimpleType<T> expectedType) throws Exception {
-        return (T)resolveAs(name, WellKnownType.getType(expectedType));
+        return Convert.toOpenType(resolveAs(name, WellKnownType.getType(expectedType)), expectedType);
     }
 
     /**
