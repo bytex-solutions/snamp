@@ -51,7 +51,7 @@ public class JavaBeanAttributeInfo extends AbstractAttributeInfo implements Attr
                         formatterClass.newInstance();
             }, ReflectionException::new);
         else
-            formatter = new DefaultManagementAttributeMarshaller();
+            throw new ReflectionException(new IllegalArgumentException(String.format("Property '%s' is not marked with annotation ManagementAttribute", property)));
         final MethodHandles.Lookup lookup = MethodHandles.lookup();
         try{
 
@@ -128,6 +128,10 @@ public class JavaBeanAttributeInfo extends AbstractAttributeInfo implements Attr
             if(m != null && m.isAnnotationPresent(ManagementAttribute.class))
                 return m.getAnnotation(ManagementAttribute.class);
         return null;
+    }
+
+    public static boolean isValidDescriptor(final PropertyDescriptor descriptor){
+        return getAdditionalInfo(descriptor.getWriteMethod(), descriptor.getReadMethod()) != null;
     }
 
     private static String getDescription(final PropertyDescriptor property,

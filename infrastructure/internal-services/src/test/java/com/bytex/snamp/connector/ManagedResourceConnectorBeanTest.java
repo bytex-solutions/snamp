@@ -14,6 +14,8 @@ import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
+import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
+import com.bytex.snamp.connector.operations.reflection.OperationParameter;
 import com.bytex.snamp.gateway.modeling.AttributeValue;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -107,6 +109,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         }
 
         @SpecialUse
+        @ManagementAttribute
         public int getProperty2() {
             return field2;
         }
@@ -118,6 +121,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         }
 
         @SpecialUse
+        @ManagementAttribute
         public boolean getProperty3() {
             return field3;
         }

@@ -4,34 +4,24 @@ import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Localizable;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.*;
+import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeInfo;
 import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeRepository;
 import com.bytex.snamp.connector.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
-import com.bytex.snamp.connector.operations.AbstractOperationRepository;
-import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LongCounter;
 import static com.bytex.snamp.internal.Utils.*;
 
-import com.bytex.snamp.jmx.WellKnownType;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import com.google.common.collect.ImmutableList;
 import org.osgi.framework.BundleContext;
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 
-import javax.management.*;
 import javax.management.openmbean.*;
 import java.beans.*;
 import java.beans.IntrospectionException;
-import java.lang.annotation.*;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -75,7 +65,6 @@ import java.util.stream.Collectors;
  * @version 2.0
  */
 public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector {
-    private static final Predicate<PropertyDescriptor> IS_RESERVED_PROPERTY = property -> Objects.equals(property.getName(), "logger");
 
     /**
      * Describes management notification type supported by this connector.
@@ -114,184 +103,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         @Override
         public String toString(final Locale locale) {
             return getCategory();
-        }
-    }
-
-    /**
-     * Associates additional information with parameter of the management operation.
-     */
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.PARAMETER)
-    protected @interface OperationParameter{
-        /**
-         * Gets description of the parameter.
-         * @return The description of the parameter.
-         */
-        String description() default "";
-
-        /**
-         * Gets name of the parameter.
-         * @return The name of the parameter.
-         */
-        String name();
-    }
-
-    /**
-     * Marks method as a management operation. Marked operation should be public non-static.
-     */
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
-    protected @interface ManagementOperation{
-        /**
-         * Gets description of the management operation.
-         * @return The description of the management operation.
-         */
-        String description() default "";
-
-        /**
-         * The impact of the method.
-         * @return The impact of the method.
-         * @see MBeanOperationInfo#UNKNOWN
-         * @see MBeanOperationInfo#ACTION
-         * @see MBeanOperationInfo#ACTION_INFO
-         * @see MBeanOperationInfo#INFO
-         */
-        int impact() default MBeanOperationInfo.UNKNOWN;
-    }
-
-    private static final class JavaBeanOperationInfo extends OpenMBeanOperationInfoSupport{
-        private static final long serialVersionUID = 5144309275413329193L;
-        private final MethodHandle handle;
-
-        private JavaBeanOperationInfo(final String operationName,
-                                      final MethodDescriptor method,
-                                      final OperationDescriptor descriptor,
-                                      final Object owner) throws ReflectionException {
-            super(operationName,
-                    getDescription(method),
-                    getParameters(method),
-                    getReturnType(method),
-                    getImpact(method),
-                    descriptor);
-            handle = callAndWrapException(() -> MethodHandles.publicLookup().unreflect(method.getMethod()).bindTo(owner), ReflectionException::new);
-        }
-
-        private static String getDescription(final MethodDescriptor method){
-            final ManagementOperation operationInfo = method.getMethod().getAnnotation(ManagementOperation.class);
-            return operationInfo != null ? operationInfo.description() : method.getShortDescription();
-        }
-
-        private static int getImpact(final MethodDescriptor method){
-            final ManagementOperation operationInfo = method.getMethod().getAnnotation(ManagementOperation.class);
-            return operationInfo != null ? operationInfo.impact() : MBeanOperationInfo.UNKNOWN;
-        }
-
-        private static OpenType<?> getReturnType(final MethodDescriptor method) throws ReflectionException {
-            return getType(method.getMethod().getReturnType());
-        }
-
-        private static <A extends Annotation> A getParameterAnnotation(final Method method,
-                                                                      final int parameterIndex,
-                                                                      final Class<A> annotationType) {
-            final Annotation[][] annotations = method.getParameterAnnotations();
-            if(annotations.length >= parameterIndex)
-                return null;
-            for(final Annotation candidate: annotations[parameterIndex])
-                if(annotationType.isInstance(candidate))
-                    return annotationType.cast(candidate);
-            return null;
-        }
-
-        private static OpenMBeanParameterInfoSupport[] getParameters(final MethodDescriptor method) throws ReflectionException {
-            final Class<?>[] parameters = method.getMethod().getParameterTypes();
-            final OpenMBeanParameterInfoSupport[] result = new OpenMBeanParameterInfoSupport[parameters.length];
-            for (int i = 0; i < parameters.length; i++) {
-                final OperationParameter metadata = getParameterAnnotation(method.getMethod(), i, OperationParameter.class);
-                final String name;
-                final String description;
-                if (metadata == null)
-                    description = name = Integer.toString(i);
-                else {
-                    name = metadata.name();
-                    description = isNullOrEmpty(metadata.description()) ?
-                            Integer.toString(i) :
-                            metadata.description();
-                }
-                result[i] = new OpenMBeanParameterInfoSupport(name,
-                        description,
-                        getType(parameters[i]));
-            }
-            return result;
-        }
-
-        private static OpenType<?> getType(final Class<?> type) throws ReflectionException{
-            final WellKnownType knownType = WellKnownType.getType(type);
-            if(knownType == null || !knownType.isOpenType())
-                throw new ReflectionException(new Exception(String.format("Invalid parameter type '%s'", type)));
-            else return knownType.getOpenType();
-        }
-    }
-
-    private static final class JavaBeanOperationRepository extends AbstractOperationRepository<JavaBeanOperationInfo> {
-        private final Logger logger;
-        private final WeakReference<? extends ManagedResourceConnector> connectorRef;
-        private final ImmutableList<MethodDescriptor> operations;
-
-        private <C extends ManagedResourceConnector> JavaBeanOperationRepository(final String resourceName,
-                                            final C connectorRef,
-                                            final MethodDescriptor[] operations,
-                                            final Logger logger){
-            super(resourceName, JavaBeanOperationInfo.class, true);
-            this.logger = logger;
-            this.connectorRef = new WeakReference<>(connectorRef);
-            this.operations = ImmutableList.copyOf(operations);
-        }
-
-        @Override
-        protected JavaBeanOperationInfo connectOperation(final String operationName,
-                                                         final OperationDescriptor descriptor) throws ReflectionException, MBeanException {
-            for(final MethodDescriptor method: operations)
-                if(Objects.equals(method.getName(), descriptor.getName(operationName)) &&
-                        method.getMethod().isAnnotationPresent(ManagementOperation.class)){
-                    return new JavaBeanOperationInfo(operationName, method, descriptor, connectorRef.get());
-                }
-            throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", descriptor.getName(operationName))));
-        }
-
-        private ClassLoader getConnectorClassLoader(){
-            return connectorRef.get().getClass().getClassLoader();
-        }
-
-        @Override
-        public Collection<JavaBeanOperationInfo> expandOperations() {
-            return operations.stream()
-                    .filter(method -> method.getMethod().isAnnotationPresent(ManagementOperation.class))
-                    .map(method -> {
-                        final OperationConfiguration config = createEntityConfiguration(getConnectorClassLoader(), OperationConfiguration.class);
-                        assert config != null;
-                        config.setAlternativeName(method.getName());
-                        config.setAutomaticallyAdded(true);
-                        config.setInvocationTimeout(OperationConfiguration.TIMEOUT_FOR_SMART_MODE);
-                        return enableOperation(method.getName(), new OperationDescriptor(config));
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        }
-
-        @Override
-        protected void failedToEnableOperation(final String operationName, final Exception e) {
-            failedToEnableOperation(logger, Level.SEVERE, operationName, e);
-        }
-
-        @Override
-        protected Object invoke(final OperationCallInfo<JavaBeanOperationInfo> callInfo) throws Exception {
-            try {
-                return callInfo.invoke(callInfo.getOperation().handle);
-            } catch (final Exception | Error e) {
-                throw e;
-            } catch (final Throwable e) {
-                throw new UndeclaredThrowableException(e);
-            }
         }
     }
 
@@ -381,7 +192,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         private Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
             return Arrays.stream(properties)
-                    .filter(IS_RESERVED_PROPERTY.negate())
+                    .filter(JavaBeanAttributeInfo::isValidDescriptor)
                     .map(descriptor -> {
                         final AttributeConfiguration attribute = ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
                         assert attribute != null;
@@ -451,15 +262,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     protected <N extends Enum<N> & ManagementNotificationType<?>> ManagedResourceConnectorBean(final String resourceName,
                                                                                                final EnumSet<N> notifTypes) throws IntrospectionException {
         final BeanInfo beanInfo = getBeanInfo(getClass());
-        attributes = JavaBeanAttributeRepository.create(resourceName, this, beanInfo, IS_RESERVED_PROPERTY.negate());
+        attributes = JavaBeanAttributeRepository.create(resourceName, this, beanInfo);
         notifications = new JavaBeanNotificationRepository(resourceName,
                 notifTypes,
                 getBundleContextOfObject(this),
                 getLogger());
-        operations = new<ManagedResourceConnectorBean> JavaBeanOperationRepository(resourceName,
-                this,
-                beanInfo.getMethodDescriptors(),
-                getLogger());
+        operations = JavaBeanOperationRepository.create(resourceName, this, beanInfo);
     }
 
     @Override

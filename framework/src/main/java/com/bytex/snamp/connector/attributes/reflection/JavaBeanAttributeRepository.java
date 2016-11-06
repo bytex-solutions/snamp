@@ -15,7 +15,6 @@ import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -119,14 +118,8 @@ public abstract class JavaBeanAttributeRepository extends AbstractAttributeRepos
 
     public static JavaBeanAttributeRepository create(final String resourceName,
                                                      final ManagedResourceConnector connector,
-                                                     final BeanInfo connectorInfo,
-                                                     final Predicate<? super PropertyDescriptor> propertyFilter){
-        final ImmutableList.Builder<PropertyDescriptor> builder = ImmutableList.builder();
-        for(final PropertyDescriptor descriptor: connectorInfo.getPropertyDescriptors())
-            if(propertyFilter.test(descriptor))
-                builder.add(descriptor);
-
-        final ImmutableList<PropertyDescriptor> properties = builder.build();
+                                                     final BeanInfo connectorInfo){
+        final ImmutableList<PropertyDescriptor> properties = ImmutableList.copyOf(connectorInfo.getPropertyDescriptors());
 
         return new JavaBeanAttributeRepository(resourceName, connector) {
             @Override
