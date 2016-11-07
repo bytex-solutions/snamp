@@ -76,10 +76,9 @@ public final class UtilsTest extends Assert {
 
     @Test(expected = MalformedURLException.class)
     public void suspendExceptionsTest(){
-        final Supplier<? extends String> sup = Utils.callUnchecked(() -> {
+        Utils.callUnchecked(() -> {
             throw new MalformedURLException();
         });
-        sup.get();
     }
 
     @Test
