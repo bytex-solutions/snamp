@@ -3,6 +3,7 @@ package com.bytex.snamp.webconsole;
 import com.auth0.jwt.JWTSigner;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
+import com.bytex.snamp.Convert;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -22,7 +23,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.LongSupplier;
-import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.MapUtils.getValue;
@@ -128,11 +128,10 @@ final class JwtPrincipal implements Principal {
         else
             throw new JWTVerifyException("Roles are not specified");
 
-        final ToLongFunction<Object> OBJ_TO_LONG = iat -> iat instanceof Number ? ((Number)iat).longValue() : 0L;
         final LongSupplier ZERO = () -> 0L;
 
-        createdAt = getValueAsLong(claims, ISSUED_AT_FIELD, OBJ_TO_LONG, ZERO);
-        expiredAt = getValueAsLong(claims, EXPIRATION_FIELD, OBJ_TO_LONG, ZERO);
+        createdAt = getValueAsLong(claims, ISSUED_AT_FIELD, Convert::toLong, ZERO);
+        expiredAt = getValueAsLong(claims, EXPIRATION_FIELD, Convert::toLong, ZERO);
     }
 
     @Override
@@ -146,7 +145,7 @@ final class JwtPrincipal implements Principal {
      * Refresh if required.
      */
     JwtPrincipal refreshToken() {
-        return new JwtPrincipal(this.getName(), this.getRoles());
+        return new JwtPrincipal(name, roles);
     }
 
     /**
@@ -175,15 +174,6 @@ final class JwtPrincipal implements Principal {
      */
     boolean isInRole(final String roleName){
         return roles.contains(roleName);
-    }
-
-    /**
-     * Gets roles.
-     *
-     * @return the roles
-     */
-    private Set<String> getRoles() {
-        return roles;
     }
 
     String createJwtToken(final String secret){

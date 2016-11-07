@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.connector.metrics.Gauge64Recorder;
 
 import javax.management.openmbean.CompositeData;
@@ -35,10 +36,8 @@ public class GaugeIntFunction extends AggregationFunction<CompositeData> {
 
     @Override
     public CompositeData invoke(final NameResolver resolver, final Object... args) {
-        if(args.length > 0 && args[0] instanceof Number){
-            final Number num = (Number) args[0];
-            gauge64.accept(num.longValue());
-        }
+        if (args.length > 0)
+            gauge64.accept(Convert.toLong(args[0]));
         return fromGauge64(gauge64);
     }
 }

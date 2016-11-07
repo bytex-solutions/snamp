@@ -16,7 +16,6 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
@@ -175,7 +174,7 @@ public class XmlParserDefinition {
 
         @Override
         public BigInteger parseAsBigInteger(final String input) throws ParseException {
-            return Convert.toType(parse(input), BigInteger.class, Function.identity(), v -> BigInteger.valueOf(v.longValue()));
+            return Convert.toBigInteger(input);
         }
 
         @Override

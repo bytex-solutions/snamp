@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.connector.metrics.FlagRecorder;
 
 import javax.management.openmbean.CompositeData;
@@ -36,13 +37,8 @@ final class FlagFunction extends AggregationFunction<CompositeData> {
 
     @Override
     public CompositeData invoke(final NameResolver resolver, final Object... args) {
-        if(args.length > 0){
-            final Object arg = args[0];
-            if(arg instanceof Boolean)
-                flag.accept((Boolean)arg);
-            else if(arg instanceof Number)
-                flag.accept(((Number)arg).longValue() != 0);
-        }
+        if(args.length > 0)
+            flag.accept(Convert.toBoolean(args[0]));
         return fromFlag(flag);
     }
 }
