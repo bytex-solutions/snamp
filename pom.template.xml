@@ -69,6 +69,7 @@
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
     <snamp.connector.snmp.version>2.0.0</snamp.connector.snmp.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
+    <snamp.connector.md.version>2.0.0</snamp.connector.md.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
   </properties>
   <version>2.0.0</version>

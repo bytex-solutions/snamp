@@ -8,7 +8,7 @@ import static org.snmp4j.smi.SMIConstants.SYNTAX_COUNTER64;
 
 final class SnmpLongObject extends SnmpScalarObject<Counter64>{
     final static int SYNTAX = SYNTAX_COUNTER64;
-    static final long DEFAULT_VALUE = -1;
+    private static final long DEFAULT_VALUE = -1;
 
     @SpecialUse
     SnmpLongObject(final SnmpAttributeAccessor connector) {

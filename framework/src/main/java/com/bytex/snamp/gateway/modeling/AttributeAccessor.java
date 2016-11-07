@@ -16,7 +16,6 @@ import com.google.common.reflect.TypeToken;
 import javax.management.*;
 import javax.management.openmbean.OpenType;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Objects;
@@ -314,15 +313,11 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
 
     private static BigDecimal toBigDecimal(Object value,
                                            final DecimalFormat format) throws ParseException {
-        if(value instanceof String)
+        if(value == null)
+            return null;
+        else if(value instanceof String)
             value = format.parse((String)value);
-        if(value instanceof BigDecimal)
-            return (BigDecimal)value;
-        else if(value instanceof BigInteger)
-            return new BigDecimal((BigInteger)value);
-        else if(value instanceof Number)
-            return new BigDecimal(((Number)value).longValue());
-        else return null;
+        return Convert.toBigDecimal(value);
     }
 
     protected final boolean isInRange(final Number value,

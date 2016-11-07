@@ -1,15 +1,17 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.Convert;
+import com.bytex.snamp.ResourceReader;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.google.common.collect.ObjectArrays;
 
 import javax.management.NotificationFilter;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -27,17 +29,60 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  */
 public abstract class MessageDrivenConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
-    protected static final String COMPONENT_INSTANCE_PARAM = "componentInstance";
-    protected static final String COMPONENT_NAME_PARAM = "componentName";
-    protected static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
-    protected static final String RANGE_START_PARAM = "from";
-    protected static final String RANGE_END_PARAM = "to";
-    protected static final String CHANNELS_PARAM = "channels";
-    protected static final String FILTER_PARAM = "filter";
+    private static final String COMPONENT_INSTANCE_PARAM = "componentInstance";
+    private static final String COMPONENT_NAME_PARAM = "componentName";
+    private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
+    private static final String RANGE_START_PARAM = "from";
+    private static final String RANGE_END_PARAM = "to";
+    private static final String CHANNELS_PARAM = "channels";
+    private static final String FILTER_PARAM = "filter";
 
-    protected MessageDrivenConnectorConfigurationDescriptor(final ConfigurationEntityDescription<AttributeConfiguration> attributeDescriptor,
+    protected static class ConnectorConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
+        private final ResourceReader fallbackReader;
+        private static final String[] DEFAULT_ATTRIBUTES = {COMPONENT_INSTANCE_PARAM, COMPONENT_NAME_PARAM, SYNC_PERIOD_PARAM};
+
+        /**
+         * Initializes a new resource-based descriptor.
+         *
+         * @param baseName   The name of the resource.
+         * @param parameters An array of configuration parameters.
+         */
+        protected ConnectorConfigurationDescription(final String baseName, final String... parameters) {
+            super(baseName, ManagedResourceConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_ATTRIBUTES, String.class));
+            fallbackReader = new ResourceReader(ConnectorConfigurationDescription.class, "ConnectorConfiguration");
+        }
+
+        @Override
+        protected Optional<String> getStringFallback(final String key, final Locale loc) {
+            return fallbackReader.getString(key, loc);
+        }
+    }
+
+    protected static class AttributeConfigurationDescription extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
+        private final ResourceReader fallbackReader;
+        private static final String[] DEFAULT_ATTRIBUTES = {RANGE_START_PARAM, RANGE_END_PARAM, CHANNELS_PARAM, FILTER_PARAM};
+
+        /**
+         * Initializes a new resource-based descriptor.
+         *
+         * @param baseName   The name of the resource.
+         * @param parameters An array of configuration parameters.
+         */
+        public AttributeConfigurationDescription(final String baseName, final String... parameters) {
+            super(baseName, AttributeConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_ATTRIBUTES, String.class));
+            fallbackReader = new ResourceReader(AttributeConfigurationDescription.class, "AttributeConfiguration");
+        }
+
+        @Override
+        protected final Optional<String> getStringFallback(final String key, final Locale loc) {
+            return fallbackReader.getString(key, loc);
+        }
+    }
+
+    protected MessageDrivenConnectorConfigurationDescriptor(final ConfigurationEntityDescription<ManagedResourceConfiguration> connectorDescriptor,
+                                                            final ConfigurationEntityDescription<AttributeConfiguration> attributeDescriptor,
                                                             final ConfigurationEntityDescription<EventConfiguration> eventDescription){
-        super(attributeDescriptor, eventDescription);
+        super(connectorDescriptor, attributeDescriptor, eventDescription);
     }
 
     final String parseComponentInstance(final Map<String, String> parameters, final String defaultValue){
@@ -53,10 +98,6 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
         return Duration.ofMillis(period);
     }
 
-    private static Long objToLong(final Object value){
-        return Long.parseLong(String.valueOf(value));
-    }
-
     private static Double objToDouble(final Object value){
         return Double.parseDouble(String.valueOf(value));
     }
@@ -66,11 +107,11 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
     }
 
     static long parseRangeStartAsLong(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_START_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToLong, MDConnectorAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, RANGE_START_PARAM, Convert::toLong, MDConnectorAbsentConfigurationParameterException::new);
     }
 
     static long parseRangeEndAsLong(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_END_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToLong, MDConnectorAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, RANGE_END_PARAM, Convert::toLong, MDConnectorAbsentConfigurationParameterException::new);
     }
 
     static double parseRangeStartAsDouble(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
@@ -90,7 +131,7 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
     }
 
     static long parseChannels(final AttributeDescriptor descriptor){
-        return getField(descriptor, CHANNELS_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToLong, () -> 1L);
+        return getField(descriptor, CHANNELS_PARAM, Convert::toLong, () -> 1L);
     }
 
     static NotificationFilter parseNotificationFilter(final AttributeDescriptor descriptor){

@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import com.bytex.snamp.Convert;
+
 import javax.management.openmbean.SimpleType;
 import java.util.Collection;
 
@@ -15,12 +17,7 @@ final class ExtractAsIntFunction extends AbstractExtractFunction<Long> {
 
     @Override
     Long convert(final Object value) {
-        if (value instanceof Number)
-            return ((Number) value).longValue();
-        else if (value != null)
-            return Long.parseLong(value.toString());
-        else
-            return getFallbackValue();
+        return Convert.toLong(value);
     }
 
     @Override

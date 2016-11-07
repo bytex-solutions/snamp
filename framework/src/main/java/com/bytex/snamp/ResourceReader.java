@@ -3,9 +3,7 @@ package com.bytex.snamp;
 import com.google.common.base.MoreObjects;
 
 import java.io.Closeable;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Represents Java resource reader.
@@ -18,12 +16,15 @@ public class ResourceReader implements Closeable, SafeCloseable {
      * The name of the resource.
      */
     public final String resourceName;
+    private final Class<?> resourceLocator;
 
-    public ResourceReader(final String baseName){
+    protected ResourceReader(final String baseName){
         resourceName = getFullyQualifiedResourceName(getClass(), baseName);
+        resourceLocator = null;
     }
 
-    protected ResourceReader(final Class<?> resourceLocator, final String baseName){
+    public ResourceReader(final Class<?> resourceLocator, final String baseName){
+        this.resourceLocator = Objects.requireNonNull(resourceLocator);
         resourceName = getFullyQualifiedResourceName(resourceLocator, baseName);
     }
 
@@ -50,27 +51,39 @@ public class ResourceReader implements Closeable, SafeCloseable {
     public final ResourceBundle getBundle(final Locale loc) throws MissingResourceException {
         return ResourceBundle.getBundle(resourceName,
                 MoreObjects.firstNonNull(loc, Locale.getDefault()),
-                getClass().getClassLoader());
+                resourceLocator == null ? getClass().getClassLoader() : resourceLocator.getClassLoader());
+    }
+
+    /**
+     * Gets string from source that differs from the resource bundle.
+     * @param key The name of the string.
+     * @param loc The requested localization of the resource. May be {@literal null}.
+     * @return Optional string loaded from different resource.
+     */
+    protected Optional<String> getStringFallback(final String key, final Locale loc){
+        return Optional.empty();
     }
 
     /**
      * Loads string from the resource.
      * @param key The name of the string.
      * @param loc The requested localization of the resource. May be {@literal null}.
-     * @param defval The default value of the resource string if it is not available.
      * @return The string loaded from the resource.
      */
-    protected final String getString(final String key, final Locale loc, final String defval) {
+    public final Optional<String> getString(final String key, final Locale loc) {
         final ResourceBundle bnd = getBundle(loc);
-        try {
-            return bnd != null && bnd.containsKey(key) ? bnd.getString(key) : defval;
-        } catch (final MissingResourceException e) {
-            return defval;
-        }
+        if (bnd != null && bnd.containsKey(key))
+            try {
+                return Optional.of(bnd.getString(key));
+            } catch (final MissingResourceException e) {
+                return getStringFallback(key, loc);
+            }
+        else
+            return getStringFallback(key, loc);
     }
 
-    protected final boolean getBoolean(final String key, final Locale loc, final boolean defval) {
-        return Boolean.valueOf(getString(key, loc, Boolean.toString(defval)));
+    public final Optional<Boolean> getBoolean(final String key, final Locale loc) {
+        return getString(key, loc).map(Boolean::valueOf);
     }
 
     /**

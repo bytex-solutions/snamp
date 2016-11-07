@@ -13,6 +13,7 @@
     <description>Framework for writing connectors based on message processing</description>
     <artifactId>message-processing</artifactId>
     <packaging>bundle</packaging>
+    <version>${snamp.connector.md.version}</version>
     <build>
         <resources>
             <resource>

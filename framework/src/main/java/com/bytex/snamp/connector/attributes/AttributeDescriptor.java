@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.attributes;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.GatewayConfiguration;
@@ -130,13 +131,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
 
     public static Duration getReadWriteTimeout(final Descriptor metadata) {
         final Object timeout = metadata.getFieldValue(READ_WRITE_TIMEOUT_FIELD);
-        if (timeout instanceof Duration)
-            return (Duration) timeout;
-        else if (timeout instanceof Number)
-            return Duration.ofMillis(((Number) timeout).longValue());
-        else if (timeout instanceof CharSequence)
-            return Duration.parse((CharSequence) timeout);
-        else return null;
+        return timeout == null ? null : Convert.toDuration(timeout);
     }
 
     public static Duration getReadWriteTimeout(final MBeanAttributeInfo metadata){

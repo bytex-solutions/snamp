@@ -1,7 +1,6 @@
 package com.bytex.snamp;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
-import com.google.common.primitives.Longs;
 
 import java.io.Serializable;
 import java.security.SecureRandom;
@@ -10,6 +9,7 @@ import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Supplier;
+
 import static com.bytex.snamp.ArrayUtils.toByteArray;
 
 /**
@@ -38,7 +38,7 @@ public final class Identifier implements Serializable {
     public static Identifier randomID(){
         final byte[] randomBytes = new byte[16];
         getSecureRandom().nextBytes(randomBytes);
-        return fromArray(randomBytes);
+        return ofBytes(randomBytes);
     }
 
     /**
@@ -46,8 +46,8 @@ public final class Identifier implements Serializable {
      * @param value String representation of the identifier.
      * @return A new identifier.
      */
-    public static Identifier fromString(final String value){
-        return fromArray(value.getBytes());
+    public static Identifier ofString(final String value){
+        return ofBytes(value.getBytes());
     }
 
     /**
@@ -55,8 +55,8 @@ public final class Identifier implements Serializable {
      * @param base64 BASE-64 encoded string.
      * @return A new identifier.
      */
-    public static Identifier fromBase64(final String base64){
-        return fromArray(Base64.getDecoder().decode(base64));
+    public static Identifier ofBase64(final String base64){
+        return ofBytes(Base64.getDecoder().decode(base64));
     }
 
     /**
@@ -64,54 +64,37 @@ public final class Identifier implements Serializable {
      * @param value Universally Unique Identifier to wrap.
      * @return A new identifier.
      */
-    public static Identifier fromUUID(final UUID value){
-        return fromString(value.toString());
+    public static Identifier ofUUID(final UUID value){
+        return ofString(value.toString());
     }
 
-    /**
-     * Wraps long integer into {@link Identifier}.
-     * @param value Long integer to wrap.
-     * @return A new identifier.
-     */
-    public static Identifier fromLong(final long value){
-        return fromArray(Longs.toByteArray(value));
-    }
 
-    /**
-     * Wraps floating-point value into {@link Identifier}.
-     * @param value Floating-point value to wrap.
-     * @return A new identifier.
-     */
-    public static Identifier fromDouble(final double value){
-        return fromLong(Double.doubleToLongBits(value));
-    }
-
-    public static Identifier fromArray(final byte[] values){
+    public static Identifier ofBytes(final byte... values){
         return new Identifier(values);
     }
 
-    public static Identifier fromArray(final char[] values){
-        return fromArray(toByteArray(values));
+    public static Identifier ofChars(final char... values){
+        return ofBytes(toByteArray(values));
     }
 
-    public static Identifier fromArray(final short[] values){
-        return fromArray(toByteArray(values));
+    public static Identifier ofShorts(final short... values){
+        return ofBytes(toByteArray(values));
     }
 
-    public static Identifier fromArray(final int[] values){
-        return fromArray(toByteArray(values));
+    public static Identifier ofInts(final int... values){
+        return ofBytes(toByteArray(values));
     }
 
-    public static Identifier fromArray(final long[] values){
-        return fromArray(toByteArray(values));
+    public static Identifier ofLongs(final long... values){
+        return ofBytes(toByteArray(values));
     }
 
-    public static Identifier fromArray(final float[] values){
-        return fromArray(toByteArray(values));
+    public static Identifier ofFloats(final float... values){
+        return ofBytes(toByteArray(values));
     }
 
-    public static Identifier fromArray(final double[] values){
-        return fromArray(toByteArray(values));
+    public static Identifier ofDoubles(final double... values){
+        return ofBytes(toByteArray(values));
     }
 
     /**

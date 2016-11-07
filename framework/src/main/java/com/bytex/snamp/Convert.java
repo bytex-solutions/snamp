@@ -138,6 +138,7 @@ public final class Convert {
     private static final LazySoftReference<ToTypeConverter<double[]>> TO_DOUBLE_ARRAY = new LazySoftReference<>();
     private static final LazySoftReference<ToTypeConverter<String[]>> TO_STRING_ARRAY = new LazySoftReference<>();
     private static final LazySoftReference<ToTypeConverter<boolean[]>> TO_BOOL_ARRAY = new LazySoftReference<>();
+    private static final LazySoftReference<ToTypeConverter<Duration>> TO_DURATION = new LazySoftReference<>();
 
     private static final class TypeTokenCastException extends ClassCastException{
         private static final long serialVersionUID = -1754975745564795992L;
@@ -431,7 +432,7 @@ public final class Convert {
     }
 
     public static char toChar(final Object value) {
-        return toChar(value, v -> new ClassCastException(String.format("Unable convert '%s' to character", v)));
+        return toChar(value, v -> new ClassCastException(String.format("Unable to convert '%s' to character", v)));
     }
 
     public static <E extends Throwable> Date toDate(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -449,7 +450,7 @@ public final class Convert {
     }
 
     public static Date toDate(final Object value) {
-        return toDate(value, v -> new ClassCastException(String.format("Unable convert '%s' to Date", v)));
+        return toDate(value, v -> new ClassCastException(String.format("Unable to convert '%s' to Date", v)));
     }
 
     private static ToTypeConverter<byte[]> getByteArrayConverter(){
@@ -500,7 +501,7 @@ public final class Convert {
     }
 
     public static ByteBuffer toByteBuffer(final Object value){
-        return toByteBuffer(value, v -> new ClassCastException(String.format("Unable convert '%s' to ByteBuffer", v)));
+        return toByteBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to ByteBuffer", v)));
     }
 
     public static <E extends Throwable> CharBuffer toCharBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -516,7 +517,7 @@ public final class Convert {
     }
 
     public static CharBuffer toCharBuffer(final Object value){
-        return toCharBuffer(value, v -> new ClassCastException(String.format("Unable convert '%s' to CharBuffer", v)));
+        return toCharBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to CharBuffer", v)));
     }
 
     public static <E extends Throwable> ShortBuffer toShortBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -531,7 +532,7 @@ public final class Convert {
     }
 
     public static ShortBuffer toShortBuffer(final Object value){
-        return toShortBuffer(value, v -> new ClassCastException(String.format("Unable convert '%s' to ShortBuffer", v)));
+        return toShortBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to ShortBuffer", v)));
     }
 
     public static <E extends Throwable> IntBuffer toIntBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -549,7 +550,7 @@ public final class Convert {
     }
 
     public static IntBuffer toIntBuffer(final Object value){
-        return toIntBuffer(value, v -> new ClassCastException(String.format("Unable convert '%s' to IntBuffer", v)));
+        return toIntBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to IntBuffer", v)));
     }
 
     public static <E extends Throwable> LongBuffer toLongBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -569,7 +570,7 @@ public final class Convert {
     }
 
     public static LongBuffer toLongBuffer(final Object value){
-        return toLongBuffer(value, v -> new ClassCastException(String.format("Unable convert '%s' to LongBuffer", v)));
+        return toLongBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to LongBuffer", v)));
     }
 
     public static <E extends Throwable> FloatBuffer toFloatBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -586,7 +587,7 @@ public final class Convert {
     }
 
     public static FloatBuffer toFloatBuffer(final Object value){
-        return toFloatBuffer(value, v -> new ClassCastException(String.format("Unable convert '%s' to FloatBuffer", v)));
+        return toFloatBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to FloatBuffer", v)));
     }
 
     public static <E extends Throwable> DoubleBuffer toDoubleBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -604,7 +605,7 @@ public final class Convert {
     }
 
     public static DoubleBuffer toDoubleBuffer(final Object value){
-        return toDoubleBuffer(value, v -> new ClassCastException(String.format("Unable convert '%s' to DoubleBuffer", v)));
+        return toDoubleBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to DoubleBuffer", v)));
     }
 
     public static <E extends Throwable> byte[] toByteArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -612,7 +613,7 @@ public final class Convert {
     }
 
     public static byte[] toByteArray(final Object value){
-        return toByteArray(value, v -> new ClassCastException(String.format("Unable convert '%s' to array of bytes", v)));
+        return toByteArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of bytes", v)));
     }
 
     public static <E extends Throwable> char[] toCharArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -628,7 +629,7 @@ public final class Convert {
     }
 
     public static char[] toCharArray(final Object value){
-        return toCharArray(value, v -> new ClassCastException(String.format("Unable convert '%s' to array of chars", v)));
+        return toCharArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of chars", v)));
     }
 
     public static <E extends Throwable> short[] toShortArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -644,7 +645,7 @@ public final class Convert {
     }
 
     public static short[] toShortArray(final Object value){
-        return toShortArray(value, v -> new ClassCastException(String.format("Unable convert '%s' to array of 16-bit signed values", v)));
+        return toShortArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of 16-bit signed values", v)));
     }
 
     public static <E extends Throwable> int[] toIntArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -662,7 +663,7 @@ public final class Convert {
     }
 
     public static int[] toIntArray(final Object value){
-        return toIntArray(value, v -> new ClassCastException(String.format("Unable convert '%s' to array of 32-bit signed values", v)));
+        return toIntArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of 32-bit signed values", v)));
     }
 
     public static <E extends Throwable> long[] toLongArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -681,7 +682,7 @@ public final class Convert {
     }
 
     public static long[] toLongArray(final Object value){
-        return toLongArray(value, v -> new ClassCastException(String.format("Unable convert '%s' to array of 64-bit signed values", v)));
+        return toLongArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of 64-bit signed values", v)));
     }
 
     public static <E extends Throwable> float[] toFloatArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -700,7 +701,7 @@ public final class Convert {
     }
 
     public static float[] toFloatArray(final Object value){
-        return toFloatArray(value, v -> new ClassCastException(String.format("Unable convert '%s' to array of floating-point values with single precision", v)));
+        return toFloatArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of floating-point values with single precision", v)));
     }
 
     public static <E extends Throwable> double[] toDoubleArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -721,7 +722,7 @@ public final class Convert {
     }
 
     public static double[] toDoubleArray(final Object value){
-        return toDoubleArray(value, v -> new ClassCastException(String.format("Unable convert '%s' to array of floating-point values with double precision", v)));
+        return toDoubleArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of floating-point values with double precision", v)));
     }
 
     public static <E extends Throwable> String[] toStringArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -755,7 +756,7 @@ public final class Convert {
     }
 
     public static String[] toStringArray(final Object value){
-        return toStringArray(value, v -> new ClassCastException(String.format("Unable convert '%s' to array of strings", v)));
+        return toStringArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of strings", v)));
     }
 
     public static <E extends Throwable> boolean[] toBooleanArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
@@ -780,6 +781,23 @@ public final class Convert {
     }
 
     public static boolean[] toBooleanArray(final Object value){
-        return toBooleanArray(value, v -> new ClassCastException(String.format("Unable convert '%s' to array of booleans", v)));
+        return toBooleanArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of booleans", v)));
+    }
+
+    public static <E extends Throwable> Duration toDuration(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{
+        final Supplier<ToTypeConverter<Duration>> CONVERTER = () -> new ToTypeConverter<Duration>()
+                .addConverter(Duration.class, Function.identity())
+                .addConverter(Number.class, n -> Duration.ofNanos(n.longValue()))
+                .addConverter(String.class, Duration::parse)
+                .addConverter(StringBuffer.class, Duration::parse)
+                .addConverter(StringBuilder.class, Duration::parse)
+                .addConverter(char[].class, chars -> Duration.parse(new String(chars)))
+                .addConverter(CharBuffer.class, Duration::parse);
+
+        return TO_DURATION.lazyGet(CONVERTER).convert(value, exceptionFactory);
+    }
+
+    public static Duration toDuration(final Object value){
+        return toDuration(value, v -> new ClassCastException(String.format("Unable to convert '%s' to Duration", v)));
     }
 }

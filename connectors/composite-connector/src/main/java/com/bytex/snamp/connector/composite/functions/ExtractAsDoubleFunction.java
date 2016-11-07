@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import com.bytex.snamp.Convert;
+
 import javax.management.openmbean.SimpleType;
 import java.util.Collection;
 
@@ -16,12 +18,7 @@ final class ExtractAsDoubleFunction extends AbstractExtractFunction<Double> {
 
     @Override
     Double convert(final Object value) throws NumberFormatException {
-        if (value instanceof Number)
-            return ((Number) value).doubleValue();
-        else if (value != null)
-            return Double.parseDouble(value.toString());
-        else
-            return getFallbackValue();
+        return Convert.toDouble(value);
     }
 
     @Override

@@ -9,6 +9,7 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>message-processing</artifactId>
+  <version>2.0.0</version>
   <packaging>bundle</packaging>
   <name>Message Processing Framework</name>
   <description>Framework for writing connectors based on message processing</description>

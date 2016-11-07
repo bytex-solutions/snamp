@@ -1,12 +1,10 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.ResourceReader;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents resource-based configuration entity descriptor.
@@ -15,6 +13,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 public class ResourceBasedConfigurationEntityDescription<T extends EntityConfiguration> extends ResourceReader implements ConfigurationEntityDescription<T> {
+    private static final Splitter RELATED_PARAMS_SPLITTER = Splitter.on(',').trimResults();
     private static final String DESCRIPTION_POSTFIX = ".description";
     private static final String REQUIRED_POSTFIX = ".required";
     private static final String PATTERN_POSTFIX = ".pattern";
@@ -78,7 +77,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * otherwise, {@literal false}.
      */
     protected boolean isRequiredParameter(final String parameterName) {
-        return getBoolean(parameterName + REQUIRED_POSTFIX, null, false);
+        return getBoolean(parameterName + REQUIRED_POSTFIX, null).orElse(false);
     }
 
     /**
@@ -88,7 +87,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @return The localized description of the configuration parameter.
      */
     protected String getParameterDescription(final String parameterName, final Locale loc) {
-        return getString(parameterName + DESCRIPTION_POSTFIX, loc, "");
+        return getString(parameterName + DESCRIPTION_POSTFIX, loc).orElse("");
     }
 
     /**
@@ -98,14 +97,11 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @return The localized input value pattern.
      */
     protected String getParameterValuePattern(final String parameterName, final Locale loc) {
-        return getString(parameterName + PATTERN_POSTFIX, loc, "");
+        return getString(parameterName + PATTERN_POSTFIX, loc).orElse("");
     }
 
     private Collection<String> getRelatedParameters(final String parameterName, final String relationPostfix){
-        final String params = getString(parameterName + relationPostfix, null, "");
-        if(isNullOrEmpty(params)) return Collections.emptyList();
-        final String[] values = params.split(",");
-        return Arrays.stream(values).map(String::trim).collect(Collectors.toList());
+        return getString(parameterName + relationPostfix, null).map(RELATED_PARAMS_SPLITTER::splitToList).orElseGet(Collections::emptyList);
     }
 
     /**
@@ -130,7 +126,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @return The configuration parameter default value.
      */
     protected String getParameterDefaultValue(final String parameterName, final Locale loc) {
-        return getString(parameterName + DEFVAL_POSTIFX, loc, "");
+        return getString(parameterName + DEFVAL_POSTIFX, loc).orElse("");
     }
 
     /**

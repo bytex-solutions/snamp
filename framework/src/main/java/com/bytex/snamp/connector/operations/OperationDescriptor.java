@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.operations;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -115,13 +116,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
 
     public static Duration getInvocationTimeout(final Descriptor descriptor){
         final Object fieldValue = descriptor.getFieldValue(INVOCATION_TIMEOUT_FIELD);
-        if(fieldValue instanceof Number)
-            return Duration.ofMillis(((Number)fieldValue).longValue());
-        else if(fieldValue instanceof Duration)
-            return (Duration)fieldValue;
-        else if(fieldValue instanceof CharSequence)
-            return Duration.parse((CharSequence)fieldValue);
-        else return null;
+        return fieldValue == null ? null :Convert.toDuration(fieldValue);
     }
 
     public final Duration getInvocationTimeout(){
