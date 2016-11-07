@@ -5,6 +5,7 @@ import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.modeling.AttributeSet;
 import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import com.bytex.snamp.gateway.modeling.NotificationSet;
+import com.bytex.snamp.gateway.modeling.OperationSet;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Multimap;
@@ -22,7 +23,7 @@ import java.util.stream.Stream;
  * @since 1.0
  */
 final class JmxGateway extends AbstractGateway {
-    private static final class MBeanRegistry extends AbstractKeyedObjects<String, ProxyMBean> implements AttributeSet<JmxAttributeAccessor>, NotificationSet<JmxNotificationAccessor> {
+    private static final class MBeanRegistry extends AbstractKeyedObjects<String, ProxyMBean> implements AttributeSet<JmxAttributeAccessor>, NotificationSet<JmxNotificationAccessor>, OperationSet<JmxOperationAccessor> {
         private static final long serialVersionUID = 7388558732363175763L;
 
         private MBeanRegistry(){
@@ -44,6 +45,12 @@ final class JmxGateway extends AbstractGateway {
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
             for(final ProxyMBean bean: values())
                 if(!bean.forEachNotification(notificationReader)) return;
+        }
+
+        @Override
+        public <E extends Exception> void forEachOperation(EntryReader<String, ? super JmxOperationAccessor, E> operationReader) throws E {
+            for(final ProxyMBean bean: values())
+                if(!bean.forEachOperation(operationReader)) return;
         }
     }
 
@@ -86,6 +93,8 @@ final class JmxGateway extends AbstractGateway {
             return (FeatureAccessor<M>)bean.addAttribute((MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
             return (FeatureAccessor<M>)bean.addNotification((MBeanNotificationInfo)feature);
+        else if(feature instanceof MBeanOperationInfo)
+            return (FeatureAccessor<M>)bean.addOperation((MBeanOperationInfo)feature);
         else return null;
     }
 
@@ -112,6 +121,8 @@ final class JmxGateway extends AbstractGateway {
                 return (FeatureAccessor<M>)bean.removeAttribute((MBeanAttributeInfo)feature);
             else if(feature instanceof MBeanNotificationInfo)
                 return (FeatureAccessor<M>)bean.removeNotification((MBeanNotificationInfo)feature);
+            else if(feature instanceof MBeanOperationInfo)
+                return (FeatureAccessor<M>)bean.removeOperation((MBeanOperationInfo)feature);
             else return null;
         }
         else return null;
@@ -153,6 +164,8 @@ final class JmxGateway extends AbstractGateway {
             return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings((AttributeSet<JmxAttributeAccessor>)exposedBeans);
         else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
             return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings((NotificationSet<JmxNotificationAccessor>)exposedBeans);
+        else if(featureType.isAssignableFrom(MBeanOperationInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings((OperationSet<JmxOperationAccessor>)exposedBeans);
         return super.getBindings(featureType);
     }
 }

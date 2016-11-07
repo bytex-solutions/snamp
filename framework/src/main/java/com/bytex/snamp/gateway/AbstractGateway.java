@@ -673,4 +673,10 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         model.forEachNotification(result::put);
         return result;
     }
+
+    protected static <TAccessor extends OperationAccessor & FeatureBindingInfo<MBeanOperationInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanOperationInfo>> getBindings(final OperationSet<TAccessor> model){
+        final Multimap<String, TAccessor> result = HashMultimap.create();
+        model.forEachOperation(result::put);
+        return result;
+    }
 }
