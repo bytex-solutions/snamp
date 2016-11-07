@@ -12,6 +12,6 @@
         <bundle start="true">mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
         <bundle start="true">mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
         <bundle start="true">mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
-        <bundle start="true">mvn:com.bytex.snamp/snamp-webconsole/${snamp.webconsole.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/webconsole/${snamp.webconsole.version}</bundle>
     </feature>
 </features>

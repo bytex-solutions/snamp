@@ -8,7 +8,7 @@
         <version>2.0.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>snamp-webconsole</artifactId>
+    <artifactId>webconsole</artifactId>
     <version>${snamp.webconsole.version}</version>
     <packaging>bundle</packaging>
     <name>Web console</name>

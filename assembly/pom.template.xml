@@ -212,7 +212,7 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.bytex.snamp</groupId>
-                                    <artifactId>snamp-webconsole-feature</artifactId>
+                                    <artifactId>webconsole-feature</artifactId>
                                     <version>${snamp.webconsole.version}</version>
                                     <type>kar</type>
                                     <overWrite>true</overWrite>

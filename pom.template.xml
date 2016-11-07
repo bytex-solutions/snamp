@@ -310,7 +310,7 @@
     <module>infrastructure/jmx-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
-    <module>infrastructure/webconsole</module>
+    <module>webconsole</module>
     <module>infrastructure/scripting</module>
     <module>features/platform-feature</module>
     <module>features/gateways-features</module>

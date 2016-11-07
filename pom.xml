@@ -20,14 +20,15 @@
     <module>infrastructure/jmx-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
-    <module>infrastructure/webconsole</module>
     <module>infrastructure/scripting</module>
+    <module>webconsole</module>
     <module>features/platform-feature</module>
     <module>features/gateways-features</module>
     <module>features/connectors-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
     <module>osgi-tests</module>
+
   </modules>
   <properties>
     <aries.jndi.url.version>1.1.0</aries.jndi.url.version>

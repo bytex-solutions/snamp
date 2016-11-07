@@ -11,7 +11,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Webconsole feature</name>
     <description>Feature for webconsole</description>
-    <artifactId>snamp-webconsole-feature</artifactId>
+    <artifactId>webconsole-feature</artifactId>
     <packaging>kar</packaging>
     <version>${snamp.webconsole.version}</version>
     <build>

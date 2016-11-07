@@ -183,7 +183,7 @@ public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
         }
     }
 
-    //@Test
+    @Test
     public void dummyTest() throws InterruptedException {
         Thread.sleep(10000000);
     }
