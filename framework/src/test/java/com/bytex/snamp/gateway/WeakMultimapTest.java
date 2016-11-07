@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway;
 
-import com.bytex.snamp.internal.EmptyEntryReader;
 import com.google.common.collect.HashMultimap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,7 +27,7 @@ public final class WeakMultimapTest extends Assert {
             final Reference<?> ref = queue.poll();
             if(ref == null) break;
         }
-        WeakMultimap.iterate(map, EmptyEntryReader.getInstance());
+        WeakMultimap.iterate(map, (k, v) -> true);
         assertEquals(0, map.size());
     }
 }
