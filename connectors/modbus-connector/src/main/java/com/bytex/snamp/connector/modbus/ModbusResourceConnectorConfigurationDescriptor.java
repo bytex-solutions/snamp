@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.modbus;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.configuration.*;
 import com.ghgande.j2mod.modbus.Modbus;
 
@@ -42,7 +43,7 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseOffset(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException{
-        return getFieldIfPresent(descriptor,OFFSET_PARAM, value -> Integer.parseInt(value.toString()), ModbusAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor,OFFSET_PARAM, Convert::toInt, ModbusAbsentConfigurationParameterException::new);
     }
 
     static boolean hasCount(final Descriptor descriptor){
@@ -50,11 +51,11 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseCount(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException{
-        return getFieldIfPresent(descriptor, COUNT_PARAM, value -> Integer.parseInt(value.toString()), ModbusAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, COUNT_PARAM, Convert::toInt, ModbusAbsentConfigurationParameterException::new);
     }
 
     static int parseUnitID(final Descriptor descriptor){
-        return getField(descriptor, UNIT_ID_PARAM, value -> Integer.parseInt(value.toString()), () -> Modbus.DEFAULT_UNIT_ID);
+        return getField(descriptor, UNIT_ID_PARAM, Convert::toInt, () -> Modbus.DEFAULT_UNIT_ID);
     }
 
     static int parseConnectionTimeout(final Map<String, String> parameters){
@@ -66,6 +67,6 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseRecordSize(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RECORD_SIZE_PARAM, value -> Integer.parseInt(value.toString()), ModbusAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, RECORD_SIZE_PARAM, Convert::toInt, ModbusAbsentConfigurationParameterException::new);
     }
 }

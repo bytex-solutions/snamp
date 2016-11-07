@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.jmx;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
@@ -127,7 +128,7 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
     }
 
     static boolean useRegexpOption(final Descriptor options) {
-        return getField(options, USE_REGEXP_PARAM, value -> Boolean.parseBoolean(value.toString()), () -> false);
+        return getField(options, USE_REGEXP_PARAM, Convert::toBoolean, () -> false);
     }
 
     static boolean checkSignature(final Descriptor options,

@@ -1,4 +1,4 @@
-package com.bytex.snamp.connectors.md;
+package com.bytex.snamp.connector.md;
 
 import org.apache.htrace.core.Sampler;
 import org.apache.htrace.core.TraceScope;

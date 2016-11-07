@@ -20,15 +20,14 @@
     <module>infrastructure/jmx-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
-    <module>infrastructure/scripting</module>
     <module>webconsole</module>
+    <module>infrastructure/scripting</module>
     <module>features/platform-feature</module>
     <module>features/gateways-features</module>
     <module>features/connectors-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
     <module>osgi-tests</module>
-
   </modules>
   <properties>
     <aries.jndi.url.version>1.1.0</aries.jndi.url.version>
@@ -70,6 +69,7 @@
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
     <cellar.version>3.0.3</cellar.version>
     <aries.jndi.api.version>1.1.0</aries.jndi.api.version>
+    <snamp.connector.md.version>2.0.0</snamp.connector.md.version>
     <osgi.version>5.0.0</osgi.version>
     <hazelcast.version>3.4.2</hazelcast.version>
     <qpid.version>0.6.0</qpid.version>
