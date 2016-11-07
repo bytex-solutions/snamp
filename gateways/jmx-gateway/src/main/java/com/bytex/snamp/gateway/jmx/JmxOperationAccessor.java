@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.jmx;
 
-import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.gateway.modeling.OperationAccessor;
 import com.google.common.collect.ImmutableSet;
 
@@ -69,8 +68,4 @@ final class JmxOperationAccessor extends OperationAccessor implements FeatureBin
         return false;
     }
 
-    @Override
-    public boolean processEvent(FeatureModifiedEvent<MBeanOperationInfo> event) {
-        return false;
-    }
 }

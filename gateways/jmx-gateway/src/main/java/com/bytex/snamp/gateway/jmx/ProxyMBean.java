@@ -12,6 +12,7 @@ import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.jmx.OpenMBeanServiceProvider;
 import com.google.common.collect.ImmutableList;
+import jdk.nashorn.internal.ir.FunctionNode;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -231,7 +232,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     OperationAccessor addOperation(final MBeanOperationInfo metadata){
-        return writeLock.apply(MBeanResources.OPERATIONS, metadata, this::addOperationImpl);
+        return readLock.apply(MBeanResources.OPERATIONS, metadata, this::addOperationImpl);
     }
 
     OperationAccessor removeOperation(final MBeanOperationInfo metadata) {
@@ -393,7 +394,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
         try {
-            return writeLock.apply(MBeanResources.OPERATIONS, () -> operations.invoke(actionName, params, signature), null);
+            return readLock.apply(MBeanResources.OPERATIONS, operations.invoke(actionName, params, signature), null);
         } catch (final ReflectionException | MBeanException e) {
             throw e;
         } catch (final Exception e) {

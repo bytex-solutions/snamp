@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -174,6 +175,22 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Test
+    public void operationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException, ExecutionException {
+        final String connectionString = AbstractJmxConnectorTest.getConnectionString();
+        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName resourceObjectName = createObjectName();
+            assertNotNull(connection.getMBeanInfo(resourceObjectName));
+            assertNotNull(connection.getMBeanInfo(resourceObjectName).getOperations().length > 0);
+
+            final byte[] array = new byte[]{1, 4, 9};
+            final Object result = connection.invoke(resourceObjectName, "rev", new Object[]{array}, new String[]{byte[].class.getName()});
+            assertTrue(result instanceof byte[]);
+            assertArrayEquals(new byte[]{9, 4, 1}, (byte[])result);
+        }
+    }
+
+    @Test
     public void configurationDescriptorTest() throws BundleException {
         ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
         testConfigurationDescriptor(desc, "objectName", "usePlatformMBean");
@@ -300,4 +317,12 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
         attribute.setAlternativeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
     }
+
+/*    @Override
+    protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
+        operations.addAndConsume("rev", operation -> {
+            operation.setAlternativeName("reverse");
+            operation.getParameters().put("source", "jmx");
+        });
+    }*/
 }

@@ -6,7 +6,7 @@
         <groupId>com.bytex.snamp</groupId>
         <artifactId>snamp</artifactId>
         <version>2.0.0</version>
-        <relativePath>../../pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>webconsole</artifactId>
     <version>${snamp.webconsole.version}</version>
