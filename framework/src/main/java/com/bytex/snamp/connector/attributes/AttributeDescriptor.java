@@ -119,7 +119,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     @Override
     public final AttributeDescriptor setFields(final Map<String, ?> values){
         if(values == null || values.isEmpty()) return this;
-        final Map<String, Object> newFields = DescriptorUtils.toMap(this, Object.class, false);
+        final Map<String, Object> newFields = DescriptorUtils.toMap(this, false);
         newFields.putAll(values);
         return new AttributeDescriptor(newFields);
     }

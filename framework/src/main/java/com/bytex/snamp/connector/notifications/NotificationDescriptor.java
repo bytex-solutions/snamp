@@ -53,7 +53,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     @Override
     public final NotificationDescriptor setFields(final Map<String, ?> values){
         if(values == null || values.isEmpty()) return this;
-        final Map<String, Object> newFields = DescriptorUtils.toMap(this, Object.class, false);
+        final Map<String, Object> newFields = DescriptorUtils.toMap(this, false);
         newFields.putAll(values);
         return new NotificationDescriptor(false, newFields);
     }

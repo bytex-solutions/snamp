@@ -76,7 +76,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     @Override
     public final OperationDescriptor setFields(final Map<String, ?> values){
         if(values == null || values.isEmpty()) return this;
-        final Map<String, Object> newFields = DescriptorUtils.toMap(this, Object.class, false);
+        final Map<String, Object> newFields = DescriptorUtils.toMap(this, false);
         newFields.putAll(values);
         return new OperationDescriptor(newFields);
     }
