@@ -1,27 +1,37 @@
 package com.bytex.snamp.gateway.jmx;
 
+import com.bytex.snamp.connector.notifications.Severity;
 import com.google.common.collect.ImmutableSet;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 
+import javax.management.ImmutableDescriptor;
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
+import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
+import java.util.Map;
 import java.util.Set;
 
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
+import static com.bytex.snamp.jmx.DescriptorUtils.toMap;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
-abstract class JmxAttributeAccessor extends AttributeAccessor implements FeatureBindingInfo<MBeanAttributeInfo> {
+abstract class JmxAttributeAccessor extends AttributeAccessor implements JmxFeatureBindingInfo<MBeanAttributeInfo> {
 
     JmxAttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
     }
 
-    abstract OpenMBeanAttributeInfo cloneMetadata();
+    @Override
+    public abstract OpenMBeanAttributeInfoSupport cloneMetadata();
+
+    final ImmutableDescriptor cloneDescriptor(){
+        return JmxFeatureBindingInfo.cloneDescriptor(getDescriptor());
+    }
 
     @Override
     protected abstract Object interceptSet(final Object value) throws InvalidAttributeValueException, InterceptionException;

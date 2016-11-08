@@ -117,15 +117,31 @@ public final class DescriptorUtils {
     /**
      * Converts {@link Descriptor} to map of fields.
      * @param descr The descriptor to convert. May be {@literal null}.
+     * @param ignoreNullValues {@literal true} if null values from descriptor should not be copied into output map.
      * @return A map of fields.
      */
     public static Map<String, Object> toMap(final Descriptor descr, final boolean ignoreNullValues){
+        return toMap(descr, Function.identity(), ignoreNullValues);
+    }
+
+    /**
+     * Converts {@link Descriptor} to map of fields.
+     * @param descr The descriptor to convert. May be {@literal null}.
+     * @param valueInterceptor Function used to intercept and modify values from descriptor.
+     * @param ignoreNullValues {@literal true} if null values from descriptor should not be copied into output map.
+     * @return A map of fields.
+     */
+    public static Map<String, Object> toMap(final Descriptor descr, final Function<Object, Object> valueInterceptor, final boolean ignoreNullValues) {
         if (descr == null) return Collections.emptyMap();
         final String[] fields = descr.getFieldNames();
         final Map<String, Object> result = Maps.newHashMapWithExpectedSize(fields.length);
         for (final String fieldName : fields) {
-            final Object fieldValue = descr.getFieldValue(fieldName);
-            if (fieldValue == null && ignoreNullValues) continue;
+            Object fieldValue = descr.getFieldValue(fieldName);
+            if (fieldValue == null) {
+                if (ignoreNullValues)
+                    continue;
+            } else
+                fieldValue = valueInterceptor.apply(fieldValue);
             result.put(fieldName, fieldValue);
         }
         return result;
@@ -165,9 +181,5 @@ public final class DescriptorUtils {
 
     public static String getUOM(final Descriptor descr){
         return getField(descr, UNIT_OF_MEASUREMENT_FIELD, Objects::toString, () -> "");
-    }
-
-    public static ImmutableDescriptor copyOf(final Descriptor descr){
-        return new ImmutableDescriptor(toMap(descr));
     }
 }

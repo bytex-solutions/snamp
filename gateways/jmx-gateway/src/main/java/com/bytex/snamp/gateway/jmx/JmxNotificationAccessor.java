@@ -4,6 +4,7 @@ import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.ImmutableSet;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 
+import javax.management.ImmutableDescriptor;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import javax.management.NotificationListener;
@@ -17,7 +18,7 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
  * @version 2.0
  * @since 1.0
  */
-final class JmxNotificationAccessor extends NotificationAccessor implements FeatureBindingInfo<MBeanNotificationInfo> {
+final class JmxNotificationAccessor extends NotificationAccessor implements JmxFeatureBindingInfo<MBeanNotificationInfo> {
     private final String resourceName;
     private final WeakReference<NotificationListener> listenerRef;
 
@@ -30,11 +31,16 @@ final class JmxNotificationAccessor extends NotificationAccessor implements Feat
     }
 
     //cloning metadata is required because RMI class loader will raise ClassNotFoundException: NotificationDescriptor (no security manager: RMI class loader disabled)
-    MBeanNotificationInfo cloneMetadata() {
+    @Override
+    public MBeanNotificationInfo cloneMetadata() {
         return new MBeanNotificationInfo(getMetadata().getNotifTypes(),
                 getMetadata().getName(),
                 getMetadata().getDescription(),
-                DescriptorUtils.copyOf(getMetadata().getDescriptor()));
+                cloneDescriptor());
+    }
+
+    private ImmutableDescriptor cloneDescriptor(){
+        return JmxFeatureBindingInfo.cloneDescriptor(getDescriptor());
     }
 
     @Override
