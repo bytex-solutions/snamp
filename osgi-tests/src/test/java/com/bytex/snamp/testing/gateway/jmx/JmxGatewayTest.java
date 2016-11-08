@@ -92,7 +92,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Test
@@ -318,11 +318,12 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
         attribute.getParameters().put("objectName", BEAN_NAME);
     }
 
-/*    @Override
-    protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
+    @Override
+    protected void fillOperations(final  EntityMap<? extends OperationConfiguration> operations) {
         operations.addAndConsume("rev", operation -> {
             operation.setAlternativeName("reverse");
             operation.getParameters().put("source", "jmx");
+            operation.getParameters().put("objectName", BEAN_NAME);
         });
-    }*/
+    }
 }

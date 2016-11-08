@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
@@ -476,6 +477,9 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 final NotificationSupport notificationSupport = connector.queryObject(NotificationSupport.class);
                 if(notificationSupport != null)
                     Arrays.stream(notificationSupport.getNotificationInfo()).forEach(metadata -> notificationAdded(new NotificationAddedEvent(notificationSupport, resourceName, metadata)));
+                final OperationSupport operationSupport = connector.queryObject(OperationSupport.class);
+                if(operationSupport != null)
+                    Arrays.stream(operationSupport.getOperationInfo()).forEach(metadata -> operationAdded(new OperationAddedEvent(operationSupport, resourceName, metadata)));
             } finally {
                 context.ungetService(resourceRef);
             }

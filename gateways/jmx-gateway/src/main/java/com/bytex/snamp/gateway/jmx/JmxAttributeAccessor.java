@@ -9,6 +9,7 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
+import javax.management.openmbean.OpenType;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,24 +21,26 @@ import static com.bytex.snamp.jmx.DescriptorUtils.toMap;
  * @version 2.0
  * @since 1.0
  */
-abstract class JmxAttributeAccessor extends AttributeAccessor implements JmxFeatureBindingInfo<MBeanAttributeInfo> {
+class JmxAttributeAccessor extends AttributeAccessor implements JmxFeatureBindingInfo<MBeanAttributeInfo> {
 
     JmxAttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
     }
-
-    @Override
-    public abstract OpenMBeanAttributeInfoSupport cloneMetadata();
 
     final ImmutableDescriptor cloneDescriptor(){
         return JmxFeatureBindingInfo.cloneDescriptor(getDescriptor());
     }
 
     @Override
-    protected abstract Object interceptSet(final Object value) throws InvalidAttributeValueException, InterceptionException;
-
-    @Override
-    protected abstract Object interceptGet(final Object value) throws InterceptionException;
+    public MBeanAttributeInfo cloneMetadata() {
+        return new MBeanAttributeInfo(getName(),
+                getMetadata().getType(),
+                getMetadata().getDescription(),
+                true,
+                false,
+                false,
+                cloneDescriptor());
+    }
 
     /**
      * Gets binding property such as URL, OID or any other information
@@ -47,9 +50,9 @@ abstract class JmxAttributeAccessor extends AttributeAccessor implements JmxFeat
      * @return The value of the binding property.
      */
     @Override
-    public final Object getProperty(final String propertyName) {
+    public Object getProperty(final String propertyName) {
         switch (propertyName){
-            case MAPPED_TYPE: return cloneMetadata().getOpenType();
+            case MAPPED_TYPE: return getOpenType();
             default: return null;
         }
     }

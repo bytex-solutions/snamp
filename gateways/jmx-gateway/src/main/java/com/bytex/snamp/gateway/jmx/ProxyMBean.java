@@ -23,6 +23,7 @@ import java.io.Closeable;
 import java.lang.management.ManagementFactory;
 import java.nio.*;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -43,31 +44,28 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         OPERATIONS
     }
 
-    private static final class ReadOnlyAttributeAccessor extends JmxAttributeAccessor{
+    private static final class OpenOperationAccessor extends JmxOperationAccessor{
+        OpenOperationAccessor(final OpenMBeanOperationInfo metadata) {
+            super((MBeanOperationInfo) metadata);
+        }
 
-        private ReadOnlyAttributeAccessor(final MBeanAttributeInfo metadata) {
-            super(metadata);
+        private static OpenMBeanParameterInfo[] getSignature(final OpenMBeanOperationInfo metadata){
+            final Class<OpenMBeanParameterInfo> expectedType = OpenMBeanParameterInfo.class;
+            return Arrays.stream(metadata.getSignature())
+                    .filter(expectedType::isInstance)
+                    .map(expectedType::cast)
+                    .toArray(OpenMBeanParameterInfo[]::new);
         }
 
         @Override
-        public OpenMBeanAttributeInfoSupport cloneMetadata() {
-            return new OpenMBeanAttributeInfoSupport(getName(),
-                    getMetadata().getDescription(),
-                    SimpleType.STRING,
-                    true,
-                    false,
-                    false,
+        public OpenMBeanOperationInfoSupport cloneMetadata() {
+            final OpenMBeanOperationInfo metadata = (OpenMBeanOperationInfo) getMetadata();
+            return new OpenMBeanOperationInfoSupport(metadata.getName(),
+                    metadata.getDescription(),
+                    getSignature(metadata),
+                    metadata.getReturnOpenType(),
+                    metadata.getImpact(),
                     cloneDescriptor());
-        }
-
-        @Override
-        protected Object interceptSet(final Object value) throws InvalidAttributeValueException  {
-            throw new InvalidAttributeValueException(String.format("Attribute %s is read-only", getName()));
-        }
-
-        @Override
-        protected Object interceptGet(final Object value) {
-            return Objects.toString(value);
         }
     }
 
@@ -228,7 +226,10 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         final JmxOperationAccessor result;
         if(operations.containsKey(metadata))
             result = operations.get(metadata);
-        else operations.put(result = new JmxOperationAccessor(resourceName, metadata));
+        else if(metadata instanceof OpenMBeanOperationInfo)
+            result = new OpenOperationAccessor((OpenMBeanOperationInfo) metadata);
+        else
+            result = new JmxOperationAccessor(metadata);
         return result;
     }
 
@@ -272,10 +273,10 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                         accessor = new BufferAttributeAccessor(metadata, DoubleBuffer.class);
                         break;
                     default:
-                        accessor = new ReadOnlyAttributeAccessor(metadata);
+                        accessor = new JmxAttributeAccessor(metadata);
                         break;
                 }
-            else accessor = new ReadOnlyAttributeAccessor(metadata);
+            else accessor = new JmxAttributeAccessor(metadata);
         }
         attributes.put(accessor);
         return accessor;
@@ -403,18 +404,18 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         }
     }
 
-    private OpenMBeanAttributeInfo[] getAttributeInfo() {
+    private MBeanAttributeInfo[] getAttributeInfo() {
         return readLock.apply(MBeanResources.ATTRIBUTES, attributes,
                 attrs -> attrs.values().stream()
                         .map(JmxAttributeAccessor::cloneMetadata)
-                        .toArray(OpenMBeanAttributeInfo[]::new));
+                        .toArray(MBeanAttributeInfo[]::new));
     }
 
-    private OpenMBeanOperationInfo[] getOperationInfo() {
+    private MBeanOperationInfo[] getOperationInfo() {
         return readLock.apply(MBeanResources.OPERATIONS, operations,
                 opers -> opers.values().stream()
                         .map(JmxOperationAccessor::cloneMetadata)
-                        .toArray(OpenMBeanOperationInfo[]::new));
+                        .toArray(MBeanOperationInfo[]::new));
     }
 
     @Override
@@ -433,10 +434,10 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
      */
     @Override
     public MBeanInfo getMBeanInfo() {
-        return new OpenMBeanInfoSupport(getClass().getName(),
+        return new MBeanInfo(getClass().getName(),
                 String.format("Represents %s resource as MBean", resourceName),
                 getAttributeInfo(),
-                ArrayUtils.emptyArray(OpenMBeanConstructorInfo[].class),
+                ArrayUtils.emptyArray(MBeanConstructorInfo[].class),
                 getOperationInfo(),
                 getNotificationInfo());
     }
