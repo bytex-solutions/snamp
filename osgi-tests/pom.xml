@@ -269,12 +269,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.thrift</groupId>
-      <artifactId>libthrift</artifactId>
-      <version>0.9.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.karaf.shell</groupId>
       <artifactId>org.apache.karaf.shell.console</artifactId>
       <version>3.0.8</version>

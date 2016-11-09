@@ -82,7 +82,6 @@
     <groovy.version>2.4.7</groovy.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <sshd.version>0.14.0</sshd.version>
-    <thrift.version>0.9.3</thrift.version>
     <guava.version>19.0</guava.version>
     <aries.proxy.api.version>1.0.1</aries.proxy.api.version>
     <activemq.version>5.13.3</activemq.version>

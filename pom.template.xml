@@ -32,7 +32,6 @@
     <aries.jndi.api.version>1.1.0</aries.jndi.api.version>
     <aries.jmx.api.version>1.1.1</aries.jmx.api.version>
     <hazelcast.version>3.4.2</hazelcast.version>
-    <thrift.version>0.9.3</thrift.version>
     <atmosphere.version>2.2.9</atmosphere.version>
     <sshd.version>0.14.0</sshd.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
