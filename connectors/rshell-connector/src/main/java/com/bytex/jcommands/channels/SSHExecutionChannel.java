@@ -15,7 +15,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import static com.bytex.snamp.MapUtils.*;

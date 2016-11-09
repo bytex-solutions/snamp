@@ -249,6 +249,14 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>com.bytex.snamp</groupId>
+                  <artifactId>message-processing</artifactId>
+                  <version>${snamp.connector.md.version}</version>
+                  <type>kar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.bytex.snamp</groupId>
                   <artifactId>webconsole-feature</artifactId>
                   <version>${snamp.webconsole.version}</version>
                   <type>kar</type>
