@@ -41,14 +41,15 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
-        AttributeConfiguration attribute = attributes.getOrAdd("ms");
-        attribute.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
-        attribute.getParameters().put("format", "-m");
+        attributes.getOrAdd("ms").setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
+        attributes.getOrAdd("ms").getParameters().put("format", "-m");
+
+        attributes.getOrAdd("ms_win").setAlternativeName(getPathToFileInProjectRoot("virtual-mem-windows.xml"));
     }
 
     @Test()
@@ -104,6 +105,26 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
             final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
             assertNotNull(attributes);
             final Object dict = attributes.getAttribute("ms");
+            assertNotNull(dict);
+            assertTrue(dict instanceof CompositeData);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "total", 0L) > 0L);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "used", 0L) > 0L);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "free", 0L) > 0L);
+        }
+        finally {
+            releaseManagementConnector();
+        }
+    }
+
+    @Test
+    public void readMemStatusAttributeWindows() throws JMException {
+        Assume.assumeTrue(OperatingSystem.isWindows());
+        final ManagedResourceConnector connector = getManagementConnector();
+        assertNotNull(connector);
+        try {
+            final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
+            assertNotNull(attributes);
+            final Object dict = attributes.getAttribute("ms_win");
             assertNotNull(dict);
             assertTrue(dict instanceof CompositeData);
             assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "total", 0L) > 0L);

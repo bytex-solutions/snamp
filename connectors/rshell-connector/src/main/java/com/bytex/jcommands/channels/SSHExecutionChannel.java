@@ -63,8 +63,8 @@ public final class SSHExecutionChannel extends SSHClient implements CommandExecu
 
     private static Map<String, String> join(final URI connectionString, final Map<String, String> params){
         final Map<String, String> result = new HashMap<>(params);
-        putValue(params, HOST_NAME_PROPERTY, connectionString, URI::getHost);
-        putIntValue(params, PORT_NAME_PROPERTY, connectionString.getPort(), Integer::toString);
+        putValue(result, HOST_NAME_PROPERTY, connectionString, URI::getHost);
+        putIntValue(result, PORT_NAME_PROPERTY, connectionString.getPort(), Integer::toString);
         return result;
     }
 
