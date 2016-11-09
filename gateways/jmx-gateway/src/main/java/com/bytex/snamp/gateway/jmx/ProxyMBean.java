@@ -3,17 +3,14 @@ package com.bytex.snamp.gateway.jmx;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.connector.notifications.Severity;
-import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationListenerList;
+import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.io.Buffers;
-import com.bytex.snamp.jmx.DescriptorUtils;
-import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.jmx.OpenMBeanServiceProvider;
+import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.collect.ImmutableList;
-import jdk.nashorn.internal.ir.FunctionNode;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -227,14 +224,14 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         if(operations.containsKey(metadata))
             result = operations.get(metadata);
         else if(metadata instanceof OpenMBeanOperationInfo)
-            result = new OpenOperationAccessor((OpenMBeanOperationInfo) metadata);
+            operations.put(result = new OpenOperationAccessor((OpenMBeanOperationInfo) metadata));
         else
-            result = new JmxOperationAccessor(metadata);
+            operations.put(result = new JmxOperationAccessor(metadata));
         return result;
     }
 
     OperationAccessor addOperation(final MBeanOperationInfo metadata){
-        return readLock.apply(MBeanResources.OPERATIONS, metadata, this::addOperationImpl);
+        return writeLock.apply(MBeanResources.OPERATIONS, metadata, this::addOperationImpl);
     }
 
     OperationAccessor removeOperation(final MBeanOperationInfo metadata) {
@@ -396,7 +393,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
         try {
-            return readLock.apply(MBeanResources.OPERATIONS, operations.invoke(actionName, params, signature), null);
+            return readLock.call(MBeanResources.OPERATIONS, () -> operations.invoke(actionName, params, signature));
         } catch (final ReflectionException | MBeanException e) {
             throw e;
         } catch (final Exception e) {

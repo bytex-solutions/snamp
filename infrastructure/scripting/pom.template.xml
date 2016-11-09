@@ -33,7 +33,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.scripting</Bundle-SymbolicName>
-                        <Export-Package>com.bytex.snamp.scripting.groovy</Export-Package>
+                        <Export-Package>com.bytex.snamp.scripting.groovy.*</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

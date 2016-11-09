@@ -14,7 +14,7 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
  * @version 2.0
  * @since 2.0
  */
-class JmxOperationAccessor extends OperationAccessor implements JmxFeatureBindingInfo<MBeanOperationInfo> {
+public class JmxOperationAccessor extends OperationAccessor implements JmxFeatureBindingInfo<MBeanOperationInfo> {
 
     JmxOperationAccessor(final MBeanOperationInfo metadata) {
         super(metadata);

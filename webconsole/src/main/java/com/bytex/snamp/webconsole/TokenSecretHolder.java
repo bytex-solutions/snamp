@@ -18,7 +18,6 @@ final class TokenSecretHolder extends SecureRandom implements Supplier<BigIntege
     private static final LazyStrongReference<TokenSecretHolder> INSTANCE = new LazyStrongReference<>();
 
     private TokenSecretHolder(){
-        throw new InstantiationError();
     }
 
     /**

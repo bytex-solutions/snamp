@@ -92,7 +92,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
@@ -181,8 +181,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName resourceObjectName = createObjectName();
             assertNotNull(connection.getMBeanInfo(resourceObjectName));
-            assertNotNull(connection.getMBeanInfo(resourceObjectName).getOperations().length > 0);
-
+            assertTrue(connection.getMBeanInfo(resourceObjectName).getOperations().length > 0);
             final byte[] array = new byte[]{1, 4, 9};
             final Object result = connection.invoke(resourceObjectName, "rev", new Object[]{array}, new String[]{byte[].class.getName()});
             assertTrue(result instanceof byte[]);
