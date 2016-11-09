@@ -12,8 +12,8 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-final class HttpConnector extends MessageDrivenConnector {
-    HttpConnector(final String resourceName, final Map<String, String> parameters, final MessageDrivenConnectorConfigurationDescriptor descriptor) {
+final class HttpAcceptor extends MessageDrivenConnector {
+    HttpAcceptor(final String resourceName, final Map<String, String> parameters, final MessageDrivenConnectorConfigurationDescriptor descriptor) {
         super(resourceName, parameters, descriptor);
     }
 

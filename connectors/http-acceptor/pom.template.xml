@@ -13,6 +13,23 @@
     <description>SNAMP Connector that accepts data using HTTP passive check</description>
     <artifactId>http-acceptor</artifactId>
     <packaging>bundle</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>com.bytex.snamp.connector.http</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.connector.http.HttpAcceptorActivator</Bundle-Activator>
+                        <Export-Package />
+                        <Provide-Capability>com.bytex.snamp.connector; type=http</Provide-Capability>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <dependencies>
         <dependency>
             <groupId>com.bytex.snamp</groupId>

@@ -76,7 +76,7 @@
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
     <jline.version>2.13</jline.version>
-    <jersey.version>1.18.1</jersey.version>
+    <jersey.version>1.19.3</jersey.version>
     <snamp.services.version>2.0.0</snamp.services.version>
     <snamp.framework.maxVersion>3</snamp.framework.maxVersion>
     <groovy.version>2.4.7</groovy.version>
