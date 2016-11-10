@@ -389,7 +389,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
-     * @see #maintenanceService(SupportServiceActivator, RequiredService[])
      * @see #discoveryService(SupportServiceActivator, RequiredService[])
      * @see #configurationDescriptor(SupportServiceActivator, RequiredService[])
      */
@@ -505,7 +504,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * </p>
      * @param dependencies A collection of connector's global dependencies.
      */
-    @SuppressWarnings("UnusedParameters")
     @MethodStub
     protected void addDependencies(final Collection<RequiredService<?>> dependencies){
 
@@ -531,7 +529,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
-        getLogger().log(Level.INFO, String.format("Activating resource connector of type %s", getConnectorType()));
+        activate(dependencies);
+    }
+
+    protected void activate(final RequiredService<?>... dependencies) throws Exception{
+        getLogger().info(String.format("Activating resource connector of type %s", getConnectorType()));
     }
 
     /**
@@ -564,7 +566,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to release %s connector instance",
+        getLogger().log(Level.SEVERE, String.format("Unable to release %s connector",
                 getConnectorType()), e);
     }
 
@@ -575,8 +577,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     @Override
     @MethodStub
-    protected final void deactivate(final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.INFO, String.format("Unloading connector of type %s", getConnectorType()));
+    protected void deactivate(final ActivationPropertyReader activationProperties) {
+        getLogger().info(String.format("Unloading connector of type %s", getConnectorType()));
     }
 
     /**

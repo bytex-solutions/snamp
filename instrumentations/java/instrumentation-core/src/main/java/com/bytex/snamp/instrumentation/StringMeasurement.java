@@ -1,4 +1,4 @@
-package com.bytex.snamp;
+package com.bytex.snamp.instrumentation;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -7,33 +7,36 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 /**
- * Represents measurement of {@code double} data type.
+ * Represents measurement of {@link String} data type.
  * @since 1.0
  * @version 1.0
  * @author Roman Sakno
  */
-public class DoubleMeasurement extends Measurement {
-    private static final long serialVersionUID = -5453349320908165683L;
-    private double value;
+public final class StringMeasurement extends Measurement {
+    private static final long serialVersionUID = 3212183719121919189L;
+    private String value = "";
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
-        out.writeDouble(value);
+        out.writeUTF(value);
         super.writeExternal(out);
     }
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-        value = in.readDouble();
+        value = in.readUTF();
         super.readExternal(in);
     }
 
     @JsonProperty(VALUE_JSON_PROPERTY)
-    public double getValue(){
+    public String getValue(){
         return value;
     }
 
-    public void setValue(final double value){
-        this.value = value;
+    public void setValue(final String value){
+        if(value != null)
+            this.value = value;
+        else
+            throw new IllegalArgumentException("Value cannot be null");
     }
 }

@@ -11,14 +11,14 @@ import java.util.OptionalLong;
  * @version 2.0
  * @since 2.0
  */
-public abstract class InstantMeasurement extends Measurement {
+public abstract class InstantMeasurementNotification extends MeasurementNotification {
     private static final long serialVersionUID = -7177935916249311678L;
     /**
      * Represents type of this notification.
      */
     public static final String TYPE = "com.bytex.measurement.valueChanged";
 
-    private abstract static class InstantMeasurementBuilder extends MeasurementBuilder<InstantMeasurement>{
+    private abstract static class InstantMeasurementBuilder extends MeasurementBuilder<InstantMeasurementNotification>{
         private ModificationType type = ModificationType.NEW_VALUE;
 
         public final InstantMeasurementBuilder setModificationType(final ModificationType value){
@@ -26,7 +26,7 @@ public abstract class InstantMeasurement extends Measurement {
             return this;
         }
 
-        private void fill(final InstantMeasurement notification){
+        private void fill(final InstantMeasurementNotification notification){
             notification.setTimeStamp(getTimeStamp());
             notification.setUserData(getUserData());
             notification.setSequenceNumber(getSequenceNumber(true));
@@ -52,8 +52,8 @@ public abstract class InstantMeasurement extends Measurement {
         }
 
         @Override
-        public InstantMeasurement get() {
-            final InstantMeasurement result = ofString(getSource(), getMessage(), value);
+        public InstantMeasurementNotification get() {
+            final InstantMeasurementNotification result = ofString(getSource(), getMessage(), value);
             super.fill(result);
             return result;
         }
@@ -72,8 +72,8 @@ public abstract class InstantMeasurement extends Measurement {
         }
 
         @Override
-        public InstantMeasurement get() {
-            final InstantMeasurement result = ofLong(getSource(), getMessage(), value);
+        public InstantMeasurementNotification get() {
+            final InstantMeasurementNotification result = ofLong(getSource(), getMessage(), value);
             super.fill(result);
             return result;
         }
@@ -92,8 +92,8 @@ public abstract class InstantMeasurement extends Measurement {
         }
 
         @Override
-        public InstantMeasurement get() {
-            final InstantMeasurement result = ofDouble(getSource(), getMessage(), value);
+        public InstantMeasurementNotification get() {
+            final InstantMeasurementNotification result = ofDouble(getSource(), getMessage(), value);
             super.fill(result);
             return result;
         }
@@ -112,8 +112,8 @@ public abstract class InstantMeasurement extends Measurement {
         }
 
         @Override
-        public InstantMeasurement get() {
-            final InstantMeasurement result = ofBoolean(getSource(), getMessage(), value);
+        public InstantMeasurementNotification get() {
+            final InstantMeasurementNotification result = ofBoolean(getSource(), getMessage(), value);
             super.fill(result);
             return result;
         }
@@ -121,8 +121,8 @@ public abstract class InstantMeasurement extends Measurement {
 
     private ModificationType modification;
 
-    private InstantMeasurement(final Object source,
-                               final String message) {
+    private InstantMeasurementNotification(final Object source,
+                                           final String message) {
         super(TYPE, source, message);
         modification = ModificationType.NEW_VALUE;
     }
@@ -223,10 +223,10 @@ public abstract class InstantMeasurement extends Measurement {
         return Optional.empty();
     }
 
-    private static InstantMeasurement ofString(final Object source,
-                                               final String message,
-                                               final String value){
-        return new InstantMeasurement(source, message){
+    private static InstantMeasurementNotification ofString(final Object source,
+                                                           final String message,
+                                                           final String value){
+        return new InstantMeasurementNotification(source, message){
             private static final long serialVersionUID = 6782560266045306772L;
 
             @Override
@@ -241,10 +241,10 @@ public abstract class InstantMeasurement extends Measurement {
         };
     }
 
-    private static InstantMeasurement ofLong(final Object source,
-                                            final String message,
-                                            final long value){
-        return new InstantMeasurement(source, message){
+    private static InstantMeasurementNotification ofLong(final Object source,
+                                                         final String message,
+                                                         final long value){
+        return new InstantMeasurementNotification(source, message){
             private static final long serialVersionUID = -1182708770615184076L;
 
             @Override
@@ -264,10 +264,10 @@ public abstract class InstantMeasurement extends Measurement {
         };
     }
 
-    private static InstantMeasurement ofBoolean(final Object source,
-                                               final String message,
-                                               final boolean value){
-        return new InstantMeasurement(source, message){
+    private static InstantMeasurementNotification ofBoolean(final Object source,
+                                                            final String message,
+                                                            final boolean value){
+        return new InstantMeasurementNotification(source, message){
             private static final long serialVersionUID = 4958445472595461806L;
 
             @Override
@@ -292,10 +292,10 @@ public abstract class InstantMeasurement extends Measurement {
         };
     }
 
-    private static InstantMeasurement ofDouble(final Object source,
-                                              final String message,
-                                              final double value){
-        return new InstantMeasurement(source, message){
+    private static InstantMeasurementNotification ofDouble(final Object source,
+                                                           final String message,
+                                                           final double value){
+        return new InstantMeasurementNotification(source, message){
             private static final long serialVersionUID = -5581192241225949587L;
 
             @Override

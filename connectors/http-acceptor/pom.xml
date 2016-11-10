@@ -6,9 +6,9 @@
     <groupId>com.bytex.snamp</groupId>
     <artifactId>snamp</artifactId>
     <version>2.0.0</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>http-acceptor</artifactId>
+  <version>2.0.0</version>
   <packaging>bundle</packaging>
   <name>HTTP Acceptor</name>
   <description>SNAMP Connector that accepts data using HTTP passive check</description>
@@ -23,6 +23,12 @@
       <groupId>com.bytex.snamp</groupId>
       <artifactId>message-processing</artifactId>
       <version>2.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.bytex.snamp</groupId>
+      <artifactId>instrumentation-core</artifactId>
+      <version>1.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

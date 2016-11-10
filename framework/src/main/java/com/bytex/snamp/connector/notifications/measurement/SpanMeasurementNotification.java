@@ -13,13 +13,13 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class SpanMeasurement extends StopwatchMeasurement {
+public final class SpanMeasurementNotification extends StopwatchMeasurementNotification {
     /**
      * Represents type of this notification.
      */
     public static final String TYPE = "com.bytex.measurement.span";
 
-    public static final class Builder extends StopwatchMeasurement.Builder{
+    public static final class Builder extends StopwatchMeasurementNotification.Builder{
         private Identifier spanID;
         private Identifier parentSpan;
         private Identifier correlationID;
@@ -60,8 +60,8 @@ public final class SpanMeasurement extends StopwatchMeasurement {
         }
 
         @Override
-        public SpanMeasurement get() {
-            final SpanMeasurement result = new SpanMeasurement(spanID, getSource(), getMessage());
+        public SpanMeasurementNotification get() {
+            final SpanMeasurementNotification result = new SpanMeasurementNotification(spanID, getSource(), getMessage());
             result.getContext().putAll(context);
             result.setDuration(getDuration());
             result.setCorrelationID(correlationID);
@@ -91,16 +91,16 @@ public final class SpanMeasurement extends StopwatchMeasurement {
     private Identifier correlationID;
     private final SpanContext context;
 
-    private SpanMeasurement(final Identifier spanID,
-                           final Object source,
-                           final String message){
+    private SpanMeasurementNotification(final Identifier spanID,
+                                        final Object source,
+                                        final String message){
         super(TYPE, source, message);
         this.spanID = Objects.requireNonNull(spanID);
         context = new SpanContext();
     }
 
     /**
-     * Constructs builder for {@link SpanMeasurement} class.
+     * Constructs builder for {@link SpanMeasurementNotification} class.
      * @return A new builder.
      */
     public static Builder builder(){

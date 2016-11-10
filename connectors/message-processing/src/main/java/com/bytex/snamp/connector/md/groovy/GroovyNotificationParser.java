@@ -3,9 +3,9 @@ package com.bytex.snamp.connector.md.groovy;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.md.NotificationParser;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
-import com.bytex.snamp.connector.notifications.measurement.InstantMeasurement;
-import com.bytex.snamp.connector.notifications.measurement.SpanMeasurement;
-import com.bytex.snamp.connector.notifications.measurement.StopwatchMeasurement;
+import com.bytex.snamp.connector.notifications.measurement.InstantMeasurementNotification;
+import com.bytex.snamp.connector.notifications.measurement.SpanMeasurementNotification;
+import com.bytex.snamp.connector.notifications.measurement.StopwatchMeasurementNotification;
 import com.bytex.snamp.scripting.groovy.Scriptlet;
 
 /**
@@ -25,22 +25,22 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
     }
 
     @SpecialUse
-    protected static SpanMeasurement.Builder newSpan(){
-        return SpanMeasurement.builder();
+    protected static SpanMeasurementNotification.Builder newSpan(){
+        return SpanMeasurementNotification.builder();
     }
 
     @SpecialUse
-    protected static StopwatchMeasurement.Builder newStopwatch(){
-        return StopwatchMeasurement.builder();
+    protected static StopwatchMeasurementNotification.Builder newStopwatch(){
+        return StopwatchMeasurementNotification.builder();
     }
 
     @SpecialUse
-    protected static InstantMeasurement.BooleanMeasurementBuilder newInstantBoolean(){
-        return InstantMeasurement.builderForBoolean();
+    protected static InstantMeasurementNotification.BooleanMeasurementBuilder newInstantBoolean(){
+        return InstantMeasurementNotification.builderForBoolean();
     }
 
     @SpecialUse
-    protected static InstantMeasurement.DoubleMeasurementBuilder newInstantDouble(){
-        return InstantMeasurement.builderForDouble();
+    protected static InstantMeasurementNotification.DoubleMeasurementBuilder newInstantDouble(){
+        return InstantMeasurementNotification.builderForDouble();
     }
 }

@@ -10,13 +10,13 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public class StopwatchMeasurement extends Measurement {
+public class StopwatchMeasurementNotification extends MeasurementNotification {
     public static final String TYPE = "com.bytex.measurement.stopwatch";
 
     /**
-     * Represents builder for {@link StopwatchMeasurement}.
+     * Represents builder for {@link StopwatchMeasurementNotification}.
      */
-    public static class Builder extends MeasurementBuilder<StopwatchMeasurement>{
+    public static class Builder extends MeasurementBuilder<StopwatchMeasurementNotification>{
         private Duration duration;
 
         Builder(){
@@ -52,8 +52,8 @@ public class StopwatchMeasurement extends Measurement {
          * @return a result
          */
         @Override
-        public StopwatchMeasurement get() {
-            final StopwatchMeasurement result = new StopwatchMeasurement(getSource(), getMessage());
+        public StopwatchMeasurementNotification get() {
+            final StopwatchMeasurementNotification result = new StopwatchMeasurementNotification(getSource(), getMessage());
             result.setTimeStamp(getTimeStamp());
             result.setUserData(getUserData());
             result.setDuration(duration);
@@ -65,18 +65,18 @@ public class StopwatchMeasurement extends Measurement {
     private static final long serialVersionUID = -511699973106291280L;
     private Duration duration;
 
-    StopwatchMeasurement(final String type, final Object source, final String message) {
+    StopwatchMeasurementNotification(final String type, final Object source, final String message) {
         super(type, source, message);
         duration = Duration.ZERO;
         setTimeStamp(System.currentTimeMillis());
     }
 
-    private StopwatchMeasurement(final Object source, final String message){
+    private StopwatchMeasurementNotification(final Object source, final String message){
         this(TYPE, source, message);
     }
 
     /**
-     * Constructs a new builder for {@link StopwatchMeasurement}.
+     * Constructs a new builder for {@link StopwatchMeasurementNotification}.
      * @return A new builder.
      */
     public static Builder builder(){

@@ -28,6 +28,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     /**
      * Represents channel that can be used to process notifications.
      */
+    @Aggregation(cached = true)
     protected final NotificationDispatcher channel;
     @Aggregation(cached = true)
     private final JavaBeanOperationRepository operations;

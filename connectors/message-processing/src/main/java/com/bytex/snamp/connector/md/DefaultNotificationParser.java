@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.connector.notifications.measurement.Measurement;
+import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 
 import java.util.Map;
 
@@ -11,7 +11,7 @@ import java.util.Map;
  */
 final class DefaultNotificationParser implements NotificationParser {
     @Override
-    public Measurement parse(final Map<String, ?> headers, final Object body) {
+    public MeasurementNotification parse(final Map<String, ?> headers, final Object body) {
         return null;
     }
 }

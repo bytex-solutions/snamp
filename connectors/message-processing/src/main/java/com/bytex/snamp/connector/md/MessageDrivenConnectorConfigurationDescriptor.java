@@ -38,6 +38,7 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
     private static final String FILTER_PARAM = "filter";
 
     protected static class ConnectorConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
+        private static final String RESOURCE_NAME = "ConnectorConfiguration";
         private final ResourceReader fallbackReader;
         private static final String[] DEFAULT_ATTRIBUTES = {COMPONENT_INSTANCE_PARAM, COMPONENT_NAME_PARAM, SYNC_PERIOD_PARAM};
 
@@ -49,16 +50,26 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
          */
         protected ConnectorConfigurationDescription(final String baseName, final String... parameters) {
             super(baseName, ManagedResourceConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_ATTRIBUTES, String.class));
-            fallbackReader = new ResourceReader(ConnectorConfigurationDescription.class, "ConnectorConfiguration");
+            fallbackReader = new ResourceReader(ConnectorConfigurationDescription.class, RESOURCE_NAME);
+        }
+
+        private ConnectorConfigurationDescription(){
+            super(RESOURCE_NAME, ManagedResourceConfiguration.class);
+            fallbackReader = null;
+        }
+
+        public static ConnectorConfigurationDescription createDefault(){
+            return new ConnectorConfigurationDescription();
         }
 
         @Override
         protected Optional<String> getStringFallback(final String key, final Locale loc) {
-            return fallbackReader.getString(key, loc);
+            return fallbackReader != null ? fallbackReader.getString(key, loc) : Optional.empty();
         }
     }
 
     protected static class AttributeConfigurationDescription extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
+        private static final String RESOURCE_NAME = "AttributeConfiguration";
         private final ResourceReader fallbackReader;
         private static final String[] DEFAULT_ATTRIBUTES = {RANGE_START_PARAM, RANGE_END_PARAM, CHANNELS_PARAM, FILTER_PARAM};
 
@@ -68,21 +79,32 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
          * @param baseName   The name of the resource.
          * @param parameters An array of configuration parameters.
          */
-        public AttributeConfigurationDescription(final String baseName, final String... parameters) {
+        protected AttributeConfigurationDescription(final String baseName, final String... parameters) {
             super(baseName, AttributeConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_ATTRIBUTES, String.class));
-            fallbackReader = new ResourceReader(AttributeConfigurationDescription.class, "AttributeConfiguration");
+            fallbackReader = new ResourceReader(AttributeConfigurationDescription.class, RESOURCE_NAME);
+        }
+
+        private AttributeConfigurationDescription(){
+            super(RESOURCE_NAME, AttributeConfiguration.class);
+            fallbackReader = null;
+        }
+
+        public static AttributeConfigurationDescription createDefault(){
+            return new AttributeConfigurationDescription();
         }
 
         @Override
         protected final Optional<String> getStringFallback(final String key, final Locale loc) {
-            return fallbackReader.getString(key, loc);
+            return fallbackReader != null ? fallbackReader.getString(key, loc) : null;
         }
     }
 
-    protected MessageDrivenConnectorConfigurationDescriptor(final ConfigurationEntityDescription<ManagedResourceConfiguration> connectorDescriptor,
-                                                            final ConfigurationEntityDescription<AttributeConfiguration> attributeDescriptor,
-                                                            final ConfigurationEntityDescription<EventConfiguration> eventDescription){
-        super(connectorDescriptor, attributeDescriptor, eventDescription);
+    protected MessageDrivenConnectorConfigurationDescriptor(final ConfigurationEntityDescription<?>... descriptions){
+        super(descriptions);
+    }
+
+    protected MessageDrivenConnectorConfigurationDescriptor(){
+        super(ConnectorConfigurationDescription.createDefault(), AttributeConfigurationDescription.createDefault());
     }
 
     final String parseComponentInstance(final Map<String, String> parameters, final String defaultValue){

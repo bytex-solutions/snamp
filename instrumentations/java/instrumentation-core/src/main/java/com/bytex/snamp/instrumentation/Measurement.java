@@ -1,8 +1,6 @@
-package com.bytex.snamp;
+package com.bytex.snamp.instrumentation;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.*;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -12,9 +10,8 @@ import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Represents abstract POJO for all measurements.
@@ -23,8 +20,17 @@ import java.util.TreeSet;
  * @author Roman Sakno
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
-@JsonSubTypes({@JsonSubTypes.Type(IntegerMeasurement.class), @JsonSubTypes.Type(DoubleMeasurement.class)})
+@JsonSubTypes({
+        @JsonSubTypes.Type(IntegerMeasurement.class),
+        @JsonSubTypes.Type(DoubleMeasurement.class),
+        @JsonSubTypes.Type(StringMeasurement.class),
+        @JsonSubTypes.Type(BooleanMeasurement.class)
+})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Measurement implements Externalizable {
+    private static final Pattern CLASS_NAME_SPLITTER = Pattern.compile("\\s+");
+    private static final Pattern DOT_SPLITTER = Pattern.compile("\\.");
+
     static final String VALUE_JSON_PROPERTY = "v";
     private static final long serialVersionUID = -5122847206545823797L;
 
@@ -32,10 +38,22 @@ public abstract class Measurement implements Externalizable {
     private String componentName;
     private String message;
     private long timestamp;
+    private final LinkedHashMap<String, String> userData;
 
     Measurement(){
         instanceName = componentName = message = "";
         timestamp = System.currentTimeMillis();
+        userData = new LinkedHashMap<String, String>();
+    }
+
+    @JsonProperty("userData")
+    public final Map<String, String> getUserData(){
+        return userData;
+    }
+
+    public final void setUserData(final Map<String, String> value){
+        userData.clear();
+        userData.putAll(value);
     }
 
     @Override
@@ -44,6 +62,12 @@ public abstract class Measurement implements Externalizable {
         out.writeUTF(componentName);
         out.writeUTF(message);
         out.writeLong(timestamp);
+        //save user data
+        out.writeInt(userData.size());
+        for(final Map.Entry<String, String> entry: userData.entrySet()){
+            out.writeUTF(entry.getKey());
+            out.writeUTF(entry.getValue());
+        }
     }
 
     @Override
@@ -52,6 +76,9 @@ public abstract class Measurement implements Externalizable {
         componentName = in.readUTF();
         message = in.readUTF();
         timestamp = in.readLong();
+        //load user data
+        for (int size = in.readInt(); size > 0; size--)
+            userData.put(in.readUTF(), in.readUTF());
     }
 
     /**
@@ -87,9 +114,8 @@ public abstract class Measurement implements Externalizable {
     public static String getDefaultComponentName(){
         String cmdLine = System.getProperty("sun.java.command");
         if(cmdLine != null && !cmdLine.isEmpty()) {
-            final String fullClassName = cmdLine.split("\\s+")[0];
-            final String[] classParts = fullClassName.split("\\.");
-            cmdLine = classParts[classParts.length - 1];
+            final String[] classParts = DOT_SPLITTER.split(CLASS_NAME_SPLITTER.split(cmdLine)[0]);
+            cmdLine = classParts.length > 0 ? classParts[classParts.length - 1] : "";
         }
         return (cmdLine == null || cmdLine.isEmpty()) ?
                 ManagementFactory.getRuntimeMXBean().getName() :
@@ -148,6 +174,7 @@ public abstract class Measurement implements Externalizable {
         timestamp = value;
     }
 
+    @JsonIgnore
     public final void setTimeStamp(final Date value){
         setTimeStamp(value.getTime());
     }

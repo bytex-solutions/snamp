@@ -8,12 +8,12 @@ import java.util.Optional;
  * @since 2.0
  * @version 2.0
  */
-public abstract class Measurement extends Notification {
+public abstract class MeasurementNotification extends Notification {
     private static final long serialVersionUID = -5747719139937442378L;
 
-    Measurement(final String type,
-                final Object source,
-                final String message) {
+    MeasurementNotification(final String type,
+                            final Object source,
+                            final String message) {
         super(type, source, 0L, message);
     }
 

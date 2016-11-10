@@ -1,4 +1,4 @@
-package com.bytex.snamp;
+package com.bytex.snamp.instrumentation;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -7,36 +7,33 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 /**
- * Represents measurement of {@link String} data type.
+ * Represents measurement of {@code boolean} data type.
  * @since 1.0
  * @version 1.0
  * @author Roman Sakno
  */
-public final class StringMeasurement extends Measurement {
-    private static final long serialVersionUID = 3212183719121919189L;
-    private String value = "";
+public final class BooleanMeasurement extends Measurement {
+    private static final long serialVersionUID = -2769042034301266820L;
+    private boolean value;
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
-        out.writeUTF(value);
+        out.writeBoolean(value);
         super.writeExternal(out);
     }
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-        value = in.readUTF();
+        value = in.readBoolean();
         super.readExternal(in);
     }
 
     @JsonProperty(VALUE_JSON_PROPERTY)
-    public String getValue(){
+    public boolean getValue(){
         return value;
     }
 
-    public void setValue(final String value){
-        if(value != null)
-            this.value = value;
-        else
-            throw new IllegalArgumentException("Value cannot be null");
+    public void setValue(final boolean value){
+        this.value = value;
     }
 }

@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.connector.md.MessageDrivenConnector;
-import com.bytex.snamp.connector.md.MessageDrivenConnectorConfigurationDescriptor;
 import com.bytex.snamp.connector.md.NotificationParser;
 
 import java.util.Map;
@@ -13,8 +12,8 @@ import java.util.Map;
  * @since 2.0
  */
 final class HttpAcceptor extends MessageDrivenConnector {
-    HttpAcceptor(final String resourceName, final Map<String, String> parameters, final MessageDrivenConnectorConfigurationDescriptor descriptor) {
-        super(resourceName, parameters, descriptor);
+    HttpAcceptor(final String resourceName, final Map<String, String> parameters) {
+        super(resourceName, parameters, HttpConnectorConfigurationDescriptor.getInstance());
     }
 
     /**

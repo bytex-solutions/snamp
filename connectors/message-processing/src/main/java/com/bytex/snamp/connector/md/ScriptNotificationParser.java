@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.connector.notifications.measurement.Measurement;
+import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
 
@@ -28,11 +28,11 @@ final class ScriptNotificationParser implements NotificationParser {
     }
 
     @Override
-    public Measurement parse(final Map<String, ?> headers, final Object body) throws IOException, ScriptException {
+    public MeasurementNotification parse(final Map<String, ?> headers, final Object body) throws IOException, ScriptException {
         Object result;
         try (final FileReader reader = new FileReader(scriptFile)) {
             result = engine.eval(reader);
         }
-        return (Measurement) result;
+        return (MeasurementNotification) result;
     }
 }

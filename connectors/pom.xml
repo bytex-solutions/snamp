@@ -19,6 +19,6 @@
     <module>groovy-connector</module>
     <module>modbus-connector</module>
     <module>message-processing</module>
-    <!--<module>http-acceptor</module>-->
+    <module>http-acceptor</module>
   </modules>
 </project>

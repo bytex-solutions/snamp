@@ -13,6 +13,7 @@
     <description>SNAMP Connector that accepts data using HTTP passive check</description>
     <artifactId>http-acceptor</artifactId>
     <packaging>bundle</packaging>
+    <version>${snamp.connector.http.version}</version>
     <build>
         <plugins>
             <plugin>
@@ -41,6 +42,12 @@
             <groupId>com.bytex.snamp</groupId>
             <artifactId>message-processing</artifactId>
             <version>${snamp.connector.md.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>instrumentation-core</artifactId>
+            <version>${snamp.instrumentation.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

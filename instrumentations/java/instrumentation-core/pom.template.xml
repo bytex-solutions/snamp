@@ -9,11 +9,11 @@
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>measurement-core</artifactId>
-    <name>SNAMP Client Library</name>
-    <description>SNAMP Tracer library for embedding into applications</description>
+    <artifactId>instrumentation-core</artifactId>
+    <name>SNAMP Instrumentation Library</name>
+    <description>SNAMP Instrumentation library for embedding into applications</description>
     <packaging>bundle</packaging>
-    <version>${snamp.tracer.version}</version>
+    <version>${snamp.instrumentation.version}</version>
     <properties>
         <jackson.version>1.9.2</jackson.version>
         <maven.compiler.source>1.6</maven.compiler.source>

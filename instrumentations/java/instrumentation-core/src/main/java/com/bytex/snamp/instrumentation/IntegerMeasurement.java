@@ -1,4 +1,4 @@
-package com.bytex.snamp;
+package com.bytex.snamp.instrumentation;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
