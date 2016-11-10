@@ -28,6 +28,7 @@
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
     <module>osgi-tests</module>
+      <module>tracer</module>
   </modules>
   <properties>
     <aries.jndi.url.version>1.1.0</aries.jndi.url.version>
@@ -88,6 +89,7 @@
     <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
     <snamp.framework.version>2.0.0</snamp.framework.version>
     <bouncycastle.version>1.54</bouncycastle.version>
+    <snamp.tracer.version>1.0.0</snamp.tracer.version>
   </properties>
   <dependencyManagement>
     <dependencies>

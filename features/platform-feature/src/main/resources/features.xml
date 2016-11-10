@@ -21,5 +21,6 @@
         <bundle start="true">mvn:com.bytex.snamp/jmx-helpers/${snamp.jmxhelper.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/internal-services/${snamp.services.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/scripting/${snamp.scripting.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/message-processing/${snamp.connector.md.version}</bundle>
     </feature>
 </features>

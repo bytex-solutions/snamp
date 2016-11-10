@@ -70,6 +70,7 @@
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
     <snamp.connector.md.version>2.0.0</snamp.connector.md.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
+    <snamp.tracer.version>1.0.0</snamp.tracer.version>
   </properties>
   <version>2.0.0</version>
   <organization>
@@ -317,6 +318,7 @@
     <module>features/connectors-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
+    <module>tracer</module>
     <module>osgi-tests</module>
 
   </modules>
