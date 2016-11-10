@@ -1,5 +1,6 @@
 package com.bytex.snamp.scripting;
 
+import com.bytex.snamp.concurrent.LazyWeakReference;
 import com.bytex.snamp.internal.Utils;
 
 import javax.script.ScriptEngine;
@@ -15,10 +16,12 @@ import java.util.Objects;
 final class OSGiScriptEngineFactory implements ScriptEngineFactory{
     private final ScriptEngineFactory factory;
     private final ClassLoader contextClassLoader;
+    private final LazyWeakReference<ForwardingScriptEngine> cachedScriptEngine;
 
     OSGiScriptEngineFactory (final ScriptEngineFactory factory, final ClassLoader contextClassLoader){
         this.factory = Objects.requireNonNull(factory);
         this.contextClassLoader = Objects.requireNonNull(contextClassLoader);
+        this.cachedScriptEngine = new LazyWeakReference<>();
     }
 
     @Override
@@ -76,12 +79,13 @@ final class OSGiScriptEngineFactory implements ScriptEngineFactory{
         return factory.getProgram(statements);
     }
 
-    @Override
-    public ForwardingScriptEngine getScriptEngine() {
+    private ForwardingScriptEngine createScriptEngine(){
+        final ScriptEngine engine = Utils.getWithContextClassLoader(contextClassLoader, factory::getScriptEngine);
+
         return new ForwardingScriptEngine() {
             @Override
             protected ScriptEngine delegate() {
-                return Utils.getWithContextClassLoader(contextClassLoader, factory::getScriptEngine);
+                return engine;
             }
 
             @Override
@@ -89,5 +93,10 @@ final class OSGiScriptEngineFactory implements ScriptEngineFactory{
                 return OSGiScriptEngineFactory.this;
             }
         };
+    }
+
+    @Override
+    public ForwardingScriptEngine getScriptEngine() {
+        return cachedScriptEngine.lazyGet(this, OSGiScriptEngineFactory::createScriptEngine);
     }
 }

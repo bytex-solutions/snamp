@@ -9,7 +9,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>SNAMP Native Connector</name>
+    <name>HTTP Acceptor</name>
     <description>SNAMP Connector that accepts data using HTTP passive check</description>
     <artifactId>http-acceptor</artifactId>
     <packaging>bundle</packaging>
