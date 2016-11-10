@@ -19,6 +19,5 @@ public final class JsonSerializationTest extends Assert {
         measurement.setMessage("Message");
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(System.out, measurement);
-
     }
 }

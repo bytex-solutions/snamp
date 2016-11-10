@@ -318,7 +318,7 @@
     <module>features/connectors-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
-    <module>tracer</module>
+      <module>clients/java/measurement</module>
     <module>osgi-tests</module>
 
   </modules>
