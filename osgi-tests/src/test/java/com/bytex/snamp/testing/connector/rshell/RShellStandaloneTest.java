@@ -11,12 +11,16 @@ import com.bytex.snamp.connector.metrics.MetricsInterval;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
+import com.bytex.snamp.scripting.OSGiScriptEngineManager;
 import org.junit.Assume;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import javax.management.openmbean.CompositeData;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -50,6 +54,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         attributes.getOrAdd("ms").getParameters().put("format", "-m");
 
         attributes.getOrAdd("ms_win").setAlternativeName(getPathToFileInProjectRoot("virtual-mem-windows.xml"));
+
     }
 
     @Test()
@@ -117,11 +122,18 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     }
 
     @Test
-    public void readMemStatusAttributeWindows() throws JMException {
+    public void readMemStatusAttributeWindows() throws JMException, ScriptException {
         Assume.assumeTrue(OperatingSystem.isWindows());
         final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {
+            final ScriptEngineManager engineManager = new OSGiScriptEngineManager(getTestBundleContext());
+            final ScriptEngine javaScript = engineManager.getEngineByName("JavaScript");
+            assertNotNull(javaScript);
+            final Object result = javaScript.eval("function sayHelloWorld(){return 'Hello, world!';}; sayHelloWorld();");
+            assertNotNull(result);
+            assertEquals("Hello, world!", result.toString());
+
             final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
             assertNotNull(attributes);
             final Object dict = attributes.getAttribute("ms_win");
