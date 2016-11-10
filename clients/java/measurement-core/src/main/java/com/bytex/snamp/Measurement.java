@@ -1,15 +1,19 @@
-package com.bytex.snamp.tracer;
+package com.bytex.snamp;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.Date;
 import java.util.Enumeration;
-import java.util.Objects;
 import java.util.TreeSet;
 
 /**
@@ -19,14 +23,35 @@ import java.util.TreeSet;
  * @author Roman Sakno
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
-@JsonSubTypes({@JsonSubTypes.Type(IntegerMeasurement.class)})
-public abstract class Measurement {
+@JsonSubTypes({@JsonSubTypes.Type(IntegerMeasurement.class), @JsonSubTypes.Type(DoubleMeasurement.class)})
+public abstract class Measurement implements Externalizable {
+    static final String VALUE_JSON_PROPERTY = "v";
+    private static final long serialVersionUID = -5122847206545823797L;
+
     private String instanceName;
     private String componentName;
     private String message;
+    private long timestamp;
 
     Measurement(){
         instanceName = componentName = message = "";
+        timestamp = System.currentTimeMillis();
+    }
+
+    @Override
+    public void writeExternal(final ObjectOutput out) throws IOException {
+        out.writeUTF(instanceName);
+        out.writeUTF(componentName);
+        out.writeUTF(message);
+        out.writeLong(timestamp);
+    }
+
+    @Override
+    public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+        instanceName = in.readUTF();
+        componentName = in.readUTF();
+        message = in.readUTF();
+        timestamp = in.readLong();
     }
 
     /**
@@ -85,7 +110,7 @@ public abstract class Measurement {
     }
 
     public final void setDefaultInstanceName(){
-        setComponentName(getDefaultInstanceName());
+        setInstanceName(getDefaultInstanceName());
     }
 
     /**
@@ -112,5 +137,18 @@ public abstract class Measurement {
 
     public final void setMessage(final String value){
         message = value;
+    }
+
+    @JsonProperty("t")
+    public final long getTimeStamp(){
+        return timestamp;
+    }
+
+    public final void setTimeStamp(final long value){
+        timestamp = value;
+    }
+
+    public final void setTimeStamp(final Date value){
+        setTimeStamp(value.getTime());
     }
 }

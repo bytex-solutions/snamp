@@ -1,7 +1,11 @@
-package com.bytex.snamp.tracer;
+package com.bytex.snamp;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * Represents measurement of {@code long} data type.
@@ -11,13 +15,26 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  */
 @JsonTypeName("gauge64")
 public final class IntegerMeasurement extends Measurement {
+    private static final long serialVersionUID = 352280955315548002L;
     private long value;
+
+    @Override
+    public void writeExternal(final ObjectOutput out) throws IOException {
+        out.writeLong(value);
+        super.writeExternal(out);
+    }
+
+    @Override
+    public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+        value = in.readLong();
+        super.readExternal(in);
+    }
 
     /**
      * Gets measured value.
      * @return Measured value.
      */
-    @JsonProperty("v")
+    @JsonProperty(VALUE_JSON_PROPERTY)
     public long getValue(){
         return value;
     }

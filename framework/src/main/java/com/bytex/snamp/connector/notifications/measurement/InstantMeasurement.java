@@ -30,6 +30,7 @@ public abstract class InstantMeasurement extends Measurement {
             notification.setTimeStamp(getTimeStamp());
             notification.setUserData(getUserData());
             notification.setSequenceNumber(getSequenceNumber(true));
+            notification.setModificationType(type);
         }
 
         @Override
