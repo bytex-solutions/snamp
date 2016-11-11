@@ -1,4 +1,4 @@
-package com.bytex.snamp.connector.notifications.measurement;
+package com.bytex.snamp.connector.md.notifications;
 
 import java.io.Serializable;
 import java.util.Objects;

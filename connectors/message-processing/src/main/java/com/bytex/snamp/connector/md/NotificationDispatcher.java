@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.connector.notifications.measurement.NotificationSource;
+import com.bytex.snamp.connector.md.notifications.NotificationSource;
 
 import javax.management.Notification;
 import javax.management.NotificationListener;

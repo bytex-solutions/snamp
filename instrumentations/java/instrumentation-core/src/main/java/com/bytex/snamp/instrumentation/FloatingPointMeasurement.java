@@ -13,7 +13,7 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @author Roman Sakno
  */
-public class DoubleMeasurement extends ValueMeasurement {
+public class FloatingPointMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = -5453349320908165683L;
     private double value;
 

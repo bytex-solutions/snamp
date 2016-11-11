@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 @JsonSubTypes({
         @JsonSubTypes.Type(IntegerMeasurement.class),
-        @JsonSubTypes.Type(DoubleMeasurement.class),
+        @JsonSubTypes.Type(FloatingPointMeasurement.class),
         @JsonSubTypes.Type(StringMeasurement.class),
         @JsonSubTypes.Type(BooleanMeasurement.class),
         @JsonSubTypes.Type(TimeMeasurement.class),
@@ -41,11 +41,22 @@ public abstract class Measurement implements Externalizable {
     private String message;
     private long timestamp;
     private final LinkedHashMap<String, String> userData;
+    private long sequenceNumber;
 
     Measurement(){
         instanceName = componentName = message = "";
         timestamp = System.currentTimeMillis();
         userData = new LinkedHashMap<String, String>();
+        sequenceNumber = 0L;
+    }
+
+    @JsonProperty("seq")
+    public final long getSequenceNumber(){
+        return sequenceNumber;
+    }
+
+    public final void setSequenceNumber(final long value){
+        sequenceNumber = value;
     }
 
     @JsonProperty("userData")

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.connector.md.NotificationParser;
 import com.bytex.snamp.connector.md.groovy.GroovyNotificationLoader;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
