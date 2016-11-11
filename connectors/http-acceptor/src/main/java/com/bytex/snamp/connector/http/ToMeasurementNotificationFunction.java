@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.http;
 
-import com.bytex.snamp.connector.notifications.measurement.MeasurementNotification;
+import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
 import com.bytex.snamp.instrumentation.Measurement;
 
 import java.util.function.Function;

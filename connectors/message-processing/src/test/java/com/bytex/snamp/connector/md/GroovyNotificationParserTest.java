@@ -1,6 +1,8 @@
 package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.md.groovy.GroovyNotificationLoader;
+import com.bytex.snamp.connector.md.notifications.BooleanMeasurementNotification;
+import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,10 +30,18 @@ public final class GroovyNotificationParserTest extends Assert {
     }
 
     @Test
-    public void parserTest() throws Exception {
+    public void notificationParserTest() throws Exception {
         final NotificationParser parser = loader.createScript("NotificationParser.groovy", null);
         final Notification result = parser.parse(ImmutableMap.of("Content-Type", "application/xml"), "Body");
         assertNotNull(result);
         assertEquals("application/xml", result.getUserData());
+    }
+
+    @Test
+    public void measurementParserTest() throws Exception {
+        final NotificationParser parser = loader.createScript("MeasurementParser.groovy", null);
+        final Notification result = parser.parse(ImmutableMap.of("Content-Type", "application/xml"), "Body");
+        assertTrue(result instanceof BooleanMeasurementNotification);
+        assertEquals("application/xml", ((MeasurementNotification<?>)result).getMeasurement().getUserData().get("contentType"));
     }
 }

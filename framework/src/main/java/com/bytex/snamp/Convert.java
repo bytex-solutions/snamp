@@ -2,7 +2,10 @@ package com.bytex.snamp;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.io.Buffers;
-import com.google.common.primitives.*;
+import com.google.common.primitives.Chars;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
+import com.google.common.primitives.Shorts;
 import com.google.common.reflect.TypeToken;
 
 import javax.management.openmbean.OpenDataException;
@@ -12,11 +15,10 @@ import java.math.BigInteger;
 import java.nio.*;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Date;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.*;
-
-import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Converts a base data type to another base data type.
@@ -25,16 +27,11 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @since 2.0
  */
 public final class Convert {
-    private static abstract class TypeConverter<C> extends ConcurrentHashMap<Class<?>, C> {
+    private static abstract class TypeConverter<C> extends ClassMap<C> {
         private static final long serialVersionUID = -2745877310143387409L;
 
         private Optional<C> getConverter(final Object value) {
-            for (Class<?> key = value.getClass(), lookup = key; lookup != null; lookup = lookup.getSuperclass()){
-                final C converter = get(lookup);
-                if(converter != null)
-                    return Optional.of(firstNonNull(putIfAbsent(key, converter), converter));//cache converter for the origin key, not for current inheritance frame
-            }
-            return Optional.empty();
+            return Optional.ofNullable(getOrAdd(value.getClass()));
         }
 
         private <E extends Throwable> C getConverter(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{

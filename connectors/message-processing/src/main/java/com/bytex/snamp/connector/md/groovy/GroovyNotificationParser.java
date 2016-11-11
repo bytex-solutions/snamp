@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.md.groovy;
 
+import com.bytex.snamp.ClassMap;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.md.NotificationParser;
 import com.bytex.snamp.connector.md.notifications.*;
@@ -9,6 +10,8 @@ import com.bytex.snamp.scripting.groovy.Scriptlet;
 
 import javax.management.Notification;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents notification parser written in Groovy language.
@@ -18,62 +21,96 @@ import java.util.Map;
  */
 public abstract class GroovyNotificationParser extends Scriptlet implements NotificationParser {
     /**
-     * Constructs a new notification builder.
-     * @return A new notification builder.
+     * Represents factory of {@link ValueMeasurement} as DSL element in Groovy.
+     */
+    protected final static class MeasurementBuilder{
+        private MeasurementBuilder(){
+
+        }
+
+        @SpecialUse
+        public <T extends ValueMeasurement> T of(final Supplier<? extends T> measurementFactory){
+            return measurementFactory.get();
+        }
+    }
+
+    @FunctionalInterface
+    private interface ToNotificationFunction<T> extends Function<T, Notification>{
+        @Override
+        Notification apply(T t);
+    }
+
+    private static final class NotificationConverter extends ClassMap<ToNotificationFunction>{
+        private static final long serialVersionUID = 5472344596553742321L;
+
+        private <T> NotificationConverter registerConverter(final Class<T> type, final ToNotificationFunction<? super T> transformer){
+            put(type, transformer);
+            return this;
+        }
+    }
+
+    private final NotificationConverter converter;
+
+    /**
+     * Initializes a new Groovy-based parser.
+     */
+    protected GroovyNotificationParser(){
+        converter = new NotificationConverter()
+                .registerConverter(Span.class, s -> new SpanNotification(this, s))
+                .registerConverter(TimeMeasurement.class, t -> new TimeMeasurementNotification(this, t))
+                .registerConverter(BooleanMeasurement.class, b -> new BooleanMeasurementNotification(this, b))
+                .registerConverter(IntegerMeasurement.class, i -> new IntegerMeasurementNotification(this, i))
+                .registerConverter(FloatingPointMeasurement.class, f -> new FloatingPointMeasurementNotification(this, f))
+                .registerConverter(StringMeasurement.class, s -> new StringMeasurementNotification(this, s))
+                .registerConverter(Notification.class, n -> n)
+                .registerConverter(NotificationBuilder.class, NotificationBuilder::get);
+    }
+
+    //DSL keywords
+    @SpecialUse
+    protected static final Supplier<NotificationBuilder> notification = NotificationBuilder::new;
+    @SpecialUse
+    protected static final Supplier<Span> span = Span::new;
+    @SpecialUse
+    protected static final Supplier<TimeMeasurement> stopwatch = TimeMeasurement::new;
+    @SpecialUse
+    protected static final Supplier<MeasurementBuilder> measurement = MeasurementBuilder::new;
+    //measurement types
+    @SpecialUse
+    protected static final Supplier<BooleanMeasurement> bool = BooleanMeasurement::new;
+    @SpecialUse
+    protected static final Supplier<IntegerMeasurement> integer = IntegerMeasurement::new;
+    @SpecialUse
+    protected static final Supplier<FloatingPointMeasurement> fp = FloatingPointMeasurement::new;
+    @SpecialUse
+    protected static final Supplier<StringMeasurement> str = StringMeasurement::new;
+
+    /*
+        DSL starter. Examples:
+        create measurement of bool => create(measurement).of(bool)
+        create notification => create(notification)
      */
     @SpecialUse
-    protected static NotificationBuilder newNotification() {
-        return new NotificationBuilder();
+    protected static <T> T create(final Supplier<T> factory){
+        return factory.get();
     }
 
+    /**
+     * This method should be overridden in Groovy script.
+     * @param headers Headers to parse.
+     * @param body Body to parse.
+     * @return Notification; or measurement; or {@literal null}, if notification should be ignored.
+     * @throws Exception Unable to
+     */
     @SpecialUse
-    protected static Span newSpan(){
-        return new Span();
-    }
-
-    @SpecialUse
-    protected static TimeMeasurement newStopwatch(){
-        return new TimeMeasurement();
-    }
-
-    @SpecialUse
-    protected static BooleanMeasurement newInstantBoolean(){
-        return new BooleanMeasurement();
-    }
-
-    @SpecialUse
-    protected static FloatingPointMeasurement newInstantDouble(){
-        return new FloatingPointMeasurement();
-    }
-
-    @SpecialUse
-    protected static IntegerMeasurement newIntegerMeasurement(){
-        return new IntegerMeasurement();
-    }
-
-    @SpecialUse
-    protected static StringMeasurement newStringMeasurement(){
-        return new StringMeasurement();
-    }
-
     protected abstract Object parse(final Object headers, final Object body) throws Exception;
 
+    @SuppressWarnings("unchecked")
     @Override
     public final Notification parse(final Map<String, ?> headers, final Object body) throws Exception {
         final Object result = parse((Object) headers, body);
-        if(result instanceof Span)
-            return new SpanNotification(this, (Span) result);
-        else if(result instanceof TimeMeasurement)
-            return new TimeMeasurementNotification(this, (TimeMeasurement) result);
-        else if(result instanceof IntegerMeasurement)
-            return new IntegerMeasurementNotification(this, (IntegerMeasurement) result);
-        else if(result instanceof FloatingPointMeasurement)
-            return new FloatingPointMeasurementNotification(this, (FloatingPointMeasurement) result);
-        else if(result instanceof BooleanMeasurement)
-            return new BooleanMeasurementNotification(this, (BooleanMeasurement) result);
-        else if(result instanceof StringMeasurement)
-            return new StringMeasurementNotification(this, (StringMeasurement) result);
-        else
-            return null;
+        if(result == null) return null;
+        final ToNotificationFunction transformer = converter.getOrAdd(result.getClass());
+        return transformer != null ? transformer.apply(result) : null;
     }
 }
