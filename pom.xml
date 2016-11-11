@@ -36,7 +36,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
     <junit.version>4.12</junit.version>
-    <snmp4j.version>2.5.0</snmp4j.version>
+    <snmp4j.version>2.5.1</snmp4j.version>
     <gson.version>2.7</gson.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
     <karaf.version>3.0.8</karaf.version>
@@ -55,7 +55,6 @@
     <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
     <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
-    <snmp4j.agent.version>2.5.1</snmp4j.agent.version>
     <sshj.version>0.10.0</sshj.version>
     <aries.jndi.core.version>1.0.2</aries.jndi.core.version>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -81,8 +80,8 @@
     <jersey.version>1.19.3</jersey.version>
     <snamp.services.version>2.0.0</snamp.services.version>
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
-    <snamp.framework.maxVersion>3</snamp.framework.maxVersion>
     <groovy.version>2.4.7</groovy.version>
+    <snamp.framework.maxVersion>3</snamp.framework.maxVersion>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <sshd.version>0.14.0</sshd.version>
     <guava.version>19.0</guava.version>
@@ -260,6 +259,10 @@
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>2.4.3</version>
+        </plugin>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.5.1</version>

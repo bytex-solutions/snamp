@@ -27,12 +27,12 @@
       <scope>provided</scope>
       <exclusions>
         <exclusion>
-          <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-core-asl</artifactId>
+          <groupId>org.codehaus.jackson</groupId>
         </exclusion>
         <exclusion>
-          <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-mapper-asl</artifactId>
+          <groupId>org.codehaus.jackson</groupId>
         </exclusion>
       </exclusions>
     </dependency>
