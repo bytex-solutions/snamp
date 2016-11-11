@@ -127,13 +127,6 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {
-            final ScriptEngineManager engineManager = new OSGiScriptEngineManager(getTestBundleContext());
-            final ScriptEngine javaScript = engineManager.getEngineByName("JavaScript");
-            assertNotNull(javaScript);
-            final Object result = javaScript.eval("function sayHelloWorld(){return 'Hello, world!';}; sayHelloWorld();");
-            assertNotNull(result);
-            assertEquals("Hello, world!", result.toString());
-
             final AttributeSupport attributes = connector.queryObject(AttributeSupport.class);
             assertNotNull(attributes);
             final Object dict = attributes.getAttribute("ms_win");
