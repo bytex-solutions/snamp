@@ -1,5 +1,6 @@
 package com.bytex.snamp.instrumentation;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @author Roman Sakno
  */
-public class DoubleMeasurement extends Measurement {
+public class DoubleMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = -5453349320908165683L;
     private double value;
 
@@ -26,6 +27,22 @@ public class DoubleMeasurement extends Measurement {
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         value = in.readDouble();
         super.readExternal(in);
+    }
+
+    @JsonIgnore
+    public double getValue(final double existingValue){
+        switch (getChangeType()){
+            case SUB:
+                return existingValue - value;
+            case SUM:
+                return existingValue + value;
+            case MAX:
+                return Math.max(value, existingValue);
+            case MIN:
+                return Math.min(value, existingValue);
+            default:
+                return value;
+        }
     }
 
     @JsonProperty(VALUE_JSON_PROPERTY)

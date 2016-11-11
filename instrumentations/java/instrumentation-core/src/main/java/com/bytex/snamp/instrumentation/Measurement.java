@@ -24,7 +24,9 @@ import java.util.regex.Pattern;
         @JsonSubTypes.Type(IntegerMeasurement.class),
         @JsonSubTypes.Type(DoubleMeasurement.class),
         @JsonSubTypes.Type(StringMeasurement.class),
-        @JsonSubTypes.Type(BooleanMeasurement.class)
+        @JsonSubTypes.Type(BooleanMeasurement.class),
+        @JsonSubTypes.Type(TimeMeasurement.class),
+        @JsonSubTypes.Type(Span.class)
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Measurement implements Externalizable {

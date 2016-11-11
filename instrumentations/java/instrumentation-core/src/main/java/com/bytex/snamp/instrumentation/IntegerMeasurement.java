@@ -1,5 +1,6 @@
 package com.bytex.snamp.instrumentation;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
@@ -14,7 +15,7 @@ import java.io.ObjectOutput;
  * @author Roman Sakno
  */
 @JsonTypeName("gauge64")
-public final class IntegerMeasurement extends Measurement {
+public final class IntegerMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = 352280955315548002L;
     private long value;
 
@@ -28,6 +29,22 @@ public final class IntegerMeasurement extends Measurement {
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         value = in.readLong();
         super.readExternal(in);
+    }
+
+    @JsonIgnore
+    public long getValue(final long existingValue){
+        switch (getChangeType()){
+            case SUB:
+                return existingValue - value;
+            case SUM:
+                return existingValue + value;
+            case MAX:
+                return Math.max(existingValue, value);
+            case MIN:
+                return Math.min(existingValue, value);
+            default:
+                return value;
+        }
     }
 
     /**
