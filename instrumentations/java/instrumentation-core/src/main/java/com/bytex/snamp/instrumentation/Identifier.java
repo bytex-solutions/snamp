@@ -122,6 +122,6 @@ public final class Identifier implements Serializable {
 
     @Override
     public String toString() {
-        return new String(content, UTF_8);
+        return content.length == 0 ? "" : new String(content, UTF_8);
     }
 }
