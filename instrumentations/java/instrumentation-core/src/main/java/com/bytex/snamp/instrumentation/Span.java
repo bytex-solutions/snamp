@@ -1,6 +1,5 @@
 package com.bytex.snamp.instrumentation;
 
-import com.bytex.snamp.Identifier;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;

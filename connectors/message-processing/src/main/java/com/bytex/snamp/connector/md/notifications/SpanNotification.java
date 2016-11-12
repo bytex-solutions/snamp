@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.md.notifications;
 
-import com.bytex.snamp.Identifier;
+import com.bytex.snamp.instrumentation.Identifier;
 import com.bytex.snamp.instrumentation.Span;
 
 import java.time.Duration;

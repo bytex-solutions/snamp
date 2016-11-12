@@ -1,9 +1,8 @@
-package com.bytex.snamp;
+package com.bytex.snamp.instrumentation;
 
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
