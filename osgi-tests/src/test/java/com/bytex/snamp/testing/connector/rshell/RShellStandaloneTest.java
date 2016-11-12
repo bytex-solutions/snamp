@@ -45,7 +45,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Override

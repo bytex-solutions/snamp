@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.bytex.snamp</groupId>
@@ -9,7 +9,7 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
   <artifactId>sshj</artifactId>
-  <version>0.10.0</version>
+  <version>0.18.0</version>
   <packaging>bundle</packaging>
   <name>SSHJ</name>
   <description>Bundlized version of SSHJ library</description>
@@ -19,9 +19,9 @@
   </organization>
   <dependencies>
     <dependency>
-      <groupId>net.schmizz</groupId>
+      <groupId>com.hierynomus</groupId>
       <artifactId>sshj</artifactId>
-      <version>0.10.0</version>
+      <version>0.18.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -48,9 +48,25 @@
       <version>1.7.12</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>net.i2p.crypto</groupId>
+      <artifactId>eddsa</artifactId>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
@@ -58,19 +74,33 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>net.schmizz</Bundle-SymbolicName>
-            <Embed-Dependency>*;scope=compile</Embed-Dependency>
-            <Export-Package>net.schmizz.*;org.bouncycastle.jce.provider;org.bouncycastle.crypto.prng</Export-Package>
-            <Embed-Transitive>true</Embed-Transitive>
-            <Import-Package>!javax.swing.*,
-                            !groovy.*,
-                            !org.codehaus.*,
-                            !javax.jms.*,
-                            !javax.mail.*,
-                            !javax.servlet.*,
-                            !sun.*,
-                            !com.sun.*,
-                            !org.apache.oro.*,
-                            *</Import-Package>
+            <Export-Package>
+              net.schmizz.concurrent,
+              net.schmizz.sshj,
+              net.schmizz.keepalive,
+              net.schmizz.sshj.common,
+              net.schmizz.sshj.connection,
+              net.schmizz.sshj.connection.channel,
+              net.schmizz.sshj.connection.channel.direct,
+              net.schmizz.sshj.connection.channel.forwarded,
+              net.schmizz.sshj.sftp,
+              net.schmizz.sshj.signature,
+              net.schmizz.sshj.transport,
+              net.schmizz.sshj.xfer,
+              net.schmizz.sshj.userauth,
+              net.schmizz.sshj.userauth.keyprovider,
+              net.schmizz.sshj.userauth.method,
+              net.schmizz.sshj.userauth.password
+            </Export-Package>
+            <Import-Package>
+              javax.crypto,
+              javax.crypto.spec,
+              javax.crypto.interfaces,
+              net.i2p.crypto.eddsa.spec,
+              javax.net,
+              org.slf4j,
+              org.slf4j.helpers
+            </Import-Package>
           </instructions>
         </configuration>
       </plugin>

@@ -143,6 +143,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         // https://ops4j1.jira.com/wiki/display/PAXEXAM3/Configuration+Options
         result.add(keepRuntimeFolder());
         result.add(bootDelegationPackage("jdk.nashorn.*"));
+        result.add(bootDelegationPackage("org.bouncycastle*"));
         result.addAll(builder.getFeatures(getClass()));
         return result.toArray(new Option[result.size()]);
     }

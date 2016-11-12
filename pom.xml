@@ -55,7 +55,7 @@
     <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
     <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
-    <sshj.version>0.10.0</sshj.version>
+    <sshj.version>0.18.0</sshj.version>
     <aries.jndi.core.version>1.0.2</aries.jndi.core.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <karaf.maxVersion>4</karaf.maxVersion>
@@ -90,9 +90,16 @@
     <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
     <snamp.framework.version>2.0.0</snamp.framework.version>
     <bouncycastle.version>1.54</bouncycastle.version>
+    <eddsa.version>0.1.0</eddsa.version>
   </properties>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>net.i2p.crypto</groupId>
+        <artifactId>eddsa</artifactId>
+        <version>${eddsa.version}</version>
+        <scope>provided</scope>
+      </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
