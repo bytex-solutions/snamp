@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,9 +45,11 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
 
     CompositeResourceConnector(final String resourceName,
                                final ExecutorService threadPool,
-                               final Duration syncPeriod) {
+                               final Duration syncPeriod,
+                               final String[] groovyPath) throws IOException {
         connectors = new Composition(resourceName);
-        attributes = new AttributeComposition(resourceName, connectors, threadPool, syncPeriod, getLogger());
+        final ScriptLoader scriptLoader = new ScriptLoader(getClass().getClassLoader(), getLogger(), groovyPath);
+        attributes = new AttributeComposition(resourceName, connectors, threadPool, syncPeriod, scriptLoader, getLogger());
         notifications = new NotificationComposition(resourceName, connectors, threadPool, getLogger());
         notifications.addNotificationListener(attributes, null, null);
         operations = new OperationComposition(resourceName, connectors, getLogger());

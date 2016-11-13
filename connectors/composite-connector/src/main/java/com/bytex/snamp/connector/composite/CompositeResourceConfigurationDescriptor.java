@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
@@ -85,9 +86,8 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
         return getFieldIfPresent(descriptor, SOURCE_PARAM, Objects::toString, AbsentCompositeConfigurationParameterException::new);
     }
 
-    static String[] parseGroovyPath(final AttributeDescriptor descriptor) throws AbsentCompositeConfigurationParameterException {
-        final String path = getFieldIfPresent(descriptor, GROOVY_PATH_PARAM, Objects::toString, AbsentCompositeConfigurationParameterException::new);
-        return IOUtils.splitPath(path);
+    String[] parseGroovyPath(final Map<String, String> parameters) {
+        return getValue(parameters, GROOVY_PATH_PARAM, IOUtils::splitPath, () -> ArrayUtils.emptyArray(String[].class));
     }
 
     static boolean isRateFormula(final AttributeDescriptor descriptor){

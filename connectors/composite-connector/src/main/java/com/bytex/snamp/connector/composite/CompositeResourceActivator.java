@@ -25,7 +25,8 @@ public final class CompositeResourceActivator extends ManagedResourceActivator<C
         final CompositeResourceConfigurationDescriptor parser = CompositeResourceConfigurationDescriptor.getInstance();
         final CompositeResourceConnector result = new CompositeResourceConnector(resourceName,
                 parser.parseThreadPool(parameters),
-                parser.parseSyncPeriod(parameters));
+                parser.parseSyncPeriod(parameters),
+                parser.parseGroovyPath(parameters));
         result.update(connectionString, parameters);
         return result;
     }

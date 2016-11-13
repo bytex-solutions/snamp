@@ -49,9 +49,10 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     public RShellWithJmxCompositionTest() throws MalformedObjectNameException {
         super(buildConnectionString(), ImmutableMap.of(
-            "jmx:login", AbstractJmxConnectorTest.JMX_LOGIN,
-            "jmx:password", AbstractJmxConnectorTest.JMX_PASSWORD,
-            "jmx:objectName", TestOpenMBean.BEAN_NAME
+                "groovyPath", getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator,
+                "jmx:login", AbstractJmxConnectorTest.JMX_LOGIN,
+                "jmx:password", AbstractJmxConnectorTest.JMX_PASSWORD,
+                "jmx:objectName", TestOpenMBean.BEAN_NAME
         ));
         beanName = new ObjectName(TestOpenMBean.BEAN_NAME);
         beanInstance = new TestOpenMBean();
@@ -327,7 +328,6 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
         attributes.addAndConsume("groovy", attribute -> {
             attribute.setAlternativeName("Composition.groovy");
             attribute.getParameters().put("formula", "groovy()");
-            attribute.getParameters().put("groovyPath", getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator);
         });
     }
 }

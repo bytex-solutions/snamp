@@ -26,16 +26,19 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     private final AttributeSupportProvider attributeSupportProvider;
     private final Logger logger;
     private final ExecutorService threadPool;
+    private final ScriptLoader scriptLoader;
 
     AttributeComposition(final String resourceName,
                          final AttributeSupportProvider provider,
                          final ExecutorService threadPool,
                          final Duration syncPeriod,
+                         final ScriptLoader loader,
                          final Logger logger){
         super(resourceName, AbstractCompositeAttribute.class, false, syncPeriod);
         attributeSupportProvider = Objects.requireNonNull(provider);
         this.logger = Objects.requireNonNull(logger);
         this.threadPool = Objects.requireNonNull(threadPool);
+        this.scriptLoader = Objects.requireNonNull(loader);
     }
 
     /**
@@ -101,7 +104,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
         if (CompositeResourceConfigurationDescriptor.isRateFormula(descriptor)) //rate attribute
             return new NotificationRateAttribute(attributeName, descriptor);
         else if(CompositeResourceConfigurationDescriptor.isGroovyFormula(descriptor))   //groovy attribute
-            return new GroovyAttribute(attributeName, getClass().getClassLoader(), logger, descriptor);
+            return new GroovyAttribute(attributeName, scriptLoader, descriptor);
         //aggregation
         final AggregationFunction<?> function = CompositeResourceConfigurationDescriptor.parseFormula(descriptor);
         if (function != null)
