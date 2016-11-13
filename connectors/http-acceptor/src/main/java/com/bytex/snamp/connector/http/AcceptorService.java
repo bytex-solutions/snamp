@@ -23,7 +23,6 @@ public final class AcceptorService {
     @Consumes(MediaType.APPLICATION_JSON)
     @POST
     public Response accept(final Measurement measurement){
-
         return Response.noContent().build();
     }
 }

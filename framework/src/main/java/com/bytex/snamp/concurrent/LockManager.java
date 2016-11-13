@@ -201,10 +201,10 @@ public abstract class LockManager {
         return success;
     }
 
-    public static <I, E extends Throwable> void lockAndAccept(final Lock lock,
+    public static <I, E1 extends Throwable, E2 extends Throwable> void lockAndAccept(final Lock lock,
                                          final I input,
-                                         final Consumer<? super I> consumer,
-                                         final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E{
+                                         final Acceptor<? super I, E1> consumer,
+                                         final Function<? super InterruptedException, ? extends E2> exceptionFactory) throws E1, E2{
         lockInterruptibly(lock, exceptionFactory);
         try {
             consumer.accept(input);

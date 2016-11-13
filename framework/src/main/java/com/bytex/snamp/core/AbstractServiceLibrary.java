@@ -1,5 +1,6 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
@@ -13,9 +14,14 @@ import org.osgi.service.cm.ManagedServiceFactory;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.bytex.snamp.concurrent.LockManager.lockAndAccept;
 
 /**
  * Represents an activator for SNAMP-specific bundle which exposes a set of services.
@@ -139,6 +145,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             ownDependencies = ImmutableList.copyOf(dependencies);
             registration = null;
             properties = emptyActivationPropertyReader;
+        }
+
+        private T getService(){
+            final ServiceRegistrationHolder<S, T> reg = registration;
+            return reg != null ? reg.get() : null;
         }
 
         /**
@@ -291,7 +302,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                 } finally {
                     registration = null;
                 }
-            } else serviceInstance = null;
+            } else
+                serviceInstance = null;
 
             //release service instance
             try {
@@ -787,6 +799,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
     private final ProvidedServices serviceRegistry;
     private final List<ProvidedService<?, ?>> providedServices;
+    private final ReentrantReadWriteLock readWriteLock;
 
     /**
      * Initializes a new bundle with the specified collection of provided services.
@@ -805,6 +818,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         if(providedServices == null) throw new IllegalArgumentException("providedServices is null.");
         this.serviceRegistry = providedServices;
         this.providedServices = new LinkedList<>();
+        this.readWriteLock = new ReentrantReadWriteLock();
     }
 
     /**
@@ -822,8 +836,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @throws Exception The bundle cannot be started.
      */
     @Override
-    protected final synchronized void start(final BundleContext context, final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        start(bundleLevelDependencies);
+    protected final void start(final BundleContext context, final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
+        lockAndAccept(readWriteLock.writeLock(), this, library -> library.start(bundleLevelDependencies), Function.identity());
     }
 
     /**
@@ -834,6 +848,15 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      */
     protected abstract void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception;
 
+    private void activateImpl(final BundleContext context,
+                              final ActivationPropertyPublisher activationProperties,
+                              final RequiredService<?>... dependencies) throws Exception{
+        activate(activationProperties, dependencies);
+        serviceRegistry.provide(providedServices, getActivationProperties(), dependencies);
+        for (final ProvidedService<?, ?> service : providedServices)
+            service.register(context, getActivationProperties());
+    }
+
     /**
      * Registers all services in this library.
      * @param context The execution context of the library being activated.
@@ -842,13 +865,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @throws Exception Bundle activation error.
      */
     @Override
-    protected final synchronized void activate(final BundleContext context,
+    protected final void activate(final BundleContext context,
                                   final ActivationPropertyPublisher activationProperties,
                                   final RequiredService<?>... dependencies) throws Exception {
-        activate(activationProperties, dependencies);
-        serviceRegistry.provide(providedServices, getActivationProperties(), dependencies);
-        for (final ProvidedService<?, ?> service : providedServices)
-            service.register(context, getActivationProperties());
+        lockAndAccept(readWriteLock.writeLock(), this, library -> library.activateImpl(context, activationProperties, dependencies), Function.identity());
     }
 
     /**
@@ -864,6 +884,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         providedServices.clear();
     }
 
+    private void deactivateImpl(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception{
+        unregister(context, providedServices);
+        deactivate(activationProperties);
+    }
+
     /**
      * Deactivates this library.
      * <p>
@@ -875,9 +900,37 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @throws Exception Deactivation error.
      */
     @Override
-    protected final synchronized void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        unregister(context, providedServices);
-        deactivate(activationProperties);
+    protected final void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
+        lockAndAccept(readWriteLock.writeLock(), this, library -> library.deactivateImpl(context, activationProperties), Function.identity());
+    }
+
+    /**
+     * Iterates through provided services.
+     * @param serviceType Requested service type. Cannot be {@literal null}.
+     * @param viewer Service acceptor. Cannot be {@literal null}.
+     * @param <I> Type of service interface.
+     * @param <E> Type of exception that can be produced by viewer.
+     * @throws E Service acceptor causes an exception.
+     * @throws InterruptedException Viewing procedure is interrupted.
+     */
+    protected final <I, E extends Throwable> void viewServices(final Class<I> serviceType, final Acceptor<? super I, E> viewer) throws E, InterruptedException {
+        final Lock readLock = readWriteLock.readLock();
+        readLock.lockInterruptibly();
+        try {
+            for (final ProvidedService<?, ?> providedService : providedServices) {
+                final Object serviceInstance = providedService.getService();
+                if (serviceType.isInstance(serviceInstance))
+                    viewer.accept(serviceType.cast(serviceInstance));
+            }
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    private void shutdownImpl(final BundleContext context) throws Exception {
+        shutdown();
+        for(final ProvidedService<?, ?> providedService: providedServices)
+            providedService.unregister(context);
     }
 
     /**
@@ -887,8 +940,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @throws java.lang.Exception Abnormal library termination.
      */
     @Override
-    protected final synchronized void shutdown(final BundleContext context) throws Exception {
-        shutdown();
+    protected final void shutdown(final BundleContext context) throws Exception {
+        lockAndAccept(readWriteLock.writeLock(), this, library -> library.shutdownImpl(context), Function.identity());
     }
 
     /**
@@ -897,6 +950,5 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      */
     @MethodStub
     protected void shutdown() throws Exception{
-
     }
 }

@@ -10,7 +10,7 @@ import com.bytex.snamp.scripting.groovy.Scriptlet;
 
 import javax.management.Notification;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
@@ -35,9 +35,9 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
     }
 
     @FunctionalInterface
-    private interface ToNotificationFunction<T> extends Function<T, Notification>{
+    private interface ToNotificationFunction<M> extends BiFunction<Object, M, Notification> {
         @Override
-        Notification apply(T t);
+        Notification apply(final Object source, final M message);
     }
 
     private static final class NotificationConverter extends ClassMap<ToNotificationFunction>{
@@ -56,14 +56,20 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
      */
     protected GroovyNotificationParser(){
         converter = new NotificationConverter()
-                .registerConverter(Span.class, s -> new SpanNotification(this, s))
-                .registerConverter(TimeMeasurement.class, t -> new TimeMeasurementNotification(this, t))
-                .registerConverter(BooleanMeasurement.class, b -> new BooleanMeasurementNotification(this, b))
-                .registerConverter(IntegerMeasurement.class, i -> new IntegerMeasurementNotification(this, i))
-                .registerConverter(FloatingPointMeasurement.class, f -> new FloatingPointMeasurementNotification(this, f))
-                .registerConverter(StringMeasurement.class, s -> new StringMeasurementNotification(this, s))
-                .registerConverter(Notification.class, n -> n)
-                .registerConverter(NotificationBuilder.class, NotificationBuilder::get);
+                .registerConverter(Span.class, SpanNotification::new)
+                .registerConverter(TimeMeasurement.class, TimeMeasurementNotification::new)
+                .registerConverter(BooleanMeasurement.class, BooleanMeasurementNotification::new)
+                .registerConverter(IntegerMeasurement.class, IntegerMeasurementNotification::new)
+                .registerConverter(FloatingPointMeasurement.class, FloatingPointMeasurementNotification::new)
+                .registerConverter(StringMeasurement.class, StringMeasurementNotification::new)
+                .registerConverter(Notification.class, (source, notification) -> {
+                    notification.setSource(source);
+                    return notification;
+                })
+                .registerConverter(NotificationBuilder.class, (source, builder) -> {
+                    builder.setSource(source);
+                    return builder.get();
+                });
     }
 
     //DSL keywords
@@ -111,6 +117,6 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
         final Object result = parse((Object) headers, body);
         if(result == null) return null;
         final ToNotificationFunction transformer = converter.getOrAdd(result.getClass());
-        return transformer != null ? transformer.apply(result) : null;
+        return transformer != null ? transformer.apply(this, result) : null;
     }
 }
