@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.connector.md.MessageDrivenConnector;
 import com.bytex.snamp.connector.md.NotificationParser;
+import com.bytex.snamp.connector.md.notifications.NotificationSource;
 import com.bytex.snamp.instrumentation.Measurement;
 import com.google.common.collect.ImmutableMap;
 
@@ -22,6 +23,10 @@ final class HttpAcceptor extends MessageDrivenConnector {
     @Override
     protected NotificationParser createNotificationParser(final String resourceName, final String instanceName, final String componentName, final Map<String, String> parameters) {
         return null;
+    }
+
+    final boolean theSameSource(final NotificationSource source){
+        return dispatcher.equals(source);
     }
 
     boolean dispatch(final Measurement measurement) {

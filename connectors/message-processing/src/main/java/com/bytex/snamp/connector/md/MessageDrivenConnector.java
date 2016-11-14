@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
+import com.bytex.snamp.connector.md.notifications.NotificationSource;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
@@ -86,6 +87,14 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         if (success = attribute instanceof MetricHolderAttribute<?, ?>)
             ((MetricHolderAttribute<?, ?>) attribute).reset();
         return success;
+    }
+
+    public final void dispatch(final Map<String, ?> headers, final Object body){
+        dispatcher.handleNotification(headers, body, this);
+    }
+
+    public final boolean represents(final NotificationSource source){
+        return dispatcher.equals(source);
     }
 
     /**

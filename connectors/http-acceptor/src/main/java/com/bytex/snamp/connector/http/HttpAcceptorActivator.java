@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Represents activator of {@link HttpAcceptor}.
  */
-public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAcceptor> implements MeasurementDispatcher {
+public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAcceptor> {
 
     @SpecialUse
     public HttpAcceptorActivator() {
@@ -43,10 +43,5 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
     @Override
     protected void deactivate(final ActivationPropertyReader activationProperties) {
         getLogger().info("Shutdown global HTTP acceptor");
-    }
-
-    @Override
-    public void accept(final Measurement measurement) throws DispatchException {
-
     }
 }
