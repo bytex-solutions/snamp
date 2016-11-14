@@ -20,6 +20,9 @@ import java.util.function.Supplier;
  * @since 2.0
  */
 public abstract class GroovyNotificationParser extends Scriptlet implements NotificationParser {
+    private static final String COMPONENT_NAME = "componentName";
+    private static final String INSTANCE_NAME = "componentInstance";
+
     /**
      * Represents factory of {@link ValueMeasurement} as DSL element in Groovy.
      */
@@ -118,5 +121,13 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
         if(result == null) return null;
         final ToNotificationFunction transformer = converter.getOrAdd(result.getClass());
         return transformer != null ? transformer.apply(this, result) : null;
+    }
+
+    public final void setComponentName(final String value){
+        setProperty(COMPONENT_NAME, value);
+    }
+
+    public final void setInstanceName(final String value){
+        setProperty(INSTANCE_NAME, value);
     }
 }

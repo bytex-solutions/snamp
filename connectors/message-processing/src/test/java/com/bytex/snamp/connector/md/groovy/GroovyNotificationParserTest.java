@@ -1,6 +1,6 @@
-package com.bytex.snamp.connector.md;
+package com.bytex.snamp.connector.md.groovy;
 
-import com.bytex.snamp.connector.md.groovy.GroovyNotificationLoader;
+import com.bytex.snamp.connector.md.NotificationParser;
 import com.bytex.snamp.connector.md.notifications.BooleanMeasurementNotification;
 import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
 import com.google.common.collect.ImmutableMap;
@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Properties;
 
 /**
  * @author Roman Sakno
@@ -26,12 +25,14 @@ public final class GroovyNotificationParserTest extends Assert {
         final URL resource = getClass().getClassLoader().getResource("scripts/NotificationParser.groovy");
         assertNotNull(resource);
         final String scriptPath = new File(resource.toURI()).getParent();
-        loader = new GroovyNotificationLoader(getClass().getClassLoader(), new Properties(), scriptPath);
+        loader = new GroovyNotificationLoader(getClass().getClassLoader(), scriptPath);
     }
 
     @Test
     public void notificationParserTest() throws Exception {
-        final NotificationParser parser = loader.createScript("NotificationParser.groovy", null);
+        final GroovyNotificationParser parser = loader.createScript("NotificationParser.groovy", null);
+        parser.setComponentName("NAME");
+        parser.setInstanceName("INSTANCE");
         final Notification result = parser.parse(ImmutableMap.of("Content-Type", "application/xml"), "Body");
         assertNotNull(result);
         assertEquals("application/xml", result.getUserData());

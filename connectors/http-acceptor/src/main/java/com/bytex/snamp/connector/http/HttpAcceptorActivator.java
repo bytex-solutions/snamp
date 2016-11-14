@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import com.bytex.snamp.instrumentation.Measurement;
 import org.osgi.service.http.HttpService;
 
 import java.util.Collection;
@@ -10,7 +11,7 @@ import java.util.Map;
 /**
  * Represents activator of {@link HttpAcceptor}.
  */
-public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAcceptor> {
+public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAcceptor> implements MeasurementDispatcher {
 
     @SpecialUse
     public HttpAcceptorActivator() {
@@ -42,5 +43,10 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
     @Override
     protected void deactivate(final ActivationPropertyReader activationProperties) {
         getLogger().info("Shutdown global HTTP acceptor");
+    }
+
+    @Override
+    public void accept(final Measurement measurement) throws DispatchException {
+
     }
 }

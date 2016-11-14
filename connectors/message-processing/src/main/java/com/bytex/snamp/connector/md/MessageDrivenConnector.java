@@ -29,7 +29,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
      * Represents channel that can be used to process notifications.
      */
     @Aggregation(cached = true)
-    protected final NotificationDispatcher channel;
+    protected final NotificationDispatcher dispatcher;
     @Aggregation(cached = true)
     private final JavaBeanOperationRepository operations;
 
@@ -40,7 +40,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         final String componentName = descriptor.parseComponentName(parameters);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
         //init parser
-        final NotificationParser parser = createNotificationParser(resourceName, parameters);
+        final NotificationParser parser = createNotificationParser(resourceName, componentInstance, componentName, parameters);
         assert parser != null;
         //init attributes
         final MessageDrivenAttributeRepository attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
@@ -51,7 +51,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         assert notifications != null;
         notifications.init(threadPool, getLogger());
 
-        channel = new NotificationDispatcher(componentName, componentInstance, attributes, notifications, getLogger(), parser);
+        dispatcher = new NotificationDispatcher(componentName, componentInstance, attributes, notifications, getLogger(), parser);
 
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
@@ -59,29 +59,29 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     @Aggregation(cached = true)
     protected final MessageDrivenAttributeRepository getAttributes(){
-        return channel.attributes;
+        return dispatcher.attributes;
     }
 
     @Aggregation(cached = true)
     protected final MessageDrivenNotificationRepository getNotifications(){
-        return channel.notifications;
+        return dispatcher.notifications;
     }
 
     @Override
     protected final MetricsSupport createMetricsReader() {
-        return assembleMetricsReader(channel.attributes, channel.notifications);
+        return assembleMetricsReader(dispatcher.attributes, dispatcher.notifications);
     }
 
     @SpecialUse
     @ManagementOperation(description = "Resets all metrics")
     public void resetAllMetrics(){
-        channel.attributes.resetAllMetrics();
+        dispatcher.attributes.resetAllMetrics();
     }
 
     @SpecialUse
     @ManagementOperation(description = "Resets the specified metrics")
     public boolean resetMetric(@OperationParameter(name = "attributeName", description = "The name of the attribute to reset") final String attributeName) {
-        final MessageDrivenAttribute attribute = channel.attributes.getAttributeInfo(attributeName);
+        final MessageDrivenAttribute attribute = dispatcher.attributes.getAttributeInfo(attributeName);
         final boolean success;
         if (success = attribute instanceof MetricHolderAttribute<?, ?>)
             ((MetricHolderAttribute<?, ?>) attribute).reset();
@@ -91,10 +91,15 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     /**
      * Creates a new notification parser.
      * @param resourceName Resource name.
+     * @param instanceName Instance of the component that can be used as a filter in parser.
+     * @param componentName Component name that can be used as a filter in parser.
      * @param parameters Set of parameters that may be used by notification parser.
      * @return A new instance of notification parser.
      */
-    protected abstract NotificationParser createNotificationParser(final String resourceName, final Map<String, String> parameters);
+    protected abstract NotificationParser createNotificationParser(final String resourceName,
+                                                                   final String instanceName,
+                                                                   final String componentName,
+                                                                   final Map<String, String> parameters);
 
     /**
      * Creates a new instance of repository for attributes.
@@ -112,12 +117,12 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     @Override
     public final void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, channel.attributes, channel.notifications, operations);
+        addResourceEventListener(listener, dispatcher.attributes, dispatcher.notifications, operations);
     }
 
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, channel.attributes, channel.notifications, operations);
+        removeResourceEventListener(listener, dispatcher.attributes, dispatcher.notifications, operations);
     }
 
     /**
@@ -126,8 +131,8 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
      */
     @Override
     public void close() throws Exception {
-        channel.attributes.close();
-        channel.notifications.close();
+        dispatcher.attributes.close();
+        dispatcher.notifications.close();
         operations.close();
         super.close();
     }
