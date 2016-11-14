@@ -10,6 +10,7 @@ import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -27,7 +28,7 @@ public final class ManagedResourceScriptEngine extends OSGiGroovyScriptEngine<Sc
                                        final Logger logger,
                                        final ClassLoader rootClassLoader,
                                        final Properties properties,
-                                       final String... paths) throws IOException {
+                                       final URL... paths) throws IOException {
         super(rootClassLoader, properties, Scriptlet.class, paths);
         getGlobalVariables().setVariable(RESOURCE_NAME_VAR, resourceName);
         Scriptlet.setLogger(getGlobalVariables(), logger);

@@ -8,7 +8,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.management.Notification;
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -19,13 +18,12 @@ import java.net.URL;
  * @since 2.0
  */
 public final class GroovyNotificationParserTest extends Assert {
-    private final GroovyNotificationLoader loader;
+    private final GroovyNotificationParserLoader loader;
 
     public GroovyNotificationParserTest() throws IOException, URISyntaxException {
-        final URL resource = getClass().getClassLoader().getResource("scripts/NotificationParser.groovy");
+        final URL resource = getClass().getClassLoader().getResource("scripts/");
         assertNotNull(resource);
-        final String scriptPath = new File(resource.toURI()).getParent();
-        loader = new GroovyNotificationLoader(getClass().getClassLoader(), scriptPath);
+        loader = new GroovyNotificationParserLoader(getClass().getClassLoader(), resource);
     }
 
     @Test

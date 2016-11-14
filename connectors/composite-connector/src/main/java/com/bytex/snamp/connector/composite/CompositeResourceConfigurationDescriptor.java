@@ -11,6 +11,7 @@ import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.parser.ParseException;
 
 import javax.management.Descriptor;
+import java.net.URL;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
@@ -86,8 +87,8 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
         return getFieldIfPresent(descriptor, SOURCE_PARAM, Objects::toString, AbsentCompositeConfigurationParameterException::new);
     }
 
-    String[] parseGroovyPath(final Map<String, String> parameters) {
-        return getValue(parameters, GROOVY_PATH_PARAM, IOUtils::splitPath, () -> ArrayUtils.emptyArray(String[].class));
+    URL[] parseGroovyPath(final Map<String, String> parameters) {
+        return getValue(parameters, GROOVY_PATH_PARAM, IOUtils::splitPath, () -> ArrayUtils.emptyArray(URL[].class));
     }
 
     static boolean isRateFormula(final AttributeDescriptor descriptor){

@@ -1,6 +1,7 @@
 package com.bytex.snamp.testing.connector.groovy;
 
 import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -9,8 +10,6 @@ import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
 import java.util.Map;
-
-import com.bytex.snamp.configuration.EntityMap;
 
 /**
  * @author Roman Sakno
@@ -32,7 +31,7 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
     }
 
     protected static String getConnectionString(){
-        return getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator;
+        return "file:" + getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator;
     }
 
     protected static Map<String, String> getDefaultConnectionParams(){

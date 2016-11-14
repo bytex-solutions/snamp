@@ -64,6 +64,11 @@
       <artifactId>geronimo-servlet_3.0_spec</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy</artifactId>
+      <classifier>indy</classifier>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
@@ -79,6 +84,7 @@
             <Bundle-SymbolicName>com.bytex.snamp.connector.http</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.connector.http.HttpAcceptorActivator</Bundle-Activator>
             <Export-Package />
+            <DynamicImport-Package>*</DynamicImport-Package>
             <Provide-Capability>com.bytex.snamp.connector; type=http</Provide-Capability>
           </instructions>
         </configuration>

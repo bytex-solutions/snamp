@@ -45,7 +45,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     }
 
     private static String getGroovyScriptPath(){
-        return getProjectRootDir() + File.separator + "sample-groovy-scripts/";
+        return "file:" + getProjectRootDir() + File.separator + "sample-groovy-scripts/";
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.io.IOUtils;
 
+import java.net.URL;
 import java.util.Map;
 
 /**
@@ -43,7 +44,7 @@ final class GroovyGatewayConfigurationProvider extends ConfigurationEntityDescri
         return getParameter(SCRIPT_FILE_PARAM, params);
     }
 
-    static String[] getScriptPath(final Map<String, String> params) throws GroovyAbsentParameterConfigurationException {
+    static URL[] getScriptPath(final Map<String, String> params) throws GroovyAbsentParameterConfigurationException {
         final String path = getParameter(SCRIPT_PATH_PARAM, params);
         return IOUtils.splitPath(path);
     }

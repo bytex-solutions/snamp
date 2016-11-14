@@ -7,6 +7,7 @@ import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -22,7 +23,7 @@ public final class GatewayScriptEngine extends OSGiGroovyScriptEngine<GatewayScr
     public GatewayScriptEngine(final ClassLoader rootClassLoader,
                                final Logger logger,
                                final Properties properties,
-                               final String... paths) throws IOException {
+                               final URL... paths) throws IOException {
         super(rootClassLoader, properties, GatewayScript.class, paths);
         Scriptlet.setLogger(getGlobalVariables(), logger);
     }

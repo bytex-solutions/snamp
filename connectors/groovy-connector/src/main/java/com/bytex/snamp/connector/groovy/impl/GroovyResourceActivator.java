@@ -12,6 +12,7 @@ import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -42,7 +43,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         return new AbstractDiscoveryService<ManagedResourceInfo>() {
             @Override
             protected ManagedResourceInfo createProvider(final String connectionString, final Map<String, String> connectionOptions) throws IOException, ResourceException, ScriptException {
-                final String[] paths = IOUtils.splitPath(connectionString);
+                final URL[] paths = IOUtils.splitPath(connectionString);
                 final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(
                         connectionString,
                         getLogger(),

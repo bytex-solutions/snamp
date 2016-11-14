@@ -526,13 +526,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @throws Exception Unable to activate this library.
      */
     @Override
-    protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
+    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
-        activate(dependencies);
-    }
-
-    protected void activate(final RequiredService<?>... dependencies) throws Exception{
         getLogger().info(String.format("Activating resource connector of type %s", getConnectorType()));
     }
 

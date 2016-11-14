@@ -44,4 +44,13 @@ public final class TokenizerTest extends Assert {
             assertEquals(":a+b", tokenizer.readToEnd());
         }
     }
+
+    @Test
+    public void readToCharTest() throws ParseException {
+        try(final Tokenizer tokenizer = new Tokenizer("js:a,b")){
+            assertEquals("js:a", tokenizer.readTo(','));
+            assertEquals(CommaToken.INSTANCE, tokenizer.nextToken());
+            assertEquals("b", tokenizer.nextToken(NameToken.class).toString());
+        }
+    }
 }

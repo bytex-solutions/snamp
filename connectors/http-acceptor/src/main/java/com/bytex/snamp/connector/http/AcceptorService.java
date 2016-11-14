@@ -41,6 +41,7 @@ public final class AcceptorService {
         }
     }
 
+    //represents loader of published HTTP acceptors in the form of cache with lazy values
     private static final class HttpAcceptorLoader extends CacheLoader<NotificationSource, HttpAcceptor>{
         @Override
         public HttpAcceptor load(final NotificationSource source) throws AcceptorNotFoundException {
@@ -52,7 +53,7 @@ public final class AcceptorService {
                     try{
                         if(connector.get() instanceof HttpAcceptor){
                             final HttpAcceptor acceptor = (HttpAcceptor) connector.get();
-                            if(acceptor.theSameSource(source))
+                            if(acceptor.represents(source))
                                 return acceptor;
                         }
                     } finally {
@@ -91,7 +92,7 @@ public final class AcceptorService {
             acceptor = acceptors.get(source);
         } catch (final ExecutionException e){
             if(e.getCause() instanceof AcceptorNotFoundException)
-                throw new WebApplicationException(e.getCause(),  Response
+                throw new WebApplicationException(e.getCause(), Response
                         .status(Response.Status.NOT_FOUND)
                         .type(MediaType.TEXT_PLAIN_TYPE)
                         .entity(String.format("Acceptor for %s doesn't exist", source))

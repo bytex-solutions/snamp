@@ -133,9 +133,22 @@ public class Tokenizer implements SafeCloseable {
     /**
      * Read all characters from the current position to the end of underlying stream.
      * @return All characters from the current position to the end of underlying stream.
+     * @throws ParseException Stream is closed.
      */
-    public CharSequence readToEnd(){
-        return reader.readToEnd();
+    public CharSequence readToEnd() throws ParseException {
+        try {
+            return reader.readToEnd();
+        } catch (final IOException e) {
+            throw new ParseException(e);
+        }
+    }
+
+    public CharSequence readTo(final char stopChar) throws ParseException {
+        try {
+            return reader.readTo(stopChar);
+        } catch (final IOException e) {
+            throw new ParseException(e);
+        }
     }
 
     @Override

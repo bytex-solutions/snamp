@@ -1,12 +1,11 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.parser.*;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -79,13 +78,19 @@ public final class FunctionParser extends Tokenizer {
         return new CorrelationFunction(operand);
     }
 
-    private AbstractExtractFunction<?> parseExtractFunction(final Function<? super Collection<String>, ? extends AbstractExtractFunction<?>> factory) throws ParseException {
+    private ExtractFunction parseExtractFunction() throws ParseException {
+        nextToken(LeftBracketToken.class);
+        final CharSequence targetTypeName = readTo(CommaToken.VALUE);
+        final WellKnownType targetType = WellKnownType.parse(targetTypeName.toString());
+        if(targetType == null)
+            throw FunctionParserException.unknownTypeDef(targetTypeName);
         final List<String> path = new LinkedList<>();
-        for (Token lookup = nextToken(LeftBracketToken.class); !(lookup instanceof RightBracketToken); lookup = nextToken(token -> token instanceof SlashToken || token instanceof RightBracketToken)) {
+        //now we at comma token
+        for (Token lookup = nextToken(CommaToken.class); !(lookup instanceof RightBracketToken); lookup = nextToken(token -> token instanceof SlashToken || token instanceof RightBracketToken)) {
             lookup = nextToken(NameToken.class);
             path.add(lookup.toString());
         }
-        return factory.apply(path);
+        return new ExtractFunction(targetType, path);
     }
 
     private <F extends AggregationFunction<?>> F parseTrivialFunction(final Supplier<? extends F> factory) throws ParseException {
@@ -117,11 +122,7 @@ public final class FunctionParser extends Tokenizer {
                 case "correl":
                     return parseCorrelationFunction();
                 case "extract":
-                    return parseExtractFunction(ExtractAsStringFunction::new);
-                case "extract_fp":
-                    return parseExtractFunction(ExtractAsDoubleFunction::new);
-                case "extract_int":
-                    return parseExtractFunction(ExtractAsIntFunction::new);
+                    return parseExtractFunction();
                 case "flag":
                     return parseTrivialFunction(FlagFunction::new);
                 default:

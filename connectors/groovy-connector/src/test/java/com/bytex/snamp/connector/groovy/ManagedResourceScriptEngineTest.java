@@ -5,7 +5,6 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -24,10 +23,9 @@ public final class ManagedResourceScriptEngineTest extends Assert {
     private final ManagedResourceScriptEngine engine;
 
     public ManagedResourceScriptEngineTest() throws IOException, URISyntaxException {
-        final URL resource = getClass().getClassLoader().getResource("scripts/DummyAttribute.groovy");
+        final URL resource = getClass().getClassLoader().getResource("scripts/");
         assertNotNull(resource);
-        final String scriptPath = new File(resource.toURI()).getParent();
-        engine = new ManagedResourceScriptEngine("testResource", Logger.getLogger("test"), getClass().getClassLoader(), new Properties(), scriptPath);
+        engine = new ManagedResourceScriptEngine("testResource", Logger.getLogger("test"), getClass().getClassLoader(), new Properties(), resource);
     }
 
     @Test

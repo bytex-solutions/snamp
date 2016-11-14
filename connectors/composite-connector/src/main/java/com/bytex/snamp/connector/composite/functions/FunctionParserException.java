@@ -31,6 +31,10 @@ final class FunctionParserException extends ParseException {
         this(String.format("Expected function definition but found '%s'", expr));
     }
 
+    static FunctionParserException unknownTypeDef(final CharSequence actualTypeDef){
+        return new FunctionParserException(String.format("Unrecognized type declaration: '%s", actualTypeDef));
+    }
+
     static FunctionParserException unknownFunctionName(final String functionName){
         return new FunctionParserException(String.format("Unknown function name '%s'", functionName));
     }

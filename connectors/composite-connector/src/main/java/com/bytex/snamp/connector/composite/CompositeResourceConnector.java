@@ -8,6 +8,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 
 import java.io.IOException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +47,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     CompositeResourceConnector(final String resourceName,
                                final ExecutorService threadPool,
                                final Duration syncPeriod,
-                               final String[] groovyPath) throws IOException {
+                               final URL[] groovyPath) throws IOException {
         connectors = new Composition(resourceName);
         final ScriptLoader scriptLoader = new ScriptLoader(getClass().getClassLoader(), getLogger(), groovyPath);
         attributes = new AttributeComposition(resourceName, connectors, threadPool, syncPeriod, scriptLoader, getLogger());

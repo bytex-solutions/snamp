@@ -61,11 +61,30 @@ public final class CharReader extends Reader implements SafeCloseable {
         return true;
     }
 
+    public synchronized CharSequence readTo(final char stopChar) throws IOException {
+        ensureOpen();
+        if(hasMore()) {
+            final int start = position;
+            while (hasMore()){
+                final char ch = sequence.charAt(position);
+                if(stopChar == ch)
+                    break;
+                else
+                    position += 1;
+            }
+            return sequence.subSequence(start, position);
+        }
+        else
+            return "";
+    }
+
     /**
      * Read all characters from the current position to the end of underlying stream.
      * @return All characters from the current position to the end of underlying stream.
+     * @throws IOException Stream is closed.
      */
-    public synchronized CharSequence readToEnd(){
+    public synchronized CharSequence readToEnd() throws IOException {
+        ensureOpen();
         final CharSequence result = sequence.subSequence(position, sequence.length());
         position = sequence.length();
         return result;

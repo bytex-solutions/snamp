@@ -2,16 +2,20 @@ package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceActivator;
-import com.bytex.snamp.instrumentation.Measurement;
 import org.osgi.service.http.HttpService;
 
+import java.io.IOException;
 import java.util.Collection;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Map;
 
 /**
  * Represents activator of {@link HttpAcceptor}.
  */
 public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAcceptor> {
+    private static final String SERVLET_CONTEXT = "/snamp/data/acquisition";
+    private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
     @SpecialUse
     public HttpAcceptorActivator() {
@@ -21,8 +25,14 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
     private static HttpAcceptor newResourceConnector(final String resourceName,
                                               final String connectionString,
                                               final Map<String, String> parameters,
-                                              final RequiredService<?>... dependencies) throws Exception{
+                                              final RequiredService<?>... dependencies) throws IOException{
         return new HttpAcceptor(resourceName, parameters);
+    }
+
+    private static Dictionary<String, String> getServletInitParams(){
+        final Dictionary<String, String> params = new Hashtable<>();
+        params.put("com.sun.jersey.api.json.POJOMappingFeature", "true");
+        return params;
     }
 
     @Override
@@ -30,9 +40,22 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
         dependencies.add(new SimpleDependency<>(HttpService.class));
     }
 
+    /**
+     * Activates this service library.
+     *
+     * @param activationProperties A collection of library activation properties to fill.
+     * @param dependencies         A collection of resolved library-level dependencies.
+     * @throws Exception Unable to activate this library.
+     */
     @Override
-    protected void activate(final RequiredService<?>... dependencies) throws Exception {
-        getLogger().info("Starting global HTTP acceptor");
+    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
+        super.activate(activationProperties, dependencies);
+        @SuppressWarnings("unchecked")
+        final HttpService publisher = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
+        assert publisher != null;
+        activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, publisher);
+        //register servlet
+        publisher.registerServlet(SERVLET_CONTEXT, new JerseyServletContainer(), getServletInitParams(), null);
     }
 
     /**
@@ -42,6 +65,7 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
      */
     @Override
     protected void deactivate(final ActivationPropertyReader activationProperties) {
-        getLogger().info("Shutdown global HTTP acceptor");
+        final HttpService publisher = activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY);
+        publisher.unregister(SERVLET_CONTEXT);
     }
 }

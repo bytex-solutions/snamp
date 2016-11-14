@@ -5,8 +5,8 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
-import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.groovy.*;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
@@ -21,14 +21,15 @@ import org.osgi.framework.BundleContext;
 import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
-import static com.bytex.snamp.MapUtils.toProperties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.bytex.snamp.MapUtils.toProperties;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -266,7 +267,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     GroovyResourceConnector(final String resourceName,
                             final String connectionString,
                             final Map<String, String> params) throws IOException, ResourceException, ScriptException {
-        final String[] paths = IOUtils.splitPath(connectionString);
+        final URL[] paths = IOUtils.splitPath(connectionString);
         final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(resourceName,
                 getLogger(),
                 getClass().getClassLoader(),

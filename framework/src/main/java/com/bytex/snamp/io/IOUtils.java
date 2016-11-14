@@ -6,11 +6,13 @@ import com.google.common.base.StandardSystemProperty;
 import com.google.common.reflect.TypeToken;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.BitSet;
 
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
@@ -150,8 +152,14 @@ public final class IOUtils {
         return result.toString();
     }
 
-    public static String[] splitPath(final String path) {
-        return PATH_SPLITTER.trimResults().splitToList(path).stream().toArray(String[]::new);
+    public static URL[] splitPath(final String path) {
+        return PATH_SPLITTER
+                .trimResults()
+                .splitToList(path)
+                .stream()
+                .map(fileName -> new File(fileName).toURI())
+                .map(uri -> callUnchecked(uri::toURL))
+                .toArray(URL[]::new);
     }
 
     public static BitSet toBitSet(final boolean[] bits) {

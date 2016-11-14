@@ -49,7 +49,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     public RShellWithJmxCompositionTest() throws MalformedObjectNameException {
         super(buildConnectionString(), ImmutableMap.of(
-                "groovyPath", getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator,
+                "groovyPath", "file:" + getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator,
                 "jmx:login", AbstractJmxConnectorTest.JMX_LOGIN,
                 "jmx:password", AbstractJmxConnectorTest.JMX_PASSWORD,
                 "jmx:objectName", TestOpenMBean.BEAN_NAME
@@ -307,17 +307,17 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
         attributes.addAndConsume("extr", attribute -> {
             attribute.setAlternativeName("ms");
-            attribute.getParameters().put("formula", "extract(total)");
+            attribute.getParameters().put("formula", "extract(string, total)");
         });
 
         attributes.addAndConsume("extr_int", attribute -> {
             attribute.setAlternativeName("ms");
-            attribute.getParameters().put("formula", "extract_int(total)");
+            attribute.getParameters().put("formula", "extract(int64, total)");
         });
 
         attributes.addAndConsume("extr_fp", attribute -> {
             attribute.setAlternativeName("ms");
-            attribute.getParameters().put("formula", "extract_fp(total)");
+            attribute.getParameters().put("formula", "extract(float64, total)");
         });
 
         attributes.addAndConsume("notifRate", attribute -> {

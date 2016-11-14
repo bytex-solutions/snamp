@@ -7,7 +7,6 @@ import groovy.util.ScriptException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -23,10 +22,9 @@ public class ScriptingAPITest extends Assert {
     private final OSGiGroovyScriptEngine<Scriptlet> engine;
 
     public ScriptingAPITest() throws IOException, URISyntaxException {
-        final URL resource = getClass().getClassLoader().getResource("scripts/ApiTestScript.groovy");
+        final URL resource = getClass().getClassLoader().getResource("scripts/");
         assertNotNull(resource);
-        final String scriptPath = new File(resource.toURI()).getParent();
-        engine = new OSGiGroovyScriptEngine<>(getClass().getClassLoader(), new Properties(), Scriptlet.class, scriptPath);
+        engine = new OSGiGroovyScriptEngine<>(getClass().getClassLoader(), new Properties(), Scriptlet.class, resource);
         Scriptlet.setLogger(engine.getGlobalVariables(), Logger.getLogger("TestLogger"));
     }
 
