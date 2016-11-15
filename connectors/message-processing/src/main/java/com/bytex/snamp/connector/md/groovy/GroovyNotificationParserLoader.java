@@ -32,6 +32,6 @@ public final class GroovyNotificationParserLoader extends OSGiGroovyScriptEngine
 
     public GroovyNotificationParserLoader(final MessageDrivenConnector connector,
                                           final Map<String, String> connectionParams) throws IOException {
-        this(connector, connectionParams, connector.getClass().getResource("/"));
+        this(connector, connectionParams, connector.getClass().getResource(""));
     }
 }

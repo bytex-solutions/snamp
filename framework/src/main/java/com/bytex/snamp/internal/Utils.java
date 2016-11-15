@@ -248,6 +248,15 @@ public final class Utils {
         return callable.call();
     }
 
+    /**
+     * Calls code with checked exception as a code without checked exception.
+     * <p>
+     *     This method should be used instead of wrapping some code into try-catch block with ignored exception.
+     *     Don't use this method to hide checked exception that can be actually happened at runtime in some conditions.
+     * @param callable Portion of code to execute.
+     * @param <V> Type of result.
+     * @return An object returned by portion of code.
+     */
     @SuppressWarnings("unchecked")
     public static <V> V callUnchecked(final Callable<V> callable){
         return (V) CALL_SILENT_FN.apply(callable);

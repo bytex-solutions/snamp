@@ -247,14 +247,14 @@
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                 </artifactItem>
-               <!-- <artifactItem>
+                <artifactItem>
                   <groupId>com.bytex.snamp</groupId>
                   <artifactId>message-processing</artifactId>
                   <version>${snamp.connector.md.version}</version>
                   <type>kar</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>-->
+                </artifactItem>
                 <artifactItem>
                   <groupId>com.bytex.snamp</groupId>
                   <artifactId>webconsole-feature</artifactId>

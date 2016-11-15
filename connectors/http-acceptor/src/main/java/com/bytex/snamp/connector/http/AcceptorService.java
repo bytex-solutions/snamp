@@ -8,6 +8,7 @@ import com.bytex.snamp.instrumentation.Measurement;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -28,6 +29,7 @@ import static com.bytex.snamp.internal.Utils.*;
  * @since 2.0
  */
 @Path("/")
+@Singleton
 public final class AcceptorService {
     private static final class AcceptorNotFoundException extends Exception{
         private static final long serialVersionUID = 7841487883004602958L;

@@ -22,10 +22,7 @@ public final class JsonSerializationTest extends Assert {
         original.setMessage("Message");
         original.getUserData().put("key", "value");
         final ObjectMapper mapper = new ObjectMapper();
-        final StringWriter writer = new StringWriter(1024);
-        mapper.writeValue(writer, original);
-        final Measurement actual = mapper.readValue(writer.toString(), Measurement.class);
-        writer.close();
+        final Measurement actual = mapper.readValue(original.toJsonString(), Measurement.class);
         assertTrue(actual instanceof IntegerMeasurement);
         assertEquals(original.getValue(), ((IntegerMeasurement)actual).getValue());
         assertEquals(original.getMessage(), actual.getMessage());

@@ -1,11 +1,9 @@
 package com.bytex.snamp.instrumentation;
 
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.map.ObjectMapper;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -30,6 +28,9 @@ import java.util.regex.Pattern;
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Measurement implements Externalizable {
+    private static final class ObjectMapperHolder{
+        private static final ObjectMapper INSTANCE = new ObjectMapper();
+    }
     private static final Pattern CLASS_NAME_SPLITTER = Pattern.compile("\\s+");
     private static final Pattern DOT_SPLITTER = Pattern.compile("\\.");
 
@@ -116,12 +117,10 @@ public abstract class Measurement implements Externalizable {
                     (addr.isSiteLocalAddress() ? siteLocalCandidates : candidates).add(addr.getHostAddress());
             }
         }
-        if (!siteLocalCandidates.isEmpty())
-            return siteLocalCandidates.first();
-        else if (!candidates.isEmpty())
-            return candidates.first();
+        if (siteLocalCandidates.isEmpty())
+            return candidates.isEmpty() ? LOCALHOST : candidates.first();
         else
-            return LOCALHOST;
+            return siteLocalCandidates.first();
     }
 
     public static String getDefaultComponentName(){
@@ -133,6 +132,17 @@ public abstract class Measurement implements Externalizable {
         return (cmdLine == null || cmdLine.isEmpty()) ?
                 ManagementFactory.getRuntimeMXBean().getName() :
                 cmdLine;
+    }
+
+    @JsonIgnore
+    public final String toJsonString() throws IOException {
+        final StringWriter writer = new StringWriter();
+        try {
+            ObjectMapperHolder.INSTANCE.writeValue(writer, this);
+            return writer.toString();
+        } finally {
+            writer.close();
+        }
     }
 
     /**

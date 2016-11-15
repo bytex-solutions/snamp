@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
+import static com.bytex.snamp.connector.http.HttpConnectorConfigurationDescriptor.COMPONENT_INSTANCE_PARAM;
 
 /**
  * Represents activator of {@link HttpAcceptor}.
@@ -26,6 +27,7 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
                                               final String connectionString,
                                               final Map<String, String> parameters,
                                               final RequiredService<?>... dependencies) throws IOException{
+        parameters.put(COMPONENT_INSTANCE_PARAM, connectionString);
         return new HttpAcceptor(resourceName, parameters);
     }
 

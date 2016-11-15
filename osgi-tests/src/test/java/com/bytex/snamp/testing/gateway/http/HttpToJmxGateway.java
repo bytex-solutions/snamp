@@ -49,7 +49,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.HTTP_GATEWAY, SnampFeature.WRAPPED_LIBS})
-@ImportPackages({"com.bytex.snamp.jmx.json;version=\"[1.0,2)\"",
+@ImportPackages({"com.bytex.snamp.jmx.json;version=\"[2.0,3)\"",
         "org.atmosphere.wasync;version=\"[2.0.0,3)\""})
 public final class HttpToJmxGateway extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final class NotificationReceiver extends LinkedBlockingQueue<JsonElement> implements Function<String>{
@@ -92,7 +92,7 @@ public final class HttpToJmxGateway extends AbstractJmxConnectorTest<TestOpenMBe
         IOUtils.writeString(formatter.toJson(value), connection.getOutputStream(), Charset.defaultCharset());
         connection.connect();
         try{
-            assertEquals(200, connection.getResponseCode());
+            assertEquals(204, connection.getResponseCode());
         }
         finally {
             connection.disconnect();

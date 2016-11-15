@@ -79,12 +79,11 @@ public final class GatewayRestService {
     @POST
     @Path(HttpAttributeAccessor.ATTRIBUTE_ACCESS_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public String setAttribute(@PathParam(HttpAttributeAccessor.RESOURCE_URL_PARAM)final String resourceName,
+    public Response setAttribute(@PathParam(HttpAttributeAccessor.RESOURCE_URL_PARAM)final String resourceName,
                                    @PathParam(HttpAttributeAccessor.ATTRIBUTE_URL_PARAM)final String attributeName,
                                    final String attributeValue) throws WebApplicationException {
         attributes.setAttribute(resourceName, attributeName, attributeValue);
-        return attributeValue;
+        return Response.noContent().build();
     }
 
     @GET
