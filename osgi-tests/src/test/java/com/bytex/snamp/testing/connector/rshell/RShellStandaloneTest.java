@@ -14,6 +14,7 @@ import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
+import com.google.common.collect.ImmutableList;
 import org.junit.Assume;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -47,7 +48,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Override
@@ -62,11 +63,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Override
     protected void fillOperations(EntityMap<? extends OperationConfiguration> operations) {
-        operations.getOrAdd("space_on_disk_c").setAlternativeName(getPathToFileInProjectRoot("browse-folder-windows.xml"));
-        operations.getOrAdd("space_on_disk_c").getParameters().put("drive", "c:");
-
-        operations.getOrAdd("space_on_disk_d").setAlternativeName(getPathToFileInProjectRoot("browse-folder-windows.xml"));
-        operations.getOrAdd("space_on_disk_d").getParameters().put("drive", "d:");
+        operations.getOrAdd("space_on_disk").setAlternativeName(getPathToFileInProjectRoot("browse-folder-windows.xml"));
     }
 
     @Test()
@@ -161,19 +158,23 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         try {
             final OperationSupport operationSupport = connector.queryObject(OperationSupport.class);
             assertNotNull(operationSupport);
-            final Object operationResult = operationSupport.invoke("space_on_disk_c", new Object[0], new String[0]);
+            Object operationResult = operationSupport.invoke("space_on_disk",
+                    ImmutableList.of("c:").toArray(),
+                    ImmutableList.of(String.class.getName()).toArray(new String[1]));
             assertNotNull(operationResult);
             assertTrue(operationResult instanceof CompositeData);
             assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "free", "d"));
             assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "total", "d"));
             assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "available", "d"));
 
-            final Object operationResultSecond = operationSupport.invoke("space_on_disk_d", new Object[0], new String[0]);
-            assertNotNull(operationResultSecond);
-            assertTrue(operationResultSecond instanceof CompositeData);
-            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResultSecond, "free", "d"));
-            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResultSecond, "total", "d"));
-            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResultSecond, "available", "d"));
+             operationResult = operationSupport.invoke("space_on_disk",
+                    ImmutableList.of("d:").toArray(),
+                    ImmutableList.of(String.class.getName()).toArray(new String[1]));
+            assertNotNull(operationResult);
+            assertTrue(operationResult instanceof CompositeData);
+            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "free", "d"));
+            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "total", "d"));
+            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "available", "d"));
         }
         finally {
             releaseManagementConnector();

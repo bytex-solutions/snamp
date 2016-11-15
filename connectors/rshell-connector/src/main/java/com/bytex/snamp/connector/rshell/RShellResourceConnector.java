@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.Convert.toTypeToken;
@@ -64,16 +66,20 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
 
         private static OpenMBeanParameterInfoSupplier[] getSignature(final XmlCommandLineToolProfile profile,
                                                                      final String description) {
-            final ST st = XmlCommandLineTemplate.createCommandTemplate(profile.getReaderTemplate().getCommandTemplate());
-            if (st.getAttributes() != null && !st.getAttributes().isEmpty()) {
-                return st.getAttributes().entrySet()
-                        .stream()
-                        .map(entry -> new OpenMBeanParameterInfoSupplier(
-                                entry.getKey(),
-                                String.format("Argument %s for %s",entry.getKey(), description),
-                                SimpleType.STRING)
-                        ).collect(Collectors.toList())
-                        .toArray(new OpenMBeanParameterInfoSupplier[st.getAttributes().size()]);
+            final String regex = "\\{(.*?)\\}";
+            final Pattern pattern = Pattern.compile(regex);
+            final Matcher matcher = pattern.matcher(profile.getReaderTemplate().getCommandTemplate());
+            if (matcher.find()) {
+                matcher.reset();
+                final OpenMBeanParameterInfoSupplier[] result = new OpenMBeanParameterInfoSupplier[matcher.groupCount()];
+                int i = 0;
+                while(matcher.find()) {
+                    result[i++] =  new OpenMBeanParameterInfoSupplier(
+                            matcher.group(1),
+                            String.format("Argument %s for %s", matcher.group(1), description),
+                            SimpleType.STRING);
+                }
+                return result;
             } else {
                 return new OpenMBeanParameterInfoSupplier[0];
             }
