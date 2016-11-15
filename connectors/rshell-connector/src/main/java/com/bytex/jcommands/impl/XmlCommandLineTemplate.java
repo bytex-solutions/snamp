@@ -2,7 +2,7 @@ package com.bytex.jcommands.impl;
 
 import com.bytex.jcommands.ChannelProcessor;
 import com.bytex.snamp.ThreadSafe;
-import org.antlr.runtime.tree.BaseTree;
+import org.antlr.runtime.tree.Tree;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.compiler.STLexer;
@@ -11,7 +11,10 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents XML-serializable template of the command-line tool.
@@ -90,20 +93,14 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
         return new ST(TEMPLATE_GROUP, template);
     }
 
-    private static void findTemplateParameters(final BaseTree tree, final List<String> output) {
+    private static void findTemplateParameters(final Tree tree, final List<String> output) {
         switch (tree.getType()) {
             case STLexer.ID:
                 output.add(tree.getText());
                 return;
             default:
-                final Class<BaseTree> baseTreeType = BaseTree.class;
-                final Collection<?> children = tree.getChildren();
-                if (children != null && !children.isEmpty())
-                    tree.getChildren()
-                            .stream()
-                            .filter(baseTreeType::isInstance)
-                            .map(baseTreeType::cast)
-                            .forEach(subtree -> findTemplateParameters(subtree, output));
+                for(int i = 0; i < tree.getChildCount(); i++)
+                    findTemplateParameters(tree.getChild(i), output);
         }
     }
 
