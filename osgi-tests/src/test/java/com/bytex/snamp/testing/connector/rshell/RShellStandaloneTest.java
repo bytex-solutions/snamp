@@ -163,18 +163,18 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
                     ImmutableList.of(String.class.getName()).toArray(new String[1]));
             assertNotNull(operationResult);
             assertTrue(operationResult instanceof CompositeData);
-            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "free", "d"));
-            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "total", "d"));
-            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "available", "d"));
+            assertTrue(CompositeDataUtils.getLong((CompositeData) operationResult, "free", 0L) > 0L);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) operationResult, "total", 0L) > 0L);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) operationResult, "available", 0L) > 0L);
 
              operationResult = operationSupport.invoke("space_on_disk",
                     ImmutableList.of("d:").toArray(),
                     ImmutableList.of(String.class.getName()).toArray(new String[1]));
             assertNotNull(operationResult);
             assertTrue(operationResult instanceof CompositeData);
-            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "free", "d"));
-            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "total", "d"));
-            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "available", "d"));
+            assertTrue(CompositeDataUtils.getLong((CompositeData) operationResult, "free", 0L) > 0L);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) operationResult, "total", 0L) > 0L);
+            assertTrue(CompositeDataUtils.getLong((CompositeData) operationResult, "available", 0L) > 0L);
         }
         finally {
             releaseManagementConnector();
