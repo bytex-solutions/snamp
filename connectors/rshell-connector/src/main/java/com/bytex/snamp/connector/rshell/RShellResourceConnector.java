@@ -1,13 +1,16 @@
 package com.bytex.snamp.connector.rshell;
 
 import com.bytex.jcommands.CommandExecutionChannel;
-import com.bytex.jcommands.impl.*;
+import com.bytex.jcommands.impl.TypeTokens;
+import com.bytex.jcommands.impl.XmlCommandLineTemplate;
+import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
+import com.bytex.jcommands.impl.XmlParserDefinition;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
+import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.AbstractOpenOperationInfo;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
@@ -19,18 +22,18 @@ import org.stringtemplate.v4.ST;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.*;
-import javax.management.openmbean.OpenType;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.awt.font.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.bytex.snamp.Convert.toTypeToken;
 
@@ -401,7 +404,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
                                                        final AttributeDescriptor descriptor) throws Exception {
             final String commandProfileFilePath = descriptor.getName(attributeName);
             final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
-            if (profile != null && profile.getType() == ProfileTarget.ATTRIBUTE) {
+            if (profile != null) {
                 profile.setScriptManager(scriptEngineManager);
                 switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()) {
                     case DICTIONARY:
@@ -460,7 +463,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
             protected RShellOperationInfo connectOperation(String operationName, OperationDescriptor descriptor) throws Exception {
                 final String commandProfileFilePath = descriptor.getName(operationName);
                 final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
-                if (profile != null && profile.getType() == ProfileTarget.COMMAND) {
+                if (profile != null) {
                     profile.setScriptManager(scriptEngineManager);
                     switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()) {
                         case DICTIONARY:

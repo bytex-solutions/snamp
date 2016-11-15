@@ -10,6 +10,7 @@ import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.metrics.AttributeMetric;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
+import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
@@ -51,17 +52,21 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        // Linux operation
         attributes.getOrAdd("ms").setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
         attributes.getOrAdd("ms").getParameters().put("format", "-m");
-
+        // Windows operation
         attributes.getOrAdd("ms_win").setAlternativeName(getPathToFileInProjectRoot("virtual-mem-windows.xml"));
-
     }
 
 
     @Override
     protected void fillOperations(EntityMap<? extends OperationConfiguration> operations) {
-        operations.getOrAdd("some_operation").setAlternativeName(getPathToFileInProjectRoot("virtual-mem-windows.xml"));
+        operations.getOrAdd("space_on_disk_c").setAlternativeName(getPathToFileInProjectRoot("browse-folder-windows.xml"));
+        operations.getOrAdd("space_on_disk_c").getParameters().put("drive", "c:");
+
+        operations.getOrAdd("space_on_disk_d").setAlternativeName(getPathToFileInProjectRoot("browse-folder-windows.xml"));
+        operations.getOrAdd("space_on_disk_d").getParameters().put("drive", "d:");
     }
 
     @Test()
@@ -142,6 +147,33 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
             assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "total", 0L) > 0L);
             assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "used", 0L) > 0L);
             assertTrue(CompositeDataUtils.getLong((CompositeData) dict, "free", 0L) > 0L);
+        }
+        finally {
+            releaseManagementConnector();
+        }
+    }
+
+    @Test
+    public void browseSomeDirectoryWindows() throws JMException, ScriptException {
+        Assume.assumeTrue(OperatingSystem.isWindows());
+        final ManagedResourceConnector connector = getManagementConnector();
+        assertNotNull(connector);
+        try {
+            final OperationSupport operationSupport = connector.queryObject(OperationSupport.class);
+            assertNotNull(operationSupport);
+            final Object operationResult = operationSupport.invoke("space_on_disk_c", new Object[0], new String[0]);
+            assertNotNull(operationResult);
+            assertTrue(operationResult instanceof CompositeData);
+            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "free", "d"));
+            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "total", "d"));
+            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResult, "available", "d"));
+
+            final Object operationResultSecond = operationSupport.invoke("space_on_disk_d", new Object[0], new String[0]);
+            assertNotNull(operationResultSecond);
+            assertTrue(operationResultSecond instanceof CompositeData);
+            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResultSecond, "free", "d"));
+            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResultSecond, "total", "d"));
+            assertNotNull(CompositeDataUtils.getString((CompositeData) operationResultSecond, "available", "d"));
         }
         finally {
             releaseManagementConnector();

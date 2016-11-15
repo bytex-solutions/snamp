@@ -24,7 +24,6 @@
       <xs:element name="modifier" type="tns:XmlCommandLineTemplate" form="qualified" minOccurs="0"/>
       <xs:element name="reader" type="tns:XmlCommandLineTemplate" form="qualified" minOccurs="0"/>
     </xs:sequence>
-    <xs:attribute ref="tns:type" use="required"/>
   </xs:complexType>
 
   <xs:complexType name="XmlCommandLineTemplate">
@@ -127,6 +126,6 @@
 
   <xs:attribute name="numberFormat" type="xs:string"/>
 
-  <xs:attribute name="type" type="xs:string"/>
+  <xs:attribute name="type" type="tns:CommandLineToolReturnType"/>
 </xs:schema>
 

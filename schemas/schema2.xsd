@@ -12,12 +12,5 @@
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
-
-  <xs:simpleType name="profileTarget">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="attribute"/>
-      <xs:enumeration value="command"/>
-    </xs:restriction>
-  </xs:simpleType>
 </xs:schema>
 
