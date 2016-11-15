@@ -62,16 +62,14 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>org.snmp4j</Bundle-SymbolicName>
-            <Export-Package>
-              org.snmp4j.*;-split-package:=merge-first,
-              !org.snmp4j.asn1.doc-files,
-              !org.snmp4j.doc-files,
-              !org.snmp4j.mp.doc-files,
-              !org.snmp4j.security.doc-files,
-              !org.snmp4j.smi.doc-files,
-              !org.snmp4j.transport.doc-files,
-              !org.snmp4j.util.doc-files
-            </Export-Package>
+            <Export-Package>org.snmp4j.*;-split-package:=merge-first,
+                            !org.snmp4j.asn1.doc-files,
+                            !org.snmp4j.doc-files,
+                            !org.snmp4j.mp.doc-files,
+                            !org.snmp4j.security.doc-files,
+                            !org.snmp4j.smi.doc-files,
+                            !org.snmp4j.transport.doc-files,
+                            !org.snmp4j.util.doc-files</Export-Package>
           </instructions>
         </configuration>
       </plugin>
