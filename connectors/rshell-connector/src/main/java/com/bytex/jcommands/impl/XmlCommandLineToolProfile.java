@@ -37,6 +37,7 @@ import java.util.Map;
 public class XmlCommandLineToolProfile {
     private XmlCommandLineTemplate readerTemplate;
     private XmlCommandLineTemplate modifierTemplate;
+    private ProfileTarget type;
 
     /**
      * Initializes a new instance of the profile.
@@ -44,6 +45,15 @@ public class XmlCommandLineToolProfile {
     public XmlCommandLineToolProfile() {
         readerTemplate = new XmlCommandLineTemplate();
         modifierTemplate = null;
+    }
+
+    @XmlAttribute(required = true, namespace =  XmlConstants.NAMESPACE, name = "type")
+    public final ProfileTarget getType() {
+        return this.type;
+    }
+
+    public void setType(final ProfileTarget type) {
+        this.type = type;
     }
 
     @XmlElement(name = "reader", namespace = XmlConstants.NAMESPACE)

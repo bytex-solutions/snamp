@@ -1,9 +1,7 @@
 package com.bytex.snamp.connector.rshell;
 
 import com.bytex.jcommands.CommandExecutionChannel;
-import com.bytex.jcommands.impl.TypeTokens;
-import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
-import com.bytex.jcommands.impl.XmlParserDefinition;
+import com.bytex.jcommands.impl.*;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
@@ -11,25 +9,28 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
+import com.bytex.snamp.connector.operations.AbstractOpenOperationInfo;
+import com.bytex.snamp.connector.operations.AbstractOperationRepository;
+import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.jmx.CompositeTypeBuilder;
-import com.bytex.snamp.jmx.DescriptorUtils;
-import com.bytex.snamp.jmx.TabularDataUtils;
-import com.bytex.snamp.jmx.TabularTypeBuilder;
+import com.bytex.snamp.jmx.*;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
+import org.stringtemplate.v4.ST;
 
+import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.*;
+import javax.management.openmbean.OpenType;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.awt.font.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.bytex.snamp.Convert.toTypeToken;
 
@@ -41,6 +42,154 @@ import static com.bytex.snamp.Convert.toTypeToken;
  * @since 1.0
  */
 final class RShellResourceConnector extends AbstractManagedResourceConnector {
+
+    private static abstract class RShellOperationInfo extends AbstractOpenOperationInfo {
+        private static final long serialVersionUID = -403897890533078455L;
+        final XmlCommandLineToolProfile commandProfile;
+
+        public RShellOperationInfo(String name, OpenType<?> returnType,
+                                   final XmlCommandLineToolProfile profile, OperationDescriptor descriptor) {
+            super(name, getDescription(descriptor), getSignature(profile, getDescription(descriptor)),
+                    returnType, getImpact(profile), descriptor);
+            commandProfile = profile;
+        }
+
+        private static String getDescription(final OperationDescriptor descriptor){
+            final String result = descriptor.getAlternativeName();
+            return result == null || result.isEmpty() ? "RShell Operation" : result;
+        }
+
+        private static OpenMBeanParameterInfoSupplier[] getSignature(final XmlCommandLineToolProfile profile,
+                                                                     final String description) {
+            final ST st = XmlCommandLineTemplate.createCommandTemplate(profile.getReaderTemplate().getCommandTemplate());
+            if (st.getAttributes() != null && !st.getAttributes().isEmpty()) {
+                return st.getAttributes().entrySet()
+                        .stream()
+                        .map(entry -> new OpenMBeanParameterInfoSupplier(
+                                entry.getKey(),
+                                String.format("Argument %s for %s",entry.getKey(), description),
+                                SimpleType.STRING)
+                        ).collect(Collectors.toList())
+                        .toArray(new OpenMBeanParameterInfoSupplier[st.getAttributes().size()]);
+            } else {
+                return new OpenMBeanParameterInfoSupplier[0];
+            }
+        }
+
+        static OpenType<?> getType(final XmlCommandLineToolProfile profile) {
+            if (profile.getReaderTemplate().getCommandOutputParser() == null) {
+                return SimpleType.VOID;
+            } else {
+                return profile.getReaderTemplate().getCommandOutputParser().getParsingResultType().getOpenType();
+            }
+        }
+
+        static int getImpact(final XmlCommandLineToolProfile profile) {
+            return (profile.getReaderTemplate().getCommandOutputParser() == null)
+                    ? MBeanOperationInfo.ACTION : MBeanOperationInfo.ACTION_INFO;
+        }
+
+        protected abstract Object invoke(final CommandExecutionChannel channel, final Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException;
+    }
+
+    private static final class SimpleOperationInfo extends RShellOperationInfo {
+        private static final long serialVersionUID = 84553453453432379L;
+
+        private SimpleOperationInfo(final String operationName,
+                                    final XmlCommandLineToolProfile profile,
+                                    final OperationDescriptor options) {
+            super(operationName, getType(profile), profile, options);
+
+        }
+
+        @Override
+        protected Object invoke(CommandExecutionChannel channel, Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
+            return commandProfile.readFromChannel(channel, channelParams);
+        }
+    }
+
+    private static final class TableOperationInfo extends RShellOperationInfo {
+        private static final String INDEX_COLUMN = "index";
+        private static final long serialVersionUID = -3828510082280244717L;
+
+        private TableOperationInfo(final String operationName,
+                                   final XmlCommandLineToolProfile profile,
+                                   final OperationDescriptor descriptor) throws OpenDataException{
+            super(operationName,
+                    getTabularType(operationName, descriptor, profile.getReaderTemplate().getCommandOutputParser()),
+                    profile,
+                    descriptor);
+        }
+
+        private static TabularType getTabularType(final String attributeName,
+                                                  final OperationDescriptor descriptor,
+                                                  final XmlParserDefinition definition) throws OpenDataException{
+            final TabularTypeBuilder builder = new TabularTypeBuilder();
+            builder.addColumn(INDEX_COLUMN, "The index of the row", SimpleType.INTEGER, true);
+            definition.exportTableOrDictionaryType((index, value) -> {
+                builder.addColumn(index, index, value.getOpenType(), false);
+                return true;
+            });
+            builder.setTypeName(String.format("%sTabularType", descriptor.getName(attributeName)), true);
+            builder.setDescription(RShellOperationInfo.getDescription(descriptor), true);
+            return builder.build();
+        }
+
+        private TabularData convert(final List<? extends Map<String, ?>> rows) throws OpenDataException{
+            final TabularDataSupport result = new TabularDataSupport((TabularType)getReturnOpenType());
+            for(int index = 0; index < rows.size(); index++){
+                final Map<String, Object> row = new HashMap<>(rows.get(index));
+                row.put(INDEX_COLUMN, index);
+                result.put(new CompositeDataSupport(result.getTabularType().getRowType(), row));
+            }
+            return result;
+        }
+
+        @Override
+        protected Object invoke(CommandExecutionChannel channel, Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
+            final List<? extends Map<String, ?>> rows = toTypeToken(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN);
+            return rows != null ? convert(rows) : null;
+        }
+    }
+
+    private static final class DictionaryOperationInfo extends RShellOperationInfo {
+
+        private static final long serialVersionUID = 7974143091272614419L;
+
+        private DictionaryOperationInfo(final String operationName,
+                                        final XmlCommandLineToolProfile profile,
+                                        final OperationDescriptor descriptor) throws OpenDataException {
+            super(operationName,
+                    getCompositeType(operationName, descriptor, profile.getReaderTemplate().getCommandOutputParser()),
+                    profile,
+                    descriptor);
+        }
+
+        private static CompositeType getCompositeType(final String attributeName,
+                                                      final OperationDescriptor descriptor,
+                                                      final XmlParserDefinition definition) throws OpenDataException{
+            final CompositeTypeBuilder builder = new CompositeTypeBuilder();
+            definition.exportTableOrDictionaryType((index, value) -> {
+                builder.addItem(index, index, value.getOpenType());
+                return true;
+            });
+            builder.setTypeName(String.format("%sCompositeType", descriptor.getName(attributeName)));
+            builder.setDescription(RShellOperationInfo.getDescription(descriptor));
+            return builder.build();
+        }
+
+        private CompositeData convert(final Map<String, ?> value) throws OpenDataException{
+            return new CompositeDataSupport((CompositeType)getReturnOpenType(), value);
+        }
+
+        @Override
+        protected Object invoke(CommandExecutionChannel channel, Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
+            final Map<String, ?> dict = toTypeToken(commandProfile.readFromChannel(channel, channelParams), TypeTokens.DICTIONARY_TYPE_TOKEN);
+            return dict != null ? convert(dict) : null;
+        }
+    }
+
+
     private static abstract class RShellAttributeInfo extends AbstractOpenAttributeInfo {
         private static final long serialVersionUID = -403897890533078455L;
         final XmlCommandLineToolProfile commandProfile;
@@ -252,7 +401,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
                                                        final AttributeDescriptor descriptor) throws Exception {
             final String commandProfileFilePath = descriptor.getName(attributeName);
             final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
-            if (profile != null) {
+            if (profile != null && profile.getType() == ProfileTarget.ATTRIBUTE) {
                 profile.setScriptManager(scriptEngineManager);
                 switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()) {
                     case DICTIONARY:
@@ -292,9 +441,56 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
+    private static final class RShellOperations extends AbstractOperationRepository<RShellOperationInfo> {
+            private final CommandExecutionChannel executionChannel;
+            private final ScriptEngineManager scriptEngineManager;
+            private final Logger logger;
+
+            private RShellOperations(final String resourceName,
+                                     final CommandExecutionChannel channel,
+                                     final ScriptEngineManager engineManager,
+                                     final Logger logger) {
+                super(resourceName, RShellOperationInfo.class, false);
+                this.executionChannel = Objects.requireNonNull(channel);
+                this.scriptEngineManager = engineManager;
+                this.logger = Objects.requireNonNull(logger);
+            }
+
+            @Override
+            protected RShellOperationInfo connectOperation(String operationName, OperationDescriptor descriptor) throws Exception {
+                final String commandProfileFilePath = descriptor.getName(operationName);
+                final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
+                if (profile != null && profile.getType() == ProfileTarget.COMMAND) {
+                    profile.setScriptManager(scriptEngineManager);
+                    switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()) {
+                        case DICTIONARY:
+                            return new DictionaryOperationInfo(operationName, profile, descriptor);
+                        case TABLE:
+                            return new TableOperationInfo(operationName, profile, descriptor);
+                        default:
+                            return new SimpleOperationInfo(operationName, profile, descriptor);
+                    }
+                } else
+                    throw new FileNotFoundException(commandProfileFilePath + " RShell command profile doesn't exist");
+            }
+
+            @Override
+            protected void failedToEnableOperation(String operationName, Exception e) {
+                failedToEnableOperation(logger, Level.WARNING, operationName, e);
+            }
+
+            @Override
+            protected Object invoke(OperationCallInfo<RShellOperationInfo> callInfo) throws Exception {
+                return callInfo.getOperation().invoke(executionChannel, callInfo.toNamedArguments());
+            }
+    }
+
     private final CommandExecutionChannel executionChannel;
+
     @Aggregation(cached = true)
     private final RShellAttributes attributes;
+    @Aggregation(cached = true)
+    private final RShellOperations operations;
 
     private RShellResourceConnector(final String resourceName,
                                     final RShellConnectionOptions connectionOptions) throws Exception {
@@ -302,6 +498,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
         if(executionChannel == null)
             throw new InstantiationException(String.format("Unknown channel: %s", connectionOptions));
         attributes = new RShellAttributes(resourceName,
+                executionChannel,
+                new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)), getLogger());
+        operations = new RShellOperations(resourceName,
                 executionChannel,
                 new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)), getLogger());
     }
@@ -314,7 +513,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
 
     @Override
     protected MetricsSupport createMetricsReader() {
-        return assembleMetricsReader(attributes);
+        return assembleMetricsReader(attributes, operations);
     }
 
     /**
@@ -326,7 +525,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
      */
     @Override
     public void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes);
+        addResourceEventListener(listener, attributes, operations);
     }
 
     /**
@@ -336,7 +535,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
      */
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes);
+        removeResourceEventListener(listener, attributes, operations);
     }
 
     /**
@@ -347,6 +546,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
     @Override
     public void close() throws Exception {
         attributes.removeAll(true);
+        operations.removeAll(true);
         super.close();
         executionChannel.close();
     }

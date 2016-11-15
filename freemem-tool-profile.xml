@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns1:profile xmlns:ns1="http://snamp.bytex.solutions/schemas/command-line-tool-profile/v1.0">
+<ns1:profile xmlns:ns1="http://snamp.bytex.solutions/schemas/command-line-tool-profile/v1.0" ns1:type="command">
     <ns1:reader>
         <ns1:output ns1:language="regexp" ns1:type="dictionary" language="">
             <ns1:skip>[a-z]+</ns1:skip>
@@ -13,6 +13,6 @@
             <ns1:entry ns1:key="used" ns1:type="int64">[0-9]+</ns1:entry>
             <ns1:entry ns1:key="free" ns1:type="int64">[0-9]+</ns1:entry>
         </ns1:output>
-        <ns1:input>free {format}</ns1:input>
+        <ns1:input >free {format}</ns1:input>
     </ns1:reader>
 </ns1:profile>

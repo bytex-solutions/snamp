@@ -3,6 +3,7 @@ package com.bytex.snamp.testing.connector.rshell;
 import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -45,7 +46,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Override
@@ -55,6 +56,12 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
         attributes.getOrAdd("ms_win").setAlternativeName(getPathToFileInProjectRoot("virtual-mem-windows.xml"));
 
+    }
+
+
+    @Override
+    protected void fillOperations(EntityMap<? extends OperationConfiguration> operations) {
+        operations.getOrAdd("some_operation").setAlternativeName(getPathToFileInProjectRoot("virtual-mem-windows.xml"));
     }
 
     @Test()
