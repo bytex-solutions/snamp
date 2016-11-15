@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents abstract class for message-driven resource connector.
@@ -37,7 +38,9 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
                                      final MessageDrivenConnectorConfigurationDescriptor descriptor) {
-        final String componentInstance = descriptor.parseComponentInstance(parameters, resourceName);
+        String componentInstance = descriptor.parseComponentInstance(parameters);
+        if(isNullOrEmpty(componentInstance))
+            componentInstance = resourceName;
         final String componentName = descriptor.parseComponentName(parameters);
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
         //init parser

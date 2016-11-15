@@ -73,7 +73,6 @@ public final class AcceptorService {
     }
 
     private static FixedKeysMap<String, List<String>> wrapHeaders(final HttpHeaders headers) {
-
         final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
         return FixedKeysMap.readOnlyMap(requestHeaders::get, requestHeaders.keySet());
     }

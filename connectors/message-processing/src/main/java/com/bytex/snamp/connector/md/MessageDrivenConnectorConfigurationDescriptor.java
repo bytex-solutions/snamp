@@ -107,11 +107,11 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
         super(ConnectorConfigurationDescription.createDefault(), AttributeConfigurationDescription.createDefault());
     }
 
-    final String parseComponentInstance(final Map<String, String> parameters, final String defaultValue){
-        return getValue(parameters, COMPONENT_INSTANCE_PARAM, Function.identity(), () -> defaultValue);
+    protected String parseComponentInstance(final Map<String, String> parameters){
+        return getValue(parameters, COMPONENT_INSTANCE_PARAM, Function.identity(), () -> "");
     }
 
-    final String parseComponentName(final Map<String, String> parameters) {
+    protected String parseComponentName(final Map<String, String> parameters) {
         return getValue(parameters, COMPONENT_NAME_PARAM, Function.identity(), () -> firstNonNull(parameters.get(GROUP_NAME_PROPERTY), "DEFAULT"));
     }
 

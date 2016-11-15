@@ -15,6 +15,8 @@ final class HttpConnectorConfigurationDescriptor extends MessageDrivenConnectorC
 
     }
 
+
+
     static HttpConnectorConfigurationDescriptor getInstance(){
         return INSTANCE.lazyGet(HttpConnectorConfigurationDescriptor::new);
     }

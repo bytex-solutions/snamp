@@ -3,6 +3,7 @@ package com.bytex.jcommands.impl;
 import com.bytex.jcommands.ChannelProcessor;
 import com.bytex.snamp.ThreadSafe;
 import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroup;
 
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -21,14 +22,19 @@ import java.util.Map;
 @XmlType(namespace = XmlConstants.NAMESPACE, name = "XmlCommandLineTemplate")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Map<String, ?>, Object, ScriptException> {
-
+    private static final STGroup TEMPLATE_GROUP;
     private static final long serialVersionUID = -7260435161943556221L;
+
+    static {
+        TEMPLATE_GROUP = new STGroup('{', '}');
+        CommonExtender.register(TEMPLATE_GROUP);
+        CompositeDataExtender.register(TEMPLATE_GROUP);
+    }
+
     private String template;
     private transient ST precompiledTemplate;
     private XmlParserDefinition outputParser;
     private transient ScriptEngineManager scriptManager;
-    private static final char TEMPLATE_DELIMITER_START_CHAR = '{';
-    private static final char TEMPLATE_DELIMITER_STOP_CHAR = '}';
 
     /**
      * Initializes a new empty command-line tool profile.
@@ -83,10 +89,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @return A new instance of the command template.
      */
     public static ST createCommandTemplate(final String template) {
-        final ST result = new ST(template, TEMPLATE_DELIMITER_START_CHAR, TEMPLATE_DELIMITER_STOP_CHAR);
-        CommonExtender.register(result.groupThatCreatedThisInstance);
-        CompositeDataExtender.register(result.groupThatCreatedThisInstance);
-        return result;
+        return new ST(TEMPLATE_GROUP, template);
     }
 
     /**

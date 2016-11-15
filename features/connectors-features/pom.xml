@@ -18,5 +18,6 @@
     <module>groovy-connector-feature</module>
     <module>modbus-connector-feature</module>
     <module>composite-connector-feature</module>
+    <module>http-acceptor-feature</module>
   </modules>
 </project>
