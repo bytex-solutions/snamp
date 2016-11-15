@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.rshell;
 
 import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.impl.TypeTokens;
-import com.bytex.jcommands.impl.XmlCommandLineTemplate;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
 import com.bytex.jcommands.impl.XmlParserDefinition;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
@@ -18,7 +17,6 @@ import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.*;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
-import org.stringtemplate.v4.ST;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.*;
@@ -33,8 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.Convert.toTypeToken;
@@ -66,20 +62,14 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
 
         private static OpenMBeanParameterInfoSupplier[] getSignature(final XmlCommandLineToolProfile profile,
                                                                      final String description) {
-            final String regex = "\\{(.*?)\\}";
-            final Pattern pattern = Pattern.compile(regex);
-            final Matcher matcher = pattern.matcher(profile.getReaderTemplate().getCommandTemplate());
-            if (matcher.find()) {
-                matcher.reset();
-                final OpenMBeanParameterInfoSupplier[] result = new OpenMBeanParameterInfoSupplier[matcher.groupCount()];
-                int i = 0;
-                while(matcher.find()) {
-                    result[i++] =  new OpenMBeanParameterInfoSupplier(
-                            matcher.group(1),
-                            String.format("Argument %s for %s", matcher.group(1), description),
-                            SimpleType.STRING);
-                }
-                return result;
+            final List<String> token = profile.getReaderTemplate().extractTemplateParameters();
+            if (!token.isEmpty()) {
+                return token.stream()
+                        .map(param -> new OpenMBeanParameterInfoSupplier(param,
+                                String.format("Argument %s for %s", param, description),
+                                SimpleType.STRING))
+                        .collect(Collectors.toList())
+                        .toArray(new OpenMBeanParameterInfoSupplier[token.size()]);
             } else {
                 return new OpenMBeanParameterInfoSupplier[0];
             }
