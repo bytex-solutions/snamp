@@ -122,9 +122,9 @@ public class Tokenizer implements SafeCloseable {
         return ch;
     }
 
-    public final boolean skipIgnoredChars() throws ParseException {
+    protected final void skipIgnoredChars() throws ParseException {
         try {
-            return skipIgnoredCharsImpl() != '\0';
+            skipIgnoredCharsImpl();
         } catch (final IOException e) {
             throw new ParseException(e);
         }
@@ -155,7 +155,7 @@ public class Tokenizer implements SafeCloseable {
      * @return All characters from the current position to the end of underlying stream.
      * @throws ParseException Stream is closed.
      */
-    public CharSequence readToEnd() throws ParseException {
+    protected final CharSequence readToEnd() throws ParseException {
         try {
             return reader.readToEnd();
         } catch (final IOException e) {
@@ -163,7 +163,7 @@ public class Tokenizer implements SafeCloseable {
         }
     }
 
-    public CharSequence readTo(final char stopChar) throws ParseException {
+    protected final CharSequence readTo(final char stopChar) throws ParseException {
         try {
             return reader.readTo(stopChar);
         } catch (final IOException e) {

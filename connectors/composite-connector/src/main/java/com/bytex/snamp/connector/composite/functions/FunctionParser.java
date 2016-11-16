@@ -80,6 +80,8 @@ public final class FunctionParser extends Tokenizer {
 
     private ExtractFunction parseExtractFunction() throws ParseException {
         nextToken(LeftBracketToken.class);
+        //parse type name
+        skipIgnoredChars();
         final CharSequence targetTypeName = readTo(CommaToken.VALUE);
         final WellKnownType targetType = WellKnownType.parse(targetTypeName.toString());
         if(targetType == null)
