@@ -175,4 +175,18 @@ public final class IOUtils {
             result[position] = bits.get(position);
         return result;
     }
+
+    public static boolean contentAreEqual(final CharSequence sequence1, final CharSequence sequence2) {
+        if (sequence1 == sequence2)
+            return true;
+        else if (sequence1 == null)
+            return false;
+        else if (sequence1.length() == sequence2.length()) {
+            for (int i = 0; i < sequence1.length(); i++)
+                if (sequence1.charAt(i) != sequence2.charAt(i))
+                    return false;
+            return true;
+        } else
+            return false;
+    }
 }

@@ -3,6 +3,7 @@ package com.bytex.snamp.parser;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.stream.IntStream;
+import static com.bytex.snamp.io.IOUtils.contentAreEqual;
 
 /**
  * Represents abstract class for all tokens.
@@ -48,8 +49,8 @@ public abstract class Token implements CharSequence, Serializable {
         return value.hashCode();
     }
 
-    private boolean equals(final Token other){
-        return getClass().isInstance(other) && value.equals(other.value);
+    private boolean equals(final Token other) {
+        return getClass().isInstance(other) && contentAreEqual(value, other.value);
     }
 
     @Override

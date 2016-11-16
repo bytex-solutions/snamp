@@ -20,8 +20,8 @@ final class JerseyServletContainer extends ServletContainer {
 
     private static Application createAppConfig(){
         final DefaultResourceConfig result = new DefaultResourceConfig();
+        result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
         result.getSingletons().add(new AcceptorService());
-        //result.getProviderClasses().add(JacksonJsonProvider.class);
         return result;
     }
 }

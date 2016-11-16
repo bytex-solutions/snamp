@@ -6,9 +6,9 @@ import org.osgi.service.http.HttpService;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
+
 import static com.bytex.snamp.connector.http.HttpConnectorConfigurationDescriptor.COMPONENT_INSTANCE_PARAM;
 
 /**
@@ -31,12 +31,6 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
         return new HttpAcceptor(resourceName, parameters);
     }
 
-    private static Dictionary<String, String> getServletInitParams(){
-        final Dictionary<String, String> params = new Hashtable<>();
-        params.put("com.sun.jersey.api.json.POJOMappingFeature", "true");
-        return params;
-    }
-
     @Override
     protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
         dependencies.add(new SimpleDependency<>(HttpService.class));
@@ -57,7 +51,7 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
         assert publisher != null;
         activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, publisher);
         //register servlet
-        publisher.registerServlet(SERVLET_CONTEXT, new JerseyServletContainer(), getServletInitParams(), null);
+        publisher.registerServlet(SERVLET_CONTEXT, new JerseyServletContainer(), new Hashtable<>(), null);
     }
 
     /**

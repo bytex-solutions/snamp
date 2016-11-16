@@ -12,10 +12,7 @@ import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -85,6 +82,7 @@ public final class AcceptorService {
      */
     @Consumes(MediaType.APPLICATION_JSON)
     @POST
+    @Produces(MediaType.TEXT_PLAIN)
     public Response accept(final Measurement measurement, @Context final HttpHeaders headers){
         final NotificationSource source = new NotificationSource(measurement.getComponentName(), measurement.getInstanceName());
         //find the appropriate connector and redirect

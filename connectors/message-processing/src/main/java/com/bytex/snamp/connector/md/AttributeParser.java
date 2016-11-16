@@ -67,6 +67,7 @@ final class AttributeParser extends Tokenizer {
         final NameToken operator = nextToken(NameToken.class);
         nextToken(FROM_KEYWORD::equals);
         final NameToken gaugeType = nextToken(NameToken.class);
+        //parse attribute name
         final NameToken sourceAttribute = nextToken(NameToken.class);
         //operator name depends on gauge type
         return createExtractionAttribute(operator.toString(), gaugeType.toString(), sourceAttribute.toString());

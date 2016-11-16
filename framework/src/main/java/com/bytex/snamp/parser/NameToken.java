@@ -23,17 +23,23 @@ public class NameToken extends Token {
         this((CharSequence) name);
     }
 
+    private static boolean isValidCharacter(final char ch, final boolean notFirstChar){
+        return Character.isLetter(ch) || ch == '_' || (notFirstChar && Character.isDigit(ch));
+    }
+
     static boolean isValidCharacter(final char ch) {
-        return Character.isLetter(ch) || ch == '_';
+        return isValidCharacter(ch, false);
     }
 
     private static CharSequence parse(final CharReader reader) throws IOException {
         final StringBuilder name = new StringBuilder();
+        boolean notFirstChar = false;
         do {
             final char currentChar = reader.get();
-            if (isValidCharacter(currentChar)) {
+            if (isValidCharacter(currentChar, notFirstChar)) {
                 name.append(currentChar);
                 reader.skip();
+                notFirstChar = true;
             } else
                 break;
         } while (reader.getRemaining() > 0);

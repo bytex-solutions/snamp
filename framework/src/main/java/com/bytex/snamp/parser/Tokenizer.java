@@ -17,6 +17,8 @@ import java.util.function.Predicate;
  * @see SlashToken
  * @see RightBracketToken
  * @see LeftBracketToken
+ * @see ColonToken
+ * @see SemicolonToken
  */
 public class Tokenizer implements SafeCloseable {
     /**
@@ -52,6 +54,8 @@ public class Tokenizer implements SafeCloseable {
                 return LeftBracketToken.INSTANCE;
             case ColonToken.VALUE:
                 return ColonToken.INSTANCE;
+            case SemicolonToken.VALUE:
+                return SemicolonToken.INSTANCE;
             default: return null;
         }
     }
@@ -77,13 +81,8 @@ public class Tokenizer implements SafeCloseable {
 
     public final Token nextToken() throws NoSuchElementException, ParseException {
         try {
-            while (reader.getRemaining() > 0) {
-                final char ch = reader.get();
-                //skip ignored chars
-                if (ignore(ch)) {
-                    reader.skip();
-                    continue;
-                }
+            final char ch = skipIgnoredCharsImpl();
+            if (reader.getRemaining() > 0) {
                 //parse regular token
                 final TokenParser parser = getTokenParser(ch);
                 if (parser == null)
@@ -108,6 +107,27 @@ public class Tokenizer implements SafeCloseable {
             throw new UnexpectedTokenException(token);
         else
             return token;
+    }
+
+    private char skipIgnoredCharsImpl() throws IOException {
+        char ch = '\0';
+        while (reader.getRemaining() > 0) {
+            ch = reader.get();
+            //skip ignored chars
+            if (ignore(ch))
+                reader.skip();
+            else
+                break;
+        }
+        return ch;
+    }
+
+    public final boolean skipIgnoredChars() throws ParseException {
+        try {
+            return skipIgnoredCharsImpl() != '\0';
+        } catch (final IOException e) {
+            throw new ParseException(e);
+        }
     }
 
     public final Token skip(final Predicate<? super Token> skipRule) throws ParseException {
