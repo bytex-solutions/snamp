@@ -66,8 +66,8 @@
     <snamp.gateway.syslog.version>2.0.0</snamp.gateway.syslog.version>
     <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
     <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
-    <cellar.version>3.0.3</cellar.version>
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
+    <cellar.version>3.0.3</cellar.version>
     <aries.jndi.api.version>1.1.0</aries.jndi.api.version>
     <snamp.connector.md.version>2.0.0</snamp.connector.md.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
@@ -76,6 +76,7 @@
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
     <jline.version>2.13</jline.version>
+    <jettison.version>1.3.8</jettison.version>
     <jersey.version>1.19.3</jersey.version>
     <snamp.services.version>2.0.0</snamp.services.version>
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>

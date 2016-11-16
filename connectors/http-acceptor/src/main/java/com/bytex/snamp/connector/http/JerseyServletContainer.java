@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.http;
 
 import com.sun.jersey.api.core.DefaultResourceConfig;
-import com.sun.jersey.json.impl.provider.entity.JSONRootElementProvider;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
@@ -22,7 +21,7 @@ final class JerseyServletContainer extends ServletContainer {
     private static Application createAppConfig(){
         final DefaultResourceConfig result = new DefaultResourceConfig();
         result.getSingletons().add(new AcceptorService());
-        result.getProviderClasses().add(JSONRootElementProvider.App.class);
+        //result.getProviderClasses().add(JacksonJsonProvider.class);
         return result;
     }
 }
