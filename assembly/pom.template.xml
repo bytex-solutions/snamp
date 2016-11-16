@@ -212,8 +212,8 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.bytex.snamp</groupId>
-                                    <artifactId>message-processing</artifactId>
-                                    <version>${snamp.connector.md.version}</version>
+                                    <artifactId>http-acceptor-feature</artifactId>
+                                    <version>${snamp.connector.http.version}</version>
                                     <type>kar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
