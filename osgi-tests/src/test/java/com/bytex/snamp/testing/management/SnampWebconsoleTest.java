@@ -184,6 +184,77 @@ public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
         }
     }
 
+    /**
+     * Test check simple resource with and without token.
+     *
+     * @throws IOException              the io exception
+     * @throws InterruptedException     the interrupted exception
+     * @throws NoSuchAlgorithmException the no such algorithm exception
+     * @throws JWTVerifyException       the jwt verify exception
+     * @throws InvalidKeyException      the invalid key exception
+     * @throws SignatureException       the signature exception
+     */
+    @Test
+    public void testGetStaticFiles() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+            InvalidKeyException, SignatureException {
+
+        Thread.sleep(2000);
+        // Test welcome files (no files are specified manually)
+        HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:8181/snamp/").openConnection();
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(true);
+        connection.connect();
+        try {
+            assertEquals(connection.getResponseCode(), HttpURLConnection.HTTP_OK);
+            final String attributeValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertNotNull(attributeValue);
+            assertTrue(attributeValue.contains("<h1 class=\"cover-heading\">Set up your SNAMP.</h1>"));
+
+        } finally {
+            connection.disconnect();
+        }
+        // Test some html file
+        connection = (HttpURLConnection) new URL("http://localhost:8181/snamp/login.html").openConnection();
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(true);
+        connection.connect();
+        try {
+            assertEquals(connection.getResponseCode(), HttpURLConnection.HTTP_OK);
+            final String attributeValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertNotNull(attributeValue);
+            assertTrue(attributeValue.contains("<h1>Login to SNAMP UI</h1>"));
+
+        } finally {
+            connection.disconnect();
+        }
+        // Test assets
+        connection = (HttpURLConnection) new URL("http://localhost:8181/snamp/js/jquery.js").openConnection();
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(true);
+        connection.connect();
+        try {
+            assertEquals(connection.getResponseCode(), HttpURLConnection.HTTP_OK);
+            final String attributeValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertNotNull(attributeValue);
+            assertTrue(attributeValue.contains("/*! jQuery v3.0.0 | (c) jQuery Foundation | jquery.org/license */"));
+
+        } finally {
+            connection.disconnect();
+        }
+
+        // Test file that does not exist
+        connection = (HttpURLConnection) new URL("http://localhost:8181/snamp/asdasdasdasd.ext").openConnection();
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(true);
+        connection.connect();
+        try {
+            assertEquals(connection.getResponseCode(), HttpURLConnection.HTTP_NOT_FOUND);
+        } finally {
+            connection.disconnect();
+        }
+
+    }
+
     @Test
     public void dummyTest() throws InterruptedException {
         Thread.sleep(10000000);
