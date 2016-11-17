@@ -17,7 +17,8 @@ import javax.ws.rs.core.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static com.bytex.snamp.internal.Utils.*;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import static com.bytex.snamp.internal.Utils.isInstanceOf;
 
 /**
  * Represents REST service used to handle measurement and monitoring events through HTTP.
@@ -74,6 +75,15 @@ public final class AcceptorService {
     private static FixedKeysMap<String, List<String>> wrapHeaders(final HttpHeaders headers) {
         final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
         return FixedKeysMap.readOnlyMap(requestHeaders::get, requestHeaders.keySet());
+    }
+
+    @Path("/batch")
+    @POST
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response accept(final Measurement[] measurements, @Context final HttpHeaders headers){
+        for(final Measurement measurement: measurements)
+            accept(measurement, headers);
+        return Response.noContent().build();
     }
 
     /**
