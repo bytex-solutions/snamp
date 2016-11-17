@@ -144,11 +144,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
             return false;
         final Collection<Notification> notifs = readLock.apply(SingleResourceGroup.INSTANCE, notifications, n -> n.values().stream()
                 .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder), category))
-                .map(holder -> {
-                    final Notification notification = notificationFactory.apply(holder);
-                    notification.setSource(this);
-                    return notification;
-                })
+                .map(notificationFactory::apply)
                 .collect(Collectors.toList()));
         final boolean hasNotifications = !notifs.isEmpty();
         //fire listeners
@@ -168,6 +164,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                 .setSequenceNumber(sequenceNumber)
                 .setMessage(message)
                 .setUserData(userData)
+                .setSource(this)
                 .get());
     }
 

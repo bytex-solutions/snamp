@@ -227,14 +227,17 @@ public final class Utils {
         return reflectSetter(lookup, owner, lookup.unreflect(setter));
     }
 
+    private static <T> Runnable runnableForEach(final Spliterator<T> spliterator, final Consumer<? super T> action){
+        return () -> spliterator.forEachRemaining(action);
+    }
+
     public static <T> void parallelForEach(final Spliterator<T> spliterator,
                                                                        final Consumer<? super T> action,
                                                                        final Executor threadPool) {
-        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
-            final Spliterator<T> subset = spliterator.trySplit();
-            if (subset == null) return;
-            threadPool.execute(() -> subset.forEachRemaining(action));
-        }
+        Spliterator<T> subset = spliterator.trySplit();
+        for (int i = 0; i < Runtime.getRuntime().availableProcessors() && subset != null; i++, subset = spliterator.trySplit())
+            threadPool.execute(runnableForEach(subset, action));
+        threadPool.execute(runnableForEach(spliterator, action));
     }
 
     public static <T> void parallelForEach(final Iterable<T> collection,
