@@ -22,6 +22,7 @@
     <module>syslog-gateway</module>
     <module>xmpp-gateway</module>
     <module>groovy-gateway</module>
+    <module>influx-gateway</module>
   </modules>
   <build>
     <plugins>

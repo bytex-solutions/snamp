@@ -54,6 +54,7 @@
     <snamp.gateway.syslog.version>2.0.0</snamp.gateway.syslog.version>
     <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
+    <snamp.gateway.influx.version>2.0.0</snamp.gateway.influx.version>
 
     <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
     <snamp.management.version>2.0.0</snamp.management.version>

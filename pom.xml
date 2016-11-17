@@ -31,6 +31,7 @@
     <module>osgi-tests</module>
   </modules>
   <properties>
+    <snamp.gateway.influx.version>2.0.0</snamp.gateway.influx.version>
     <aries.jndi.url.version>1.1.0</aries.jndi.url.version>
     <eddsa.version>0.1.0</eddsa.version>
     <maven.compiler.target>1.8</maven.compiler.target>
