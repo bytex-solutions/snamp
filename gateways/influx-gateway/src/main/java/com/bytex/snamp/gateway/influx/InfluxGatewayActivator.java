@@ -15,6 +15,6 @@ public final class InfluxGatewayActivator extends GatewayActivator {
 
     private static Gateway newGateway(final String gatewayInstance,
                                       final RequiredService<?>... dependencies) throws Exception{
-
+        return null;
     }
 }
