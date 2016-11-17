@@ -1,5 +1,6 @@
 package com.bytex.snamp.parser;
 
+import com.bytex.snamp.connector.metrics.RangedGauge64;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -51,6 +52,14 @@ public final class TokenizerTest extends Assert {
             assertEquals("js:a", tokenizer.readTo(','));
             assertEquals(CommaToken.INSTANCE, tokenizer.nextToken());
             assertEquals("b", tokenizer.nextToken(NameToken.class).toString());
+        }
+    }
+
+    @Test
+    public void nameTokenTest() throws ParseException{
+        try(final Tokenizer tokenizer = new Tokenizer("abc123 123")){
+            assertEquals("abc123", tokenizer.nextToken(NameToken.class).toString());
+            assertEquals(123, tokenizer.nextToken(IntegerToken.class).getAsLong());
         }
     }
 }

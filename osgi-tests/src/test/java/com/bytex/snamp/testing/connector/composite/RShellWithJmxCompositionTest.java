@@ -122,6 +122,24 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     }
 
     @Test
+    public void rangedMetricsTest() throws JMException{
+        //write
+        testAttribute("integer", TypeToken.of(Integer.class), 70);
+        testAttribute("ranged", TypeToken.of(CompositeData.class), null, (value1, value2) -> true, true);
+        testAttribute("integer", TypeToken.of(Integer.class), 15);
+        testAttribute("ranged", TypeToken.of(CompositeData.class), null, (value1, value2) -> true, true);
+        testAttribute("integer", TypeToken.of(Integer.class), 3);
+        testAttribute("ranged", TypeToken.of(CompositeData.class), null, (value1, value2) -> true, true);
+        testAttribute("integer", TypeToken.of(Integer.class), 5);
+        testAttribute("ranged", TypeToken.of(CompositeData.class), null, (value1, value2) -> {
+            assertEquals(2D / 4D, getDouble(value2, "lessThanRange", Double.NaN), 0.01D);
+            assertEquals(1D / 4D, getDouble(value2, "greaterThanRange", Double.NaN), 0.01D);
+            assertEquals(1D / 4D, getDouble(value2, "isInRange", Double.NaN), 0.01D);
+            return true;
+        }, true);
+    }
+
+    @Test
     public void extractTest() throws JMException {
         Assume.assumeTrue("Linux test only", OperatingSystem.isLinux());
         //extract
@@ -318,6 +336,11 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
         attributes.addAndConsume("extr_fp", attribute -> {
             attribute.setAlternativeName("ms");
             attribute.getParameters().put("formula", "extract(float64, total)");
+        });
+
+        attributes.addAndConsume("ranged", attribute -> {
+            attribute.setAlternativeName("integer");
+            attribute.getParameters().put("formula", "ranged_fp(10, 20)");
         });
 
         attributes.addAndConsume("notifRate", attribute -> {

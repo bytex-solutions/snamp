@@ -19,6 +19,7 @@ import java.util.function.Predicate;
  * @see LeftBracketToken
  * @see ColonToken
  * @see SemicolonToken
+ * @see DotToken
  */
 public class Tokenizer implements SafeCloseable {
     /**
@@ -56,6 +57,8 @@ public class Tokenizer implements SafeCloseable {
                 return ColonToken.INSTANCE;
             case SemicolonToken.VALUE:
                 return SemicolonToken.INSTANCE;
+            case DotToken.VALUE:
+                return DotToken.INSTANCE;
             default: return null;
         }
     }

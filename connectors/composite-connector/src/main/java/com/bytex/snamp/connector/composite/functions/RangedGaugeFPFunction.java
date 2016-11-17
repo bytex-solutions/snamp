@@ -1,13 +1,13 @@
 package com.bytex.snamp.connector.composite.functions;
 
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.connector.metrics.GaugeFPRecorder;
+import com.bytex.snamp.connector.metrics.RangedGaugeFPRecorder;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenType;
 
-import static com.bytex.snamp.jmx.MetricsConverter.GAUGE_FP_TYPE;
-import static com.bytex.snamp.jmx.MetricsConverter.fromGaugeFP;
+import static com.bytex.snamp.jmx.MetricsConverter.RANGED_GAUGE_FP_TYPE;
+import static com.bytex.snamp.jmx.MetricsConverter.fromRangedFP;
 
 /**
  * Represents floating-point gauge.
@@ -15,12 +15,12 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromGaugeFP;
  * @version 2.0
  * @since 2.0
  */
-final class GaugeFPFunction extends AggregationFunction<CompositeData> {
-    private final GaugeFPRecorder gaugeFP;
+final class RangedGaugeFPFunction extends AggregationFunction<CompositeData> {
+    private final RangedGaugeFPRecorder gaugeFP;
 
-    GaugeFPFunction() {
-        super(GAUGE_FP_TYPE);
-        gaugeFP = new GaugeFPRecorder("gaugeFunction");
+    RangedGaugeFPFunction(final double from, final double to) {
+        super(RANGED_GAUGE_FP_TYPE);
+        gaugeFP = new RangedGaugeFPRecorder("gaugeFunction", from, to);
     }
 
     /**
@@ -37,8 +37,8 @@ final class GaugeFPFunction extends AggregationFunction<CompositeData> {
 
     @Override
     public CompositeData invoke(final NameResolver resolver, final Object... args) {
-        if (args.length > 0)
+        if(args.length > 0)
             gaugeFP.accept(Convert.toDouble(args[0]));
-        return fromGaugeFP(gaugeFP);
+        return fromRangedFP(gaugeFP);
     }
 }

@@ -12,6 +12,6 @@ public final class DollarToken extends PunctuationToken {
     public static final DollarToken INSTANCE = new DollarToken();
 
     private DollarToken() {
-        super('$');
+        super(VALUE);
     }
 }

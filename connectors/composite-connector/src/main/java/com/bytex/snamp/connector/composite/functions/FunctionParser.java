@@ -101,6 +101,28 @@ public final class FunctionParser extends Tokenizer {
         return factory.get();
     }
 
+    private RangedGaugeFPFunction parseRangedGaugeFP() throws ParseException {
+        nextToken(LeftBracketToken.class);
+        //parse range start
+        final double rangeStart = Double.parseDouble(readTo(CommaToken.VALUE).toString());
+        nextToken(CommaToken.class);
+        //parse range end
+        final double rangeEnd = Double.parseDouble(readTo(RightBracketToken.VALUE).toString());
+        nextToken(RightBracketToken.class);
+        return new RangedGaugeFPFunction(rangeStart, rangeEnd);
+    }
+
+    private RangedGaugeIntFunction parseRangedGauge64() throws ParseException {
+        nextToken(LeftBracketToken.class);
+        //parse range start
+        final long rangeStart = nextToken(IntegerToken.class).getAsLong();
+        nextToken(CommaToken.class);
+        //parse range end
+        final long rangeEnd = nextToken(IntegerToken.class).getAsLong();
+        nextToken(RightBracketToken.class);
+        return new RangedGaugeIntFunction(rangeStart, rangeEnd);
+    }
+
     private Expression parse() throws ParseException {
         final Token token = nextToken();
         if (token == null)
@@ -115,6 +137,10 @@ public final class FunctionParser extends Tokenizer {
                     return parseTrivialFunction(GaugeFPFunction::new);
                 case "gauge_int":
                     return parseTrivialFunction(GaugeIntFunction::new);
+                case "ranged_fp":
+                    return parseRangedGaugeFP();
+                case "ranged_int":
+                    return parseRangedGauge64();
                 case "sum":
                     return parseSumFunction();
                 case "avg":

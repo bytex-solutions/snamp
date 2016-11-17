@@ -1,9 +1,8 @@
 package com.bytex.snamp.io;
 
-import com.google.common.primitives.*;
-
 import java.nio.*;
 import java.util.Objects;
+
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
@@ -16,32 +15,32 @@ public final class Buffers {
     /**
      * Represents size of the {@code char} data type, in bytes
      */
-    public static final int CHAR_SIZE_IN_BYTES = Chars.BYTES;
+    public static final int CHAR_SIZE_IN_BYTES = Character.BYTES;
 
     /**
      * Represents size of the {@code short} data type, in bytes
      */
-    public static final int SHORT_SIZE_IN_BYTES = Shorts.BYTES;
+    public static final int SHORT_SIZE_IN_BYTES = Short.BYTES;
 
     /**
      * Represents size of the {@code int} data type, in bytes
      */
-    public static final int INT_SIZE_IN_BYTES = Ints.BYTES;
+    public static final int INT_SIZE_IN_BYTES = Integer.BYTES;
 
     /**
      * Represents size of the {@code long} data type, in bytes
      */
-    public static final int LONG_SIZE_IN_BYTES = Longs.BYTES;
+    public static final int LONG_SIZE_IN_BYTES = Long.BYTES;
 
     /**
      * Represents size of the {@code float} data type, in bytes
      */
-    public static final int FLOAT_SIZE_IN_BYTES = Floats.BYTES;
+    public static final int FLOAT_SIZE_IN_BYTES = Float.BYTES;
 
     /**
      * Represents size of the {@code double} data type, in bytes
      */
-    public static final int DOUBLE_SIZE_IN_BYTES = Doubles.BYTES;
+    public static final int DOUBLE_SIZE_IN_BYTES = Double.BYTES;
 
     /**
      * Allocates a new {@link java.nio.ByteBuffer} with the specified capacity of {@code byte} elements.
