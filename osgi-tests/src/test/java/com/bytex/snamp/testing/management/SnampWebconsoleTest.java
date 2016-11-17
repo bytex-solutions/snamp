@@ -7,6 +7,7 @@ import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
+import com.bytex.snamp.testing.PropagateSystemProperties;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import org.junit.Test;

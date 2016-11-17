@@ -1,6 +1,7 @@
 package com.bytex.snamp.webconsole;
 
 import com.sun.jersey.api.core.DefaultResourceConfig;
+import com.sun.jersey.api.core.servlet.WebAppResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
@@ -27,6 +28,7 @@ final class JerseyServletContainer extends ServletContainer {
         result.getSingletons().add(managementAPI);
         result.getContainerRequestFilters().add(AuthenticationFilter.class);
         result.getContainerResponseFilters().add(TokenRefreshFilter.class);
+        result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
         return result;
     }
 }

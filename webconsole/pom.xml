@@ -91,6 +91,10 @@
       <artifactId>javax.annotation-api</artifactId>
       <version>1.2</version>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.aggregate</groupId>
+      <artifactId>jetty-all-server</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -109,6 +113,7 @@
                             org.osgi.framework.*,
                             org.osgi.util.*,
                             org.osgi.service.*,
+                            org.eclipse.jetty.servlet.*,
                             javax.servlet.*,
                             com.google.gson.*,
                             com.bytex.snamp.core.*,
@@ -118,9 +123,8 @@
                             com.google.common.base.*,
                             javax.security.auth.*</Import-Package>
             <Bundle-Activator>com.bytex.snamp.webconsole.WebConsoleActivator</Bundle-Activator>
-            <Web-ContextPath>snamp</Web-ContextPath>
-            <Webapp-Context>snamp</Webapp-Context>
-            <_wab>src/main/resources/webapp</_wab>
+            <!--http://leshazlewood.com/2010/09/08/osgi-maven-pax-and-web-applications/-->
+            <!--https://ops4j1.jira.com/wiki/display/paxweb/OSGi-fy+your+WAR-->
             <Embed-Dependency>*;scope=compile</Embed-Dependency>
           </instructions>
         </configuration>
