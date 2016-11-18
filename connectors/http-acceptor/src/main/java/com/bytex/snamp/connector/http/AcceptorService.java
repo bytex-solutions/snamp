@@ -16,6 +16,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
@@ -110,7 +111,12 @@ public final class AcceptorService {
                 throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         //acceptor is found. Redirect measurement to it
-        acceptor.dispatch(wrapHeaders(headers), measurement);
+        try {
+            acceptor.dispatch(wrapHeaders(headers), measurement);
+        } catch (final Exception e) {
+            acceptor.getLogger().log(Level.SEVERE, String.format("Failed to dispatch measurement %s", measurement), e);
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
         return Response.noContent().build();
     }
 }

@@ -212,4 +212,16 @@ public abstract class Measurement implements Externalizable {
     public final void setTimeStamp(final Date value){
         setTimeStamp(value.getTime());
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + '{' +
+                "instanceName='" + instanceName + '\'' +
+                ", componentName='" + componentName + '\'' +
+                ", message='" + message + '\'' +
+                ", timestamp=" + timestamp +
+                ", userData=" + userData +
+                ", sequenceNumber=" + sequenceNumber +
+                '}';
+    }
 }

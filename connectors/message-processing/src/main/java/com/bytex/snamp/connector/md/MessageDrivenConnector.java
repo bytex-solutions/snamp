@@ -9,11 +9,15 @@ import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationReposito
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
 import com.bytex.snamp.connector.operations.reflection.OperationParameter;
 
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import static com.google.common.base.MoreObjects.firstNonNull;
+
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -26,91 +30,106 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  * @version 2.0
  */
-public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector {
-    /**
-     * Represents channel that can be used to process notifications.
-     */
+public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector implements NotificationListener {
     @Aggregation(cached = true)
-    protected final NotificationDispatcher dispatcher;
+    private final NotificationSource source;
+    @Aggregation(cached = true)
+    protected final MessageDrivenAttributeRepository attributes;
+    @Aggregation(cached = true)
+    protected final MessageDrivenNotificationRepository notifications;
+    @Aggregation(cached = true)
+    private final NotificationParser notificationParser;
     @Aggregation(cached = true)
     private final JavaBeanOperationRepository operations;
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
                                      final MessageDrivenConnectorConfigurationDescriptor descriptor) {
-        String componentInstance = descriptor.parseComponentInstance(parameters);
-        if(isNullOrEmpty(componentInstance))
-            componentInstance = resourceName;
-        final String componentName = descriptor.parseComponentName(parameters);
+        {
+            String componentInstance = descriptor.parseComponentInstance(parameters);
+            if (isNullOrEmpty(componentInstance))
+                componentInstance = resourceName;
+            final String componentName = descriptor.parseComponentName(parameters);
+            source = new NotificationSource(componentName, componentInstance);
+        }
         final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
         //init parser
-        final NotificationParser parser = createNotificationParser(resourceName, componentInstance, componentName, parameters);
-        assert parser != null;
+        notificationParser = createNotificationParser(resourceName, source, parameters);
+        assert notificationParser != null;
         //init attributes
-        final MessageDrivenAttributeRepository attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
+        attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
         assert attributes != null;
         attributes.init(threadPool, getLogger());
         //init notifications
-        final MessageDrivenNotificationRepository notifications = createNotificationRepository(resourceName);
+        notifications = createNotificationRepository(resourceName);
         assert notifications != null;
         notifications.init(threadPool, getLogger());
-
-        dispatcher = new NotificationDispatcher(componentName, componentInstance, attributes, notifications, getLogger(), parser);
 
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
     }
 
-    @Aggregation(cached = true)
-    protected final MessageDrivenAttributeRepository getAttributes(){
-        return dispatcher.attributes;
-    }
-
-    @Aggregation(cached = true)
-    protected final MessageDrivenNotificationRepository getNotifications(){
-        return dispatcher.notifications;
-    }
-
     @Override
     protected final MetricsSupport createMetricsReader() {
-        return assembleMetricsReader(dispatcher.attributes, dispatcher.notifications);
+        return assembleMetricsReader(attributes, notifications);
     }
 
     @SpecialUse
     @ManagementOperation(description = "Resets all metrics")
-    public void resetAllMetrics(){
-        dispatcher.attributes.resetAllMetrics();
+    public void resetAllMetrics() {
+        attributes.resetAllMetrics();
     }
 
     @SpecialUse
     @ManagementOperation(description = "Resets the specified metrics")
     public boolean resetMetric(@OperationParameter(name = "attributeName", description = "The name of the attribute to reset") final String attributeName) {
-        final MessageDrivenAttribute attribute = dispatcher.attributes.getAttributeInfo(attributeName);
+        final MessageDrivenAttribute attribute = attributes.getAttributeInfo(attributeName);
         final boolean success;
         if (success = attribute instanceof MetricHolderAttribute<?, ?>)
             ((MetricHolderAttribute<?, ?>) attribute).reset();
         return success;
     }
 
-    public final void dispatch(final Map<String, ?> headers, final Object body){
-        dispatcher.handleNotification(headers, body, this);
+    public final boolean dispatch(final Map<String, ?> headers, final Object body) throws Exception{
+        final Notification n = notificationParser.parse(headers, body);
+        final boolean success;
+        if (success = n != null)
+            handleNotification(n, this);
+        else
+            getLogger().warning(String.format("Notification '%s' with headers '%s' is ignored by parser", body, headers));
+        return success;
     }
 
-    public final boolean represents(final NotificationSource source){
-        return dispatcher.equals(source);
+    /**
+     * Invoked when a JMX notification occurs.
+     * The implementation of this method should return as soon as possible, to avoid
+     * blocking its notification broadcaster.
+     *
+     * @param notification The notification.
+     * @param handback     An opaque object which helps the listener to associate
+     *                     information regarding the MBean emitter. This object is passed to the
+     *                     addNotificationListener call and resent, without modification, to the
+     */
+    @Override
+    public void handleNotification(final Notification notification, final Object handback) {
+        notification.setSource(this);
+        attributes.handleNotification(notification, firstNonNull(handback, this));
+        notifications.handleNotification(notification, firstNonNull(handback, this));
+    }
+
+    public final boolean represents(final NotificationSource value){
+        return source.equals(value);
     }
 
     /**
      * Creates a new notification parser.
      * @param resourceName Resource name.
-     * @param instanceName Instance of the component that can be used as a filter in parser.
-     * @param componentName Component name that can be used as a filter in parser.
+     * @param source Component identity.
      * @param parameters Set of parameters that may be used by notification parser.
      * @return A new instance of notification parser.
      */
     protected abstract NotificationParser createNotificationParser(final String resourceName,
-                                                                   final String instanceName,
-                                                                   final String componentName,
+                                                                   final NotificationSource source,
                                                                    final Map<String, String> parameters);
 
     /**
@@ -129,12 +148,12 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     @Override
     public final void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, dispatcher.attributes, dispatcher.notifications, operations);
+        addResourceEventListener(listener, attributes, notifications, operations);
     }
 
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, dispatcher.attributes, dispatcher.notifications, operations);
+        removeResourceEventListener(listener, attributes, notifications, operations);
     }
 
     /**
@@ -143,8 +162,8 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
      */
     @Override
     public void close() throws Exception {
-        dispatcher.attributes.close();
-        dispatcher.notifications.close();
+        attributes.close();
+        notifications.close();
         operations.close();
         super.close();
     }

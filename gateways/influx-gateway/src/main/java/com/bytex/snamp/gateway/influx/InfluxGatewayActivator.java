@@ -7,7 +7,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
  * @version 1.0
  * @since 1.0
  */
-public final class InfluxGatewayActivator extends GatewayActivator {
+public final class InfluxGatewayActivator extends GatewayActivator<InfluxGateway> {
     public InfluxGatewayActivator() {
         super(InfluxGatewayActivator::newGateway);
     }

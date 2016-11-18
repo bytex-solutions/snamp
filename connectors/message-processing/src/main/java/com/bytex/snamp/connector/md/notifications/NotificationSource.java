@@ -9,7 +9,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public class NotificationSource implements Serializable {
+public final class NotificationSource implements Serializable {
     private static final long serialVersionUID = -3632338167739067932L;
 
     private final String componentName;

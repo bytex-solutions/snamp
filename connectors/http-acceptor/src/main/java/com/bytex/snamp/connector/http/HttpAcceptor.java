@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.http;
 import com.bytex.snamp.connector.md.MessageDrivenConnector;
 import com.bytex.snamp.connector.md.NotificationParser;
 import com.bytex.snamp.connector.md.groovy.GroovyNotificationParserLoader;
+import com.bytex.snamp.connector.md.notifications.NotificationSource;
 import groovy.lang.Binding;
 
 import java.util.Map;
@@ -22,7 +23,7 @@ final class HttpAcceptor extends MessageDrivenConnector {
     }
 
     @Override
-    protected NotificationParser createNotificationParser(final String resourceName, final String instanceName, final String componentName, final Map<String, String> parameters) {
+    protected NotificationParser createNotificationParser(final String resourceName, final NotificationSource source, final Map<String, String> parameters) {
         return callUnchecked(() -> {
             final GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, parameters);
             return loader.createScript("MeasurementParser.groovy", new Binding());
