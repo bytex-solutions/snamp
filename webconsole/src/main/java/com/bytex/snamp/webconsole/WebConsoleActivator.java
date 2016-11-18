@@ -20,7 +20,7 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
     private static final String STATIC_SERVLET_CONTEXT = "/snamp/*";
 
     private WebConsoleService consoleAPI;
-    private ManagementService managementAPI;
+    private ResourceService managementAPI;
     private HttpService publisher;
 
     @Override
@@ -32,9 +32,10 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
     @Override
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         @SuppressWarnings("unchecked")
+        // For Dashboard purpose
         final ConfigurationAdmin configAdmin = getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
         consoleAPI = new WebConsoleService();
-        managementAPI = new ManagementService(configAdmin);
+        managementAPI = new ResourceService();
         final String resourceBase = this.getClass().getClassLoader().getResource("webapp").toExternalForm();
         @SuppressWarnings("unchecked")
         final HttpService httpService = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);

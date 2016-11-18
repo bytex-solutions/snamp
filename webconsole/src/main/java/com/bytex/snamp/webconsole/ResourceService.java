@@ -1,14 +1,13 @@
 package com.bytex.snamp.webconsole;
 
 import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.sun.jersey.spi.resource.Singleton;
-import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.framework.BundleContext;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -18,7 +17,7 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Provides API for SNAMP configuration management.
@@ -28,13 +27,7 @@ import java.util.Objects;
  */
 @Path("/resource")
 @Singleton
-public final class ManagementService {
-    private final ConfigurationAdmin configAdmin;
-
-    ManagementService(final ConfigurationAdmin configAdmin){
-        this.configAdmin = Objects.requireNonNull(configAdmin);
-    }
-
+public final class ResourceService {
     /**
      * Sample method for retrieving configuration of managed resources.
      * @return Map that contains configuration (or empty map if no resources are configured)
@@ -44,20 +37,20 @@ public final class ManagementService {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/configuration")
     public Map getConfiguration() throws IOException {
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(Utils.getBundleContextOfObject(this),
-                ConfigurationManager.class);
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
-        final Box<Object> box = DistributedServices.getProcessLocalBox("box");
+        final Box<Map> container = BoxFactory.create(null);
         try {
             //verify first and second resources
             admin.get().readConfiguration(currentConfig -> {
-                box.set(currentConfig.getEntities(ManagedResourceConfiguration.class));
+                container.set(currentConfig.getEntities(ManagedResourceConfiguration.class));
             });
         } finally {
-            admin.release(Utils.getBundleContextOfObject(this));
+            admin.release(bc);
         }
 
-        return box.hasValue()? (EntityMap) box.get(): Collections.EMPTY_MAP;
+        return container.get() != null ? container.get(): Collections.EMPTY_MAP;
     }
 
     /**
@@ -69,19 +62,18 @@ public final class ManagementService {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/configuration/{name}")
     public ManagedResourceConfiguration getConfigurationByName(@PathParam("name") final String name) throws IOException {
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(Utils.getBundleContextOfObject(this),
-                ConfigurationManager.class);
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
-        final Box<Object> box = DistributedServices.getProcessLocalBox("box");
+        final Box<ManagedResourceConfiguration> container = BoxFactory.create(null);
         try {
             //verify first and second resources
             admin.get().readConfiguration(currentConfig -> {
-                box.set(currentConfig.getEntities(ManagedResourceConfiguration.class).get(name));
+                container.set(currentConfig.getEntities(ManagedResourceConfiguration.class).get(name));
             });
         } finally {
-            admin.release(Utils.getBundleContextOfObject(this));
+            admin.release(bc);
         }
-
-        return box.hasValue()? (ManagedResourceConfiguration) box.get() : null;
+        return container.get();
     }
 }
