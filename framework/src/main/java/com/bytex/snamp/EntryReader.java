@@ -10,7 +10,7 @@ package com.bytex.snamp;
  * @since 1.0
  */
 @FunctionalInterface
-public interface EntryReader<I, R, E extends Exception> {
+public interface EntryReader<I, R, E extends Throwable> {
     /**
      * Processes the single record.
      * @param index An index of the record.

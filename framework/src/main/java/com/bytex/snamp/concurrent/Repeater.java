@@ -10,7 +10,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.LongSupplier;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 import java.util.function.Supplier;
 
 /**
@@ -135,47 +135,31 @@ public abstract class Repeater implements AutoCloseable, Runnable {
 
     }
 
-    @ThreadSafe(false)
-    private void faultImpl(final Throwable e){
-        switch (state) {
-            case STARTED:
-                if (repeatThread != null && repeatThread.getId() == Thread.currentThread().getId()) {
-                    exception = e;
-                    stateChanged(state = RepeaterState.FAILED);
-                    repeatThread.interrupt();
-                    repeatThread = null;
-                } else throw new IllegalStateException("This method should be called from the timer action.");
-                break;
-            default:
-                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", RepeaterState.STARTED, state));
-        }
-    }
-
-
-    /**
-     * Informs this repeater about unhandled exception in the repeatable action.
-     * <p>
-     *     This method can be called only from timer thread (from {@link #doAction() method}.
-     * </p>
-     * @param e An exception occurred in the repeatable action.
-     * @throws java.lang.IllegalStateException This repeater is not in {@link RepeaterState#STARTED} state;
-     *  or this method is not called from the {@link #doAction()} method.
-     */
-    @ThreadSafe
-    protected final void fault(final Throwable e){
+    private void fault(final Throwable e) {
         monitor.lock();
         try {
-            faultImpl(e);
-        }
-        finally {
+            switch (state) {
+                case STARTED:
+                    if (repeatThread != null && repeatThread.getId() == Thread.currentThread().getId()) {
+                        exception = e;
+                        stateChanged(state = RepeaterState.FAILED);
+                        repeatThread.interrupt();
+                        repeatThread = null;
+                    } else throw new IllegalStateException("This method should be called from the timer action.");
+                    break;
+                default:
+                    throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", RepeaterState.STARTED, state));
+            }
+        } finally {
             monitor.unlock();
         }
     }
 
     /**
      * Provides some periodical action.
+     * @throws Exception Action is failed.
      */
-    protected abstract void doAction();
+    protected abstract void doAction() throws Exception;
 
     private interface RepeaterWorker extends Runnable, Thread.UncaughtExceptionHandler{
 
@@ -233,7 +217,10 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                 final RepeaterWorker worker = new RepeaterWorker() {
                     @Override
                     public void run() {
-                        doAction();
+                        callUnchecked(() -> {
+                            doAction();
+                            return null;
+                        });
                     }
 
                     @Override

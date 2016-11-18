@@ -13,7 +13,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 1.0
  */
-public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor> extends Repeater implements EntryReader<String, TAccessor, ExceptionPlaceholder> {
+public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor> extends Repeater implements EntryReader<String, TAccessor, Exception> {
     private final ModelOfAttributes<TAccessor> attributes;
 
     /**
@@ -35,19 +35,14 @@ public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor
      * @param accessor The attribute of the managed resource.
      * @return {@literal true} to continue processing; otherwise, {@literal false}.
      */
-    protected abstract boolean processAttribute(final String resourceName,
-                                             final TAccessor accessor);
-
     @Override
-    public final boolean read(final String resourceName, final TAccessor accessor) {
-        return processAttribute(resourceName, accessor);
-    }
+    public abstract boolean read(final String resourceName, final TAccessor accessor) throws Exception;
 
     /**
      * Sends attribute check status.
      */
     @Override
-    protected final void doAction() {
+    protected final void doAction() throws Exception {
         attributes.forEachAttribute(this);
     }
 }

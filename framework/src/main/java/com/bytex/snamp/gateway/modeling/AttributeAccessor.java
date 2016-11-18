@@ -225,7 +225,13 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * @throws javax.management.InvalidAttributeValueException Attribute type mismatch.
      */
     public final Object getValue(final WellKnownType valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException{
-        return getValue(valueType.getJavaType());
+        try {
+            return valueType.convert(getValue());
+        } catch (final ClassCastException e){
+            final InvalidAttributeValueException invalidValue = new InvalidAttributeValueException(e.getMessage());
+            invalidValue.initCause(e);
+            throw invalidValue;
+        }
     }
 
     /**

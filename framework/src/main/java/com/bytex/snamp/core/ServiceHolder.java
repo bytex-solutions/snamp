@@ -1,8 +1,10 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.EntryReader;
 import org.osgi.framework.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -171,6 +173,16 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
     public final Map<String, ?> getProperties(){
         return Arrays.stream(getPropertyKeys())
                 .collect(Collectors.toMap(Function.identity(), this::getProperty));
+    }
+
+    public final <V, E extends Throwable> Map<String, V> getProperties(final EntryReader<String, Object, E> filter, final Function<Object, ? extends V> converter) throws E {
+        final Map<String, V> result = new HashMap<>();
+        for (final String key : getPropertyKeys()) {
+            final Object value;
+            if (filter.read(key, value = getProperty(key)))
+                result.put(key, converter.apply(value));
+        }
+        return result;
     }
 
     /**

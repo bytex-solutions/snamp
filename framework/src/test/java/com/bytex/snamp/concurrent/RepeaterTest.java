@@ -67,12 +67,9 @@ public class RepeaterTest extends Assert {
             private final AtomicLong counter = new AtomicLong(0);
 
             @Override
-            protected void doAction() {
-                if(counter.incrementAndGet() == 3) try {
+            protected void doAction() throws Exception {
+                if (counter.incrementAndGet() == 3)
                     throw new Exception(exceptionMessage);
-                } catch (final Exception e) {
-                    fault(e);
-                }
             }
         }){
             rep.run();

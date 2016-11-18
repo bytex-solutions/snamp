@@ -32,7 +32,7 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
 @Internal
 public final class Utils {
     @SuppressWarnings("unchecked")
-    private static final Function<Callable<?>, Object> CALL_SILENT_FN;
+    private static final Function CALL_SILENT_FN;
 
     static {
         final MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -46,7 +46,7 @@ public final class Utils {
                     lookup.findStatic(Utils.class, "callUncheckedImpl", lambdaSignature),
                     lambdaSignature);
 
-            CALL_SILENT_FN = (Function<Callable<?>, Object>) site.getTarget().invokeExact();
+            CALL_SILENT_FN = (Function) site.getTarget().invokeExact();
         } catch (final Throwable e) {
             throw new ExceptionInInitializerError(e);
         }

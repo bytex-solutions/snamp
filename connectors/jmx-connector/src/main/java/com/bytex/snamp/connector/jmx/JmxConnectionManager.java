@@ -122,14 +122,9 @@ final class JmxConnectionManager implements AutoCloseable {
          * Provides some periodical action.
          */
         @Override
-        protected void doAction() {
+        protected void doAction() throws InterruptedException {
             //attempts to lock
-            try {
-                writeLock.lockInterruptibly();
-            } catch (final InterruptedException ignored) {
-                return;       //thread is interrupted, just leave this method without any additional actions
-            }
-
+            writeLock.lockInterruptibly();
             try {
                 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
                 final IOException problem = this.problem.get();

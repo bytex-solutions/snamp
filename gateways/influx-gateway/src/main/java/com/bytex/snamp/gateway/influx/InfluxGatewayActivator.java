@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.influx;
 
-import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
 
 /**
@@ -13,8 +12,8 @@ public final class InfluxGatewayActivator extends GatewayActivator {
         super(InfluxGatewayActivator::newGateway);
     }
 
-    private static Gateway newGateway(final String gatewayInstance,
+    private static InfluxGateway newGateway(final String gatewayInstance,
                                       final RequiredService<?>... dependencies) throws Exception{
-        return null;
+        return new InfluxGateway(gatewayInstance);
     }
 }
