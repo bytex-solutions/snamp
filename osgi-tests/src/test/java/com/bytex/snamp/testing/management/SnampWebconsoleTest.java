@@ -3,15 +3,21 @@ package com.bytex.snamp.testing.management;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
-import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
-import com.bytex.snamp.testing.PropagateSystemProperties;
-import com.bytex.snamp.testing.SnampDependencies;
-import com.bytex.snamp.testing.SnampFeature;
+import com.bytex.snamp.testing.*;
+import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
+import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import org.junit.Test;
+import org.osgi.framework.BundleContext;
 
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
@@ -20,9 +26,12 @@ import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 
 /**
@@ -31,8 +40,13 @@ import java.util.UUID;
  * @version 2.0
  * @since 1.0
  */
-@SnampDependencies({SnampFeature.WEBCONSOLE, SnampFeature.WRAPPED_LIBS})
-public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
+@SnampDependencies({SnampFeature.WEBCONSOLE, SnampFeature.WRAPPED_LIBS, SnampFeature.SNMP_GATEWAY})
+public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+
+    private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
+    private static final String ADAPTER_NAME = "snmp";
+    private static final String SNMP_PORT = "3222";
+    private static final String SNMP_HOST = "127.0.0.1";
 
     private static final String COOKIES_HEADER = "Set-Cookie";
     private static final String USERNAME = "karaf";
@@ -40,6 +54,17 @@ public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
     private static final String AUTH_COOKIE = "snamp-auth-token";
     private static final String JWT_SECRET_BOX_NAME = "JWT_SECRET";
     private static final String JWT_SECRET = UUID.randomUUID().toString();
+
+    /**
+     * Instantiates a new Snamp webconsole test.
+     *
+     * @throws MalformedObjectNameException the malformed object name exception
+     */
+    public SnampWebconsoleTest() throws MalformedObjectNameException {
+        super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
+        DistributedServices.getDistributedBox(Utils.getBundleContextOfObject(this), JWT_SECRET_BOX_NAME)
+                .set(JWT_SECRET);
+    }
 
     @Override
     protected boolean enableRemoteDebugging() {
@@ -91,12 +116,6 @@ public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
             connection.disconnect();
         }
         return authCookie;
-    }
-
-    @Override
-    protected void setupTestConfiguration(AgentConfiguration config) {
-        DistributedServices.getDistributedBox(Utils.getBundleContextOfObject(this), JWT_SECRET_BOX_NAME)
-                .set(JWT_SECRET);
     }
 
     /**
@@ -258,5 +277,153 @@ public final class SnampWebconsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void dummyTest() throws InterruptedException {
         Thread.sleep(10000000);
+    }
+
+    /**
+     * Test check simple resource with and without token.
+     *
+     * @throws IOException              the io exception
+     * @throws InterruptedException     the interrupted exception
+     * @throws NoSuchAlgorithmException the no such algorithm exception
+     * @throws JWTVerifyException       the jwt verify exception
+     * @throws InvalidKeyException      the invalid key exception
+     * @throws SignatureException       the signature exception
+     */
+    @Test
+    public void testGetEmptyConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+            InvalidKeyException, SignatureException {
+        Thread.sleep(3000);
+        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+        final URL query = new URL("http://localhost:8181/snamp/console/management/configuration");
+        //write attribute
+        HttpURLConnection connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(false);
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            final String attributeValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertEquals(attributeValue,
+                    String.format("{\"test-target\":{\"parameters\":{\"password\":\"%s\",\"login\":\"%s\"},\"connectionString\"" +
+                            ":\"service:jmx:rmi:///jndi/rmi://localhost:1099/karaf-root\",\"groupName\"" +
+                            ":\"\",\"type\":\"jmx\",\"description\":null,\"modified\":false}}", USERNAME, PASSWORD));
+        } finally {
+            connection.disconnect();
+        }
+
+        connection = (HttpURLConnection)query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        connection.setInstanceFollowRedirects(false);
+        connection.connect();
+        try {
+            assertEquals(String.format("Wrong response code (%s) received on the authentication phase",
+                    connection.getResponseCode()), HttpURLConnection.HTTP_UNAUTHORIZED, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        super.beforeStartTest(context);
+        beforeCleanupTest(context);
+    }
+
+    @Override
+    protected void afterStartTest(final BundleContext context) throws Exception {
+        startResourceConnector(context);
+        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+            GatewayActivator.enableGateway(context, ADAPTER_NAME);
+            return null;
+        }, Duration.ofSeconds(30));
+    }
+
+    @Override
+    protected void beforeCleanupTest(final BundleContext context) throws Exception {
+        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        stopResourceConnector(context);
+    }
+
+    @Override
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        final GatewayConfiguration snmpAdapter = gateways.getOrAdd(ADAPTER_INSTANCE_NAME);
+        snmpAdapter.setType(ADAPTER_NAME);
+        snmpAdapter.getParameters().put("port", SNMP_PORT);
+        snmpAdapter.getParameters().put("host", SNMP_HOST);
+        snmpAdapter.getParameters().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("context", "1.1");
+    }
+
+    @Override
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("1.0");
+        attribute.setAlternativeName("string");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("oid", "1.1.1.0");
+
+        attribute = attributes.getOrAdd("2.0");
+        attribute.setAlternativeName("boolean");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("oid", "1.1.2.0");
+
+        attribute = attributes.getOrAdd("3.0");
+        attribute.setAlternativeName("int32");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("oid", "1.1.3.0");
+
+        attribute = attributes.getOrAdd("4.0");
+        attribute.setAlternativeName("bigint");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("oid", "1.1.4.0");
+
+        attribute = attributes.getOrAdd("5.1");
+        attribute.setAlternativeName("array");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("oid", "1.1.5.1");
+
+        attribute = attributes.getOrAdd("6.1");
+        attribute.setAlternativeName("dictionary");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("oid", "1.1.6.1");
+
+        attribute = attributes.getOrAdd("7.1");
+        attribute.setAlternativeName("table");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("oid", "1.1.7.1");
+
+        attribute = attributes.getOrAdd("8.0");
+        attribute.setAlternativeName("float");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("oid", "1.1.8.0");
+
+        attribute = attributes.getOrAdd("9.0");
+        attribute.setAlternativeName("date");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        attribute.getParameters().put("oid", "1.1.9.0");
+
+        attribute = attributes.getOrAdd("10.0");
+        attribute.setAlternativeName("date");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
+        attribute.getParameters().put("oid", "1.1.10.0");
+
+        attribute = attributes.getOrAdd("11.0");
+        attribute.setAlternativeName("date");
+        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("displayFormat", "rfc1903");
+        attribute.getParameters().put("oid", "1.1.11.0");
     }
 }

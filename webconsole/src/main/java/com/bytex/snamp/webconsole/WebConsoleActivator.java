@@ -33,7 +33,7 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         @SuppressWarnings("unchecked")
         final ConfigurationAdmin configAdmin = getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
-        consoleAPI = new WebConsoleService(configAdmin);
+        consoleAPI = new WebConsoleService();
         managementAPI = new ManagementService(configAdmin);
         final String resourceBase = this.getClass().getClassLoader().getResource("webapp").toExternalForm();
         @SuppressWarnings("unchecked")

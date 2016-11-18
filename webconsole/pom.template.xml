@@ -61,35 +61,12 @@
             <artifactId>guava</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.atmosphere</groupId>
-            <artifactId>atmosphere-jersey</artifactId>
-            <version>2.2.9</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.atmosphere</groupId>
-            <artifactId>atmosphere-annotations</artifactId>
-            <version>2.2.9</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.atmosphere</groupId>
-            <artifactId>atmosphere-runtime</artifactId>
-            <version>2.2.9</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.karaf.jaas</groupId>
             <artifactId>org.apache.karaf.jaas.command</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.karaf.jaas</groupId>
             <artifactId>org.apache.karaf.jaas.boot</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>1.2</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.aggregate</groupId>
@@ -106,25 +83,8 @@
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.webconsole</Bundle-SymbolicName>
                         <Export-Package />
-                        <Import-Package>javax.ws.rs.*,
-                            com.sun.jersey.api.core,
-                            com.sun.jersey.spi.container.servlet,
-                            com.sun.jersey.spi.*,
-                            org.osgi.framework.*,
-                            org.osgi.util.*,
-                            org.osgi.service.*,
-                            org.eclipse.jetty.servlet.*,
-                            javax.servlet.*,
-                            com.google.gson.*,
-                            com.bytex.snamp.core.*,
-                            com.bytex.snamp.*,
-                            com.google.common.collect.*,
-                            javax.crypto.*,
-                            com.google.common.base.*,
-                            javax.security.auth.*</Import-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                         <Bundle-Activator>com.bytex.snamp.webconsole.WebConsoleActivator</Bundle-Activator>
-                        <!--http://leshazlewood.com/2010/09/08/osgi-maven-pax-and-web-applications/-->
-                        <!--https://ops4j1.jira.com/wiki/display/paxweb/OSGi-fy+your+WAR-->
                         <Embed-Dependency>*;scope=compile</Embed-Dependency>
                     </instructions>
                 </configuration>

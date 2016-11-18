@@ -3,15 +3,17 @@
     <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
     <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
         <details>${project.description}</details>
-        <!-- Third-party features -->
-        <feature version="[${karaf.version}, ${karaf.maxVersion})">scr</feature>
-        <feature version="[${karaf.version}, ${karaf.maxVersion})">http</feature>
-        <feature version="[${karaf.version}, ${karaf.maxVersion})">http-whiteboard</feature>
         <!--SNAMP dependencies-->
         <bundle start="true">mvn:org.apache.geronimo.specs/geronimo-servlet_3.0_spec/1.0</bundle>
-        <bundle start="true">mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
-        <bundle start="true">mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
-        <bundle start="true">mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
+        <bundle>mvn:org.codehaus.jettison/jettison/${jettison.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${jackson.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/${jackson.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-jaxrs/${jackson.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-xc/${jackson.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-json/${jersey.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/webconsole/${snamp.webconsole.version}</bundle>
     </feature>
 </features>

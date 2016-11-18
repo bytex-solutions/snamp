@@ -1,14 +1,11 @@
 package com.bytex.snamp.webconsole;
 
-import org.osgi.service.cm.ConfigurationAdmin;
-
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -28,18 +25,7 @@ public final class WebConsoleService implements AutoCloseable {
 
     static final String AUTHENTICATE_PATH = "auth";
 
-    private final ConfigurationAdmin configAdmin;
-
     private static final Logger logger = Logger.getLogger(WebConsoleService.class.getName());
-
-    /**
-     * Instantiates a new Web console service.
-     *
-     * @param configAdmin the config admin
-     */
-    WebConsoleService(final ConfigurationAdmin configAdmin){
-        this.configAdmin = Objects.requireNonNull(configAdmin);
-    }
 
     @Path(AUTHENTICATE_PATH)
     @POST
