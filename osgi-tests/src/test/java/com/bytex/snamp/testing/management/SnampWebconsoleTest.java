@@ -2,7 +2,6 @@ package com.bytex.snamp.testing.management;
 
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
@@ -10,7 +9,9 @@ import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
-import com.bytex.snamp.testing.*;
+import com.bytex.snamp.testing.BundleExceptionCallable;
+import com.bytex.snamp.testing.SnampDependencies;
+import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import org.junit.Test;
@@ -290,11 +291,13 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testGetEmptyConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+    public void testGetResourceConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
             InvalidKeyException, SignatureException {
         Thread.sleep(3000);
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
-        final URL query = new URL("http://localhost:8181/snamp/console/management/configuration");
+
+        // Get all resources
+        URL query = new URL("http://localhost:8181/snamp/console/resource/configuration");
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
@@ -304,21 +307,27 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         try {
             final String attributeValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             assertEquals(attributeValue,
-                    String.format("{\"test-target\":{\"parameters\":{\"password\":\"%s\",\"login\":\"%s\"},\"connectionString\"" +
+                    String.format("{\"%s\":{\"parameters\":{\"password\":\"%s\",\"login\":\"%s\"},\"connectionString\"" +
                             ":\"service:jmx:rmi:///jndi/rmi://localhost:1099/karaf-root\",\"groupName\"" +
-                            ":\"\",\"type\":\"jmx\",\"description\":null,\"modified\":false}}", USERNAME, PASSWORD));
+                            ":\"\",\"type\":\"jmx\",\"description\":null,\"modified\":false}}", TEST_RESOURCE_NAME, USERNAME, PASSWORD));
         } finally {
             connection.disconnect();
         }
 
-        connection = (HttpURLConnection)query.openConnection();
+        // Get resource by name
+         query = new URL(String.format("http://localhost:8181/snamp/console/resource/configuration/%s", TEST_RESOURCE_NAME));
+        //write attribute
+        connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
-        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
         connection.setInstanceFollowRedirects(false);
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
         connection.connect();
         try {
-            assertEquals(String.format("Wrong response code (%s) received on the authentication phase",
-                    connection.getResponseCode()), HttpURLConnection.HTTP_UNAUTHORIZED, connection.getResponseCode());
+            final String attributeValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertEquals(attributeValue,
+                    String.format("{\"parameters\":{\"password\":\"%s\",\"login\":\"%s\"},\"connectionString\"" +
+                            ":\"service:jmx:rmi:///jndi/rmi://localhost:1099/karaf-root\",\"groupName\":\"\",\"type\"" +
+                            ":\"jmx\",\"description\":null,\"modified\":false}", USERNAME, PASSWORD));
         } finally {
             connection.disconnect();
         }
