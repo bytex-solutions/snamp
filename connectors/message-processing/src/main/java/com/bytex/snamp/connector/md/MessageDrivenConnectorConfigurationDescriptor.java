@@ -46,7 +46,7 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
     protected static class ConnectorConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private static final String RESOURCE_NAME = "ConnectorConfiguration";
         private final ResourceReader fallbackReader;
-        private static final String[] DEFAULT_ATTRIBUTES = {COMPONENT_INSTANCE_PARAM, COMPONENT_NAME_PARAM, SYNC_PERIOD_PARAM};
+        private static final String[] DEFAULT_PARAMS = {COMPONENT_INSTANCE_PARAM, COMPONENT_NAME_PARAM, SYNC_PERIOD_PARAM};
 
         /**
          * Initializes a new resource-based descriptor.
@@ -55,12 +55,12 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
          * @param parameters An array of configuration parameters.
          */
         protected ConnectorConfigurationDescription(final String baseName, final String... parameters) {
-            super(baseName, ManagedResourceConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_ATTRIBUTES, String.class));
+            super(baseName, ManagedResourceConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_PARAMS, String.class));
             fallbackReader = new ResourceReader(ConnectorConfigurationDescription.class, RESOURCE_NAME);
         }
 
         private ConnectorConfigurationDescription(){
-            super(RESOURCE_NAME, ManagedResourceConfiguration.class);
+            super(RESOURCE_NAME, ManagedResourceConfiguration.class, DEFAULT_PARAMS);
             fallbackReader = null;
         }
 
@@ -77,7 +77,7 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
     protected static class AttributeConfigurationDescription extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
         private static final String RESOURCE_NAME = "AttributeConfiguration";
         private final ResourceReader fallbackReader;
-        private static final String[] DEFAULT_ATTRIBUTES = {RANGE_START_PARAM, RANGE_END_PARAM, CHANNELS_PARAM, FILTER_PARAM};
+        private static final String[] DEFAULT_PARAMS = {RANGE_START_PARAM, RANGE_END_PARAM, CHANNELS_PARAM, FILTER_PARAM};
 
         /**
          * Initializes a new resource-based descriptor.
@@ -86,12 +86,12 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
          * @param parameters An array of configuration parameters.
          */
         protected AttributeConfigurationDescription(final String baseName, final String... parameters) {
-            super(baseName, AttributeConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_ATTRIBUTES, String.class));
+            super(baseName, AttributeConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_PARAMS, String.class));
             fallbackReader = new ResourceReader(AttributeConfigurationDescription.class, RESOURCE_NAME);
         }
 
         private AttributeConfigurationDescription(){
-            super(RESOURCE_NAME, AttributeConfiguration.class);
+            super(RESOURCE_NAME, AttributeConfiguration.class, DEFAULT_PARAMS);
             fallbackReader = null;
         }
 
@@ -101,14 +101,14 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
 
         @Override
         protected final Optional<String> getStringFallback(final String key, final Locale loc) {
-            return fallbackReader != null ? fallbackReader.getString(key, loc) : null;
+            return fallbackReader != null ? fallbackReader.getString(key, loc) : Optional.empty();
         }
     }
 
     protected static class EventConfigurationDescription extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "EventConfiguration";
         private final ResourceReader fallbackReader;
-        private static final String[] DEFAULT_ATTRIBUTES = {FILTER_PARAM};
+        private static final String[] DEFAULT_PARAMS = {FILTER_PARAM};
 
         /**
          * Initializes a new resource-based descriptor.
@@ -117,12 +117,12 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
          * @param parameters An array of configuration parameters.
          */
         protected EventConfigurationDescription(final String baseName, final String... parameters) {
-            super(baseName, EventConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_ATTRIBUTES, String.class));
+            super(baseName, EventConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_PARAMS, String.class));
             fallbackReader = new ResourceReader(AttributeConfigurationDescription.class, RESOURCE_NAME);
         }
 
         private EventConfigurationDescription(){
-            super(RESOURCE_NAME, EventConfiguration.class);
+            super(RESOURCE_NAME, EventConfiguration.class, DEFAULT_PARAMS);
             fallbackReader = null;
         }
 
@@ -132,7 +132,7 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
 
         @Override
         protected final Optional<String> getStringFallback(final String key, final Locale loc) {
-            return fallbackReader != null ? fallbackReader.getString(key, loc) : null;
+            return fallbackReader != null ? fallbackReader.getString(key, loc) : Optional.empty();
         }
     }
 

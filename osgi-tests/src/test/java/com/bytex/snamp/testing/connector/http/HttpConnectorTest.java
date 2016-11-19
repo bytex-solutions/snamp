@@ -1,10 +1,10 @@
 package com.bytex.snamp.testing.connector.http;
 
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.instrumentation.IntegerMeasurement;
 import com.bytex.snamp.instrumentation.Measurement;
 import com.bytex.snamp.io.IOUtils;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
@@ -78,6 +78,23 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
         measurement.setComponentName(COMPONENT_NAME);
         sendMeasurement(measurement);
         testAttribute("longValue", TypeToken.of(Long.class), 42L, true);
+    }
+
+    @Test
+    public void configurationTest(){
+        testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
+                "componentInstance",
+                "componentName",
+                "synchronizationPeriod"
+        ));
+        testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
+                "from",
+                "to",
+                "filter"
+        ));
+        testConfigurationDescriptor(EventConfiguration.class, ImmutableSet.of(
+                "filter"
+        ));
     }
 
     @Override

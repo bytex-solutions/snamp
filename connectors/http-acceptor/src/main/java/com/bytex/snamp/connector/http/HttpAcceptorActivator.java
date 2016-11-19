@@ -20,7 +20,7 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
 
     @SpecialUse
     public HttpAcceptorActivator() {
-        super(HttpAcceptorActivator::newResourceConnector);
+        super(HttpAcceptorActivator::newResourceConnector, configurationDescriptor(HttpConnectorConfigurationDescriptor::getInstance));
     }
 
     private static HttpAcceptor newResourceConnector(final String resourceName,
