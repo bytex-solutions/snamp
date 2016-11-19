@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.http;
 
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
@@ -75,7 +76,7 @@ final class HttpGateway extends AbstractGateway {
         }
 
         @Override
-        protected HttpAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception {
+        protected HttpAttributeAccessor createAccessor(final String resourceName, final MBeanAttributeInfo metadata) throws Exception {
             return new HttpAttributeAccessor(metadata);
         }
     }
@@ -149,7 +150,7 @@ final class HttpGateway extends AbstractGateway {
         }
     }
 
-    private static final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificationAccessor> implements NotificationSupport{
+    private static final class HttpModelOfNotifications extends ThreadSafeObject implements NotificationSupport, NotificationSet<HttpNotificationAccessor>{
         private final KeyedObjects<String, NotificationBroadcaster> notifications;
         private static final Gson FORMATTER = JsonUtils.registerTypeAdapters(new GsonBuilder())
                 .serializeSpecialFloatingPointValues()
@@ -157,6 +158,7 @@ final class HttpGateway extends AbstractGateway {
                 .create();
 
         private HttpModelOfNotifications(){
+            super(SingleResourceGroup.class);
             this.notifications = createBroadcasters();
         }
 

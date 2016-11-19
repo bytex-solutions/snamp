@@ -273,7 +273,7 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
     }
 
     @Override
-    protected XMPPAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
+    protected XMPPAttributeAccessor createAccessor(final String resourceName, final MBeanAttributeInfo metadata) {
         final WellKnownType attributeType = AttributeDescriptor.getType(metadata);
         if (attributeType != null)
             switch (attributeType) {

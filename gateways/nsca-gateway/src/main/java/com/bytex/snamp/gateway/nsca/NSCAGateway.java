@@ -1,14 +1,14 @@
 package com.bytex.snamp.gateway.nsca;
 
-import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
-import com.bytex.snamp.gateway.modeling.*;
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.gateway.modeling.FeatureAccessor;
+import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
+import com.bytex.snamp.gateway.modeling.ModelOfNotifications;
+import com.bytex.snamp.gateway.modeling.PeriodicPassiveChecker;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.googlecode.jsendnsca.core.MessagePayload;
 import com.googlecode.jsendnsca.core.NagiosSettings;
@@ -17,8 +17,6 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -36,17 +34,17 @@ final class NSCAGateway extends AbstractGateway {
     private static final class NSCAAttributeModelOfAttributes extends ModelOfAttributes<NSCAAttributeAccessor> {
 
         @Override
-        protected NSCAAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception {
+        protected NSCAAttributeAccessor createAccessor(final String resourceName, final MBeanAttributeInfo metadata) {
             return new NSCAAttributeAccessor(metadata);
         }
     }
 
     private static final class NSCANotificationModel extends ModelOfNotifications<NSCANotificationAccessor> implements NotificationListener{
-        private final Map<String, ResourceNotificationList<NSCANotificationAccessor>> notifications;
         private ConcurrentPassiveCheckSender checkSender;
 
-        private NSCANotificationModel() {
-            this.notifications = new HashMap<>(10);
+        @Override
+        protected NSCANotificationAccessor createAccessor(final String resourceName, final MBeanNotificationInfo metadata) {
+            return new NSCANotificationAccessor(resourceName, metadata, this);
         }
 
         private void setCheckSender(final ConcurrentPassiveCheckSender value){
@@ -68,60 +66,10 @@ final class NSCAGateway extends AbstractGateway {
                 checkSender.send(payload);
         }
 
-        private NotificationAccessor addNotificationImpl(final String resourceName,
-                                                     final MBeanNotificationInfo metadata){
-            final ResourceNotificationList<NSCANotificationAccessor> list;
-            if(notifications.containsKey(resourceName))
-                list = notifications.get(resourceName);
-            else notifications.put(resourceName, list = new ResourceNotificationList<>());
-            final NSCANotificationAccessor accessor;
-            list.put(accessor = new NSCANotificationAccessor(resourceName, metadata, this));
-            return accessor;
-        }
-
-        private NotificationAccessor addNotification(final String resourceName,
-                                                     final MBeanNotificationInfo metadata){
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::addNotificationImpl);
-        }
-
-        private NotificationAccessor removeNotificationImpl(final String resourceName,
-                                                        final MBeanNotificationInfo metadata){
-            final ResourceNotificationList<NSCANotificationAccessor> list;
-            if(notifications.containsKey(resourceName))
-                list = notifications.get(resourceName);
-            else return null;
-            final NotificationAccessor accessor = list.remove(metadata);
-            if(list.isEmpty()) notifications.remove(resourceName);
-            return accessor;
-        }
-
-        private NotificationAccessor removeNotification(final String resourceName,
-                                                        final MBeanNotificationInfo metadata){
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeNotificationImpl);
-        }
-
-        private Collection<? extends NotificationAccessor> removeNotifications(final String resourceName) {
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, notifications,
-                    (resName, notifs) -> notifs.containsKey(resName) ? notifs.remove(resName).values() : ImmutableList.of());
-        }
-
-        private void clear() {
-            writeLock.accept(SingleResourceGroup.INSTANCE, notifications, notifs -> {
-                notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
-                notifs.clear();
-            });
-            checkSender = null;
-        }
-
-        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super NSCANotificationAccessor, E> notificationReader) throws E{
-            for (final ResourceNotificationList<NSCANotificationAccessor> list : notifications.values())
-                for (final NSCANotificationAccessor accessor : list.values())
-                    if (!notificationReader.read(accessor.resourceName, accessor)) return;
-        }
-
         @Override
-        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super NSCANotificationAccessor, E> notificationReader) throws E {
-            readLock.accept(SingleResourceGroup.INSTANCE, notificationReader, (Acceptor<EntryReader<String, ? super NSCANotificationAccessor,E>, E>) this::forEachNotificationImpl);
+        public void clear() {
+            super.clear();
+            checkSender = null;
         }
     }
 
@@ -167,7 +115,7 @@ final class NSCAGateway extends AbstractGateway {
     @Override
     protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
         return Stream.concat(
-                notifications.removeNotifications(resourceName).stream(),
+                notifications.clear(resourceName).stream(),
                 attributes.clear(resourceName).stream()
         );
     }

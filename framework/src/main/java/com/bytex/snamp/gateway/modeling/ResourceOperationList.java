@@ -43,7 +43,7 @@ public class ResourceOperationList<TAccessor extends OperationAccessor> extends 
      * @see javax.management.MBeanOperationInfo#getName()
      */
     @Override
-    protected String getKey(MBeanOperationInfo feature) {
+    protected String getKey(final MBeanOperationInfo feature) {
         return feature.getName();
     }
 }

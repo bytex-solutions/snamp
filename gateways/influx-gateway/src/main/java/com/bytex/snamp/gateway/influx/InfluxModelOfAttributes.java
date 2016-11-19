@@ -21,7 +21,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  */
 final class InfluxModelOfAttributes extends ModelOfAttributes<AttributePoint> {
     @Override
-    protected AttributePoint createAccessor(final MBeanAttributeInfo metadata) throws Exception {
+    protected AttributePoint createAccessor(final String resourceName, final MBeanAttributeInfo metadata) throws Exception {
         return new AttributePoint(metadata);
     }
 

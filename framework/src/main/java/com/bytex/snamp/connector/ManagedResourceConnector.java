@@ -118,7 +118,7 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
 
     static boolean canExpandWith(final ManagedResourceConnector connector,
                                  final Class<? extends MBeanFeatureInfo> featureType) {
-        final Supplier<Boolean> FALLBACK = () -> false;
+        final Supplier<Boolean> FALLBACK = () -> Boolean.FALSE;
         if (featureType.equals(MBeanAttributeInfo.class))
             return Aggregator.queryAndApply(connector, AttributeSupport.class, AttributeSupport::canExpandAttributes, FALLBACK);
         else if (featureType.equals(MBeanNotificationInfo.class))

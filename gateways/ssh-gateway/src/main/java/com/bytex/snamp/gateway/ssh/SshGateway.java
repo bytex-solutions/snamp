@@ -1,17 +1,15 @@
 package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationEventBox;
 import com.bytex.snamp.gateway.modeling.*;
-import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import org.apache.sshd.SshServer;
@@ -33,7 +31,9 @@ import java.lang.ref.WeakReference;
 import java.nio.*;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -47,79 +47,21 @@ import java.util.stream.Stream;
 final class SshGateway extends AbstractGateway implements GatewayController {
 
     private static final class SshModelOfNotifications extends ModelOfNotifications<SshNotificationAccessor>{
-        private final Map<String, ResourceNotificationList<SshNotificationAccessor>> notifications;
         private final NotificationEventBox mailbox;
 
         private SshModelOfNotifications(){
-            notifications = createNotifs();
             mailbox = new NotificationEventBox(50);
         }
 
-        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E{
-            for (final ResourceNotificationList<SshNotificationAccessor> list : notifications.values())
-                for (final SshNotificationAccessor accessor : list.values())
-                    if (!notificationReader.read(accessor.resourceName, accessor)) return;
-        }
-
         @Override
-        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E {
-            readLock.accept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
-        }
-
-        private static Map<String, ResourceNotificationList<SshNotificationAccessor>> createNotifs(){
-            return new HashMap<String, ResourceNotificationList<SshNotificationAccessor>>(20){
-                private static final long serialVersionUID = 3091347160169529722L;
-
-                @Override
-                public void clear() {
-                    values().forEach(ResourceFeatureList::clear);
-                    super.clear();
-                }
-            };
-        }
-
-        private void clear(){
-            writeLock.accept(SingleResourceGroup.INSTANCE, notifications, Map::clear);
+        public void clear(){
+            super.clear();
             mailbox.clear();
         }
 
-        private NotificationAccessor addNotificationImpl(final String resourceName,
-                                                     final MBeanNotificationInfo metadata){
-            final ResourceNotificationList<SshNotificationAccessor> list;
-            if(notifications.containsKey(resourceName))
-                list = notifications.get(resourceName);
-            else notifications.put(resourceName, list = new ResourceNotificationList<>());
-            final SshNotificationAccessor accessor = new SshNotificationAccessor(metadata, mailbox, resourceName);
-            list.put(accessor);
-            return accessor;
-        }
-
-        private NotificationAccessor addNotification(final String resourceName,
-                                                     final MBeanNotificationInfo metadata){
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::addNotificationImpl);
-        }
-
-        private Collection<? extends NotificationAccessor> clear(final String resourceName) {
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> notifs.containsKey(resName) ?
-                    notifs.remove(resName).values() :
-                    ImmutableList.<SshNotificationAccessor>of());
-        }
-
-        private NotificationAccessor removeNotificationImpl(final String resourceName,
-                                                        final MBeanNotificationInfo metadata){
-            final ResourceNotificationList<SshNotificationAccessor> list;
-            if(notifications.containsKey(resourceName))
-                list = notifications.get(resourceName);
-            else return null;
-            final NotificationAccessor result = list.remove(metadata);
-            if(list.isEmpty())
-                notifications.remove(resourceName);
-            return result;
-        }
-
-        private NotificationAccessor removeNotification(final String resourceName,
-                                                        final MBeanNotificationInfo metadata) {
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeNotificationImpl);
+        @Override
+        protected SshNotificationAccessor createAccessor(final String resourceName, final MBeanNotificationInfo metadata) {
+            return new SshNotificationAccessor(metadata, mailbox, resourceName);
         }
 
         private Notification poll(final ExpressionBasedDescriptorFilter filter) {
@@ -300,7 +242,7 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     private static final class SshModelOfAttributes extends ModelOfAttributes<SshAttributeAccessor> {
 
         @Override
-        protected SshAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
+        protected SshAttributeAccessor createAccessor(final String resourceName, final MBeanAttributeInfo metadata) {
             final WellKnownType attributeType = AttributeDescriptor.getType(metadata);
             if(attributeType != null)
                 switch (attributeType){

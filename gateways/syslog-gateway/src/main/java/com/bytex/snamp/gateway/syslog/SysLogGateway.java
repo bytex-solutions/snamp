@@ -1,15 +1,15 @@
 package com.bytex.snamp.gateway.syslog;
 
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
-import com.bytex.snamp.gateway.modeling.*;
+import com.bytex.snamp.gateway.modeling.FeatureAccessor;
+import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
+import com.bytex.snamp.gateway.modeling.ModelOfNotifications;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 
 import javax.management.MBeanAttributeInfo;
@@ -17,8 +17,6 @@ import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.io.CharArrayWriter;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
@@ -32,28 +30,17 @@ final class SysLogGateway extends AbstractGateway {
     private static final class SysLogModelOfAttributes extends ModelOfAttributes<SysLogAttributeAccessor> {
 
         @Override
-        protected SysLogAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
+        protected SysLogAttributeAccessor createAccessor(final String resourceName, final MBeanAttributeInfo metadata) {
             return new SysLogAttributeAccessor(metadata);
         }
     }
 
     private static final class SysLogModelOfNotifications extends ModelOfNotifications<SysLogNotificationAccessor> implements NotificationListener {
-        private final Map<String, ResourceNotificationList<SysLogNotificationAccessor>> notifications;
         private ConcurrentSyslogMessageSender checkSender;
 
-        private SysLogModelOfNotifications() {
-            this.notifications = new HashMap<>(10);
-        }
-
-        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super SysLogNotificationAccessor, E> notificationReader) throws E{
-            for(final ResourceNotificationList<SysLogNotificationAccessor> list: notifications.values())
-                for(final SysLogNotificationAccessor accessor: list.values())
-                    if(!notificationReader.read(accessor.resourceName, accessor)) return;
-        }
-
         @Override
-        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SysLogNotificationAccessor, E> notificationReader) throws E {
-            readLock.accept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
+        protected SysLogNotificationAccessor createAccessor(final String resourceName, final MBeanNotificationInfo metadata) {
+            return new SysLogNotificationAccessor(resourceName, metadata, this);
         }
 
         private void setCheckSender(final ConcurrentSyslogMessageSender value){
@@ -80,51 +67,8 @@ final class SysLogGateway extends AbstractGateway {
             }
         }
 
-        private NotificationAccessor addNotificationImpl(final String resourceName,
-                                             final MBeanNotificationInfo metadata) {
-            final ResourceNotificationList<SysLogNotificationAccessor> list;
-            if (notifications.containsKey(resourceName))
-                list = notifications.get(resourceName);
-            else notifications.put(resourceName, list = new ResourceNotificationList<>());
-            final SysLogNotificationAccessor accessor;
-            list.put(accessor = new SysLogNotificationAccessor(resourceName, metadata, this));
-            return accessor;
-        }
-
-        private NotificationAccessor addNotification(final String resourceName,
-                                                     final MBeanNotificationInfo metadata) {
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::addNotificationImpl);
-        }
-
-        private NotificationAccessor removeNotificationImpl(final String resourceName,
-                                                        final MBeanNotificationInfo metadata){
-            final ResourceNotificationList<SysLogNotificationAccessor> list;
-            if(notifications.containsKey(resourceName))
-                list = notifications.get(resourceName);
-            else return null;
-            final NotificationAccessor accessor = list.remove(metadata);
-            if(list.isEmpty()) notifications.remove(resourceName);
-            return accessor;
-        }
-
-        private NotificationAccessor removeNotification(final String resourceName,
-                                                        final MBeanNotificationInfo metadata){
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeNotificationImpl);
-        }
-
-        private Collection<? extends NotificationAccessor> removeNotifications(final String resourceName) {
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
-                if (notifs.containsKey(resName))
-                    return notifs.remove(resName).values();
-                else return ImmutableList.of();
-            });
-        }
-
-        private void clear() {
-            writeLock.accept(SingleResourceGroup.INSTANCE, notifications, notifs -> {
-                notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
-                notifs.clear();
-            });
+        @Override
+        public void clear() {
             final ConcurrentSyslogMessageSender sender = checkSender;
             if (sender != null)
                 sender.close();
@@ -156,7 +100,7 @@ final class SysLogGateway extends AbstractGateway {
     @Override
     protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
         return Stream.concat(
-                notifications.removeNotifications(resourceName).stream(),
+                notifications.clear(resourceName).stream(),
                 attributes.clear(resourceName).stream()
         );
     }

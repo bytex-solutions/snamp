@@ -18,7 +18,7 @@ import javax.ws.rs.core.Response;
 public final class NagiosActiveCheckService extends ModelOfAttributes<NagiosAttributeAccessor> {
 
     @Override
-    protected NagiosAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception {
+    protected NagiosAttributeAccessor createAccessor(final String resourceName, final MBeanAttributeInfo metadata) throws Exception {
         return new NagiosAttributeAccessor(metadata);
     }
 

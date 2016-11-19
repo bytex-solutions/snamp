@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway.groovy.impl;
 
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.groovy.AttributesRootAPI;
 import com.bytex.snamp.gateway.groovy.EventsRootAPI;
@@ -31,7 +32,7 @@ import java.util.stream.Stream;
 final class ManagementInformationRepository extends GroovyManagementModel implements AttributesRootAPI, EventsRootAPI, AttributeSet<ScriptAttributeAccessor>, NotificationSet<ScriptNotificationAccessor> {
     private static final class ScriptModelOfAttributes extends ModelOfAttributes<ScriptAttributeAccessor> {
         @Override
-        protected ScriptAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
+        protected ScriptAttributeAccessor createAccessor(final String resourceName, final MBeanAttributeInfo metadata) {
             return new ScriptAttributeAccessor(metadata);
         }
 
@@ -44,9 +45,13 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         }
     }
 
-    private static final class ScriptNotificationsModelOfNotifications extends ModelOfNotifications<ScriptNotificationAccessor> {
-        private final Map<String, ResourceNotificationList<ScriptNotificationAccessor>> notifications =
-                new HashMap<>(10);
+    private static final class ScriptNotificationsModelOfNotifications extends ThreadSafeObject implements NotificationSet<ScriptNotificationAccessor> {
+        private final Map<String, ResourceNotificationList<ScriptNotificationAccessor>> notifications;
+
+        private ScriptNotificationsModelOfNotifications(){
+            super(SingleResourceGroup.class);
+            notifications = new HashMap<>();
+        }
 
         private Collection<ScriptNotificationAccessor> clear(final String resourceName) {
             return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
