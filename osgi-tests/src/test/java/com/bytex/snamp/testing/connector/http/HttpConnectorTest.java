@@ -1,19 +1,17 @@
 package com.bytex.snamp.testing.connector.http;
 
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.instrumentation.IntegerMeasurement;
-import com.bytex.snamp.instrumentation.Measurement;
 import com.bytex.snamp.instrumentation.StandardMeasurements;
-import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
 import javax.management.JMException;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.Charset;
 
 /**
  * @author Roman Sakno
@@ -31,29 +29,6 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
     @Override
     protected boolean enableRemoteDebugging() {
         return false;
-    }
-
-    private void httpPost(final String jsonData, final String url) throws IOException {
-        final URL postAddress = new URL(url);
-        final HttpURLConnection connection = (HttpURLConnection)postAddress.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setDoOutput(true);
-        IOUtils.writeString(jsonData, connection.getOutputStream(), Charset.defaultCharset());
-        connection.connect();
-        try{
-            assertEquals(204, connection.getResponseCode());
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-    private void sendMeasurement(final Measurement measurement) throws IOException{
-        httpPost(measurement.toJsonString(), "http://localhost:8181/snamp/data/acquisition");
-    }
-
-    private void sendMeasurements(final Measurement... measurements) throws IOException{
-        httpPost(Measurement.toJsonString(measurements), "http://localhost:8181/snamp/data/acquisition/batch");
     }
 
     @Test

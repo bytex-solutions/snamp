@@ -2,6 +2,8 @@ package com.bytex.snamp.gateway.influx;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 
@@ -26,8 +28,15 @@ final class InfluxGatewayConfigurationDescriptionProvider extends ConfigurationE
 
     private static final LazySoftReference<InfluxGatewayConfigurationDescriptionProvider> INSTANCE = new LazySoftReference<>();
 
-    private InfluxGatewayConfigurationDescriptionProvider(){
+    private static final class GatewayConfigurationDescriptionProvider extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
 
+        private GatewayConfigurationDescriptionProvider() {
+            super("GatewayConfiguration", GatewayConfiguration.class, DB_URL_PARAM, DB_USER_NAME_PARAM, DB_PASSWORD_PARAM, DB_NAME_PARAM, PERIOD_PARAM);
+        }
+    }
+
+    private InfluxGatewayConfigurationDescriptionProvider(){
+        super(new GatewayConfigurationDescriptionProvider());
     }
 
     static InfluxGatewayConfigurationDescriptionProvider getInstance(){

@@ -51,7 +51,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 @SnampDependencies({SnampFeature.HTTP_GATEWAY, SnampFeature.WRAPPED_LIBS})
 @ImportPackages({"com.bytex.snamp.jmx.json;version=\"[2.0,3)\"",
         "org.atmosphere.wasync;version=\"[2.0.0,3)\""})
-public final class HttpToJmxGateway extends AbstractJmxConnectorTest<TestOpenMBean> {
+public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final class NotificationReceiver extends LinkedBlockingQueue<JsonElement> implements Function<String>{
         private static final long serialVersionUID = 2056675059549300951L;
         private final Gson formatter;
@@ -70,7 +70,7 @@ public final class HttpToJmxGateway extends AbstractJmxConnectorTest<TestOpenMBe
     private static final String INSTANCE_NAME = "test-http";
     private final Gson formatter;
 
-    public HttpToJmxGateway() throws MalformedObjectNameException {
+    public JmxToHttpGatewayTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
         formatter = new Gson();
     }
