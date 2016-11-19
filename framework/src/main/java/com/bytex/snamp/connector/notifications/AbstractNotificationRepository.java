@@ -139,13 +139,17 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     protected final boolean fire(final String category,
-                                 final Function<? super M, ? extends Notification> notificationFactory){
-        if(isSuspended())
+                                 final Function<? super M, ? extends Notification> notificationFactory) {
+        if (isSuspended())
             return false;
-        final Collection<Notification> notifs = readLock.apply(SingleResourceGroup.INSTANCE, notifications, n -> n.values().stream()
-                .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder), category))
-                .map(notificationFactory::apply)
-                .collect(Collectors.toList()));
+        final Collection<Notification> notifs;
+        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+            notifs = notifications.values().stream()
+                    .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder), category))
+                    .map(notificationFactory)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
         final boolean hasNotifications = !notifs.isEmpty();
         //fire listeners
         fireListeners(notifs);

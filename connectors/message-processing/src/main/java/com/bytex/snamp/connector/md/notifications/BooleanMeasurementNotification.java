@@ -11,10 +11,11 @@ import java.util.function.BooleanSupplier;
  * @version 2.0
  */
 public final class BooleanMeasurementNotification extends ValueMeasurementNotification<BooleanMeasurement> implements BooleanSupplier, BooleanUnaryOperator {
+    public static final String TYPE = "com.bytex.snamp.measurement.booleanSupplied";
     private static final long serialVersionUID = -6963564838146442740L;
 
     public BooleanMeasurementNotification(final Object source, final BooleanMeasurement measurement) {
-        super(source, measurement, "Boolean value supplied");
+        super(TYPE, source, measurement, "Boolean value supplied");
     }
 
     @Override

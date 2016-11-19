@@ -11,10 +11,11 @@ import java.util.function.LongUnaryOperator;
  * @version 2.0
  */
 public final class IntegerMeasurementNotification extends ValueMeasurementNotification<IntegerMeasurement> implements LongSupplier, LongUnaryOperator {
+    public static final String TYPE = "com.bytex.snamp.measurement.intSupplied";
     private static final long serialVersionUID = 1741159938641920680L;
 
     public IntegerMeasurementNotification(Object source, IntegerMeasurement measurement) {
-        super(source, measurement, "Integer value supplied");
+        super(TYPE, source, measurement, "Integer value supplied");
     }
 
     @Override

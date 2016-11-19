@@ -1,13 +1,14 @@
 package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.concurrent.WriteOnceRef;
+import com.bytex.snamp.connector.md.notifications.*;
 import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LongCounter;
 
-import javax.management.MBeanNotificationInfo;
+import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import java.util.concurrent.ExecutorService;
@@ -24,7 +25,7 @@ import static com.bytex.snamp.internal.Utils.parallelForEach;
  * @since 2.0
  * @version 2.0
  */
-public class MessageDrivenNotificationRepository extends AbstractNotificationRepository<MBeanNotificationInfo> {
+public class MessageDrivenNotificationRepository extends AbstractNotificationRepository<MessageDrivenNotification> {
     private static final class MessageDrivenNotificationListenerInvoker extends WriteOnceRef<ExecutorService> implements NotificationListenerInvoker{
 
         @Override
@@ -42,7 +43,7 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
     private final LongCounter sequenceNumberProvider;
 
     public MessageDrivenNotificationRepository(final String resourceName) {
-        super(resourceName, MBeanNotificationInfo.class, false);
+        super(resourceName, MessageDrivenNotification.class, false);
         threadPool = new MessageDrivenNotificationListenerInvoker();
         logger = new WriteOnceRef<>();
         sequenceNumberProvider = DistributedServices.getDistributedCounter(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName));
@@ -55,7 +56,7 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
 
     public void handleNotification(final Notification notification) {
         notification.setSequenceNumber(sequenceNumberProvider.getAsLong());
-        fire(notification.getType(), holder -> notification);
+        fire(notification.getType(), holder -> holder.isNotificationEnabled(notification) ? notification : null);
     }
 
     /**
@@ -69,8 +70,25 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
     }
 
     @Override
-    protected MBeanNotificationInfo connectNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
-        return null;
+    protected MessageDrivenNotification connectNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
+        switch (notifType){
+            case AttributeChangeNotification.ATTRIBUTE_CHANGE:
+                return new MessageDrivenNotification(notifType, AttributeChangeNotification.class, "Occurs when one of registered attribute will be changed", metadata);
+            case TimeMeasurementNotification.TYPE:
+                return new MessageDrivenNotification(notifType, TimeMeasurementNotification.class, "Occurs when time measurement will be supplied", metadata);
+            case SpanNotification.TYPE:
+                return new MessageDrivenNotification(notifType, SpanNotification.class, "Occurs when span will be occurred", metadata);
+            case BooleanMeasurementNotification.TYPE:
+                return new MessageDrivenNotification(notifType, BooleanMeasurementNotification.class, "Occurs when boolean measurement will be supplied", metadata);
+            case FloatingPointMeasurementNotification.TYPE:
+                return new MessageDrivenNotification(notifType, FloatingPointMeasurementNotification.class, "Occurs when floating-point measurement will be supplied", metadata);
+            case IntegerMeasurementNotification.TYPE:
+                return new MessageDrivenNotification(notifType, IntegerMeasurementNotification.class, "Occurs when integer measurement will be supplied", metadata);
+            case StringMeasurementNotification.TYPE:
+                return new MessageDrivenNotification(notifType, StringMeasurementNotification.class, "Occurs when string measurement will be supplied", metadata);
+            default:
+                return new MessageDrivenNotification(notifType, metadata);
+        }
     }
 
     @Override

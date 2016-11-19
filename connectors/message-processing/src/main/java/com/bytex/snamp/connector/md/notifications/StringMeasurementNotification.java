@@ -11,10 +11,11 @@ import java.util.function.UnaryOperator;
  * @version 2.0
  */
 public final class StringMeasurementNotification extends ValueMeasurementNotification<StringMeasurement> implements Supplier<String>, UnaryOperator<String> {
+    public static final String TYPE = "com.bytex.snamp.measurement.stringSupplied";
     private static final long serialVersionUID = -3133093532382654999L;
 
     public StringMeasurementNotification(Object source, StringMeasurement measurement) {
-        super(source, measurement, "String supplied");
+        super(TYPE, source, measurement, "String supplied");
     }
 
     @Override

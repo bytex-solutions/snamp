@@ -11,10 +11,11 @@ import java.util.function.DoubleUnaryOperator;
  * @version 2.0
  */
 public final class FloatingPointMeasurementNotification extends ValueMeasurementNotification<FloatingPointMeasurement> implements DoubleSupplier, DoubleUnaryOperator {
+    public static final String TYPE = "com.bytex.snamp.measurement.realSupplied";
     private static final long serialVersionUID = -7087035677342085686L;
 
     public FloatingPointMeasurementNotification(Object source, FloatingPointMeasurement measurement) {
-        super(source, measurement, "Floating-point number supplied");
+        super(TYPE, source, measurement, "Floating-point number supplied");
     }
 
     @Override

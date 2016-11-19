@@ -13,6 +13,7 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 
+import javax.management.Descriptor;
 import javax.management.NotificationFilter;
 import javax.management.openmbean.CompositeData;
 import java.time.Duration;
@@ -104,12 +105,43 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
         }
     }
 
+    protected static class EventConfigurationDescription extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
+        private static final String RESOURCE_NAME = "EventConfiguration";
+        private final ResourceReader fallbackReader;
+        private static final String[] DEFAULT_ATTRIBUTES = {FILTER_PARAM};
+
+        /**
+         * Initializes a new resource-based descriptor.
+         *
+         * @param baseName   The name of the resource.
+         * @param parameters An array of configuration parameters.
+         */
+        protected EventConfigurationDescription(final String baseName, final String... parameters) {
+            super(baseName, EventConfiguration.class, ObjectArrays.concat(parameters, DEFAULT_ATTRIBUTES, String.class));
+            fallbackReader = new ResourceReader(AttributeConfigurationDescription.class, RESOURCE_NAME);
+        }
+
+        private EventConfigurationDescription(){
+            super(RESOURCE_NAME, EventConfiguration.class);
+            fallbackReader = null;
+        }
+
+        public static EventConfigurationDescription createDefault(){
+            return new EventConfigurationDescription();
+        }
+
+        @Override
+        protected final Optional<String> getStringFallback(final String key, final Locale loc) {
+            return fallbackReader != null ? fallbackReader.getString(key, loc) : null;
+        }
+    }
+
     protected MessageDrivenConnectorConfigurationDescriptor(final ConfigurationEntityDescription<?>... descriptions){
         super(descriptions);
     }
 
     protected MessageDrivenConnectorConfigurationDescriptor(){
-        super(ConnectorConfigurationDescription.createDefault(), AttributeConfigurationDescription.createDefault());
+        super(ConnectorConfigurationDescription.createDefault(), AttributeConfigurationDescription.createDefault(), EventConfigurationDescription.createDefault());
     }
 
     protected String parseComponentInstance(final Map<String, String> parameters){
@@ -161,7 +193,7 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
         return getField(descriptor, CHANNELS_PARAM, Convert::toLong, () -> 1L);
     }
 
-    static NotificationFilter parseNotificationFilter(final AttributeDescriptor descriptor) throws InvalidSyntaxException {
+    static NotificationFilter parseNotificationFilter(final Descriptor descriptor) throws InvalidSyntaxException {
         final String filter = getField(descriptor, FILTER_PARAM, String::valueOf, () -> "");
         if(filter.isEmpty())
             return notification -> true;
