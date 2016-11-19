@@ -18,6 +18,17 @@ public final class BooleanMeasurement extends ValueMeasurement {
     private boolean value;
 
     /**
+     * Represents simple type name of the value supplied by this measurement.
+     *
+     * @return Type name.
+     */
+    @Override
+    @JsonIgnore
+    public Class<Boolean> getType() {
+        return boolean.class;
+    }
+
+    /**
      * Gets value provided by this measurement.
      *
      * @return Measurement value.

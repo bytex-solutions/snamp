@@ -1,8 +1,9 @@
 package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.md.notifications.FloatingPointMeasurementNotification;
+import com.bytex.snamp.connector.md.notifications.ValueMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RangedGaugeFPRecorder;
+import com.bytex.snamp.instrumentation.FloatingPointMeasurement;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
@@ -16,13 +17,13 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRangedFP;
  * @since 2.0
  * @version 2.0
  */
-final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRecorder, FloatingPointMeasurementNotification> {
+final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRecorder, ValueMeasurementNotification> {
     static final CompositeType TYPE = RANGED_GAUGE_FP_TYPE;
     static final String NAME = "rangedGaugeFP";
     private static final long serialVersionUID = -5234028741040752357L;
 
     private RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor, final double rangeStart, final double rangeEnd) throws InvalidSyntaxException {
-        super(FloatingPointMeasurementNotification.class, name, TYPE, descriptor, (n) -> new RangedGaugeFPRecorder(n, rangeStart, rangeEnd));
+        super(ValueMeasurementNotification.class, name, TYPE, descriptor, (n) -> new RangedGaugeFPRecorder(n, rangeStart, rangeEnd));
     }
 
     RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
@@ -38,12 +39,12 @@ final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRe
     }
 
     @Override
-    void updateMetric(final RangedGaugeFPRecorder metric, final FloatingPointMeasurementNotification notification) {
-        metric.updateValue(notification);
+    void updateMetric(final RangedGaugeFPRecorder metric, final ValueMeasurementNotification notification) {
+        notification.getMeasurement(FloatingPointMeasurement.class).ifPresent(measurement -> metric.updateValue(measurement::getValue));
     }
 
     @Override
-    protected boolean isNotificationEnabled(final FloatingPointMeasurementNotification notification) {
-        return representsMeasurement(notification);
+    protected boolean isNotificationEnabled(final ValueMeasurementNotification notification) {
+        return representsMeasurement(notification) && notification.isMeasurement(FloatingPointMeasurement.class);
     }
 }

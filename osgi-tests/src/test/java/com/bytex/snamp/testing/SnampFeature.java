@@ -12,6 +12,7 @@ public enum SnampFeature {
     JMX_CONNECTOR("jmx-connector-feature", "2.0.0"),
     COMPOSITE_CONNECTOR("composite-connector-feature", "2.0.0"),
     SNMP_GATEWAY("snmp-gateway-feature", "2.0.0"),
+    INFLUX_GATEWAY("influx-gateway-feature", "2.0.0"),
     JMX_GATEWAY("jmx-gateway-feature", "2.0.0"),
     SNMP_CONNECTOR("snmp-connector-feature", "2.0.0"),
     RSHELL_CONNECTOR("rshell-connector-feature", "2.0.0"),

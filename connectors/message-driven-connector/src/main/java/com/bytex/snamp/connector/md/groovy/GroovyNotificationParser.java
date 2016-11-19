@@ -61,10 +61,10 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
         converter = new NotificationConverter()
                 .registerConverter(Span.class, SpanNotification::new)
                 .registerConverter(TimeMeasurement.class, TimeMeasurementNotification::new)
-                .registerConverter(BooleanMeasurement.class, BooleanMeasurementNotification::new)
-                .registerConverter(IntegerMeasurement.class, IntegerMeasurementNotification::new)
-                .registerConverter(FloatingPointMeasurement.class, FloatingPointMeasurementNotification::new)
-                .registerConverter(StringMeasurement.class, StringMeasurementNotification::new)
+                .registerConverter(BooleanMeasurement.class, ValueMeasurementNotification::new)
+                .registerConverter(IntegerMeasurement.class, ValueMeasurementNotification::new)
+                .registerConverter(FloatingPointMeasurement.class, ValueMeasurementNotification::new)
+                .registerConverter(StringMeasurement.class, ValueMeasurementNotification::new)
                 .registerConverter(Notification.class, (source, notification) -> {
                     notification.setSource(source);
                     return notification;

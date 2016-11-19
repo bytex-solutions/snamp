@@ -78,14 +78,8 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
                 return new MessageDrivenNotification(notifType, TimeMeasurementNotification.class, "Occurs when time measurement will be supplied", metadata);
             case SpanNotification.TYPE:
                 return new MessageDrivenNotification(notifType, SpanNotification.class, "Occurs when span will be occurred", metadata);
-            case BooleanMeasurementNotification.TYPE:
-                return new MessageDrivenNotification(notifType, BooleanMeasurementNotification.class, "Occurs when boolean measurement will be supplied", metadata);
-            case FloatingPointMeasurementNotification.TYPE:
-                return new MessageDrivenNotification(notifType, FloatingPointMeasurementNotification.class, "Occurs when floating-point measurement will be supplied", metadata);
-            case IntegerMeasurementNotification.TYPE:
-                return new MessageDrivenNotification(notifType, IntegerMeasurementNotification.class, "Occurs when integer measurement will be supplied", metadata);
-            case StringMeasurementNotification.TYPE:
-                return new MessageDrivenNotification(notifType, StringMeasurementNotification.class, "Occurs when string measurement will be supplied", metadata);
+            case ValueMeasurementNotification.TYPE:
+                return new MessageDrivenNotification(notifType, ValueMeasurementNotification.class, "Occurs when instant measurement will be supplied", metadata);
             default:
                 return new MessageDrivenNotification(notifType, metadata);
         }

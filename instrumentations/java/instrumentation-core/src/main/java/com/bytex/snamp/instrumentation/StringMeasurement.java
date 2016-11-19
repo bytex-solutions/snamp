@@ -28,6 +28,17 @@ public final class StringMeasurement extends ValueMeasurement {
         return value;
     }
 
+    /**
+     * Represents simple type name of the value supplied by this measurement.
+     *
+     * @return Type name.
+     */
+    @Override
+    @JsonIgnore
+    public Class<String> getType() {
+        return String.class;
+    }
+
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeUTF(value);

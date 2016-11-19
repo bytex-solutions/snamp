@@ -1,8 +1,9 @@
 package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.md.notifications.IntegerMeasurementNotification;
+import com.bytex.snamp.connector.md.notifications.ValueMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RangedGauge64Recorder;
+import com.bytex.snamp.instrumentation.IntegerMeasurement;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
@@ -16,13 +17,13 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRatedGauge64;
  * @since 2.0
  * @version 2.0
  */
-final class RangedGauge64Attribute extends MetricHolderAttribute<RangedGauge64Recorder, IntegerMeasurementNotification> {
+final class RangedGauge64Attribute extends MetricHolderAttribute<RangedGauge64Recorder, ValueMeasurementNotification> {
     static final CompositeType TYPE = RANGED_GAUGE_64_TYPE;
     static final String NAME = "rangedGauge64";
     private static final long serialVersionUID = -5234028741040752357L;
 
     private RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor, final long rangeStart, final long rangeEnd) throws InvalidSyntaxException {
-        super(IntegerMeasurementNotification.class, name, TYPE, descriptor, (n) -> new RangedGauge64Recorder(n, rangeStart, rangeEnd));
+        super(ValueMeasurementNotification.class, name, TYPE, descriptor, (n) -> new RangedGauge64Recorder(n, rangeStart, rangeEnd));
     }
 
     RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
@@ -38,12 +39,12 @@ final class RangedGauge64Attribute extends MetricHolderAttribute<RangedGauge64Re
     }
 
     @Override
-    void updateMetric(final RangedGauge64Recorder metric, final IntegerMeasurementNotification notification) {
-        metric.updateValue(notification);
+    void updateMetric(final RangedGauge64Recorder metric, final ValueMeasurementNotification notification) {
+        notification.getMeasurement(IntegerMeasurement.class).ifPresent(measurement -> metric.updateValue(measurement::getValue));
     }
 
     @Override
-    protected boolean isNotificationEnabled(final IntegerMeasurementNotification notification) {
-        return representsMeasurement(notification);
+    protected boolean isNotificationEnabled(final ValueMeasurementNotification notification) {
+        return representsMeasurement(notification) && notification.isMeasurement(IntegerMeasurement.class);
     }
 }

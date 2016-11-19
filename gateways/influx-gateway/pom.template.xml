@@ -46,6 +46,9 @@
                         <Import-Package>
                             com.bytex.snamp,
                             com.bytex.snamp.gateway,
+                            com.bytex.snamp.connector.md,
+                            com.bytex.snamp.connector.md.notifications,
+                            com.bytex.snamp.instrumentation,
                             com.google.guava
                         </Import-Package>
                         <!--SNAMP specific header-->

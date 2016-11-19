@@ -99,6 +99,7 @@ public abstract class Measurement implements Externalizable {
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
+        out.writeUTF(name);
         out.writeUTF(instanceName);
         out.writeUTF(componentName);
         out.writeLong(timestamp);
@@ -112,6 +113,7 @@ public abstract class Measurement implements Externalizable {
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+        name = in.readUTF();
         instanceName = in.readUTF();
         componentName = in.readUTF();
         timestamp = in.readLong();

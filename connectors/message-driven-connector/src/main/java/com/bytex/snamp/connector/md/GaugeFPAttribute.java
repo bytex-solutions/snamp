@@ -1,8 +1,9 @@
 package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.md.notifications.FloatingPointMeasurementNotification;
+import com.bytex.snamp.connector.md.notifications.ValueMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RatedGaugeFPRecorder;
+import com.bytex.snamp.instrumentation.FloatingPointMeasurement;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
@@ -16,13 +17,13 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRatedGaugeFP;
  * @version 2.0
  * @since 2.0
  */
-final class GaugeFPAttribute extends MetricHolderAttribute<RatedGaugeFPRecorder, FloatingPointMeasurementNotification> {
+final class GaugeFPAttribute extends MetricHolderAttribute<RatedGaugeFPRecorder, ValueMeasurementNotification> {
     private static final long serialVersionUID = 4113436567386321873L;
     static final CompositeType TYPE = RATED_GAUGE_FP_TYPE;
     static final String NAME = "gaugeFP";
 
     GaugeFPAttribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
-        super(FloatingPointMeasurementNotification.class, name, TYPE, descriptor, RatedGaugeFPRecorder::new);
+        super(ValueMeasurementNotification.class, name, TYPE, descriptor, RatedGaugeFPRecorder::new);
     }
 
     @Override
@@ -32,12 +33,12 @@ final class GaugeFPAttribute extends MetricHolderAttribute<RatedGaugeFPRecorder,
 
 
     @Override
-    void updateMetric(final RatedGaugeFPRecorder metric, final FloatingPointMeasurementNotification notification) {
-        metric.updateValue(notification);
+    void updateMetric(final RatedGaugeFPRecorder metric, final ValueMeasurementNotification notification) {
+        notification.getMeasurement(FloatingPointMeasurement.class).ifPresent(measurement -> metric.updateValue(measurement::getValue));
     }
 
     @Override
-    protected boolean isNotificationEnabled(final FloatingPointMeasurementNotification notification) {
-        return representsMeasurement(notification);
+    protected boolean isNotificationEnabled(final ValueMeasurementNotification notification) {
+        return representsMeasurement(notification) && notification.isMeasurement(FloatingPointMeasurement.class);
     }
 }

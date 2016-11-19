@@ -19,6 +19,13 @@ public abstract class ValueMeasurement extends Measurement {
     }
 
     /**
+     * Represents simple type name of the value supplied by this measurement.
+     * @return Type name.
+     */
+    @JsonIgnore
+    public abstract Class<? extends Comparable<?>> getType();
+
+    /**
      * Gets value provided by this measurement.
      * @return Measurement value.
      */
