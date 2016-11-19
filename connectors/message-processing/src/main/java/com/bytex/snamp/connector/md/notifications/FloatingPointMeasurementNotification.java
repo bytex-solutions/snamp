@@ -14,7 +14,7 @@ public final class FloatingPointMeasurementNotification extends ValueMeasurement
     private static final long serialVersionUID = -7087035677342085686L;
 
     public FloatingPointMeasurementNotification(Object source, FloatingPointMeasurement measurement) {
-        super(source, measurement);
+        super(source, measurement, "Floating-point number supplied");
     }
 
     @Override

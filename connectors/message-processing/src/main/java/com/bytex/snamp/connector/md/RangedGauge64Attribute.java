@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.IntegerMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RangedGauge64Recorder;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -20,11 +21,11 @@ final class RangedGauge64Attribute extends MetricHolderAttribute<RangedGauge64Re
     static final String NAME = "rangedGauge64";
     private static final long serialVersionUID = -5234028741040752357L;
 
-    private RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor, final long rangeStart, final long rangeEnd){
+    private RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor, final long rangeStart, final long rangeEnd) throws InvalidSyntaxException {
         super(IntegerMeasurementNotification.class, name, TYPE, descriptor, (n) -> new RangedGauge64Recorder(n, rangeStart, rangeEnd));
     }
 
-    RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+    RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
         this(name,
                 descriptor,
                 MessageDrivenConnectorConfigurationDescriptor.parseRangeStartAsLong(descriptor),

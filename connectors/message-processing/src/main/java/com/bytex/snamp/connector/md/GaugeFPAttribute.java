@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.FloatingPointMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RatedGaugeFPRecorder;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -20,7 +21,7 @@ final class GaugeFPAttribute extends MetricHolderAttribute<RatedGaugeFPRecorder,
     static final CompositeType TYPE = RATED_GAUGE_FP_TYPE;
     static final String NAME = "gaugeFP";
 
-    GaugeFPAttribute(final String name, final AttributeDescriptor descriptor) {
+    GaugeFPAttribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(FloatingPointMeasurementNotification.class, name, TYPE, descriptor, RatedGaugeFPRecorder::new);
     }
 

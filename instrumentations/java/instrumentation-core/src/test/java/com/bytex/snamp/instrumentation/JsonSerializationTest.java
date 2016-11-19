@@ -19,13 +19,11 @@ public final class JsonSerializationTest extends Assert {
         original.setDefaultComponentName();
         original.setDefaultInstanceName();
         original.setValue(42L);
-        original.setMessage("Message");
         original.getUserData().put("key", "value");
         final ObjectMapper mapper = new ObjectMapper();
         final Measurement actual = mapper.readValue(original.toJsonString(), Measurement.class);
         assertTrue(actual instanceof IntegerMeasurement);
         assertEquals(original.getValue(), ((IntegerMeasurement)actual).getValue());
-        assertEquals(original.getMessage(), actual.getMessage());
         assertEquals(original.getTimeStamp(), actual.getTimeStamp());
         assertEquals(original.getUserData(), actual.getUserData());
         assertEquals(original.getChangeType(), ((ValueMeasurement) actual).getChangeType());
@@ -37,7 +35,6 @@ public final class JsonSerializationTest extends Assert {
         original.setDefaultComponentName();
         original.setDefaultInstanceName();
         original.setDuration(42L, TimeUnit.NANOSECONDS);
-        original.setMessage("Message");
         original.getUserData().put("key", "value");
         final ObjectMapper mapper = new ObjectMapper();
         final StringWriter writer = new StringWriter(1024);
@@ -46,7 +43,6 @@ public final class JsonSerializationTest extends Assert {
         writer.close();
         assertTrue(actual instanceof TimeMeasurement);
         assertEquals(original.getDuration(TimeUnit.NANOSECONDS), ((TimeMeasurement)actual).getDuration(TimeUnit.NANOSECONDS));
-        assertEquals(original.getMessage(), actual.getMessage());
         assertEquals(original.getTimeStamp(), actual.getTimeStamp());
         assertEquals(original.getUserData(), actual.getUserData());
     }
@@ -58,7 +54,6 @@ public final class JsonSerializationTest extends Assert {
         original.setDefaultInstanceName();
         original.setDuration(42L, TimeUnit.NANOSECONDS);
         original.setSpanID(Identifier.ofString("SPAN-ID"));
-        original.setMessage("Message");
         original.getUserData().put("key", "value");
         final ObjectMapper mapper = new ObjectMapper();
         final StringWriter writer = new StringWriter(1024);
@@ -67,7 +62,6 @@ public final class JsonSerializationTest extends Assert {
         writer.close();
         assertTrue(actual instanceof Span);
         assertEquals(original.getDuration(TimeUnit.NANOSECONDS), ((TimeMeasurement)actual).getDuration(TimeUnit.NANOSECONDS));
-        assertEquals(original.getMessage(), actual.getMessage());
         assertEquals(original.getTimeStamp(), actual.getTimeStamp());
         assertEquals(original.getUserData(), actual.getUserData());
         assertEquals(original.getSpanID(), ((Span) actual).getSpanID());

@@ -37,18 +37,23 @@ public abstract class Measurement implements Externalizable {
     static final String VALUE_JSON_PROPERTY = "v";
     private static final long serialVersionUID = -5122847206545823797L;
 
+    private static final String MESSAGE_FIELD = "message";
     private String instanceName;
     private String componentName;
-    private String message;
     private long timestamp;
     private final LinkedHashMap<String, String> userData;
     private long sequenceNumber;
 
     Measurement(){
-        instanceName = componentName = message = "";
         timestamp = System.currentTimeMillis();
         userData = new LinkedHashMap<String, String>();
         sequenceNumber = 0L;
+    }
+
+    @JsonIgnore
+    public final String getMessage(final String defaultMessage){
+        final String message = userData.get(MESSAGE_FIELD);
+        return message == null || message.isEmpty() ? defaultMessage : message;
     }
 
     @JsonProperty("seq")
@@ -74,7 +79,6 @@ public abstract class Measurement implements Externalizable {
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeUTF(instanceName);
         out.writeUTF(componentName);
-        out.writeUTF(message);
         out.writeLong(timestamp);
         //save user data
         out.writeInt(userData.size());
@@ -88,7 +92,6 @@ public abstract class Measurement implements Externalizable {
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         instanceName = in.readUTF();
         componentName = in.readUTF();
-        message = in.readUTF();
         timestamp = in.readLong();
         //load user data
         for (int size = in.readInt(); size > 0; size--)
@@ -190,15 +193,6 @@ public abstract class Measurement implements Externalizable {
         instanceName = value;
     }
 
-    @JsonProperty("m")
-    public final String getMessage(){
-        return message;
-    }
-
-    public final void setMessage(final String value){
-        message = value;
-    }
-
     @JsonProperty("t")
     public final long getTimeStamp(){
         return timestamp;
@@ -218,7 +212,6 @@ public abstract class Measurement implements Externalizable {
         return getClass().getSimpleName() + '{' +
                 "instanceName='" + instanceName + '\'' +
                 ", componentName='" + componentName + '\'' +
-                ", message='" + message + '\'' +
                 ", timestamp=" + timestamp +
                 ", userData=" + userData +
                 ", sequenceNumber=" + sequenceNumber +

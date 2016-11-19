@@ -14,7 +14,7 @@ public final class IntegerMeasurementNotification extends ValueMeasurementNotifi
     private static final long serialVersionUID = 1741159938641920680L;
 
     public IntegerMeasurementNotification(Object source, IntegerMeasurement measurement) {
-        super(source, measurement);
+        super(source, measurement, "Integer value supplied");
     }
 
     @Override

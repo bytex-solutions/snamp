@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.Notification;
 import javax.management.openmbean.OpenType;
@@ -22,7 +23,7 @@ public abstract class DistributedAttribute<T, N extends Notification> extends Ty
                                    final String name,
                                    final OpenType<T> type,
                                    final String description,
-                                   final AttributeDescriptor descriptor) {
+                                   final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(notificationType, name, type, description, AttributeSpecifier.READ_ONLY, descriptor);
     }
 

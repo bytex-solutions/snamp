@@ -12,8 +12,8 @@ public abstract class ValueMeasurementNotification<M extends ValueMeasurement> e
     private static final long serialVersionUID = 71426758878763361L;
     private final M measurement;
 
-    ValueMeasurementNotification(final Object source, final M measurement) {
-        super(TYPE, source);
+    ValueMeasurementNotification(final Object source, final M measurement, final String message) {
+        super(TYPE, source, message);
         this.measurement = Objects.requireNonNull(measurement);
     }
 

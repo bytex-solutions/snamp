@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.Notification;
 import javax.management.NotificationFilter;
@@ -25,7 +26,7 @@ abstract class TypedMessageDrivenAttribute<N extends Notification> extends Messa
                                 final OpenType<?> type,
                                 final String description,
                                 final AttributeSpecifier specifier,
-                                final AttributeDescriptor descriptor) {
+                                final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(name, type, description, specifier, descriptor);
         expectedType = Objects.requireNonNull(notificationType);
         filter = MessageDrivenConnectorConfigurationDescriptor.parseNotificationFilter(descriptor);

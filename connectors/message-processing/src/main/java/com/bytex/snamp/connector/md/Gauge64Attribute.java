@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.IntegerMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RatedGauge64Recorder;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -20,7 +21,7 @@ final class Gauge64Attribute extends MetricHolderAttribute<RatedGauge64Recorder,
     static final String NAME = "gauge64";
     private static final long serialVersionUID = -5234028741040752357L;
 
-    Gauge64Attribute(final String name, final AttributeDescriptor descriptor) {
+    Gauge64Attribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(IntegerMeasurementNotification.class, name, TYPE, descriptor, RatedGauge64Recorder::new);
     }
 

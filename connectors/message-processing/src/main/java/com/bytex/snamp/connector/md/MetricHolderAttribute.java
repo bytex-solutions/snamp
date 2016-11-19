@@ -4,6 +4,7 @@ import com.bytex.snamp.Stateful;
 import com.bytex.snamp.concurrent.LockManager;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.AbstractMetric;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
@@ -39,7 +40,7 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
                           final String name,
                           final CompositeType type,
                           final AttributeDescriptor descriptor,
-                          final Function<? super String, ? extends M> metricFactory) {
+                          final Function<? super String, ? extends M> metricFactory) throws InvalidSyntaxException {
         super(notificationType, name, type, type.getDescription(), descriptor);
         metric = metricFactory.apply(name);
         assert metric != null;

@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.BooleanMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RatedFlagRecorder;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -18,7 +19,7 @@ final class FlagAttribute extends MetricHolderAttribute<RatedFlagRecorder, Boole
     static final String NAME = "flag";
     private static final long serialVersionUID = -5234028741040752357L;
 
-    FlagAttribute(final String name, final AttributeDescriptor descriptor) {
+    FlagAttribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(BooleanMeasurementNotification.class, name, TYPE, descriptor, RatedFlagRecorder::new);
     }
 

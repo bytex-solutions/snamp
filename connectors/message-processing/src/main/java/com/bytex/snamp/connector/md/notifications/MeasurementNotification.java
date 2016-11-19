@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.md.notifications;
 import com.bytex.snamp.instrumentation.Measurement;
 
 import javax.management.Notification;
-import java.util.Objects;
+
 import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
@@ -15,8 +15,9 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 public abstract class MeasurementNotification<M extends Measurement> extends Notification {
     private static final long serialVersionUID = 3373809208171833571L;
 
-    MeasurementNotification(final String type, final Object source) {
-        super(type, source, 0L);
+    MeasurementNotification(final String type, final Object source, final String message) {
+        super(type, source, 0L, message);
+
     }
 
     public final String getComponentName(){
@@ -43,8 +44,8 @@ public abstract class MeasurementNotification<M extends Measurement> extends Not
     }
 
     @Override
-    public final String getMessage() {
-        return getMeasurement().getMessage();
+    public final String getMessage(){
+        return getMeasurement().getMessage(super.getMessage());
     }
 
     @Override

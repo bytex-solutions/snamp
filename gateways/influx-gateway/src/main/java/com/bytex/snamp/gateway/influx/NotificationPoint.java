@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway.influx;
 
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 
@@ -22,6 +23,8 @@ final class NotificationPoint extends NotificationAccessor {
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
+        if(notification instanceof AttributeChangeNotification){
 
+        }
     }
 }

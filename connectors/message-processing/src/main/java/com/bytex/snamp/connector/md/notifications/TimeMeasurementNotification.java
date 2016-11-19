@@ -17,11 +17,11 @@ public class TimeMeasurementNotification extends MeasurementNotification<TimeMea
     private final TimeMeasurement measurement;
 
     public TimeMeasurementNotification(final Object source, final TimeMeasurement measurement) {
-        this(TYPE, source, measurement);
+        this(TYPE, source, measurement, "Time measurement supplied");
     }
 
-    TimeMeasurementNotification(final String type, final Object source, final TimeMeasurement measurement) {
-        super(type, source);
+    TimeMeasurementNotification(final String type, final Object source, final TimeMeasurement measurement, final String message) {
+        super(type, source, message);
         this.measurement = Objects.requireNonNull(measurement);
     }
 

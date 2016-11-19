@@ -14,7 +14,7 @@ public final class StringMeasurementNotification extends ValueMeasurementNotific
     private static final long serialVersionUID = -3133093532382654999L;
 
     public StringMeasurementNotification(Object source, StringMeasurement measurement) {
-        super(source, measurement);
+        super(source, measurement, "String supplied");
     }
 
     @Override

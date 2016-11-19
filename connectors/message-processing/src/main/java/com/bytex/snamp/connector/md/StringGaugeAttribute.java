@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.StringMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RatedStringGaugeRecorder;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -21,7 +22,7 @@ final class StringGaugeAttribute extends MetricHolderAttribute<RatedStringGaugeR
     static final String NAME = "stringGauge";
     private static final long serialVersionUID = -5234028741040752357L;
 
-    StringGaugeAttribute(final String name, final AttributeDescriptor descriptor) {
+    StringGaugeAttribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(StringMeasurementNotification.class, name, TYPE, descriptor, RatedStringGaugeRecorder::new);
     }
 

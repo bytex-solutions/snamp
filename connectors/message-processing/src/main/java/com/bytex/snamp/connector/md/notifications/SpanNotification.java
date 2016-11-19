@@ -18,7 +18,7 @@ public final class SpanNotification extends TimeMeasurementNotification {
     private final Span measurement;
 
     public SpanNotification(final Object source, final Span measurement) {
-        super(TYPE, source, measurement);
+        super(TYPE, source, measurement, "Span detected");
         this.measurement = Objects.requireNonNull(measurement);
     }
 

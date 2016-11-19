@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.TimeMeasurementNotification;
 import com.bytex.snamp.connector.metrics.ArrivalsRecorder;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -21,7 +22,7 @@ final class ArrivalsAttribute extends MetricHolderAttribute<ArrivalsRecorder, Ti
     private static final long serialVersionUID = -5234028741040752357L;
     private final long channels;
 
-    ArrivalsAttribute(final String name, final AttributeDescriptor descriptor) {
+    ArrivalsAttribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(TimeMeasurementNotification.class, name, TYPE, descriptor, ArrivalsRecorder::new);
         channels = MessageDrivenConnectorConfigurationDescriptor.parseChannels(descriptor);
     }

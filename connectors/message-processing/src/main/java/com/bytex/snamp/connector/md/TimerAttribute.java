@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.TimeMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RatedTimeRecorder;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -18,7 +19,7 @@ final class TimerAttribute extends MetricHolderAttribute<RatedTimeRecorder, Time
     static final String NAME = "timer";
     private static final long serialVersionUID = -5234028741040752357L;
 
-    TimerAttribute(final String name, final AttributeDescriptor descriptor) {
+    TimerAttribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(TimeMeasurementNotification.class, name, TYPE, descriptor, RatedTimeRecorder::new);
     }
 

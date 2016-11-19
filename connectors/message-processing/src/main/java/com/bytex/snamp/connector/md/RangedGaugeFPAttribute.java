@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.FloatingPointMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RangedGaugeFPRecorder;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
@@ -20,11 +21,11 @@ final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRe
     static final String NAME = "rangedGaugeFP";
     private static final long serialVersionUID = -5234028741040752357L;
 
-    private RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor, final double rangeStart, final double rangeEnd){
+    private RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor, final double rangeStart, final double rangeEnd) throws InvalidSyntaxException {
         super(FloatingPointMeasurementNotification.class, name, TYPE, descriptor, (n) -> new RangedGaugeFPRecorder(n, rangeStart, rangeEnd));
     }
 
-    RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
+    RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
         this(name,
                 descriptor,
                 MessageDrivenConnectorConfigurationDescriptor.parseRangeStartAsDouble(descriptor),

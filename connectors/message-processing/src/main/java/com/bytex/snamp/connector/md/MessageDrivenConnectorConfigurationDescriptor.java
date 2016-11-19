@@ -5,16 +5,21 @@ import com.bytex.snamp.ResourceReader;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
+import com.bytex.snamp.jmx.CompositeDataUtils;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.NotificationFilter;
+import javax.management.openmbean.CompositeData;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsLong;
@@ -156,11 +161,20 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
         return getField(descriptor, CHANNELS_PARAM, Convert::toLong, () -> 1L);
     }
 
-    static NotificationFilter parseNotificationFilter(final AttributeDescriptor descriptor){
+    static NotificationFilter parseNotificationFilter(final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         final String filter = getField(descriptor, FILTER_PARAM, String::valueOf, () -> "");
         if(filter.isEmpty())
             return notification -> true;
-        final Predicate<String> messageFilter = Pattern.compile(filter).asPredicate();
-        return notification -> messageFilter.test(notification.getMessage());
+        final Filter ldapFilter = FrameworkUtil.createFilter(filter);
+        return notification -> {
+            final Map<String, ?> dataToFilter;
+            if(notification instanceof MeasurementNotification<?>)
+                dataToFilter = ((MeasurementNotification<?>) notification).getMeasurement().getUserData();
+            else if(notification.getUserData() instanceof CompositeData)
+                dataToFilter = CompositeDataUtils.toMap((CompositeData) notification.getUserData());
+            else
+                dataToFilter = ImmutableMap.of("userData", notification.getUserData());
+            return ldapFilter.matches(dataToFilter);
+        };
     }
 }

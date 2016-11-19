@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.RateRecorder;
+import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
@@ -18,7 +19,7 @@ final class NotificationRateAttribute extends MetricHolderAttribute<RateRecorder
     static final String NAME = "notificationRate";
     private static final long serialVersionUID = -5234028741040752357L;
 
-    NotificationRateAttribute(final String name, final AttributeDescriptor descriptor) {
+    NotificationRateAttribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(Notification.class, name, TYPE, descriptor, RateRecorder::new);
     }
 

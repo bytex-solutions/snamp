@@ -115,24 +115,26 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     }
 
     private void attributeProcessed(final MessageDrivenAttribute attribute, final MessageDrivenAttribute.NotificationProcessingResult result) {
-        //log processing error if it was happened
-        final Optional<Throwable> processingError = result.getProcessingError();
-        if (processingError.isPresent()) {
-            getLogger().log(Level.SEVERE, String.format("Attribute '%s' has processing error", attribute.getName()), processingError.get());
-            return;
-        }
-        //fire AttributeChangeNotification
-        final Optional<Object> newAttributeValue = result.getAttributeValue();
-        if (newAttributeValue.isPresent()) {
-            final AttributeChangeNotification notification = new AttributeChangeNotification(this,
-                    0L,
-                    System.currentTimeMillis(),
-                    String.format("Attribute %s was changed", attribute.getName()),
-                    attribute.getName(),
-                    attribute.getType(),
-                    newAttributeValue.get(),
-                    newAttributeValue.get());
-            notifications.handleNotification(notification);
+        if(result.isProcessed()) {
+            //log processing error if it was happened
+            final Optional<Throwable> processingError = result.getProcessingError();
+            if (processingError.isPresent()) {
+                getLogger().log(Level.SEVERE, String.format("Attribute '%s' has processing error", attribute.getName()), processingError.get());
+                return;
+            }
+            //fire AttributeChangeNotification
+            final Optional<Object> newAttributeValue = result.getAttributeValue();
+            if (newAttributeValue.isPresent()) {
+                final AttributeChangeNotification notification = new AttributeChangeNotification(this,
+                        0L,
+                        System.currentTimeMillis(),
+                        String.format("Attribute %s was changed", attribute.getName()),
+                        attribute.getName(),
+                        attribute.getType(),
+                        newAttributeValue.get(),
+                        newAttributeValue.get());
+                notifications.handleNotification(notification);
+            }
         }
     }
 
