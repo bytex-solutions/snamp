@@ -4,7 +4,6 @@ import com.bytex.snamp.Convert;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.collect.ImmutableMap;
 import org.influxdb.dto.Point;
 
 import javax.management.*;
@@ -22,38 +21,33 @@ final class AttributePoint extends AttributeAccessor {
         super(metadata);
     }
 
+
     @SuppressWarnings("unchecked")
-    Map<String, Object> getMeasurementValues() throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        final String VALUE_FIELD = "value";
+    Point toPoint(final Map<String, String> tags) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         final WellKnownType type;
         final Map fields;
         switch (type = getType()) {
             case DATE:
-                fields = ImmutableMap.<String, Object>of(VALUE_FIELD, Convert.toDate(getValue()).getTime());
+                fields = Helpers.toScalar(Convert.toDate(getValue()).getTime());
                 break;
             case CHAR:
-                fields = ImmutableMap.<String, Object>of(VALUE_FIELD, String.valueOf(getValue()));
+                fields = Helpers.toScalar(String.valueOf(getValue()));
                 break;
             case DICTIONARY:
                 fields = CompositeDataUtils.toMap(getValue(CompositeData.class));
                 break;
             default:
                 if (type.isPrimitive())
-                    fields = ImmutableMap.of(VALUE_FIELD, getValue());
+                    fields = Helpers.toScalar(getValue());
                 else
                     throw new UnsupportedAttributeTypeException(getRawType());
         }
-        return fields;
-    }
-
-    @SuppressWarnings("unchecked")
-    Point toPoint(final Map<String, String> tags) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         //create point
         return Point
                 .measurement(getName())
                 .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                 .tag(tags)
-                .fields(getMeasurementValues())
+                .fields(fields)
                 .build();
     }
 }

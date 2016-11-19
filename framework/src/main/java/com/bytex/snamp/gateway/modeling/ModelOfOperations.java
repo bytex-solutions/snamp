@@ -39,7 +39,7 @@ public abstract class ModelOfOperations<TAccessor extends OperationAccessor> ext
      * @param <E>
      * @throws E
      */
-    public final <E extends Exception> void forEachOperation(final EntryReader<String, ? super TAccessor, E> operationReader) throws E{
+    public final <E extends Throwable> void forEachOperation(final EntryReader<String, ? super TAccessor, E> operationReader) throws E{
         forEachFeature(operationReader);
     }
 

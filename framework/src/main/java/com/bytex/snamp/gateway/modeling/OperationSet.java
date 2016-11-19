@@ -16,5 +16,5 @@ public interface OperationSet<TAccessor extends OperationAccessor> {
      * @param <E> Type of the exception that can be thrown by the reader.
      * @throws E Unable to process operation.
      */
-    <E extends Exception> void forEachOperation(final EntryReader<String, ? super TAccessor, E> operationReader) throws E;
+    <E extends Throwable> void forEachOperation(final EntryReader<String, ? super TAccessor, E> operationReader) throws E;
 }

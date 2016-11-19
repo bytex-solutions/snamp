@@ -9,7 +9,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
  */
 public final class InfluxGatewayActivator extends GatewayActivator<InfluxGateway> {
     public InfluxGatewayActivator() {
-        super(InfluxGatewayActivator::newGateway);
+        super(InfluxGatewayActivator::newGateway, configurationDescriptor(InfluxGatewayConfigurationDescriptionProvider::getInstance));
     }
 
     private static InfluxGateway newGateway(final String gatewayInstance,

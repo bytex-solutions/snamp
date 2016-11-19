@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * @version 2.0
  * @since 1.0
  */
-final class Bot implements ChatManagerListener, Closeable, SafeCloseable {
+final class Bot implements ChatManagerListener, AutoCloseable {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
     private static final class SayHelloLogicalOperation extends LogicalOperation {
         private static final CorrelationIdentifierGenerator CORREL_ID_GEN =
@@ -250,7 +250,7 @@ final class Bot implements ChatManagerListener, Closeable, SafeCloseable {
      * Releases all resources associated with this controller.
      */
     @Override
-    public void close() {
+    public void close() throws InterruptedException {
         closeAllChats();
         attributes.clear();
         notifications.clear();

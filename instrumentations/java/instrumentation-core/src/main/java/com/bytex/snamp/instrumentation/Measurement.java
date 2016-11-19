@@ -43,11 +43,33 @@ public abstract class Measurement implements Externalizable {
     private long timestamp;
     private final LinkedHashMap<String, String> userData;
     private long sequenceNumber;
+    private String name;
 
     Measurement(){
         timestamp = System.currentTimeMillis();
         userData = new LinkedHashMap<String, String>();
         sequenceNumber = 0L;
+        instanceName = componentName = name = "";
+    }
+
+
+    public final String getName(){
+        return name;
+    }
+
+    @JsonProperty("n")
+    public void setName(final String value){
+        if(name == null)
+            throw new IllegalArgumentException();
+        else
+            name = value;
+    }
+
+    public void setName(final StandardMeasurements value){
+        if(value == null)
+            throw new IllegalArgumentException();
+        else
+            name = value.getMeasurementName();
     }
 
     @JsonIgnore
@@ -65,7 +87,7 @@ public abstract class Measurement implements Externalizable {
         sequenceNumber = value;
     }
 
-    @JsonProperty("userData")
+    @JsonProperty("data")
     public final Map<String, String> getUserData(){
         return userData;
     }
@@ -193,6 +215,10 @@ public abstract class Measurement implements Externalizable {
         instanceName = value;
     }
 
+    /**
+     * Gets timestamp of this measurement.
+     * @return Timestamp of this measurement, in milliseconds.
+     */
     @JsonProperty("t")
     public final long getTimeStamp(){
         return timestamp;

@@ -54,7 +54,7 @@ final class XMPPGateway extends AbstractGateway {
     }
 
     @Override
-    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws InterruptedException {
         return Stream.concat(
                 chatBot.getAttributes().clear(resourceName).stream(),
                 chatBot.getNotifications().clear(resourceName).stream()
@@ -63,7 +63,7 @@ final class XMPPGateway extends AbstractGateway {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws InterruptedException {
         if(feature instanceof MBeanAttributeInfo)
             return (FeatureAccessor<M>) chatBot.getAttributes().removeAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)

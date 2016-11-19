@@ -19,6 +19,17 @@ public final class IntegerMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = 352280955315548002L;
     private long value;
 
+    /**
+     * Gets value provided by this measurement.
+     *
+     * @return Measurement value.
+     */
+    @Override
+    @JsonIgnore
+    public Long getRawValue() {
+        return value;
+    }
+
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeLong(value);

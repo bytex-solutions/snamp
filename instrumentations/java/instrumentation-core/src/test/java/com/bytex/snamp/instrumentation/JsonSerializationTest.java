@@ -14,11 +14,9 @@ import java.util.concurrent.TimeUnit;
 public final class JsonSerializationTest extends Assert {
     @Test
     public void intMeasurementSerialization() throws IOException {
-        IntegerMeasurement original = new IntegerMeasurement();
-        original.setChangeType(ChangeType.MAX);
+        final IntegerMeasurement original = StandardMeasurements.freeRam(100L);
         original.setDefaultComponentName();
         original.setDefaultInstanceName();
-        original.setValue(42L);
         original.getUserData().put("key", "value");
         final ObjectMapper mapper = new ObjectMapper();
         final Measurement actual = mapper.readValue(original.toJsonString(), Measurement.class);
@@ -31,7 +29,8 @@ public final class JsonSerializationTest extends Assert {
 
     @Test
     public void timeMeasurementSerialization() throws IOException {
-        TimeMeasurement original = new TimeMeasurement();
+        final TimeMeasurement original = new TimeMeasurement();
+        original.setName("responseTime");
         original.setDefaultComponentName();
         original.setDefaultInstanceName();
         original.setDuration(42L, TimeUnit.NANOSECONDS);
@@ -50,6 +49,7 @@ public final class JsonSerializationTest extends Assert {
     @Test
     public void spanSerialization() throws IOException {
         Span original = new Span();
+        original.setName("dbAccess");
         original.setDefaultComponentName();
         original.setDefaultInstanceName();
         original.setDuration(42L, TimeUnit.NANOSECONDS);

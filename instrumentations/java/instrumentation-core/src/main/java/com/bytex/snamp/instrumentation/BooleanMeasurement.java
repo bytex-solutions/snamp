@@ -17,6 +17,17 @@ public final class BooleanMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = -2769042034301266820L;
     private boolean value;
 
+    /**
+     * Gets value provided by this measurement.
+     *
+     * @return Measurement value.
+     */
+    @Override
+    @JsonIgnore
+    public Boolean getRawValue() {
+        return value;
+    }
+
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeBoolean(value);

@@ -17,6 +17,17 @@ public class FloatingPointMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = -5453349320908165683L;
     private double value;
 
+    /**
+     * Gets value provided by this measurement.
+     *
+     * @return Measurement value.
+     */
+    @Override
+    @JsonIgnore
+    public Double getRawValue() {
+        return value;
+    }
+
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeDouble(value);

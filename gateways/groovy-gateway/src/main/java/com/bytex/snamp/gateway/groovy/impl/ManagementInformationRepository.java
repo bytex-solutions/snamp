@@ -119,7 +119,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
             });
         }
 
-        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E{
+        private <E extends Throwable> void forEachNotificationImpl(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E{
             for (final ResourceNotificationList<ScriptNotificationAccessor> notifs : notifications.values())
                 for (final ScriptNotificationAccessor accessor : notifs.values())
                     if(!notificationReader.read(accessor.getResourceName(), accessor)) return;
@@ -132,7 +132,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
          * @throws E
          */
         @Override
-        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
+        public <E extends Throwable> void forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
             readLock.accept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
         }
     }
@@ -242,12 +242,12 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     }
 
     @Override
-    public <E extends Exception> void forEachAttribute(final EntryReader<String, ? super ScriptAttributeAccessor, E> attributeReader) throws E {
+    public <E extends Throwable> void forEachAttribute(final EntryReader<String, ? super ScriptAttributeAccessor, E> attributeReader) throws E {
         attributes.forEachAttribute(attributeReader);
     }
 
     @Override
-    public <E extends Exception> void forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
+    public <E extends Throwable> void forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
         notifications.forEachNotification(notificationReader);
     }
 }

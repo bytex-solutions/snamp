@@ -63,6 +63,18 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>message-driven-connector</artifactId>
+            <version>${snamp.connector.md.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>instrumentation-core</artifactId>
+            <version>${snamp.instrumentation.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>

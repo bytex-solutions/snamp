@@ -20,6 +20,18 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>com.bytex.snamp</groupId>
+      <artifactId>message-driven-connector</artifactId>
+      <version>2.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.bytex.snamp</groupId>
+      <artifactId>instrumentation-core</artifactId>
+      <version>1.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.core</artifactId>
     </dependency>
@@ -68,11 +80,9 @@
             <Bundle-SymbolicName>com.bytex.snamp.gateway.influx</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.gateway.influx.InfluxGatewayActivator</Bundle-Activator>
             <Export-Package />
-            <Import-Package>
-              com.bytex.snamp,
-              com.bytex.snamp.gateway,
-              com.google.guava
-            </Import-Package>
+            <Import-Package>com.bytex.snamp,
+                            com.bytex.snamp.gateway,
+                            com.google.guava</Import-Package>
             <Provide-Capability>com.bytex.snamp.gateway; type=influx</Provide-Capability>
           </instructions>
         </configuration>

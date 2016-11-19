@@ -4,11 +4,14 @@ import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import org.influxdb.InfluxDB;
+import org.influxdb.dto.BatchPoints;
+import org.influxdb.dto.Point;
 import org.influxdb.dto.Pong;
 
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanNotificationInfo;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -28,7 +31,7 @@ final class InfluxGateway extends AbstractGateway {
 
         @Override
         protected void doAction() throws JMException {
-            attributes.dumpPoints(database, databaseName);
+            attributes.dumpPoints(reporter);
         }
 
         @Override
@@ -56,10 +59,10 @@ final class InfluxGateway extends AbstractGateway {
             }
         }
     }
-    private InfluxDB database;
-    private String databaseName;
+    private Reporter reporter;
     private final InfluxModelOfAttributes attributes;
     private Repeater pointsUploader;
+    private final InfluxModelOfNotifications notifications;
 
     /**
      * Initializes a new instance of gateway.
@@ -69,6 +72,7 @@ final class InfluxGateway extends AbstractGateway {
     InfluxGateway(final String instanceName) {
         super(instanceName);
         attributes = new InfluxModelOfAttributes();
+        notifications = new InfluxModelOfNotifications(attributes);
     }
 
     @SuppressWarnings("unchecked")
@@ -76,13 +80,18 @@ final class InfluxGateway extends AbstractGateway {
     protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {
         if (feature instanceof MBeanAttributeInfo)
             return (FeatureAccessor<M>) attributes.addAttribute(resourceName, (MBeanAttributeInfo) feature);
+        else if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M>) notifications.addNotification(resourceName, (MBeanNotificationInfo) feature);
         else
             return null;
     }
 
     @Override
     protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
-        return attributes.clear(resourceName).stream();
+        return Stream.concat(
+                attributes.clear(resourceName).stream(),
+                notifications.clear(resourceName).stream()
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -90,30 +99,64 @@ final class InfluxGateway extends AbstractGateway {
     protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws Exception {
         if(feature instanceof MBeanAttributeInfo)
             return (FeatureAccessor<M>) attributes.removeAttribute(resourceName, (MBeanAttributeInfo) feature);
+        else if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M>) notifications.removeNotification(resourceName, (MBeanNotificationInfo) feature);
         else
             return null;
+    }
+
+    private static Reporter createReporter(final InfluxDB database, final String databaseName){
+        return new Reporter() {
+
+            @Override
+            public String getDatabaseName() {
+                return databaseName;
+            }
+
+            @Override
+            public String getRetentionPolicy() {
+                return database.version().startsWith("0.") ? "default" : "autogen";
+            }
+
+            @Override
+            public void report(final BatchPoints points) {
+                database.write(points);
+            }
+
+            @Override
+            public void report(final Point point) {
+                database.write(databaseName, getRetentionPolicy(), point);
+            }
+        };
     }
 
     @Override
     protected void start(final Map<String, String> parameters) throws InfluxGatewayAbsentConfigurationParameterException {
         final InfluxGatewayConfigurationDescriptionProvider parser = InfluxGatewayConfigurationDescriptionProvider.getInstance();
-        database = parser.createDB(parameters);
-        databaseName = parser.getDatabaseName(parameters);
-        database.createDatabase(databaseName);
-        final Pong databaseCheck = database.ping();
-        getLogger().info(String.format("InfluxDB is connected. Version: %s. Response time: %s", databaseCheck.getVersion(), databaseCheck.getResponseTime()));
-        final Duration uploadPeriod = parser.getUploadPeriod(parameters);
-        pointsUploader = new PointsUploader(uploadPeriod);
-        pointsUploader.run();
+        //initialize reporter
+        {
+            final InfluxDB database = parser.createDB(parameters);
+            final String databaseName = parser.getDatabaseName(parameters);
+            database.createDatabase(databaseName);
+            final Pong databaseCheck = database.ping();
+            getLogger().info(String.format("InfluxDB is connected. Version: %s. Response time: %s", databaseCheck.getVersion(), databaseCheck.getResponseTime()));
+            notifications.setReporter(reporter = createReporter(database, databaseName));
+        }
+        //initialize uploader as periodic task
+        {
+            final Duration uploadPeriod = parser.getUploadPeriod(parameters);
+            pointsUploader = new PointsUploader(uploadPeriod);
+            pointsUploader.run();
+        }
     }
 
     @Override
     protected void stop() throws InterruptedException, TimeoutException {
+        notifications.clear();
         try {
             pointsUploader.close(pointsUploader.getPeriod());
         } finally {
-            database = null;
-            databaseName = null;
+            reporter = null;
             pointsUploader = null;
             attributes.clear();
         }

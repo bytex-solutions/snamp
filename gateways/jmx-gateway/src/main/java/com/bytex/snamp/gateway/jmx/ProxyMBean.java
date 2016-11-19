@@ -492,7 +492,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         listeners.handleNotification(notification, handback);
     }
 
-    <E extends Exception> boolean forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
+    <E extends Throwable> boolean forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
         try (final SafeCloseable ignored = readLock.acquireLock(MBeanResources.ATTRIBUTES)) {
             for (final JmxAttributeAccessor accessor : attributes.values())
                 if (!attributeReader.read(resourceName, accessor))
@@ -501,7 +501,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         }
     }
 
-    <E extends Exception> boolean forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
+    <E extends Throwable> boolean forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
         try(final SafeCloseable ignored = readLock.acquireLock(MBeanResources.NOTIFICATIONS)){
             for(final JmxNotificationAccessor accessor: notifications.values())
                 if(!notificationReader.read(resourceName, accessor))
@@ -510,7 +510,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         }
     }
 
-    <E extends Exception> boolean forEachOperation(final EntryReader<String, ? super JmxOperationAccessor, E> operationReader) throws E {
+    <E extends Throwable> boolean forEachOperation(final EntryReader<String, ? super JmxOperationAccessor, E> operationReader) throws E {
         try(final SafeCloseable ignored = readLock.acquireLock(MBeanResources.OPERATIONS)){
             for(final JmxOperationAccessor accessor: operations.values())
                 if(!operationReader.read(resourceName, accessor))

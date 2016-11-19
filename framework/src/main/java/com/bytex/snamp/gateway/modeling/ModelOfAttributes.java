@@ -84,12 +84,14 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
         }
     }
 
+    @Override
     public final <E extends Throwable> boolean processAttribute(final String resourceName,
                                                                 final Predicate<? super TAccessor> filter,
                                                                 final Acceptor<? super TAccessor, E> processor) throws E {
         return processFeature(resourceName, filter, processor);
     }
 
+    @Override
     public final <E extends Throwable> boolean processAttribute(final String resourceName,
                                           final String attributeName,
                                           final Acceptor<? super TAccessor, E> processor) throws E {
@@ -113,7 +115,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      * @throws E Unable to process attribute.
      */
     @Override
-    public final <E extends Exception> void forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E {
+    public final <E extends Throwable> void forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E {
         forEachFeature(attributeReader);
     }
 }

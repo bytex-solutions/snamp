@@ -16,5 +16,5 @@ public interface NotificationSet<TAccessor extends NotificationAccessor> {
      * @param <E> Type of the exception that can be thrown by the reader.
      * @throws E Unable to process notification.
      */
-    <E extends Exception> void forEachNotification(final EntryReader<String, ? super TAccessor, E> notificationReader) throws E;
+    <E extends Throwable> void forEachNotification(final EntryReader<String, ? super TAccessor, E> notificationReader) throws E;
 }

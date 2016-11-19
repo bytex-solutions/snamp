@@ -1,5 +1,6 @@
 package com.bytex.snamp.instrumentation;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.io.IOException;
@@ -16,6 +17,13 @@ public abstract class ValueMeasurement extends Measurement {
     ValueMeasurement(){
         changeType = ChangeType.NEW_VALUE;
     }
+
+    /**
+     * Gets value provided by this measurement.
+     * @return Measurement value.
+     */
+    @JsonIgnore
+    public abstract Comparable<?> getRawValue();
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {

@@ -196,7 +196,7 @@ final class HttpGateway extends AbstractGateway {
             return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::addNotificationImpl);
         }
 
-        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E{
+        private <E extends Throwable> void forEachNotificationImpl(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E{
             for (final NotificationBroadcaster broadcaster : notifications.values())
                 for (final HttpNotificationAccessor accessor : broadcaster.notifications.values())
                     if(!notificationReader.read(broadcaster.resourceName, accessor))
@@ -204,7 +204,7 @@ final class HttpGateway extends AbstractGateway {
         }
 
         @Override
-        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
+        public <E extends Throwable> void forEachNotification(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
             readLock.accept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
         }
 

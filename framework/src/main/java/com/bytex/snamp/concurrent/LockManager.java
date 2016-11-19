@@ -190,7 +190,7 @@ public abstract class LockManager {
         }
     }
 
-    public static <I> boolean lockAndAccept(final Lock lock, final I input, final Consumer<? super I> consumer){
+    public static <I, E extends Throwable> boolean lockAndAccept(final Lock lock, final I input, final Acceptor<? super I, E> consumer) throws E{
         final boolean success;
         if(success = lockInterruptibly(lock))
             try{

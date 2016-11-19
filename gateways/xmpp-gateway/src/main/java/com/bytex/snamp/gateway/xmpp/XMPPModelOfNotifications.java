@@ -1,19 +1,22 @@
 package com.bytex.snamp.gateway.xmpp;
 
-import com.bytex.snamp.gateway.modeling.ResourceFeatureList;
-import com.google.common.collect.ImmutableList;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.gateway.modeling.MulticastNotificationListener;
 import com.bytex.snamp.gateway.modeling.NotificationSet;
+import com.bytex.snamp.gateway.modeling.ResourceFeatureList;
 import com.bytex.snamp.gateway.modeling.ResourceNotificationList;
-import com.bytex.snamp.EntryReader;
+import com.google.common.collect.ImmutableList;
 
 import javax.management.MBeanNotificationInfo;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
+
+import static com.bytex.snamp.concurrent.LockManager.lockAndAccept;
+import static com.bytex.snamp.concurrent.LockManager.lockAndApply;
 
 /**
  * @author Roman Sakno
@@ -29,76 +32,68 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
         lock = new ReentrantReadWriteLock();
     }
 
+    private XMPPNotificationAccessor enableNotificationsImpl(final String resourceName,
+                                                 final MBeanNotificationInfo metadata) {
+        final ResourceNotificationList<XMPPNotificationAccessor> resource;
+        if (notifications.containsKey(resourceName))
+            resource = notifications.get(resourceName);
+        else notifications.put(resourceName, resource = new ResourceNotificationList<>());
+        final XMPPNotificationAccessor router = new XMPPNotificationAccessor(metadata,
+                this,
+                resourceName);
+        resource.put(router);
+        return router;
+    }
+
     XMPPNotificationAccessor enableNotifications(final String resourceName,
-                             final MBeanNotificationInfo metadata) {
-        final Lock writeLock = lock.writeLock();
-        writeLock.lock();
-        try {
-            final ResourceNotificationList<XMPPNotificationAccessor> resource;
-            if (notifications.containsKey(resourceName))
-                resource = notifications.get(resourceName);
-            else notifications.put(resourceName, resource = new ResourceNotificationList<>());
-            final XMPPNotificationAccessor router = new XMPPNotificationAccessor(metadata,
-                    this,
-                    resourceName);
-            resource.put(router);
-            return router;
-        } finally {
-            writeLock.unlock();
-        }
+                             final MBeanNotificationInfo metadata) throws InterruptedException {
+        return lockAndApply(lock.writeLock(), resourceName, metadata, this::enableNotificationsImpl, Function.identity());
+    }
+
+    private XMPPNotificationAccessor disableNotificationsImpl(final String resourceName,
+                                                  final MBeanNotificationInfo metadata) {
+        final ResourceNotificationList<XMPPNotificationAccessor> resource =
+                notifications.get(resourceName);
+        if (resource == null) return null;
+        final XMPPNotificationAccessor accessor = resource.remove(metadata);
+        if (resource.isEmpty())
+            notifications.remove(resourceName);
+        return accessor;
+
     }
 
     XMPPNotificationAccessor disableNotifications(final String resourceName,
-                                              final MBeanNotificationInfo metadata){
-        final Lock writeLock = lock.writeLock();
-        writeLock.lock();
-        try{
-            final ResourceNotificationList<XMPPNotificationAccessor> resource =
-                    notifications.get(resourceName);
-            if(resource == null) return null;
-            final XMPPNotificationAccessor accessor = resource.remove(metadata);
-            if(resource.isEmpty())
+                                              final MBeanNotificationInfo metadata) throws InterruptedException {
+        return lockAndApply(lock.writeLock(), resourceName, metadata, this::disableNotificationsImpl, Function.identity());
+    }
+
+    private Collection<XMPPNotificationAccessor> clearImpl(final String resourceName) {
+        final ResourceNotificationList<XMPPNotificationAccessor> resource =
                 notifications.remove(resourceName);
-            return accessor;
-        } finally {
-            writeLock.unlock();
-        }
+        return resource != null ? resource.values() : ImmutableList.of();
     }
 
-    Collection<XMPPNotificationAccessor> clear(final String resourceName){
-        final Lock writeLock = lock.writeLock();
-        writeLock.lock();
-        try{
-            final ResourceNotificationList<XMPPNotificationAccessor> resource =
-                    notifications.remove(resourceName);
-            return resource != null ? resource.values() : ImmutableList.of();
-        } finally {
-            writeLock.unlock();
-        }
+    Collection<XMPPNotificationAccessor> clear(final String resourceName) throws InterruptedException {
+        return lockAndApply(lock.writeLock(), this, resourceName, XMPPModelOfNotifications::clearImpl, Function.identity());
     }
 
-    void clear(){
+    void clear() throws InterruptedException {
         removeAll();
-        final Lock writeLock = lock.writeLock();
-        writeLock.lock();
-        try{
-            notifications.values().forEach(ResourceFeatureList::clear);
-            notifications.clear();
-        }finally {
-            writeLock.unlock();
-        }
+        lockAndAccept(lock.writeLock(), notifications, notifs -> {
+            notifs.values().forEach(ResourceFeatureList::clear);
+            notifs.clear();
+        }, Function.identity());
+    }
+
+    private  <E extends Throwable> void forEachNotificationImpl(final EntryReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
+        for (final ResourceNotificationList<XMPPNotificationAccessor> list : notifications.values())
+            for (final XMPPNotificationAccessor accessor : list.values())
+                if (!notificationReader.read(accessor.resourceName, accessor)) return;
+
     }
 
     @Override
-    public <E extends Exception> void forEachNotification(final EntryReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
-        final Lock readLock = lock.readLock();
-        readLock.lock();
-        try{
-            for(final ResourceNotificationList<XMPPNotificationAccessor> list: notifications.values())
-                for(final XMPPNotificationAccessor accessor: list.values())
-                    if(!notificationReader.read(accessor.resourceName, accessor)) return;
-        }finally {
-            readLock.unlock();
-        }
+    public <E extends Throwable> void forEachNotification(final EntryReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
+        lockAndAccept(lock.readLock(), notificationReader, this::forEachNotificationImpl);
     }
 }

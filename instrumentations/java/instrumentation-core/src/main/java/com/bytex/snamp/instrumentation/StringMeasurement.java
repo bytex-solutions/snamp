@@ -17,6 +17,17 @@ public final class StringMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = 3212183719121919189L;
     private String value = "";
 
+    /**
+     * Gets value provided by this measurement.
+     *
+     * @return Measurement value.
+     */
+    @Override
+    @JsonIgnore
+    public String getRawValue() {
+        return value;
+    }
+
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeUTF(value);

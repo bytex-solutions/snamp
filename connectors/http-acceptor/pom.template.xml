@@ -45,7 +45,7 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>message-processing</artifactId>
+            <artifactId>message-driven-connector</artifactId>
             <version>${snamp.connector.md.version}</version>
             <scope>provided</scope>
         </dependency>

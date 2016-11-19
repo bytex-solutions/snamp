@@ -3,6 +3,7 @@ package com.bytex.snamp.testing.connector.http;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.instrumentation.IntegerMeasurement;
 import com.bytex.snamp.instrumentation.Measurement;
+import com.bytex.snamp.instrumentation.StandardMeasurements;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
@@ -57,12 +58,10 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
 
     @Test
     public void testLastValueExtraction2() throws IOException, JMException {
-        final IntegerMeasurement measurement1 = new IntegerMeasurement();
-        measurement1.setValue(41L);
+        final IntegerMeasurement measurement1 = StandardMeasurements.freeRam(41L);
         measurement1.setInstanceName(INSTANCE_NAME);
         measurement1.setComponentName(COMPONENT_NAME);
-        final IntegerMeasurement measurement2 = new IntegerMeasurement();
-        measurement2.setValue(46L);
+        final IntegerMeasurement measurement2 = StandardMeasurements.freeRam(46L);
         measurement2.setInstanceName(INSTANCE_NAME);
         measurement2.setComponentName(COMPONENT_NAME);
         sendMeasurements(measurement1, measurement2);
@@ -72,8 +71,7 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
 
     @Test
     public void testLastValueExtraction() throws IOException, JMException {
-        final IntegerMeasurement measurement = new IntegerMeasurement();
-        measurement.setValue(42L);
+        final IntegerMeasurement measurement = StandardMeasurements.freeRam(42L);
         measurement.setInstanceName(INSTANCE_NAME);
         measurement.setComponentName(COMPONENT_NAME);
         sendMeasurement(measurement);
@@ -90,7 +88,8 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
         testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
                 "from",
                 "to",
-                "filter"
+                "filter",
+                "gauge"
         ));
         testConfigurationDescriptor(EventConfiguration.class, ImmutableSet.of(
                 "filter"
@@ -99,9 +98,12 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
-        attributes.addAndConsume("attribute1", attribute -> attribute.setAlternativeName("gauge64"));
-        attributes.addAndConsume("longValue", attribute -> attribute.setAlternativeName("get lastValue from gauge64 attribute1"));
-        attributes.addAndConsume("min", attribute -> attribute.setAlternativeName("get minValue from gauge64 attribute1"));
-        attributes.addAndConsume("max", attribute -> attribute.setAlternativeName("get maxValue from gauge64 attribute1"));
+        attributes.addAndConsume("attribute1", attribute -> {
+            attribute.getParameters().put("gauge", "gauge64");
+            attribute.setAlternativeName(StandardMeasurements.FREE_RAM.getMeasurementName());
+        });
+        attributes.addAndConsume("longValue", attribute -> attribute.getParameters().put("gauge", "get lastValue from gauge64 attribute1"));
+        attributes.addAndConsume("min", attribute -> attribute.getParameters().put("gauge", "get minValue from gauge64 attribute1"));
+        attributes.addAndConsume("max", attribute -> attribute.getParameters().put("gauge", "get maxValue from gauge64 attribute1"));
     }
 }

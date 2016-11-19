@@ -158,13 +158,13 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
         return writeLock.apply(listGroup, resourceName, features, ModelOfFeatures::clearImpl);
     }
 
-    private <E extends Exception> void forEachFeatureImpl(final EntryReader<String, ? super TAccessor, E> featureReader) throws E {
+    private <E extends Throwable> void forEachFeatureImpl(final EntryReader<String, ? super TAccessor, E> featureReader) throws E {
         for (final Map.Entry<String, L> entry : features.entrySet())
             for (final TAccessor accessor : entry.getValue().values())
                 if (!featureReader.read(entry.getKey(), accessor)) return;
     }
 
-    final <E extends Exception> void forEachFeature(final EntryReader<String, ? super TAccessor, E> featureReader) throws E {
+    final <E extends Throwable> void forEachFeature(final EntryReader<String, ? super TAccessor, E> featureReader) throws E {
         readLock.accept(listGroup, featureReader, this::forEachFeatureImpl);
     }
 

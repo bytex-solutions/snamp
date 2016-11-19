@@ -1,16 +1,13 @@
 package com.bytex.snamp.gateway.influx;
 
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.BatchPoints;
-import org.osgi.framework.BundleContext;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.util.Map;
-import java.util.Objects;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -26,19 +23,13 @@ final class InfluxModelOfAttributes extends ModelOfAttributes<AttributePoint> {
     }
 
     private Map<String, String> extractTags(final String resourceName) throws InstanceNotFoundException {
-        final BundleContext context = getBundleContextOfObject(this);
-        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, resourceName);
-        try{
-            return client.getProperties((k, v) -> v instanceof String, Objects::toString);
-        } finally {
-            client.release(context);
-        }
+        return Helpers.extractTags(getBundleContextOfObject(this), resourceName);
     }
 
-    void dumpPoints(final InfluxDB database, final String databaseName) throws JMException {
+    void dumpPoints(final Reporter reporter) throws JMException {
         final BatchPoints points = BatchPoints
-                .database(databaseName)
-                .retentionPolicy(database.version().startsWith("0.") ? "default" : "autogen")
+                .database(reporter.getDatabaseName())
+                .retentionPolicy(reporter.getRetentionPolicy())
                 .consistency(InfluxDB.ConsistencyLevel.ALL)
                 .build();
         forEachAttribute((resourceName, attribute) -> {
@@ -46,6 +37,6 @@ final class InfluxModelOfAttributes extends ModelOfAttributes<AttributePoint> {
             points.point(attribute.toPoint(tags));
             return true;
         });
-        database.write(points);
+        reporter.report(points);
     }
 }
