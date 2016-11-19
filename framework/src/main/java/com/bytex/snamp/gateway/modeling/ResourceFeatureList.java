@@ -3,6 +3,8 @@ package com.bytex.snamp.gateway.modeling;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 
 import javax.management.MBeanFeatureInfo;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Represents a collection of managed resource features.
@@ -51,6 +53,13 @@ public abstract class ResourceFeatureList<M extends MBeanFeatureInfo, TAccessor 
 
     public final TAccessor remove(final M metadata){
         return remove(getKey(metadata));
+    }
+
+    public final Optional<TAccessor> find(final Predicate<? super TAccessor> filter) {
+        return values()
+                .stream()
+                .filter(filter)
+                .findFirst();
     }
 
     @Override

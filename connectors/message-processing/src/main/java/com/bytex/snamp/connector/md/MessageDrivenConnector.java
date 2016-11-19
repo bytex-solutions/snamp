@@ -9,14 +9,15 @@ import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationReposito
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
 import com.bytex.snamp.connector.operations.reflection.OperationParameter;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
-import javax.management.NotificationListener;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import static com.google.common.base.MoreObjects.firstNonNull;
+import java.util.logging.Level;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -30,7 +31,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  * @version 2.0
  */
-public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector implements NotificationListener {
+public abstract class MessageDrivenConnector extends AbstractManagedResourceConnector {
     @Aggregation(cached = true)
     private final NotificationSource source;
     @Aggregation(cached = true)
@@ -94,7 +95,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         final Notification n = notificationParser.parse(headers, body);
         final boolean success;
         if (success = n != null)
-            handleNotification(n, this);
+            handleNotification(n);
         else
             getLogger().warning(String.format("Notification '%s' with headers '%s' is ignored by parser", body, headers));
         return success;
@@ -106,15 +107,33 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
      * blocking its notification broadcaster.
      *
      * @param notification The notification.
-     * @param handback     An opaque object which helps the listener to associate
-     *                     information regarding the MBean emitter. This object is passed to the
-     *                     addNotificationListener call and resent, without modification, to the
      */
-    @Override
-    public void handleNotification(final Notification notification, final Object handback) {
+    public void handleNotification(final Notification notification) {
         notification.setSource(this);
-        attributes.handleNotification(notification, firstNonNull(handback, this));
-        notifications.handleNotification(notification, firstNonNull(handback, this));
+        attributes.handleNotification(notification, this::attributeProcessed);
+        notifications.handleNotification(notification);
+    }
+
+    private void attributeProcessed(final MessageDrivenAttribute attribute, final MessageDrivenAttribute.NotificationProcessingResult result) {
+        //log processing error if it was happened
+        final Optional<Throwable> processingError = result.getProcessingError();
+        if (processingError.isPresent()) {
+            getLogger().log(Level.SEVERE, String.format("Attribute '%s' has processing error", attribute.getName()), processingError.get());
+            return;
+        }
+        //fire AttributeChangeNotification
+        final Optional<Object> newAttributeValue = result.getAttributeValue();
+        if (newAttributeValue.isPresent()) {
+            final AttributeChangeNotification notification = new AttributeChangeNotification(this,
+                    0L,
+                    System.currentTimeMillis(),
+                    String.format("Attribute %s was changed", attribute.getName()),
+                    attribute.getName(),
+                    attribute.getType(),
+                    newAttributeValue.get(),
+                    newAttributeValue.get());
+            notifications.handleNotification(notification);
+        }
     }
 
     public final boolean represents(final NotificationSource value){

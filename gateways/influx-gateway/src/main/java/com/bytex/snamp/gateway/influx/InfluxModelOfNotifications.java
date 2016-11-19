@@ -12,6 +12,6 @@ import javax.management.MBeanNotificationInfo;
 final class InfluxModelOfNotifications extends ModelOfNotifications<NotificationPoint> {
     @Override
     protected NotificationPoint createAccessor(final String resourceName, final MBeanNotificationInfo metadata) throws Exception {
-        return null;
+        return new NotificationPoint(metadata);
     }
 }

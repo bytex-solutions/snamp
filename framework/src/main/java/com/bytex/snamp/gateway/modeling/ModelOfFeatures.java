@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableSet;
 
 import javax.management.MBeanFeatureInfo;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -83,6 +84,20 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
             final TAccessor accessor = getAccessor(resourceName, featureName);
             if (accessor != null) {
                 processor.accept(accessor);
+                return true;
+            } else
+                return false;
+        }
+    }
+
+    final <E extends Throwable> boolean processFeature(final String resourceName,
+                                                       final Predicate<? super TAccessor> filter,
+                                                       final Acceptor<? super TAccessor, E> processor) throws E {
+        try (final SafeCloseable ignored = readLock.acquireLock(listGroup)) {
+            final L f = features.get(resourceName);
+            final Optional<TAccessor> accessor = f != null ? f.find(filter) : Optional.empty();
+            if (accessor.isPresent()) {
+                processor.accept(accessor.get());
                 return true;
             } else
                 return false;

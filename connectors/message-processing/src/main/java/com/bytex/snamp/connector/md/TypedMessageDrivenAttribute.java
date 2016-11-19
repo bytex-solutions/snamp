@@ -31,11 +31,13 @@ abstract class TypedMessageDrivenAttribute<N extends Notification> extends Messa
         filter = MessageDrivenConnectorConfigurationDescriptor.parseNotificationFilter(descriptor);
     }
 
-    protected abstract void handleNotification(final N notification);
+    protected abstract Object changeAttributeValue(final N notification) throws Exception;
 
     @Override
-    public final void handleNotification(final Notification notification, final Object handback) {
+    protected final NotificationProcessingResult handleNotification(final Notification notification) throws Exception {
         if (expectedType.isInstance(notification) && filter.isNotificationEnabled(notification))
-            handleNotification(expectedType.cast(notification));
+            return notificationProcessed(changeAttributeValue(expectedType.cast(notification)));
+        else
+            return notificationIgnored();
     }
 }

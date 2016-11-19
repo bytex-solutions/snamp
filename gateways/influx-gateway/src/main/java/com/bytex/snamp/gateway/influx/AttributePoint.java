@@ -1,9 +1,6 @@
 package com.bytex.snamp.gateway.influx;
 
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.connector.attributes.AbstractAttributeInfo;
-import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
-import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
@@ -26,7 +23,7 @@ final class AttributePoint extends AttributeAccessor {
     }
 
     @SuppressWarnings("unchecked")
-    Point toPoint(final Map<String, String> tags) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
+    Map<String, Object> getMeasurementValues() throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
         final String VALUE_FIELD = "value";
         final WellKnownType type;
         final Map fields;
@@ -46,12 +43,17 @@ final class AttributePoint extends AttributeAccessor {
                 else
                     throw new UnsupportedAttributeTypeException(getRawType());
         }
+        return fields;
+    }
+
+    @SuppressWarnings("unchecked")
+    Point toPoint(final Map<String, String> tags) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         //create point
         return Point
                 .measurement(getName())
                 .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                 .tag(tags)
-                .fields(fields)
+                .fields(getMeasurementValues())
                 .build();
     }
 }

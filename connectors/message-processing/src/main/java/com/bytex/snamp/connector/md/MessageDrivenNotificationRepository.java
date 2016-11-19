@@ -4,6 +4,8 @@ import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationListenerInvoker;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.LongCounter;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
@@ -13,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.parallelForEach;
 
 /**
@@ -21,7 +24,7 @@ import static com.bytex.snamp.internal.Utils.parallelForEach;
  * @since 2.0
  * @version 2.0
  */
-public class MessageDrivenNotificationRepository extends AbstractNotificationRepository<MBeanNotificationInfo> implements NotificationListener {
+public class MessageDrivenNotificationRepository extends AbstractNotificationRepository<MBeanNotificationInfo> {
     private static final class MessageDrivenNotificationListenerInvoker extends WriteOnceRef<ExecutorService> implements NotificationListenerInvoker{
 
         @Override
@@ -36,11 +39,13 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
     }
     private final MessageDrivenNotificationListenerInvoker threadPool;
     private final WriteOnceRef<Logger> logger;
+    private final LongCounter sequenceNumberProvider;
 
     public MessageDrivenNotificationRepository(final String resourceName) {
         super(resourceName, MBeanNotificationInfo.class, false);
         threadPool = new MessageDrivenNotificationListenerInvoker();
         logger = new WriteOnceRef<>();
+        sequenceNumberProvider = DistributedServices.getDistributedCounter(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName));
     }
 
     final void init(final ExecutorService threadPool, final Logger logger) {
@@ -48,8 +53,8 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
         this.logger.set(logger);
     }
 
-    @Override
-    public void handleNotification(final Notification notification, final Object handback) {
+    public void handleNotification(final Notification notification) {
+        notification.setSequenceNumber(sequenceNumberProvider.getAsLong());
         fire(notification.getType(), holder -> notification);
     }
 

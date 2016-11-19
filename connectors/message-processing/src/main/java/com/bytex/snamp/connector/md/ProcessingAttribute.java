@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.md;
 
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -29,8 +28,7 @@ public abstract class ProcessingAttribute<T> extends MessageDrivenAttribute {
     protected abstract T getValue(final AttributeSupport support) throws Exception;
 
     @Override
-    @MethodStub
-    public void handleNotification(final Notification notification, final Object handback) {
-
+    protected NotificationProcessingResult handleNotification(final Notification notification) throws Exception {
+        return notificationIgnored();
     }
 }

@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.md;
 
 import com.bytex.snamp.Stateful;
+import com.bytex.snamp.concurrent.LockManager;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.AbstractMetric;
 
@@ -92,13 +93,14 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
 
     abstract void updateMetric(final M metric, final N notification);
 
-    private void handleNotificationImpl(final N notification) {
+    private CompositeData handleNotificationImpl(final N notification) {
         updateMetric(metric, notification);
+        return getValue(metric);
     }
 
     @Override
-    protected final void handleNotification(final N notification) {
-        lockAndAccept(lockManager.readLock(), this, notification, MetricHolderAttribute<M, N>::handleNotificationImpl);
+    protected final CompositeData changeAttributeValue(final N notification) throws InterruptedException {
+        return LockManager.lockAndApply(lockManager.readLock(), this, notification, MetricHolderAttribute<M, N>::handleNotificationImpl, Function.identity());
     }
 
     private void closeImpl() {

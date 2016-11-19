@@ -9,6 +9,7 @@ import javax.management.*;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 
 /**
  * Represents an abstract object that helps you to organize storage
@@ -81,6 +82,12 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
         } catch (final InterruptedException | TimeoutException e) {
             throw new ReflectionException(e);
         }
+    }
+
+    public final <E extends Throwable> boolean processAttribute(final String resourceName,
+                                                                final Predicate<? super TAccessor> filter,
+                                                                final Acceptor<? super TAccessor, E> processor) throws E {
+        return processFeature(resourceName, filter, processor);
     }
 
     public final <E extends Throwable> boolean processAttribute(final String resourceName,

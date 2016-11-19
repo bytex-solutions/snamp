@@ -6,10 +6,10 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 
 import javax.management.Notification;
-import javax.management.NotificationListener;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-public class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> implements NotificationListener {
+public class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> {
     private final WriteOnceRef<ExecutorService> threadPool;
     private final WriteOnceRef<Logger> logger;
 
@@ -115,9 +115,8 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
         failedToSetAttribute(logger.get(), Level.SEVERE, attributeID, value, e);
     }
 
-    @Override
-    public final void handleNotification(final Notification notification, final Object handback) {
-        parallelForEach(attribute -> attribute.handleNotification(notification, handback), getThreadPool());
+    public final void handleNotification(final Notification notification, final BiConsumer<? super MessageDrivenAttribute, ? super MessageDrivenAttribute.NotificationProcessingResult> callback) {
+        parallelForEach(attribute -> callback.accept(attribute, attribute.dispatch(notification)), getThreadPool());
     }
 
     final void resetAllMetrics(){

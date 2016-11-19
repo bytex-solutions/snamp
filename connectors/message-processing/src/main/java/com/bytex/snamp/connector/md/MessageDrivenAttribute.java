@@ -5,8 +5,9 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 
 import javax.management.MBeanException;
-import javax.management.NotificationListener;
+import javax.management.Notification;
 import javax.management.openmbean.OpenType;
+import java.util.Optional;
 
 /**
  * Represents attribute which value depends on the measurement notification received from external component.
@@ -16,8 +17,48 @@ import javax.management.openmbean.OpenType;
  * @see DistributedAttribute
  * @see ProcessingAttribute
  */
-public abstract class MessageDrivenAttribute extends AbstractOpenAttributeInfo implements NotificationListener {
+public abstract class MessageDrivenAttribute extends AbstractOpenAttributeInfo {
+    /**
+     * Represents notification processing result.
+     */
+    public interface NotificationProcessingResult {
+
+        /**
+         * Determines whether the notification is processed successfully.
+         * @return {@literal true}, if notification was processed; otherwise {@literal false}.
+         */
+        boolean isProcessed();
+
+        /**
+         * Gets error produced during notification processing.
+         * @return Optional processing error.
+         */
+        Optional<Throwable> getProcessingError();
+
+        /**
+         * Gets new attribute value produced after processing.
+         * @return Optional attribute value.
+         */
+        Optional<Object> getAttributeValue();
+    }
+
     private static final long serialVersionUID = -2361230399455752656L;
+    private static NotificationProcessingResult IGNORED = new NotificationProcessingResult() {
+        @Override
+        public boolean isProcessed() {
+            return false;
+        }
+
+        @Override
+        public Optional<Throwable> getProcessingError() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<Object> getAttributeValue() {
+            return Optional.empty();
+        }
+    };
 
     MessageDrivenAttribute(final String name,
                            final OpenType<?> type,
@@ -27,7 +68,79 @@ public abstract class MessageDrivenAttribute extends AbstractOpenAttributeInfo i
         super(name, type, description, specifier, descriptor);
     }
 
+    /**
+     * Indicating that processing was failed.
+     * @param e Processing error.
+     * @return Notification processing result.
+     */
+    protected static NotificationProcessingResult processingFailed(final Throwable e){
+        return new NotificationProcessingResult() {
+
+            @Override
+            public boolean isProcessed() {
+                return true;
+            }
+
+            @Override
+            public Optional<Throwable> getProcessingError() {
+                return Optional.of(e);
+            }
+
+            @Override
+            public Optional<Object> getAttributeValue() {
+                return Optional.empty();
+            }
+        };
+    }
+
+    /**
+     * Indicates whether the notification was ignored.
+     * @return Notification processing result.
+     */
+    protected static NotificationProcessingResult notificationIgnored(){
+        return IGNORED;
+    }
+
+    /**
+     * Indicates whether the modification was processed successfully.
+     * @param attributeValue A new attribute value produced as a result of notification processing.
+     * @return Notification processing result.
+     */
+    protected static NotificationProcessingResult notificationProcessed(final Object attributeValue) {
+        return new NotificationProcessingResult() {
+            @Override
+            public boolean isProcessed() {
+                return true;
+            }
+
+            @Override
+            public Optional<Throwable> getProcessingError() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<Object> getAttributeValue() {
+                return Optional.ofNullable(attributeValue);
+            }
+        };
+    }
+
     static MBeanException cannotBeModified(final MessageDrivenAttribute attribute){
         return new MBeanException(new UnsupportedOperationException(String.format("Attribute '%s' cannot be modified", attribute)));
+    }
+
+    protected abstract NotificationProcessingResult handleNotification(final Notification notification) throws Exception;
+
+    /**
+     * Handles notification and return new attribute value.
+     * @param notification The notification to handle.
+     * @return A new attribute value.
+     */
+    final NotificationProcessingResult dispatch(final Notification notification) {
+        try {
+            return handleNotification(notification);
+        } catch (final Exception e) {
+            return processingFailed(e);
+        }
     }
 }
