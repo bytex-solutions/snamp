@@ -1,12 +1,14 @@
 package com.bytex.snamp.connector.md;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.WriteOnceRef;
-import com.bytex.snamp.connector.md.notifications.*;
+import com.bytex.snamp.connector.md.notifications.SpanNotification;
+import com.bytex.snamp.connector.md.notifications.TimeMeasurementNotification;
+import com.bytex.snamp.connector.md.notifications.ValueMeasurementNotification;
 import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
+import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationListenerInvoker;
-import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.LongCounter;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
@@ -16,7 +18,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.parallelForEach;
 
 /**
@@ -40,13 +41,12 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
     }
     private final MessageDrivenNotificationListenerInvoker threadPool;
     private final WriteOnceRef<Logger> logger;
-    private final LongCounter sequenceNumberProvider;
+
 
     public MessageDrivenNotificationRepository(final String resourceName) {
         super(resourceName, MessageDrivenNotification.class, false);
         threadPool = new MessageDrivenNotificationListenerInvoker();
         logger = new WriteOnceRef<>();
-        sequenceNumberProvider = DistributedServices.getDistributedCounter(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName));
     }
 
     final void init(final ExecutorService threadPool, final Logger logger) {
@@ -55,8 +55,13 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
     }
 
     public void handleNotification(final Notification notification) {
-        notification.setSequenceNumber(sequenceNumberProvider.getAsLong());
-        fire(notification.getType(), holder -> holder.isNotificationEnabled(notification) ? notification : null);
+        fire(notification.getType(), holder -> {
+            if(holder.isNotificationEnabled(notification)){
+                final String newNotifType = ArrayUtils.getFirst(holder.getNotifTypes());
+                return new NotificationContainer(newNotifType, notification);
+            } else
+                return null;
+        });
     }
 
     /**
@@ -71,7 +76,7 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
 
     @Override
     protected MessageDrivenNotification connectNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
-        switch (notifType){
+        switch (metadata.getName(notifType)){
             case AttributeChangeNotification.ATTRIBUTE_CHANGE:
                 return new MessageDrivenNotification(notifType, AttributeChangeNotification.class, "Occurs when one of registered attribute will be changed", metadata);
             case TimeMeasurementNotification.TYPE:

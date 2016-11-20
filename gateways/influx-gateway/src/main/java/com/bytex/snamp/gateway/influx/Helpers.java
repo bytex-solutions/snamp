@@ -3,6 +3,8 @@ package com.bytex.snamp.gateway.influx;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.management.InstanceNotFoundException;
 import java.util.Map;
@@ -18,10 +20,21 @@ final class Helpers {
         throw new InstantiationError();
     }
 
+    private static boolean propertyFilter(final String property, final Object value){
+        switch (property){
+            case Constants.SERVICE_PID:
+            case ConfigurationAdmin.SERVICE_FACTORYPID:
+            case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
+                return false;
+            default:
+                return value instanceof String;
+        }
+    }
+
     static Map<String, String> extractTags(final BundleContext context, final String resourceName) throws InstanceNotFoundException {
         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, resourceName);
         try{
-            return client.getProperties((k, v) -> v instanceof String, Objects::toString);
+            return client.getProperties(Helpers::propertyFilter, Objects::toString);
         } finally {
             client.release(context);
         }

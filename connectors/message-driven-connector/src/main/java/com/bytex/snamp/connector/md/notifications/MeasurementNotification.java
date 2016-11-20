@@ -17,7 +17,6 @@ public abstract class MeasurementNotification<M extends Measurement> extends Not
 
     MeasurementNotification(final String type, final Object source, final String message) {
         super(type, source, 0L, message);
-
     }
 
     public final String getComponentName(){
@@ -31,16 +30,6 @@ public abstract class MeasurementNotification<M extends Measurement> extends Not
     @Override
     public Object getUserData() {
         return firstNonNull(super.getUserData(), getMeasurement().getUserData());
-    }
-
-    @Override
-    public final long getSequenceNumber() {
-        return getMeasurement().getSequenceNumber();
-    }
-
-    @Override
-    public final void setSequenceNumber(final long sequenceNumber) {
-        getMeasurement().setSequenceNumber(sequenceNumber);
     }
 
     @Override

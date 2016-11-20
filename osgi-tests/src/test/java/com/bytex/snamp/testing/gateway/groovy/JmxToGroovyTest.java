@@ -24,7 +24,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Predicate;
 
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
@@ -38,7 +37,6 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String INSTANCE_NAME = "groovy-gateway";
     private static final String GATEWAY_NAME = "groovy";
     private static final String COMMUNICATION_CHANNEL = "test-communication-channel";
-    private static final Predicate<Object> NON_NOTIF = responseMessage -> !(responseMessage instanceof Notification);
 
     public JmxToGroovyTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));

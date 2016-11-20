@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.influx;
 
 import com.bytex.snamp.concurrent.Repeater;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import org.influxdb.InfluxDB;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.stream.Stream;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Provides gateway that dumps attributes into InfluxDB for further analysis via Grafana.
@@ -31,7 +33,10 @@ final class InfluxGateway extends AbstractGateway {
 
         @Override
         protected void doAction() throws JMException {
-            attributes.dumpPoints(reporter);
+            //only active cluster node is responsible for reporting
+            if(DistributedServices.isActiveNode(getBundleContextOfObject(InfluxGateway.this))) {
+                attributes.dumpPoints(reporter);
+            }
         }
 
         @Override
@@ -139,7 +144,7 @@ final class InfluxGateway extends AbstractGateway {
             final String databaseName = parser.getDatabaseName(parameters);
             database.createDatabase(databaseName);
             final Pong databaseCheck = database.ping();
-            getLogger().info(String.format("InfluxDB is connected. Version: %s. Response time: %s", databaseCheck.getVersion(), databaseCheck.getResponseTime()));
+            getLogger().info(String.format("InfluxDB is connected. Version: %s. Response time: %s ms", databaseCheck.getVersion(), databaseCheck.getResponseTime()));
             notifications.setReporter(reporter = createReporter(database, databaseName));
         }
         //initialize uploader as periodic task

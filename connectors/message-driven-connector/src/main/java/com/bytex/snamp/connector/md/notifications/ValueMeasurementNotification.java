@@ -28,7 +28,7 @@ public final class ValueMeasurementNotification extends MeasurementNotification 
     }
 
     public boolean isMeasurement(final Class<? extends ValueMeasurement> measurementType){
-        return measurementType.isInstance(measurementType);
+        return measurementType.isInstance(measurement);
     }
 
     public <M extends ValueMeasurement> Optional<M> getMeasurement(final Class<M> measurementType) {

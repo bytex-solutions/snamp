@@ -44,6 +44,6 @@ public final class NotificationSource implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("NotificationSource: {%s:%s}", componentName, instanceName);
+        return String.format("NotificationSource{%s,%s}", componentName, instanceName);
     }
 }

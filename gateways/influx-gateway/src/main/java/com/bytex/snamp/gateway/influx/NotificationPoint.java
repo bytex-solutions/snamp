@@ -1,6 +1,8 @@
 package com.bytex.snamp.gateway.influx;
 
 import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
+import com.bytex.snamp.connector.notifications.NotificationContainer;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.modeling.AttributeSet;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.bytex.snamp.instrumentation.Measurement;
@@ -81,9 +83,14 @@ abstract class NotificationPoint extends NotificationAccessor {
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        if(notification instanceof AttributeChangeNotification)
-            callUnchecked(() -> handleNotification((AttributeChangeNotification) notification));
-        else if(notification instanceof MeasurementNotification<?>)
-            callUnchecked(() -> handleNotification((MeasurementNotification<?>) notification));
+        //only active cluster node is responsible for reporting
+        if(DistributedServices.isActiveNode(getBundleContextOfObject(this))) {
+            if(notification instanceof NotificationContainer)
+                handleNotification(((NotificationContainer) notification).get(), handback);
+            if (notification instanceof AttributeChangeNotification)
+                callUnchecked(() -> handleNotification((AttributeChangeNotification) notification));
+            else if (notification instanceof MeasurementNotification<?>)
+                callUnchecked(() -> handleNotification((MeasurementNotification<?>) notification));
+        }
     }
 }

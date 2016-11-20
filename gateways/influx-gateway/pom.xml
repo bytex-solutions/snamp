@@ -81,11 +81,26 @@
             <Bundle-Activator>com.bytex.snamp.gateway.influx.InfluxGatewayActivator</Bundle-Activator>
             <Export-Package />
             <Import-Package>com.bytex.snamp,
-                            com.bytex.snamp.gateway,
-                            com.bytex.snamp.connector.md,
+                            com.bytex.snamp.concurrent,
+                            com.bytex.snamp.configuration,
+                            com.bytex.snamp.connector,
                             com.bytex.snamp.connector.md.notifications,
+                            com.bytex.snamp.connector.notifications,
+                            com.bytex.snamp.core,
+                            com.bytex.snamp.gateway,
+                            com.bytex.snamp.gateway.modeling,
                             com.bytex.snamp.instrumentation,
-                            com.google.guava</Import-Package>
+                            com.bytex.snamp.internal,
+                            com.bytex.snamp.jmx,
+                            com.google.common.base,
+                            com.google.common.collect,
+                            com.google.common.escape,
+                            javax.management,
+                            javax.management.openmbean,
+                            javax.net.ssl,
+                            javax.net,
+                            org.osgi.framework,
+                            org.osgi.service.cm</Import-Package>
             <Provide-Capability>com.bytex.snamp.gateway; type=influx</Provide-Capability>
           </instructions>
         </configuration>

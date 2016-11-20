@@ -37,6 +37,7 @@ final class InfluxModelOfAttributes extends ModelOfAttributes<AttributePoint> {
             points.point(attribute.toPoint(tags));
             return true;
         });
-        reporter.report(points);
+        if (!points.getPoints().isEmpty())
+            reporter.report(points);
     }
 }

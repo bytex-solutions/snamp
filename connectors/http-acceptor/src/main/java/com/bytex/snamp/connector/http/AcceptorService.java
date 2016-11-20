@@ -5,12 +5,14 @@ import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.md.notifications.NotificationSource;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.instrumentation.Measurement;
+import com.google.common.base.Joiner;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -76,6 +78,18 @@ public final class AcceptorService {
     private static FixedKeysMap<String, List<String>> wrapHeaders(final HttpHeaders headers) {
         final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
         return FixedKeysMap.readOnlyMap(requestHeaders::get, requestHeaders.keySet());
+    }
+
+    @GET
+    @Path("/ping")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response ping(){
+        final Version version = getBundleContextOfObject(this).getBundle().getVersion();
+        final String sources = Joiner.on(';').join(acceptors.asMap().keySet());
+        final String responseBody = String.format("HTTP Acceptor, version=%s, sources=%s", version, sources);
+        return Response.ok()
+                .entity(responseBody)
+                .build();
     }
 
     @Path("/batch")

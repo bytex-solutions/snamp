@@ -8,6 +8,8 @@ import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
 import com.bytex.snamp.connector.operations.reflection.OperationParameter;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.LongCounter;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
@@ -20,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -42,6 +45,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     private final NotificationParser notificationParser;
     @Aggregation(cached = true)
     private final JavaBeanOperationRepository operations;
+    private final LongCounter sequenceNumberProvider;
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
@@ -68,6 +72,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
+        sequenceNumberProvider = DistributedServices.getDistributedCounter(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName));
     }
 
     @Override
@@ -110,6 +115,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
      */
     public void handleNotification(final Notification notification) {
         notification.setSource(this);
+        notification.setSequenceNumber(sequenceNumberProvider.getAsLong());
         attributes.handleNotification(notification, this::attributeProcessed);
         notifications.handleNotification(notification);
     }

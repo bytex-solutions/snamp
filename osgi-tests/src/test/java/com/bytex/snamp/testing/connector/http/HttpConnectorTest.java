@@ -32,7 +32,7 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
     }
 
     @Test
-    public void testLastValueExtraction2() throws IOException, JMException {
+    public void testLastValueExtraction2() throws IOException, JMException, InterruptedException {
         final IntegerMeasurement measurement1 = StandardMeasurements.freeRam(41L);
         measurement1.setInstanceName(INSTANCE_NAME);
         measurement1.setComponentName(COMPONENT_NAME);
@@ -40,6 +40,7 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
         measurement2.setInstanceName(INSTANCE_NAME);
         measurement2.setComponentName(COMPONENT_NAME);
         sendMeasurements(measurement1, measurement2);
+        Thread.sleep(100);
         testAttribute("min", TypeToken.of(Long.class), 41L, true);
         testAttribute("max", TypeToken.of(Long.class), 46L, true);
     }
