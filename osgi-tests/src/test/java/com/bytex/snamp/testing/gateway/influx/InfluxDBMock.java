@@ -19,7 +19,10 @@ public final class InfluxDBMock {
     @GET
     @Path("/ping")
     public Response ping(){
-        return Response.ok().build();
+        return Response
+                .ok()
+                .header("X-Influxdb-Version", "1.0.0")
+                .build();
     }
 
     @POST
@@ -31,6 +34,7 @@ public final class InfluxDBMock {
     }
 
     @POST
+    @Path("/write")
     public Response writePoints(@QueryParam("u") final String username,
                                 @QueryParam("p") final String password,
                                 @QueryParam("db") final String database,
