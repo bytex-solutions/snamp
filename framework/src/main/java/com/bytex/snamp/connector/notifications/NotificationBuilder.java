@@ -41,4 +41,13 @@ public class NotificationBuilder extends AbstractNotificationBuilder<Notificatio
         result.setUserData(getUserData());
         return result;
     }
+
+    /**
+     * Resets internal state of the object.
+     */
+    @Override
+    public void reset() {
+        type = "";
+        super.reset();
+    }
 }

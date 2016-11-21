@@ -17,9 +17,11 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
+import java.util.stream.Stream;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -46,6 +48,10 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     @Aggregation(cached = true)
     private final JavaBeanOperationRepository operations;
     private final LongCounter sequenceNumberProvider;
+    /**
+     * Represents thread pool for parallel operations.
+     */
+    protected final ExecutorService threadPool;
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
@@ -57,7 +63,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
             final String componentName = descriptor.parseComponentName(parameters);
             source = new NotificationSource(componentName, componentInstance);
         }
-        final ExecutorService threadPool = descriptor.parseThreadPool(parameters);
+        threadPool = descriptor.parseThreadPool(parameters);
         //init parser
         notificationParser = createNotificationParser(resourceName, source, parameters);
         assert notificationParser != null;
@@ -96,14 +102,9 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         return success;
     }
 
-    public final boolean dispatch(final Map<String, ?> headers, final Object body) throws Exception{
-        final Notification n = notificationParser.parse(headers, body);
-        final boolean success;
-        if (success = n != null)
-            handleNotification(n);
-        else
-            getLogger().warning(String.format("Notification '%s' with headers '%s' is ignored by parser", body, headers));
-        return success;
+    public final void dispatch(final Map<String, ?> headers, final Object body) throws Exception {
+        final Stream<Notification> notifications = notificationParser.parse(headers, body).filter(Objects::nonNull);
+        notifications.forEach(this::handleNotification);
     }
 
     /**

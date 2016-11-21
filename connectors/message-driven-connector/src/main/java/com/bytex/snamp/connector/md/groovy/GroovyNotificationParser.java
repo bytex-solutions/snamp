@@ -1,17 +1,20 @@
 package com.bytex.snamp.connector.md.groovy;
 
-import com.bytex.snamp.ClassMap;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.md.NotificationParser;
-import com.bytex.snamp.connector.md.notifications.*;
+import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
+import com.bytex.snamp.connector.md.notifications.SpanNotification;
+import com.bytex.snamp.connector.md.notifications.TimeMeasurementNotification;
+import com.bytex.snamp.connector.md.notifications.ValueMeasurementNotification;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
 import com.bytex.snamp.instrumentation.*;
 import com.bytex.snamp.scripting.groovy.Scriptlet;
 
 import javax.management.Notification;
-import java.util.Map;
-import java.util.function.BiFunction;
+import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Represents notification parser written in Groovy language.
@@ -24,84 +27,145 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
     private static final String INSTANCE_NAME = "componentInstance";
 
     /**
-     * Represents factory of {@link ValueMeasurement} as DSL element in Groovy.
+     * Represents notification supplier.
      */
-    protected final static class MeasurementBuilder{
-        private MeasurementBuilder(){
+    @FunctionalInterface
+    private interface NotificationFactory extends Supplier<Notification> {
+    }
 
-        }
-
-        @SpecialUse
-        public <T extends ValueMeasurement> T of(final Supplier<? extends T> measurementFactory){
-            return measurementFactory.get();
-        }
+    /**
+     * Represents DSL starter.
+     * @param <T> Type of object used in DSL pipeline.
+     */
+    @FunctionalInterface
+    protected interface DSLStarter<T>{
+        /**
+         * Starts DSL pipeline.
+         * @return DSL pipeline.
+         */
+        T start();
     }
 
     @FunctionalInterface
-    private interface ToNotificationFunction<M> extends BiFunction<Object, M, Notification> {
-        @Override
-        Notification apply(final Object source, final M message);
+    protected interface DSLFinalizer<T>{
+        T terminate();
     }
 
-    private static final class NotificationConverter extends ClassMap<ToNotificationFunction>{
-        private static final long serialVersionUID = 5472344596553742321L;
+    @FunctionalInterface
+    protected interface MeasurementFinalizer<M extends Measurement> extends DSLFinalizer<M>{
+        @Override
+        M terminate();
+    }
 
-        private <T> NotificationConverter registerConverter(final Class<T> type, final ToNotificationFunction<? super T> transformer){
-            put(type, transformer);
-            return this;
+    private final class NotificationBuilderStarter implements DSLStarter<NotificationBuilder>{
+        @Override
+        public NotificationBuilder start() {
+            final NotificationBuilder builder = new NotificationBuilder();
+            builder.setSource(GroovyNotificationParser.this);
+            getNotifications().add(builder::get);
+            return builder;
         }
     }
 
-    private final NotificationConverter converter;
+    private final class MeasurementFinalizerImpl<M extends Measurement> implements MeasurementFinalizer<M>{
+        private final Function<Object, ? extends MeasurementNotification<M>> notificationFactory;
 
-    /**
-     * Initializes a new Groovy-based parser.
-     */
-    protected GroovyNotificationParser(){
-        converter = new NotificationConverter()
-                .registerConverter(Span.class, SpanNotification::new)
-                .registerConverter(TimeMeasurement.class, TimeMeasurementNotification::new)
-                .registerConverter(BooleanMeasurement.class, ValueMeasurementNotification::new)
-                .registerConverter(IntegerMeasurement.class, ValueMeasurementNotification::new)
-                .registerConverter(FloatingPointMeasurement.class, ValueMeasurementNotification::new)
-                .registerConverter(StringMeasurement.class, ValueMeasurementNotification::new)
-                .registerConverter(Notification.class, (source, notification) -> {
-                    notification.setSource(source);
-                    return notification;
-                })
-                .registerConverter(NotificationBuilder.class, (source, builder) -> {
-                    builder.setSource(source);
-                    return builder.get();
-                });
+        private MeasurementFinalizerImpl(final Function<Object, ? extends MeasurementNotification<M>> notificationFactory){
+            this.notificationFactory = notificationFactory;
+        }
+
+        @Override
+        public M terminate() {
+            final MeasurementNotification<M> notification = notificationFactory.apply(GroovyNotificationParser.this);
+            getNotifications().add(() -> notification);
+            return notification.getMeasurement();
+        }
+    }
+
+    protected final class MeasurementPipeline implements DSLStarter<MeasurementPipeline> {
+        private MeasurementPipeline(){
+
+        }
+
+        @Override
+        public MeasurementPipeline start() {
+            return this;
+        }
+
+        @SpecialUse
+        public <M extends Measurement> M of(final MeasurementFinalizer<M> selector){
+            return selector.terminate();
+        }
     }
 
     //DSL keywords
     @SpecialUse
-    protected static final Supplier<NotificationBuilder> notification = NotificationBuilder::new;
+    protected final DSLStarter<NotificationBuilder> notification = new NotificationBuilderStarter();
     @SpecialUse
-    protected static final Supplier<Span> span = Span::new;
+    protected final MeasurementFinalizer<TimeMeasurement> span = new MeasurementFinalizerImpl<>(SpanNotification::new);
     @SpecialUse
-    protected static final Supplier<TimeMeasurement> stopwatch = TimeMeasurement::new;
+    protected final MeasurementFinalizer<TimeMeasurement> time = new MeasurementFinalizerImpl<>(TimeMeasurementNotification::new);
     @SpecialUse
-    protected static final Supplier<MeasurementBuilder> measurement = MeasurementBuilder::new;
+    protected final MeasurementPipeline measurement = new MeasurementPipeline();
     //measurement types
     @SpecialUse
-    protected static final Supplier<BooleanMeasurement> bool = BooleanMeasurement::new;
+    protected final MeasurementFinalizer<ValueMeasurement> bool = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofBool);
     @SpecialUse
-    protected static final Supplier<IntegerMeasurement> integer = IntegerMeasurement::new;
+    protected final MeasurementFinalizer<ValueMeasurement> integer = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofInt);
     @SpecialUse
-    protected static final Supplier<FloatingPointMeasurement> fp = FloatingPointMeasurement::new;
+    protected final MeasurementFinalizer<ValueMeasurement> fp = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofFP);
     @SpecialUse
-    protected static final Supplier<StringMeasurement> str = StringMeasurement::new;
+    protected final MeasurementFinalizer<ValueMeasurement> str = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofString);
+
+    private final ThreadLocal<Collection<NotificationFactory>> notifications = ThreadLocal.withInitial(LinkedList::new);
 
     /*
         DSL starter. Examples:
-        create measurement of bool => create(measurement).of(bool)
-        create notification => create(notification)
+        define notification => define(notification)
+        define measurement as bool => define(measurement).as(bool)
      */
     @SpecialUse
-    protected static <T> T create(final Supplier<T> factory){
-        return factory.get();
+    protected static <S> S define(final DSLStarter<S> starter){
+        return starter.start();
+    }
+
+    private void syntaxController(){     //this method is declared just for compile time control of DSL expressions
+        define(measurement).of(bool);
+        define(notification).setType("test").setSource(this);
+    }
+
+    private Collection<NotificationFactory> getNotifications(){
+        return notifications.get();
+    }
+
+    @SpecialUse
+    protected final void addMeasurement(final BooleanMeasurement measurement){
+        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+    }
+
+    @SpecialUse
+    protected final void addMeasurement(final IntegerMeasurement measurement){
+        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+    }
+
+    @SpecialUse
+    protected final void addMeasurement(final StringMeasurement measurement){
+        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+    }
+
+    @SpecialUse
+    protected final void addMeasurement(final FloatingPointMeasurement measurement){
+        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+    }
+
+    @SpecialUse
+    protected final void addMeasurement(final TimeMeasurement measurement){
+        getNotifications().add(() -> new TimeMeasurementNotification(this, measurement));
+    }
+
+    @SpecialUse
+    protected final void value(final Span measurement){
+        getNotifications().add(() -> new SpanNotification(this, measurement));
     }
 
     /**
@@ -109,18 +173,26 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
      * @param headers Headers to parse.
      * @param body Body to parse.
      * @return Notification; or measurement; or {@literal null}, if notification should be ignored.
-     * @throws Exception Unable to
+     * @throws Exception Unable to parse notifications.
      */
     @SpecialUse
     protected abstract Object parse(final Object headers, final Object body) throws Exception;
 
     @SuppressWarnings("unchecked")
     @Override
-    public final Notification parse(final Map<String, ?> headers, final Object body) throws Exception {
-        final Object result = parse((Object) headers, body);
-        if(result == null) return null;
-        final ToNotificationFunction transformer = converter.getOrAdd(result.getClass());
-        return transformer != null ? transformer.apply(this, result) : null;
+    public final Stream<Notification> parse(final Map<String, ?> headers, final Object body) throws Exception {
+        final Object result;
+        final Collection<NotificationFactory> submittedNotifs = getNotifications();
+        try {
+            result = parse((Object) headers, body);
+        } finally {
+            this.notifications.remove();
+        }
+        if (result instanceof NotificationFactory)
+            submittedNotifs.add((NotificationFactory) result);
+        else if (result instanceof Notification)
+            submittedNotifs.add(() -> (Notification) result);
+        return submittedNotifs.stream().map(NotificationFactory::get);
     }
 
     public final void setComponentName(final String value){

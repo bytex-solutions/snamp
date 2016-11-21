@@ -33,22 +33,19 @@ public enum StandardMeasurements {
     }
 
     public static IntegerMeasurement freeRam(final long freeRamInBytes){
-        final IntegerMeasurement measurement = new IntegerMeasurement();
-        measurement.setValue(freeRamInBytes);
+        final IntegerMeasurement measurement = new IntegerMeasurement(freeRamInBytes);
         measurement.setName(FREE_RAM);
         return measurement;
     }
 
     public static IntegerMeasurement usedRAM(final long usedRamInBytes){
-        final IntegerMeasurement measurement = new IntegerMeasurement();
-        measurement.setValue(usedRamInBytes);
+        final IntegerMeasurement measurement = new IntegerMeasurement(usedRamInBytes);
         measurement.setName(USED_RAM);
         return measurement;
     }
 
     public static FloatingPointMeasurement cpuLoad(final double load){
-        final FloatingPointMeasurement measurement = new FloatingPointMeasurement();
-        measurement.setName(CPU_LOAD);
+        final FloatingPointMeasurement measurement = new FloatingPointMeasurement(load);
         measurement.setValue(load);
         return measurement;
     }

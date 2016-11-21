@@ -19,6 +19,14 @@ public final class IntegerMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = 352280955315548002L;
     private long value;
 
+    public IntegerMeasurement(final long value){
+        this.value = value;
+    }
+
+    public IntegerMeasurement(){
+        this(0L);
+    }
+
     /**
      * Gets value provided by this measurement.
      *

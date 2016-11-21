@@ -13,6 +13,9 @@
     <packaging>bundle</packaging>
     <name>Zipkin Connector</name>
     <description>SNAMP resource connector that can handle Zipkin spans</description>
+    <properties>
+        <zipkin.version>1.16.2</zipkin.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
@@ -44,9 +47,44 @@
             <version>${snamp.instrumentation.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.zipkin.java</groupId>
+            <artifactId>zipkin-collector-kafka</artifactId>
+            <version>${zipkin.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.java</groupId>
+            <artifactId>zipkin</artifactId>
+            <version>${zipkin.version}</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
         <plugins>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <artifactSet>
+                        <excludes>
+                            <exclude>org.slf4j:slf4j-log4j12:jar:</exclude>
+                        </excludes>
+                    </artifactSet>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>

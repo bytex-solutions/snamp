@@ -43,6 +43,7 @@
     <karaf.version>3.0.8</karaf.version>
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
     <aries.util.version>1.1.1</aries.util.version>
+    <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
     <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
     <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
     <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
@@ -72,7 +73,6 @@
     <aries.jndi.api.version>1.1.0</aries.jndi.api.version>
     <snamp.connector.md.version>2.0.0</snamp.connector.md.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
-    <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
     <osgi.version>5.0.0</osgi.version>
     <hazelcast.version>3.4.2</hazelcast.version>
     <snamp.management.version>2.0.0</snamp.management.version>

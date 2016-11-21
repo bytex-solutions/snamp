@@ -1,9 +1,7 @@
 package com.bytex.snamp.connector.zipkin;
 
-import com.bytex.snamp.connector.md.MessageDrivenConnector;
-import com.bytex.snamp.connector.md.MessageDrivenConnectorConfigurationDescriptor;
-import com.bytex.snamp.connector.md.NotificationParser;
-import com.bytex.snamp.connector.md.notifications.NotificationSource;
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import java.util.Map;
 
@@ -13,13 +11,16 @@ import java.util.Map;
  * @since 2.0
  * @version 2.0
  */
-final class ZipkinConnectorActivator extends MessageDrivenConnector {
-    public ZipkinConnectorActivator(final String resourceName, final Map<String, String> parameters, final MessageDrivenConnectorConfigurationDescriptor descriptor) {
-        super(resourceName, parameters, descriptor);
+final class ZipkinConnectorActivator extends ManagedResourceActivator<ZipkinConnector> {
+    @SpecialUse
+    public ZipkinConnectorActivator(){
+        super(ZipkinConnectorActivator::createConnector);
     }
 
-    @Override
-    protected NotificationParser createNotificationParser(final String resourceName, final NotificationSource source, final Map<String, String> parameters) {
-        return null;
+    private static ZipkinConnector createConnector(final String resourceName,
+                                                   final String connectionString,
+                                                   final Map<String, String> connectionParameters,
+                                                   final RequiredService<?>... dependencies) throws Exception{
+        return new ZipkinConnector(resourceName, connectionParameters);
     }
 }

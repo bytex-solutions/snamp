@@ -20,6 +20,10 @@ public class TimeMeasurementNotification extends MeasurementNotification<TimeMea
         this(TYPE, source, measurement, "Time measurement supplied");
     }
 
+    public TimeMeasurementNotification(final Object source){
+        this(source, new TimeMeasurement());
+    }
+
     TimeMeasurementNotification(final String type, final Object source, final TimeMeasurement measurement, final String message) {
         super(type, source, message);
         this.measurement = Objects.requireNonNull(measurement);

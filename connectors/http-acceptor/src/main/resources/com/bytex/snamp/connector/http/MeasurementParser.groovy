@@ -7,5 +7,5 @@ import com.bytex.snamp.instrumentation.Measurement
  */
 def parse(headers, body){
     assert body instanceof Measurement
-    return body
+    addMeasurement body
 }

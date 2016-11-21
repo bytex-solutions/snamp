@@ -17,6 +17,14 @@ public class FloatingPointMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = -5453349320908165683L;
     private double value;
 
+    public FloatingPointMeasurement(final double value){
+        this.value = value;
+    }
+
+    public FloatingPointMeasurement(){
+        this(0D);
+    }
+
     /**
      * Gets value provided by this measurement.
      *

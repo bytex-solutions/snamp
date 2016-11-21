@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.notifications;
 
+import com.bytex.snamp.Stateful;
+
 import javax.management.Notification;
 import java.util.Date;
 import java.util.Objects;
@@ -12,10 +14,10 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 2.0
  */
-public abstract class AbstractNotificationBuilder<N extends Notification> implements Supplier<N> {
+public abstract class AbstractNotificationBuilder<N extends Notification> implements Supplier<N>, Stateful {
     private final AtomicLong sequenceNumber = new AtomicLong(0L);
     private String message = "";
-    private long timeStamp = System.currentTimeMillis();
+    private long timeStamp = 0L;
     private Object source = null;
     private Object userData = null;
 
@@ -76,5 +78,17 @@ public abstract class AbstractNotificationBuilder<N extends Notification> implem
 
     protected final Object getUserData(){
         return userData;
+    }
+
+    /**
+     * Resets internal state of the object.
+     */
+    @Override
+    public void reset() {
+        sequenceNumber.set(0L);
+        message = "";
+        timeStamp = 0L;
+        source = null;
+        userData = null;
     }
 }

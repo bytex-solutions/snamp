@@ -22,6 +22,10 @@ public final class SpanNotification extends TimeMeasurementNotification {
         this.measurement = Objects.requireNonNull(measurement);
     }
 
+    public SpanNotification(final Object source){
+        this(source, new Span());
+    }
+
     @Override
     public Span getMeasurement() {
         return measurement;

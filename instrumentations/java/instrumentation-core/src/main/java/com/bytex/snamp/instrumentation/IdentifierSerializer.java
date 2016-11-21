@@ -12,6 +12,6 @@ import java.io.IOException;
 final class IdentifierSerializer extends JsonSerializer<Identifier> {
     @Override
     public void serialize(final Identifier value, final JsonGenerator jgen, final SerializerProvider provider) throws IOException {
-        jgen.writeString(value.toString());
+        jgen.writeString(value.toBase64());
     }
 }

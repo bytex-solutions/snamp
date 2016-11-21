@@ -15,7 +15,18 @@ import java.io.ObjectOutput;
  */
 public final class StringMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = 3212183719121919189L;
-    private String value = "";
+    private String value;
+
+    public StringMeasurement(final String value){
+        if(value == null)
+            throw new IllegalArgumentException("value cannot be null");
+        else
+            this.value = value;
+    }
+
+    public StringMeasurement(){
+        this("");
+    }
 
     /**
      * Gets value provided by this measurement.
