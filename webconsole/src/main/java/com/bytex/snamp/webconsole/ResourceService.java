@@ -3,9 +3,13 @@ package com.bytex.snamp.webconsole;
 import com.bytex.snamp.Box;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.webconsole.model.dto.AbstractDTOClass;
+import com.bytex.snamp.webconsole.model.dto.DTOFactory;
+import com.bytex.snamp.webconsole.model.dto.ManagedResourceConfigurationDTO;
 import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.framework.BundleContext;
 
@@ -15,9 +19,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Provides API for SNAMP configuration management.
@@ -40,7 +42,7 @@ public final class ResourceService {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
-        final Box<Map> container = BoxFactory.create(null);
+        final Box<EntityMap<? extends ManagedResourceConfiguration>> container = BoxFactory.create(null);
         try {
             //verify first and second resources
             admin.get().readConfiguration(currentConfig -> {
@@ -49,8 +51,7 @@ public final class ResourceService {
         } finally {
             admin.release(bc);
         }
-
-        return container.get() != null ? container.get(): Collections.EMPTY_MAP;
+        return DTOFactory.build(container.get());
     }
 
     /**
@@ -61,7 +62,7 @@ public final class ResourceService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/configuration/{name}")
-    public ManagedResourceConfiguration getConfigurationByName(@PathParam("name") final String name) throws IOException {
+    public AbstractDTOClass getConfigurationByName(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
@@ -74,6 +75,6 @@ public final class ResourceService {
         } finally {
             admin.release(bc);
         }
-        return container.get();
+        return DTOFactory.build(container.get());
     }
 }
