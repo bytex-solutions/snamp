@@ -2,7 +2,6 @@ package com.bytex.snamp.webconsole.model.dto;
 
 import com.bytex.snamp.configuration.*;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
