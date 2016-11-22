@@ -222,6 +222,100 @@ public final class ResourceService {
     }
 
     /**
+     * Returns certain attribute for specific resource.
+     *
+     * @return Map that contains attributes configuration (or empty map if no resources are configured)
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/configuration/{name}/attributes/{attributeName}")
+    public AbstractDTOEntity getAttributesByName(@PathParam("name") final String name,
+                                                 @PathParam("attributeName") final String attributeName) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        final Box<AttributeConfiguration> container = BoxFactory.create(null);
+        try {
+            //verify first and second resources
+            admin.get().readConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null && !mrc.getFeatures(AttributeConfiguration.class).isEmpty() &&
+                        mrc.getFeatures(AttributeConfiguration.class).get(attributeName) != null) {
+                    container.set(mrc.getFeatures(AttributeConfiguration.class).get(attributeName));
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return DTOFactory.build(container.get());
+    }
+
+    /**
+     * Set certain attribute for specific resource.
+     *
+     * @return Map that contains attributes configuration (or empty map if no resources are configured)
+     */
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/configuration/{name}/attributes/{attributeName}")
+    public Response getAttributesByName(@PathParam("name") final String name,
+                                        @PathParam("attributeName") final String attributeName,
+                                        final AttributeDTOEntity object) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    mrc.getFeatures(AttributeConfiguration.class).getOrAdd(attributeName)
+                            .setParameters(object.getParameters());
+                    mrc.getFeatures(AttributeConfiguration.class).getOrAdd(attributeName)
+                            .setReadWriteTimeout(object.getReadWriteTimeout());
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+
+    /**
+     * Returns certain attribute for specific resource.
+     *
+     * @return Map that contains attributes configuration (or empty map if no resources are configured)
+     */
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/configuration/{name}/attributes/{attributeName}")
+    public Response removetAttributesByName(@PathParam("name") final String name,
+                                            @PathParam("attributeName") final String attributeName) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                return mrc != null && !mrc.getFeatures(AttributeConfiguration.class).isEmpty()
+                        && mrc.getFeatures(AttributeConfiguration.class).remove(attributeName) != null;
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+    /**
      * Returns events for certain configured resource by its name.
      *
      * @return Map that contains events configuration (or empty map if no resources are configured)

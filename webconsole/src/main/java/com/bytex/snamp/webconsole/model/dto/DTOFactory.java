@@ -72,4 +72,13 @@ public class DTOFactory {
                         e -> new OperationDTOEntity(e.getValue().getParameters(), e.getValue().getInvocationTimeout())));
     }
 
+    /**
+     * Build map.
+     *
+     * @param source the source
+     * @return the map
+     */
+    public static AttributeDTOEntity build(final AttributeConfiguration source) {
+        return new AttributeDTOEntity(source.getParameters(), source.getReadWriteTimeout());
+    }
 }
