@@ -1,12 +1,14 @@
 package com.bytex.snamp.webconsole.model.dto;
 
 import com.bytex.snamp.configuration.FeatureConfiguration;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.MapUtils.putValue;
 
 /**
  * AbstractDTOEntity
@@ -15,18 +17,73 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_EMPTY)
 public abstract class AbstractDTOEntity implements FeatureConfiguration {
-    private Map<String, String> parameters = new HashMap<>();
+    private final Map<String, String> parameters;
 
-    AbstractDTOEntity() {}
+    /**
+     * Instantiates a new Abstract dto entity.
+     */
+    AbstractDTOEntity() {
+        parameters = new HashMap<>();
+    }
 
+    /**
+     * Instantiates a new Abstract dto entity.
+     *
+     * @param map the map
+     */
     AbstractDTOEntity(final Map<String, String> map) {
         this.parameters = new HashMap<>(map);
     }
 
     @Override
-    public Map<String, String> getParameters() {
-        return parameters == null ? Collections.EMPTY_MAP : parameters;
+    @JsonProperty
+    public final Map<String, String> getParameters() {
+        return parameters;
+    }
+
+    @Override
+    public final void setParameters(final Map<String, String> value) {
+        parameters.clear();
+        parameters.putAll(value);
+    }
+
+    @Override
+    @JsonIgnore
+    public final void setDescription(final String value) {
+        this.parameters.put(DESCRIPTION_KEY, value);
+    }
+
+    @Override
+    @JsonIgnore
+    public final void setAlternativeName(final String value) {
+        this.parameters.put(NAME_KEY, value);
+    }
+
+    @Override
+    @JsonIgnore
+    public final String getDescription() {
+        return this.parameters.get(DESCRIPTION_KEY);
+    }
+
+    @Override
+    @JsonIgnore
+    public final String getAlternativeName() {
+        return this.parameters.get(NAME_KEY);
+    }
+
+    @Override
+    @JsonIgnore
+    public final boolean isAutomaticallyAdded() {
+        return getValue(this.parameters, AUTOMATICALLY_ADDED_KEY, Boolean::parseBoolean, () -> false);
+    }
+
+    @Override
+    @JsonIgnore
+    public final void setAutomaticallyAdded(final boolean value) {
+        if(value)
+            putValue(this.parameters, AUTOMATICALLY_ADDED_KEY, Boolean.TRUE, Object::toString);
+        else
+            this.parameters.remove(AUTOMATICALLY_ADDED_KEY);
     }
 }
