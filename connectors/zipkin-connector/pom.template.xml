@@ -57,7 +57,32 @@
             <groupId>io.zipkin.java</groupId>
             <artifactId>zipkin</artifactId>
             <version>${zipkin.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <classifier>indy</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-servlet</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-servlet_3.0_spec</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -81,6 +106,7 @@
                     <artifactSet>
                         <excludes>
                             <exclude>org.slf4j:slf4j-log4j12:jar:</exclude>
+                            <exclude>log4j:log4j:jar:</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>
@@ -94,6 +120,38 @@
                         <Bundle-SymbolicName>com.bytex.snamp.connector.zipkin</Bundle-SymbolicName>
                         <Bundle-Activator>com.bytex.snamp.connector.zipkin.ZipkinConnectorActivator</Bundle-Activator>
                         <Export-Package />
+                        <Import-Package>
+                            com.bytex.snamp.concurrent,
+                            com.bytex.snamp.instrumentation,
+                            com.bytex.snamp,
+                            com.bytex.snamp.io,
+                            com.bytex.snamp.connector,
+                            com.bytex.snamp.connector.md,
+                            com.bytex.snamp.connector.md.groovy,
+                            com.bytex.snamp.connector.md.notifications,
+                            com.bytex.snamp.core,
+                            com.bytex.snamp.internal,
+                            com.google.common.base,
+                            com.google.common.collect,
+                            com.sun.jersey.api.container.filter,
+                            com.sun.jersey.api.core,
+                            com.sun.jersey.spi.container.servlet,
+                            groovy.lang,
+                            org.codehaus.groovy.transform,
+                            org.codehaus.groovy.reflection,
+                            org.codehaus.groovy.runtime,
+                            org.codehaus.groovy.runtime.powerassert,
+                            org.codehaus.groovy.vmplugin.v7,
+                            javax.servlet,
+                            javax.ws.rs,
+                            javax.ws.rs.core,
+                            org.osgi.framework,
+                            org.osgi.service.http,
+                            zipkin,
+                            zipkin.collector,
+                            zipkin.internal,
+                            zipkin.storage
+                        </Import-Package>
                         <Provide-Capability>com.bytex.snamp.connector; type=zipkin</Provide-Capability>
                     </instructions>
                 </configuration>

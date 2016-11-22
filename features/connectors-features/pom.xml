@@ -19,5 +19,6 @@
     <module>modbus-connector-feature</module>
     <module>composite-connector-feature</module>
     <module>http-acceptor-feature</module>
+    <module>zipkin-connector-feature</module>
   </modules>
 </project>

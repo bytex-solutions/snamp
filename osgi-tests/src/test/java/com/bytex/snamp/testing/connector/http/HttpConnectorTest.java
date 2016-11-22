@@ -57,7 +57,7 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
     @Test
     public void configurationTest(){
         testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
-                "componentInstance",
+                "instanceName",
                 "componentName",
                 "synchronizationPeriod"
         ));

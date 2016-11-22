@@ -1,4 +1,4 @@
-package com.bytex.snamp.management;
+package com.bytex.snamp.core;
 
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.*;
@@ -15,13 +15,18 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 1.0
  */
-abstract class ExposedServiceHandler<S, I> {
+public abstract class ExposedServiceHandler<S, I> {
     private final Class<S> serviceType;
     private final Filter filter;
 
-    ExposedServiceHandler(final Class<S> serviceType,
+    protected ExposedServiceHandler(final Class<S> serviceType,
                           final String filter) throws InvalidSyntaxException {
         this.filter = isNullOrEmpty(filter) ? null : FrameworkUtil.createFilter(filter);
+        this.serviceType = Objects.requireNonNull(serviceType);
+    }
+
+    protected ExposedServiceHandler(final Class<S> serviceType){
+        this.filter = null;
         this.serviceType = Objects.requireNonNull(serviceType);
     }
 
@@ -44,7 +49,7 @@ abstract class ExposedServiceHandler<S, I> {
      * Handles a service exposed by the bundle referenced by {@link #getBundleContext()}.
      * @param userData Any object to be passed into processing procedure.
      */
-    final void handleService(final I userData) {
+    public final void handleService(final I userData) {
         final BundleContext context = getBundleContext();
         if (context == null) throw new IllegalStateException("Unknown bundle context");
         final ServiceReference<?>[] services = context.getBundle().getRegisteredServices();

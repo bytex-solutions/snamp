@@ -10,6 +10,7 @@ public enum SnampFeature {
     PLATFORM("platform-feature", "2.0.0"),
     HTTP_ACCEPTOR("http-acceptor-feature", "2.0.0"),
     JMX_CONNECTOR("jmx-connector-feature", "2.0.0"),
+    ZIPKIN_CONNECTOR("zipkin-connector-feature", "2.0.0"),
     COMPOSITE_CONNECTOR("composite-connector-feature", "2.0.0"),
     SNMP_GATEWAY("snmp-gateway-feature", "2.0.0"),
     INFLUX_GATEWAY("influx-gateway-feature", "2.0.0"),

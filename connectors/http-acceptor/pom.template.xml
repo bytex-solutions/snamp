@@ -28,7 +28,6 @@
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.connector.http</Bundle-SymbolicName>
                         <Bundle-Activator>com.bytex.snamp.connector.http.HttpAcceptorActivator</Bundle-Activator>
-                        <DynamicImport-Package>*</DynamicImport-Package>
                         <Export-Package />
                         <Provide-Capability>com.bytex.snamp.connector; type=http</Provide-Capability>
                     </instructions>
