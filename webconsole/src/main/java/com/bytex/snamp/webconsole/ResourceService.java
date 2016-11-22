@@ -23,6 +23,8 @@ import java.util.Map;
  */
 @Path("/resource")
 @Singleton
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public final class ResourceService {
     /**
      * Returns all the configured managed resources.
@@ -30,8 +32,6 @@ public final class ResourceService {
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/configuration")
     public Map getConfiguration() throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -54,8 +54,7 @@ public final class ResourceService {
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}")
+    @Path("/{name}")
     public AbstractDTOClass getConfigurationByName(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -78,9 +77,7 @@ public final class ResourceService {
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
     @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}")
+    @Path("/{name}")
     public Response setConfigurationByName(@PathParam("name") final String name,
                                            final ManagedResourceConfigurationDTO object) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -137,8 +134,7 @@ public final class ResourceService {
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}")
+    @Path("/{name}")
     public Response removeConfigurationByName(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -160,8 +156,7 @@ public final class ResourceService {
      * @return Map that contains attributes configuration (or empty map if no resources are configured)
      */
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}/attributes")
+    @Path("/{name}/attributes")
     public Map getAttributesForResource(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -188,9 +183,7 @@ public final class ResourceService {
      * @return no content
      */
     @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}/attributes")
+    @Path("/{name}/attributes")
     public Response setAttributesForResource(@PathParam("name") final String name,
                                         final Map<String, AttributeDTOEntity> object) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -227,8 +220,7 @@ public final class ResourceService {
      * @return Map that contains attributes configuration (or empty map if no resources are configured)
      */
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}/attributes/{attributeName}")
+    @Path("/{name}/attributes/{attributeName}")
     public AbstractDTOEntity getAttributesByName(@PathParam("name") final String name,
                                                  @PathParam("attributeName") final String attributeName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -257,9 +249,7 @@ public final class ResourceService {
      * @return Map that contains attributes configuration (or empty map if no resources are configured)
      */
     @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}/attributes/{attributeName}")
+    @Path("/{name}/attributes/{attributeName}")
     public Response getAttributesByName(@PathParam("name") final String name,
                                         @PathParam("attributeName") final String attributeName,
                                         final AttributeDTOEntity object) throws IOException {
@@ -294,8 +284,7 @@ public final class ResourceService {
      * @return Map that contains attributes configuration (or empty map if no resources are configured)
      */
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}/attributes/{attributeName}")
+    @Path("/{name}/attributes/{attributeName}")
     public Response removetAttributesByName(@PathParam("name") final String name,
                                             @PathParam("attributeName") final String attributeName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -321,8 +310,7 @@ public final class ResourceService {
      * @return Map that contains events configuration (or empty map if no resources are configured)
      */
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}/events")
+    @Path("/{name}/events")
     public Map getEventsForResource(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -349,9 +337,7 @@ public final class ResourceService {
      * @return no content
      */
     @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}/events")
+    @Path("/{name}/events")
     public Response setEventsForResource(@PathParam("name") final String name,
                                              final Map<String, EventDTOEntity> object) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -386,8 +372,7 @@ public final class ResourceService {
      * @return Map that contains attributes configuration (or empty map if no resources are configured)
      */
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}/operations")
+    @Path("/{name}/operations")
     public Map getOperationsForResource(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -414,9 +399,7 @@ public final class ResourceService {
      * @return no content
      */
     @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/configuration/{name}/operations")
+    @Path("/{name}/operations")
     public Response setOperationsForResource(@PathParam("name") final String name,
                                          final Map<String, OperationDTOEntity> object) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
