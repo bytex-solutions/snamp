@@ -515,4 +515,94 @@ public final class ResourceService {
         }
         return Response.noContent().build();
     }
+
+    /**
+     * Returns certain operation for specific resource.
+     *
+     * @return AbstractDTOEntity that contains operation configuration (or null)
+     */
+    @GET
+    @Path("/{name}/operations/{operationName}")
+    public AbstractDTOEntity getOperationByName(@PathParam("name") final String name,
+                                                @PathParam("operationName") final String operationName) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        final Box<OperationConfiguration> container = BoxFactory.create(null);
+        try {
+            //verify first and second resources
+            admin.get().readConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null && !mrc.getFeatures(OperationConfiguration.class).isEmpty() &&
+                        mrc.getFeatures(OperationConfiguration.class).get(operationName) != null) {
+                    container.set(mrc.getFeatures(OperationConfiguration.class).get(operationName));
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return DTOFactory.build(container.get());
+    }
+
+    /**
+     * Set certain operation for specific resource.
+     *
+     * @return no content response
+     */
+    @PUT
+    @Path("/{name}/operations/{operationName}")
+    public Response setAttributeByName(@PathParam("name") final String name,
+                                       @PathParam("operationName") final String operationName,
+                                       final OperationDTOEntity object) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    mrc.getFeatures(OperationConfiguration.class).getOrAdd(operationName)
+                            .setParameters(object.getParameters());
+                    mrc.getFeatures(OperationConfiguration.class).getOrAdd(operationName)
+                            .setInvocationTimeout(object.getInvocationTimeout());
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+
+    /**
+     * Removes certain operation for specific resource.
+     *
+     * @return no content response
+     */
+    @DELETE
+    @Path("/{name}/operations/{operationName}")
+    public Response removeOperationByName(@PathParam("name") final String name,
+                                          @PathParam("operationName") final String operationName) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                return mrc != null && !mrc.getFeatures(OperationConfiguration.class).isEmpty()
+                        && mrc.getFeatures(OperationConfiguration.class).remove(operationName) != null;
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
 }

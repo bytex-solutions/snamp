@@ -1,6 +1,5 @@
 package com.bytex.snamp.webconsole.model.dto;
 
-
 import com.bytex.snamp.configuration.*;
 
 import java.util.Map;
@@ -90,5 +89,15 @@ public class DTOFactory {
      */
     public static EventDTOEntity build(final EventConfiguration source) {
         return new EventDTOEntity(source.getParameters());
+    }
+
+    /**
+     * Build map.
+     *
+     * @param source the source
+     * @return the map
+     */
+    public static OperationDTOEntity build(final OperationConfiguration source) {
+        return new OperationDTOEntity(source.getParameters(), source.getInvocationTimeout());
     }
 }
