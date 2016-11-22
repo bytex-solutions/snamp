@@ -1,8 +1,8 @@
 package com.bytex.snamp.webconsole.model.dto;
 
 
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.*;
+
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -33,6 +33,43 @@ public class DTOFactory {
         return source.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey,
                         e -> new ManagedResourceConfigurationDTO().build(e.getValue())));
+    }
+
+    /**
+     * Build map.
+     *
+     * @param source the source
+     * @return the map
+     */
+    public static Map buildAttributes(final EntityMap<? extends AttributeConfiguration> source) {
+        return source.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> new AttributeDTOEntity(e.getValue().getParameters(), e.getValue().getReadWriteTimeout())));
+    }
+
+    /**
+     * Build map.
+     *
+     * @param source the source
+     * @return the map
+     */
+    public static Map buildEvents(final EntityMap<? extends EventConfiguration> source) {
+        return source.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> new EventDTOEntity(e.getValue().getParameters())));
+    }
+
+
+    /**
+     * Build map.
+     *
+     * @param source the source
+     * @return the map
+     */
+    public static Map buildOperations(final EntityMap<? extends OperationConfiguration> source) {
+        return source.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> new OperationDTOEntity(e.getValue().getParameters(), e.getValue().getInvocationTimeout())));
     }
 
 }

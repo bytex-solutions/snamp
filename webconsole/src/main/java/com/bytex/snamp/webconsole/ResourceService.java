@@ -5,12 +5,9 @@ import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.webconsole.model.dto.AbstractDTOClass;
-import com.bytex.snamp.webconsole.model.dto.DTOFactory;
-import com.bytex.snamp.webconsole.model.dto.ManagedResourceConfigurationDTO;
+import com.bytex.snamp.webconsole.model.dto.*;
 import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.framework.BundleContext;
-import org.w3c.dom.Attr;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -28,9 +25,9 @@ import java.util.Map;
 @Singleton
 public final class ResourceService {
     /**
-     * Sample method for retrieving configuration of managed resources.
+     * Returns all the configured managed resources.
+     *
      * @return Map that contains configuration (or empty map if no resources are configured)
-     * @throws IOException
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -52,9 +49,9 @@ public final class ResourceService {
     }
 
     /**
-     * Sample method for retrieving configuration of managed resources.
+     * Returns configuration for certain configured resource by its name.
+     *
      * @return Map that contains configuration (or empty map if no resources are configured)
-     * @throws IOException
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -77,8 +74,8 @@ public final class ResourceService {
 
     /**
      * Updated certain resource.
+     *
      * @return Map that contains configuration (or empty map if no resources are configured)
-     * @throws IOException
      */
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
@@ -95,34 +92,258 @@ public final class ResourceService {
                 final EntityMap<? extends ManagedResourceConfiguration> entityMap =
                         currentConfig.getEntities(ManagedResourceConfiguration.class);
                 final ManagedResourceConfiguration mrc = entityMap.getOrAdd(name);
-                mrc.setParameters(object.getParameters());
-                mrc.setConnectionString(object.getConnectionString());
-                mrc.setType(object.getType());
-                mrc.getFeatures(FeatureConfiguration.class).clear();
+                if (mrc != null) {
+                    mrc.setParameters(object.getParameters());
+                    mrc.setConnectionString(object.getConnectionString());
+                    mrc.setType(object.getType());
+                    mrc.getFeatures(FeatureConfiguration.class).clear();
 
-                object.getAttributes().entrySet().forEach(entry -> {
-                    final AttributeConfiguration configuration = mrc.getFeatures(AttributeConfiguration.class)
-                            .getOrAdd(entry.getKey());
-                    configuration.setParameters(entry.getValue().getParameters());
-                    // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
-                    configuration.setReadWriteTimeout(entry.getValue().getReadWriteTimeout());
-                });
+                    object.getAttributes().entrySet().forEach(entry -> {
+                        final AttributeConfiguration configuration = mrc.getFeatures(AttributeConfiguration.class)
+                                .getOrAdd(entry.getKey());
+                        configuration.setParameters(entry.getValue().getParameters());
+                        // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
+                        configuration.setReadWriteTimeout(entry.getValue().getReadWriteTimeout());
+                    });
 
-                object.getEvents().entrySet().forEach(entry -> {
-                    final EventConfiguration configuration = mrc.getFeatures(EventConfiguration.class)
-                            .getOrAdd(entry.getKey());
-                    configuration.setParameters(entry.getValue().getParameters());
-                });
+                    object.getEvents().entrySet().forEach(entry -> {
+                        final EventConfiguration configuration = mrc.getFeatures(EventConfiguration.class)
+                                .getOrAdd(entry.getKey());
+                        configuration.setParameters(entry.getValue().getParameters());
+                    });
 
-                object.getOperations().entrySet().forEach(entry -> {
-                    final OperationConfiguration configuration = mrc.getFeatures(OperationConfiguration.class)
-                            .getOrAdd(entry.getKey());
-                    configuration.setParameters(entry.getValue().getParameters());
-                    // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
-                    configuration.setInvocationTimeout(entry.getValue().getInvocationTimeout());
-                });
+                    object.getOperations().entrySet().forEach(entry -> {
+                        final OperationConfiguration configuration = mrc.getFeatures(OperationConfiguration.class)
+                                .getOrAdd(entry.getKey());
+                        configuration.setParameters(entry.getValue().getParameters());
+                        // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
+                        configuration.setInvocationTimeout(entry.getValue().getInvocationTimeout());
+                    });
 
-                return false;
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+    /**
+     * Remove managed resource from configuration by its name
+     *
+     * @return Map that contains configuration (or empty map if no resources are configured)
+     */
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/configuration/{name}")
+    public Response removeConfigurationByName(@PathParam("name") final String name) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            // if nothing was removed - no modification should be commited
+            admin.get().processConfiguration(currentConfig ->
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).remove(name) != null
+            );
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+    /**
+     * Returns attributes for certain configured resource by its name.
+     *
+     * @return Map that contains attributes configuration (or empty map if no resources are configured)
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/configuration/{name}/attributes")
+    public Map getAttributesForResource(@PathParam("name") final String name) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        final Box<EntityMap<? extends AttributeConfiguration>> container = BoxFactory.create(null);
+        try {
+            //verify first and second resources
+            admin.get().readConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    container.set(mrc.getFeatures(AttributeConfiguration.class));
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return DTOFactory.buildAttributes(container.get());
+    }
+
+    /**
+     * Saves attributes for certain configured resource by its name.
+     *
+     * @return no content
+     */
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/configuration/{name}/attributes")
+    public Response setAttributesForResource(@PathParam("name") final String name,
+                                        final Map<String, AttributeDTOEntity> object) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    final EntityMap<? extends AttributeConfiguration> em = mrc.getFeatures(AttributeConfiguration.class);
+                    em.clear();
+                    object.entrySet().forEach(entry -> {
+                        final AttributeConfiguration configuration = em.getOrAdd(entry.getKey());
+                        configuration.setParameters(entry.getValue().getParameters());
+                        // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
+                        configuration.setReadWriteTimeout(entry.getValue().getReadWriteTimeout());
+                    });
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+    /**
+     * Returns events for certain configured resource by its name.
+     *
+     * @return Map that contains events configuration (or empty map if no resources are configured)
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/configuration/{name}/events")
+    public Map getEventsForResource(@PathParam("name") final String name) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        final Box<EntityMap<? extends EventConfiguration>> container = BoxFactory.create(null);
+        try {
+            //verify first and second resources
+            admin.get().readConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    container.set(mrc.getFeatures(EventConfiguration.class));
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return DTOFactory.buildEvents(container.get());
+    }
+
+    /**
+     * Saves events for certain configured resource by its name.
+     *
+     * @return no content
+     */
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/configuration/{name}/events")
+    public Response setEventsForResource(@PathParam("name") final String name,
+                                             final Map<String, EventDTOEntity> object) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    final EntityMap<? extends EventConfiguration> em = mrc.getFeatures(EventConfiguration.class);
+                    em.clear();
+                    object.entrySet().forEach(entry -> {
+                        final EventConfiguration configuration = em.getOrAdd(entry.getKey());
+                        configuration.setParameters(entry.getValue().getParameters());
+                    });
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+    /**
+     * Returns operations for certain configured resource by its name.
+     *
+     * @return Map that contains attributes configuration (or empty map if no resources are configured)
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/configuration/{name}/operations")
+    public Map getOperationsForResource(@PathParam("name") final String name) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        final Box<EntityMap<? extends OperationConfiguration>> container = BoxFactory.create(null);
+        try {
+            //verify first and second resources
+            admin.get().readConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    container.set(mrc.getFeatures(OperationConfiguration.class));
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return DTOFactory.buildOperations(container.get());
+    }
+
+    /**
+     * Saves operations for certain configured resource by its name.
+     *
+     * @return no content
+     */
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/configuration/{name}/operations")
+    public Response setOperationsForResource(@PathParam("name") final String name,
+                                         final Map<String, OperationDTOEntity> object) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    final EntityMap<? extends OperationConfiguration> em = mrc.getFeatures(OperationConfiguration.class);
+                    em.clear();
+                    object.entrySet().forEach(entry -> {
+                        final OperationConfiguration configuration = em.getOrAdd(entry.getKey());
+                        configuration.setParameters(entry.getValue().getParameters());
+                    });
+                    return true;
+                } else {
+                    return false;
+                }
             });
         } finally {
             admin.release(bc);
