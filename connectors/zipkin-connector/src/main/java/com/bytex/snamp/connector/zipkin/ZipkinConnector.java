@@ -1,26 +1,19 @@
 package com.bytex.snamp.connector.zipkin;
 
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.md.MessageDrivenConnector;
 import com.bytex.snamp.connector.md.NotificationParser;
 import com.bytex.snamp.connector.md.groovy.GroovyNotificationParserLoader;
 import com.bytex.snamp.connector.md.notifications.NotificationSource;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.instrumentation.Identifier;
-import com.bytex.snamp.io.Buffers;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Binding;
-import org.codehaus.groovy.reflection.ClassInfo;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.codehaus.groovy.runtime.powerassert.ValueRecorder;
-import org.codehaus.groovy.transform.BaseScriptASTTransformation;
-import org.codehaus.groovy.vmplugin.v7.IndyInterface;
 import zipkin.collector.CollectorComponent;
 import zipkin.storage.*;
 
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -29,9 +22,6 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * Represents Zipkin connector.
  */
 final class ZipkinConnector extends MessageDrivenConnector implements AsyncSpanConsumer {
-    //Special array for maven-bundle-plugin for correct import of groovy classes
-    @SpecialUse
-    private static final Class<?>[] GROOVY_DEPS = {BaseScriptASTTransformation.class, ClassInfo.class, ValueRecorder.class, DefaultGroovyMethods.class, IndyInterface.class, Identifier.class, Buffers.class};
 
     //ephemeral exception indicating that the connector is closed
     private static final class ZipkinConnectorClosedException extends Exception{
@@ -118,6 +108,7 @@ final class ZipkinConnector extends MessageDrivenConnector implements AsyncSpanC
                 dispatch(ImmutableMap.of(), span);
             } catch (final Exception e) {
                 callback.onError(e);
+                getLogger().log(Level.SEVERE, "Failed to dispatch span " + span, e);
                 return;
             }
         callback.onSuccess(null);

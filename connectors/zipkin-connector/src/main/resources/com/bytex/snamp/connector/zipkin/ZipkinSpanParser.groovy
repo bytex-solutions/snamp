@@ -7,22 +7,21 @@ import zipkin.Span
 
 import java.util.concurrent.TimeUnit
 
-def parseZipkinSpan(Span span) {
+def parseZipkinSpan(Span zipkinSpan) {
     def result = define measurement of span
-    result.name = span.name
-    result.spanID = Identifier.ofLong span.id
-    if (span.parentId != null)   //because parentId may be 0
-        result.parentSpanID = Identifier.ofLong span.parentId
+    result.name = zipkinSpan.name
+    result.spanID = Identifier.ofLong zipkinSpan.id
+    if (zipkinSpan.parentId != null)   //because parentId may be 0
+        result.parentSpanID = Identifier.ofLong zipkinSpan.parentId
     //parse traceID as correlation
     def traceId128 = Buffers.allocByteBuffer(16, false);
-    traceId128.putLong span.traceIdHigh
-    traceId128.putLong span.traceId
+    traceId128.putLong zipkinSpan.traceIdHigh
+    traceId128.putLong zipkinSpan.traceId
     result.correlationID = Identifier.ofBytes(traceId128.array())
 
-    result.timeStamp = span.timestamp ?: System.currentTimeMillis()
-    if (span.duration)
-        result.setDuration(span.duration, TimeUnit.MICROSECONDS)
-    //using microseconds according with Zipkin's Span specification
+    result.timeStamp = zipkinSpan.timestamp ?: System.currentTimeMillis()
+    if (zipkinSpan.duration)
+        result.setDuration(zipkinSpan.duration, TimeUnit.MICROSECONDS) //using microseconds according with Zipkin's Span specification
 }
 
 @SpecialUse

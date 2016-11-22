@@ -14,6 +14,8 @@
         <bundle>wrap:mvn:commons-io/commons-io/2.4$Export-Package=org.apache.commons.io.*;version="2.4"</bundle>
         <bundle>wrap:mvn:com.auth0/java-jwt/2.2.1$Export-Package=com.auth0.jwt.*;version="2.2.1"</bundle>
         <bundle>mvn:io.zipkin.reporter/zipkin-reporter/0.6.9</bundle>
+        <bundle>wrap:mvn:org.apache.kafka/kafka-clients/0.8.2.2$Export-Package=org.apache.kafka.*;version="0.8.2.2"</bundle>
         <bundle>mvn:io.zipkin.reporter/zipkin-sender-urlconnection/0.6.9</bundle>
+        <bundle>mvn:io.zipkin.reporter/zipkin-sender-kafka08/0.6.9</bundle>
     </feature>
 </features>

@@ -84,6 +84,16 @@
             <groupId>org.apache.geronimo.specs</groupId>
             <artifactId>geronimo-servlet_3.0_spec</artifactId>
         </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.14</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <resources>
@@ -119,7 +129,9 @@
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.connector.zipkin</Bundle-SymbolicName>
                         <Bundle-Activator>com.bytex.snamp.connector.zipkin.ZipkinConnectorActivator</Bundle-Activator>
-                        <Export-Package />
+                        <Export-Package>
+                            com.bytex.snamp.connector.zipkin.kafkaHost
+                        </Export-Package>
                         <Import-Package>
                             com.bytex.snamp.concurrent,
                             com.bytex.snamp.instrumentation,
@@ -142,6 +154,7 @@
                             org.codehaus.groovy.runtime,
                             org.codehaus.groovy.runtime.powerassert,
                             org.codehaus.groovy.vmplugin.v7,
+                            javax.management,
                             javax.servlet,
                             javax.ws.rs,
                             javax.ws.rs.core,
@@ -150,7 +163,14 @@
                             zipkin,
                             zipkin.collector,
                             zipkin.internal,
-                            zipkin.storage
+                            zipkin.storage,
+                            org.apache.log4j,
+                            org.slf4j,
+                            javax.security.sasl,
+                            javax.security.auth,
+                            javax.security.auth.login,
+                            javax.security.auth.callback,
+                            org.ietf.jgss
                         </Import-Package>
                         <Provide-Capability>com.bytex.snamp.connector; type=zipkin</Provide-Capability>
                     </instructions>

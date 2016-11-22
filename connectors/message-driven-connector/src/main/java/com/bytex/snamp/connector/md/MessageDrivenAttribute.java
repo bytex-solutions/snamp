@@ -60,6 +60,11 @@ public abstract class MessageDrivenAttribute extends AbstractOpenAttributeInfo {
         public Optional<Object> getAttributeValue() {
             return Optional.empty();
         }
+
+        @Override
+        public String toString() {
+            return "IGNORED";
+        }
     };
 
     MessageDrivenAttribute(final String name,
@@ -92,6 +97,11 @@ public abstract class MessageDrivenAttribute extends AbstractOpenAttributeInfo {
             public Optional<Object> getAttributeValue() {
                 return Optional.empty();
             }
+
+            @Override
+            public String toString() {
+                return e.getMessage();
+            }
         };
     }
 
@@ -123,6 +133,11 @@ public abstract class MessageDrivenAttribute extends AbstractOpenAttributeInfo {
             @Override
             public Optional<Object> getAttributeValue() {
                 return Optional.ofNullable(attributeValue);
+            }
+
+            @Override
+            public String toString() {
+                return "Success " + attributeValue;
             }
         };
     }

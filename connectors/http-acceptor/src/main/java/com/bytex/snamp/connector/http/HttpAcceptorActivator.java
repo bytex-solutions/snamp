@@ -2,6 +2,11 @@ package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import org.codehaus.groovy.reflection.ClassInfo;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.codehaus.groovy.runtime.powerassert.ValueRecorder;
+import org.codehaus.groovy.transform.BaseScriptASTTransformation;
+import org.codehaus.groovy.vmplugin.v7.IndyInterface;
 import org.osgi.service.http.HttpService;
 
 import java.io.IOException;
@@ -15,6 +20,10 @@ import static com.bytex.snamp.connector.http.HttpConnectorConfigurationDescripto
  * Represents activator of {@link HttpAcceptor}.
  */
 public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAcceptor> {
+    //Special array for maven-bundle-plugin for correct import of groovy classes
+    @SpecialUse
+    private static final Class<?>[] GROOVY_DEPS = {BaseScriptASTTransformation.class, ClassInfo.class, ValueRecorder.class, DefaultGroovyMethods.class, IndyInterface.class};
+
     private static final String SERVLET_CONTEXT = "/snamp/data/acquisition";
     private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
