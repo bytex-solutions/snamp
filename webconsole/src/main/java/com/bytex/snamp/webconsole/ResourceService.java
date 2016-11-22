@@ -26,6 +26,7 @@ import java.util.Map;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public final class ResourceService {
+
     /**
      * Returns all the configured managed resources.
      *
@@ -144,6 +145,147 @@ public final class ResourceService {
             admin.get().processConfiguration(currentConfig ->
                     currentConfig.getEntities(ManagedResourceConfiguration.class).remove(name) != null
             );
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+    /**
+     * Returns parameters for certain configured resource by its name.
+     *
+     * @return Map that contains parameters configuration (or empty map if no resources are configured)
+     */
+    @GET
+    @Path("/{name}/parameters")
+    public Map getParametersForResource(@PathParam("name") final String name) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        final Box<Map<String, String>> container = BoxFactory.create(null);
+        try {
+            //verify first and second resources
+            admin.get().readConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    container.set(mrc.getParameters());
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return container.get();
+    }
+
+    /**
+     * Set parameters for certain configured resource by its name.
+     *
+     * @return no content response
+     */
+    @PUT
+    @Path("/{name}/parameters")
+    public Response setParametersForResource(@PathParam("name") final String name,
+                                        final Map<String, String> object) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    mrc.setParameters(object);
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+    /**
+     * Returns certain parameter for certain configured resource by its name.
+     *
+     * @return String value of the parameter
+     */
+    @GET
+    @Path("/{name}/parameters/{paramName}")
+    public String getParameterByName(@PathParam("name") final String name,
+                                     @PathParam("paramName") final String paramName) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        final Box<String> container = BoxFactory.create(null);
+        try {
+            //verify first and second resources
+            admin.get().readConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    container.set(mrc.getParameters().get(paramName));
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return container.get();
+    }
+
+    /**
+     * Returns certain parameter for certain configured resource by its name.
+     *
+     * @return no content response
+     */
+    @PUT
+    @Path("/{name}/parameters/{paramName}")
+    public Response setParameterByName(@PathParam("name") final String name,
+                                       @PathParam("paramName") final String paramName,
+                                       final String value) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    mrc.getParameters().put(paramName, value);
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+    /**
+     * Removes certain parameter for certain configured resource by its name.
+     *
+     * @return no content response
+     */
+    @PUT
+    @Path("/{name}/parameters/{paramName}")
+    public Response removeParameterByName(@PathParam("name") final String name,
+                                       @PathParam("paramName") final String paramName) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                return mrc != null && mrc.getParameters().remove(paramName) != null;
+            });
         } finally {
             admin.release(bc);
         }
