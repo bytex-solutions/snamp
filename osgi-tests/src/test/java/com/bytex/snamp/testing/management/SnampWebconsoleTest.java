@@ -327,6 +327,67 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         }
     }
 
+    /**
+     * Test check simple resource with and without token.
+     *
+     * @throws IOException              the io exception
+     * @throws InterruptedException     the interrupted exception
+     * @throws NoSuchAlgorithmException the no such algorithm exception
+     * @throws JWTVerifyException       the jwt verify exception
+     * @throws InvalidKeyException      the invalid key exception
+     * @throws SignatureException       the signature exception
+     */
+    @Test
+    public void testModifyResourceConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+            InvalidKeyException, SignatureException {
+        Thread.sleep(3000);
+        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+        // Get resource by name
+        URL query = new URL(String.format("http://localhost:8181/snamp/console/resource/configuration/%s", TEST_RESOURCE_NAME));
+        HttpURLConnection connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+
+        String responseValue = "";
+        try {
+            responseValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertNotNull(responseValue);
+            assertNotEquals("{}", responseValue);
+        } finally {
+            connection.disconnect();
+        }
+        //write configuration for certain resource
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("charset", "utf-8");
+        connection.setDoOutput(true);
+        IOUtils.writeString(responseValue, connection.getOutputStream(), Charset.defaultCharset());
+        connection.connect();
+        try {
+            assertEquals(HttpURLConnection.HTTP_NO_CONTENT, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
+
+        //read configuration - nothing should be different
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
+            assertEquals(responseValue, IOUtils.toString(connection.getInputStream(), Charset.defaultCharset()));
+        } finally {
+            connection.disconnect();
+        }
+
+
+
+    }
+
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
