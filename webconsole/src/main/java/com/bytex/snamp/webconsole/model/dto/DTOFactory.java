@@ -81,4 +81,14 @@ public class DTOFactory {
     public static AttributeDTOEntity build(final AttributeConfiguration source) {
         return new AttributeDTOEntity(source.getParameters(), source.getReadWriteTimeout());
     }
+
+    /**
+     * Build map.
+     *
+     * @param source the source
+     * @return the map
+     */
+    public static EventDTOEntity build(final EventConfiguration source) {
+        return new EventDTOEntity(source.getParameters());
+    }
 }

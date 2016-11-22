@@ -217,12 +217,12 @@ public final class ResourceService {
     /**
      * Returns certain attribute for specific resource.
      *
-     * @return Map that contains attributes configuration (or empty map if no resources are configured)
+     * @return AbstractDTOEntity that contains attributes configuration (or null)
      */
     @GET
     @Path("/{name}/attributes/{attributeName}")
-    public AbstractDTOEntity getAttributesByName(@PathParam("name") final String name,
-                                                 @PathParam("attributeName") final String attributeName) throws IOException {
+    public AbstractDTOEntity getAttributeByName(@PathParam("name") final String name,
+                                                @PathParam("attributeName") final String attributeName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
@@ -246,13 +246,13 @@ public final class ResourceService {
     /**
      * Set certain attribute for specific resource.
      *
-     * @return Map that contains attributes configuration (or empty map if no resources are configured)
+     * @return no content response
      */
     @PUT
     @Path("/{name}/attributes/{attributeName}")
-    public Response getAttributesByName(@PathParam("name") final String name,
-                                        @PathParam("attributeName") final String attributeName,
-                                        final AttributeDTOEntity object) throws IOException {
+    public Response setAttributeByName(@PathParam("name") final String name,
+                                       @PathParam("attributeName") final String attributeName,
+                                       final AttributeDTOEntity object) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
@@ -279,14 +279,14 @@ public final class ResourceService {
 
 
     /**
-     * Returns certain attribute for specific resource.
+     * Removes certain attribute for specific resource.
      *
-     * @return Map that contains attributes configuration (or empty map if no resources are configured)
+     * @return no content response
      */
     @DELETE
     @Path("/{name}/attributes/{attributeName}")
-    public Response removetAttributesByName(@PathParam("name") final String name,
-                                            @PathParam("attributeName") final String attributeName) throws IOException {
+    public Response removeAttributeByName(@PathParam("name") final String name,
+                                          @PathParam("attributeName") final String attributeName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
@@ -359,6 +359,94 @@ public final class ResourceService {
                 } else {
                     return false;
                 }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+    /**
+     * Returns certain event for specific resource.
+     *
+     * @return AbstractDTOEntity that contains event configuration (or null)
+     */
+    @GET
+    @Path("/{name}/events/{eventName}")
+    public AbstractDTOEntity getEventByName(@PathParam("name") final String name,
+                                            @PathParam("eventName") final String eventName) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        final Box<EventConfiguration> container = BoxFactory.create(null);
+        try {
+            //verify first and second resources
+            admin.get().readConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null && !mrc.getFeatures(EventConfiguration.class).isEmpty() &&
+                        mrc.getFeatures(AttributeConfiguration.class).get(eventName) != null) {
+                    container.set(mrc.getFeatures(EventConfiguration.class).get(eventName));
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return DTOFactory.build(container.get());
+    }
+
+    /**
+     * Set certain event for specific resource.
+     *
+     * @return no content response
+     */
+    @PUT
+    @Path("/{name}/events/{eventName}")
+    public Response setEventByName(@PathParam("name") final String name,
+                                   @PathParam("eventName") final String eventName,
+                                   final EventDTOEntity object) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                if (mrc != null) {
+                    mrc.getFeatures(EventConfiguration.class).getOrAdd(eventName)
+                            .setParameters(object.getParameters());
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        } finally {
+            admin.release(bc);
+        }
+        return Response.noContent().build();
+    }
+
+
+    /**
+     * Removes certain event for specific resource.
+     *
+     * @return no content response
+     */
+    @DELETE
+    @Path("/{name}/events/{eventName}")
+    public Response removeAttributesByName(@PathParam("name") final String name,
+                                           @PathParam("eventName") final String eventName) throws IOException {
+        final BundleContext bc = Utils.getBundleContextOfObject(this);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
+        assert admin != null;
+        try {
+            //verify first and second resources
+            admin.get().processConfiguration(currentConfig -> {
+                final ManagedResourceConfiguration mrc =
+                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+                return mrc != null && !mrc.getFeatures(EventConfiguration.class).isEmpty()
+                        && mrc.getFeatures(EventConfiguration.class).remove(eventName) != null;
             });
         } finally {
             admin.release(bc);
