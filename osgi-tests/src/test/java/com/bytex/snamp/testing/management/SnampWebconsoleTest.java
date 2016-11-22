@@ -14,6 +14,8 @@ import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -275,7 +277,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
 
     }
 
-    @Test
+    //@Test
     public void dummyTest() throws InterruptedException {
         Thread.sleep(10000000);
     }
@@ -293,11 +295,10 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
     @Test
     public void testGetResourceConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
             InvalidKeyException, SignatureException {
-        Thread.sleep(3000);
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
 
         // Get all resources
-        URL query = new URL("http://localhost:8181/snamp/console/resource/configuration");
+        URL query = new URL("http://localhost:8181/snamp/console/resource");
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
@@ -312,7 +313,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         }
 
         // Get resource by name
-         query = new URL(String.format("http://localhost:8181/snamp/console/resource/configuration/%s", TEST_RESOURCE_NAME));
+         query = new URL(String.format("http://localhost:8181/snamp/console/resource/%s", TEST_RESOURCE_NAME));
         //write attribute
         connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
@@ -340,10 +341,9 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
     @Test
     public void testModifyResourceConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
             InvalidKeyException, SignatureException {
-        Thread.sleep(3000);
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
         // Get resource by name
-        URL query = new URL(String.format("http://localhost:8181/snamp/console/resource/configuration/%s", TEST_RESOURCE_NAME));
+        URL query = new URL(String.format("http://localhost:8181/snamp/console/resource/%s", TEST_RESOURCE_NAME));
         HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
@@ -379,7 +379,12 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         connection.connect();
         try {
             assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
-            assertEquals(responseValue, IOUtils.toString(connection.getInputStream(), Charset.defaultCharset()));
+            final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            JsonParser parser = new JsonParser();
+            JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
+            JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
+
+            assertEquals(oldResponseJSON, newResponseJSON);
         } finally {
             connection.disconnect();
         }

@@ -23,8 +23,6 @@ import java.util.Map;
  */
 @Path("/resource")
 @Singleton
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
 public final class ResourceService {
 
     /**
@@ -33,6 +31,9 @@ public final class ResourceService {
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
     @GET
+    @Path("/")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Map getConfiguration() throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -56,6 +57,8 @@ public final class ResourceService {
      */
     @GET
     @Path("/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public AbstractDTOClass getConfigurationByName(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -79,6 +82,8 @@ public final class ResourceService {
      */
     @PUT
     @Path("/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response setConfigurationByName(@PathParam("name") final String name,
                                            final ManagedResourceConfigurationDTO object) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -136,6 +141,8 @@ public final class ResourceService {
      */
     @DELETE
     @Path("/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response removeConfigurationByName(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -158,6 +165,8 @@ public final class ResourceService {
      */
     @GET
     @Path("/{name}/parameters")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Map getParametersForResource(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -185,6 +194,8 @@ public final class ResourceService {
      */
     @PUT
     @Path("/{name}/parameters")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response setParametersForResource(@PathParam("name") final String name,
                                         final Map<String, String> object) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -215,6 +226,8 @@ public final class ResourceService {
      */
     @GET
     @Path("/{name}/parameters/{paramName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String getParameterByName(@PathParam("name") final String name,
                                      @PathParam("paramName") final String paramName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -243,6 +256,8 @@ public final class ResourceService {
      */
     @PUT
     @Path("/{name}/parameters/{paramName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response setParameterByName(@PathParam("name") final String name,
                                        @PathParam("paramName") final String paramName,
                                        final String value) throws IOException {
@@ -272,8 +287,10 @@ public final class ResourceService {
      *
      * @return no content response
      */
-    @PUT
+    @DELETE
     @Path("/{name}/parameters/{paramName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response removeParameterByName(@PathParam("name") final String name,
                                        @PathParam("paramName") final String paramName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -299,6 +316,8 @@ public final class ResourceService {
      */
     @GET
     @Path("/{name}/attributes")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Map getAttributesForResource(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -326,6 +345,8 @@ public final class ResourceService {
      */
     @PUT
     @Path("/{name}/attributes")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response setAttributesForResource(@PathParam("name") final String name,
                                         final Map<String, AttributeDTOEntity> object) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -363,6 +384,8 @@ public final class ResourceService {
      */
     @GET
     @Path("/{name}/attributes/{attributeName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public AbstractDTOEntity getAttributeByName(@PathParam("name") final String name,
                                                 @PathParam("attributeName") final String attributeName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -392,6 +415,8 @@ public final class ResourceService {
      */
     @PUT
     @Path("/{name}/attributes/{attributeName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response setAttributeByName(@PathParam("name") final String name,
                                        @PathParam("attributeName") final String attributeName,
                                        final AttributeDTOEntity object) throws IOException {
@@ -427,6 +452,8 @@ public final class ResourceService {
      */
     @DELETE
     @Path("/{name}/attributes/{attributeName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response removeAttributeByName(@PathParam("name") final String name,
                                           @PathParam("attributeName") final String attributeName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -453,6 +480,8 @@ public final class ResourceService {
      */
     @GET
     @Path("/{name}/events")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Map getEventsForResource(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -480,6 +509,8 @@ public final class ResourceService {
      */
     @PUT
     @Path("/{name}/events")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response setEventsForResource(@PathParam("name") final String name,
                                              final Map<String, EventDTOEntity> object) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -515,6 +546,8 @@ public final class ResourceService {
      */
     @GET
     @Path("/{name}/events/{eventName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public AbstractDTOEntity getEventByName(@PathParam("name") final String name,
                                             @PathParam("eventName") final String eventName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -544,6 +577,8 @@ public final class ResourceService {
      */
     @PUT
     @Path("/{name}/events/{eventName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response setEventByName(@PathParam("name") final String name,
                                    @PathParam("eventName") final String eventName,
                                    final EventDTOEntity object) throws IOException {
@@ -577,6 +612,8 @@ public final class ResourceService {
      */
     @DELETE
     @Path("/{name}/events/{eventName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response removeAttributesByName(@PathParam("name") final String name,
                                            @PathParam("eventName") final String eventName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -603,6 +640,8 @@ public final class ResourceService {
      */
     @GET
     @Path("/{name}/operations")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Map getOperationsForResource(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
@@ -630,6 +669,8 @@ public final class ResourceService {
      */
     @PUT
     @Path("/{name}/operations")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response setOperationsForResource(@PathParam("name") final String name,
                                          final Map<String, OperationDTOEntity> object) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -665,6 +706,8 @@ public final class ResourceService {
      */
     @GET
     @Path("/{name}/operations/{operationName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public AbstractDTOEntity getOperationByName(@PathParam("name") final String name,
                                                 @PathParam("operationName") final String operationName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
@@ -694,6 +737,8 @@ public final class ResourceService {
      */
     @PUT
     @Path("/{name}/operations/{operationName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response setAttributeByName(@PathParam("name") final String name,
                                        @PathParam("operationName") final String operationName,
                                        final OperationDTOEntity object) throws IOException {
@@ -729,6 +774,8 @@ public final class ResourceService {
      */
     @DELETE
     @Path("/{name}/operations/{operationName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response removeOperationByName(@PathParam("name") final String name,
                                           @PathParam("operationName") final String operationName) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);

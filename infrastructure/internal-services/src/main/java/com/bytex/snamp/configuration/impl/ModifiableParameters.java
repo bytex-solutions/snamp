@@ -7,6 +7,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Objects;
 
 
 final class ModifiableParameters extends ModifiableMap<String, String> implements Serializable, Modifiable {
@@ -25,12 +26,13 @@ final class ModifiableParameters extends ModifiableMap<String, String> implement
 
     @Override
     protected void writeKey(final String key, final ObjectOutput out) throws IOException {
+        assert key != null;
         out.writeUTF(key);
     }
 
     @Override
     protected void writeValue(final String value, final ObjectOutput out) throws IOException {
-        out.writeUTF(value);
+        out.writeUTF(Objects.requireNonNull(value));
     }
 
     @Override
