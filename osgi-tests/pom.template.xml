@@ -408,5 +408,11 @@
             <version>1.16.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>zipkin-connector</artifactId>
+            <version>${snamp.connector.zipkin.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

@@ -130,7 +130,7 @@
                         <Bundle-SymbolicName>com.bytex.snamp.connector.zipkin</Bundle-SymbolicName>
                         <Bundle-Activator>com.bytex.snamp.connector.zipkin.ZipkinConnectorActivator</Bundle-Activator>
                         <Export-Package>
-                            com.bytex.snamp.connector.zipkin.kafkaHost
+                            com.bytex.snamp.connector.zipkin.embedding
                         </Export-Package>
                         <Import-Package>
                             com.bytex.snamp.concurrent,
