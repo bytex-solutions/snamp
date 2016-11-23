@@ -112,6 +112,17 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
         assertTrue(points.toString().startsWith("usedRAM,connectionString=javaApp-1,connectionType=http,managedResource=test-target value=100500i"));
     }
 
+//    @Test
+//    public void realInfluxDBTest() throws IOException, InterruptedException {
+//        while (true) {
+//            final IntegerMeasurement measurement = StandardMeasurements.usedRAM(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
+//            measurement.setComponentName(COMPONENT_NAME);
+//            measurement.setInstanceName(INSTANCE_NAME);
+//            sendMeasurement(measurement);
+//            Thread.sleep(5_000);
+//        }
+//    }
+
     @Test
     public void configurationDescriptorTest() throws BundleException {
         ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
