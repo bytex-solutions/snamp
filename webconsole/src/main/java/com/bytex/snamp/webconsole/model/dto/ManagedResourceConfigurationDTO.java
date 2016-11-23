@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -15,15 +16,46 @@ import java.util.stream.Collectors;
  * @version 2.0
  * @since 2.0
  */
-public class ManagedResourceConfigurationDTO extends AbstractDTOClass<ManagedResourceConfiguration>{
+public class ManagedResourceConfigurationDTO extends AbstractDTOEntity {
 
     private Map<String, AttributeDTOEntity> attributes;
     private Map<String, EventDTOEntity> events;
     private Map<String, OperationDTOEntity> operations;
     private String connectionString;
     private String type;
-    private Map<String, String> parameters;
 
+    /**
+     * Default constructor.
+     */
+     ManagedResourceConfigurationDTO() {
+        this.attributes = new HashMap<>();
+        this.events = new HashMap<>();
+        this.operations = new HashMap<>();
+    }
+
+     public ManagedResourceConfigurationDTO(ManagedResourceConfiguration object) {
+        super(object.getParameters());
+        this.attributes = new HashMap<>();
+        this.events = new HashMap<>();
+        this.operations = new HashMap<>();
+
+        this.setConnectionString(object.getConnectionString());
+        this.setType(object.getType());
+        this.setAttributes(object.getFeatures(AttributeConfiguration.class).entrySet()
+                .stream().collect( Collectors.toMap(Map.Entry::getKey,
+                        entry -> new AttributeDTOEntity(entry.getValue().getParameters(),
+                                entry.getValue().getReadWriteTimeout()))));
+
+        this.setEvents(object.getFeatures(EventConfiguration.class).entrySet()
+                .stream().collect( Collectors.toMap(Map.Entry::getKey,
+                        entry -> new EventDTOEntity(entry.getValue().getParameters()))));
+
+        this.setOperations(object.getFeatures(OperationConfiguration.class).entrySet()
+                .stream().collect( Collectors.toMap(Map.Entry::getKey,
+                        entry -> new OperationDTOEntity(entry.getValue().getParameters(),
+                                entry.getValue().getInvocationTimeout()))));
+
+    }
 
     /**
      * Gets attributes.
@@ -40,7 +72,8 @@ public class ManagedResourceConfigurationDTO extends AbstractDTOClass<ManagedRes
      * @param attributes the attributes
      */
     public void setAttributes(Map<String, AttributeDTOEntity> attributes) {
-        this.attributes = attributes;
+        this.attributes.clear();
+        this.attributes.putAll(attributes);
     }
 
     /**
@@ -58,7 +91,8 @@ public class ManagedResourceConfigurationDTO extends AbstractDTOClass<ManagedRes
      * @param events the events
      */
     public void setEvents(Map<String, EventDTOEntity> events) {
-        this.events = events;
+        this.events.clear();
+        this.events.putAll(events);
     }
 
     /**
@@ -76,7 +110,8 @@ public class ManagedResourceConfigurationDTO extends AbstractDTOClass<ManagedRes
      * @param operations the operations
      */
     public void setOperations(Map<String, OperationDTOEntity> operations) {
-        this.operations = operations;
+        this.operations.clear();
+        this.operations.putAll(operations);
     }
 
     /**
@@ -113,47 +148,5 @@ public class ManagedResourceConfigurationDTO extends AbstractDTOClass<ManagedRes
      */
     public void setType(String type) {
         this.type = type;
-    }
-
-    /**
-     * Gets parameters.
-     *
-     * @return the parameters
-     */
-    public Map<String, String> getParameters() {
-        return parameters;
-    }
-
-    /**
-     * Sets parameters.
-     *
-     * @param parameters the parameters
-     */
-    public void setParameters(Map<String, String> parameters) {
-        this.parameters = parameters;
-    }
-
-    @Override
-    public ManagedResourceConfigurationDTO build(ManagedResourceConfiguration object) {
-        if (object != null) {
-            this.setConnectionString(object.getConnectionString());
-            this.setType(object.getType());
-            this.setAttributes(object.getFeatures(AttributeConfiguration.class).entrySet()
-                    .stream().collect( Collectors.toMap(Map.Entry::getKey,
-                            entry -> new AttributeDTOEntity(entry.getValue().getParameters(),
-                                    entry.getValue().getReadWriteTimeout()))));
-
-            this.setEvents(object.getFeatures(EventConfiguration.class).entrySet()
-                    .stream().collect( Collectors.toMap(Map.Entry::getKey,
-                            entry -> new EventDTOEntity(entry.getValue().getParameters()))));
-
-            this.setOperations(object.getFeatures(OperationConfiguration.class).entrySet()
-                    .stream().collect( Collectors.toMap(Map.Entry::getKey,
-                            entry -> new OperationDTOEntity(entry.getValue().getParameters(),
-                                    entry.getValue().getInvocationTimeout()))));
-
-            this.setParameters(object.getParameters());
-        }
-        return this;
     }
 }

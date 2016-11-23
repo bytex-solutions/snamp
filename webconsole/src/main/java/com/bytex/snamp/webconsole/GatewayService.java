@@ -1,6 +1,5 @@
 package com.bytex.snamp.webconsole;
 
-import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.*;
@@ -17,53 +16,14 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Provides API for SNAMP resources management.
- * @author Roman Sakno
+ * Provides API for SNAMP gateway.
+ * @author Evgeniy Kirichenko
  * @version 2.0
  * @since 2.0
  */
-@Path("/resource")
+@Path("/gateway")
 @Singleton
-public final class ResourceService {
-
-    /**
-     * Непонятно как в Acceptor передать экземляр бокса, чтобы при readConfiguration можно в него было засетить что-то
-     * из вызывающего кода. Видимо никак.
-     * @param acceptor
-     * @param <R>
-     * @return
-     * @throws IOException
-     */
-    private <R> R readOnlyActions(final Acceptor<? super AgentConfiguration, IOException> acceptor) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<R> container = BoxFactory.create(null);
-        try {
-            admin.get().readConfiguration(acceptor); // readConfiguration ничего не возвращает и в acceptor передать Box нельзя.
-        } finally {
-            admin.release(bc);
-        }
-        return container.get();
-    }
-
-    /**
-     * Тут все вроде ок - работает
-     * @param handler
-     * @return
-     * @throws IOException
-     */
-    private Response changingActions(final ConfigurationManager.ConfigurationProcessor<IOException> handler) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            admin.get().processConfiguration(handler);
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
-    }
+public final class GatewayService {
 
     /**
      * Returns all the configured managed resources.
@@ -78,16 +38,16 @@ public final class ResourceService {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
-        final Box<EntityMap<? extends ManagedResourceConfiguration>> container = BoxFactory.create(null);
+        final Box<EntityMap<? extends GatewayConfiguration>> container = BoxFactory.create(null);
         try {
             //verify first and second resources
             admin.get().readConfiguration(currentConfig -> {
-                container.set(currentConfig.getEntities(ManagedResourceConfiguration.class));
+                container.set(currentConfig.getEntities(GatewayConfiguration.class));
             });
         } finally {
             admin.release(bc);
         }
-        return DTOFactory.build(container.get());
+        return DTOFactory.buildGateways(container.get());
     }
 
     /**
@@ -99,15 +59,15 @@ public final class ResourceService {
     @Path("/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public ManagedResourceConfigurationDTO getConfigurationByName(@PathParam("name") final String name) throws IOException {
+    public GatewayConfigurationDTO getConfigurationByName(@PathParam("name") final String name) throws IOException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
-        final Box<ManagedResourceConfiguration> container = BoxFactory.create(null);
+        final Box<GatewayConfiguration> container = BoxFactory.create(null);
         try {
             //verify first and second resources
             admin.get().readConfiguration(currentConfig -> {
-                container.set(currentConfig.getEntities(ManagedResourceConfiguration.class).get(name));
+                container.set(currentConfig.getEntities(GatewayConfiguration.class).get(name));
             });
         } finally {
             admin.release(bc);

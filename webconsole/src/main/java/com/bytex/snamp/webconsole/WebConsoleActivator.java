@@ -20,7 +20,8 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
     private static final String STATIC_SERVLET_CONTEXT = "/snamp/*";
 
     private WebConsoleService consoleAPI;
-    private ResourceService managementAPI;
+    private ResourceService resourceService;
+    private GatewayService gatewayService;
     private HttpService publisher;
 
     @Override
@@ -35,14 +36,15 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         // For Dashboard purpose
         final ConfigurationAdmin configAdmin = getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
         consoleAPI = new WebConsoleService();
-        managementAPI = new ResourceService();
+        resourceService = new ResourceService();
+        gatewayService = new GatewayService();
         final String resourceBase = this.getClass().getClassLoader().getResource("webapp").toExternalForm();
         @SuppressWarnings("unchecked")
         final HttpService httpService = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
                 (publisher) -> {
-                    publisher.registerServlet(API_SERVLET_CONTEXT, new JerseyServletContainer(consoleAPI, managementAPI), new Hashtable<>(), null);
+                    publisher.registerServlet(API_SERVLET_CONTEXT, new JerseyServletContainer(consoleAPI, resourceService, gatewayService), new Hashtable<>(), null);
                     publisher.registerServlet(STATIC_SERVLET_CONTEXT, new DefaultServlet(),
                             new Hashtable<>(ImmutableMap
                                     .of("resourceBase", resourceBase, "pathInfoOnly", "true")
@@ -62,6 +64,6 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
     protected void shutdown(final BundleContext context) throws Exception {
         publisher = null;
         consoleAPI = null;
-        managementAPI = null;
+        resourceService = null;
     }
 }

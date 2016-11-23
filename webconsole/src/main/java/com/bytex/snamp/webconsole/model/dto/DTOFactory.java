@@ -18,8 +18,8 @@ public class DTOFactory {
      * @param source the source
      * @return the abstract dto class
      */
-    public static AbstractDTOClass build(final ManagedResourceConfiguration source) {
-        return new ManagedResourceConfigurationDTO().build(source);
+    public static ManagedResourceConfigurationDTO build(final ManagedResourceConfiguration source) {
+        return new ManagedResourceConfigurationDTO(source);
     }
 
     /**
@@ -31,7 +31,7 @@ public class DTOFactory {
     public static Map build(final EntityMap<? extends ManagedResourceConfiguration> source) {
         return source.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey,
-                        e -> new ManagedResourceConfigurationDTO().build(e.getValue())));
+                        e -> new ManagedResourceConfigurationDTO(e.getValue())));
     }
 
     /**
@@ -99,5 +99,27 @@ public class DTOFactory {
      */
     public static OperationDTOEntity build(final OperationConfiguration source) {
         return new OperationDTOEntity(source.getParameters(), source.getInvocationTimeout());
+    }
+
+    /**
+     * Build abstract dto class.
+     *
+     * @param source the source
+     * @return the abstract dto class
+     */
+    public static GatewayConfigurationDTO build(final GatewayConfiguration source) {
+        return new GatewayConfigurationDTO(source.getParameters());
+    }
+
+    /**
+     * Build map.
+     *
+     * @param source the source
+     * @return the map
+     */
+    public static Map buildGateways(final EntityMap<? extends GatewayConfiguration> source) {
+        return source.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> new GatewayConfigurationDTO(e.getValue().getParameters())));
     }
 }
