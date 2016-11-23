@@ -7,7 +7,7 @@ package com.bytex.snamp.testing;
  * @since 1.0
  */
 public enum SnampFeature {
-    PLATFORM("platform-feature", "2.0.0"),
+    PLATFORM("platform", "2.0.0"),
     HTTP_ACCEPTOR("http-acceptor-feature", "2.0.0"),
     JMX_CONNECTOR("jmx-connector-feature", "2.0.0"),
     ZIPKIN_CONNECTOR("zipkin-connector-feature", "2.0.0"),

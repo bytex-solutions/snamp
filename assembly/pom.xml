@@ -27,7 +27,7 @@
     </dependency>
     <dependency>
       <groupId>com.bytex.snamp</groupId>
-      <artifactId>platform-feature</artifactId>
+      <artifactId>platform</artifactId>
       <version>${project.version}</version>
       <type>xml</type>
       <classifier>features</classifier>
@@ -83,7 +83,7 @@
             <feature>jms</feature>
           </bootFeatures>
           <installedFeatures>
-            <feature>platform-feature</feature>
+            <feature>snamp-platform</feature>
             <feature>wrapper</feature>
             <feature>http</feature>
             <feature>war</feature>

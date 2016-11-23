@@ -24,13 +24,6 @@
     <cellar.version>3.0.3</cellar.version>
     <jline.version>2.13</jline.version>
     <bouncycastle.version>1.54</bouncycastle.version>
-    <aries.proxy.api.version>1.0.1</aries.proxy.api.version>
-    <aries.util.version>1.1.1</aries.util.version>
-    <aries.jndi.version>1.0.0</aries.jndi.version>
-    <aries.jndi.core.version>1.0.2</aries.jndi.core.version>
-    <aries.jndi.url.version>1.1.0</aries.jndi.url.version>
-    <aries.jndi.api.version>1.1.0</aries.jndi.api.version>
-    <aries.jmx.api.version>1.1.1</aries.jmx.api.version>
     <hazelcast.version>3.4.2</hazelcast.version>
     <atmosphere.version>2.2.9</atmosphere.version>
     <sshd.version>0.14.0</sshd.version>
@@ -355,7 +348,7 @@
     <module>infrastructure/security</module>
     <module>webconsole</module>
     <module>infrastructure/scripting</module>
-    <module>features/platform-feature</module>
+    <module>features/platform</module>
     <module>features/gateways-features</module>
     <module>features/connectors-features</module>
     <module>features/wrapped-libs-for-tests</module>

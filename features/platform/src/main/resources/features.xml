@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp-platform">
+    <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
+    <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
+        <details>${project.description}</details>
+        <!-- Third-party features -->
+        <feature version="[${karaf.version}, ${karaf.maxVersion})">eventadmin</feature>
+        <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
+        <feature version="[${karaf.version}, ${karaf.maxVersion})">aries-proxy</feature>
+        <!-- Third-party bundles -->
+        <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
+        <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
+        <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
+        <!--SNAMP dependencies-->
+        <bundle>mvn:com.bytex.snamp/framework/${snamp.framework.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/internal-services/${snamp.services.version}</bundle>
+    </feature>
+
+    <feature name="snamp-instrumentation" description="SNAMP instrumentation library and connector for measurements" version="${project.version}">
+        <feature version="${project.version}">snamp-core</feature>
+        <bundle>mvn:com.bytex.snamp/instrumentation-core/${snamp.instrumentation.version}</bundle>
+        <bundle>mvn:com.bytex.snamp/message-driven-connector/${snamp.connector.md.version}</bundle>
+    </feature>
+
+    <feature name="snamp-security" description="SNAMP security layer" version="${project.version}">
+        <bundle>mvn:org.bouncycastle/bcpg-jdk15on/${bouncycastle.version}</bundle>
+        <bundle>mvn:org.bouncycastle/bcpkix-jdk15on/${bouncycastle.version}</bundle>
+        <bundle>mvn:org.bouncycastle/bcprov-jdk15on/${bouncycastle.version}</bundle>
+        <bundle>mvn:com.bytex.snamp/security/${snamp.security.version}</bundle>
+    </feature>
+
+    <feature name="snamp-web-support" description="SNAMP support bundles for Web" version="${project.version}">
+        <details>SNAMP support bundles for Web</details>
+        <bundle>mvn:org.apache.geronimo.specs/geronimo-servlet_3.0_spec/1.0</bundle>
+        <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
+        <bundle>mvn:io.netty/netty/3.10.0.Final</bundle>
+        <bundle>mvn:com.ning/async-http-client/1.9.5</bundle>
+        <bundle>mvn:org.codehaus.jettison/jettison/${jettison.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${jackson.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/${jackson.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-jaxrs/${jackson.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-xc/${jackson.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-json/${jersey.version}</bundle>
+    </feature>
+
+    <feature name="snamp-scripting-support" description="SNAMP support bundles for scripting" version="${project.version}">
+        <feature version="${project.version}">snamp-core</feature>
+        <bundle>mvn:org.codehaus.groovy/groovy/${groovy.version}/jar/indy</bundle>
+        <bundle>mvn:org.apache.ivy/ivy/${apache.ivy.version}</bundle>
+        <bundle>mvn:com.bytex.snamp/scripting/${snamp.scripting.version}</bundle>
+    </feature>
+
+    <feature name="snamp-management" description="SNAMP management tools" version="${project.version}">
+        <feature version="${project.version}">snamp-core</feature>
+        <feature version="${project.version}">snamp-security</feature>
+        <feature version="${project.version}">snamp-web-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp/management/${snamp.management.version}</bundle>
+    </feature>
+
+    <feature name="snamp-jmx-support" description="Various JMX helpers and JMX-to-JSON serialization" version="${project.version}">
+        <bundle>mvn:com.bytex.snamp/jmx-helpers/${snamp.jmxhelper.version}</bundle>
+    </feature>
+
+    <feature name="snamp-ssh-support" description="Set of Java libraries for SSH" version="${project.version}">
+        <feature version="${project.version}">snamp-security</feature>
+        <bundle>mvn:net.i2p.crypto/eddsa/${eddsa.version}</bundle>
+        <bundle>mvn:com.bytex.snamp/sshj/${sshj.version}</bundle>
+    </feature>
+</features>
