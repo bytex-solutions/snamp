@@ -27,7 +27,7 @@ final class JerseyServletContainer extends ServletContainer {
         final DefaultResourceConfig result = new DefaultResourceConfig();
         result.getSingletons().add(consoleAPI);
         result.getSingletons().add(managementAPI);
-        //result.getSingletons().add(gatewayService);
+        result.getSingletons().add(gatewayService);
         result.getContainerRequestFilters().add(AuthenticationFilter.class);
         result.getContainerResponseFilters().add(TokenRefreshFilter.class);
         result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);

@@ -83,7 +83,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
     private HttpCookie authenticate(final String username, final String password) throws IOException, InterruptedException {
         final URL query = new URL("http://localhost:8181/snamp/console/auth");
         // we should wait a while before it becomes reachable
-        Thread.sleep(2000);
+        Thread.sleep(5000);
         //write attribute
         final HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("POST");

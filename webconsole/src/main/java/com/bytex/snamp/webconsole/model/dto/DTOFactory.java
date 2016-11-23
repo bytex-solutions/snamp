@@ -18,7 +18,7 @@ public class DTOFactory {
      * @param source the source
      * @return the abstract dto class
      */
-    public static ManagedResourceConfigurationDTO build(final ManagedResourceConfiguration source) {
+    public static ManagedResourceConfigurationDTO buildManagedResource(final ManagedResourceConfiguration source) {
         return new ManagedResourceConfigurationDTO(source);
     }
 
@@ -28,7 +28,7 @@ public class DTOFactory {
      * @param source the source
      * @return the map
      */
-    public static Map build(final EntityMap<? extends ManagedResourceConfiguration> source) {
+    public static Map buildManagedResources(final EntityMap<? extends ManagedResourceConfiguration> source) {
         return source.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey,
                         e -> new ManagedResourceConfigurationDTO(e.getValue())));
@@ -77,7 +77,7 @@ public class DTOFactory {
      * @param source the source
      * @return the map
      */
-    public static AttributeDTOEntity build(final AttributeConfiguration source) {
+    public static AttributeDTOEntity buildAttribute(final AttributeConfiguration source) {
         return new AttributeDTOEntity(source.getParameters(), source.getReadWriteTimeout());
     }
 
@@ -87,7 +87,7 @@ public class DTOFactory {
      * @param source the source
      * @return the map
      */
-    public static EventDTOEntity build(final EventConfiguration source) {
+    public static EventDTOEntity buildEvent(final EventConfiguration source) {
         return new EventDTOEntity(source.getParameters());
     }
 
@@ -97,7 +97,7 @@ public class DTOFactory {
      * @param source the source
      * @return the map
      */
-    public static OperationDTOEntity build(final OperationConfiguration source) {
+    public static OperationDTOEntity buildOperation(final OperationConfiguration source) {
         return new OperationDTOEntity(source.getParameters(), source.getInvocationTimeout());
     }
 
@@ -107,7 +107,7 @@ public class DTOFactory {
      * @param source the source
      * @return the abstract dto class
      */
-    public static GatewayConfigurationDTO build(final GatewayConfiguration source) {
+    public static GatewayConfigurationDTO buildGateway(final GatewayConfiguration source) {
         return new GatewayConfigurationDTO(source.getParameters());
     }
 

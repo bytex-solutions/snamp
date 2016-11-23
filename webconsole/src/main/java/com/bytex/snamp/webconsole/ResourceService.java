@@ -1,17 +1,11 @@
 package com.bytex.snamp.webconsole;
 
-import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.core.ServiceHolder;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.webconsole.model.dto.*;
-import org.osgi.framework.BundleContext;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -29,13 +23,12 @@ public final class ResourceService extends BaseRestConfigurationService {
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
     @GET
-    @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Map getConfiguration() {
-        final EntityMap<? extends ManagedResourceConfiguration> result = readOnlyActions(currentConfig ->
-                (EntityMap<? extends ManagedResourceConfiguration>) currentConfig.getEntities(ManagedResourceConfiguration.class));
-        return DTOFactory.build(result);
+        return DTOFactory.buildManagedResources(readOnlyActions(currentConfig ->
+                (EntityMap<? extends ManagedResourceConfiguration>)
+                        currentConfig.getEntities(ManagedResourceConfiguration.class)));
     }
 
     /**
@@ -48,12 +41,13 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public ManagedResourceConfigurationDTO getConfigurationByName(@PathParam("name") final String name) {
-        final ManagedResourceConfiguration result = readOnlyActions(configuration ->
-                configuration.getEntities(ManagedResourceConfiguration.class).get(name));
-        if (result == null) {
-            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
-        }
-        return DTOFactory.build(result);
+        return DTOFactory.buildManagedResource(readOnlyActions(configuration -> {
+                if (configuration.getEntities(ManagedResourceConfiguration.class).get(name) != null) {
+                    return configuration.getEntities(ManagedResourceConfiguration.class).get(name);
+                } else {
+                    throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+                }
+        }));
     }
 
     /**
@@ -223,21 +217,16 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removeParameterByName(@PathParam("name") final String name,
-                                       @PathParam("paramName") final String paramName) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                return mrc != null && mrc.getParameters().remove(paramName) != null;
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                       @PathParam("paramName") final String paramName) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc == null) {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            } else {
+                return mrc.getParameters().remove(paramName) != null;
+            }
+        });
     }
 
     /**
@@ -249,24 +238,16 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Path("/{name}/attributes")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map getAttributesForResource(@PathParam("name") final String name) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<EntityMap<? extends AttributeConfiguration>> container = BoxFactory.create(null);
-        try {
-            //verify first and second resources
-            admin.get().readConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    container.set(mrc.getFeatures(AttributeConfiguration.class));
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return DTOFactory.buildAttributes(container.get());
+    public Map getAttributesForResource(@PathParam("name") final String name) {
+        return DTOFactory.buildAttributes(readOnlyActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                return (EntityMap<? extends AttributeConfiguration>) mrc.getFeatures(AttributeConfiguration.class);
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        }));
     }
 
     /**
@@ -279,33 +260,24 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setAttributesForResource(@PathParam("name") final String name,
-                                        final Map<String, AttributeDTOEntity> object) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    final EntityMap<? extends AttributeConfiguration> em = mrc.getFeatures(AttributeConfiguration.class);
-                    em.clear();
-                    object.entrySet().forEach(entry -> {
-                        final AttributeConfiguration configuration = em.getOrAdd(entry.getKey());
-                        configuration.setParameters(entry.getValue().getParameters());
-                        // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
-                        configuration.setReadWriteTimeout(entry.getValue().getReadWriteTimeout());
-                    });
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                        final Map<String, AttributeDTOEntity> object) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                final EntityMap<? extends AttributeConfiguration> em = mrc.getFeatures(AttributeConfiguration.class);
+                em.clear();
+                object.entrySet().forEach(entry -> {
+                    final AttributeConfiguration configuration = em.getOrAdd(entry.getKey());
+                    configuration.setParameters(entry.getValue().getParameters());
+                    // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
+                    configuration.setReadWriteTimeout(entry.getValue().getReadWriteTimeout());
+                });
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
     /**
@@ -317,26 +289,18 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Path("/{name}/attributes/{attributeName}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public AbstractDTOEntity getAttributeByName(@PathParam("name") final String name,
-                                                @PathParam("attributeName") final String attributeName) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<AttributeConfiguration> container = BoxFactory.create(null);
-        try {
-            //verify first and second resources
-            admin.get().readConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null && !mrc.getFeatures(AttributeConfiguration.class).isEmpty() &&
-                        mrc.getFeatures(AttributeConfiguration.class).get(attributeName) != null) {
-                    container.set(mrc.getFeatures(AttributeConfiguration.class).get(attributeName));
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return DTOFactory.build(container.get());
+    public AttributeDTOEntity getAttributeByName(@PathParam("name") final String name,
+                                                @PathParam("attributeName") final String attributeName) {
+        return DTOFactory.buildAttribute(readOnlyActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc == null || mrc.getFeatures(AttributeConfiguration.class).isEmpty()
+                    || mrc.getFeatures(AttributeConfiguration.class).get(attributeName) == null) {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            } else {
+                return mrc.getFeatures(AttributeConfiguration.class).get(attributeName);
+            }
+        }));
     }
 
     /**
@@ -350,29 +314,20 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setAttributeByName(@PathParam("name") final String name,
                                        @PathParam("attributeName") final String attributeName,
-                                       final AttributeDTOEntity object) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    mrc.getFeatures(AttributeConfiguration.class).getOrAdd(attributeName)
-                            .setParameters(object.getParameters());
-                    mrc.getFeatures(AttributeConfiguration.class).getOrAdd(attributeName)
-                            .setReadWriteTimeout(object.getReadWriteTimeout());
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                       final AttributeDTOEntity object) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                mrc.getFeatures(AttributeConfiguration.class).getOrAdd(attributeName)
+                        .setParameters(object.getParameters());
+                mrc.getFeatures(AttributeConfiguration.class).getOrAdd(attributeName)
+                        .setReadWriteTimeout(object.getReadWriteTimeout());
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
 
@@ -386,22 +341,17 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removeAttributeByName(@PathParam("name") final String name,
-                                          @PathParam("attributeName") final String attributeName) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                return mrc != null && !mrc.getFeatures(AttributeConfiguration.class).isEmpty()
-                        && mrc.getFeatures(AttributeConfiguration.class).remove(attributeName) != null;
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                          @PathParam("attributeName") final String attributeName) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc == null || mrc.getFeatures(AttributeConfiguration.class).isEmpty()
+                || mrc.getFeatures(AttributeConfiguration.class).get(attributeName) == null) {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            } else {
+                return mrc.getFeatures(AttributeConfiguration.class).remove(attributeName) != null;
+            }
+        });
     }
 
     /**
@@ -413,24 +363,16 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Path("/{name}/events")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map getEventsForResource(@PathParam("name") final String name) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<EntityMap<? extends EventConfiguration>> container = BoxFactory.create(null);
-        try {
-            //verify first and second resources
-            admin.get().readConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    container.set(mrc.getFeatures(EventConfiguration.class));
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return DTOFactory.buildEvents(container.get());
+    public Map getEventsForResource(@PathParam("name") final String name) {
+        return DTOFactory.buildEvents(readOnlyActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                return (EntityMap<? extends EventConfiguration>) mrc.getFeatures(EventConfiguration.class);
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        }));
     }
 
     /**
@@ -443,31 +385,22 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setEventsForResource(@PathParam("name") final String name,
-                                             final Map<String, EventDTOEntity> object) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    final EntityMap<? extends EventConfiguration> em = mrc.getFeatures(EventConfiguration.class);
-                    em.clear();
-                    object.entrySet().forEach(entry -> {
-                        final EventConfiguration configuration = em.getOrAdd(entry.getKey());
-                        configuration.setParameters(entry.getValue().getParameters());
-                    });
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                             final Map<String, EventDTOEntity> object) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                final EntityMap<? extends EventConfiguration> em = mrc.getFeatures(EventConfiguration.class);
+                em.clear();
+                object.entrySet().forEach(entry -> {
+                    final EventConfiguration configuration = em.getOrAdd(entry.getKey());
+                    configuration.setParameters(entry.getValue().getParameters());
+                });
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
     /**
@@ -480,25 +413,17 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public AbstractDTOEntity getEventByName(@PathParam("name") final String name,
-                                            @PathParam("eventName") final String eventName) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<EventConfiguration> container = BoxFactory.create(null);
-        try {
-            //verify first and second resources
-            admin.get().readConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null && !mrc.getFeatures(EventConfiguration.class).isEmpty() &&
-                        mrc.getFeatures(AttributeConfiguration.class).get(eventName) != null) {
-                    container.set(mrc.getFeatures(EventConfiguration.class).get(eventName));
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return DTOFactory.build(container.get());
+                                            @PathParam("eventName") final String eventName) {
+        return DTOFactory.buildEvent(readOnlyActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null && !mrc.getFeatures(EventConfiguration.class).isEmpty() &&
+                    mrc.getFeatures(AttributeConfiguration.class).get(eventName) != null) {
+                return mrc.getFeatures(EventConfiguration.class).get(eventName);
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        }));
     }
 
     /**
@@ -512,27 +437,18 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setEventByName(@PathParam("name") final String name,
                                    @PathParam("eventName") final String eventName,
-                                   final EventDTOEntity object) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    mrc.getFeatures(EventConfiguration.class).getOrAdd(eventName)
-                            .setParameters(object.getParameters());
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                   final EventDTOEntity object) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                mrc.getFeatures(EventConfiguration.class).getOrAdd(eventName)
+                        .setParameters(object.getParameters());
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
 
@@ -546,22 +462,17 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removeAttributesByName(@PathParam("name") final String name,
-                                           @PathParam("eventName") final String eventName) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                return mrc != null && !mrc.getFeatures(EventConfiguration.class).isEmpty()
-                        && mrc.getFeatures(EventConfiguration.class).remove(eventName) != null;
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                           @PathParam("eventName") final String eventName) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null && !mrc.getFeatures(EventConfiguration.class).isEmpty() &&
+                    mrc.getFeatures(EventConfiguration.class).get(eventName) != null) {
+                        return mrc.getFeatures(EventConfiguration.class).remove(eventName) != null;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
     /**
@@ -573,24 +484,16 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Path("/{name}/operations")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map getOperationsForResource(@PathParam("name") final String name) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<EntityMap<? extends OperationConfiguration>> container = BoxFactory.create(null);
-        try {
-            //verify first and second resources
-            admin.get().readConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    container.set(mrc.getFeatures(OperationConfiguration.class));
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return DTOFactory.buildOperations(container.get());
+    public Map getOperationsForResource(@PathParam("name") final String name) {
+        return DTOFactory.buildOperations(readOnlyActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                return (EntityMap<? extends OperationConfiguration>) mrc.getFeatures(OperationConfiguration.class);
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        }));
     }
 
     /**
@@ -603,31 +506,22 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setOperationsForResource(@PathParam("name") final String name,
-                                         final Map<String, OperationDTOEntity> object) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    final EntityMap<? extends OperationConfiguration> em = mrc.getFeatures(OperationConfiguration.class);
-                    em.clear();
-                    object.entrySet().forEach(entry -> {
-                        final OperationConfiguration configuration = em.getOrAdd(entry.getKey());
-                        configuration.setParameters(entry.getValue().getParameters());
-                    });
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                         final Map<String, OperationDTOEntity> object) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                final EntityMap<? extends OperationConfiguration> em = mrc.getFeatures(OperationConfiguration.class);
+                em.clear();
+                object.entrySet().forEach(entry -> {
+                    final OperationConfiguration configuration = em.getOrAdd(entry.getKey());
+                    configuration.setParameters(entry.getValue().getParameters());
+                });
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
     /**
@@ -640,25 +534,17 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public AbstractDTOEntity getOperationByName(@PathParam("name") final String name,
-                                                @PathParam("operationName") final String operationName) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<OperationConfiguration> container = BoxFactory.create(null);
-        try {
-            //verify first and second resources
-            admin.get().readConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null && !mrc.getFeatures(OperationConfiguration.class).isEmpty() &&
-                        mrc.getFeatures(OperationConfiguration.class).get(operationName) != null) {
-                    container.set(mrc.getFeatures(OperationConfiguration.class).get(operationName));
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return DTOFactory.build(container.get());
+                                                @PathParam("operationName") final String operationName) {
+        return DTOFactory.buildOperation(readOnlyActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null && !mrc.getFeatures(OperationConfiguration.class).isEmpty() &&
+                    mrc.getFeatures(OperationConfiguration.class).get(operationName) != null) {
+                return mrc.getFeatures(OperationConfiguration.class).get(operationName);
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        }));
     }
 
     /**
@@ -672,29 +558,20 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setAttributeByName(@PathParam("name") final String name,
                                        @PathParam("operationName") final String operationName,
-                                       final OperationDTOEntity object) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    mrc.getFeatures(OperationConfiguration.class).getOrAdd(operationName)
-                            .setParameters(object.getParameters());
-                    mrc.getFeatures(OperationConfiguration.class).getOrAdd(operationName)
-                            .setInvocationTimeout(object.getInvocationTimeout());
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                       final OperationDTOEntity object) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                mrc.getFeatures(OperationConfiguration.class).getOrAdd(operationName)
+                        .setParameters(object.getParameters());
+                mrc.getFeatures(OperationConfiguration.class).getOrAdd(operationName)
+                        .setInvocationTimeout(object.getInvocationTimeout());
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
 
@@ -708,21 +585,16 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removeOperationByName(@PathParam("name") final String name,
-                                          @PathParam("operationName") final String operationName) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                return mrc != null && !mrc.getFeatures(OperationConfiguration.class).isEmpty()
-                        && mrc.getFeatures(OperationConfiguration.class).remove(operationName) != null;
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                          @PathParam("operationName") final String operationName) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null && !mrc.getFeatures(OperationConfiguration.class).isEmpty()
+                    && mrc.getFeatures(OperationConfiguration.class).get(operationName) != null) {
+                return mrc.getFeatures(OperationConfiguration.class).remove(operationName) != null;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 }
