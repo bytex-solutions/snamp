@@ -1,13 +1,11 @@
 package com.bytex.snamp.webconsole;
 
-import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.webconsole.model.dto.*;
-import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.framework.BundleContext;
 
 import javax.ws.rs.*;
@@ -23,47 +21,7 @@ import java.util.Map;
  * @since 2.0
  */
 @Path("/resource")
-@Singleton
-public final class ResourceService {
-
-    /**
-     * Непонятно как в Acceptor передать экземляр бокса, чтобы при readConfiguration можно в него было засетить что-то
-     * из вызывающего кода. Видимо никак.
-     * @param acceptor
-     * @param <R>
-     * @return
-     * @throws IOException
-     */
-    private <R> R readOnlyActions(final Acceptor<? super AgentConfiguration, IOException> acceptor) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<R> container = BoxFactory.create(null);
-        try {
-            admin.get().readConfiguration(acceptor); // readConfiguration ничего не возвращает и в acceptor передать Box нельзя.
-        } finally {
-            admin.release(bc);
-        }
-        return container.get();
-    }
-
-    /**
-     * Тут все вроде ок - работает
-     * @param handler
-     * @return
-     * @throws IOException
-     */
-    private Response changingActions(final ConfigurationManager.ConfigurationProcessor<IOException> handler) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            admin.get().processConfiguration(handler);
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
-    }
+public final class ResourceService extends BaseRestConfigurationService {
 
     /**
      * Returns all the configured managed resources.
@@ -74,20 +32,10 @@ public final class ResourceService {
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map getConfiguration() throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<EntityMap<? extends ManagedResourceConfiguration>> container = BoxFactory.create(null);
-        try {
-            //verify first and second resources
-            admin.get().readConfiguration(currentConfig -> {
-                container.set(currentConfig.getEntities(ManagedResourceConfiguration.class));
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return DTOFactory.build(container.get());
+    public Map getConfiguration() {
+        final EntityMap<? extends ManagedResourceConfiguration> result = readOnlyActions(currentConfig ->
+                (EntityMap<? extends ManagedResourceConfiguration>) currentConfig.getEntities(ManagedResourceConfiguration.class));
+        return DTOFactory.build(result);
     }
 
     /**
@@ -99,20 +47,13 @@ public final class ResourceService {
     @Path("/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public ManagedResourceConfigurationDTO getConfigurationByName(@PathParam("name") final String name) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<ManagedResourceConfiguration> container = BoxFactory.create(null);
-        try {
-            //verify first and second resources
-            admin.get().readConfiguration(currentConfig -> {
-                container.set(currentConfig.getEntities(ManagedResourceConfiguration.class).get(name));
-            });
-        } finally {
-            admin.release(bc);
+    public ManagedResourceConfigurationDTO getConfigurationByName(@PathParam("name") final String name) {
+        final ManagedResourceConfiguration result = readOnlyActions(configuration ->
+                configuration.getEntities(ManagedResourceConfiguration.class).get(name));
+        if (result == null) {
+            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
         }
-        return DTOFactory.build(container.get());
+        return DTOFactory.build(result);
     }
 
     /**
@@ -125,53 +66,43 @@ public final class ResourceService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setConfigurationByName(@PathParam("name") final String name,
-                                           final ManagedResourceConfigurationDTO object) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final EntityMap<? extends ManagedResourceConfiguration> entityMap =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class);
-                final ManagedResourceConfiguration mrc = entityMap.getOrAdd(name);
-                if (mrc != null) {
-                    mrc.setParameters(object.getParameters());
-                    mrc.setConnectionString(object.getConnectionString());
-                    mrc.setType(object.getType());
-                    mrc.getFeatures(FeatureConfiguration.class).clear();
+                                           final ManagedResourceConfigurationDTO object) {
+        return changingActions(currentConfig -> {
+            final EntityMap<? extends ManagedResourceConfiguration> entityMap =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class);
+            final ManagedResourceConfiguration mrc = entityMap.getOrAdd(name);
+            if (mrc != null) {
+                mrc.setParameters(object.getParameters());
+                mrc.setConnectionString(object.getConnectionString());
+                mrc.setType(object.getType());
+                mrc.getFeatures(FeatureConfiguration.class).clear();
 
-                    object.getAttributes().entrySet().forEach(entry -> {
-                        final AttributeConfiguration configuration = mrc.getFeatures(AttributeConfiguration.class)
-                                .getOrAdd(entry.getKey());
-                        configuration.setParameters(entry.getValue().getParameters());
-                        // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
-                        configuration.setReadWriteTimeout(entry.getValue().getReadWriteTimeout());
-                    });
+                object.getAttributes().entrySet().forEach(entry -> {
+                    final AttributeConfiguration configuration = mrc.getFeatures(AttributeConfiguration.class)
+                            .getOrAdd(entry.getKey());
+                    configuration.setParameters(entry.getValue().getParameters());
+                    // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
+                    configuration.setReadWriteTimeout(entry.getValue().getReadWriteTimeout());
+                });
 
-                    object.getEvents().entrySet().forEach(entry -> {
-                        final EventConfiguration configuration = mrc.getFeatures(EventConfiguration.class)
-                                .getOrAdd(entry.getKey());
-                        configuration.setParameters(entry.getValue().getParameters());
-                    });
+                object.getEvents().entrySet().forEach(entry -> {
+                    final EventConfiguration configuration = mrc.getFeatures(EventConfiguration.class)
+                            .getOrAdd(entry.getKey());
+                    configuration.setParameters(entry.getValue().getParameters());
+                });
 
-                    object.getOperations().entrySet().forEach(entry -> {
-                        final OperationConfiguration configuration = mrc.getFeatures(OperationConfiguration.class)
-                                .getOrAdd(entry.getKey());
-                        configuration.setParameters(entry.getValue().getParameters());
-                        // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
-                        configuration.setInvocationTimeout(entry.getValue().getInvocationTimeout());
-                    });
-
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                object.getOperations().entrySet().forEach(entry -> {
+                    final OperationConfiguration configuration = mrc.getFeatures(OperationConfiguration.class)
+                            .getOrAdd(entry.getKey());
+                    configuration.setParameters(entry.getValue().getParameters());
+                    // http://stackoverflow.com/questions/27952472/serialize-deserialize-java-8-java-time-with-jackson-json-mapper
+                    configuration.setInvocationTimeout(entry.getValue().getInvocationTimeout());
+                });
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
     /**
@@ -183,19 +114,14 @@ public final class ResourceService {
     @Path("/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response removeConfigurationByName(@PathParam("name") final String name) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            // if nothing was removed - no modification should be commited
-            admin.get().processConfiguration(currentConfig ->
-                    currentConfig.getEntities(ManagedResourceConfiguration.class).remove(name) != null
-            );
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+    public Response removeConfigurationByName(@PathParam("name") final String name) {
+        return changingActions(currentConfig -> {
+            if (currentConfig.getEntities(ManagedResourceConfiguration.class).get(name) == null) {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            } else {
+                return currentConfig.getEntities(ManagedResourceConfiguration.class).remove(name) != null;
+            }
+        });
     }
 
     /**
@@ -207,24 +133,16 @@ public final class ResourceService {
     @Path("/{name}/parameters")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map getParametersForResource(@PathParam("name") final String name) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<Map<String, String>> container = BoxFactory.create(null);
-        try {
-            //verify first and second resources
-            admin.get().readConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    container.set(mrc.getParameters());
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return container.get();
+    public Map getParametersForResource(@PathParam("name") final String name) {
+        return readOnlyActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                return mrc.getParameters();
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
     /**
@@ -236,27 +154,17 @@ public final class ResourceService {
     @Path("/{name}/parameters")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response setParametersForResource(@PathParam("name") final String name,
-                                        final Map<String, String> object) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    mrc.setParameters(object);
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+    public Response setParametersForResource(@PathParam("name") final String name, final Map<String, String> object) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                mrc.setParameters(object);
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
     /**
@@ -269,24 +177,16 @@ public final class ResourceService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String getParameterByName(@PathParam("name") final String name,
-                                     @PathParam("paramName") final String paramName) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        final Box<String> container = BoxFactory.create(null);
-        try {
-            //verify first and second resources
-            admin.get().readConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    container.set(mrc.getParameters().get(paramName));
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return container.get();
+                                     @PathParam("paramName") final String paramName) {
+        return readOnlyActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                return mrc.getParameters().get(paramName);
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
     /**
@@ -300,26 +200,17 @@ public final class ResourceService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setParameterByName(@PathParam("name") final String name,
                                        @PathParam("paramName") final String paramName,
-                                       final String value) throws IOException {
-        final BundleContext bc = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            //verify first and second resources
-            admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration mrc =
-                        currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
-                if (mrc != null) {
-                    mrc.getParameters().put(paramName, value);
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        } finally {
-            admin.release(bc);
-        }
-        return Response.noContent().build();
+                                       final String value) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null) {
+                mrc.getParameters().put(paramName, value);
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
     }
 
     /**
