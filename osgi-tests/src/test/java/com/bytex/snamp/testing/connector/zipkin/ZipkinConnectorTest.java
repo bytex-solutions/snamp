@@ -106,8 +106,8 @@ public class ZipkinConnectorTest extends AbstractResourceConnectorTest {
                 .traceId(100500L)
                 .build();
         reporter.report(span);
-        Thread.sleep(2000);
-        testAttribute("summaryDuration", TypeToken.of(Double.class), 2500D / 1_000_000D, true);   //microseconds to seconds
+        Thread.sleep(5_000);
+        testAttribute("summaryDuration", TypeToken.of(Double.class), 2_500D / 1_000_000D, true);   //microseconds to seconds
     }
 
     @Override

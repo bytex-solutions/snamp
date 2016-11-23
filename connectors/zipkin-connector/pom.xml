@@ -116,6 +116,7 @@
             <excludes>
               <exclude>org.slf4j:slf4j-log4j12:jar:</exclude>
               <exclude>log4j:log4j:jar:</exclude>
+              <exclude>net.jpountz.lz4:lz4:jar:</exclude>
             </excludes>
           </artifactSet>
         </configuration>
