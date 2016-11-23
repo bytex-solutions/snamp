@@ -9,7 +9,7 @@
   </parent>
   <artifactId>framework</artifactId>
   <packaging>bundle</packaging>
-  <version>${snamp.framework.version}</version>
+  <version>${snamp.version}</version>
   <name>SNAMP Framework</name>
   <description>Provides a collection of SNAMP-related core interfaces and classes</description>
   <properties>

@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>${snamp.framework.version}</version>
+            <version>${snamp.version}</version>
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>

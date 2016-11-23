@@ -39,7 +39,7 @@
           <scope>provided</scope>
           <groupId>com.bytex.snamp</groupId>
           <artifactId>framework</artifactId>
-          <version>${snamp.framework.version}</version>
+          <version>${snamp.version}</version>
       </dependency>
       <dependency>
           <scope>provided</scope>

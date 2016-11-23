@@ -12,14 +12,9 @@
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
         <!--SNAMP dependencies-->
-        <bundle>mvn:com.bytex.snamp/framework/${snamp.framework.version}</bundle>
-        <bundle start="true">mvn:com.bytex.snamp/internal-services/${snamp.services.version}</bundle>
-    </feature>
-
-    <feature name="snamp-instrumentation" description="SNAMP instrumentation library and connector for measurements" version="${project.version}">
-        <feature version="${project.version}">snamp-core</feature>
+        <bundle>mvn:com.bytex.snamp/framework/${snamp.version}</bundle>
         <bundle>mvn:com.bytex.snamp/instrumentation-core/${snamp.instrumentation.version}</bundle>
-        <bundle>mvn:com.bytex.snamp/message-driven-connector/${snamp.connector.md.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/internal-services/${snamp.services.version}</bundle>
     </feature>
 
     <feature name="snamp-security" description="SNAMP security layer" version="${project.version}">
@@ -68,5 +63,11 @@
         <feature version="${project.version}">snamp-security</feature>
         <bundle>mvn:net.i2p.crypto/eddsa/${eddsa.version}</bundle>
         <bundle>mvn:com.bytex.snamp/sshj/${sshj.version}</bundle>
+    </feature>
+
+    <feature name="snamp-message-processing" description="SNAMP instrumentation library and connector for measurements" version="${project.version}">
+        <feature version="${project.version}">snamp-core</feature>
+        <feature version="${project.version}">snamp-scripting-support</feature>
+        <bundle>mvn:com.bytex.snamp/message-driven-connector/${snamp.connector.md.version}</bundle>
     </feature>
 </features>

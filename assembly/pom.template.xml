@@ -12,7 +12,7 @@
     <name>SNAMP Distribution Package</name>
     <description>Assembly of SNAMP Distribution Package</description>
     <packaging>karaf-assembly</packaging>
-    <version>${project.parent.version}</version>
+    <version>${snamp.version}</version>
     <properties>
         <karaf.folder.root>${basedir}/target/assembly</karaf.folder.root>
         <karaf.folder.deploy>${karaf.folder.root}/deploy</karaf.folder.deploy>
@@ -44,7 +44,8 @@
                         <feature>jms</feature>
                     </bootFeatures>
                     <installedFeatures>
-                        <feature>snamp-platform</feature>
+                        <feature>snamp-core</feature>
+                        <feature>snamp-management</feature>
                         <feature>wrapper</feature>
                         <feature>http</feature>
                         <feature>war</feature>

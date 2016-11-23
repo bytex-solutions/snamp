@@ -197,7 +197,7 @@
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>${snamp.framework.version}</version>
+            <version>${snamp.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

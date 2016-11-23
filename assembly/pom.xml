@@ -8,7 +8,7 @@
     <version>2.0.0</version>
   </parent>
   <artifactId>assembly</artifactId>
-  <version>${project.parent.version}</version>
+  <version>2.0.0</version>
   <packaging>karaf-assembly</packaging>
   <name>SNAMP Distribution Package</name>
   <description>Assembly of SNAMP Distribution Package</description>
@@ -83,7 +83,8 @@
             <feature>jms</feature>
           </bootFeatures>
           <installedFeatures>
-            <feature>snamp-platform</feature>
+            <feature>snamp-core</feature>
+            <feature>snamp-management</feature>
             <feature>wrapper</feature>
             <feature>http</feature>
             <feature>war</feature>

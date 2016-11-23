@@ -2,8 +2,8 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
     <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
         <details>${project.description}</details>
-        <feature version="[${snamp.framework.version}, ${snamp.framework.maxVersion})">snamp-core</feature>
-        <feature version="[${snamp.framework.version}, ${snamp.framework.maxVersion})">snamp-scripting-support</feature>
+        <feature version="[${snamp.version}, ${snamp.framework.maxVersion})">snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.framework.maxVersion})">snamp-scripting-support</feature>
         <bundle start="true">mvn:com.bytex.snamp/groovy-connector/${project.version}</bundle>
     </feature>
 </features>
