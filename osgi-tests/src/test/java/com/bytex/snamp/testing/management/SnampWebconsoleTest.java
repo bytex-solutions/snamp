@@ -43,7 +43,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @version 2.0
  * @since 1.0
  */
-@SnampDependencies({SnampFeature.WEBCONSOLE, SnampFeature.WRAPPED_LIBS, SnampFeature.SNMP_GATEWAY})
+@SnampDependencies({SnampFeature.WEBCONSOLE, SnampFeature.SNMP_GATEWAY})
 public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";

@@ -26,5 +26,6 @@
         <bundle>mvn:com.bytex.snamp/scripting/${snamp.scripting.version}</bundle>
         <bundle>mvn:com.bytex.snamp/instrumentation-core/${snamp.instrumentation.version}</bundle>
         <bundle>mvn:com.bytex.snamp/message-driven-connector/${snamp.connector.md.version}</bundle>
+        <bundle>mvn:com.bytex.snamp/web-support/${snamp.web-support.version}</bundle>
     </feature>
 </features>

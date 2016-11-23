@@ -22,6 +22,7 @@
     <module>infrastructure/internal-services</module>
     <module>webconsole</module>
     <module>infrastructure/scripting</module>
+    <module>infrastructure/web-support</module>
     <module>features/platform-feature</module>
     <module>features/gateways-features</module>
     <module>features/connectors-features</module>
@@ -85,12 +86,14 @@
     <groovy.version>2.4.7</groovy.version>
     <snamp.framework.maxVersion>3</snamp.framework.maxVersion>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
+    <snamp.web-support.version>2.0.0</snamp.web-support.version>
     <sshd.version>0.14.0</sshd.version>
     <guava.version>19.0</guava.version>
     <aries.proxy.api.version>1.0.1</aries.proxy.api.version>
     <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
     <snamp.framework.version>2.0.0</snamp.framework.version>
     <bouncycastle.version>1.54</bouncycastle.version>
+    <java-jwt.version>2.2.1</java-jwt.version>
   </properties>
   <dependencyManagement>
     <dependencies>
