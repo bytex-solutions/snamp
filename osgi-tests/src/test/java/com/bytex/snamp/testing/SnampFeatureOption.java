@@ -20,6 +20,6 @@ final class SnampFeatureOption extends KarafFeaturesOption {
     }
 
     SnampFeatureOption(final SnampFeature feature) throws MalformedURLException {
-        super(feature.getAbsoluteRepositoryPath(getPrefixRepository(), POSTFIX_FILE_NAME), feature.featureName);
+        super(feature.getAbsoluteRepositoryPath(getPrefixRepository(), POSTFIX_FILE_NAME), feature.featureNames);
     }
 }

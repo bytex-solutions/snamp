@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp-platform">
     <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
+    <repository>mvn:org.apache.karaf.features/framework/${karaf.version}/xml/features</repository>
     <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
         <details>${project.description}</details>
         <!-- Third-party features -->
         <feature version="[${karaf.version}, ${karaf.maxVersion})">eventadmin</feature>
         <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
-        <feature version="[${karaf.version}, ${karaf.maxVersion})">aries-proxy</feature>
+        <feature version="[${karaf.version}, ${karaf.maxVersion})">framework</feature>
         <!-- Third-party bundles -->
         <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>

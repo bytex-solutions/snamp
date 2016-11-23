@@ -2,9 +2,9 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
     <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
         <details>${project.description}</details>
-        <feature version="[${snamp.version}, ${snamp.framework.maxVersion})">snamp-core</feature>
-        <feature version="[${snamp.version}, ${snamp.framework.maxVersion})">snamp-web-support</feature>
-        <feature version="[${snamp.version}, ${snamp.framework.maxVersion})">snamp-message-processing</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-web-support</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-message-processing</feature>
         <bundle start="true">mvn:com.bytex.snamp/http-acceptor/${project.version}</bundle>
     </feature>
 </features>

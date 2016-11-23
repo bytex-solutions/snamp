@@ -1,5 +1,7 @@
 package com.bytex.snamp.testing;
 
+import java.util.Objects;
+
 /**
  * Represents SNAMP artifacts.
  * @author Roman Sakno
@@ -7,7 +9,7 @@ package com.bytex.snamp.testing;
  * @since 1.0
  */
 public enum SnampFeature {
-    PLATFORM("platform", "2.0.0"),
+    PLATFORM("platform", "2.0.0", "snamp-core", "snamp-management"),
     HTTP_ACCEPTOR("http-acceptor-feature", "2.0.0"),
     JMX_CONNECTOR("jmx-connector-feature", "2.0.0"),
     ZIPKIN_CONNECTOR("zipkin-connector-feature", "2.0.0"),
@@ -25,25 +27,27 @@ public enum SnampFeature {
     NAGIOS_GATEWAY("nagios-gateway-feature", "2.0.0"),
     SYSLOG_GATEWAY("syslog-gateway-feature", "2.0.0"),
     XMPP_GATEWAY("xmpp-gateway-feature", "2.0.0"),
-    GROOVY_CONNECTOR("groovy-connector-feature", "2.0.0"),
+    GROOVY_CONNECTOR("groovy-connector-feature", "2.0.0", "groovy-connector-feature"),
     GROOVY_GATEWAY("groovy-gateway-feature", "2.0.0"),
     MODBUS_CONNECTOR("modbus-connector-feature", "2.0.0"),
     WEBCONSOLE("webconsole-feature", "2.0.0");
 
-    final String featureName;
+    final String[] featureNames;
+    private final String artifactId;
     final String version;
 
-    SnampFeature(final String featureName, final String version){
-        this.featureName = featureName;
+    SnampFeature(final String artifactId, final String version, final String... featureNames){
+        this.artifactId = artifactId;
         this.version = version;
+        this.featureNames = Objects.requireNonNull(featureNames);
     }
 
-    public String getFeatureAbsoluteFileName(final String featureFileName){
-        return TestUtils.join(new String[]{featureName, version, featureFileName}, '-');
+    private String getArtifactAbsoluteFileName(final String featureFileName){
+        return TestUtils.join(new String[]{artifactId, version, featureFileName}, '-');
     }
 
     public String getAbsoluteRepositoryPath(final String repositoryLocation,
                                             final String featureFileName){
-        return TestUtils.join(new String[]{repositoryLocation, featureName, version, getFeatureAbsoluteFileName(featureFileName)}, '/');
+        return TestUtils.join(new String[]{repositoryLocation, artifactId, version, getArtifactAbsoluteFileName(featureFileName)}, '/');
     }
 }
