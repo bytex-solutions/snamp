@@ -1,13 +1,12 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.security.web;
 
 import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.internal.Utils;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.function.Supplier;
-
-import static com.bytex.snamp.core.DistributedServices.getDistributedBox;
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Provides access to secret used to verify and sign JWT token.
@@ -34,6 +33,6 @@ final class TokenSecretHolder extends SecureRandom implements Supplier<BigIntege
     }
 
     String getSecret() {
-        return String.valueOf(getDistributedBox(getBundleContextOfObject(this), JWT_SECRET_BOX_NAME).setIfAbsent(this));
+        return String.valueOf(DistributedServices.getDistributedBox(Utils.getBundleContextOfObject(this), JWT_SECRET_BOX_NAME).setIfAbsent(this));
     }
 }

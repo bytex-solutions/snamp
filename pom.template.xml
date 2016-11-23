@@ -38,7 +38,6 @@
     <jackson.version>1.9.13</jackson.version>
     <jettison.version>1.3.8</jettison.version>
     <eddsa.version>0.1.0</eddsa.version>
-    <java-jwt.version>2.2.1</java-jwt.version>
     <!--Versioning of SNAMP Components-->
     <snmp4j.version>2.5.1</snmp4j.version>
     <sshj.version>0.18.0</sshj.version>
@@ -73,7 +72,7 @@
     <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
-    <snamp.web-support.version>2.0.0</snamp.web-support.version>
+    <snamp.security.version>2.0.0</snamp.security.version>
   </properties>
   <version>2.0.0</version>
   <organization>
@@ -353,7 +352,7 @@
     <module>infrastructure/jmx-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
-    <module>infrastructure/web-support</module>
+    <module>infrastructure/security</module>
     <module>webconsole</module>
     <module>infrastructure/scripting</module>
     <module>features/platform-feature</module>

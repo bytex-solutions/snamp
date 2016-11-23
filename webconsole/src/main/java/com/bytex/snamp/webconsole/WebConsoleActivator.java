@@ -16,13 +16,9 @@ import static com.bytex.snamp.internal.Utils.acceptWithContextClassLoader;
  * The type Web console activator.
  */
 public final class WebConsoleActivator extends AbstractBundleActivator {
-    private static final String API_SERVLET_CONTEXT = "/snamp/console";
     private static final String STATIC_SERVLET_CONTEXT = "/snamp/*";
 
-    private WebConsoleService consoleAPI;
-    private ResourceService resourceService;
-    private GatewayService gatewayService;
-    private HttpService publisher;
+    private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
     @Override
     protected void start(final BundleContext context, final Collection<RequiredService<?>> bundleLevelDependencies) {
@@ -35,35 +31,31 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         @SuppressWarnings("unchecked")
         // For Dashboard purpose
         final ConfigurationAdmin configAdmin = getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
-        consoleAPI = new WebConsoleService();
-        resourceService = new ResourceService();
-        gatewayService = new GatewayService();
+        final WebConsoleService consoleAPI = new WebConsoleService(getLogger());
+        final ResourceService resourceService = new ResourceService();
+        final GatewayService gatewayService = new GatewayService();
         final String resourceBase = this.getClass().getClassLoader().getResource("webapp").toExternalForm();
         @SuppressWarnings("unchecked")
         final HttpService httpService = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
                 (publisher) -> {
-                    publisher.registerServlet(API_SERVLET_CONTEXT, new JerseyServletContainer(consoleAPI, resourceService, gatewayService), new Hashtable<>(), null);
+                    publisher.registerServlet(WebConsoleServlet.CONTEXT, new WebConsoleServlet(consoleAPI, resourceService, gatewayService), new Hashtable<>(), null);
                     publisher.registerServlet(STATIC_SERVLET_CONTEXT, new DefaultServlet(),
                             new Hashtable<>(ImmutableMap
                                     .of("resourceBase", resourceBase, "pathInfoOnly", "true")
                             ), null);
                 });
-        publisher = httpService;
-
+        activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, httpService);
     }
 
     @Override
     protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        publisher.unregister(API_SERVLET_CONTEXT);
-        consoleAPI.close();
+        activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY).unregister(WebConsoleServlet.CONTEXT);
     }
 
     @Override
-    protected void shutdown(final BundleContext context) throws Exception {
-        publisher = null;
-        consoleAPI = null;
-        resourceService = null;
+    protected void shutdown(final BundleContext context) {
+
     }
 }

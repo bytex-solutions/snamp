@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.security.web;
 
 import com.auth0.jwt.JWTVerifyException;
 import com.sun.jersey.api.core.HttpRequestContext;

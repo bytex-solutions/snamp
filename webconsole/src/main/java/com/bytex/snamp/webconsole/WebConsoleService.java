@@ -1,11 +1,13 @@
 package com.bytex.snamp.webconsole;
 
-import javax.security.auth.Subject;
-import javax.security.auth.login.LoginContext;
-import javax.security.auth.login.LoginException;
+import com.bytex.snamp.security.web.Authenticator;
+
+import javax.security.auth.login.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -15,62 +17,44 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 @Path("/")
-public final class WebConsoleService implements AutoCloseable {
+public final class WebConsoleService extends Authenticator {
     private static final String JAAS_REALM = "karaf";
 
-    /**
-     * The constant AUTH_COOKIE.
-     */
-    static final String AUTH_COOKIE = "snamp-auth-token";
+    private final Logger logger;
 
-    static final String AUTHENTICATE_PATH = "auth";
-
-    private static final Logger logger = Logger.getLogger(WebConsoleService.class.getName());
-
-    @Path(AUTHENTICATE_PATH)
-    @POST
-    @Consumes("application/x-www-form-urlencoded")
-    public Response authenticate(@FormParam("username") final String userName, @FormParam("password") final String password) throws WebApplicationException{
-        final LoginContext context;
-        logger.fine(String.format("Trying to authenticate... Username is %s", userName));
-        try {
-            context = new LoginContext(JAAS_REALM, new NamePasswordHandler(userName, password));
-        } catch (final LoginException e){
-            logger.severe("Cannot retrieve login context.");
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        //login and issue new JWT token
-        try{
-            context.login();
-        } catch (final LoginException e){
-            logger.warning(String.format("Cannot login - error occurred: %s ", e.getMessage()));
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-        }
-        final Subject user = context.getSubject();
-        if(user == null || user.getPrincipals().isEmpty()) {
-            logger.warning("Cannot get any subject from login context");
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-        } else {
-            logger.fine(String.format("Received subject is: %s", user));
-            logger.fine(String.format("Received user principle is: %s", user.getPrincipals(org.apache.karaf.jaas.boot.principal.UserPrincipal.class)));
-        }
-        return Response
-                .noContent()
-                .cookie(new NewCookie(AUTH_COOKIE, issueAuthToken(user), "/", "",
-                        "SNAMP web console cookie", NewCookie.DEFAULT_MAX_AGE, false))
-                .build();
+    WebConsoleService(final Logger logger){
+        this.logger = Objects.requireNonNull(logger);
     }
 
-    /**
-     * Issue auth token string.
-     *
-     * @param user the user
-     * @return the string
-     */
-    private String issueAuthToken(final Subject user){
-        final JwtPrincipal principal = new JwtPrincipal(user);
-        logger.fine(String.format("Forming JWT token for user %s with following params: %s", principal.getName(), principal));
-        return principal.createJwtToken(TokenSecretHolder.getInstance().getSecret());
+    @Path(WebConsoleServlet.AUTHENTICATE_PATH)
+    @POST
+    @Consumes("application/x-www-form-urlencoded")
+    public Response authenticate(@FormParam("username") final String userName, @FormParam("password") final String password) throws WebApplicationException {
+        final LoginContext context;
+        try {
+            context = new LoginContext(JAAS_REALM, new NamePasswordHandler(userName, password));
+        } catch (final LoginException e) {
+            logger.log(Level.SEVERE, "Cannot retrieve login context.", e);
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        logger.fine(() -> String.format("Trying to authenticate... Username is %s", userName));
+        final String jwToken;
+        //login and issue new JWT token
+        try {
+            jwToken = authenticate(context, userName, password);
+        } catch (final FailedLoginException | AccountException | CredentialException e) {
+            logger.log(Level.WARNING, "Cannot login", e);
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        } catch (final LoginException e) {
+            logger.log(Level.SEVERE, "Login subsystem failed", e);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        logger.fine(() -> String.format("Successful authentication of user %s", userName));
+        return Response
+                .noContent()
+                .cookie(new NewCookie(WebConsoleServlet.AUTH_COOKIE, jwToken, "/", "",
+                        "SNAMP web console cookie", NewCookie.DEFAULT_MAX_AGE, false))
+                .build();
     }
 
     /**
@@ -81,10 +65,5 @@ public final class WebConsoleService implements AutoCloseable {
     @GET
     public Response checkAuth() {
         return Response.noContent().build();
-    }
-
-    @Override
-    public void close() throws Exception {
-
     }
 }

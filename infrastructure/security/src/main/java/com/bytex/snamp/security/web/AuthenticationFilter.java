@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.security.web;
 
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
@@ -12,12 +12,11 @@ import javax.ws.rs.ext.Provider;
  * @since 2.0
  */
 @Provider
-public class AuthenticationFilter implements ContainerRequestFilter {
-
+public class AuthenticationFilter extends SecurityFilter implements ContainerRequestFilter {
     @Override
-    public ContainerRequest filter(final ContainerRequest requestContext) {
+    public final ContainerRequest filter(final ContainerRequest requestContext) {
         // if user goes to auth method - we do not apply this filter
-        if (!requestContext.getPath().equalsIgnoreCase(WebConsoleService.AUTHENTICATE_PATH)) {
+        if (authenticationRequired(requestContext)) {
             final JwtSecurityContext context = new JwtSecurityContext(requestContext);
             requestContext.setSecurityContext(context);
         }

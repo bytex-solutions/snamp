@@ -1,10 +1,12 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.security.web;
 
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerResponse;
 import com.sun.jersey.spi.container.ContainerResponseFilter;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.ext.Provider;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -14,14 +16,24 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 @Provider
-public class TokenRefreshFilter implements ContainerResponseFilter {
+public class TokenRefreshFilter extends SecurityFilter implements ContainerResponseFilter {
+    private final Logger logger = Logger.getLogger(TokenRefreshFilter.class.getName());
+    private final String authCookieName;
+    private final String securedPath;
 
-    private static final Logger logger = Logger.getLogger(TokenRefreshFilter.class.getName());
+    public TokenRefreshFilter(final String authCookieName, final String securedPath){
+        this.authCookieName = Objects.requireNonNull(authCookieName);
+        this.securedPath = Objects.requireNonNull(securedPath);
+    }
+
+    public TokenRefreshFilter(final String authCookieName){
+        this(authCookieName, "/");
+    }
 
     @Override
-    public ContainerResponse filter(final ContainerRequest containerRequest, final ContainerResponse containerResponse) {
+    public final ContainerResponse filter(final ContainerRequest containerRequest, final ContainerResponse containerResponse) {
         // if user goes to auth method - we do not apply this filter
-        if (!containerRequest.getPath().equalsIgnoreCase(WebConsoleService.AUTHENTICATE_PATH)) {
+        if (authenticationRequired(containerRequest)) {
             final JwtPrincipal jwtPrincipal;
             if (containerRequest.getSecurityContext() instanceof JwtSecurityContext) {
                 jwtPrincipal = ((JwtSecurityContext)
@@ -37,15 +49,11 @@ public class TokenRefreshFilter implements ContainerResponseFilter {
             // check if the token requires to be updated
             if (jwtPrincipal.isRefreshRequired()) {
                 logger.fine(() -> String.format("Refresh of the token for user %s is required", jwtPrincipal.getName()));
-                containerResponse.getHttpHeaders()
-                        .add("Set-Cookie", String.format("%s=%s; Path=/;",
-                                    WebConsoleService.AUTH_COOKIE,
-                                    jwtPrincipal.refreshToken().createJwtToken(TokenSecretHolder.getInstance().getSecret())
-                                )
-                        );
+                final String jwToken = jwtPrincipal.refreshToken().createJwtToken(TokenSecretHolder.getInstance().getSecret());
+                containerResponse.getHttpHeaders().add(HttpHeaders.SET_COOKIE, authCookieName + '=' + jwToken + "; Path=" + securedPath + ';');
 
                 logger.fine(() -> String.format("Token for user %s was refreshed. New token is %s",
-                        jwtPrincipal.getName(), containerResponse.getHttpHeaders().get("Set-Cookie")));
+                        jwtPrincipal.getName(), containerResponse.getHttpHeaders().get(HttpHeaders.SET_COOKIE)));
 
             }
         }

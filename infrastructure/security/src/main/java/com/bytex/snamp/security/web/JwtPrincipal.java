@@ -1,9 +1,10 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.security.web;
 
 import com.auth0.jwt.JWTSigner;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
 import com.bytex.snamp.Convert;
+import com.bytex.snamp.MapUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -24,9 +25,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
-
-import static com.bytex.snamp.MapUtils.getValue;
-import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 /**
  * @author Roman Sakno, Evgeniy Kirichenko
@@ -124,14 +122,14 @@ final class JwtPrincipal implements Principal {
 
         //extract set of roles from JWT
         if(claims.containsKey(ROLES_FIELD))
-            roles = ImmutableSet.copyOf(ROLE_SPLITTER.split(getValue(claims, ROLES_FIELD, Objects::toString, () -> "")));
+            roles = ImmutableSet.copyOf(ROLE_SPLITTER.split(MapUtils.getValue(claims, ROLES_FIELD, Objects::toString, () -> "")));
         else
             throw new JWTVerifyException("Roles are not specified");
 
         final LongSupplier ZERO = () -> 0L;
 
-        createdAt = getValueAsLong(claims, ISSUED_AT_FIELD, Convert::toLong, ZERO);
-        expiredAt = getValueAsLong(claims, EXPIRATION_FIELD, Convert::toLong, ZERO);
+        createdAt = MapUtils.getValueAsLong(claims, ISSUED_AT_FIELD, Convert::toLong, ZERO);
+        expiredAt = MapUtils.getValueAsLong(claims, EXPIRATION_FIELD, Convert::toLong, ZERO);
     }
 
     @Override
