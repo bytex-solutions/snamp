@@ -23,16 +23,18 @@ final class WebConsoleServlet extends ServletContainer {
     static final String AUTHENTICATE_PATH = "auth";
     static final String CONTEXT = "/snamp/console";
 
+    // this class is public because jersey requires it
     @Provider
-    private static final class WebConsoleAuthenticationFilter extends AuthenticationFilter{
+    public static final class WebConsoleAuthenticationFilter extends AuthenticationFilter{
         @Override
         protected boolean authenticationRequired(final ContainerRequest request) {
             return WebConsoleServlet.authenticationRequired(request);
         }
     }
-
-    private static final class WebConsoleTokenRefreshFilter extends TokenRefreshFilter{
-        private WebConsoleTokenRefreshFilter(){
+    // this class is public because jersey requires it
+    public static final class WebConsoleTokenRefreshFilter extends TokenRefreshFilter {
+        // this constructor is public because jersey requires it
+        public WebConsoleTokenRefreshFilter(){
             super(AUTH_COOKIE);
         }
 
@@ -62,8 +64,8 @@ final class WebConsoleServlet extends ServletContainer {
         result.getSingletons().add(consoleAPI);
         result.getSingletons().add(managementAPI);
         result.getSingletons().add(gatewayService);
-        result.getContainerRequestFilters().add(AuthenticationFilter.class);
-        result.getContainerResponseFilters().add(TokenRefreshFilter.class);
+        result.getContainerRequestFilters().add(WebConsoleAuthenticationFilter.class);
+        result.getContainerResponseFilters().add(WebConsoleTokenRefreshFilter.class);
         result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
         return result;
     }

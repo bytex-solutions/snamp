@@ -15,7 +15,6 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-@Provider
 public class TokenRefreshFilter extends SecurityFilter implements ContainerResponseFilter {
     private final Logger logger = Logger.getLogger(TokenRefreshFilter.class.getName());
     private final String authCookieName;

@@ -86,10 +86,12 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.security</Bundle-SymbolicName>
-                        <Import-Package>
-                            javax.crypto,
-                            javax.crypto.spec
-                        </Import-Package>
+                        <Export-Package>
+                            com.auth0.jwt,
+                            com.bytex.snamp.security.web
+                        </Export-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                        <Embed-Dependency>*;scope=compile</Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>
