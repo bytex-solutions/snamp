@@ -8,6 +8,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
 import javax.ws.rs.ext.Provider;
+import java.util.Arrays;
 
 /**
  * Represents customized servlet container.
@@ -46,9 +47,8 @@ final class WebConsoleServlet extends ServletContainer {
 
     private static final long serialVersionUID = 5710139261115306229L;
 
-    WebConsoleServlet(final WebConsoleService consoleAPI, final ResourceService managementAPI,
-                      final GatewayService gatewayService){
-        super(createAppConfig(consoleAPI, managementAPI, gatewayService));
+    WebConsoleServlet(final WebConsoleService consoleAPI, final BaseRestConfigurationService ... services){
+        super(createAppConfig(consoleAPI, services));
     }
 
     private static boolean authenticationRequired(final ContainerRequest request) {
@@ -58,12 +58,11 @@ final class WebConsoleServlet extends ServletContainer {
     // We ignore unchecked warning because we know that ContainerRequestFilters
     // contains instances of ContainerRequestFilter class
     @SuppressWarnings("unchecked")
-    private static Application createAppConfig(final WebConsoleService consoleAPI, final ResourceService managementAPI,
-                                               final GatewayService gatewayService){
+    private static Application createAppConfig(final WebConsoleService consoleAPI,
+                                               final BaseRestConfigurationService ... services){
         final DefaultResourceConfig result = new DefaultResourceConfig();
         result.getSingletons().add(consoleAPI);
-        result.getSingletons().add(managementAPI);
-        result.getSingletons().add(gatewayService);
+        Arrays.stream(services).forEach(service -> result.getSingletons().add(service));;
         result.getContainerRequestFilters().add(WebConsoleAuthenticationFilter.class);
         result.getContainerResponseFilters().add(WebConsoleTokenRefreshFilter.class);
         result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);

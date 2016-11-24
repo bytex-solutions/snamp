@@ -5,19 +5,19 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import java.util.Map;
 
 /**
- * GatewayConfigurationDTO
+ * TypedDTOEntity
  *
  * @author Evgeniy Kirichenko
  * @version 2.0
  * @since 2.0
  */
-public class GatewayConfigurationDTO extends AbstractDTOEntity {
+public class TypedDTOEntity extends AbstractDTOEntity {
 
     private String type;
 
-    GatewayConfigurationDTO() {};
+    TypedDTOEntity() {};
 
-    GatewayConfigurationDTO(final Map<String, String> parameters, final String type) {
+    TypedDTOEntity(final Map<String, String> parameters, final String type) {
         super(parameters);
         this.type = type;
     }

@@ -29,18 +29,17 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
     @Override
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         @SuppressWarnings("unchecked")
-        // For Dashboard purpose
-        final ConfigurationAdmin configAdmin = getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
+        // For Dashboard purpose // temporarily commented out
+        // final ConfigurationAdmin configAdmin = getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
         final WebConsoleService consoleAPI = new WebConsoleService(getLogger());
-        final ResourceService resourceService = new ResourceService();
-        final GatewayService gatewayService = new GatewayService();
         final String resourceBase = this.getClass().getClassLoader().getResource("webapp").toExternalForm();
         @SuppressWarnings("unchecked")
         final HttpService httpService = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
                 (publisher) -> {
-                    publisher.registerServlet(WebConsoleServlet.CONTEXT, new WebConsoleServlet(consoleAPI, resourceService, gatewayService), new Hashtable<>(), null);
+                    publisher.registerServlet(WebConsoleServlet.CONTEXT,
+                            new WebConsoleServlet(consoleAPI, new ResourceService(), new GatewayService(), new ResourceGroupService()), new Hashtable<>(), null);
                     publisher.registerServlet(STATIC_SERVLET_CONTEXT, new DefaultServlet(),
                             new Hashtable<>(ImmutableMap
                                     .of("resourceBase", resourceBase, "pathInfoOnly", "true")
