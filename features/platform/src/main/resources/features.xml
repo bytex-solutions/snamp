@@ -65,10 +65,4 @@
         <bundle>mvn:net.i2p.crypto/eddsa/${eddsa.version}</bundle>
         <bundle>mvn:com.bytex.snamp/sshj/${sshj.version}</bundle>
     </feature>
-
-    <feature name="snamp-message-processing" description="SNAMP instrumentation library and connector for measurements" version="${project.version}">
-        <feature version="${project.version}">snamp-core</feature>
-        <feature version="${project.version}">snamp-scripting-support</feature>
-        <bundle>mvn:com.bytex.snamp/message-driven-connector/${snamp.connector.md.version}</bundle>
-    </feature>
 </features>

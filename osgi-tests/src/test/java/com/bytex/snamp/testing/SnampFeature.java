@@ -10,15 +10,15 @@ import java.util.Objects;
  */
 public enum SnampFeature {
     PLATFORM("platform", "2.0.0", "snamp-core", "snamp-management"),
-    HTTP_ACCEPTOR("connectors", "2.0.0", "http-acceptor"),
-    JMX_CONNECTOR("connectors", "2.0.0", "jmx-connector"),
-    ZIPKIN_CONNECTOR("connectors", "2.0.0", "zipkin-connector"),
-    COMPOSITE_CONNECTOR("connectors", "2.0.0", "composite-connector"),
+    HTTP_ACCEPTOR("connectors", "2.0.0", "snamp-http-acceptor"),
+    JMX_CONNECTOR("connectors", "2.0.0", "snamp-jmx-connector"),
+    ZIPKIN_CONNECTOR("connectors", "2.0.0", "snamp-zipkin-connector"),
+    COMPOSITE_CONNECTOR("connectors", "2.0.0", "snamp-composite-connector"),
     SNMP_GATEWAY("snmp-gateway-feature", "2.0.0", "snmp-gateway-feature"),
     INFLUX_GATEWAY("influx-gateway-feature", "2.0.0", "influx-gateway-feature"),
     JMX_GATEWAY("jmx-gateway-feature", "2.0.0", "jmx-gateway-feature"),
-    SNMP_CONNECTOR("connectors", "2.0.0", "snmp-connector"),
-    RSHELL_CONNECTOR("connectors", "2.0.0", "rshell-connector"),
+    SNMP_CONNECTOR("connectors", "2.0.0", "snamp-snmp-connector"),
+    RSHELL_CONNECTOR("connectors", "2.0.0", "snamp-rshell-connector"),
     SSH_GATEWAY("ssh-gateway-feature", "2.0.0", "ssh-gateway-feature"),
     WRAPPED_LIBS("wrapped-libs-for-tests", "2.0.0", "wrapped-libs-for-tests"),
     HTTP_GATEWAY("http-gateway-feature", "2.0.0", "http-gateway-feature"),
@@ -27,9 +27,9 @@ public enum SnampFeature {
     NAGIOS_GATEWAY("nagios-gateway-feature", "2.0.0", "nagios-gateway-feature"),
     SYSLOG_GATEWAY("syslog-gateway-feature", "2.0.0", "syslog-gateway-feature"),
     XMPP_GATEWAY("xmpp-gateway-feature", "2.0.0", "xmpp-gateway-feature"),
-    GROOVY_CONNECTOR("connectors", "2.0.0", "groovy-connector"),
+    GROOVY_CONNECTOR("connectors", "2.0.0", "snamp-groovy-connector"),
     GROOVY_GATEWAY("groovy-gateway-feature", "2.0.0", "groovy-gateway-feature"),
-    MODBUS_CONNECTOR("connectors", "2.0.0", "modbus-connector"),
+    MODBUS_CONNECTOR("connectors", "2.0.0", "snamp-modbus-connector"),
     WEBCONSOLE("webconsole-feature", "2.0.0", "webconsole-feature");
 
     final String[] featureNames;
