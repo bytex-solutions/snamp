@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="connectors">
+    <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
+    <repository>mvn:org.apache.karaf.features/framework/${karaf.version}/xml/features</repository>
+
+    <feature name="snamp-message-processing" description="SNAMP instrumentation library and connector for measurements" version="${project.version}">
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-scripting-support</feature>
+        <bundle>mvn:com.bytex.snamp/message-driven-connector/${snamp.connector.md.version}</bundle>
+    </feature>
+
+    <feature name="snamp-composite-connector" description="Composite Connector Karaf Feature" version="${project.version}">
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <bundle start="true">mvn:com.bytex.snamp/composite-connector/${project.version}</bundle>
+    </feature>
+
+    <feature name="snamp-groovy-connector" description="Groovy Resource Karaf Feature" version="${project.version}">
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-scripting-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp/groovy-connector/${project.version}</bundle>
+    </feature>
+
+    <feature name="snamp-http-acceptor" description="HTTP Acceptor Karaf Feature" version="${project.version}">
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-web-support</feature>
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-message-processing</feature>
+        <bundle start="true">mvn:com.bytex.snamp/http-acceptor/${snamp.connector.http.version}</bundle>
+    </feature>
+
+    <feature name="snamp-jmx-connector" description="JMX Connector Karaf Feature" version="${project.version}">
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <bundle start="true">mvn:com.bytex.snamp/jmx-connector/${snamp.connector.jmx.version}</bundle>
+    </feature>
+
+    <feature name="snamp-modbus-connector" description="Modbus Connector Karaf Feature" version="${project.version}">
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <bundle start="true">mvn:com.bytex.snamp/modbus-connector/${snamp.connector.modbus.version}</bundle>
+    </feature>
+
+    <feature name="snamp-rshell-connector" description="RShell Connector Karaf Feature" version="${project.version}">
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-ssh-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp/rshell-connector/${snamp.connector.rshell.version}</bundle>
+    </feature>
+
+    <feature name="snamp-snmp-connector" description="SNMP Connector Karaf Feature" version="${project.version}">
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-snmp-support</feature>
+        <bundle>mvn:com.bytex.snamp/snmp-connector/${snamp.connector.snmp.version}</bundle>
+    </feature>
+
+    <feature name="snamp-zipkin-connector" description="Zipkin Connector Karaf Feature" version="${project.version}">
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-web-support</feature>
+        <feature version="[${project.version}, ${snamp.maxVersion})">snamp-message-processing</feature>
+        <bundle>mvn:io.zipkin.java/zipkin/1.16.2</bundle>
+        <bundle>mvn:com.bytex.snamp/zipkin-connector/${snamp.connector.zipkin.version}</bundle>
+    </feature>
+</features>
