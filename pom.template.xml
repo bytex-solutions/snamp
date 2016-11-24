@@ -54,6 +54,7 @@
     <snamp.services.version>2.0.0</snamp.services.version>
     <snamp.scripting.version>2.0.0</snamp.scripting.version>
 
+    <snamp.connectors.version>2.0.0</snamp.connectors.version>
     <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
     <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
     <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
@@ -350,7 +351,6 @@
     <module>infrastructure/scripting</module>
     <module>features/platform</module>
     <module>features/gateways-features</module>
-    <module>features/connectors-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
     <module>instrumentations/java/instrumentation-core</module>
