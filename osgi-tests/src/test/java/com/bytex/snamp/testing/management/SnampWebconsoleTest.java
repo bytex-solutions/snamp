@@ -388,6 +388,66 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         } finally {
             connection.disconnect();
         }
+
+        // append some param
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/console/resource/%s/parameters/%s",
+                TEST_RESOURCE_NAME, "dummyParam")).openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.setDoOutput(true);
+        IOUtils.writeString("dummyValue", connection.getOutputStream(), Charset.defaultCharset());
+        connection.connect();
+        try {
+            assertEquals(HttpURLConnection.HTTP_NO_CONTENT, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
+
+        //read configuration - nothing should be different
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
+            final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            JsonParser parser = new JsonParser();
+            JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
+            JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
+            oldResponseJSON.getAsJsonObject("parameters").addProperty("dummyParam", "dummyValue");
+
+            assertEquals(oldResponseJSON, newResponseJSON);
+        } finally {
+            connection.disconnect();
+        }
+
+        // remove parameter
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/console/resource/%s/parameters/%s",
+                TEST_RESOURCE_NAME, "dummyParam")).openConnection();
+        connection.setRequestMethod("DELETE");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            assertEquals(HttpURLConnection.HTTP_NO_CONTENT, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
+
+        // check if removed parameter was successfully removed
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
+            final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            JsonParser parser = new JsonParser();
+            JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
+            JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
+            assertEquals(oldResponseJSON, newResponseJSON);
+        } finally {
+            connection.disconnect();
+        }
     }
 
     /**
