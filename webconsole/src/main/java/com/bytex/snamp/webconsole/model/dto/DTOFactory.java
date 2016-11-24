@@ -108,7 +108,7 @@ public class DTOFactory {
      * @return the abstract dto class
      */
     public static GatewayConfigurationDTO buildGateway(final GatewayConfiguration source) {
-        return new GatewayConfigurationDTO(source.getParameters());
+        return new GatewayConfigurationDTO(source.getParameters(), source.getType());
     }
 
     /**
@@ -120,6 +120,6 @@ public class DTOFactory {
     public static Map buildGateways(final EntityMap<? extends GatewayConfiguration> source) {
         return source.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey,
-                        e -> new GatewayConfigurationDTO(e.getValue().getParameters())));
+                        e -> new GatewayConfigurationDTO(e.getValue().getParameters(), e.getValue().getType())));
     }
 }

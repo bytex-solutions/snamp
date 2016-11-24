@@ -17,8 +17,9 @@ public class GatewayConfigurationDTO extends AbstractDTOEntity {
 
     GatewayConfigurationDTO() {};
 
-    GatewayConfigurationDTO(final Map<String, String> parameters) {
+    GatewayConfigurationDTO(final Map<String, String> parameters, final String type) {
         super(parameters);
+        this.type = type;
     }
 
     /**
