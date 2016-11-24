@@ -37,6 +37,7 @@
     <snamp.version>2.0.0</snamp.version>
     <snamp.maxVersion>3</snamp.maxVersion>
 
+    <snamp.gateways.version>2.0.0</snamp.gateways.version>
     <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
     <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
@@ -350,7 +351,6 @@
     <module>webconsole</module>
     <module>infrastructure/scripting</module>
     <module>features/platform</module>
-    <module>features/gateways-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
     <module>instrumentations/java/instrumentation-core</module>
