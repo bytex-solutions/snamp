@@ -34,7 +34,10 @@
                     <instructions>
                         <Bundle-Activator>com.bytex.snamp.management.ManagementServiceLibrary</Bundle-Activator>
                         <Bundle-SymbolicName>com.bytex.snamp.management</Bundle-SymbolicName>
-                        <Export-Package/>
+                        <Export-Package>
+                            com.bytex.snamp.management.rest,
+                            com.bytex.snamp.management
+                        </Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

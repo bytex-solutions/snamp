@@ -39,7 +39,8 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
                 httpService,
                 (publisher) -> {
                     publisher.registerServlet(WebConsoleServlet.CONTEXT,
-                            new WebConsoleServlet(consoleAPI, new ResourceService(), new GatewayService(), new ResourceGroupService()), new Hashtable<>(), null);
+                            new WebConsoleServlet(consoleAPI, new ResourceService(),
+                                    new GatewayService(), new ResourceGroupService(), new ManagementService()), new Hashtable<>(), null);
                     publisher.registerServlet(STATIC_SERVLET_CONTEXT, new DefaultServlet(),
                             new Hashtable<>(ImmutableMap
                                     .of("resourceBase", resourceBase, "pathInfoOnly", "true")

@@ -540,6 +540,37 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         }
     }
 
+    /**
+     * Test check simple resource with and without token.
+     *
+     * @throws IOException              the io exception
+     * @throws InterruptedException     the interrupted exception
+     * @throws NoSuchAlgorithmException the no such algorithm exception
+     * @throws JWTVerifyException       the jwt verify exception
+     * @throws InvalidKeyException      the invalid key exception
+     * @throws SignatureException       the signature exception
+     */
+    @Test
+    public void testManagementService() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+            InvalidKeyException, SignatureException {
+        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+
+        // Get all resources
+        URL query = new URL("http://localhost:8181/snamp/console/management/components");
+        //write attribute
+        HttpURLConnection connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            final String componentString = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertNotNull(componentString);
+            assertNotEquals("{}", componentString);
+        } finally {
+            connection.disconnect();
+        }
+    }
+
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////

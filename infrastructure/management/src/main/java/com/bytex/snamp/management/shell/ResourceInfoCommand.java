@@ -8,8 +8,8 @@ import org.apache.karaf.shell.commands.Option;
 
 import java.util.Map;
 
-import static com.bytex.snamp.management.shell.Utils.appendln;
-import static com.bytex.snamp.management.shell.Utils.newLine;
+import static com.bytex.snamp.management.ManagementUtils.appendln;
+import static com.bytex.snamp.management.ManagementUtils.newLine;
 
 /**
  * Displays configuration of the managed resource.

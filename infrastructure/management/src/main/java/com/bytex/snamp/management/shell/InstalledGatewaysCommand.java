@@ -8,8 +8,8 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
 
-import static com.bytex.snamp.management.shell.Utils.appendln;
-import static com.bytex.snamp.management.shell.Utils.getStateString;
+import static com.bytex.snamp.management.ManagementUtils.appendln;
+import static com.bytex.snamp.management.ManagementUtils.getStateString;
 
 /**
  * Command that prints list of installed gateway.

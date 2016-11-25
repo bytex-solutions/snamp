@@ -13,7 +13,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 
 import static com.bytex.snamp.jmx.MetricsConverter.fromRate;
-import static com.bytex.snamp.management.shell.Utils.appendln;
+import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.google.common.collect.Iterables.getFirst;
 
 /**
