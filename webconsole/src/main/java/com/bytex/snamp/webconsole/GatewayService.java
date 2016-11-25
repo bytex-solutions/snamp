@@ -1,16 +1,26 @@
 package com.bytex.snamp.webconsole;
 
+import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.webconsole.model.dto.DTOFactory;
 import com.bytex.snamp.webconsole.model.dto.TypedDTOEntity;
 import org.osgi.framework.BundleException;
 
+import javax.management.MBeanAttributeInfo;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -226,39 +236,23 @@ public final class GatewayService extends BaseRestConfigurationService {
         });
     }
 
-    /**
-     * Stop gateway.
-     *
-     * @param name the name
-     * @return the boolean
-     */
-    @POST
-    @Path("/{name}/disable")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Boolean disableGateway(@PathParam("name") final String name)  {
-        try {
-            return GatewayActivator.disableGateway(getBundleContextOfObject(this), name);
-        } catch (final BundleException e) {
-            throw new WebApplicationException(e);
-        }
-    }
 
-    /**
-     * Start gateway.
-     *
-     * @param name the name
-     * @return the boolean
-     */
-    @POST
-    @Path("/{name}/enable")
+    @GET
+    @Path("/{name}/attributes/binding")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Boolean enableGateway(@PathParam("name") final String name)  {
+    public Collection getAttributesBindings(@PathParam("name") final String name) {
+        final Box<Collection<Gateway.FeatureBindingInfo>> box = BoxFactory.create(null);
         try {
-            return GatewayActivator.enableGateway(getBundleContextOfObject(this), name);
-        } catch (final BundleException e) {
+            box.set(new ArrayList<>());
+            final GatewayClient client = new GatewayClient(getBundleContextOfObject(this), name, Duration.ofSeconds(2));
+                client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> {
+                    box.get().add(bindingInfo);
+                    return true;
+            });
+        } catch (final TimeoutException | InterruptedException | ExecutionException e) {
             throw new WebApplicationException(e);
         }
+        return box.get();
     }
 }

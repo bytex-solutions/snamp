@@ -44,6 +44,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
  * The Snamp webconsole test.
+ *
  * @author Evgeniy Kirichenko.
  * @version 2.0
  * @since 1.0
@@ -282,7 +283,12 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
 
     }
 
-    //@Test
+    /**
+     * Dummy test.
+     *
+     * @throws InterruptedException the interrupted exception
+     */
+//@Test
     public void dummyTest() throws InterruptedException {
         Thread.sleep(10000000);
     }
@@ -645,6 +651,37 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
             connection.disconnect();
         }
 
+    }
+
+
+    /**
+     * Test attributes bindings.
+     *
+     * @throws IOException              the io exception
+     * @throws InterruptedException     the interrupted exception
+     * @throws NoSuchAlgorithmException the no such algorithm exception
+     * @throws JWTVerifyException       the jwt verify exception
+     * @throws InvalidKeyException      the invalid key exception
+     * @throws SignatureException       the signature exception
+     */
+    @Test
+    public void testAttributesBindings() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+            InvalidKeyException, SignatureException {
+        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+
+        // Get all resources
+        URL query = new URL(String.format("http://localhost:8181/snamp/console/gateway/%s/attributes/bindings", ADAPTER_INSTANCE_NAME));
+        //write attribute
+        HttpURLConnection connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            final String componentString = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertNull(componentString);
+        } finally {
+            connection.disconnect();
+        }
     }
 
 

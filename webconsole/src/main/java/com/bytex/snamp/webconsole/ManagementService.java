@@ -9,6 +9,7 @@ import org.osgi.framework.BundleException;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -121,12 +122,13 @@ public class ManagementService extends BaseRestConfigurationService {
     @Path("/restart")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public void restartAllTheSystem() {
+    public Response restartAllTheSystem() {
         try {
             SnampRestManagerImpl.restart(getBundleContextOfObject(this));
         } catch (final BundleException e) {
             throw new WebApplicationException(e);
         }
+        return Response.noContent().build();
     }
 
     /**
