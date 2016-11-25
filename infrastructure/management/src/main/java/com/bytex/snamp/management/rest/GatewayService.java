@@ -1,15 +1,13 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.management.rest;
 
 import com.bytex.snamp.Box;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.gateway.Gateway;
-import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
-import com.bytex.snamp.webconsole.model.dto.DTOFactory;
-import com.bytex.snamp.webconsole.model.dto.TypedDTOEntity;
-import org.osgi.framework.BundleException;
+import com.bytex.snamp.management.rest.model.dto.DTOFactory;
+import com.bytex.snamp.management.rest.model.dto.TypedDTOEntity;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanNotificationInfo;

@@ -1,7 +1,7 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.management.rest;
 
 import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.webconsole.model.dto.*;
+import com.bytex.snamp.management.rest.model.dto.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

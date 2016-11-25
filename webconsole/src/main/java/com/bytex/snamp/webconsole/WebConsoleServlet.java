@@ -1,5 +1,6 @@
 package com.bytex.snamp.webconsole;
 
+import com.bytex.snamp.management.rest.BaseRestConfigurationService;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.ContainerRequest;
@@ -34,7 +35,7 @@ final class WebConsoleServlet extends ServletContainer {
         }
     }
 
-    WebConsoleServlet(final WebConsoleService consoleAPI, final BaseRestConfigurationService ... services){
+    WebConsoleServlet(final WebConsoleService consoleAPI, final BaseRestConfigurationService... services){
         super(createAppConfig(consoleAPI, services));
     }
 

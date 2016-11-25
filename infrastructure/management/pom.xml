@@ -50,6 +50,10 @@
       <groupId>com.hazelcast</groupId>
       <artifactId>hazelcast</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-json</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

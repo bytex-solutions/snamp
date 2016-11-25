@@ -1,6 +1,10 @@
 package com.bytex.snamp.webconsole;
 
 import com.bytex.snamp.core.AbstractBundleActivator;
+import com.bytex.snamp.management.rest.GatewayService;
+import com.bytex.snamp.management.rest.ManagementService;
+import com.bytex.snamp.management.rest.ResourceGroupService;
+import com.bytex.snamp.management.rest.ResourceService;
 import com.google.common.collect.ImmutableMap;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.osgi.framework.BundleContext;

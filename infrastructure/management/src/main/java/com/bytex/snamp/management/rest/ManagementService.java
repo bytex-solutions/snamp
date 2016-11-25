@@ -1,8 +1,9 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.management.rest;
 
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.management.ManagementUtils;
+import com.bytex.snamp.management.rest.BaseRestConfigurationService;
 import com.bytex.snamp.management.rest.SnampRestManagerImpl;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleException;

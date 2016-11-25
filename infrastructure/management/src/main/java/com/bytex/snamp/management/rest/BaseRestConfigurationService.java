@@ -1,12 +1,9 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.management.rest;
 
-import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
-import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.framework.BundleContext;
 
 import javax.ws.rs.WebApplicationException;
@@ -21,7 +18,7 @@ import java.util.function.Function;
  * @version 2.0
  * @since 2.0
  */
-abstract class BaseRestConfigurationService {
+public abstract class BaseRestConfigurationService {
     /**
      * Read configuration and return the result
      * @param handler lambda for reading in a appropriate way

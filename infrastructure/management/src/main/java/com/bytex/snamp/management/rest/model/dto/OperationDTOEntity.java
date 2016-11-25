@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole.model.dto;
+package com.bytex.snamp.management.rest.model.dto;
 
 import com.bytex.snamp.configuration.OperationConfiguration;
 

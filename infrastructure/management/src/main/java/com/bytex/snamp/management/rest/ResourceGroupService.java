@@ -1,9 +1,9 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.management.rest;
 
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
-import com.bytex.snamp.webconsole.model.dto.DTOFactory;
-import com.bytex.snamp.webconsole.model.dto.TypedDTOEntity;
+import com.bytex.snamp.management.rest.model.dto.DTOFactory;
+import com.bytex.snamp.management.rest.model.dto.TypedDTOEntity;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
