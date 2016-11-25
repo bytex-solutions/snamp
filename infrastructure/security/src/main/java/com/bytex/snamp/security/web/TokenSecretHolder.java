@@ -3,6 +3,7 @@ package com.bytex.snamp.security.web;
 import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
+import org.osgi.framework.BundleContext;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -32,7 +33,7 @@ final class TokenSecretHolder extends SecureRandom implements Supplier<BigIntege
         return INSTANCE.lazyGet(TokenSecretHolder::new);
     }
 
-    String getSecret() {
-        return String.valueOf(DistributedServices.getDistributedBox(Utils.getBundleContextOfObject(this), JWT_SECRET_BOX_NAME).setIfAbsent(this));
+    String getSecret(final BundleContext context) {
+        return String.valueOf(DistributedServices.getDistributedBox(context, JWT_SECRET_BOX_NAME).setIfAbsent(this));
     }
 }

@@ -41,7 +41,7 @@ public final class WebConsoleService extends Authenticator {
         final String jwToken;
         //login and issue new JWT token
         try {
-            jwToken = authenticate(context, userName, password);
+            jwToken = authenticate(context);
         } catch (final FailedLoginException | AccountException | CredentialException e) {
             logger.log(Level.WARNING, "Cannot login", e);
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);

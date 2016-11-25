@@ -9,6 +9,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.logging.Logger;
 
 /**
@@ -24,9 +27,7 @@ final class JwtSecurityContext implements SecurityContext {
     private final JwtPrincipal principal;
     private final boolean secure;
 
-
-
-    JwtSecurityContext(final HttpRequestContext request) throws WebApplicationException {
+    JwtSecurityContext(final HttpRequestContext request, final String secret) throws NoSuchAlgorithmException, IOException, JWTVerifyException, InvalidKeyException, SignatureException {
         secure = request.isSecure();
         // Get the HTTP Authorization header from the request
         final String authorizationHeader = request.getHeaderValue(HttpHeaders.AUTHORIZATION);
@@ -40,11 +41,7 @@ final class JwtSecurityContext implements SecurityContext {
             LOGGER.info("Empty token received");
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
-        try {
-            principal = new JwtPrincipal(token, TokenSecretHolder.getInstance().getSecret());
-        } catch (final JWTVerifyException | GeneralSecurityException | IOException e) {
-            throw new WebApplicationException(e, Response.Status.UNAUTHORIZED);
-        }
+        principal = new JwtPrincipal(token, secret);
     }
 
     @Override

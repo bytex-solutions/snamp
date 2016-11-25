@@ -4,6 +4,7 @@ import javax.security.auth.Subject;
 import javax.security.auth.login.AccountException;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents abstract class for REST controllers with
@@ -21,18 +22,21 @@ public class Authenticator {
      */
     private String issueAuthToken(final Subject user){
         final JwtPrincipal principal = new JwtPrincipal(user);
-        return principal.createJwtToken(TokenSecretHolder.getInstance().getSecret());
+        return principal.createJwtToken(getTokenSecret());
+    }
+
+    protected String getTokenSecret(){
+        return TokenSecretHolder.getInstance().getSecret(getBundleContextOfObject(this));
     }
 
     /**
      * Provides authentication using login and password.
      * @param context Login context.
-     * @param userName User name.
-     * @param password Password.
+==
      * @return Secured authentication token.
      * @throws LoginException Unable to authenticate user.
      */
-    public final String authenticate(final LoginContext context, final String userName, final String password) throws LoginException {
+    public final String authenticate(final LoginContext context) throws LoginException {
         //login and issue new JWT token
         context.login();
         final Subject user = context.getSubject();

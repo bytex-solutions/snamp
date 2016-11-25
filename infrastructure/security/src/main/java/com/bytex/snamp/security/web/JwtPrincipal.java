@@ -142,7 +142,7 @@ final class JwtPrincipal implements Principal {
     /**
      * Refresh if required.
      */
-    JwtPrincipal refreshToken() {
+    JwtPrincipal refresh() {
         return new JwtPrincipal(name, roles);
     }
 
