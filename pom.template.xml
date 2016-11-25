@@ -33,6 +33,7 @@
     <eddsa.version>0.1.0</eddsa.version>
     <snmp4j.version>2.5.1</snmp4j.version>
     <sshj.version>0.18.0</sshj.version>
+    <netty.version>3.10.0.Final</netty.version>
       <!--Versioning of SNAMP Components-->
     <snamp.version>2.0.0</snamp.version>
     <snamp.maxVersion>3</snamp.maxVersion>
@@ -154,6 +155,12 @@
   <dependencyManagement>
     <dependencies>
         <!--Common Libraries-->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>

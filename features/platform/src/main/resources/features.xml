@@ -9,7 +9,6 @@
         <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
         <feature version="[${karaf.version}, ${karaf.maxVersion})">framework</feature>
         <!-- Third-party bundles -->
-        <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
         <!--SNAMP dependencies-->
@@ -29,7 +28,7 @@
         <details>SNAMP support bundles for Web</details>
         <bundle>mvn:org.apache.geronimo.specs/geronimo-servlet_3.0_spec/1.0</bundle>
         <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
-        <bundle>mvn:io.netty/netty/3.10.0.Final</bundle>
+        <bundle>mvn:io.netty/netty/${netty.version}</bundle>
         <bundle>mvn:com.ning/async-http-client/1.9.5</bundle>
         <bundle>mvn:org.codehaus.jettison/jettison/${jettison.version}</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${jackson.version}</bundle>
@@ -57,6 +56,7 @@
     </feature>
 
     <feature name="snamp-jmx-support" description="Various JMX helpers and JMX-to-JSON serialization" version="${project.version}">
+        <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
         <bundle>mvn:com.bytex.snamp/jmx-helpers/${snamp.jmxhelper.version}</bundle>
     </feature>
 

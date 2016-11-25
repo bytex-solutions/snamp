@@ -29,7 +29,6 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
  * @version 2.0
  * @since 2.0
  */
-@Path("/")
 @Singleton
 public final class AcceptorService {
     private static final class AcceptorNotFoundException extends Exception{

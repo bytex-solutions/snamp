@@ -9,7 +9,6 @@ import javax.ws.rs.core.Response;
  * @version 1.0
  * @since 1.0
  */
-@Path("/")
 public class InfluxQueryMock extends InfluxMethodMock {
     @POST
     @Consumes(MediaType.TEXT_PLAIN)

@@ -11,7 +11,6 @@ import javax.ws.rs.core.Response;
  * @version 1.0
  * @since 1.0
  */
-@Path("/")
 public final class InfluxPingMock extends InfluxMethodMock {
     @GET
     @Produces(MediaType.TEXT_PLAIN)

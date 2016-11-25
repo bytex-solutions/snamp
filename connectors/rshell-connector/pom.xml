@@ -90,6 +90,23 @@
         </configuration>
       </plugin>
       <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <artifactSet>
+            <excludes>
+            </excludes>
+          </artifactSet>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
@@ -97,21 +114,37 @@
           <instructions>
             <Bundle-SymbolicName>com.bytex.snamp.connector.rshell</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.connector.rshell.RShellResourceConnectorActivator</Bundle-Activator>
-            <Embed-Dependency>*;scope=compile</Embed-Dependency>
-            <Embed-Transitive>true</Embed-Transitive>
-            <Import-Package>!org.antlr.stringtemplate,
-                            !javax.swing.*,
-                            !groovy.*,
-                            !org.codehaus.*,
-                            !javax.jms.*,
-                            !javax.mail.*,
-                            !javax.servlet.*,
-                            !sun.*,
-                            !com.sun.*,
-                            !org.apache.oro.*,
-                            *,
-                            org.antlr.stringtemplate;resolution:=optional</Import-Package>
             <Export-Package>com.bytex.jcommands</Export-Package>
+            <Import-Package>
+              com.bytex.snamp,
+              com.bytex.snamp.connector,
+              com.bytex.snamp.connector.attributes,
+              com.bytex.snamp.connector.metrics,
+              com.bytex.snamp.connector.operations,
+              com.bytex.snamp.core,
+              com.bytex.snamp.internal,
+              com.bytex.snamp.io,
+              com.bytex.snamp.jmx,
+              com.bytex.snamp.scripting,
+              com.google.common.base,
+              com.google.common.cache,
+              com.google.common.collect,
+              com.google.common.io,
+              com.google.common.reflect,
+              javax.management,
+              javax.management.openmbean,
+              javax.script,
+              javax.xml.bind,
+              javax.xml.bind.annotation,
+              javax.xml.transform,
+              javax.xml.transform.stream,
+              net.schmizz.sshj,
+              net.schmizz.sshj.common,
+              net.schmizz.sshj.connection.channel.direct,
+              net.schmizz.sshj.transport,
+              net.schmizz.sshj.userauth,
+              org.osgi.framework
+            </Import-Package>
             <Provide-Capability>com.bytex.snamp.connector; type=rshell</Provide-Capability>
           </instructions>
         </configuration>

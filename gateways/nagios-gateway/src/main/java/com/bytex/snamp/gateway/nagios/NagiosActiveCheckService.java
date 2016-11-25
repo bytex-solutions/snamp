@@ -13,7 +13,6 @@ import javax.ws.rs.core.Response;
  * @version 2.0
  * @since 1.0
  */
-@Path("/")
 @Singleton
 public final class NagiosActiveCheckService extends ModelOfAttributes<NagiosAttributeAccessor> {
 

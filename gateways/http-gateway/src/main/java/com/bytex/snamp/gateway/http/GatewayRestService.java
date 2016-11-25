@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.Set;
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
-@Path("/")
 @Singleton
 @org.atmosphere.config.service.Singleton
 public final class GatewayRestService {

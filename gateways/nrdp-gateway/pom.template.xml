@@ -1,53 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>gateways</artifactId>
-        <groupId>com.bytex.snamp</groupId>
-        <version>2.0.0</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.bytex.snamp</groupId>
+        <artifactId>gateways</artifactId>
+        <version>2.0.0</version>
+    </parent>
+    <artifactId>nrdp-gateway</artifactId>
     <version>${snamp.gateway.nrdp.version}</version>
+    <packaging>bundle</packaging>
     <name>Nagios NRDP Gateway</name>
     <description>SNAMP Gateway for NRDP passive check plug-in</description>
-    <artifactId>nrdp-gateway</artifactId>
-    <packaging>bundle</packaging>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>com.bytex.snamp.gateway.nrdp</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.gateway.nrdp.NRDPGatewayActivator</Bundle-Activator>
-                        <Embed-Dependency>
-                            *;scope=compile
-                        </Embed-Dependency>
-                        <Embed-Transitive>true</Embed-Transitive>
-                        <Export-Package/>
-                        <Import-Package>
-                            !javax.servlet.*,
-                            !org.apache.log.*,
-                            !org.slf4j.impl.*,
-                            *
-                        </Import-Package>
-                        <!--SNAMP specific header-->
-                        <Provide-Capability>com.bytex.snamp.gateway; type=nrdp</Provide-Capability>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
-            <scope>provided</scope>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
@@ -66,28 +36,6 @@
             <artifactId>jsend-nrdp</artifactId>
             <version>1.0.1</version>
             <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>jetty-server</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-io</groupId>
-                    <artifactId>commons-io</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.hamcrest</groupId>
-                    <artifactId>hamcrest-all</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
@@ -98,4 +46,54 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <artifactSet>
+                        <excludes/>
+                    </artifactSet>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>com.bytex.snamp.gateway.nrdp</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.gateway.nrdp.NRDPGatewayActivator</Bundle-Activator>
+                        <Export-Package />
+                        <Import-Package>
+                            com.bytex.snamp,
+                            com.bytex.snamp.concurrent,
+                            com.bytex.snamp.configuration,
+                            com.bytex.snamp.connector.attributes,
+                            com.bytex.snamp.connector.notifications,
+                            com.bytex.snamp.core,
+                            com.bytex.snamp.gateway,
+                            com.bytex.snamp.gateway.modeling,
+                            com.bytex.snamp.internal,
+                            com.bytex.snamp.jmx,
+                            com.google.common.base,
+                            com.google.common.collect,
+                            javax.management,
+                            org.slf4j,
+                            org.osgi.framework
+                        </Import-Package>
+                        <Provide-Capability>com.bytex.snamp.gateway; type=nrdp</Provide-Capability>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
