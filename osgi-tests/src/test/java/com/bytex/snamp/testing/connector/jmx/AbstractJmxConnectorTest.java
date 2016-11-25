@@ -20,7 +20,7 @@ import java.lang.management.PlatformManagedObject;
 public abstract class AbstractJmxConnectorTest<MBean> extends AbstractResourceConnectorTest {
     private final ObjectName beanName;
     private final MBean beanInstance;
-    static final String CONNECTOR_NAME = "jmx";
+    protected static final String CONNECTOR_NAME = "jmx";
     public static final String JMX_LOGIN = "karaf";
     public static final String JMX_PASSWORD = "karaf";
     private static final int JMX_KARAF_PORT = 1099; // Located in KARAF_ROOT/etc/org.apache.karaf.management.cfg; property name is rmiRegistryPort

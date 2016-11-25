@@ -2,16 +2,21 @@ package com.bytex.snamp.webconsole;
 
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.webconsole.model.dto.DTOFactory;
 import com.bytex.snamp.webconsole.model.dto.TypedDTOEntity;
+import org.osgi.framework.BundleException;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+
 /**
  * Provides API for SNAMP gateway.
+ *
  * @author Evgeniy Kirichenko
  * @version 2.0
  * @since 2.0
@@ -36,6 +41,7 @@ public final class GatewayService extends BaseRestConfigurationService {
     /**
      * Returns configuration for certain configured resource by its name.
      *
+     * @param name the name
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
     @GET
@@ -55,6 +61,8 @@ public final class GatewayService extends BaseRestConfigurationService {
     /**
      * Updated certain resource.
      *
+     * @param name   the name
+     * @param object the object
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
     @PUT
@@ -80,6 +88,7 @@ public final class GatewayService extends BaseRestConfigurationService {
     /**
      * Remove gateway from configuration by its name
      *
+     * @param name the name
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
     @DELETE
@@ -99,6 +108,7 @@ public final class GatewayService extends BaseRestConfigurationService {
     /**
      * Returns parameters for certain configured resource by its name.
      *
+     * @param name the name
      * @return Map that contains parameters configuration (or empty map if no resources are configured)
      */
     @GET
@@ -120,6 +130,8 @@ public final class GatewayService extends BaseRestConfigurationService {
     /**
      * Set parameters for certain configured resource by its name.
      *
+     * @param name   the name
+     * @param object the object
      * @return no content response
      */
     @PUT
@@ -142,6 +154,8 @@ public final class GatewayService extends BaseRestConfigurationService {
     /**
      * Returns certain parameter for certain configured resource by its name.
      *
+     * @param name      the name
+     * @param paramName the param name
      * @return String value of the parameter
      */
     @GET
@@ -164,6 +178,9 @@ public final class GatewayService extends BaseRestConfigurationService {
     /**
      * Returns certain parameter for certain configured resource by its name.
      *
+     * @param name      the name
+     * @param paramName the param name
+     * @param value     the value
      * @return no content response
      */
     @PUT
@@ -188,6 +205,8 @@ public final class GatewayService extends BaseRestConfigurationService {
     /**
      * Removes certain parameter for certain configured resource by its name.
      *
+     * @param name      the name
+     * @param paramName the param name
      * @return no content response
      */
     @DELETE
@@ -205,5 +224,41 @@ public final class GatewayService extends BaseRestConfigurationService {
                 return mrc.getParameters().remove(paramName) != null;
             }
         });
+    }
+
+    /**
+     * Stop gateway.
+     *
+     * @param name the name
+     * @return the boolean
+     */
+    @POST
+    @Path("/{name}/disable")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Boolean disableGateway(@PathParam("name") final String name)  {
+        try {
+            return GatewayActivator.disableGateway(getBundleContextOfObject(this), name);
+        } catch (final BundleException e) {
+            throw new WebApplicationException(e);
+        }
+    }
+
+    /**
+     * Start gateway.
+     *
+     * @param name the name
+     * @return the boolean
+     */
+    @POST
+    @Path("/{name}/enable")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Boolean enableGateway(@PathParam("name") final String name)  {
+        try {
+            return GatewayActivator.enableGateway(getBundleContextOfObject(this), name);
+        } catch (final BundleException e) {
+            throw new WebApplicationException(e);
+        }
     }
 }

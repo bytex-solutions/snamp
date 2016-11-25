@@ -2,6 +2,7 @@ package com.bytex.snamp.testing.management;
 
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
+import com.bytex.snamp.BooleanBinaryOperator;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
@@ -14,6 +15,8 @@ import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.Test;
@@ -32,7 +35,9 @@ import java.security.SignatureException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.StreamSupport;
 
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
@@ -569,6 +574,77 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         } finally {
             connection.disconnect();
         }
+    }
+
+    /**
+     * Test check simple resource with and without token.
+     *
+     * @throws IOException              the io exception
+     * @throws InterruptedException     the interrupted exception
+     * @throws NoSuchAlgorithmException the no such algorithm exception
+     * @throws JWTVerifyException       the jwt verify exception
+     * @throws InvalidKeyException      the invalid key exception
+     * @throws SignatureException       the signature exception
+     */
+    @Test
+    public void testDisableAndEnableComponents() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+            InvalidKeyException, SignatureException {
+        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+
+        // Get all resources
+        URL query = new URL("http://localhost:8181/snamp/console/management/resources/");
+        //write attribute
+        HttpURLConnection connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            final String responseValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertNotNull(responseValue);
+            final JsonArray resources = (JsonArray) new JsonParser().parse(responseValue);
+
+            final Optional<JsonElement> element = StreamSupport.stream(resources.spliterator(), false)
+                    .filter(entry -> entry.getAsJsonObject().get("name").getAsString().equalsIgnoreCase("JMX Connector"))
+                    .findFirst();
+            assertTrue(element.isPresent());
+            assertEquals("ACTIVE", element.get().getAsJsonObject().get("state").getAsString());
+
+        } finally {
+            connection.disconnect();
+        }
+
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/console/management/resources/%s/disable",
+                CONNECTOR_NAME)).openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
+            assertTrue(Boolean.valueOf(IOUtils.toString(connection.getInputStream(), Charset.defaultCharset())));
+
+        } finally {
+            connection.disconnect();
+        }
+
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            final String responseValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertNotNull(responseValue);
+            final JsonArray resources = (JsonArray) new JsonParser().parse(responseValue);
+
+            final Optional<JsonElement> element = StreamSupport.stream(resources.spliterator(), false)
+                    .filter(entry -> entry.getAsJsonObject().get("name").getAsString().equalsIgnoreCase("JMX Connector"))
+                    .findFirst();
+            assertTrue(element.isPresent());
+            assertEquals("RESOLVED", element.get().getAsJsonObject().get("state").getAsString());
+
+        } finally {
+            connection.disconnect();
+        }
+
     }
 
 
