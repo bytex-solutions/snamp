@@ -134,11 +134,12 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
 
     /**
      * Represents superclass for gateway descriptor.
+     * Now public because in case that is protected we received this is defined in an inaccessible class or interface
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
      */
-    protected static abstract class GatewayDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
+    public static abstract class GatewayDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
         private static final long serialVersionUID = 5641114150847940779L;
 
         protected GatewayDescriptor(final String systemName){
@@ -237,11 +238,12 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
 
     /**
      * Represents superclass for managed resource connector descriptor.
+     * Now public because in case that is protected we received this is defined in an inaccessible class or interface
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
      */
-    protected static abstract class ResourceConnectorDescriptor extends HashMap<String, String> implements SnampComponentDescriptor {
+    public static abstract class ResourceConnectorDescriptor extends HashMap<String, String> implements SnampComponentDescriptor {
         private static final long serialVersionUID = -5406342058157943559L;
 
         protected ResourceConnectorDescriptor(final String connectorName){

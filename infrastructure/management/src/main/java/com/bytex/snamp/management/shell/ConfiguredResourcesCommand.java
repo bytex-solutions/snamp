@@ -6,7 +6,7 @@ import org.apache.karaf.shell.commands.Command;
 
 import java.util.Map;
 
-import static com.bytex.snamp.management.shell.Utils.appendln;
+import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * Shows list of configured managed resources.

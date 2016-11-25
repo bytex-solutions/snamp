@@ -7,8 +7,8 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
-import static com.bytex.snamp.management.shell.Utils.append;
-import static com.bytex.snamp.management.shell.Utils.appendln;
+import static com.bytex.snamp.management.ManagementUtils.append;
+import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * @author Roman Sakno

@@ -1,15 +1,17 @@
-package com.bytex.snamp.management.shell;
+package com.bytex.snamp.management;
 
 import com.bytex.snamp.core.SnampComponentDescriptor;
 import org.osgi.framework.Bundle;
 
 /**
+ * The type ManagementUtils.
+ *
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
-final class Utils {
-    private Utils(){
+public final class ManagementUtils {
+    private ManagementUtils(){
 
     }
 
@@ -25,29 +27,60 @@ final class Utils {
         }
     }
 
-    static String getStateString(final SnampComponentDescriptor component){
+    /**
+     * Get state string string.
+     *
+     * @param component the component
+     * @return the string
+     */
+    public static String getStateString(final SnampComponentDescriptor component){
         return getStateString(component.getState());
     }
 
-    static void appendln(final StringBuilder builder,
+    /**
+     * Appendln.
+     *
+     * @param builder the builder
+     * @param value   the value
+     */
+    public static void appendln(final StringBuilder builder,
                                          final String value){
          newLine(builder.append(value));
     }
 
-    static void appendln(final StringBuilder builder,
+    /**
+     * Appendln.
+     *
+     * @param builder the builder
+     * @param format  the format
+     * @param args    the args
+     */
+    public static void appendln(final StringBuilder builder,
                                          final String format,
                                          final Object... args){
         append(builder, format, args);
         newLine(builder);
     }
 
-    static void append(final StringBuilder builder,
+    /**
+     * Append.
+     *
+     * @param builder the builder
+     * @param format  the format
+     * @param args    the args
+     */
+    public static void append(final StringBuilder builder,
                                        final String format,
                                        final Object... args){
         builder.append(String.format(format, args));
     }
 
-    static void newLine(final StringBuilder output) {
+    /**
+     * New line.
+     *
+     * @param output the output
+     */
+    public static void newLine(final StringBuilder output) {
         output.append(System.lineSeparator());
     }
 }

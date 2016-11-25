@@ -4,7 +4,7 @@ import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import org.apache.karaf.shell.commands.Command;
 
-import static com.bytex.snamp.management.shell.Utils.appendln;
+import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * Prints list of configured gateway instances.

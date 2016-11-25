@@ -340,7 +340,7 @@ public final class ResourceService extends BaseRestConfigurationService {
     @Path("/{name}/attributes/{attributeName}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response removeAttributeByName(@PathParam("name") final String name,
+    public Response removeAttributeParamByName(@PathParam("name") final String name,
                                           @PathParam("attributeName") final String attributeName) {
         return changingActions(currentConfig -> {
             final ManagedResourceConfiguration mrc =
@@ -350,6 +350,58 @@ public final class ResourceService extends BaseRestConfigurationService {
                 throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
             } else {
                 return mrc.getFeatures(AttributeConfiguration.class).remove(attributeName) != null;
+            }
+        });
+    }
+
+    /**
+     * Set certain param for certain attribute for specific resource.
+     *
+     * @return no content response
+     */
+    @PUT
+    @Path("/{name}/attributes/{attributeName}/parameters/{paramName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response setAttributeParamByName(@PathParam("name") final String name,
+                                            @PathParam("attributeName") final String attributeName,
+                                            @PathParam("paramName") final String paramName,
+                                            final String object) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null && mrc.getFeatures(AttributeConfiguration.class) != null
+                    && mrc.getFeatures(AttributeConfiguration.class).get(attributeName) != null) {
+                mrc.getFeatures(AttributeConfiguration.class).get(attributeName).getParameters().put(paramName, object);
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
+    }
+
+
+    /**
+     * Set certain param for certain attribute for specific resource.
+     *
+     * @return no content response
+     */
+    @DELETE
+    @Path("/{name}/attributes/{attributeName}/parameters/{paramName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response removeAttributeParamByName(@PathParam("name") final String name,
+                                               @PathParam("attributeName") final String attributeName,
+                                               @PathParam("paramName") final String paramName) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null && mrc.getFeatures(AttributeConfiguration.class) != null
+                    && mrc.getFeatures(AttributeConfiguration.class).get(attributeName) != null) {
+                return mrc.getFeatures(AttributeConfiguration.class).get(attributeName)
+                        .getParameters().remove(paramName) != null;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
             }
         });
     }
@@ -476,6 +528,58 @@ public final class ResourceService extends BaseRestConfigurationService {
     }
 
     /**
+     * Set certain param for certain event for specific resource.
+     *
+     * @return no content response
+     */
+    @PUT
+    @Path("/{name}/events/{eventName}/parameters/{paramName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response setEventParamByName(@PathParam("name") final String name,
+                                            @PathParam("eventName") final String eventName,
+                                            @PathParam("paramName") final String paramName,
+                                            final String object) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null && mrc.getFeatures(EventConfiguration.class) != null
+                    && mrc.getFeatures(EventConfiguration.class).get(eventName) != null) {
+                mrc.getFeatures(EventConfiguration.class).get(eventName).getParameters().put(paramName, object);
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
+    }
+
+
+    /**
+     * Set certain param for certain event for specific resource.
+     *
+     * @return no content response
+     */
+    @DELETE
+    @Path("/{name}/events/{eventName}/parameters/{paramName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response removeEventParamByName(@PathParam("name") final String name,
+                                               @PathParam("eventName") final String eventName,
+                                               @PathParam("paramName") final String paramName) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null && mrc.getFeatures(EventConfiguration.class) != null
+                    && mrc.getFeatures(EventConfiguration.class).get(eventName) != null) {
+                return mrc.getFeatures(EventConfiguration.class).get(eventName)
+                        .getParameters().remove(paramName) != null;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
+    }
+
+    /**
      * Returns operations for certain configured resource by its name.
      *
      * @return Map that contains attributes configuration (or empty map if no resources are configured)
@@ -592,6 +696,58 @@ public final class ResourceService extends BaseRestConfigurationService {
             if (mrc != null && !mrc.getFeatures(OperationConfiguration.class).isEmpty()
                     && mrc.getFeatures(OperationConfiguration.class).get(operationName) != null) {
                 return mrc.getFeatures(OperationConfiguration.class).remove(operationName) != null;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
+    }
+
+    /**
+     * Set certain param for certain operation for specific resource.
+     *
+     * @return no content response
+     */
+    @PUT
+    @Path("/{name}/operations/{operationName}/parameters/{paramName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response setOperationParamByName(@PathParam("name") final String name,
+                                        @PathParam("operationName") final String operationName,
+                                        @PathParam("paramName") final String paramName,
+                                        final String object) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null && mrc.getFeatures(OperationConfiguration.class) != null
+                    && mrc.getFeatures(OperationConfiguration.class).get(operationName) != null) {
+                mrc.getFeatures(OperationConfiguration.class).get(operationName).getParameters().put(paramName, object);
+                return true;
+            } else {
+                throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+            }
+        });
+    }
+
+
+    /**
+     * Set certain param for certain operation for specific resource.
+     *
+     * @return no content response
+     */
+    @DELETE
+    @Path("/{name}/operations/{operationName}/parameters/{paramName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response removeOperationParamByName(@PathParam("name") final String name,
+                                           @PathParam("operationName") final String operationName,
+                                           @PathParam("paramName") final String paramName) {
+        return changingActions(currentConfig -> {
+            final ManagedResourceConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceConfiguration.class).get(name);
+            if (mrc != null && mrc.getFeatures(OperationConfiguration.class) != null
+                    && mrc.getFeatures(OperationConfiguration.class).get(operationName) != null) {
+                return mrc.getFeatures(OperationConfiguration.class).get(operationName)
+                        .getParameters().remove(paramName) != null;
             } else {
                 throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
             }

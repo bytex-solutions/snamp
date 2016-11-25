@@ -6,6 +6,7 @@ import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
+import java.util.Arrays;
 
 /**
  * Represents customized servlet container.
@@ -14,6 +15,7 @@ import javax.ws.rs.core.Application;
  * @since 2.0
  */
 final class WebConsoleServlet extends ServletContainer {
+    private static final long serialVersionUID = 5710139261115306229L;
     /**
      * The constant AUTH_COOKIE.
      */
@@ -32,25 +34,21 @@ final class WebConsoleServlet extends ServletContainer {
         }
     }
 
-    private static final long serialVersionUID = 5710139261115306229L;
-
-    WebConsoleServlet(final WebConsoleService consoleAPI, final ResourceService managementAPI,
-                      final GatewayService gatewayService){
-        super(createAppConfig(consoleAPI, managementAPI, gatewayService));
+    WebConsoleServlet(final WebConsoleService consoleAPI, final BaseRestConfigurationService ... services){
+        super(createAppConfig(consoleAPI, services));
     }
 
     // We ignore unchecked warning because we know that ContainerRequestFilters
     // contains instances of ContainerRequestFilter class
     @SuppressWarnings("unchecked")
-    private static Application createAppConfig(final WebConsoleService consoleAPI, final ResourceService managementAPI,
-                                               final GatewayService gatewayService){
+    private static Application createAppConfig(final WebConsoleService consoleAPI,
+                                               final BaseRestConfigurationService ... services){
         final DefaultResourceConfig result = new DefaultResourceConfig();
         result.getSingletons().add(consoleAPI);
-        result.getSingletons().add(managementAPI);
-        result.getSingletons().add(gatewayService);
         final WebConsoleSecurityFilter filter = new WebConsoleSecurityFilter();
         result.getContainerResponseFilters().add(filter);
         result.getContainerRequestFilters().add(filter);
+        Arrays.stream(services).forEach(result.getSingletons()::add);
         result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
         return result;
     }

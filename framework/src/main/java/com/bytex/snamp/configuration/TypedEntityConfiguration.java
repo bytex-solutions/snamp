@@ -5,7 +5,7 @@ package com.bytex.snamp.configuration;
  * @since 2.0
  * @version 2.0
  */
-interface TypedEntityConfiguration extends EntityConfiguration {
+public interface TypedEntityConfiguration extends EntityConfiguration {
     /**
      * Gets type of the entity.
      * @return Type of the entity.

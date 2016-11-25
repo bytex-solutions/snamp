@@ -1,7 +1,7 @@
 package com.bytex.snamp.webconsole;
 
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 import com.bytex.snamp.webconsole.model.dto.DTOFactory;
 import com.bytex.snamp.webconsole.model.dto.TypedDTOEntity;
 
@@ -11,16 +11,16 @@ import javax.ws.rs.core.Response;
 import java.util.Map;
 
 /**
- * Provides API for SNAMP gateway.
+ * Provides API for SNAMP resource group.
  * @author Evgeniy Kirichenko
  * @version 2.0
  * @since 2.0
  */
-@Path("/gateway")
-public final class GatewayService extends BaseRestConfigurationService {
+@Path("/resourceGroup")
+public final class ResourceGroupService extends BaseRestConfigurationService {
 
     /**
-     * Returns all the configured gateways.
+     * Returns all the configured ResourceGroupService.
      *
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
@@ -29,8 +29,8 @@ public final class GatewayService extends BaseRestConfigurationService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Map getConfiguration() {
         return DTOFactory.buildTypedDTOEntities(readOnlyActions(currentConfig ->
-                (EntityMap<? extends GatewayConfiguration>)
-                        currentConfig.getEntities(GatewayConfiguration.class)));
+                (EntityMap<? extends ManagedResourceGroupConfiguration>)
+                        currentConfig.getEntities(ManagedResourceGroupConfiguration.class)));
     }
 
     /**
@@ -44,8 +44,8 @@ public final class GatewayService extends BaseRestConfigurationService {
     @Consumes(MediaType.APPLICATION_JSON)
     public TypedDTOEntity getConfigurationByName(@PathParam("name") final String name) {
         return DTOFactory.buildTypedDTOEntity(readOnlyActions(configuration -> {
-            if (configuration.getEntities(GatewayConfiguration.class).get(name) != null) {
-                return configuration.getEntities(GatewayConfiguration.class).get(name);
+            if (configuration.getEntities(ManagedResourceGroupConfiguration.class).get(name) != null) {
+                return configuration.getEntities(ManagedResourceGroupConfiguration.class).get(name);
             } else {
                 throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
             }
@@ -64,9 +64,9 @@ public final class GatewayService extends BaseRestConfigurationService {
     public Response setConfigurationByName(@PathParam("name") final String name,
                                            final TypedDTOEntity object) {
         return changingActions(currentConfig -> {
-            final EntityMap<? extends GatewayConfiguration> entityMap =
-                    currentConfig.getEntities(GatewayConfiguration.class);
-            final GatewayConfiguration mrc = entityMap.getOrAdd(name);
+            final EntityMap<? extends ManagedResourceGroupConfiguration> entityMap =
+                    currentConfig.getEntities(ManagedResourceGroupConfiguration.class);
+            final ManagedResourceGroupConfiguration mrc = entityMap.getOrAdd(name);
             if (mrc != null) {
                 mrc.setParameters(object.getParameters());
                 mrc.setType(object.getType());
@@ -78,7 +78,7 @@ public final class GatewayService extends BaseRestConfigurationService {
     }
 
     /**
-     * Remove gateway from configuration by its name
+     * Remove ResourceGroupService from configuration by its name
      *
      * @return Map that contains configuration (or empty map if no resources are configured)
      */
@@ -88,10 +88,10 @@ public final class GatewayService extends BaseRestConfigurationService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removeConfigurationByName(@PathParam("name") final String name) {
         return changingActions(currentConfig -> {
-            if (currentConfig.getEntities(GatewayConfiguration.class).get(name) == null) {
+            if (currentConfig.getEntities(ManagedResourceGroupConfiguration.class).get(name) == null) {
                 throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
             } else {
-                return currentConfig.getEntities(GatewayConfiguration.class).remove(name) != null;
+                return currentConfig.getEntities(ManagedResourceGroupConfiguration.class).remove(name) != null;
             }
         });
     }
@@ -107,8 +107,8 @@ public final class GatewayService extends BaseRestConfigurationService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Map getParametersForResource(@PathParam("name") final String name) {
         return readOnlyActions(currentConfig -> {
-            final GatewayConfiguration mrc =
-                    currentConfig.getEntities(GatewayConfiguration.class).get(name);
+            final ManagedResourceGroupConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceGroupConfiguration.class).get(name);
             if (mrc != null) {
                 return mrc.getParameters();
             } else {
@@ -128,8 +128,8 @@ public final class GatewayService extends BaseRestConfigurationService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setParametersForResource(@PathParam("name") final String name, final Map<String, String> object) {
         return changingActions(currentConfig -> {
-            final GatewayConfiguration mrc =
-                    currentConfig.getEntities(GatewayConfiguration.class).get(name);
+            final ManagedResourceGroupConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceGroupConfiguration.class).get(name);
             if (mrc != null) {
                 mrc.setParameters(object);
                 return true;
@@ -151,8 +151,8 @@ public final class GatewayService extends BaseRestConfigurationService {
     public String getParameterByName(@PathParam("name") final String name,
                                      @PathParam("paramName") final String paramName) {
         return readOnlyActions(currentConfig -> {
-            final GatewayConfiguration mrc =
-                    currentConfig.getEntities(GatewayConfiguration.class).get(name);
+            final ManagedResourceGroupConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceGroupConfiguration.class).get(name);
             if (mrc != null) {
                 return mrc.getParameters().get(paramName);
             } else {
@@ -174,8 +174,8 @@ public final class GatewayService extends BaseRestConfigurationService {
                                        @PathParam("paramName") final String paramName,
                                        final String value) {
         return changingActions(currentConfig -> {
-            final GatewayConfiguration mrc =
-                    currentConfig.getEntities(GatewayConfiguration.class).get(name);
+            final ManagedResourceGroupConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceGroupConfiguration.class).get(name);
             if (mrc != null) {
                 mrc.getParameters().put(paramName, value);
                 return true;
@@ -197,8 +197,8 @@ public final class GatewayService extends BaseRestConfigurationService {
     public Response removeParameterByName(@PathParam("name") final String name,
                                           @PathParam("paramName") final String paramName) {
         return changingActions(currentConfig -> {
-            final GatewayConfiguration mrc =
-                    currentConfig.getEntities(GatewayConfiguration.class).get(name);
+            final ManagedResourceGroupConfiguration mrc =
+                    currentConfig.getEntities(ManagedResourceGroupConfiguration.class).get(name);
             if (mrc == null) {
                 throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
             } else {
