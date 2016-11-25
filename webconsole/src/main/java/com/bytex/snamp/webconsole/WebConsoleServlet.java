@@ -48,7 +48,9 @@ final class WebConsoleServlet extends ServletContainer {
         result.getSingletons().add(consoleAPI);
         result.getSingletons().add(managementAPI);
         result.getSingletons().add(gatewayService);
-        result.getContainerResponseFilters().add(new WebConsoleSecurityFilter());
+        final WebConsoleSecurityFilter filter = new WebConsoleSecurityFilter();
+        result.getContainerResponseFilters().add(filter);
+        result.getContainerRequestFilters().add(filter);
         result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
         return result;
     }
