@@ -21,8 +21,7 @@ import java.util.function.Function;
  * @version 2.0
  * @since 2.0
  */
-@Singleton
-class BaseRestConfigurationService {
+abstract class BaseRestConfigurationService {
     /**
      * Read configuration and return the result
      * @param handler lambda for reading in a appropriate way
@@ -30,7 +29,7 @@ class BaseRestConfigurationService {
      * @return instance of EntityConfiguration
      * @throws WebApplicationException required by configuration admin
      */
-     <R> R readOnlyActions(final Function<? super AgentConfiguration, R> handler) throws WebApplicationException {
+     final <R> R readOnlyActions(final Function<? super AgentConfiguration, R> handler) throws WebApplicationException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
@@ -49,7 +48,7 @@ class BaseRestConfigurationService {
      * @return empty response with 204 code
      * @throws WebApplicationException required by configuration admin
      */
-     Response changingActions(final ConfigurationManager.ConfigurationProcessor<WebApplicationException> handler) throws WebApplicationException {
+     final Response changingActions(final ConfigurationManager.ConfigurationProcessor<WebApplicationException> handler) throws WebApplicationException {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
