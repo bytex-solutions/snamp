@@ -2,7 +2,6 @@ package com.bytex.snamp.testing.management;
 
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
-import com.bytex.snamp.BooleanBinaryOperator;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
@@ -678,7 +677,8 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         connection.connect();
         try {
             final String componentString = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
-            assertNull(componentString);
+            assertNotNull(componentString);
+            assertNotEquals("{}", componentString);
         } finally {
             connection.disconnect();
         }

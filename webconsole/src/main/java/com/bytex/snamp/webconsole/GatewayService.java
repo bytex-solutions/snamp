@@ -238,7 +238,7 @@ public final class GatewayService extends BaseRestConfigurationService {
 
 
     @GET
-    @Path("/{name}/attributes/binding")
+    @Path("/{name}/attributes/bindings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection getAttributesBindings(@PathParam("name") final String name) {

@@ -16,6 +16,7 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
+@Path("/")
 public final class WebConsoleService extends Authenticator {
     private static final String JAAS_REALM = "karaf";
 
