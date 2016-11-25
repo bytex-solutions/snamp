@@ -28,7 +28,7 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
     private final String authCookieName;
     private final String securedPath;
 
-    public WebSecurityFilter(final String authCookieName, final String securedPath){
+    private WebSecurityFilter(final String authCookieName, final String securedPath){
         this.authCookieName = Objects.requireNonNull(authCookieName);
         this.securedPath = Objects.requireNonNull(securedPath);
     }
@@ -41,7 +41,7 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
         return true;
     }
 
-    protected String getTokenSecret(){
+    private String getTokenSecret(){
         return TokenSecretHolder.getInstance().getSecret(getBundleContextOfObject(this));
     }
 
