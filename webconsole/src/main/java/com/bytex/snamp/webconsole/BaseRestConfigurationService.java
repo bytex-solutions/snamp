@@ -34,15 +34,13 @@ class BaseRestConfigurationService {
         final BundleContext bc = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(bc, ConfigurationManager.class);
         assert admin != null;
-        final Box<R> container = BoxFactory.create(null);
         try {
-            container.set(admin.get().transformConfiguration(handler)); // readConfiguration ничего не возвращает и в acceptor передать Box нельзя.
+            return admin.get().transformConfiguration(handler); // readConfiguration ничего не возвращает и в acceptor передать Box нельзя.
         } catch (final IOException exception) {
             throw new WebApplicationException(exception);
         } finally {
             admin.release(bc);
         }
-        return container.get();
     }
 
     /**

@@ -32,7 +32,6 @@ public class Authenticator {
     /**
      * Provides authentication using login and password.
      * @param context Login context.
-==
      * @return Secured authentication token.
      * @throws LoginException Unable to authenticate user.
      */
