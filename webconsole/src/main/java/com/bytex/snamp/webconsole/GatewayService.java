@@ -12,6 +12,8 @@ import com.bytex.snamp.webconsole.model.dto.TypedDTOEntity;
 import org.osgi.framework.BundleException;
 
 import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanNotificationInfo;
+import javax.management.MBeanOperationInfo;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -237,6 +239,12 @@ public final class GatewayService extends BaseRestConfigurationService {
     }
 
 
+    /**
+     * Gets attributes bindings.
+     *
+     * @param name the name
+     * @return the attributes bindings
+     */
     @GET
     @Path("/{name}/attributes/bindings")
     @Produces(MediaType.APPLICATION_JSON)
@@ -249,6 +257,56 @@ public final class GatewayService extends BaseRestConfigurationService {
                 client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> {
                     box.get().add(bindingInfo);
                     return true;
+            });
+        } catch (final TimeoutException | InterruptedException | ExecutionException e) {
+            throw new WebApplicationException(e);
+        }
+        return box.get();
+    }
+
+    /**
+     * Gets notification bindings.
+     *
+     * @param name the name
+     * @return the notification bindings
+     */
+    @GET
+    @Path("/{name}/events/bindings")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Collection getNotificationBindings(@PathParam("name") final String name) {
+        final Box<Collection<Gateway.FeatureBindingInfo>> box = BoxFactory.create(null);
+        try {
+            box.set(new ArrayList<>());
+            final GatewayClient client = new GatewayClient(getBundleContextOfObject(this), name, Duration.ofSeconds(2));
+            client.forEachFeature(MBeanNotificationInfo.class, (resourceName, bindingInfo) -> {
+                box.get().add(bindingInfo);
+                return true;
+            });
+        } catch (final TimeoutException | InterruptedException | ExecutionException e) {
+            throw new WebApplicationException(e);
+        }
+        return box.get();
+    }
+
+    /**
+     * Gets operation bindings.
+     *
+     * @param name the name
+     * @return the operation bindings
+     */
+    @GET
+    @Path("/{name}/operations/bindings")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Collection getOperationBindings(@PathParam("name") final String name) {
+        final Box<Collection<Gateway.FeatureBindingInfo>> box = BoxFactory.create(null);
+        try {
+            box.set(new ArrayList<>());
+            final GatewayClient client = new GatewayClient(getBundleContextOfObject(this), name, Duration.ofSeconds(2));
+            client.forEachFeature(MBeanOperationInfo.class, (resourceName, bindingInfo) -> {
+                box.get().add(bindingInfo);
+                return true;
             });
         } catch (final TimeoutException | InterruptedException | ExecutionException e) {
             throw new WebApplicationException(e);
