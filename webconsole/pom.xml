@@ -82,9 +82,7 @@
           <instructions>
             <Bundle-SymbolicName>com.bytex.snamp.webconsole</Bundle-SymbolicName>
             <Export-Package />
-            <DynamicImport-Package>*</DynamicImport-Package>
             <Bundle-Activator>com.bytex.snamp.webconsole.WebConsoleActivator</Bundle-Activator>
-            <Embed-Dependency>*;scope=compile</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>

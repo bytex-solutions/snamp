@@ -78,6 +78,17 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
@@ -86,10 +97,22 @@
             <Bundle-SymbolicName>com.bytex.snamp.gateway.xmpp</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.gateway.xmpp.XMPPGatewayActivator</Bundle-Activator>
             <Export-Package>com.bytex.snamp.gateway.xmpp.client.*</Export-Package>
-            <Embed-Dependency>*;scope=compile</Embed-Dependency>
-            <Import-Package>!sun.security.util.*,
-                            *</Import-Package>
-            <Embed-Transitive>true</Embed-Transitive>
+            <Import-Package>com.bytex.snamp,
+                            com.bytex.snamp.concurrent,
+                            com.bytex.snamp.configuration,
+                            com.bytex.snamp.connector.attributes,
+                            com.bytex.snamp.core,
+                            com.bytex.snamp.gateway,
+                            com.bytex.snamp.gateway.modeling,
+                            com.bytex.snamp.internal,
+                            com.bytex.snamp.jmx,
+                            com.bytex.snamp.jmx.json,
+                            com.google.common.base,
+                            com.google.common.collect,
+                            com.google.gson,
+                            javax.management,
+                            javax.management.openmbean,
+                            javax.net.ssl</Import-Package>
             <Provide-Capability>com.bytex.snamp.gateway; type=xmpp</Provide-Capability>
           </instructions>
         </configuration>

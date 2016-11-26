@@ -10,7 +10,6 @@ import org.apache.commons.cli.Option;
  */
 abstract class AbstractAttributeCommand extends AbstractManagementShellCommand {
     protected static final Option NAME_OPTION = new Option("n", "name", true, "Attribute name");
-
     protected AbstractAttributeCommand(final CommandExecutionContext context) {
         super(context);
     }
