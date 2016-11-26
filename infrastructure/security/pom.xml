@@ -89,6 +89,7 @@
             <Export-Package>com.auth0.jwt,
                             com.bytex.snamp.security.web</Export-Package>
             <DynamicImport-Package>*</DynamicImport-Package>
+            <Embed-Dependency>*;groupId=com.auth0;scope=compile</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
