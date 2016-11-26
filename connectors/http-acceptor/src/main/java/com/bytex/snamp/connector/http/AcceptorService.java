@@ -30,6 +30,7 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
  * @since 2.0
  */
 @Singleton
+@Path("/")
 public final class AcceptorService {
     private static final class AcceptorNotFoundException extends Exception{
         private static final long serialVersionUID = 7841487883004602958L;

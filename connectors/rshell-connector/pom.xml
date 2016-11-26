@@ -68,7 +68,6 @@
     <dependency>
       <groupId>org.apache.sshd</groupId>
       <artifactId>sshd-core</artifactId>
-      <version>0.12.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -101,8 +100,7 @@
         </executions>
         <configuration>
           <artifactSet>
-            <excludes>
-            </excludes>
+            <excludes></excludes>
           </artifactSet>
         </configuration>
       </plugin>
@@ -115,36 +113,34 @@
             <Bundle-SymbolicName>com.bytex.snamp.connector.rshell</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.connector.rshell.RShellResourceConnectorActivator</Bundle-Activator>
             <Export-Package>com.bytex.jcommands</Export-Package>
-            <Import-Package>
-              com.bytex.snamp,
-              com.bytex.snamp.connector,
-              com.bytex.snamp.connector.attributes,
-              com.bytex.snamp.connector.metrics,
-              com.bytex.snamp.connector.operations,
-              com.bytex.snamp.core,
-              com.bytex.snamp.internal,
-              com.bytex.snamp.io,
-              com.bytex.snamp.jmx,
-              com.bytex.snamp.scripting,
-              com.google.common.base,
-              com.google.common.cache,
-              com.google.common.collect,
-              com.google.common.io,
-              com.google.common.reflect,
-              javax.management,
-              javax.management.openmbean,
-              javax.script,
-              javax.xml.bind,
-              javax.xml.bind.annotation,
-              javax.xml.transform,
-              javax.xml.transform.stream,
-              net.schmizz.sshj,
-              net.schmizz.sshj.common,
-              net.schmizz.sshj.connection.channel.direct,
-              net.schmizz.sshj.transport,
-              net.schmizz.sshj.userauth,
-              org.osgi.framework
-            </Import-Package>
+            <Import-Package>com.bytex.snamp,
+                            com.bytex.snamp.connector,
+                            com.bytex.snamp.connector.attributes,
+                            com.bytex.snamp.connector.metrics,
+                            com.bytex.snamp.connector.operations,
+                            com.bytex.snamp.core,
+                            com.bytex.snamp.internal,
+                            com.bytex.snamp.io,
+                            com.bytex.snamp.jmx,
+                            com.bytex.snamp.scripting,
+                            com.google.common.base,
+                            com.google.common.cache,
+                            com.google.common.collect,
+                            com.google.common.io,
+                            com.google.common.reflect,
+                            javax.management,
+                            javax.management.openmbean,
+                            javax.script,
+                            javax.xml.bind,
+                            javax.xml.bind.annotation,
+                            javax.xml.transform,
+                            javax.xml.transform.stream,
+                            net.schmizz.sshj,
+                            net.schmizz.sshj.common,
+                            net.schmizz.sshj.connection.channel.direct,
+                            net.schmizz.sshj.transport,
+                            net.schmizz.sshj.userauth,
+                            org.osgi.framework</Import-Package>
             <Provide-Capability>com.bytex.snamp.connector; type=rshell</Provide-Capability>
           </instructions>
         </configuration>

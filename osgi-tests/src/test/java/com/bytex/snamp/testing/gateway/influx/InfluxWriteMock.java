@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
  * @version 2.0
  * @since 2.0
  */
+@Path("/")
 public class InfluxWriteMock extends InfluxMethodMock {
     private final Communicator communicator;
     static final String INFLUX_CHANNEL = "InfluxDB-channel";

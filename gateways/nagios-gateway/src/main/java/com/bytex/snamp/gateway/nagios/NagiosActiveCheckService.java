@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
  * @since 1.0
  */
 @Singleton
+@Path("/")
 public final class NagiosActiveCheckService extends ModelOfAttributes<NagiosAttributeAccessor> {
 
     @Override

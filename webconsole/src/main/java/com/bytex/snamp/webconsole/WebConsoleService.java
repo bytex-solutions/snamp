@@ -4,6 +4,7 @@ import com.bytex.snamp.security.web.Authenticator;
 
 import javax.security.auth.login.*;
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.util.Objects;
@@ -28,7 +29,7 @@ public final class WebConsoleService extends Authenticator {
 
     @Path(WebConsoleServlet.AUTHENTICATE_PATH)
     @POST
-    @Consumes("application/x-www-form-urlencoded")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response authenticate(@FormParam("username") final String userName, @FormParam("password") final String password) throws WebApplicationException {
         final LoginContext context;
         try {

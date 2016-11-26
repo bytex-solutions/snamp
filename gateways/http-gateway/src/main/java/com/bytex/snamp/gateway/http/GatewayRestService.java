@@ -17,6 +17,7 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 @Singleton
 @org.atmosphere.config.service.Singleton
+@Path("/")
 public final class GatewayRestService {
     private final AttributeSupport attributes;
     private final Gson formatter;

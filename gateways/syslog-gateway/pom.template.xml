@@ -17,6 +17,22 @@
     <build>
         <plugins>
             <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <artifactSet>
+                        <excludes />
+                    </artifactSet>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
@@ -24,11 +40,22 @@
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.gateway.syslog</Bundle-SymbolicName>
                         <Bundle-Activator>com.bytex.snamp.gateway.syslog.SysLogGatewayActivator</Bundle-Activator>
-                        <Embed-Dependency>
-                            *;scope=compile
-                        </Embed-Dependency>
-                        <Embed-Transitive>true</Embed-Transitive>
                         <Export-Package/>
+                        <Import-Package>
+                            com.bytex.snamp,
+                            com.bytex.snamp.concurrent,
+                            com.bytex.snamp.configuration,
+                            com.bytex.snamp.connector.attributes,
+                            com.bytex.snamp.connector.notifications,
+                            com.bytex.snamp.core,
+                            com.bytex.snamp.gateway,
+                            com.bytex.snamp.gateway.modeling,
+                            com.bytex.snamp.internal,
+                            com.bytex.snamp.jmx,
+                            com.google.common.collect,
+                            javax.management,
+                            org.osgi.framework
+                        </Import-Package>
                         <!--SNAMP specific header-->
                         <Provide-Capability>com.bytex.snamp.gateway; type=syslog</Provide-Capability>
                     </instructions>
