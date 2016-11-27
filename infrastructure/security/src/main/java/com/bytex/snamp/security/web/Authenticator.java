@@ -1,9 +1,17 @@
 package com.bytex.snamp.security.web;
 
+import com.auth0.jwt.JWTVerifyException;
+
 import javax.security.auth.Subject;
 import javax.security.auth.login.AccountException;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import java.security.SignatureException;
+
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
@@ -27,6 +35,14 @@ public class Authenticator {
 
     protected String getTokenSecret(){
         return TokenSecretHolder.getInstance().getSecret(getBundleContextOfObject(this));
+    }
+
+    public final Principal parsePrincipal(final String token) throws SignatureException, NoSuchAlgorithmException, InvalidKeyException, IOException {
+        try {
+            return new JwtPrincipal(token, getTokenSecret());
+        } catch (final JWTVerifyException e) {
+            throw new SignatureException("JWT is not valid", e);
+        }
     }
 
     /**

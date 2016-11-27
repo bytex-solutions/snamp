@@ -1,14 +1,11 @@
 package com.bytex.snamp.testing.management;
 
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.JWTVerifyException;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
-import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.GatewayActivator;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
+import com.bytex.snamp.security.web.Authenticator;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -23,6 +20,7 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
@@ -30,6 +28,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.SignatureException;
 import java.time.Duration;
 import java.util.List;
@@ -60,8 +59,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
     private static final String USERNAME = "karaf";
     private static final String PASSWORD = "karaf";
     private static final String AUTH_COOKIE = "snamp-auth-token";
-    private static final String JWT_SECRET_BOX_NAME = "JWT_SECRET";
-    private static final String JWT_SECRET = UUID.randomUUID().toString();
+    private final Authenticator authenticator;
 
     /**
      * Instantiates a new Snamp webconsole test.
@@ -70,8 +68,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      */
     public SnampWebconsoleTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
-        DistributedServices.getDistributedBox(Utils.getBundleContextOfObject(this), JWT_SECRET_BOX_NAME)
-                .set(JWT_SECRET);
+        authenticator = new Authenticator();
     }
 
     @Override
@@ -93,7 +90,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         final HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
-        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        connection.setRequestProperty("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
         connection.setRequestProperty("charset", "utf-8");
         connection.setInstanceFollowRedirects(false);
         IOUtils.writeString(String.format("username=%s&password=%s", username, password),
@@ -132,20 +129,16 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws IOException              the io exception
      * @throws InterruptedException     the interrupted exception
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws JWTVerifyException       the jwt verify exception
      * @throws InvalidKeyException      the invalid key exception
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testLoginValidCredentials() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
-            InvalidKeyException, SignatureException {
+    public void testLoginValidCredentials() throws IOException, InterruptedException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
         assertNotNull(cookie);
-        final JWTVerifier jwtVerifier = new JWTVerifier(JWT_SECRET);
-        final Map<String, Object> claims = jwtVerifier.verify(cookie.getValue());
-        assertFalse(claims.isEmpty());
-        assertTrue(claims.containsKey("sub"));
-        assertEquals(claims.get("sub"), USERNAME);
+        final Principal p = authenticator.parsePrincipal(cookie.getValue());
+        assertNotNull(p);
+        assertEquals(p.getName(), USERNAME);
     }
 
     /**
@@ -154,21 +147,12 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws IOException              the io exception
      * @throws InterruptedException     the interrupted exception
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws JWTVerifyException       the jwt verify exception
      * @throws InvalidKeyException      the invalid key exception
      * @throws SignatureException       the signature exception
      */
-    @Test
-    public void testLoginInvalidCredentials() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
-            InvalidKeyException, SignatureException {
-        boolean failed = false;
-        try {
-            authenticate(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-        } catch (final Throwable e) {
-            assertTrue(e instanceof IllegalArgumentException);
-            failed = true;
-        }
-        assertTrue("Authentication with invalid credentials has been done successfully", failed);
+    @Test(expected = IllegalArgumentException.class)
+    public void testLoginInvalidCredentials() throws IOException, InterruptedException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        authenticate(UUID.randomUUID().toString(), UUID.randomUUID().toString());
     }
 
     /**
@@ -177,12 +161,11 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws IOException              the io exception
      * @throws InterruptedException     the interrupted exception
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws JWTVerifyException       the jwt verify exception
      * @throws InvalidKeyException      the invalid key exception
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testCheckSimpleResourceWithAndWithoutToken() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+    public void testCheckSimpleResourceWithAndWithoutToken() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
         final URL query = new URL("http://localhost:8181/snamp/console/check");
@@ -217,12 +200,11 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws IOException              the io exception
      * @throws InterruptedException     the interrupted exception
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws JWTVerifyException       the jwt verify exception
      * @throws InvalidKeyException      the invalid key exception
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testGetStaticFiles() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+    public void testGetStaticFiles() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
 
         Thread.sleep(2000);
@@ -298,12 +280,11 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws IOException              the io exception
      * @throws InterruptedException     the interrupted exception
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws JWTVerifyException       the jwt verify exception
      * @throws InvalidKeyException      the invalid key exception
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testGetResourceConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+    public void testGetResourceConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
 
@@ -344,12 +325,11 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws IOException              the io exception
      * @throws InterruptedException     the interrupted exception
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws JWTVerifyException       the jwt verify exception
      * @throws InvalidKeyException      the invalid key exception
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testModifyResourceConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+    public void testModifyResourceConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
         // Get resource by name
@@ -466,12 +446,11 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws IOException              the io exception
      * @throws InterruptedException     the interrupted exception
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws JWTVerifyException       the jwt verify exception
      * @throws InvalidKeyException      the invalid key exception
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testModifyGatewayConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+    public void testModifyGatewayConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
         // Get resource by name
@@ -556,12 +535,11 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws IOException              the io exception
      * @throws InterruptedException     the interrupted exception
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws JWTVerifyException       the jwt verify exception
      * @throws InvalidKeyException      the invalid key exception
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testManagementService() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+    public void testManagementService() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
 
@@ -587,12 +565,11 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws IOException              the io exception
      * @throws InterruptedException     the interrupted exception
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws JWTVerifyException       the jwt verify exception
      * @throws InvalidKeyException      the invalid key exception
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testDisableAndEnableComponents() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+    public void testDisableAndEnableComponents() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
 
@@ -659,12 +636,11 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      * @throws IOException              the io exception
      * @throws InterruptedException     the interrupted exception
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws JWTVerifyException       the jwt verify exception
      * @throws InvalidKeyException      the invalid key exception
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testAttributesBindings() throws IOException, InterruptedException, NoSuchAlgorithmException, JWTVerifyException,
+    public void testAttributesBindings() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
 
