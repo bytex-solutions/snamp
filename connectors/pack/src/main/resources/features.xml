@@ -10,6 +10,7 @@
 
     <feature name="snamp-composite-connector" description="Composite Connector Karaf Feature" version="${snamp.connector.composite.version}">
         <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-scripting-support</feature>
         <bundle start="true">mvn:com.bytex.snamp/composite-connector/${project.version}</bundle>
     </feature>
 

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.zipkin.embedding;
 
-import com.bytex.snamp.SafeCloseable;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServerStartable;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;

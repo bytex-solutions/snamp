@@ -51,7 +51,7 @@
     <atmosphere.version>2.2.9</atmosphere.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <snamp.security.version>2.0.0</snamp.security.version>
-    <netty.version>3.10.0.Final</netty.version>
+    <netty.version>3.10.6.Final</netty.version>
     <snamp.gateway.snmp.version>2.0.0</snamp.gateway.snmp.version>
     <snamp.gateway.nsca.version>2.0.0</snamp.gateway.nsca.version>
     <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>

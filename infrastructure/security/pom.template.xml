@@ -90,6 +90,24 @@
                             com.auth0.jwt,
                             com.bytex.snamp.security.web
                         </Export-Package>
+                        <Import-Package>
+                            com.bytex.snamp,
+                            com.bytex.snamp.concurrent,
+                            com.bytex.snamp.core,
+                            com.bytex.snamp.internal,
+                            com.google.common.base,
+                            com.google.common.collect,
+                            com.sun.jersey.api.core;resolution:=optional,
+                            com.sun.jersey.spi.container;resolution:=optional,
+                            javax.crypto,
+                            javax.crypto.spec,
+                            javax.security.auth,
+                            javax.security.auth.login,
+                            javax.ws.rs;resolution:=optional,
+                            javax.ws.rs.core;resolution:=optional,
+                            org.apache.karaf.jaas.boot.principal,
+                            org.osgi.framework
+                        </Import-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                         <Embed-Dependency>*;groupId=com.auth0;scope=compile</Embed-Dependency>
                     </instructions>

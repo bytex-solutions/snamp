@@ -172,8 +172,8 @@
                             javax.security.auth,
                             javax.security.auth.login,
                             javax.security.auth.callback,
-                            io.netty
-                            org.ietf.jgss,</Import-Package>
+                            org.jboss.netty.channel,
+                            org.ietf.jgss</Import-Package>
             <Provide-Capability>com.bytex.snamp.connector; type=zipkin</Provide-Capability>
           </instructions>
         </configuration>

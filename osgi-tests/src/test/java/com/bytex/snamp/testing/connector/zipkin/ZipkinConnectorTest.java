@@ -28,9 +28,9 @@ import java.util.Properties;
  * @since 2.0
  */
 @SnampDependencies({SnampFeature.ZIPKIN_CONNECTOR, SnampFeature.WRAPPED_LIBS})
-@ImportPackages("zipkin.reporter.kafka08;version=\"[0.6.9,1)\"")
+@ImportPackages({"zipkin.reporter.kafka08;version=\"[0.6.9,1)\""})
 public class ZipkinConnectorTest extends AbstractResourceConnectorTest {
-    public static final String CONNECTOR_TYPE = "zipkin";
+    private static final String CONNECTOR_TYPE = "zipkin";
     private EmbeddedKafka kafka;
     private final Path zookeeperDataDir;
     private final Path kafkaDir;
@@ -69,7 +69,7 @@ public class ZipkinConnectorTest extends AbstractResourceConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
 
