@@ -4,15 +4,14 @@ import com.bytex.snamp.security.web.Authenticator;
 
 import javax.security.auth.login.*;
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Provides API for SNAMP Web Console.
+ *
  * @author Evgeniy Kirichenko
  * @version 2.0
  * @since 2.0
@@ -23,10 +22,23 @@ public final class WebConsoleService extends Authenticator {
 
     private final Logger logger;
 
+    /**
+     * Instantiates a new Web console service.
+     *
+     * @param logger the logger
+     */
     WebConsoleService(final Logger logger){
         this.logger = Objects.requireNonNull(logger);
     }
 
+    /**
+     * Authenticate response.
+     *
+     * @param userName the user name
+     * @param password the password
+     * @return the response
+     * @throws WebApplicationException the web application exception
+     */
     @Path(WebConsoleServlet.AUTHENTICATE_PATH)
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -59,12 +71,13 @@ public final class WebConsoleService extends Authenticator {
     }
 
     /**
-     * Dummy method with empty response - just to check if the index.html page was opened with necessary token.
-     * @return 200 by default. If something goes wrong - auth filter will throw the exception
+     * Gets active user name.
+     *
+     * @return the active user name
      */
-    @Path("/check")
+    @Path("/username")
     @GET
-    public Response checkAuth() {
-        return Response.noContent().build();
+    public String getActiveUserName(@Context final SecurityContext sc) {
+        return sc.getUserPrincipal().getName();
     }
 }

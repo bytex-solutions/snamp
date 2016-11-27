@@ -269,7 +269,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      *
      * @throws InterruptedException the interrupted exception
      */
-//@Test
+    @Test
     public void dummyTest() throws InterruptedException {
         Thread.sleep(10000000);
     }
