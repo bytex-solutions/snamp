@@ -1,8 +1,8 @@
-communicator = getCommunicator communicationChannel
+import com.bytex.snamp.core.Communicator.MessageType
 
-def changeStringAttribute(){
+def changeStringAttribute(messageId, communicator){
     resources.setAttributeValue resourceName, 'string', 'Frank Underwood'
-    communicator.post resources.getAttributeValue(resourceName, 'string')
+    communicator.sendMessage(resources.getAttributeValue(resourceName, 'string'), MessageType.RESPONSE, messageId)
 }
 
 def changeStringAttributeSilent(){
@@ -10,41 +10,41 @@ def changeStringAttributeSilent(){
     res./string/.value = 'Barry Burton'
 }
 
-def changeBooleanAttribute(){
+def changeBooleanAttribute(messageId, communicator){
     def res = resources.getResource(resourceName)
     res.getAttribute('boolean').value = true
     assert res./boolean/.metadata.objectName instanceof String
     assert res./boolean/.metadata.readable
     assert res./boolean/.metadata.writable
-    communicator.sendSignal res./boolean/.value
+    communicator.sendMessage(res./boolean/.value, MessageType.RESPONSE, messageId)
 }
 
-def changeIntegerAttribute(){
+def changeIntegerAttribute(messageId, communicator){
     resources.setAttributeValue resourceName, 'int32', 1020
-    communicator.sendSignal resources.getAttributeValue(resourceName, 'int32')
+    communicator.sendMessage(resources.getAttributeValue(resourceName, 'int32'), MessageType.RESPONSE, messageId)
 }
 
-def changeBigIntegerAttribute(){
+def changeBigIntegerAttribute(messageId, communicator){
     resources./test-target/./bigint/.value = 1020G
-    communicator.sendSignal resources./test-target/./bigint/.value
+    communicator.sendMessage(resources./test-target/./bigint/.value, MessageType.RESPONSE, messageId)
 }
 
-void listen(message){
-    switch(message){
+void listen(message, communicator){
+    switch(message.payload){
         case 'changeStringAttributeSilent':
             changeStringAttributeSilent()
         break
         case 'changeStringAttribute':
-            changeStringAttribute()
+            changeStringAttribute(message.messageID, communicator)
         break
         case 'changeBooleanAttribute':
-            changeBooleanAttribute()
+            changeBooleanAttribute(message.messageID, communicator)
         break
         case 'changeIntegerAttribute':
-            changeIntegerAttribute()
+            changeIntegerAttribute(message.messageID, communicator)
         break
         case 'changeBigIntegerAttribute':
-            changeBigIntegerAttribute()
+            changeBigIntegerAttribute(message.messageID, communicator)
         break
     }
 }
@@ -54,8 +54,8 @@ def handleNotification(metadata, notif){
 }
 
 //register incoming message listener
-communicator.addMessageListener(this.&listen, {msg -> true})
+def communicator = getCommunicator communicationChannel
+communicator.addMessageListener({msg -> listen(msg, communicator)}, MessageType.REQUEST)
 
 void close(){
-    communicator = null
 }
