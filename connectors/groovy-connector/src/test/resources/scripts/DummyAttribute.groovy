@@ -1,5 +1,9 @@
 package scripts
 
+static def method(Closure cl){
+    cl.getResolveStrategy()
+}
+
 type INT32
 
 println configParam

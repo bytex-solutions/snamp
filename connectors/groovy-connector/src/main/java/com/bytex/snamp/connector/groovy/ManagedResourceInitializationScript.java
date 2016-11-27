@@ -4,6 +4,8 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.scripting.groovy.Scriptlet;
 import com.google.common.collect.ImmutableList;
+import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -27,6 +29,11 @@ public abstract class ManagedResourceInitializationScript extends Scriptlet impl
 
     private <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType) {
         return contextRef != null ? ConfigurationManager.createEntityConfiguration(contextRef, entityType) : null;
+    }
+
+    @SpecialUse
+    protected final void attribute(@DelegatesTo(AttributeBuilder.class) final Closure<?> statement){
+        final AttributeBuilder builder = invokeDslStatement(statement, AttributeBuilder::new);
     }
 
     /**

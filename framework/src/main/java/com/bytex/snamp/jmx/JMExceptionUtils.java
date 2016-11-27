@@ -1,9 +1,7 @@
 package com.bytex.snamp.jmx;
 
-import javax.management.AttributeNotFoundException;
-import javax.management.ListenerNotFoundException;
-import javax.management.NotificationListener;
-import javax.management.OperationsException;
+import javax.management.*;
+import java.util.function.Function;
 
 /**
  * Provides various methods for working with JMX exceptions.
@@ -14,6 +12,14 @@ import javax.management.OperationsException;
 public final class JMExceptionUtils {
     private JMExceptionUtils(){
         throw new InstantiationError();
+    }
+
+    public static <E extends JMException> E unreadableAttribute(final String attributeName, final Function<? super Exception, ? extends E> exceptionFactory){
+        return exceptionFactory.apply(new IllegalArgumentException(String.format("Attribute %s is not available for reading", attributeName)));
+    }
+
+    public static <E extends JMException> E unwritableAttribute(final String attributeName, final Function<? super Exception, ? extends E> exceptionFactory){
+        return exceptionFactory.apply(new IllegalArgumentException(String.format("Attribute %s is not available for writing", attributeName)));
     }
 
     public static AttributeNotFoundException attributeNotFound(final String attributeName){

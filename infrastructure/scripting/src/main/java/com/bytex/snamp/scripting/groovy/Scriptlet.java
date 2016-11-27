@@ -11,6 +11,7 @@ import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import groovy.lang.Binding;
+import groovy.lang.Closure;
 import groovy.lang.Script;
 import org.osgi.framework.BundleContext;
 
@@ -166,6 +167,13 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
         public Dictionary<String, ?> get() {
             return metadata;
         }
+    }
+
+    protected static <T> T invokeDslStatement(Closure<?> statement, final Supplier<T> delegate, final Object... args){
+        final T result;
+        statement = statement.rehydrate(result = delegate.get(), statement.getOwner(), statement.getThisObject());
+        statement.call(args);
+        return result;
     }
 
     /**
