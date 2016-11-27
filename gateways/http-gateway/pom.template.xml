@@ -32,7 +32,9 @@
                 </executions>
                 <configuration>
                     <artifactSet>
-                        <excludes />
+                        <excludes>
+                            <exclude>org.slf4j:slf4j-api:jar:</exclude>
+                        </excludes>
                     </artifactSet>
                 </configuration>
             </plugin>
@@ -57,6 +59,10 @@
                             com.bytex.snamp.jmx.json,
                             com.google.common.collect,
                             com.google.gson,
+                            com.sun.jersey.spi,
+                            com.sun.jersey.spi.inject,
+                            com.sun.jersey.spi.container,
+                            com.sun.jersey.api,
                             com.sun.jersey.api.core,
                             com.sun.jersey.spi.container.servlet,
                             com.sun.jersey.spi.resource,javax.management,
@@ -65,6 +71,7 @@
                             javax.ws.rs,
                             javax.ws.rs.core,
                             org.eclipse.jetty.continuation,
+                            org.slf4j,
                             org.osgi.service.http
                         </Import-Package>
                         <!--SNAMP specific header-->
@@ -134,6 +141,10 @@
         <dependency>
             <groupId>org.eclipse.jetty.aggregate</groupId>
             <artifactId>jetty-all-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>

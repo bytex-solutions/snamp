@@ -78,6 +78,10 @@
       <artifactId>jetty-all-server</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.bytex.snamp</groupId>
       <artifactId>jmx-helpers</artifactId>
       <version>2.0.0</version>
@@ -98,7 +102,9 @@
         </executions>
         <configuration>
           <artifactSet>
-            <excludes />
+            <excludes>
+              <exclude>org.slf4j:slf4j-api:jar:</exclude>
+            </excludes>
           </artifactSet>
         </configuration>
       </plugin>
@@ -122,6 +128,10 @@
                             com.bytex.snamp.jmx.json,
                             com.google.common.collect,
                             com.google.gson,
+                            com.sun.jersey.spi,
+                            com.sun.jersey.spi.inject,
+                            com.sun.jersey.spi.container,
+                            com.sun.jersey.api,
                             com.sun.jersey.api.core,
                             com.sun.jersey.spi.container.servlet,
                             com.sun.jersey.spi.resource,javax.management,
@@ -130,6 +140,7 @@
                             javax.ws.rs,
                             javax.ws.rs.core,
                             org.eclipse.jetty.continuation,
+                            org.slf4j,
                             org.osgi.service.http</Import-Package>
             <Provide-Capability>com.bytex.snamp.gateway; type=http</Provide-Capability>
           </instructions>
