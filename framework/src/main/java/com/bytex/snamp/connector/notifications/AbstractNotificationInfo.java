@@ -12,7 +12,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 1.0
  */
-public class CustomNotificationInfo extends MBeanNotificationInfo implements NotificationDescriptorRead {
+public class AbstractNotificationInfo extends MBeanNotificationInfo implements NotificationDescriptorRead {
     private static final long serialVersionUID = 414016119605849730L;
     private final NotificationDescriptor descriptor;
 
@@ -24,10 +24,18 @@ public class CustomNotificationInfo extends MBeanNotificationInfo implements Not
      * @param descriptor  The descriptor for the notifications.  This may be null
      *                    which is equivalent to an empty descriptor.
      */
-    public CustomNotificationInfo(final String notifType,
-                                  final String description,
-                                  final NotificationDescriptor descriptor) {
-        super(new String[]{notifType}, Notification.class.getName(), descriptor.getDescription(description), descriptor);
+    public AbstractNotificationInfo(final String notifType,
+                                    final String description,
+                                    final NotificationDescriptor descriptor) {
+        this(notifType, description, Notification.class, descriptor);
+    }
+
+
+    public AbstractNotificationInfo(final String notifType,
+                                    final String description,
+                                    final Class<? extends Notification> notificationType,
+                                    final NotificationDescriptor descriptor) {
+        super(new String[]{notifType}, notificationType.getName(), descriptor.getDescription(description), descriptor);
         this.descriptor = Objects.requireNonNull(descriptor);
     }
 

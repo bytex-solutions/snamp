@@ -10,7 +10,6 @@ import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
-import groovy.lang.Binding;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import org.osgi.framework.BundleContext;
@@ -21,7 +20,6 @@ import java.util.Dictionary;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
-import static com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine.BUNDLE_CONTEXT_VAR;
 
 /**
  * Represents implementation of {@link Scriptlet}.
@@ -31,6 +29,7 @@ import static com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine.BUNDLE_CON
  */
 public abstract class Scriptlet extends Script implements ScriptingAPI {
     private static final String LOGGER_VAR = "logger";
+    private static final String BUNDLE_CONTEXT_VAR = "bundleContext";
 
     private static abstract class AttributeOperation<E extends JMException> implements Acceptor<ManagedResourceConnector, E> {
         private final String attributeName;
@@ -183,15 +182,19 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
      */
     @Override
     public final Logger getLogger() {
-        return (Logger) getBinding().getVariable(LOGGER_VAR);
+        return (Logger) getProperty(LOGGER_VAR);
+    }
+
+    public final void setLogger(final Logger logger){
+        setProperty(LOGGER_VAR, logger);
     }
 
     private BundleContext getBundleContext(){
-        return (BundleContext) getBinding().getVariable(BUNDLE_CONTEXT_VAR);
+        return (BundleContext) getProperty(BUNDLE_CONTEXT_VAR);
     }
 
-    public static void setLogger(final Binding binding, final Logger value){
-        binding.setVariable(LOGGER_VAR, value);
+    public final void setBundleContext(final BundleContext value){
+        setProperty(BUNDLE_CONTEXT_VAR, value);
     }
 
     private <E extends Throwable> void processResourceConnector(final String resourceName,

@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.groovy;
 
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,22 +26,15 @@ public final class ManagedResourceScriptEngineTest extends Assert {
     public ManagedResourceScriptEngineTest() throws IOException, URISyntaxException {
         final URL resource = getClass().getClassLoader().getResource("scripts/");
         assertNotNull(resource);
-        engine = new ManagedResourceScriptEngine("testResource", Logger.getLogger("test"), getClass().getClassLoader(), new Properties(), resource);
+        engine = new ManagedResourceScriptEngine("testResource", Logger.getLogger("test"), getClass().getClassLoader(), false, new Properties(), resource);
     }
 
     @Test
     public void dummyAttributeTest() throws Exception {
-        final AttributeConfiguration config = newEntityConfiguration(AttributeConfiguration.class);
-        assertNotNull(config);
-        config.getParameters().put("configParam", "Hello, world!");
-        config.setReadWriteTimeout(2, ChronoUnit.SECONDS);
-
-        final AttributeAccessor scr = engine.loadAttribute("DummyAttribute", new AttributeDescriptor(config));
-        assertEquals(ManagedResourceAttributeScriptlet.INT32, scr.type());
-        assertTrue(scr.specifier().canRead());
-        assertTrue(scr.specifier().canWrite());
-
-        scr.setValue(20);
-        assertEquals(20, scr.getValue());
+        final ManagedResourceScriptlet scriptlet = engine.createScript("DummyAttribute.groovy", null);
+        scriptlet.run();
+        final GroovyAttribute attribute = scriptlet.createAttribute("CustomAttribute", new AttributeDescriptor(null, ImmutableMap.of()));
+        attribute.setValue(42L);
+        assertEquals(42L, attribute.getValue());
     }
 }

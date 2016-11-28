@@ -32,7 +32,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.connector.groovy</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.connector.groovy.impl.GroovyResourceActivator</Bundle-Activator>
+                        <Bundle-Activator>com.bytex.snamp.connector.groovy.GroovyResourceActivator</Bundle-Activator>
                         <Export-Package>
                             com.bytex.snamp.connector.groovy
                         </Export-Package>

@@ -20,7 +20,7 @@ import static com.bytex.snamp.scripting.groovy.OpenDataScriptHelpers.*;
  * @version 2.0
  * @since 2.0
  */
-public interface AttributeScriptlet extends ScriptingAPI {
+public interface TypeDeclarationDSL extends ScriptingAPI {
     @SpecialUse
     SimpleType<Byte> INT8 = SimpleType.BYTE;
     @SpecialUse
@@ -98,28 +98,6 @@ public interface AttributeScriptlet extends ScriptingAPI {
             }
         return builder.build();
     }
-
-    /**
-     * Declares attribute type.
-     * @param value Attribute type.
-     */
-    void type(final OpenType<?> value);
-
-    /**
-     * Gets attribute type.
-     * @return Type of attribute.
-     */
-    OpenType<?> type();
-
-    /**
-     * Converts map into composite data.
-     * @param items Items of the composite data.
-     * @return Composite data.
-     * @throws OpenDataException Unable to create composite data.
-     */
-    CompositeData asDictionary(final Map<String, ?> items) throws OpenDataException;
-
-    TabularData asTable(final Collection<Map<String, ?>> rows) throws OpenDataException;
 
     static CompositeData asDictionary(final CompositeType type,
                                       final Map<String, ?> items) throws OpenDataException {

@@ -1,8 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.scripting.groovy.AbstractAttributeScriptlet;
-import com.bytex.snamp.scripting.groovy.AttributeScriptlet;
+import com.bytex.snamp.scripting.groovy.TypeDeclarationDSL;
 
 import javax.management.Attribute;
 import javax.management.AttributeNotFoundException;
@@ -13,7 +12,7 @@ import javax.management.JMException;
  * @version 2.0
  * @since 2.0
  */
-public abstract class AggregationAttributeScriptlet extends AbstractAttributeScriptlet implements AttributeScriptlet {
+public abstract class AggregationAttributeScriptlet extends AbstractAttributeScriptlet implements TypeDeclarationDSL {
     private volatile AttributeSupport attributes;
 
     final Object getValue(final AttributeSupport attributes) throws Exception{

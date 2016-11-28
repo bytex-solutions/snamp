@@ -10,6 +10,6 @@ import com.bytex.snamp.configuration.FeatureConfiguration;
  * @version 2.0
  * @since 1.0
  */
-public interface ManagedResourceInfo extends AutoCloseable {
+interface ManagedResourceInfo extends AutoCloseable {
     <T extends FeatureConfiguration> Collection<T> getEntities(final Class<T> entityType);
 }

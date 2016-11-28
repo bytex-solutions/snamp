@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.md;
 
+import com.bytex.snamp.connector.notifications.AbstractNotificationInfo;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import org.osgi.framework.InvalidSyntaxException;
 
@@ -12,12 +13,12 @@ import javax.management.NotificationFilter;
  * @version 2.0
  * @since 2.0
  */
-public class MessageDrivenNotification extends MBeanNotificationInfo implements NotificationFilter {
+public class MessageDrivenNotification extends AbstractNotificationInfo implements NotificationFilter {
     private static final long serialVersionUID = -3224023906663012968L;
     private final NotificationFilter filter;
 
     protected MessageDrivenNotification(final String notifType, final Class<? extends Notification> notificationType, final String description, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
-        super(new String[]{notifType}, notificationType.getName(), descriptor.getDescription(description), descriptor);
+        super(notifType, description, notificationType, descriptor);
         filter = MessageDrivenConnectorConfigurationDescriptor.parseNotificationFilter(descriptor);
     }
 

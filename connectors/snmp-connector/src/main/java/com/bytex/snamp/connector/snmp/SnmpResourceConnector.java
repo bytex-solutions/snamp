@@ -58,7 +58,7 @@ import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
  * @since 1.0
  */
 final class SnmpResourceConnector extends AbstractManagedResourceConnector {
-    private static final class SnmpNotificationInfo extends CustomNotificationInfo{
+    private static final class SnmpNotificationInfo extends AbstractNotificationInfo {
         private static final long serialVersionUID = -4792879013459588079L;
 
         private SnmpNotificationInfo(final String listID,

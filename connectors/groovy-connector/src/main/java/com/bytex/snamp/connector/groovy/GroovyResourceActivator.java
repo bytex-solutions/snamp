@@ -1,18 +1,14 @@
-package com.bytex.snamp.connector.groovy.impl;
+package com.bytex.snamp.connector.groovy;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
-import com.bytex.snamp.connector.groovy.ManagedResourceInfo;
-import com.bytex.snamp.connector.groovy.ManagedResourceScriptEngine;
-import com.bytex.snamp.io.IOUtils;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -43,15 +39,18 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         return new AbstractDiscoveryService<ManagedResourceInfo>() {
             @Override
             protected ManagedResourceInfo createProvider(final String connectionString, final Map<String, String> connectionOptions) throws IOException, ResourceException, ScriptException {
-                final URL[] paths = IOUtils.splitPath(connectionString);
+                final GroovyConnectionString connectionInfo = new GroovyConnectionString(connectionString);
+                //the last path is a path to groovy
                 final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(
-                        connectionString,
+                        connectionInfo.getScriptName(),
                         getLogger(),
                         getClass().getClassLoader(),
+                        true,
                         toProperties(connectionOptions),
-                        paths);
-                final String initScript = GroovyResourceConfigurationDescriptor.getInitScriptFile(connectionOptions);
-                return engine.init(initScript, true, connectionOptions);
+                        connectionInfo.getScriptPath());
+                final ManagedResourceScriptlet scriptlet = engine.createScript(connectionInfo.getScriptName(), null);
+                scriptlet.run();
+                return scriptlet;
             }
 
             @Override

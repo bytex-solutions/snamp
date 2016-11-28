@@ -8,6 +8,7 @@ import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.jmx.CompositeDataUtils;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
@@ -17,6 +18,7 @@ import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -114,7 +116,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void discoveryTest() throws Exception{
         final Collection<AttributeConfiguration> attributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(), CONNECTOR_TYPE,
                 getConnectionString(),
-                getDefaultConnectionParams(),
+                ImmutableMap.of(),
                 AttributeConfiguration.class);
         assertEquals(1, attributes.size());
     }
@@ -122,7 +124,6 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     @Test
     public void configurationDescriptionTest() {
         testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
-                "initScript",
                 "groovy.warnings",
                 "groovy.source.encoding",
                 "groovy.classpath",

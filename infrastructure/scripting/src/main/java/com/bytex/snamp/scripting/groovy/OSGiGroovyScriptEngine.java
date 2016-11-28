@@ -1,5 +1,6 @@
 package com.bytex.snamp.scripting.groovy;
 
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.StandardSystemProperty;
 import groovy.lang.Binding;
@@ -8,6 +9,7 @@ import groovy.util.GroovyScriptEngine;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleReference;
 
 import java.io.File;
@@ -29,7 +31,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  */
 public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine {
-    public static final String BUNDLE_CONTEXT_VAR = "bundleContext";
     private final Binding rootBinding;
     private final Class<B> baseScriptClass;
 
@@ -41,8 +42,6 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
         setupCompilerConfiguration(getConfig(), properties, baseScriptClass);
         rootBinding = new Binding();
         this.baseScriptClass = Objects.requireNonNull(baseScriptClass);
-        if (rootClassLoader instanceof BundleReference)
-            rootBinding.setVariable(BUNDLE_CONTEXT_VAR, ((BundleReference) rootClassLoader).getBundle().getBundleContext());
     }
 
     /**
@@ -72,6 +71,16 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
         }
     }
 
+    protected final BundleContext getBundleContext(){
+        final ClassLoader rootClassLoader = getParentClassLoader();
+        return rootClassLoader instanceof BundleReference ? ((BundleReference) rootClassLoader).getBundle().getBundleContext() : null;
+    }
+
+    @MethodStub
+    protected void interceptCreate(final B script){
+
+    }
+
     /**
      * Creates a Script with a given scriptName and binding.
      *
@@ -92,7 +101,9 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
         } catch (final Exception e) {
             throw new ScriptException(e);
         }
-        return baseScriptClass.cast(result);
+        final B typedResult = baseScriptClass.cast(result);
+        interceptCreate(typedResult);
+        return typedResult;
     }
 
     /**
@@ -120,7 +131,9 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
         } finally {
             getConfig().setScriptBaseClass(previousBaseClass);
         }
-        return baseScriptClass.cast(result);
+        final C typedResult = baseScriptClass.cast(result);
+        interceptCreate(typedResult);
+        return typedResult;
     }
 
     public static Binding concatBindings(final Binding first, final Binding... other){

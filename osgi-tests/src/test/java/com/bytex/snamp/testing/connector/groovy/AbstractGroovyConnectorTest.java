@@ -6,6 +6,7 @@ import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
@@ -26,16 +27,15 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
     }
 
     protected AbstractGroovyConnectorTest(){
-        this(getConnectionString(),
-                getDefaultConnectionParams());
+        this(getConnectionString(), ImmutableMap.of());
     }
 
     protected static String getConnectionString(){
-        return "file:" + getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator;
-    }
-
-    protected static Map<String, String> getDefaultConnectionParams(){
-        return ImmutableMap.of("initScript", "init.groovy");
+        final String separator = StandardSystemProperty.PATH_SEPARATOR.value();
+        assertNotNull(separator);
+        String result = "file:" + getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator;
+        result = "GroovyResource.groovy" + separator + result;
+        return result;
     }
 
     @Override
@@ -46,13 +46,13 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
 
         attributes.getOrAdd("Yahoo");
 
-        attributes.getOrAdd("DictionaryAttribute");
+        attributes.getOrAdd("Dictionary");
 
-        attributes.getOrAdd("TableAttribute");
+        attributes.getOrAdd("Table");
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
-        events.getOrAdd("Event");
+        events.getOrAdd("GroovyEvent");
     }
 }

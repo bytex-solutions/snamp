@@ -3,6 +3,7 @@ package com.bytex.snamp.io;
 import com.bytex.snamp.Convert;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
+import com.google.common.collect.ObjectArrays;
 import com.google.common.reflect.TypeToken;
 
 import java.io.*;
@@ -11,6 +12,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.BitSet;
+import java.util.function.Function;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -30,11 +32,11 @@ public final class IOUtils {
 
     static {
         final String pathSeparator = StandardSystemProperty.PATH_SEPARATOR.value();
-        PATH_SPLITTER = Splitter.on(isNullOrEmpty(pathSeparator) ? ":" : pathSeparator);
+        PATH_SPLITTER = (isNullOrEmpty(pathSeparator) ? Splitter.on(':') : Splitter.on(pathSeparator)).trimResults();
     }
 
     private IOUtils() {
-
+        throw new InstantiationError();
     }
 
     public static String toString(final InputStream stream, final Charset encoding) throws IOException {
@@ -152,14 +154,16 @@ public final class IOUtils {
         return result.toString();
     }
 
-    public static URL[] splitPath(final String path) {
+    public static <T> T[] splitPath(final String path, final Class<T> arrayType, final Function<? super String, ? extends T> converter) {
         return PATH_SPLITTER
-                .trimResults()
                 .splitToList(path)
                 .stream()
-                .map(fileName -> new File(fileName).toURI())
-                .map(uri -> callUnchecked(uri::toURL))
-                .toArray(URL[]::new);
+                .map(converter)
+                .toArray(size -> ObjectArrays.newArray(arrayType, size));
+    }
+
+    public static URL[] splitPath(final String path) {
+        return splitPath(path, URL.class, value -> callUnchecked(() -> new URL(value)));
     }
 
     public static BitSet toBitSet(final boolean[] bits) {

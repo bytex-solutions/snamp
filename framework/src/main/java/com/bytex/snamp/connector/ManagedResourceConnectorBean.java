@@ -23,7 +23,6 @@ import javax.management.openmbean.*;
 import java.beans.*;
 import java.beans.IntrospectionException;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -106,7 +105,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
-    private static final class JavaBeanNotificationRepository extends AbstractNotificationRepository<CustomNotificationInfo> {
+    private static final class JavaBeanNotificationRepository extends AbstractNotificationRepository<AbstractNotificationInfo> {
         private final Logger logger;
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
         private final NotificationListenerInvoker listenerInvoker;
@@ -116,7 +115,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
                                                final BundleContext context,
                                                final Logger logger) {
-            super(resourceName, CustomNotificationInfo.class, false);
+            super(resourceName, AbstractNotificationInfo.class, false);
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
@@ -131,8 +130,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
-        protected CustomNotificationInfo connectNotifications(final String category,
-                                                             final NotificationDescriptor metadata) throws IllegalArgumentException {
+        protected AbstractNotificationInfo connectNotifications(final String category,
+                                                                final NotificationDescriptor metadata) throws IllegalArgumentException {
             //find the suitable notification type
             final ManagementNotificationType<?> type = notifTypes.stream()
                     .filter(type1 -> Objects.equals(type1.getCategory(), metadata.getName(category)))
@@ -145,7 +144,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     if (description == null || description.isEmpty())
                         description = type.getCategory();
                 }
-                return new CustomNotificationInfo(category, description, metadata.setUserDataType(type.getUserDataType()));
+                return new AbstractNotificationInfo(category, description, metadata.setUserDataType(type.getUserDataType()));
             } else
                 throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getName(category)));
         }

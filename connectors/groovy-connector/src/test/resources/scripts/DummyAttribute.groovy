@@ -1,25 +1,11 @@
 package scripts
 
-static def method(Closure cl){
-    cl.getResolveStrategy()
-}
+def container = 0
 
-type INT32
-
-println configParam
-
-def builder = new StringBuilder()
-def container = 10
-
-def getValue() {
-    container
-}
-
-def setValue(value){
-    container = value
-}
-
-// handles disconnection
-void close(){
-
+attribute {
+    name "CustomAttribute"
+    type INT64
+    description "Test attribute"
+    get {return container}
+    set {value -> container = value}
 }

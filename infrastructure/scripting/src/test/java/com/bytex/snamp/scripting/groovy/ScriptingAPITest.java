@@ -24,8 +24,13 @@ public class ScriptingAPITest extends Assert {
     public ScriptingAPITest() throws IOException, URISyntaxException {
         final URL resource = getClass().getClassLoader().getResource("scripts/");
         assertNotNull(resource);
-        engine = new OSGiGroovyScriptEngine<>(getClass().getClassLoader(), new Properties(), Scriptlet.class, resource);
-        Scriptlet.setLogger(engine.getGlobalVariables(), Logger.getLogger("TestLogger"));
+        engine = new OSGiGroovyScriptEngine<Scriptlet>(getClass().getClassLoader(), new Properties(), Scriptlet.class, resource){
+            @Override
+            protected void interceptCreate(final Scriptlet script) {
+                script.setLogger(Logger.getLogger("TestLogger"));
+                script.setBundleContext(getBundleContext());
+            }
+        };
     }
 
     @Test

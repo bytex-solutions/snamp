@@ -268,7 +268,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private final static class JmxNotificationInfo extends CustomNotificationInfo implements JmxNotificationMetadata{
+    private final static class JmxNotificationInfo extends AbstractNotificationInfo implements JmxNotificationMetadata{
         private static final long serialVersionUID = -2040203631422591069L;
 
         /**
