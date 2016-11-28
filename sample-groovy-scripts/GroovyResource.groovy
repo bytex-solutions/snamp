@@ -24,7 +24,7 @@ attribute {
 
 attribute {
     name "JsonAttribute"
-    type INT64
+    type INT32
     get {
         def slurper = new JsonSlurper()
         slurper.parseText('56')
@@ -45,12 +45,14 @@ attribute {
     name "Dictionary"
     type DICTIONARY('GroovyType', 'GroovyDescr', [key1: [type: INT64, description: 'descr'], key2: [type: BOOL, description: 'descr']])
     get { asDictionary(type(), [key1: 67L, key2: true])}
+    set {value -> System.out.println(value)}
 }
 
 attribute {
     name "Table"
     type TABLE('GroovyTable', 'desc', [column1: [type: INT32, description: 'descr', indexed: true], column2: [type: BOOL, description: 'descr']])
     get { asTable(type(), [[column1: 6, column2: false], [column1: 7, column2: true]]) }
+    set {value -> System.out.println(value)}
 }
 
 event {

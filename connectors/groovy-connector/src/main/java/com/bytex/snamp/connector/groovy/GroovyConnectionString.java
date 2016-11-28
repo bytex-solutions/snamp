@@ -1,11 +1,11 @@
 package com.bytex.snamp.connector.groovy;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.io.IOUtils;
+import com.google.common.base.Splitter;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.function.Function;
+import java.util.List;
 
 /**
  * Provides parsed connection string.
@@ -13,23 +13,24 @@ import java.util.function.Function;
  * @version 2.0
  */
 final class GroovyConnectionString {
+    private static final Splitter PATH_SPLITTER = Splitter.on(';').trimResults();
     private final String scriptName;
     private final URL[] path;
 
     GroovyConnectionString(final String connectionString) throws MalformedURLException {
-        final String[] path = IOUtils.splitPath(connectionString, String.class, Function.identity());
-        switch (path.length){
+        final List<String> path = PATH_SPLITTER.splitToList(connectionString);
+        switch (path.size()) {
             case 0:
                 throw new MalformedURLException("Malformed connection string");
             case 1:
-                scriptName = path[0];
+                scriptName = path.get(0);
                 this.path = ArrayUtils.emptyArray(URL[].class);
                 break;
             default:
-                scriptName = path[0];
-                this.path = new URL[path.length - 1];
-                for(int i = 1; i < this.path.length; i++)
-                    this.path[i - 1] = new URL(path[i]);
+                scriptName = path.get(0);
+                this.path = new URL[path.size() - 1];
+                for(int i = 1; i < path.size(); i++)
+                    this.path[i - 1] = new URL(path.get(i));
         }
     }
 

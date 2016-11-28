@@ -1,16 +1,14 @@
 package com.bytex.snamp.connector.notifications;
 
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 
 import javax.management.ListenerNotFoundException;
 import javax.management.Notification;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Represents list of notification listeners.
@@ -21,11 +19,11 @@ import java.util.List;
  * @since 1.0
  */
 @ThreadSafe
-public class NotificationListenerList extends ThreadSafeObject implements NotificationListener {
-    private final List<NotificationListenerHolder> listeners = new LinkedList<>();
+public class NotificationListenerList implements NotificationListener {
+    private final List<NotificationListenerHolder> listeners;
 
     public NotificationListenerList(){
-        super(SingleResourceGroup.class);
+        listeners = new CopyOnWriteArrayList<>();
     }
 
     /**
@@ -47,17 +45,7 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
     public final void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
                                         final Object handback) throws IllegalArgumentException {
-        writeLock.accept(SingleResourceGroup.INSTANCE, listeners, new NotificationListenerHolder(listener, filter, handback), List::add);
-    }
-
-    private void removeNotificationListenerImpl(final NotificationListener listener) throws ListenerNotFoundException{
-        final Iterator<NotificationListenerHolder> listeners = this.listeners.iterator();
-        boolean removed = false;
-        while (listeners.hasNext())
-            if(removed |= listeners.next().equals(listener))
-                listeners.remove();
-        if(!removed)
-            throw JMExceptionUtils.listenerNotFound(listener);
+        listeners.add(new NotificationListenerHolder(listener, filter, handback));
     }
 
     /**
@@ -75,9 +63,9 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
      * @see #addNotificationListener
      * @see javax.management.NotificationEmitter#removeNotificationListener
      */
-    public final void removeNotificationListener(final NotificationListener listener)
-            throws ListenerNotFoundException {
-        writeLock.accept(SingleResourceGroup.INSTANCE, listener, this::removeNotificationListenerImpl);
+    public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
+        if (!listeners.removeIf(holder -> holder.equals(listener)))
+            throw JMExceptionUtils.listenerNotFound(listener);
     }
 
     /**
@@ -117,19 +105,19 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
      */
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
-        readLock.accept(SingleResourceGroup.INSTANCE, listeners, l -> l.forEach(holder -> handleNotification(holder, intercept(notification), handback)));
+        listeners.forEach(holder -> holder.handleNotification(notification, handback));
     }
 
     public final void handleNotification(final NotificationListenerInvoker invoker,
                                       final Notification notification,
                                       final Object handback) {
-        readLock.accept(SingleResourceGroup.INSTANCE, listeners, list -> invoker.invoke(notification, handback, list));
+        invoker.invoke(notification, handback, listeners);
     }
 
     /**
      * Removes all listeners from this list.
      */
     public final void clear() {
-        writeLock.accept(SingleResourceGroup.INSTANCE, listeners, List::clear);
+        listeners.clear();
     }
 }

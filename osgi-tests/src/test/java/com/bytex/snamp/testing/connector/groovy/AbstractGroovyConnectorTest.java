@@ -6,7 +6,6 @@ import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
-import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
@@ -31,10 +30,8 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
     }
 
     protected static String getConnectionString(){
-        final String separator = StandardSystemProperty.PATH_SEPARATOR.value();
-        assertNotNull(separator);
         String result = "file:" + getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator;
-        result = "GroovyResource.groovy" + separator + result;
+        result = "GroovyResource.groovy;" + result;
         return result;
     }
 

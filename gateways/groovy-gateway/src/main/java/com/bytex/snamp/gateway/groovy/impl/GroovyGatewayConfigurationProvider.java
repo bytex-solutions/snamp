@@ -3,10 +3,12 @@ package com.bytex.snamp.gateway.groovy.impl;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
-import com.bytex.snamp.io.IOUtils;
+import com.google.common.base.Splitter;
 
 import java.net.URL;
 import java.util.Map;
+
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents configuration descriptor of Groovy Gateway.
@@ -16,6 +18,7 @@ import java.util.Map;
  * @since 1.0
  */
 final class GroovyGatewayConfigurationProvider extends ConfigurationEntityDescriptionProviderImpl {
+    private static final Splitter PATH_SPLITTER = Splitter.on(';').trimResults();
     private static final String SCRIPT_FILE_PARAM = "scriptFile";
     private static final String SCRIPT_PATH_PARAM = "scriptPath";
 
@@ -46,6 +49,6 @@ final class GroovyGatewayConfigurationProvider extends ConfigurationEntityDescri
 
     static URL[] getScriptPath(final Map<String, String> params) throws GroovyAbsentParameterConfigurationException {
         final String path = getParameter(SCRIPT_PATH_PARAM, params);
-        return IOUtils.splitPath(path);
+        return PATH_SPLITTER.splitToList(path).stream().map(p -> callUnchecked(() -> new URL(p))).toArray(URL[]::new);
     }
 }

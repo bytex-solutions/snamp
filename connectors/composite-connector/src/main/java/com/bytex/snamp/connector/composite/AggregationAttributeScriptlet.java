@@ -1,19 +1,28 @@
 package com.bytex.snamp.connector.composite;
 
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.scripting.groovy.Scriptlet;
 import com.bytex.snamp.scripting.groovy.TypeDeclarationDSL;
 
 import javax.management.Attribute;
 import javax.management.AttributeNotFoundException;
 import javax.management.JMException;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
+import java.lang.reflect.Method;
+import java.util.Objects;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public abstract class AggregationAttributeScriptlet extends AbstractAttributeScriptlet implements TypeDeclarationDSL {
+public abstract class AggregationAttributeScriptlet extends Scriptlet implements TypeDeclarationDSL {
+    private static final String GET_VALUE_METHOD = "getValue";
+    private static final String SET_VALUE_METHOD = "setValue";
     private volatile AttributeSupport attributes;
+    private OpenType<?> openType = SimpleType.STRING;
 
     final Object getValue(final AttributeSupport attributes) throws Exception{
         this.attributes = attributes;
@@ -23,6 +32,78 @@ public abstract class AggregationAttributeScriptlet extends AbstractAttributeScr
     final Object setValue(final AttributeSupport attributes, final Object value) throws Exception{
         this.attributes = attributes;
         return setValue(value);
+    }
+
+    /**
+     * Sets type of this attribute.
+     *
+     * @param value The type of this attribute
+     */
+    @SpecialUse
+    public final void type(final OpenType<?> value) {
+        this.openType = Objects.requireNonNull(value);
+    }
+
+    /**
+     * Gets value of this attribute.
+     *
+     * @return The value of this attribute.
+     * @throws Exception Unable to get attribute value.
+     */
+    @SpecialUse
+    public Object getValue() throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Determines whether this attribute is readable.
+     *
+     * @return {@literal true}, if this method is readable.
+     */
+    @SpecialUse
+    public final boolean isReadable() {
+        try {
+            final Method getter = getClass().getMethod(GET_VALUE_METHOD);
+            return Objects.equals(getter.getDeclaringClass(), getClass());
+        } catch (final NoSuchMethodException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Determines whether this attribute is writable.
+     *
+     * @return {@literal true}, if this method is writable.
+     */
+    @SpecialUse
+    public final boolean isWritable() {
+        try {
+            final Method getter = getClass().getMethod(SET_VALUE_METHOD, Object.class);
+            return Objects.equals(getter.getDeclaringClass(), getClass());
+        } catch (final ReflectiveOperationException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Gets type of this attribute.
+     *
+     * @return The type of this attribute.
+     */
+    public final OpenType<?> type() {
+        return openType;
+    }
+
+    /**
+     * Sets value of this attribute.
+     *
+     * @param value The value of this attribute.
+     * @return A new attribute value.
+     * @throws Exception Unable to set attribute value.
+     */
+    @SpecialUse
+    public Object setValue(final Object value) throws Exception {
+        throw new UnsupportedOperationException();
     }
 
     @Override

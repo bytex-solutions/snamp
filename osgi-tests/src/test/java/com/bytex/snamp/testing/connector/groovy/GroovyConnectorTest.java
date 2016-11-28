@@ -18,7 +18,6 @@ import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -71,10 +70,10 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void dictionaryTest() throws JMException{
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try {
-            final Object value = groovyConnector.getAttribute("DictionaryAttribute");
+            final Object value = groovyConnector.getAttribute("Dictionary");
             assertTrue(value instanceof CompositeData);
             assertEquals(67L, CompositeDataUtils.getLong((CompositeData) value, "key1", 0L));
-            groovyConnector.setAttribute(new Attribute("DictionaryAttribute", value));
+            groovyConnector.setAttribute(new Attribute("Dictionary", value));
         }
         finally {
             releaseManagementConnector();
@@ -85,10 +84,10 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void tableTest() throws JMException{
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try {
-            final Object value = groovyConnector.getAttribute("TableAttribute");
+            final Object value = groovyConnector.getAttribute("Table");
             assertTrue(value instanceof TabularData);
             assertEquals(2, ((TabularData)value).size());
-            groovyConnector.setAttribute(new Attribute("TableAttribute", value));
+            groovyConnector.setAttribute(new Attribute("Table", value));
         }
         finally {
             releaseManagementConnector();
@@ -101,7 +100,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
         try{
             final NotificationSupport notificationSupport = groovyConnector.queryObject(NotificationSupport.class);
             assertNotNull(notificationSupport);
-            final Mailbox listener = MailboxFactory.newMailbox(n -> n.getType().equals("Event"));
+            final Mailbox listener = MailboxFactory.newMailbox(n -> n.getType().equals("GroovyEvent"));
             notificationSupport.addNotificationListener(listener, listener, null);
             final Notification notif = listener.poll(2, TimeUnit.SECONDS);
             assertNotNull(notif);
@@ -118,7 +117,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
                 getConnectionString(),
                 ImmutableMap.of(),
                 AttributeConfiguration.class);
-        assertEquals(1, attributes.size());
+        assertEquals(5, attributes.size());
     }
 
     @Test

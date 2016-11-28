@@ -1,14 +1,13 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.FunctionParser;
-import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.parser.ParseException;
+import com.google.common.base.Splitter;
 
 import javax.management.Descriptor;
 import java.net.URL;
@@ -16,9 +15,11 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsInt;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -29,6 +30,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 final class CompositeResourceConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
+    private static final Splitter PATH_SPLITTER = Splitter.on(';').trimResults();
+    private static final Supplier<String> EMPTY_STRING = () -> "";
     private static final String SEPARATOR_PARAM = "separator";
     private static final String SOURCE_PARAM = "source";
     private static final String FORMULA_PARAM = "formula";
@@ -88,7 +91,8 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     }
 
     URL[] parseGroovyPath(final Map<String, String> parameters) {
-        return getValue(parameters, GROOVY_PATH_PARAM, IOUtils::splitPath, () -> ArrayUtils.emptyArray(URL[].class));
+        final String path = getValue(parameters, GROOVY_PATH_PARAM, Function.identity(), EMPTY_STRING);
+        return PATH_SPLITTER.splitToList(path).stream().map(p -> callUnchecked(() -> new URL(p))).toArray(URL[]::new);
     }
 
     static boolean isRateFormula(final AttributeDescriptor descriptor){
@@ -100,7 +104,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     }
 
     static AggregationFunction<?> parseFormula(final AttributeDescriptor descriptor) throws ParseException {
-        final String formula = getField(descriptor, FORMULA_PARAM, Objects::toString, () -> "");
+        final String formula = getField(descriptor, FORMULA_PARAM, Objects::toString, EMPTY_STRING);
         if(isNullOrEmpty(formula))
             return null;
         return FunctionParser.parse(formula);
