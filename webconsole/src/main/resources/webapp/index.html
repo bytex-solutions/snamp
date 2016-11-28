@@ -55,7 +55,7 @@
                                 <div role="tabpanel" class="tab-pane" id="analysis">...</div>
                                 <div role="tabpanel" class="tab-pane" id="watchers">...</div>
                                 <div role="tabpanel" class="tab-pane active" id="configuration">
-                                    <div class="col-xs-3"> <!-- required for floating -->
+                                    <div class="col-xs-1"> <!-- required for floating -->
                                         <!-- Nav tabs -->
                                         <ul class="nav nav-tabs tabs-left">
                                             <li class="active"><a href="#gateways" data-toggle="tab">Gateways</a></li>
@@ -71,7 +71,35 @@
                                             <div class="tab-pane active" id="gateways">
                                                 <gateways>Loading gateways ...</gateways>
                                             </div>
-                                            <div class="tab-pane" id="resources">Profile Tab.</div>
+                                            <div class="tab-pane" id="resources">
+                                            	<div class="row" style="padding: 20px 0">
+                                        		  <div class="col-md-2">
+												  	<div class="list-group">
+													  <a href="#" class="list-group-item active">Cras justo odio</a>
+													  <a href="#" class="list-group-item">Dapibus ac facilisis in</a>
+													  <a href="#" class="list-group-item">Morbi leo risus</a>
+													  <a href="#" class="list-group-item">Porta ac consectetur ac</a>
+													  <a href="#" class="list-group-item">Vestibulum at eros</a>
+													</div>
+												  </div>
+												  <div class="col-md-10">
+												  	<div class="row">
+												  		<div class="col-md-6">
+
+											  					<label for="gtype" class="control-label">Select type:</label>
+											  					<select class="form-control" id="gtype">
+											  					  <option disabled>Choose gateway type</option>
+																  <option selected>JMX</option>
+																  <option>SNMP</option>
+																</select>
+												  			
+												  		</div>
+														<div class="col-md-6">
+												  		</div>
+												  	</div>
+												  </div>
+												</div>
+                                            </div>
                                             <div class="tab-pane" id="rgroups">Messages Tab.</div>
                                             <div class="tab-pane" id="info">Settings Tab.</div>
                                         </div>
