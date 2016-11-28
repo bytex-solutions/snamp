@@ -16,7 +16,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.bytex.snamp.connector.attributes.AttributeSupport.DESCRIPTION_FIELD;
 import static com.bytex.snamp.connector.operations.OperationSupport.*;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents descriptor of the managed resource operation.
@@ -156,5 +158,18 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
         if(operationInfo instanceof OpenMBeanOperationInfo)
             return WellKnownType.getType(((OpenMBeanOperationInfo)operationInfo).getReturnOpenType());
         else return WellKnownType.getType(operationInfo.getReturnType());
+    }
+
+    public String getDescription(final Descriptor metadata){
+        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString, () -> null);
+    }
+
+    public String getDescription(){
+        return getDescription(this);
+    }
+
+    public final String getDescription(final String defval){
+        final String result = getDescription();
+        return isNullOrEmpty(result) ? defval : result;
     }
 }

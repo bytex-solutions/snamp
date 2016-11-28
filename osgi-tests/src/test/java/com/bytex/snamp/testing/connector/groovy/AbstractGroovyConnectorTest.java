@@ -3,6 +3,7 @@ package com.bytex.snamp.testing.connector.groovy;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
@@ -51,5 +52,10 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         events.getOrAdd("GroovyEvent");
+    }
+
+    @Override
+    protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
+        operations.getOrAdd("CustomOperation");
     }
 }

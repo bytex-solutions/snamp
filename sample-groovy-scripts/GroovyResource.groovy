@@ -59,6 +59,15 @@ event {
     name "GroovyEvent"
 }
 
+operation {
+    name "CustomOperation"
+    description "Test operation"
+    parameter "x", INT64
+    parameter "y", INT64
+    returns INT64
+    implementation {x, y -> x + y}
+}
+
 def action = { emit("GroovyEvent", 'Dummy event') }
 
 job = schedule action, 300

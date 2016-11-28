@@ -8,6 +8,7 @@ import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -16,10 +17,7 @@ import com.bytex.snamp.scripting.groovy.TypeDeclarationDSL;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 
-import javax.management.AttributeNotFoundException;
-import javax.management.MBeanException;
-import javax.management.Notification;
-import javax.management.NotificationListener;
+import javax.management.*;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -34,12 +32,14 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
     private static final String IS_DISCOVERY_PROPERTY = "discovery";
     private final KeyedObjects<String, GroovyAttributeBuilder> attributes;
     private final KeyedObjects<String, GroovyEventBuilder> events;
+    private final KeyedObjects<String, GroovyOperationBuilder> operations;
     private final WeakEventListenerList<NotificationListener, Notification> listeners;
 
     protected ManagedResourceScriptlet(){
         setProperty(IS_DISCOVERY_PROPERTY, false);
         attributes = AbstractKeyedObjects.create(GroovyAttributeBuilder::name);
         events = AbstractKeyedObjects.create(GroovyEventBuilder::name);
+        operations = AbstractKeyedObjects.create(GroovyOperationBuilder::name);
         listeners = WeakEventListenerList.create((l, n) -> l.handleNotification(n, this));
     }
 
@@ -67,6 +67,14 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
             return builder.build(name, descriptor);
     }
 
+    final GroovyOperation createOperation(final String name, final OperationDescriptor descriptor) throws OperationsException {
+        final GroovyOperationBuilder builder = operations.get(descriptor.getName(name));
+        if(builder == null)
+            throw JMExceptionUtils.operationNotFound(name);
+        else
+            return builder.build(name, descriptor);
+    }
+
     /**
      * Declares a new attribute.
      * @param statement Attribute declaration.
@@ -77,10 +85,24 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
         attributes.put(builder);
     }
 
+    /**
+     * Declares a new event.
+     * @param statement Event declaration.
+     */
     @SpecialUse
     protected final void event(@DelegatesTo(GroovyEventBuilder.class) final Closure<?> statement){
         final GroovyEventBuilder builder = invokeDslStatement(statement, GroovyEventBuilder::new);
         events.put(builder);
+    }
+
+    /**
+     * Declares a new operation.
+     * @param statement Operation declaration.
+     */
+    @SpecialUse
+    protected final void operation(@DelegatesTo(GroovyOperationBuilder.class) final Closure<?> statement){
+        final GroovyOperationBuilder builder = invokeDslStatement(statement, GroovyOperationBuilder::new);
+        operations.put(builder);
     }
 
     @SpecialUse
@@ -116,6 +138,10 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
 
     final Collection<GroovyEvent> expandEvents(){
         return events.values().stream().map(GroovyEventBuilder::build).collect(Collectors.toList());
+    }
+
+    final Collection<GroovyOperation> expandOperations(){
+        return operations.values().stream().map(GroovyOperationBuilder::build).collect(Collectors.toList());
     }
 
     /**

@@ -1,12 +1,10 @@
 package com.bytex.snamp.connector.groovy;
 
-import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.google.common.collect.ImmutableMap;
 
 import javax.management.Notification;
-import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -17,10 +15,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  * @version 2.0
  */
-public final class GroovyEventBuilder {
-    private String description;
+public final class GroovyEventBuilder extends GroovyFeatureBuilder<EventConfiguration> {
     private String name;
-    private Map<String, String> parameters;
     private Class<? extends Notification> notificationType;
 
     GroovyEventBuilder(){
@@ -40,19 +36,11 @@ public final class GroovyEventBuilder {
         name = Objects.requireNonNull(value);
     }
 
-    public void description(final String value){
-        description = Objects.requireNonNull(value);
-    }
-
+    @Override
     EventConfiguration createConfiguration() {
-        final EventConfiguration configuration = ConfigurationManager.createEntityConfiguration(getClass().getClassLoader(), EventConfiguration.class);
-        assert configuration != null;
-        configuration.setParameters(parameters);
+        final EventConfiguration configuration = createConfiguration(EventConfiguration.class);
         if (!isNullOrEmpty(name))
             configuration.setAlternativeName(name);
-        configuration.setAutomaticallyAdded(true);
-        if (!isNullOrEmpty(description))
-            configuration.setDescription(description);
         return configuration;
     }
 

@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -107,6 +108,20 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
             assertEquals("Dummy event", notif.getMessage());
         }
         finally {
+            releaseManagementConnector();
+        }
+    }
+
+    @Test
+    public void operationTest() throws JMException {
+        final ManagedResourceConnector groovyConnector = getManagementConnector();
+        try {
+            final OperationSupport operations = groovyConnector.queryObject(OperationSupport.class);
+            assertNotNull(operations);
+            final Object value = operations.invoke("CustomOperation", new Long[]{38L, 90L}, new String[]{Long.class.getName(), Long.class.getName()});
+            assertTrue(value instanceof Long);
+            assertEquals(128L, value);
+        } finally {
             releaseManagementConnector();
         }
     }

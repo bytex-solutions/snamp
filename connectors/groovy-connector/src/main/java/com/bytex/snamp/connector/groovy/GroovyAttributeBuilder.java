@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.groovy;
 
 import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
@@ -10,6 +9,7 @@ import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import java.util.Map;
 import java.util.Objects;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -18,7 +18,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-public final class GroovyAttributeBuilder {
+public final class GroovyAttributeBuilder extends GroovyFeatureBuilder<AttributeConfiguration> {
     private Closure<?> setter, getter;
     private OpenType<?> attributeType;
     private String description;
@@ -32,20 +32,12 @@ public final class GroovyAttributeBuilder {
         isIs = false;
     }
 
+    @Override
     AttributeConfiguration createConfiguration() {
-        final AttributeConfiguration configuration = ConfigurationManager.createEntityConfiguration(getClass().getClassLoader(), AttributeConfiguration.class);
-        assert configuration != null;
-        configuration.setParameters(parameters);
+        final AttributeConfiguration configuration = createConfiguration(AttributeConfiguration.class);
         if (!isNullOrEmpty(name))
             configuration.setAlternativeName(name);
-        configuration.setAutomaticallyAdded(true);
-        if(!isNullOrEmpty(description))
-            configuration.setDescription(description);
         return configuration;
-    }
-
-    public void parameters(final Map<String, String> value){
-        parameters = Objects.requireNonNull(value);
     }
 
     public void flag(final boolean value){
@@ -62,10 +54,6 @@ public final class GroovyAttributeBuilder {
 
     public void name(final String value){
         this.name = Objects.requireNonNull(value);
-    }
-
-    public void description(final String value){
-        this.description = value;
     }
 
     public void type(final OpenType<?> value){

@@ -8,9 +8,11 @@ import javax.management.openmbean.OpenMBeanParameterInfo;
 import javax.management.openmbean.OpenMBeanParameterInfoSupport;
 import javax.management.openmbean.OpenType;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
 
@@ -61,8 +63,16 @@ public final class OpenMBeanParameterInfoSupplier<T> implements Supplier<OpenMBe
         this(name, description, openType, nullable, null);
     }
 
+    private static OpenMBeanParameterInfo[] toParameters(final Stream<OpenMBeanParameterInfoSupplier<?>> suppliers){
+        return suppliers.map(OpenMBeanParameterInfoSupplier::get).toArray(OpenMBeanParameterInfo[]::new);
+    }
+
+    public static OpenMBeanParameterInfo[] toParameters(final Collection<OpenMBeanParameterInfoSupplier<?>> suppliers){
+        return toParameters(suppliers.stream());
+    }
+
     public static OpenMBeanParameterInfo[] toParameters(final OpenMBeanParameterInfoSupplier<?>... suppliers){
-        return Arrays.stream(suppliers).map(OpenMBeanParameterInfoSupplier::get).toArray(OpenMBeanParameterInfo[]::new);
+        return toParameters(Arrays.stream(suppliers));
     }
 
     /**

@@ -83,7 +83,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     @Override
     protected final MetricsSupport createMetricsReader() {
-        return assembleMetricsReader(attributes, notifications);
+        return assembleMetricsReader(attributes, notifications, operations);
     }
 
     @SpecialUse

@@ -4,19 +4,15 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.internal.Utils;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Logger;
 
 import static com.bytex.snamp.MapUtils.toProperties;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
@@ -29,6 +25,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     private final GroovyAttributeRepository attributes;
     @Aggregation(cached = true)
     private final GroovyNotificationRepository events;
+    @Aggregation(cached = true)
+    private final GroovyOperationRepository operations;
     private final ManagedResourceScriptlet scriptlet;
 
     GroovyResourceConnector(final String resourceName,
@@ -47,26 +45,13 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         attributes = new GroovyAttributeRepository(resourceName, scriptlet);
         final ExecutorService threadPool = GroovyResourceConfigurationDescriptor.getInstance().parseThreadPool(params);
         events = new GroovyNotificationRepository(resourceName, scriptlet, threadPool, Utils.getBundleContextOfObject(this));
+        operations = new GroovyOperationRepository(resourceName, scriptlet);
     }
 
     @Aggregation
     @SpecialUse
     protected MetricsSupport createMetricsReader(){
-        return assembleMetricsReader(attributes, events);
-    }
-
-    private static Logger getLoggerImpl(){
-        return ResourceConnectorInfo.getLogger();
-    }
-
-    /**
-     * Gets a logger associated with this platform service.
-     *
-     * @return A logger associated with this platform service.
-     */
-    @Override
-    public Logger getLogger() {
-        return getLoggerImpl();
+        return assembleMetricsReader(attributes, events, operations);
     }
 
     /**
@@ -78,7 +63,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
      */
     @Override
     public void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes);
+        addResourceEventListener(listener, attributes, events, operations);
     }
 
     /**
@@ -88,7 +73,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
      */
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes);
+        removeResourceEventListener(listener, attributes, events, operations);
     }
 
     /**
@@ -102,5 +87,6 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         attributes.close();
         events.close();
         scriptlet.close();
+        operations.close();
     }
 }
