@@ -1,105 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="icon" href="favicon.ico">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="favicon.ico">
+        <title>Cover Template for Bootstrap</title>
+        <!-- Bootstrap core CSS -->
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <!-- Custom styles for this template -->
+        <link href="css/cover.css" rel="stylesheet">
 
-    <title>Cover Template for Bootstrap</title>
+        <script src="node_modules/core-js/client/shim.min.js"></script>
 
-    <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+        <script src="node_modules/zone.js/dist/zone.js"></script>
+        <script src="node_modules/reflect-metadata/Reflect.js"></script>
+        <script src="node_modules/systemjs/dist/system.src.js"></script>
 
-    <!-- Custom styles for this template -->
-    <link href="css/cover.css" rel="stylesheet">
-</head>
+        <script src="js/systemjs.config.js"></script>
 
-<body>
+        <script>
+          System.import('app').catch(function(err){ console.error(err); });
+        </script>
+    </head>
+    <body>
+        <div class="site-wrapper">
+            <div class="site-wrapper-inner">
+                <div class="cover-container">
+                    <div class="masthead clearfix">
+                        <div class="inner">
+                            <h3 class="masthead-brand">SNAMP WEB UI</h3>
+                            <nav class="nav nav-masthead">
+                                <div>Hello, <span id="username"></span>!</div>
+                            </nav>
+                        </div>
+                    </div>
+                    <div class="inner cover">
+                        <div>
 
-<div class="site-wrapper">
+                            <!-- Nav tabs -->
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li role="presentation"><a href="#charts" aria-controls="charts" role="tab" data-toggle="tab">Charts</a></li>
+                                <li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab">Analysis</a></li>
+                                <li role="presentation"><a href="#watchers" aria-controls="watchers" role="tab" data-toggle="tab">Watchers</a></li>
+                                <li role="presentation" class="active"><a href="#configuration" aria-controls="configuration" role="tab" data-toggle="tab">Configuration</a></li>
+                            </ul>
 
-    <div class="site-wrapper-inner">
+                            <!-- Tab panes -->
+                            <div class="tab-content">
+                                <div role="tabpanel" class="tab-pane" id="charts">...</div>
+                                <div role="tabpanel" class="tab-pane" id="analysis">...</div>
+                                <div role="tabpanel" class="tab-pane" id="watchers">...</div>
+                                <div role="tabpanel" class="tab-pane active" id="configuration">
+                                    <div class="col-xs-3"> <!-- required for floating -->
+                                        <!-- Nav tabs -->
+                                        <ul class="nav nav-tabs tabs-left">
+                                            <li class="active"><a href="#gateways" data-toggle="tab">Gateways</a></li>
+                                            <li><a href="#resources" data-toggle="tab">Resources</a></li>
+                                            <li><a href="#rgroups" data-toggle="tab">Resource Groups</a></li>
+                                            <li><a href="#info" data-toggle="tab">SNAMP Info</a></li>
+                                        </ul>
+                                    </div>
 
-        <div class="cover-container">
-
-            <div class="masthead clearfix">
-                <div class="inner">
-                    <h3 class="masthead-brand">SNAMP WEB UI</h3>
-                    <nav class="nav nav-masthead">
-                        <div>Hello, <span id="username"></span>!</div>
-                    </nav>
-                </div>
-            </div>
-
-            <div class="inner cover">
-                <div>
-
-                    <!-- Nav tabs -->
-                    <ul class="nav nav-tabs" role="tablist">
-                        <li role="presentation"><a href="#charts" aria-controls="charts" role="tab" data-toggle="tab">Charts</a></li>
-                        <li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab">Analysis</a></li>
-                        <li role="presentation"><a href="#watchers" aria-controls="watchers" role="tab" data-toggle="tab">Watchers</a></li>
-                        <li role="presentation" class="active"><a href="#configuration" aria-controls="configuration" role="tab" data-toggle="tab">Configuration</a></li>
-                    </ul>
-
-                    <!-- Tab panes -->
-                    <div class="tab-content">
-                        <div role="tabpanel" class="tab-pane" id="charts">...</div>
-                        <div role="tabpanel" class="tab-pane" id="analysis">...</div>
-                        <div role="tabpanel" class="tab-pane" id="watchers">...</div>
-                        <div role="tabpanel" class="tab-pane active" id="configuration">
-                            <div class="col-xs-3"> <!-- required for floating -->
-                                <!-- Nav tabs -->
-                                <ul class="nav nav-tabs tabs-left">
-                                    <li class="active"><a href="#gateways" data-toggle="tab">Gateways</a></li>
-                                    <li><a href="#resources" data-toggle="tab">Resources</a></li>
-                                    <li><a href="#rgroups" data-toggle="tab">Resource Groups</a></li>
-                                    <li><a href="#info" data-toggle="tab">SNAMP Info</a></li>
-                                </ul>
-                            </div>
-
-                            <div class="col-xs-9">
-                                <!-- Tab panes -->
-                                <div class="tab-content">
-                                    <div class="tab-pane active" id="gateways">Home Tab.</div>
-                                    <div class="tab-pane" id="resources">Profile Tab.</div>
-                                    <div class="tab-pane" id="rgroups">Messages Tab.</div>
-                                    <div class="tab-pane" id="info">Settings Tab.</div>
+                                    <div class="col-xs-9">
+                                        <!-- Tab panes -->
+                                        <div class="tab-content">
+                                            <div class="tab-pane active" id="gateways">
+                                                <gateways>Loading gateways ...</gateways>
+                                            </div>
+                                            <div class="tab-pane" id="resources">Profile Tab.</div>
+                                            <div class="tab-pane" id="rgroups">Messages Tab.</div>
+                                            <div class="tab-pane" id="info">Settings Tab.</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
+                    <div class="mastfoot">
+                        <div class="inner">
+                            <p>Should be replaced with actual main page though</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="mastfoot">
-                <div class="inner">
-                    <p>Should be replaced with actual main page though</p>
-                </div>
-            </div>
-
         </div>
-
-    </div>
-
-</div>
-
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script src="js/jquery.js"></script>
-<script>window.jQuery || document.write('<script src="js/jquery.js"><\/script>')</script>
-<script src="js/tether.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="js/ie10-viewport-bug-workaround.js"></script>
-<script src="js/js.cookie.js"></script>
-<script src="js/snamp_ui/index.js"></script>
-
-</body>
+        <!-- Bootstrap core JavaScript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="js/jquery.js"></script>
+        <script>window.jQuery || document.write('<script src="js/jquery.js"><\/script>')</script>
+        <script src="js/tether.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/snamp_ui/index.js"></script>
+    </body>
 </html>

@@ -9,3 +9,6 @@ out/
 exam/
 images/
 .flattened-pom.xml
+webconsole/src/main/resources/webapp/node_modules/
+webconsole/src/main/resources/webapp/app/*.js
+webconsole/src/main/resources/webapp/app/*.map
