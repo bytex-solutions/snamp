@@ -19,9 +19,11 @@ import javax.management.ReflectionException;
  */
 @SnampDependencies({SnampFeature.GROOVY_CONNECTOR, SnampFeature.JMX_CONNECTOR})
 public final class GroovyWithJmxCompositionTest extends AbstractCompositeConnectorTest {
+    private static final String SEPARATOR = ",";
+
     public GroovyWithJmxCompositionTest() {
         super(buildConnectionString(), ImmutableMap.of(
-                "separator", ",",
+                "separator", SEPARATOR,
                 "jmx:login", AbstractJmxConnectorTest.JMX_LOGIN,
                 "jmx:password", AbstractJmxConnectorTest.JMX_PASSWORD,
                 "jmx:objectName", TestOpenMBean.BEAN_NAME
@@ -36,7 +38,7 @@ public final class GroovyWithJmxCompositionTest extends AbstractCompositeConnect
     private static String buildConnectionString() {
         return "jmx:=" +
                 AbstractJmxConnectorTest.getConnectionString() +
-                ',' +
+                SEPARATOR +
                 "groovy:=" +
                 AbstractGroovyConnectorTest.getConnectionString();
     }
