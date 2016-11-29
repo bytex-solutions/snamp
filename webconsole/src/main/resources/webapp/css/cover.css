@@ -157,31 +157,29 @@ body {
     width: 90%;
   }
 
-  .tabs-left, .tabs-right {
+  .tabs-left {
     border-bottom: none;
     padding-top: 2px;
   }
   .tabs-left {
-    border-right: 1px solid #ddd;
+    border-right: 1px solid rgba(255,255,255, 0.2);
   }
-  .tabs-right {
-    border-left: 1px solid #ddd;
-  }
-  .tabs-left>li, .tabs-right>li {
+  .tabs-left>li {
     float: none;
     margin-bottom: 2px;
   }
   .tabs-left>li {
     margin-right: -1px;
   }
-  .tabs-right>li {
-    margin-left: -1px;
-  }
   .tabs-left>li.active>a,
   .tabs-left>li.active>a:hover,
   .tabs-left>li.active>a:focus {
     border-bottom-color: #ddd;
     border-right-color: transparent;
+  }
+
+  .tabs-left>li>a {
+    border-radius: 0;
   }
 
   .sideways {
@@ -217,5 +215,25 @@ body {
     -ms-transform: rotate(-90deg);
     -o-transform: rotate(-90deg);
     transform: rotate(-90deg);
+  }
+
+  .group-accordeon > .panel {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  
+  .panel-title>a, .panel-title>small, .panel-title>.small, .panel-title>small>a, .panel-title>.small>a {
+    color: black !important;
+  }
+
+  .table {
+    text-align: left;
+  }
+
+  .nav-tabs {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .leftTabContainer {
+    padding: 20px 0;
   }
 }
