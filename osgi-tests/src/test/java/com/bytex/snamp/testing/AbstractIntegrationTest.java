@@ -138,7 +138,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         result.add(systemProperty(TEST_CONTAINER_INDICATOR).value("true"));
         result.addAll(builder.getSystemProperties(getClass()).entrySet().stream().map(sp -> systemProperty(sp.getKey()).value(sp.getValue())).collect(Collectors.toList()));
         result.addAll(builder.getFrameworkProperties(getClass()).entrySet().stream().map(fp -> frameworkProperty(fp.getKey()).value(fp.getValue())).collect(Collectors.toList()));
-        result.add(systemProperty(PROJECT_DIR).value(StandardSystemProperty.USER_DIR.value()));
+        result.add(systemProperty(PROJECT_DIR).value(System.getProperty(PROJECT_DIR)));
         result.add(getPropagatedProperties());
         // https://ops4j1.jira.com/wiki/display/PAXEXAM3/Configuration+Options
         result.add(keepRuntimeFolder());
