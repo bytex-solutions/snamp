@@ -1,5 +1,7 @@
 package com.bytex.snamp.configuration;
-import static com.bytex.snamp.MapUtils.*;
+
+import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.MapUtils.putValue;
 
 /**
  * Represents a feature of the managed resource.

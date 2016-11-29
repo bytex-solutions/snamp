@@ -1,7 +1,9 @@
 package com.bytex.snamp.connector.metrics;
 
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.*;
+import java.util.function.LongBinaryOperator;
+import java.util.function.LongConsumer;
+import java.util.function.LongUnaryOperator;
 
 /**
  * Represents implementation of {@link Gauge64}.

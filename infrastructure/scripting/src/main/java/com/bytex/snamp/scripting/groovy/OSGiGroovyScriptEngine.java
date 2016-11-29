@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**

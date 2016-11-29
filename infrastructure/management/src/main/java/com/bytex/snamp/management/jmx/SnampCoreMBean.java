@@ -1,8 +1,9 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.core.AbstractSnampManager;
 import com.bytex.snamp.jmx.FrameworkMBean;
+import com.bytex.snamp.jmx.OpenMBean;
+import com.bytex.snamp.management.SnampManagerImpl;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogService;
@@ -18,10 +19,11 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMBean {
-    private static final String LOGGER_NAME = "com.bytex.snamp.management";
+
     public static final String OBJECT_NAME = "com.bytex.snamp.management:type=SnampCore";
     public static final Duration DEFAULT_RENEWAL_TIME = Duration.ofSeconds(5);
     private final StatisticCounters counter;
+    private final Logger logger;
 
     private SnampCoreMBean(final StatisticCounters counter, final AbstractSnampManager manager) throws OpenDataException{
         super(  new SummaryMetricsAttribute(),
@@ -43,6 +45,7 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
                 new DisableConnectorOperation(),
                 new DisableGatewayOperation());
         this.counter = counter;
+        this.logger = manager.getLogger();
     }
 
     public SnampCoreMBean() throws OpenDataException{
@@ -73,11 +76,7 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
      */
     @Override
     public Logger getLogger() {
-        return getLoggerImpl();
-    }
-
-    static Logger getLoggerImpl() {
-        return Logger.getLogger(LOGGER_NAME);
+        return logger;
     }
 
     /**

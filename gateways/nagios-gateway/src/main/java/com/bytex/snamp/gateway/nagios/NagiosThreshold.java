@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**

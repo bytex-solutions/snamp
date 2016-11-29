@@ -5,7 +5,6 @@ import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.ImmutableSet;
 
-import javax.management.Descriptor;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package com.bytex.snamp.management.rest.model;
+package com.bytex.snamp.management.http.model;
 
 /**
  * Represents a dashboard for SNAMP monitoring. Contains elements to display when user signs in.

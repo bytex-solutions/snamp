@@ -1,7 +1,6 @@
 package com.bytex.snamp.security.web;
 
 import com.auth0.jwt.JWTVerifyException;
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
 import com.sun.jersey.spi.container.ContainerResponse;
@@ -16,6 +15,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Objects;
 import java.util.logging.Logger;
+
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Filter for JWT based auth - refreshes token in case it has 1/3 time to live.

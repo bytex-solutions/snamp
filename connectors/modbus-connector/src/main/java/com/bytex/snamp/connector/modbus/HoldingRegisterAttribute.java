@@ -1,12 +1,11 @@
 package com.bytex.snamp.connector.modbus;
 
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.modbus.transport.ModbusMaster;
 import com.ghgande.j2mod.modbus.ModbusException;
 import com.ghgande.j2mod.modbus.procimg.Register;
 import com.ghgande.j2mod.modbus.procimg.SimpleRegister;
-import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.connector.modbus.master.HoldingRegisterAccess;
 
 import javax.management.openmbean.SimpleType;
 

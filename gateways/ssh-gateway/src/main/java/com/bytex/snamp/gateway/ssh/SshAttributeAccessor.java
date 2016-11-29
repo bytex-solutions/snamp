@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.ssh;
 
-import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 
 import javax.management.Descriptor;
 import javax.management.JMException;

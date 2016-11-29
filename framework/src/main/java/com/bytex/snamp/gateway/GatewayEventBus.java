@@ -12,10 +12,9 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static com.bytex.snamp.internal.Utils.getBundleContext;
-
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 /**
  * @author Roman Sakno

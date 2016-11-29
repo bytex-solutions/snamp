@@ -2,6 +2,7 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.Internal;
+
 import java.util.logging.Logger;
 
 /**

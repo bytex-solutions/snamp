@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Objects;
 import java.util.Set;
+
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 @Singleton

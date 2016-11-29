@@ -2,7 +2,10 @@ package com.bytex.snamp.testing.gateway.snmp;
 
 import com.bytex.snamp.testing.SnmpTable;
 import com.google.common.collect.ImmutableList;
-import org.snmp4j.*;
+import org.snmp4j.PDU;
+import org.snmp4j.Snmp;
+import org.snmp4j.Target;
+import org.snmp4j.TransportMapping;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
 import org.snmp4j.smi.OID;

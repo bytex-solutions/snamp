@@ -9,7 +9,6 @@ import javax.management.AttributeNotFoundException;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
-import javax.management.openmbean.OpenType;
 import java.util.Objects;
 
 import static com.bytex.snamp.internal.Utils.callAndWrapException;

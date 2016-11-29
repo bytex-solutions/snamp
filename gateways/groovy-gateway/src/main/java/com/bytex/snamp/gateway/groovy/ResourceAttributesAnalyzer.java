@@ -1,12 +1,12 @@
 package com.bytex.snamp.gateway.groovy;
 
-import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
-import com.bytex.snamp.gateway.modeling.AttributeAccessor;
-import com.bytex.snamp.gateway.modeling.PeriodicPassiveChecker;
-import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.concurrent.WriteOnceRef;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.gateway.modeling.AttributeAccessor;
+import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
+import com.bytex.snamp.gateway.modeling.PeriodicPassiveChecker;
+import com.bytex.snamp.internal.Utils;
 import groovy.lang.Closure;
 import org.osgi.framework.InvalidSyntaxException;
 

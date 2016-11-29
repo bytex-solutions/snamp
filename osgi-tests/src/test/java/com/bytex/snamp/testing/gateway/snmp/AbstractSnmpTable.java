@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.gateway.snmp;
 
-import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.testing.SnmpTable;
+import com.google.common.collect.ImmutableList;
 import org.snmp4j.smi.*;
 
 import java.math.BigInteger;

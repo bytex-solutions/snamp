@@ -1,9 +1,9 @@
 package com.bytex.snamp.gateway.nsca;
 
-import com.bytex.snamp.gateway.NotificationListener;
-import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.gateway.NotificationListener;
+import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.jsendnsca.core.MessagePayload;
 

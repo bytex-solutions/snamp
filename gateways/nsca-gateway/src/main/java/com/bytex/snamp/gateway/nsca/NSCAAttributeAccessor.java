@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.nsca;
 
-import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.jsendnsca.core.MessagePayload;
 

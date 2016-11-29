@@ -1,11 +1,11 @@
 package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.bytex.snamp.gateway.SelectableGatewayParameterDescriptor;
-import com.bytex.snamp.configuration.GatewayConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import net.schmizz.sshj.userauth.keyprovider.*;
 import org.apache.sshd.common.KeyPairProvider;
 
@@ -18,8 +18,9 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.MapUtils.getValueAsInt;
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
-import static com.bytex.snamp.MapUtils.*;
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**

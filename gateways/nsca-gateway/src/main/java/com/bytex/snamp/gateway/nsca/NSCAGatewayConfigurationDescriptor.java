@@ -13,10 +13,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
-import static com.bytex.snamp.jmx.DescriptorUtils.*;
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.bytex.snamp.MapUtils.*;
+import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
+import static com.bytex.snamp.jmx.DescriptorUtils.getField;
+import static com.bytex.snamp.jmx.DescriptorUtils.getUOM;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * @author Roman Sakno

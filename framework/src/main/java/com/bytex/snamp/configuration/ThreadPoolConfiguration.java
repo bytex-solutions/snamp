@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration;
+
 import java.time.Duration;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
 
 import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
 

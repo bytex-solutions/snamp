@@ -1,14 +1,15 @@
 package com.bytex.snamp.connector.modbus.transport;
 
+import com.bytex.snamp.io.Buffers;
 import com.ghgande.j2mod.modbus.ModbusException;
 import com.ghgande.j2mod.modbus.io.ModbusTransaction;
 import com.ghgande.j2mod.modbus.msg.*;
 import com.ghgande.j2mod.modbus.procimg.InputRegister;
 import com.ghgande.j2mod.modbus.procimg.Register;
 import com.ghgande.j2mod.modbus.util.BitVector;
-import com.bytex.snamp.io.Buffers;
 
 import java.nio.ShortBuffer;
+
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.ArrayUtils.getFirst;
 

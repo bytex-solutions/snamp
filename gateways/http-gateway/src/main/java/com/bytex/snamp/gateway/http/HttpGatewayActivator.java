@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.http;
 
-import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.gateway.GatewayActivator;
 import org.osgi.service.http.HttpService;
 
 /**

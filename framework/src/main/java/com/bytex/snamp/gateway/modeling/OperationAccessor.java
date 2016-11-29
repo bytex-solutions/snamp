@@ -2,13 +2,10 @@ package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
-import com.bytex.snamp.connector.attributes.AttributeAddedEvent;
-import com.bytex.snamp.connector.attributes.AttributeRemovingEvent;
 import com.bytex.snamp.connector.operations.OperationAddedEvent;
 import com.bytex.snamp.connector.operations.OperationRemovingEvent;
 import com.bytex.snamp.connector.operations.OperationSupport;
 
-import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanOperationInfo;
 
 /**

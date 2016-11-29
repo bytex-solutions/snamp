@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.xmpp;
 
-import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -21,8 +21,9 @@ import java.security.KeyStore;
 import java.util.Map;
 import java.util.function.Function;
 
+import static com.bytex.snamp.MapUtils.getIfPresent;
+import static com.bytex.snamp.MapUtils.getValueAsInt;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.bytex.snamp.MapUtils.*;
 
 /**
  * @author Roman Sakno

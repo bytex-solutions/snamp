@@ -18,9 +18,7 @@ import java.util.function.Supplier;
 
 import static com.bytex.snamp.MapUtils.*;
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
-import static com.bytex.snamp.jmx.DescriptorUtils.getField;
-import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
-import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
+import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
  * Represents descriptor of SnmpAgent-specific configuration elements.

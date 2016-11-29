@@ -1,8 +1,7 @@
 package com.bytex.snamp.gateway.modeling;
 
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.concurrent.Repeater;
 
 import java.time.Duration;
 import java.util.Objects;

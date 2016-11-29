@@ -1,10 +1,10 @@
 package com.bytex.snamp.management.shell;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents parameter/value pair.

@@ -2,9 +2,9 @@ package com.bytex.snamp.gateway.xmpp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
-import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;

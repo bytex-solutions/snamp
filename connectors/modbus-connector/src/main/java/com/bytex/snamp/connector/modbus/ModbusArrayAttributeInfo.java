@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.modbus;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.connector.modbus.master.SlaveDeviceAccess;
 
 import javax.management.openmbean.ArrayType;
 

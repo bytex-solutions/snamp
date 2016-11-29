@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.groovy.impl;
 
-import com.google.common.collect.ImmutableSet;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
+import com.google.common.collect.ImmutableSet;
 
 import javax.management.MBeanAttributeInfo;
 

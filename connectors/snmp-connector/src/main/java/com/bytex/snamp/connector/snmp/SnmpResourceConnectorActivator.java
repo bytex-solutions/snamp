@@ -10,6 +10,7 @@ import org.snmp4j.log.OSGiLogFactory;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
+
 import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 

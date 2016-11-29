@@ -2,8 +2,6 @@ package com.bytex.snamp.jmx;
 
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 
 /**
  * Represents a builder of JMX Open Type.

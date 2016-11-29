@@ -1,10 +1,10 @@
 package com.bytex.snamp.testing.gateway.snmp;
 
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
-import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;

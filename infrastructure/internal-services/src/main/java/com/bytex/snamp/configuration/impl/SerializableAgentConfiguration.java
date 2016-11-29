@@ -10,6 +10,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Map;
 import java.util.Objects;
+
 import static com.bytex.snamp.configuration.impl.AbstractManagedResourceTemplate.*;
 
 /**

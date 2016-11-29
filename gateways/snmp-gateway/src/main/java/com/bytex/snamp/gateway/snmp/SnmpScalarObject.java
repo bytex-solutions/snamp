@@ -1,9 +1,9 @@
 package com.bytex.snamp.gateway.snmp;
 
+import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.gateway.modeling.ReadAttributeLogicalOperation;
 import com.bytex.snamp.gateway.modeling.WriteAttributeLogicalOperation;
-import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.DuplicateRegistrationException;
@@ -24,8 +24,8 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import static com.bytex.snamp.gateway.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.bytex.snamp.gateway.snmp.SnmpGatewayDescriptionProvider.parseOID;
+import static com.bytex.snamp.gateway.snmp.SnmpHelpers.getAccessRestrictions;
 
 /**
  * Represents a base class for scalar SNMP managed objects.

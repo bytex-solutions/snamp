@@ -1,6 +1,5 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
@@ -14,14 +13,9 @@ import org.osgi.service.cm.ManagedServiceFactory;
 
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.concurrent.LockManager.lockAndAccept;
 
 /**
  * Represents an activator for SNAMP-specific bundle which exposes a set of services.

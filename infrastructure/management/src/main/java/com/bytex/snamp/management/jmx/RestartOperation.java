@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.jmx.OpenMBean;
+import com.bytex.snamp.management.SnampManagerImpl;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 

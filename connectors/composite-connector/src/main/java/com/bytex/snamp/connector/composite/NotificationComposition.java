@@ -1,18 +1,14 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.notifications.*;
-import com.bytex.snamp.core.LongCounter;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.core.DistributedServices.getDistributedCounter;
 
 /**
  * Represents composition of notifications.

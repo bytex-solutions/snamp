@@ -2,11 +2,11 @@ package com.bytex.snamp.testing.management;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
+import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;

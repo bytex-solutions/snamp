@@ -16,7 +16,9 @@ import java.lang.reflect.Method;
 import java.util.Spliterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 

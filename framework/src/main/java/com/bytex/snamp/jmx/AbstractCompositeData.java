@@ -6,6 +6,7 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.util.HashMap;
 import java.util.Map;
+
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**

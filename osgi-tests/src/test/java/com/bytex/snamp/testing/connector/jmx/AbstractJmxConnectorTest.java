@@ -1,12 +1,14 @@
 package com.bytex.snamp.testing.connector.jmx;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
+import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleContext;
 
-import javax.management.*;
+import javax.management.JMException;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.lang.management.PlatformManagedObject;
 
@@ -27,7 +29,7 @@ public abstract class AbstractJmxConnectorTest<MBean> extends AbstractResourceCo
     private static final String JMX_RMI_CONNECTION_STRING = "service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root";
 
     protected AbstractJmxConnectorTest(final MBean beanInstance, final ObjectName beanName){
-        super(CONNECTOR_NAME, getConnectionString(), ImmutableMap.of("login", JMX_LOGIN, "password", JMX_PASSWORD));
+        super(CONNECTOR_NAME, getConnectionString(), ImmutableMap.of("login", JMX_LOGIN, "password", JMX_PASSWORD, "group", ""));
         this.beanName = beanName;
         this.beanInstance = beanInstance;
     }

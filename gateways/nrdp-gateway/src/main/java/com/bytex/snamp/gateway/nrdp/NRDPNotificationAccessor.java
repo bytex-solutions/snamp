@@ -1,10 +1,10 @@
 package com.bytex.snamp.gateway.nrdp;
 
 import ch.shamu.jsendnrdp.domain.State;
-import com.bytex.snamp.gateway.NotificationListener;
-import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.gateway.NotificationListener;
+import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.google.common.collect.ImmutableSet;
 
 import javax.management.MBeanNotificationInfo;

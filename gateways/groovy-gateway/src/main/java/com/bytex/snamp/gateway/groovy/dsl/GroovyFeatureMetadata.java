@@ -7,7 +7,8 @@ import javax.management.MBeanFeatureInfo;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static com.bytex.snamp.jmx.DescriptorUtils.*;
+import static com.bytex.snamp.jmx.DescriptorUtils.getField;
+import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 
 /**
  * Represents Groovy-compliant wrapper for {@link MBeanFeatureInfo} class and its derivatives.

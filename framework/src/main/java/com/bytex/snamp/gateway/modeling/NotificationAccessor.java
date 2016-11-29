@@ -1,14 +1,17 @@
 package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.connector.notifications.NotificationAddedEvent;
 import com.bytex.snamp.connector.notifications.NotificationRemovingEvent;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.notifications.TypeBasedNotificationFilter;
-import com.bytex.snamp.MethodStub;
 
-import javax.management.*;
+import javax.management.ListenerNotFoundException;
+import javax.management.MBeanNotificationInfo;
+import javax.management.NotificationFilter;
+import javax.management.NotificationListener;
 
 /**
  * Exposes access to the individual notification.

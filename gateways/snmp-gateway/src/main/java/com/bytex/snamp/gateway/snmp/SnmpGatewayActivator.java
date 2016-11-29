@@ -1,8 +1,8 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
+import com.bytex.snamp.gateway.GatewayActivator;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.log.OSGiLogFactory;
 

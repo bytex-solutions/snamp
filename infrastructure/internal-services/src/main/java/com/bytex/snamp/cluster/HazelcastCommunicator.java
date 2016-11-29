@@ -3,7 +3,10 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.ComputationPipeline;
 import com.bytex.snamp.core.Communicator;
-import com.hazelcast.core.*;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ITopic;
+import com.hazelcast.core.Message;
+import com.hazelcast.core.MessageListener;
 
 import java.io.Serializable;
 import java.time.Duration;
@@ -13,6 +16,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**

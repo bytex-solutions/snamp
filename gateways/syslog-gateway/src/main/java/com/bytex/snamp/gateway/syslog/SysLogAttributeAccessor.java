@@ -1,11 +1,11 @@
 package com.bytex.snamp.gateway.syslog;
 
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
 import com.google.common.collect.ImmutableSet;
-import com.bytex.snamp.gateway.modeling.AttributeAccessor;
-import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.MBeanAttributeInfo;
@@ -14,9 +14,9 @@ import javax.management.ReflectionException;
 import java.io.CharArrayWriter;
 import java.util.Date;
 
+import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 import static com.bytex.snamp.gateway.syslog.SysLogConfigurationDescriptor.getApplicationName;
 import static com.bytex.snamp.gateway.syslog.SysLogConfigurationDescriptor.getFacility;
-import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 
 /**
  * @author Roman Sakno

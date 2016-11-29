@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.stream.Stream;
+
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**

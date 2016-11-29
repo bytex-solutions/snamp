@@ -8,7 +8,8 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
-import static com.bytex.snamp.internal.Utils.*;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
 
 /**
  * Provides conversion between SNAMP metrics declared in {@link com.bytex.snamp.connector.metrics} package

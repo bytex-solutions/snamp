@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.groovy;
 
-import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 
@@ -10,7 +9,6 @@ import javax.management.ReflectionException;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents repository of Groovy-based attributes.

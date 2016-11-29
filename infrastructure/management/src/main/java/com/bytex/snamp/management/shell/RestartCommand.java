@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.management.jmx.SnampManagerImpl;
+import com.bytex.snamp.management.SnampManagerImpl;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 import org.osgi.framework.BundleException;

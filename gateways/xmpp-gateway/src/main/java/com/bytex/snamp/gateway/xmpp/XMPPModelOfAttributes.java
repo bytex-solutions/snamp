@@ -2,8 +2,8 @@ package com.bytex.snamp.gateway.xmpp;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.jivesoftware.smack.packet.ExtensionElement;

@@ -2,8 +2,8 @@ package com.bytex.snamp.gateway.nrdp;
 
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.domain.State;
-import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.google.common.collect.ImmutableSet;
 
 import javax.management.AttributeNotFoundException;

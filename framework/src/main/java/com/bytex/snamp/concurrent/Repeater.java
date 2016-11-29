@@ -10,8 +10,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import static com.bytex.snamp.internal.Utils.callUnchecked;
 import java.util.function.Supplier;
+
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents lightweight timer that is used to repeat some action in time.

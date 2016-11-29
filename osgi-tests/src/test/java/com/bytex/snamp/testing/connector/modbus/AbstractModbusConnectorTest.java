@@ -1,12 +1,12 @@
 package com.bytex.snamp.testing.connector.modbus;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.connector.modbus.slave.*;
 import com.bytex.snamp.connector.modbus.transport.ModbusSlave;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
+import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleContext;
 
 import java.nio.ShortBuffer;

@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.groovy.impl;
 
-import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.bytex.snamp.gateway.groovy.ResourceAttributesAnalyzer;
+import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 
 import java.time.Duration;
 

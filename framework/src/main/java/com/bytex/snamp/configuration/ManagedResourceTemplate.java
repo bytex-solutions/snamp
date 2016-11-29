@@ -6,7 +6,7 @@ package com.bytex.snamp.configuration;
  * @version 1.0
  * @since 1.0
  */
-interface ManagedResourceTemplate extends TypedEntityConfiguration {
+public interface ManagedResourceTemplate extends TypedEntityConfiguration {
 
     /**
      * Represents name of configuration parameter that can be used to enable Smart mode of the connector.

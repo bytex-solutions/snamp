@@ -1,24 +1,21 @@
-package com.bytex.snamp.management.rest;
+package com.bytex.snamp.management;
 
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.core.AbstractSnampManager;
 import com.bytex.snamp.gateway.GatewayActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
-import java.util.Locale;
 import java.util.logging.Logger;
 
 /**
- * The type Snamp manager impl.
- * @author Evgeniy Kirichenko
+ * Represents management operations that can be applied to SNAMP-related software components.
+ * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
-public final class SnampRestManagerImpl extends AbstractSnampManager {
-
-    private static final String LOGGER_NAME = "com.bytex.snamp.management.rest";
+public final class SnampManagerImpl extends AbstractSnampManager {
+    private static final String LOGGER_NAME = "com.bytex.snamp.management";
 
     private static final class ResourceConnectorDescriptorImpl extends ResourceConnectorDescriptor{
         private static final long serialVersionUID = -9051897273537657012L;
@@ -67,8 +64,6 @@ public final class SnampRestManagerImpl extends AbstractSnampManager {
     protected GatewayDescriptorImpl createGatewayDescriptor(final String gatewayType) {
         return new GatewayDescriptorImpl(gatewayType);
     }
-
-
 
     /**
      * Gets logger associated with this service.

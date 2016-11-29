@@ -1,22 +1,25 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.gateway.Gateway;
-import com.bytex.snamp.gateway.GatewayActivator;
-import com.bytex.snamp.gateway.GatewayClient;
+import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.gateway.Gateway;
+import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.gateway.GatewayClient;
 import org.osgi.framework.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.MapUtils.getValueAsLong;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
-import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 /**
  * Represents partial implementation of {@link SnampManager} service.

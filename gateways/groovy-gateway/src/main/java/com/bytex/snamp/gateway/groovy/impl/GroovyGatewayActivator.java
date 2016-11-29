@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.groovy.impl;
 
-import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.gateway.GatewayActivator;
 
 /**
  * @author Roman Sakno

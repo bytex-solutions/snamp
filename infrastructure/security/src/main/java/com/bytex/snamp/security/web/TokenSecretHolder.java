@@ -2,7 +2,6 @@ package com.bytex.snamp.security.web;
 
 import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 
 import java.math.BigInteger;

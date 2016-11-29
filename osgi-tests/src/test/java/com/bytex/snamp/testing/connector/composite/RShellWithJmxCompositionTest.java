@@ -27,7 +27,8 @@ import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 
-import static com.bytex.snamp.jmx.CompositeDataUtils.*;
+import static com.bytex.snamp.jmx.CompositeDataUtils.getDouble;
+import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
 
 /**
  * @author Roman Sakno

@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.groovy;
 
-import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 
 /**
  * Represents root-level DSL for working with events.

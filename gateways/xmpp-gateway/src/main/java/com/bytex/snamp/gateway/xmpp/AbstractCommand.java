@@ -1,7 +1,11 @@
 package com.bytex.snamp.gateway.xmpp;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.jivesoftware.smack.packet.Message;
+
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**

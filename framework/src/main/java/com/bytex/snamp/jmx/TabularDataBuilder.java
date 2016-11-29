@@ -3,12 +3,15 @@ package com.bytex.snamp.jmx;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
-import javax.management.openmbean.*;
-import java.util.*;
-import java.util.concurrent.Callable;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.TabularData;
+import javax.management.openmbean.TabularDataSupport;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents {@link javax.management.openmbean.TabularData} instance builder.

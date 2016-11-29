@@ -1,8 +1,8 @@
 package com.bytex.snamp.connector.groovy;
 
-import java.util.Collection;
-
 import com.bytex.snamp.configuration.FeatureConfiguration;
+
+import java.util.Collection;
 
 /**
  * Represents information about scripted managed resource.

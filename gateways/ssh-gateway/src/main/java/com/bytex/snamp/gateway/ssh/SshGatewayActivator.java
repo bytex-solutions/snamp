@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.ssh;
 
-import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.gateway.GatewayActivator;
 
 /**
  * Represents OSGi activator for {@link SshGateway} gateway.

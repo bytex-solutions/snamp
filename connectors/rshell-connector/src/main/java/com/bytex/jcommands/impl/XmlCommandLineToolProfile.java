@@ -1,7 +1,7 @@
 package com.bytex.jcommands.impl;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.jcommands.CommandExecutionChannel;
+import com.google.common.collect.ImmutableMap;
 
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;

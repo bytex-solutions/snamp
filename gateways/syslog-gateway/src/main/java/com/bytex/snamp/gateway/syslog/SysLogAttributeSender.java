@@ -1,8 +1,8 @@
 package com.bytex.snamp.gateway.syslog;
 
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.bytex.snamp.gateway.modeling.PeriodicPassiveChecker;
-import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 
 import java.time.Duration;

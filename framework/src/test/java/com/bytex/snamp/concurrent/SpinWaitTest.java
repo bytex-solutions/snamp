@@ -7,7 +7,8 @@ import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.bytex.snamp.concurrent.SpinWait.*;
+import static com.bytex.snamp.concurrent.SpinWait.spinUntil;
+import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 
 /**
  *

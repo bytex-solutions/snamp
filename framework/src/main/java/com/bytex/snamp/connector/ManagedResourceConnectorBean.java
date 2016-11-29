@@ -2,8 +2,11 @@ package com.bytex.snamp.connector;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Localizable;
-import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.connector.attributes.*;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.FeatureConfiguration;
+import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeInfo;
 import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeRepository;
 import com.bytex.snamp.connector.discovery.DiscoveryResultBuilder;
@@ -14,18 +17,20 @@ import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LongCounter;
-import static com.bytex.snamp.internal.Utils.*;
-
 import org.osgi.framework.BundleContext;
-import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 
-import javax.management.openmbean.*;
-import java.beans.*;
+import javax.management.openmbean.OpenType;
+import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 
 /**

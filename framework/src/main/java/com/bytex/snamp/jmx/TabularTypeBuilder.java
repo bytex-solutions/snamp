@@ -3,7 +3,6 @@ package com.bytex.snamp.jmx;
 import javax.management.openmbean.*;
 import java.io.Serializable;
 import java.util.*;
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents builder of {@link javax.management.openmbean.TabularType} instances.

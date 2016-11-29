@@ -1,10 +1,10 @@
 package com.bytex.snamp.webconsole;
 
 import com.bytex.snamp.core.AbstractBundleActivator;
-import com.bytex.snamp.management.rest.GatewayService;
-import com.bytex.snamp.management.rest.ManagementService;
-import com.bytex.snamp.management.rest.ResourceGroupService;
-import com.bytex.snamp.management.rest.ResourceService;
+import com.bytex.snamp.management.http.GatewayConfigurationService;
+import com.bytex.snamp.management.http.ManagementService;
+import com.bytex.snamp.management.http.ResourceConfigurationService;
+import com.bytex.snamp.management.http.ResourceGroupConfigurationService;
 import com.google.common.collect.ImmutableMap;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.osgi.framework.BundleContext;
@@ -43,8 +43,8 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
                 httpService,
                 (publisher) -> {
                     publisher.registerServlet(WebConsoleServlet.CONTEXT,
-                            new WebConsoleServlet(consoleAPI, new ResourceService(),
-                                    new GatewayService(), new ResourceGroupService(), new ManagementService()), new Hashtable<>(), null);
+                            new WebConsoleServlet(consoleAPI, new ResourceConfigurationService(),
+                                    new GatewayConfigurationService(), new ResourceGroupConfigurationService(), new ManagementService()), new Hashtable<>(), null);
                     publisher.registerServlet(STATIC_SERVLET_CONTEXT, new DefaultServlet(),
                             new Hashtable<>(ImmutableMap
                                     .of("resourceBase", resourceBase, "pathInfoOnly", "true")

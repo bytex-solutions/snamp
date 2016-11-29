@@ -45,12 +45,13 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.WEBCONSOLE, SnampFeature.SNMP_GATEWAY})
-public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
+    private static final String TEST_PARAMETER = "testParameter";
 
     private static final String COOKIES_HEADER = "Set-Cookie";
     private static final String USERNAME = "karaf";
@@ -63,14 +64,14 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
      *
      * @throws MalformedObjectNameException the malformed object name exception
      */
-    public SnampWebconsoleTest() throws MalformedObjectNameException {
+    public HttpManagementTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
         authenticator = new Authenticator();
     }
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
 
@@ -336,7 +337,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
         connection.connect();
 
-        String responseValue = "";
+        String responseValue;
         try {
             responseValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             assertNotNull(responseValue);
@@ -521,7 +522,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
         connection.connect();
 
-        String responseValue = "";
+        String responseValue;
         try {
             responseValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             assertNotNull(responseValue);
@@ -562,7 +563,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         }
 
         // remove parameter
-        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/console/gateway/%s/parameters/%s", ADAPTER_INSTANCE_NAME, "port")).openConnection();
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/console/gateway/%s/parameters/%s", ADAPTER_INSTANCE_NAME, TEST_PARAMETER)).openConnection();
         connection.setRequestMethod("DELETE");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
         connection.connect();
@@ -582,7 +583,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
             final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             JsonParser parser = new JsonParser();
             JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
-            oldResponseJSON.getAsJsonObject("parameters").remove("port");
+            oldResponseJSON.getAsJsonObject("parameters").remove(TEST_PARAMETER);
             JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
             assertEquals(oldResponseJSON, newResponseJSON);
         } finally {
@@ -759,6 +760,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
         snmpAdapter.setType(ADAPTER_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
+        snmpAdapter.getParameters().put(TEST_PARAMETER, "parameter");
         snmpAdapter.getParameters().put("socketTimeout", "5000");
         snmpAdapter.getParameters().put("context", "1.1");
     }

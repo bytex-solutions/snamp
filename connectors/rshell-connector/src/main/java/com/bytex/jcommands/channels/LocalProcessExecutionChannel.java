@@ -16,7 +16,9 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import static com.bytex.snamp.MapUtils.*;
+
+import static com.bytex.snamp.MapUtils.getValueAsInt;
+import static com.bytex.snamp.MapUtils.putIntValue;
 
 /**
  * Represents channel that executes commands as processes in

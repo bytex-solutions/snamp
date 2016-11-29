@@ -1,6 +1,9 @@
 package com.bytex.snamp.connector.jmx;
 
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
 
 import javax.management.*;

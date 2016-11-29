@@ -6,11 +6,15 @@ import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.management.SummaryMetrics;
 import com.google.common.collect.Maps;
 
-import javax.management.openmbean.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
 import java.util.Map;
 
+import static com.bytex.snamp.jmx.MetricsConverter.RATE_TYPE;
+import static com.bytex.snamp.jmx.MetricsConverter.fromRate;
 import static com.bytex.snamp.jmx.OpenMBean.OpenAttribute;
-import static com.bytex.snamp.jmx.MetricsConverter.*;
 
 /**
  * Provides global metrics.

@@ -1,8 +1,6 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.connector.operations.OperationSupport;
-import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.ResourceEvent;
@@ -15,12 +13,16 @@ import com.bytex.snamp.connector.notifications.NotificationRemovingEvent;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationAddedEvent;
 import com.bytex.snamp.connector.operations.OperationRemovingEvent;
+import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.core.RichLogicalOperation;
+import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.*;
-import org.osgi.framework.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceReference;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
@@ -28,7 +30,10 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;

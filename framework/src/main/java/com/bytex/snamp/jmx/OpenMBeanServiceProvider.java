@@ -7,8 +7,8 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
 
-import static com.bytex.snamp.core.AbstractServiceLibrary.ProvidedService;
 import static com.bytex.snamp.core.AbstractBundleActivator.RequiredService;
+import static com.bytex.snamp.core.AbstractServiceLibrary.ProvidedService;
 
 /**
  * Exposes JMX Bean as OSGi service.

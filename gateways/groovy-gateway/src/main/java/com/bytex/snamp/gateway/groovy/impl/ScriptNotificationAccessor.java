@@ -1,8 +1,8 @@
 package com.bytex.snamp.gateway.groovy.impl;
 
-import com.google.common.collect.ImmutableSet;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.NotificationRouter;
+import com.google.common.collect.ImmutableSet;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;

@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.groovy;
 
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
-import com.bytex.snamp.scripting.groovy.Scriptlet;
 import groovy.lang.Binding;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;

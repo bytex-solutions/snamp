@@ -1,6 +1,9 @@
 package com.bytex.snamp;
 
-import java.util.function.*;
+import java.util.function.BinaryOperator;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Represents mutable container for {@code boolean} data type.

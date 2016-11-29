@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.groovy;
 
-import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import groovy.grape.Grape;
 import org.apache.ivy.Ivy;
 

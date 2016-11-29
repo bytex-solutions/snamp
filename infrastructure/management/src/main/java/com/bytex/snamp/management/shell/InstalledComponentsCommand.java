@@ -2,7 +2,7 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.core.SnampComponentDescriptor;
 import com.bytex.snamp.core.SnampManager;
-import com.bytex.snamp.management.jmx.SnampManagerImpl;
+import com.bytex.snamp.management.SnampManagerImpl;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
@@ -10,8 +10,8 @@ import java.io.IOException;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.bytex.snamp.management.ManagementUtils.getStateString;
-import static com.bytex.snamp.management.shell.InstalledGatewaysCommand.writeGateway;
 import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeConnector;
+import static com.bytex.snamp.management.shell.InstalledGatewaysCommand.writeGateway;
 
 /**
  * Prints list of installed SNAMP components.

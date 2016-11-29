@@ -1,9 +1,9 @@
 package com.bytex.snamp.gateway.groovy;
 
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
-import com.bytex.snamp.concurrent.WriteOnceRef;
-import com.bytex.snamp.SpecialUse;
 import groovy.lang.Closure;
 import org.osgi.framework.InvalidSyntaxException;
 

@@ -1,6 +1,6 @@
 package com.bytex.snamp.webconsole;
 
-import com.bytex.snamp.management.rest.BaseRestConfigurationService;
+import com.bytex.snamp.management.http.AbstractManagementService;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.ContainerRequest;
@@ -35,7 +35,7 @@ final class WebConsoleServlet extends ServletContainer {
         }
     }
 
-    WebConsoleServlet(final WebConsoleService consoleAPI, final BaseRestConfigurationService... services){
+    WebConsoleServlet(final WebConsoleService consoleAPI, final AbstractManagementService... services){
         super(createAppConfig(consoleAPI, services));
     }
 
@@ -43,7 +43,7 @@ final class WebConsoleServlet extends ServletContainer {
     // contains instances of ContainerRequestFilter class
     @SuppressWarnings("unchecked")
     private static Application createAppConfig(final WebConsoleService consoleAPI,
-                                               final BaseRestConfigurationService ... services){
+                                               final AbstractManagementService... services){
         final DefaultResourceConfig result = new DefaultResourceConfig();
         result.getSingletons().add(consoleAPI);
         final WebConsoleSecurityFilter filter = new WebConsoleSecurityFilter();

@@ -1,20 +1,11 @@
 package com.bytex.snamp.gateway.jmx;
 
-import com.bytex.snamp.connector.notifications.Severity;
-import com.google.common.collect.ImmutableSet;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
+import com.google.common.collect.ImmutableSet;
 
 import javax.management.ImmutableDescriptor;
-import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
-import javax.management.openmbean.OpenMBeanAttributeInfo;
-import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
-import javax.management.openmbean.OpenType;
-import java.util.Map;
 import java.util.Set;
-
-import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
-import static com.bytex.snamp.jmx.DescriptorUtils.toMap;
 
 /**
  * @author Roman Sakno

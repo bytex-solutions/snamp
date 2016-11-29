@@ -11,7 +11,9 @@ import com.bytex.snamp.instrumentation.*;
 import com.bytex.snamp.scripting.groovy.Scriptlet;
 
 import javax.management.Notification;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;

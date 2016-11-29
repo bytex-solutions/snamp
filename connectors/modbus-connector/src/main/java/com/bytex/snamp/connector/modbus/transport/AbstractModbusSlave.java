@@ -1,10 +1,10 @@
 package com.bytex.snamp.connector.modbus.transport;
 
+import com.bytex.snamp.connector.modbus.slave.*;
 import com.ghgande.j2mod.modbus.ModbusCoupler;
 import com.ghgande.j2mod.modbus.net.ModbusListener;
 import com.ghgande.j2mod.modbus.procimg.*;
 import com.google.common.primitives.Shorts;
-import com.bytex.snamp.connector.modbus.slave.*;
 
 import java.io.IOException;
 import java.nio.ShortBuffer;

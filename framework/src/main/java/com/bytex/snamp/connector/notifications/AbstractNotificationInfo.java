@@ -1,10 +1,10 @@
 package com.bytex.snamp.connector.notifications;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Represents simplified version of {@link javax.management.MBeanNotificationInfo}.

@@ -1,8 +1,8 @@
 package com.bytex.snamp.connector.modbus;
 
+import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.modbus.transport.ModbusMaster;
 
 import javax.management.openmbean.OpenType;

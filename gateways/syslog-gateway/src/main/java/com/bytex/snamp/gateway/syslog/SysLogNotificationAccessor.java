@@ -1,11 +1,11 @@
 package com.bytex.snamp.gateway.syslog;
 
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.gateway.NotificationListener;
+import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.google.common.collect.ImmutableSet;
-import com.bytex.snamp.gateway.NotificationListener;
-import com.bytex.snamp.gateway.modeling.NotificationRouter;
-import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;

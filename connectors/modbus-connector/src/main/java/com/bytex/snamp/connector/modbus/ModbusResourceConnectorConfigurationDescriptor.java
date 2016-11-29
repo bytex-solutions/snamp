@@ -1,14 +1,17 @@
 package com.bytex.snamp.connector.modbus;
 
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.ghgande.j2mod.modbus.Modbus;
 
 import javax.management.Descriptor;
 import java.util.Map;
 
-import static com.bytex.snamp.jmx.DescriptorUtils.*;
 import static com.bytex.snamp.MapUtils.getValueAsInt;
+import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
  * Provides configuration metadata of Modbus Connector.

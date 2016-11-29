@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.groovy;
 
-import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 
 import java.time.Duration;
 

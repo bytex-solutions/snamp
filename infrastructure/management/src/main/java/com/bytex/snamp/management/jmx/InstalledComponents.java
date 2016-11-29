@@ -1,15 +1,16 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.bytex.snamp.jmx.CompositeTypeBuilder;
-import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.core.SnampComponentDescriptor;
 import com.bytex.snamp.core.SnampManager;
+import com.bytex.snamp.jmx.CompositeTypeBuilder;
+import com.bytex.snamp.jmx.OpenMBean;
 import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
 import java.util.Map;
 import java.util.Objects;
+
 import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
 
 /**

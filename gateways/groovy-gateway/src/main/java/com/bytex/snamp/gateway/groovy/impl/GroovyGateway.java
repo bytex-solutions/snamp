@@ -1,12 +1,12 @@
 package com.bytex.snamp.gateway.groovy.impl;
 
-import com.google.common.collect.Multimap;
-import com.bytex.snamp.gateway.*;
+import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.groovy.GatewayInfo;
 import com.bytex.snamp.gateway.groovy.GatewayScript;
 import com.bytex.snamp.gateway.groovy.GatewayScriptEngine;
 import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.internal.Utils;
+import com.google.common.collect.Multimap;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
@@ -14,9 +14,10 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+
 import static com.bytex.snamp.MapUtils.toProperties;
 
 /**

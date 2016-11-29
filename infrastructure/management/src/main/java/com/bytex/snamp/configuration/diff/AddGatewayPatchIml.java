@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
-
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 

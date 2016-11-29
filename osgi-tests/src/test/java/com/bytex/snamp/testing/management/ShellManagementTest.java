@@ -24,7 +24,7 @@ import java.util.concurrent.Future;
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_GATEWAY})
-public final class CommandsTest extends AbstractSnampIntegrationTest {
+public final class ShellManagementTest extends AbstractSnampIntegrationTest {
     private Object runCommand(String command) throws Exception{
         final ServiceHolder<CommandProcessor> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), CommandProcessor.class);
         assertNotNull(processorRef);

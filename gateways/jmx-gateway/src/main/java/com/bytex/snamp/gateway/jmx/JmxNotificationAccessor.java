@@ -1,8 +1,7 @@
 package com.bytex.snamp.gateway.jmx;
 
-import com.bytex.snamp.jmx.DescriptorUtils;
-import com.google.common.collect.ImmutableSet;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
+import com.google.common.collect.ImmutableSet;
 
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanNotificationInfo;
@@ -10,8 +9,6 @@ import javax.management.Notification;
 import javax.management.NotificationListener;
 import java.lang.ref.WeakReference;
 import java.util.Set;
-
-import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 
 /**
  * @author Roman Sakno

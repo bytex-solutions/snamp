@@ -18,6 +18,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**

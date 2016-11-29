@@ -1,9 +1,9 @@
 package com.bytex.snamp.configuration.internal;
+
+import com.bytex.snamp.configuration.EntityConfiguration;
 import org.osgi.service.cm.Configuration;
 
 import java.io.IOException;
-
-import com.bytex.snamp.configuration.EntityConfiguration;
 
 /**
  * Provides parsing of SNAMP configuration from data provided by {@link org.osgi.service.cm.Configuration}.

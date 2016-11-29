@@ -4,7 +4,6 @@ import com.bytex.snamp.connector.notifications.AbstractNotificationInfo;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import org.osgi.framework.InvalidSyntaxException;
 
-import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import javax.management.NotificationFilter;
 

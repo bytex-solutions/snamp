@@ -1,6 +1,9 @@
 package com.bytex.snamp.connector.discovery;
 
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.FeatureConfiguration;
+import com.bytex.snamp.configuration.OperationConfiguration;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 

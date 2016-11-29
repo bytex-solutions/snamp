@@ -13,7 +13,6 @@ import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
-import com.bytex.snamp.scripting.OSGiScriptEngineManager;
 import com.google.common.collect.ImmutableList;
 import org.junit.Assume;
 import org.junit.Test;
@@ -21,8 +20,6 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import javax.management.openmbean.CompositeData;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.concurrent.ExecutionException;
 

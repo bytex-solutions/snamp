@@ -2,11 +2,11 @@ package com.bytex.snamp.gateway.syslog;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.MessageFormat;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
-import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 
 import javax.management.Descriptor;
 import java.time.Duration;
@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.MapUtils.*;
+import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 
 /**
  * @author Roman Sakno

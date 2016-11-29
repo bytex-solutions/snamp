@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.io.SerializableMap;
 import com.bytex.snamp.Stateful;
+import com.bytex.snamp.io.SerializableMap;
 
 import java.io.IOException;
 import java.io.ObjectInput;

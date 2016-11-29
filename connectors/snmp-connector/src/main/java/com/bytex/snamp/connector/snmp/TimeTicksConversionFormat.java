@@ -6,12 +6,10 @@ import javax.management.Descriptor;
 import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
-
 import java.util.Objects;
 
-import static com.bytex.snamp.jmx.DescriptorUtils.*;
-
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
+import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
 
 /**
  * Represents {@link org.snmp4j.smi.TimeTicks} conversion format.

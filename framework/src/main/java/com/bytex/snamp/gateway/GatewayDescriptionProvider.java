@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 
-import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 
 /**
  * @author Roman Sakno

@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.xmpp;
 
-import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.gson.Gson;

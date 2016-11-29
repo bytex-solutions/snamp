@@ -1,7 +1,10 @@
 package com.bytex.snamp.connector.modbus.transport;
 
 import com.bytex.snamp.SafeCloseable;
-import com.ghgande.j2mod.modbus.io.*;
+import com.ghgande.j2mod.modbus.io.ModbusTCPTransaction;
+import com.ghgande.j2mod.modbus.io.ModbusTCPTransport;
+import com.ghgande.j2mod.modbus.io.ModbusTransaction;
+import com.ghgande.j2mod.modbus.io.ModbusTransport;
 import com.ghgande.j2mod.modbus.net.TCPMasterConnection;
 
 import java.io.IOException;

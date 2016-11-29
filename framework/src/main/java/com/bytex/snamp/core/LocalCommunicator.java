@@ -15,8 +15,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static com.bytex.snamp.internal.Utils.*;
 
 /**
  * Represents cluster-local communicator.

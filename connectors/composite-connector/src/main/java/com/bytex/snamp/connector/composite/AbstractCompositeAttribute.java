@@ -1,6 +1,8 @@
 package com.bytex.snamp.connector.composite;
 
-import javax.management.*;
+import javax.management.AttributeNotFoundException;
+import javax.management.Descriptor;
+import javax.management.MBeanAttributeInfo;
 
 /**
  * @author Roman Sakno

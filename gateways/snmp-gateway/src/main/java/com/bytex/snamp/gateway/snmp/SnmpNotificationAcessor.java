@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.NotificationOriginator;

@@ -1,8 +1,8 @@
 package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.Convert;
-import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.reflect.TypeToken;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;

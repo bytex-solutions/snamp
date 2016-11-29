@@ -1,8 +1,8 @@
 package com.bytex.snamp.connector.rshell;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.channels.CommandExecutionChannels;
+import com.google.common.collect.ImmutableMap;
 
 import java.net.URI;
 import java.net.URISyntaxException;

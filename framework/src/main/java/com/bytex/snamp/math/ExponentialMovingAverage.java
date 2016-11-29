@@ -6,7 +6,10 @@ import com.google.common.util.concurrent.AtomicDouble;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.*;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.LongSupplier;
 
 /**
  * An exponentially-weighted moving average.

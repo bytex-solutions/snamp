@@ -1,6 +1,8 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.*;
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.Convert;
+import com.bytex.snamp.MethodStub;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.osgi.framework.*;
@@ -10,7 +12,8 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.internal.Utils.*;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import static com.bytex.snamp.internal.Utils.isInstanceOf;
 
 /**
  * Represents an abstract for all SNAMP-specific bundle activators.

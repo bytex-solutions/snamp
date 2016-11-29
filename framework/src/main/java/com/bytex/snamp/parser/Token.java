@@ -3,6 +3,7 @@ package com.bytex.snamp.parser;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.stream.IntStream;
+
 import static com.bytex.snamp.io.IOUtils.contentAreEqual;
 
 /**

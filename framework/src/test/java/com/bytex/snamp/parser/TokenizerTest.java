@@ -1,6 +1,5 @@
 package com.bytex.snamp.parser;
 
-import com.bytex.snamp.connector.metrics.RangedGauge64;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * @author Roman Sakno

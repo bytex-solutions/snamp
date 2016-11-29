@@ -2,8 +2,9 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.jmx.FrameworkMBean;
+import com.bytex.snamp.jmx.OpenMBean;
+import com.bytex.snamp.management.SnampManagerImpl;
 
 import java.util.logging.Logger;
 
@@ -16,6 +17,7 @@ public final class SnampClusterNodeMBean extends OpenMBean implements FrameworkM
     public static final String OBJECT_NAME = "com.bytex.snamp.management:type=SnampClusterNode";
 
     private final Aggregator aggregator;
+    private final SnampManagerImpl manager;
 
     public SnampClusterNodeMBean(){
         super(
@@ -24,6 +26,7 @@ public final class SnampClusterNodeMBean extends OpenMBean implements FrameworkM
                 new MemberNameAttribute(),
                 new ResignOperation()
         );
+        manager = new SnampManagerImpl();
         aggregator = AbstractAggregator.builder()
                 .add(Logger.class, this::getLogger)
                 .build();
@@ -31,7 +34,7 @@ public final class SnampClusterNodeMBean extends OpenMBean implements FrameworkM
 
     @Override
     public Logger getLogger() {
-        return SnampCoreMBean.getLoggerImpl();
+        return manager.getLogger();
     }
 
     /**

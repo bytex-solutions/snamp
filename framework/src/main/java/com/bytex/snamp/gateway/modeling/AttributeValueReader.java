@@ -1,9 +1,12 @@
 package com.bytex.snamp.gateway.modeling;
 
-import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.reflect.TypeToken;
 
-import javax.management.*;
+import javax.management.AttributeNotFoundException;
+import javax.management.InvalidAttributeValueException;
+import javax.management.MBeanException;
+import javax.management.ReflectionException;
 import javax.management.openmbean.OpenType;
 import java.util.concurrent.Callable;
 

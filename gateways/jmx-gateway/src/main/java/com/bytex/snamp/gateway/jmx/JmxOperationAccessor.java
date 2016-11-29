@@ -7,8 +7,6 @@ import javax.management.ImmutableDescriptor;
 import javax.management.MBeanOperationInfo;
 import java.util.Set;
 
-import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
-
 /**
  * @author Evgeniy Kirichenko
  * @version 2.0
