@@ -71,7 +71,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
 
