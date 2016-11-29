@@ -184,13 +184,12 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setParameters(@PathParam("name") final String name, final Map<String, String> parameters) {
         return changingActions(getBundleContext(), config -> {
-            final TypedEntityConfiguration mrc = config.getEntities(entityType).get(name);
-            if(mrc != null) {
-                mrc.setParameters(parameters);
-                return true;
-            }
-            else
-                throw notFound();
+            config
+                    .getEntities(entityType)
+                    .getIfPresent(name)
+                    .orElseThrow(AbstractManagementService::notFound)
+                    .setParameters(parameters);
+            return true;
         });
     }
 

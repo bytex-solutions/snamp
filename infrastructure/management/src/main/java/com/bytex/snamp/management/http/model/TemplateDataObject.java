@@ -97,10 +97,8 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
     private static <F extends FeatureConfiguration> void export(final ManagedResourceTemplate configuration,
                                                                 final Map<String, ? extends AbstractFeatureDataObject<F>> source,
                                                                 final Class<F> featureType){
-        source.forEach((name, featureObject) -> {
-            final EntityMap<? extends F> features = configuration.getFeatures(featureType);
-            featureObject.exportTo(features.getOrAdd(name));
-        });
+        final EntityMap<? extends F> features = configuration.getFeatures(featureType);
+        source.forEach((name, featureObject) -> featureObject.exportTo(features.getOrAdd(name)));
     }
 
     @Override

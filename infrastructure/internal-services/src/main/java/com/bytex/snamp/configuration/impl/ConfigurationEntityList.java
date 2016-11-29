@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -28,6 +29,11 @@ abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiabl
             if (entity.isModified())
                 if (!reader.read(name, entity)) break;
         }
+    }
+
+    @Override
+    public final Optional<E> getIfPresent(final String entityID) {
+        return Optional.ofNullable(entities.get(entityID));
     }
 
     @Override

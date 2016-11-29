@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -15,6 +16,10 @@ public interface EntityMap<E extends EntityConfiguration> extends Map<String, E>
      * @return Configuration entity from the catalog.
      */
     E getOrAdd(final String entityID);
+
+    default Optional<E> getIfPresent(final String entityID){
+        return containsKey(entityID) ? Optional.of(get(entityID)) : Optional.empty();
+    }
 
     /**
      * Processes entity configuration contained in this collection.
