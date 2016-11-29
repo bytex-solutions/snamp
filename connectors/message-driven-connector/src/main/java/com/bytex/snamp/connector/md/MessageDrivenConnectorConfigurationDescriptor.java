@@ -38,7 +38,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 public abstract class MessageDrivenConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     private static final Supplier<String> EMPTY_STRING = () -> "";
     public static final String COMPONENT_INSTANCE_PARAM = "instanceName";
-    public static final String COMPONENT_NAME_PARAM = "componentName";
+    private static final String COMPONENT_NAME_PARAM = "componentName";
     private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
     private static final String RANGE_START_PARAM = "from";
     private static final String RANGE_END_PARAM = "to";

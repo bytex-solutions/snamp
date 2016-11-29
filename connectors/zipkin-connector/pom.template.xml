@@ -15,8 +15,15 @@
     <description>SNAMP resource connector that can handle Zipkin spans</description>
     <properties>
         <zipkin.version>1.16.2</zipkin.version>
+        <thrift.version>0.9.3</thrift.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>${thrift.version}</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>

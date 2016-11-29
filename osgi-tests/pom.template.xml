@@ -70,6 +70,7 @@
                         <com.sun.management.jmxremote.ssl>false</com.sun.management.jmxremote.ssl>
                         <pax.exam.osgi.unresolved.fail>true</pax.exam.osgi.unresolved.fail>
                         <mavenLocalRepository>${settings.localRepository}</mavenLocalRepository>
+                        <com.bytex.snamp.testing.project.dir>${project.parent.basedir}</com.bytex.snamp.testing.project.dir>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

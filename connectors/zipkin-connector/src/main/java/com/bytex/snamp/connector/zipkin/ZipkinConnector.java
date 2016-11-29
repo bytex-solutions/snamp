@@ -81,6 +81,7 @@ final class ZipkinConnector extends MessageDrivenConnector implements AsyncSpanC
 
             @Override
             public void close() {
+
             }
         };
     }
