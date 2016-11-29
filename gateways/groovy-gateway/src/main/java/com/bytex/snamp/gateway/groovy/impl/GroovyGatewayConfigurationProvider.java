@@ -18,7 +18,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 1.0
  */
 final class GroovyGatewayConfigurationProvider extends ConfigurationEntityDescriptionProviderImpl {
-    private static final Splitter PATH_SPLITTER = Splitter.on(';').trimResults();
+    private static final Splitter PATH_SPLITTER = Splitter.on(';').trimResults().omitEmptyStrings();
     private static final String SCRIPT_FILE_PARAM = "scriptFile";
     private static final String SCRIPT_PATH_PARAM = "scriptPath";
 

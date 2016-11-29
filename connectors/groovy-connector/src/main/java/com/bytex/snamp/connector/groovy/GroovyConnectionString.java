@@ -13,7 +13,7 @@ import java.util.List;
  * @version 2.0
  */
 final class GroovyConnectionString {
-    private static final Splitter PATH_SPLITTER = Splitter.on(';').trimResults();
+    private static final Splitter PATH_SPLITTER = Splitter.on(';').trimResults().omitEmptyStrings();
     private final String scriptName;
     private final URL[] path;
 

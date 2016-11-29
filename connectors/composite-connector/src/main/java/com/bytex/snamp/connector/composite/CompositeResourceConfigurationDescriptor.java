@@ -30,7 +30,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 final class CompositeResourceConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
-    private static final Splitter PATH_SPLITTER = Splitter.on(';').trimResults();
+    private static final Splitter PATH_SPLITTER = Splitter.on(';').trimResults().omitEmptyStrings();
     private static final Supplier<String> EMPTY_STRING = () -> "";
     private static final String SEPARATOR_PARAM = "separator";
     private static final String SOURCE_PARAM = "source";

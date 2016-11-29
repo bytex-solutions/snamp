@@ -30,7 +30,8 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
         this(getConnectionString(), ImmutableMap.of());
     }
 
-    protected static String getConnectionString(){
+
+    public static String getConnectionString(){
         String result = "file:" + getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator;
         result = "GroovyResource.groovy;" + result;
         return result;
