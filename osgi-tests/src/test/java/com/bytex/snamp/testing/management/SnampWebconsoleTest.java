@@ -11,10 +11,7 @@ import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -393,7 +390,7 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
             connection.disconnect();
         }
 
-        //read configuration - nothing should be different
+        //read configuration - new "extra" param with name "dummy" should present
         connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
@@ -435,6 +432,70 @@ public final class SnampWebconsoleTest extends AbstractJmxConnectorTest<TestOpen
             JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
             JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
             assertEquals(oldResponseJSON, newResponseJSON);
+        } finally {
+            connection.disconnect();
+        }
+
+        // append some attribute
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/console/resource/%s/attributes",
+                TEST_RESOURCE_NAME)).openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("charset", "utf-8");
+        connection.setDoOutput(true);
+
+        final JsonObject attributeMap = new JsonObject();
+        final JsonObject newAttribute1 = new JsonObject();
+        final JsonObject newAttribute1Params = new JsonObject();
+        newAttribute1Params.add("name", new JsonPrimitive("string"));
+        newAttribute1Params.add("objectName", new JsonPrimitive(BEAN_NAME));
+        newAttribute1Params.add("oid", new JsonPrimitive("1.1.123.0"));
+        newAttribute1.add("parameters", newAttribute1Params);
+        newAttribute1.add("readWriteTimeout", null);
+
+        final JsonObject newAttribute2 = new JsonObject();
+        final JsonObject newAttribute2Params = new JsonObject();
+        newAttribute2Params.add("name", new JsonPrimitive("string"));
+        newAttribute2Params.add("objectName", new JsonPrimitive(BEAN_NAME));
+        newAttribute2Params.add("oid", new JsonPrimitive("1.1.124.0"));
+        newAttribute2.add("parameters", newAttribute2Params);
+        newAttribute2.add("readWriteTimeout", null);
+
+        final JsonObject newAttribute3 = new JsonObject();
+        final JsonObject newAttribute3Params = new JsonObject();
+        newAttribute3Params.add("name", new JsonPrimitive("string"));
+        newAttribute3Params.add("objectName", new JsonPrimitive(BEAN_NAME));
+        newAttribute3Params.add("oid", new JsonPrimitive("1.1.125.0"));
+        newAttribute3.add("parameters", newAttribute3Params);
+        newAttribute3.add("readWriteTimeout", null);
+
+        attributeMap.add("123.0", newAttribute1);
+        attributeMap.add("124.0", newAttribute2);
+        attributeMap.add("125.0", newAttribute3);
+
+        IOUtils.writeString(attributeMap.toString(), connection.getOutputStream(), Charset.defaultCharset());
+        connection.connect();
+        try {
+            assertEquals(HttpURLConnection.HTTP_NO_CONTENT, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
+
+        // check if we replaced old attributes with new once
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
+            final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            JsonParser parser = new JsonParser();
+            JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
+            JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
+            oldResponseJSON.remove("attributes");
+            oldResponseJSON.add("attributes", attributeMap);
+            assertEquals(newResponseJSON, oldResponseJSON);
         } finally {
             connection.disconnect();
         }
