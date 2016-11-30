@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.md.groovy;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.md.NotificationParser;
+import com.bytex.snamp.connector.md.NotificationParserChain;
 import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
 import com.bytex.snamp.connector.md.notifications.SpanNotification;
 import com.bytex.snamp.connector.md.notifications.TimeMeasurementNotification;
@@ -24,7 +25,7 @@ import java.util.stream.Stream;
  * @version 2.0
  * @since 2.0
  */
-public abstract class GroovyNotificationParser extends Scriptlet implements NotificationParser {
+public abstract class GroovyNotificationParser extends Scriptlet implements NotificationParserChain {
     private static final String COMPONENT_NAME = "componentName";
     private static final String INSTANCE_NAME = "componentInstance";
 
@@ -120,6 +121,7 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
     protected final MeasurementFinalizer<ValueMeasurement> str = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofString);
 
     private final ThreadLocal<Collection<NotificationFactory>> notifications = ThreadLocal.withInitial(LinkedList::new);
+    private NotificationParser nextParser;
 
     /*
         DSL starter. Examples:
@@ -134,6 +136,11 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
     private void syntaxController(){     //this method is declared just for compile time control of DSL expressions
         define(measurement).of(bool);
         define(notification).setType("test").setSource(this);
+    }
+
+    @Override
+    public final void setFallbackParser(final NotificationParser value){
+        nextParser = value;
     }
 
     private Collection<NotificationFactory> getNotifications(){
@@ -194,7 +201,22 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
             submittedNotifs.add((NotificationFactory) result);
         else if (result instanceof Notification)
             submittedNotifs.add(() -> (Notification) result);
-        return submittedNotifs.stream().map(NotificationFactory::get);
+        Stream<Notification> stream = submittedNotifs.stream().map(NotificationFactory::get);
+        if (result instanceof Stream<?>)
+            stream = Stream.concat(stream, (Stream<Notification>) result);
+        return stream;
+    }
+
+    /**
+     * Delegates parsing to the fallback parser.
+     * @param headers Headers to parse.
+     * @param body Message body to parse.
+     * @return Parsing result.
+     * @throws Exception
+     */
+    @SpecialUse
+    protected final Stream<Notification> delegateParsing(final Map<String, ?> headers, final Object body) throws Exception{
+        return nextParser == null ? Stream.empty() : nextParser.parse(headers, body);
     }
 
     public final void setComponentName(final String value){

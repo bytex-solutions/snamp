@@ -166,7 +166,7 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
                 .getEntities(entityType)
                 .getIfPresent(name)
                 .map(EntityConfiguration::getParameters)
-                .orElseThrow(AbstractManagementService::notFound));
+                .<WebApplicationException>orElseThrow(AbstractManagementService::notFound));
     }
 
     /**

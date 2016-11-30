@@ -4,6 +4,7 @@ import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.*;
 
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -17,16 +18,19 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public abstract class ExposedServiceHandler<S, I> {
     private final Class<S> serviceType;
-    private final Filter filter;
+    private final Predicate<ServiceReference<?>> filter;
 
     protected ExposedServiceHandler(final Class<S> serviceType,
                           final String filter) throws InvalidSyntaxException {
-        this.filter = isNullOrEmpty(filter) ? null : FrameworkUtil.createFilter(filter);
-        this.serviceType = Objects.requireNonNull(serviceType);
+        this(serviceType, isNullOrEmpty(filter) ? ref -> true : FrameworkUtil.createFilter(filter)::match);
     }
 
     protected ExposedServiceHandler(final Class<S> serviceType){
-        this.filter = null;
+        this(serviceType, ref -> true);
+    }
+
+    protected ExposedServiceHandler(final Class<S> serviceType, final Predicate<ServiceReference<?>> filter){
+        this.filter = Objects.requireNonNull(filter);
         this.serviceType = Objects.requireNonNull(serviceType);
     }
 
@@ -55,7 +59,7 @@ public abstract class ExposedServiceHandler<S, I> {
         final ServiceReference<?>[] services = context.getBundle().getRegisteredServices();
         if (services != null)
             for (final ServiceReference<?> ref : services)
-                if ((filter == null || filter.match(ref)) && Utils.isInstanceOf(ref, serviceType))
+                if ((filter == null || filter.test(ref)) && Utils.isInstanceOf(ref, serviceType))
                     try {
                         handleService(serviceType.cast(context.getService(ref)), userData);
                     } finally {

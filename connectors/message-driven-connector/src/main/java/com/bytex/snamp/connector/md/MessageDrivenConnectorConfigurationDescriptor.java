@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
 import com.bytex.snamp.jmx.CompositeDataUtils;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.Filter;
@@ -36,7 +37,10 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  */
 public abstract class MessageDrivenConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
-    private static final Supplier<String> EMPTY_STRING = () -> "";
+    /**
+     * Supplier of empty string.
+     */
+    protected static final Supplier<String> EMPTY_STRING = () -> "";
     public static final String COMPONENT_INSTANCE_PARAM = "instanceName";
     private static final String COMPONENT_NAME_PARAM = "componentName";
     private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
