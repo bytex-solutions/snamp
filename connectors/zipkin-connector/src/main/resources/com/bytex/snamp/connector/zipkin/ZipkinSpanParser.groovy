@@ -62,12 +62,12 @@ private void parseZipkinSpan(Span zipkinSpan) {
             case Constants.ERROR:
                 def protocol = new TBinaryProtocol(new TMemoryInputTransport(it.value))
                 def notif = define notification
-                notif.source = this
                 notif.message = protocol.readString()
                 notif.type = "zipkin.error"
-                break
+                return true
             default:
                 expandUserData(it, result.userData)
+                return true
         }
     }
 }
