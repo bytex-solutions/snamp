@@ -150,7 +150,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
             put(GATEWAY_TYPE_PROPERTY, systemName);
         }
 
-        protected final String getType(){
+        public final String getType(){
             return get(GATEWAY_TYPE_PROPERTY);
         }
 
@@ -254,7 +254,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
             put(CONNECTOR_TYPE_PROPERTY, connectorName);
         }
 
-        protected final String getType(){
+        public final String getType(){
             return get(CONNECTOR_TYPE_PROPERTY);
         }
 

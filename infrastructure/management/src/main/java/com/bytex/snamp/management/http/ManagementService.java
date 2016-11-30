@@ -75,7 +75,7 @@ public final class ManagementService extends AbstractManagementService {
                         .put("description", entry.toString(Locale.getDefault()))
                         .put("state", ManagementUtils.getStateString(entry))
                         .put("version", entry.getVersion().toString())
-                        .put("type", RESOURCE_COMPONENT_TYPE_NAME)
+                        .put("type", entry.getType())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -99,7 +99,7 @@ public final class ManagementService extends AbstractManagementService {
                         .put("description", entry.toString(Locale.getDefault()))
                         .put("state", ManagementUtils.getStateString(entry))
                         .put("version", entry.getVersion().toString())
-                        .put("type", GATEWAY_COMPONENT_TYPE_NAME)
+                        .put("type", entry.getType())
                         .build())
                 .collect(Collectors.toList());
     }

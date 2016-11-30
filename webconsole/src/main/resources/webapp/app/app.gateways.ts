@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit} from '@angular/core';
 import { ApiClient } from './app.restClient';
 import { Gateway } from './model/model.gateway';
 import { Response } from '@angular/http';
@@ -12,30 +12,30 @@ import 'rxjs/add/operator/toPromise';
   selector: 'gateways',
   templateUrl: 'app/templates/gateways.html'
 })
-export class Gateways  {
-   gateways:Gateway[];
-   activeGateway:Gateway;
+export class Gateways implements OnInit {
+   gateways:Gateway[] = [];
+   activeGateway:Gateway = new Gateway("", "", {});
    http:ApiClient;
+   availableGateways :any[] = [];
    constructor(apiClient: ApiClient) {
         this.http = apiClient;
-        this.gateways = [];
-        this.prefillData();
-        if (this.gateways.length > 0) {
-            this.activeGateway = this.gateways[0];
-        } else {
-            this.activeGateway = new Gateway("", "", {});
-        }
    }
 
-    prefillData() {
+    ngOnInit() {
         this.http.get('/snamp/console/gateway')
             .map((res: Response) => res.json())
-            .do(data => console.log('All: ' +  JSON.stringify(data)))
-            .subscribe(res => {
-                for (let key in res) {
-                    this.gateways.push(new Gateway(key, res[key]['type'], res[key]['parameters']))
+            .do(data => console.log('All: ' + data))
+            .subscribe(data => {
+                for (let key in data) {
+                    this.gateways.push(new Gateway(key, data[key]['type'], data[key]['parameters']))
                 }
+                this.activeGateway = (this.gateways.length > 0) ? this.gateways[0] : this.activeGateway;
+                console.log(this.activeGateway);
             });
+
+        this.http.get('/snamp/console/management/gateways')
+            .map((res: Response) => res.json())
+            .subscribe(data => this.availableGateways = data);
     }
 
     setActiveGateway(gateway:any) {

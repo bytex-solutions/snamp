@@ -16,13 +16,11 @@
                 <!-- combobox with type -->
                 <div class="row">
                     <div class="col-md-3" >
-                        <label for="gtype" class="control-label">Select type:</label>
+                        <label class="control-label">Select type:</label>
                     </div>
                     <div class="col-md-9">
-                        <select class="form-control" id="gtype">
-                            <option disabled>Choose gateway type</option>
-                            <option selected>JMX</option>
-                            <option>SNMP</option>
+                        <select [(ngModel)]="activeGateway.type" class="form-control">
+                            <option *ngFor="let gateway of availableGateways" [value]="gateway.type">{{gateway.name}}</option>
                         </select>
                     </div>
                 </div>
