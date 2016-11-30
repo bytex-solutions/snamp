@@ -1,35 +1,42 @@
 package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
-import com.bytex.snamp.connector.md.MessageDrivenConnectorConfigurationDescriptor;
+import com.bytex.snamp.connector.md.MessageDrivenConnectorConfigurationDescriptionProvider;
 import com.google.common.base.Splitter;
-import static com.bytex.snamp.MapUtils.*;
-import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 import java.net.URL;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
+
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-final class HttpConnectorConfigurationDescriptor extends MessageDrivenConnectorConfigurationDescriptor {
+final class HttpConnectorConfigurationDescriptionProvider extends MessageDrivenConnectorConfigurationDescriptionProvider {
     private static final Supplier<String> EMPTY_STRING = () -> "";
     private static final Splitter PATH_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
     private static final String PARSER_SCRIPT_PATH_PARAM = "parserScriptPath";
     private static final String PARSER_SCRIPT_NAME_PARAM = "parserScript";
 
-    private static final LazySoftReference<HttpConnectorConfigurationDescriptor> INSTANCE = new LazySoftReference<>();
+    private static final LazySoftReference<HttpConnectorConfigurationDescriptionProvider> INSTANCE = new LazySoftReference<>();
 
-    private HttpConnectorConfigurationDescriptor(){
-
+    private static final class HttpConnectorCofigurationDescription extends ConnectorConfigurationDescription{
+        private HttpConnectorCofigurationDescription(){
+            super("ConnectorParameters", PARSER_SCRIPT_NAME_PARAM, PARSER_SCRIPT_PATH_PARAM);
+        }
     }
 
-    static HttpConnectorConfigurationDescriptor getInstance(){
-        return INSTANCE.lazyGet(HttpConnectorConfigurationDescriptor::new);
+    private HttpConnectorConfigurationDescriptionProvider(){
+        super(new HttpConnectorCofigurationDescription(), AttributeConfigurationDescription.createDefault(), EventConfigurationDescription.createDefault());
+    }
+
+    static HttpConnectorConfigurationDescriptionProvider getInstance(){
+        return INSTANCE.lazyGet(HttpConnectorConfigurationDescriptionProvider::new);
     }
 
     URL[] parseScriptPath(final Map<String, String> parameters){

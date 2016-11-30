@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bytex.snamp</groupId>
+    <artifactId>snamp</artifactId>
+    <version>2.0.0</version>
+  </parent>
+  <artifactId>groovy-xml-bridge</artifactId>
+  <version>2.0.0</version>
+  <packaging>bundle</packaging>
+  <name>OSGi bridge for groovy-xml</name>
+  <description>Provides correct wiring of groovy-xml bundle</description>
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-xml</artifactId>
+      <classifier>indy</classifier>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
+            <Require-Bundle>groovy-xml;bundle-version=${groovy.version}</Require-Bundle>
+            <Import-Package />
+            <Export-Package>com.bytex.snamp.scripting.groovy.xml</Export-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

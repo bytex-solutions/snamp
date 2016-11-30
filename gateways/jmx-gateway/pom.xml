@@ -40,7 +40,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>com.bytex.snamp.gateway.jmx</Bundle-SymbolicName>
+            <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.gateway.jmx.JmxGatewayActivator</Bundle-Activator>
             <Export-Package />
             <Provide-Capability>com.bytex.snamp.gateway; type=jmx</Provide-Capability>

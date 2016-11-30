@@ -54,7 +54,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>com.bytex.snamp.instrumentation</Bundle-SymbolicName>
+            <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
             <Export-Package>com.bytex.snamp.instrumentation.*</Export-Package>
           </instructions>
         </configuration>

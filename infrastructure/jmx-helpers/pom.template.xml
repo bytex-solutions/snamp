@@ -33,7 +33,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.bytex.snamp.jmx.json</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
                     </instructions>
                 </configuration>
             </plugin>

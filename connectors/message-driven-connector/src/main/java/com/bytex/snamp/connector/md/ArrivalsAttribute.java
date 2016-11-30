@@ -24,7 +24,7 @@ final class ArrivalsAttribute extends MetricHolderAttribute<ArrivalsRecorder, Ti
 
     ArrivalsAttribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(TimeMeasurementNotification.class, name, TYPE, descriptor, ArrivalsRecorder::new);
-        channels = MessageDrivenConnectorConfigurationDescriptor.parseChannels(descriptor);
+        channels = MessageDrivenConnectorConfigurationDescriptionProvider.parseChannels(descriptor);
     }
 
     @Override

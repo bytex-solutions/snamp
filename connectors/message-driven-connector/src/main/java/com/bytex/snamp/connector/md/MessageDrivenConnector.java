@@ -55,7 +55,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
 
     protected MessageDrivenConnector(final String resourceName,
                                      final Map<String, String> parameters,
-                                     final MessageDrivenConnectorConfigurationDescriptor descriptor) {
+                                     final MessageDrivenConnectorConfigurationDescriptionProvider descriptor) {
         {
             String componentInstance = descriptor.parseComponentInstance(parameters);
             if (isNullOrEmpty(componentInstance))

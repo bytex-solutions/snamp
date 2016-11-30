@@ -29,8 +29,8 @@ final class RangedTimerAttribute extends MetricHolderAttribute<RangedTimerRecord
     RangedTimerAttribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
         this(name,
                 descriptor,
-                MessageDrivenConnectorConfigurationDescriptor.parseRangeStartAsDuration(descriptor),
-                MessageDrivenConnectorConfigurationDescriptor.parseRangeEndAsDuration(descriptor));
+                MessageDrivenConnectorConfigurationDescriptionProvider.parseRangeStartAsDuration(descriptor),
+                MessageDrivenConnectorConfigurationDescriptionProvider.parseRangeEndAsDuration(descriptor));
     }
 
     @Override

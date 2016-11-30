@@ -118,7 +118,7 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
     @SpecialUse
     protected final MeasurementFinalizer<ValueMeasurement> fp = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofFP);
     @SpecialUse
-    protected final MeasurementFinalizer<ValueMeasurement> str = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofString);
+    protected final MeasurementFinalizer<ValueMeasurement> string = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofString);
 
     private final ThreadLocal<Collection<NotificationFactory>> notifications = ThreadLocal.withInitial(LinkedList::new);
     private NotificationParser nextParser;
@@ -212,7 +212,7 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
      * @param headers Headers to parse.
      * @param body Message body to parse.
      * @return Parsing result.
-     * @throws Exception
+     * @throws Exception Parsing is failed
      */
     @SpecialUse
     protected final Stream<Notification> delegateParsing(final Map<String, ?> headers, final Object body) throws Exception{

@@ -14,11 +14,11 @@ import javax.ws.rs.core.Application;
 final class JerseyServletContainer extends ServletContainer {
     private static final long serialVersionUID = 5710139261115306229L;
 
-    JerseyServletContainer(){
+    JerseyServletContainer() {
         super(createAppConfig());
     }
 
-    private static Application createAppConfig(){
+    private static Application createAppConfig() {
         final DefaultResourceConfig result = new DefaultResourceConfig();
         result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
         result.getSingletons().add(new AcceptorService());

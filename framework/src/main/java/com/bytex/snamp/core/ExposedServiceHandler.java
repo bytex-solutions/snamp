@@ -16,7 +16,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 1.0
  */
-public abstract class ExposedServiceHandler<S, I> {
+public abstract class ExposedServiceHandler<S, I, E extends Throwable> {
     private final Class<S> serviceType;
     private final Predicate<ServiceReference<?>> filter;
 
@@ -46,22 +46,24 @@ public abstract class ExposedServiceHandler<S, I> {
      * Handles a service instance exposed by the bundle referenced by {@link #getBundleContext()}.
      * @param service An instance of the service.
      * @param userData Additional user data.
+     * @return {@literal true} to process the next exposed service; otherwise, {@literal false}.
      */
-    protected abstract void handleService(final S service, final I userData);
+    protected abstract boolean handleService(final S service, final I userData) throws E;
 
     /**
      * Handles a service exposed by the bundle referenced by {@link #getBundleContext()}.
      * @param userData Any object to be passed into processing procedure.
      */
-    public final void handleService(final I userData) {
+    public final void handleService(final I userData) throws E {
         final BundleContext context = getBundleContext();
         if (context == null) throw new IllegalStateException("Unknown bundle context");
         final ServiceReference<?>[] services = context.getBundle().getRegisteredServices();
         if (services != null)
             for (final ServiceReference<?> ref : services)
-                if ((filter == null || filter.test(ref)) && Utils.isInstanceOf(ref, serviceType))
+                if (filter.test(ref) && Utils.isInstanceOf(ref, serviceType))
                     try {
-                        handleService(serviceType.cast(context.getService(ref)), userData);
+                        if(!handleService(serviceType.cast(context.getService(ref)), userData))
+                            return;
                     } finally {
                         context.ungetService(ref);
                     }

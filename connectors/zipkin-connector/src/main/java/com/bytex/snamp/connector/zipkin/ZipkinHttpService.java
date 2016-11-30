@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.zipkin;
 
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.core.ExposedServiceHandler;
 import zipkin.Codec;
@@ -21,15 +22,16 @@ import java.util.List;
  */
 @Path("/v1")
 public final class ZipkinHttpService {
-    private static final class SpanDispatcher extends ExposedServiceHandler<ManagedResourceConnector, List<Span>>{
+    private static final class SpanDispatcher extends ExposedServiceHandler<ManagedResourceConnector, List<Span>, ExceptionPlaceholder>{
         private SpanDispatcher() {
             super(ManagedResourceConnector.class);
         }
 
         @Override
-        protected void handleService(final ManagedResourceConnector service, final List<Span> spans) {
+        protected boolean handleService(final ManagedResourceConnector service, final List<Span> spans) {
             if(service instanceof AsyncSpanConsumer)
                 ((AsyncSpanConsumer) service).accept(spans, Callback.NOOP);
+            return true;
         }
     }
 

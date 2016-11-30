@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import java.util.Locale;
 
-import static com.bytex.snamp.connector.md.MessageDrivenConnectorConfigurationDescriptor.AttributeConfigurationDescription;
+import static com.bytex.snamp.connector.md.MessageDrivenConnectorConfigurationDescriptionProvider.AttributeConfigurationDescription;
 
 /**
  * @author Roman Sakno

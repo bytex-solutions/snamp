@@ -23,6 +23,7 @@
     <module>infrastructure/security</module>
     <module>webconsole</module>
     <module>infrastructure/scripting</module>
+    <module>infrastructure/groovy-xml-bridge</module>
     <module>features/platform</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
@@ -207,6 +208,20 @@
       <dependency>
         <groupId>org.codehaus.groovy</groupId>
         <artifactId>groovy</artifactId>
+        <version>${groovy.version}</version>
+        <classifier>indy</classifier>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-json</artifactId>
+        <version>${groovy.version}</version>
+        <classifier>indy</classifier>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-xml</artifactId>
         <version>${groovy.version}</version>
         <classifier>indy</classifier>
         <scope>provided</scope>

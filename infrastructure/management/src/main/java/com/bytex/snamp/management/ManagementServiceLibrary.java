@@ -1,5 +1,6 @@
 package com.bytex.snamp.management;
 
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ExposedServiceHandler;
@@ -125,7 +126,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
-    private static final class LogEntryRouter extends ExposedServiceHandler<FrameworkMBean, LogEntry> implements LogListener{
+    private static final class LogEntryRouter extends ExposedServiceHandler<FrameworkMBean, LogEntry, ExceptionPlaceholder> implements LogListener{
 
         private LogEntryRouter() throws InvalidSyntaxException {
             super(FrameworkMBean.class, String.format("(%s=%s)",
@@ -134,10 +135,11 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
 
         @Override
-        protected void handleService(final FrameworkMBean mbean, final LogEntry entry) {
+        protected boolean handleService(final FrameworkMBean mbean, final LogEntry entry) {
             final LogListener listener = mbean.queryObject(LogListener.class);
             if (listener != null)
                 listener.logged(entry);
+            return true;
         }
 
         /**

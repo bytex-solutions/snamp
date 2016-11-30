@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.zipkin;
 
+import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.instrumentation.Identifier;
@@ -30,27 +31,22 @@ import java.util.Map;
  * @since 2.0
  * @version 2.0
  */
+@ImportClass({BaseScriptASTTransformation.class,
+        ClassInfo.class,
+        ValueRecorder.class,
+        DefaultGroovyMethods.class,
+        IndyInterface.class,
+        Identifier.class,
+        Buffers.class,
+        ObjectName.class,
+        Logger.class,
+        LoggerFactory.class,
+        SaslException.class,
+        Subject.class,
+        LoginException.class,
+        GSSException.class,
+        CallbackHandler.class})
 public final class ZipkinConnectorActivator extends ManagedResourceActivator<ZipkinConnector> {
-    //Special array for maven-bundle-plugin for correct import of external packages
-    @SpecialUse
-    private static final Class<?>[] GROOVY_DEPS = {
-            BaseScriptASTTransformation.class,
-            ClassInfo.class,
-            ValueRecorder.class,
-            DefaultGroovyMethods.class,
-            IndyInterface.class,
-            Identifier.class,
-            Buffers.class,
-            ObjectName.class,
-            Logger.class,
-            LoggerFactory.class,
-            SaslException.class,
-            Subject.class,
-            LoginException.class,
-            GSSException.class,
-            CallbackHandler.class
-    };
-
     private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
     @SpecialUse

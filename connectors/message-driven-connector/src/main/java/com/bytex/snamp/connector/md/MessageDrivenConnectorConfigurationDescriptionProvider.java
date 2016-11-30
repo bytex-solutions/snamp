@@ -7,7 +7,6 @@ import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
 import com.bytex.snamp.jmx.CompositeDataUtils;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.Filter;
@@ -36,7 +35,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @since 2.0
  * @version 2.0
  */
-public abstract class MessageDrivenConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
+public abstract class MessageDrivenConnectorConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     /**
      * Supplier of empty string.
      */
@@ -143,11 +142,11 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
         }
     }
 
-    protected MessageDrivenConnectorConfigurationDescriptor(final ConfigurationEntityDescription<?>... descriptions){
+    protected MessageDrivenConnectorConfigurationDescriptionProvider(final ConfigurationEntityDescription<?>... descriptions){
         super(descriptions);
     }
 
-    protected MessageDrivenConnectorConfigurationDescriptor(){
+    protected MessageDrivenConnectorConfigurationDescriptionProvider(){
         super(ConnectorConfigurationDescription.createDefault(), AttributeConfigurationDescription.createDefault(), EventConfigurationDescription.createDefault());
     }
 
@@ -181,19 +180,19 @@ public abstract class MessageDrivenConnectorConfigurationDescriptor extends Conf
     }
 
     static double parseRangeStartAsDouble(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_START_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToDouble, MDConnectorAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, RANGE_START_PARAM, MessageDrivenConnectorConfigurationDescriptionProvider::objToDouble, MDConnectorAbsentConfigurationParameterException::new);
     }
 
     static double parseRangeEndAsDouble(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_END_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToDouble, MDConnectorAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, RANGE_END_PARAM, MessageDrivenConnectorConfigurationDescriptionProvider::objToDouble, MDConnectorAbsentConfigurationParameterException::new);
     }
 
     static Duration parseRangeStartAsDuration(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_START_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToDuration, MDConnectorAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, RANGE_START_PARAM, MessageDrivenConnectorConfigurationDescriptionProvider::objToDuration, MDConnectorAbsentConfigurationParameterException::new);
     }
 
     static Duration parseRangeEndAsDuration(final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_END_PARAM, MessageDrivenConnectorConfigurationDescriptor::objToDuration, MDConnectorAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, RANGE_END_PARAM, MessageDrivenConnectorConfigurationDescriptionProvider::objToDuration, MDConnectorAbsentConfigurationParameterException::new);
     }
 
     static long parseChannels(final AttributeDescriptor descriptor){

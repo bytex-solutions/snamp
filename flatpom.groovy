@@ -1,17 +1,17 @@
 @Grab(group = "org.apache.maven", module = "maven-model", version = "3.3.9")
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader
-@Grab(group = "org.apache.maven", module = "maven-model", version = "3.3.9")
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer
 
 @Grab(group = "commons-cli", module = "commons-cli", version = "1.3.1")
+import org.apache.commons.cli.*
+
 import java.nio.file.Paths
 
 String normalizeProperty(String key){
     if(key == null) return null;
     else if(key.startsWith("\${") && key.endsWith("}"))
         return key.substring(2, key.length() - 1)
-    else return key;
+    else return key
 }
 
 Properties createProperties(final Properties p1, final Properties p2){

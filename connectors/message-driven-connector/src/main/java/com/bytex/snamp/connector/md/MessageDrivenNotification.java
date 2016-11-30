@@ -18,7 +18,7 @@ public class MessageDrivenNotification extends AbstractNotificationInfo implemen
 
     protected MessageDrivenNotification(final String notifType, final Class<? extends Notification> notificationType, final String description, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
         super(notifType, description, notificationType, descriptor);
-        filter = MessageDrivenConnectorConfigurationDescriptor.parseNotificationFilter(descriptor);
+        filter = MessageDrivenConnectorConfigurationDescriptionProvider.parseNotificationFilter(descriptor);
     }
 
     public MessageDrivenNotification(final String notifType, final NotificationDescriptor descriptor) throws InvalidSyntaxException {

@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.md.groovy;
 
 import com.bytex.snamp.connector.md.MessageDrivenConnector;
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
+import com.google.common.collect.ObjectArrays;
 
 import java.io.IOException;
 import java.net.URL;
@@ -31,7 +32,10 @@ public final class GroovyNotificationParserLoader extends OSGiGroovyScriptEngine
                                           final Map<String, String> connectionParams,
                                           final boolean includeClassLoaderResources,
                                           final URL... paths) throws IOException {
-        super(connector.getClass().getClassLoader(), toProperties(connectionParams), GroovyNotificationParser.class, includeClassLoaderResources, paths);
+        super(connector.getClass().getClassLoader(),
+                toProperties(connectionParams),
+                GroovyNotificationParser.class,
+                includeClassLoaderResources ? ObjectArrays.concat(paths, connector.getClass().getResource("")) : paths);
         logger = connector.getLogger();
     }
 

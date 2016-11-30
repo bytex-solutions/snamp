@@ -1,29 +1,30 @@
 package com.bytex.snamp.connector.http;
 
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.FixedKeysMap;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.md.notifications.NotificationSource;
 import com.bytex.snamp.core.ExposedServiceHandler;
-import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.instrumentation.Measurement;
+import com.bytex.snamp.scripting.groovy.xml.XmlSlurperSlim;
 import com.google.common.base.Joiner;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.sun.jersey.spi.resource.Singleton;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
+import groovy.json.JsonSlurper;
 import org.osgi.framework.Version;
+import org.xml.sax.SAXException;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.util.List;
+import java.io.StringReader;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-import static com.bytex.snamp.internal.Utils.isInstanceOf;
 
 /**
  * Represents REST service used to handle measurement and monitoring events through HTTP.
@@ -46,39 +47,16 @@ public final class AcceptorService {
         }
     }
 
-    private static final class HttpAcceptorFinder extends ExposedServiceHandler<ManagedResourceConnector, Void>{
-        private final BundleContext context;
-        private HttpAcceptor acceptor;
-
-        private HttpAcceptorFinder(final BundleContext context, final NotificationSource source) {
-            super(ManagedResourceConnector.class, ref -> filter(ref, context, source));
-            this.context = context;
+    private static abstract class HttpAcceptorHandler<I, E extends Throwable> extends ExposedServiceHandler<ManagedResourceConnector, I, E>{
+        private HttpAcceptorHandler(){
+            super(ManagedResourceConnector.class);
         }
 
-        private static boolean filter(final ServiceReference<?> ref, final BundleContext context, final NotificationSource source){
-            final ServiceHolder<?> connector = new ServiceHolder<>(context, ref);
-            try{
-                return connector.get() instanceof HttpAcceptor && ((HttpAcceptor) connector.get()).represents(source);
-            } finally {
-                connector.release(context);
-            }
-        }
+        abstract boolean handleService(final HttpAcceptor acceptor, final I userData) throws E;
 
         @Override
-        protected BundleContext getBundleContext() {
-            return context;
-        }
-
-        @Override
-        protected void handleService(final ManagedResourceConnector service, final Void userData) {
-            acceptor = (HttpAcceptor) service;
-        }
-
-        private HttpAcceptor getAcceptor() throws AcceptorNotFoundException {
-            if (acceptor == null)
-                throw new AcceptorNotFoundException();
-            else
-                return acceptor;
+        protected final boolean handleService(final ManagedResourceConnector service, final I userData) throws E {
+            return !(service instanceof HttpAcceptor) || handleService((HttpAcceptor) service, userData);
         }
     }
 
@@ -86,20 +64,61 @@ public final class AcceptorService {
     private static final class HttpAcceptorLoader extends CacheLoader<NotificationSource, HttpAcceptor>{
         @Override
         public HttpAcceptor load(final NotificationSource source) throws AcceptorNotFoundException {
-            final HttpAcceptorFinder finder = new HttpAcceptorFinder(getBundleContextOfObject(this), source);
-            return finder.getAcceptor();
+            //used to find the appropriate acceptor
+            final class HttpAcceptorFinder extends HttpAcceptorHandler<Void, ExceptionPlaceholder>{
+                private HttpAcceptor acceptor;
+
+                private HttpAcceptor getAcceptor() throws AcceptorNotFoundException {
+                    if (acceptor == null)
+                        throw new AcceptorNotFoundException();
+                    else
+                        return acceptor;
+                }
+
+                @Override
+                boolean handleService(final HttpAcceptor acceptor, final Void userData) {
+                    final boolean found;
+                    if(found = acceptor.represents(source))
+                        this.acceptor = acceptor;
+                    return !found;
+                }
+            }
+
+            return new HttpAcceptorFinder().getAcceptor();
+        }
+    }
+
+    private static final class Payload{
+        private final Map<String, ?> headers;
+        private final Object body;
+
+        private Payload(final Map<String, ?> headers, final Object body){
+            this.headers = Objects.requireNonNull(headers);
+            this.body = Objects.requireNonNull(body);
+        }
+    }
+
+    private static final class CustomPayloadDispatcher extends HttpAcceptorHandler<Payload, Exception>{
+        @Override
+        protected boolean handleService(final HttpAcceptor acceptor, final Payload userData) throws Exception {
+            acceptor.dispatch(userData.headers, userData.body);
+            return true;
         }
     }
 
     private final LoadingCache<NotificationSource, HttpAcceptor> acceptors;
+    private final JsonSlurper jsonParser;
+    private final CustomPayloadDispatcher payloadDispatcher;
 
-    AcceptorService(){
+    AcceptorService() {
         acceptors = CacheBuilder.newBuilder()
                 .weakValues()
                 .build(new HttpAcceptorLoader());
+        jsonParser = new JsonSlurper();
+        payloadDispatcher = new CustomPayloadDispatcher();
     }
 
-    private static FixedKeysMap<String, List<String>> wrapHeaders(final HttpHeaders headers) {
+    private static Map<String, ?> wrapHeaders(final HttpHeaders headers) {
         final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
         return FixedKeysMap.readOnlyMap(requestHeaders::get, requestHeaders.keySet());
     }
@@ -120,9 +139,9 @@ public final class AcceptorService {
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response accept(final Measurement[] measurements, @Context final HttpHeaders headers){
+    public Response acceptMeasurements(@Context final HttpHeaders headers, final Measurement[] measurements){
         for(final Measurement measurement: measurements)
-            accept(measurement, headers);
+            acceptMeasurement(headers, measurement);
         return Response.noContent().build();
     }
 
@@ -134,7 +153,7 @@ public final class AcceptorService {
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/measurement")
-    public Response accept(final Measurement measurement, @Context final HttpHeaders headers){
+    public Response acceptMeasurement(@Context final HttpHeaders headers, final Measurement measurement){
         final NotificationSource source = new NotificationSource(measurement.getComponentName(), measurement.getInstanceName());
         //find the appropriate connector and redirect
         final HttpAcceptor acceptor;
@@ -160,10 +179,45 @@ public final class AcceptorService {
         return Response.noContent().build();
     }
 
-    @Consumes
+    private void acceptCustomPayload(final Map<String, ?> headers, final Object body) throws Exception {
+        payloadDispatcher.handleService(new Payload(headers, body));
+    }
+
+    @Consumes({MediaType.TEXT_PLAIN, MediaType.TEXT_HTML})
     @POST
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response accept(final String data, @Context final HttpHeaders headers){
+    @Produces({MediaType.TEXT_PLAIN})
+    public Response acceptTextPayload(@Context final HttpHeaders headers, final String data){
+        try {
+            acceptCustomPayload(wrapHeaders(headers), data);
+        } catch (final Exception e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        return Response.noContent().build();
+    }
+
+    @Consumes({MediaType.APPLICATION_JSON})
+    @POST
+    @Produces({MediaType.TEXT_PLAIN})
+    public Response acceptJsonPayload(@Context final HttpHeaders headers, final String json){
+        try(final StringReader reader = new StringReader(json)) {
+            acceptCustomPayload(wrapHeaders(headers), jsonParser.parse(reader));
+        } catch (final Exception e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        return Response.noContent().build();
+    }
+
+    @Consumes({MediaType.APPLICATION_XML, MediaType.TEXT_XML})
+    @POST
+    @Produces({MediaType.TEXT_PLAIN})
+    public Response acceptXmlPayload(@Context final HttpHeaders headers, final String xml) {
+        try (final StringReader reader = new StringReader(xml)) {
+            acceptCustomPayload(wrapHeaders(headers), new XmlSlurperSlim().parse(reader));
+        } catch (final SAXException e) {
+            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+        } catch (final Exception e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
         return Response.noContent().build();
     }
 }

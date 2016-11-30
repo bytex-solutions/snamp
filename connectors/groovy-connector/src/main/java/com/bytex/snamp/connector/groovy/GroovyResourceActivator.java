@@ -1,10 +1,12 @@
 package com.bytex.snamp.connector.groovy;
 
+import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
+import groovy.grape.GrabAnnotationTransformation;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
@@ -21,6 +23,7 @@ import static com.bytex.snamp.MapUtils.toProperties;
  * @version 2.0
  * @since 1.0
  */
+@ImportClass(GrabAnnotationTransformation.class)
 public final class GroovyResourceActivator extends ManagedResourceActivator<GroovyResourceConnector> {
     @SpecialUse
     public GroovyResourceActivator(){

@@ -61,7 +61,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>org.snmp4j</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Export-Package>org.snmp4j.*;-split-package:=merge-first,
                             !org.snmp4j.asn1.doc-files,
                             !org.snmp4j.doc-files,

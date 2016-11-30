@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.zipkin;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
-import com.bytex.snamp.connector.md.MessageDrivenConnectorConfigurationDescriptor;
+import com.bytex.snamp.connector.md.MessageDrivenConnectorConfigurationDescriptionProvider;
 import com.google.common.base.Splitter;
 import zipkin.collector.CollectorComponent;
 import zipkin.collector.kafka.KafkaCollector;
@@ -18,7 +18,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-final class ZipkinConnectorConfigurationDescriptionProvider extends MessageDrivenConnectorConfigurationDescriptor {
+final class ZipkinConnectorConfigurationDescriptionProvider extends MessageDrivenConnectorConfigurationDescriptionProvider {
     private static final Splitter PATH_SPLITTER = Splitter.on('/').omitEmptyStrings();
     private static final LazySoftReference<ZipkinConnectorConfigurationDescriptionProvider> INSTANCE = new LazySoftReference<>();
 

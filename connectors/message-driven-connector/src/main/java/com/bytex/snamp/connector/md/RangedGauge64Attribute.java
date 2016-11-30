@@ -29,8 +29,8 @@ final class RangedGauge64Attribute extends MetricHolderAttribute<RangedGauge64Re
     RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
         this(name,
                 descriptor,
-                MessageDrivenConnectorConfigurationDescriptor.parseRangeStartAsLong(descriptor),
-                MessageDrivenConnectorConfigurationDescriptor.parseRangeEndAsLong(descriptor));
+                MessageDrivenConnectorConfigurationDescriptionProvider.parseRangeStartAsLong(descriptor),
+                MessageDrivenConnectorConfigurationDescriptionProvider.parseRangeEndAsLong(descriptor));
     }
 
     @Override

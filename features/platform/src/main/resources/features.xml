@@ -45,8 +45,11 @@
     <feature name="snamp-scripting-support" description="SNAMP support bundles for scripting" version="${project.version}">
         <feature version="${project.version}">snamp-core</feature>
         <bundle>mvn:org.codehaus.groovy/groovy/${groovy.version}/jar/indy</bundle>
+        <bundle>mvn:org.codehaus.groovy/groovy-xml/${groovy.version}/jar/indy</bundle>
+        <bundle>mvn:org.codehaus.groovy/groovy-json/${groovy.version}/jar/indy</bundle>
         <bundle>mvn:org.apache.ivy/ivy/${apache.ivy.version}</bundle>
         <bundle>mvn:com.bytex.snamp/scripting/${snamp.scripting.version}</bundle>
+        <bundle>mvn:com.bytex.snamp/groovy-xml-bridge/${snamp.scripting.version}</bundle>
     </feature>
 
     <feature name="snamp-management" description="SNAMP management tools" version="${project.version}">

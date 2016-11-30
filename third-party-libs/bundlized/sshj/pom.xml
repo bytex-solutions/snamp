@@ -73,7 +73,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>net.schmizz</Bundle-SymbolicName>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Export-Package>net.schmizz.concurrent,
                             net.schmizz.sshj,
                             net.schmizz.keepalive,

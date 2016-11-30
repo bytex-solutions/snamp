@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 public class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> {
     private final WriteOnceRef<ExecutorService> threadPool;
     private final WriteOnceRef<Logger> logger;
-    private final WriteOnceRef<MessageDrivenConnectorConfigurationDescriptor> configurationParser;
+    private final WriteOnceRef<MessageDrivenConnectorConfigurationDescriptionProvider> configurationParser;
 
     public MessageDrivenAttributeRepository(final String resourceName,
                                      final Duration syncPeriod) {
@@ -32,7 +32,7 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
         configurationParser = new WriteOnceRef<>();
     }
 
-    final void init(final ExecutorService threadPool, final MessageDrivenConnectorConfigurationDescriptor parser, final Logger logger) {
+    final void init(final ExecutorService threadPool, final MessageDrivenConnectorConfigurationDescriptionProvider parser, final Logger logger) {
         this.threadPool.set(threadPool);
         this.logger.set(logger);
         this.configurationParser.set(parser);

@@ -7,6 +7,7 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
 import com.google.common.collect.ImmutableMap;
 
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -26,13 +27,22 @@ public abstract class AbstractHttpConnectorTest extends AbstractResourceConnecto
         super(CONNECTOR_TYPE, instanceName, ImmutableMap.of("componentName", COMPONENT_NAME));
     }
 
-    private static void httpPost(final String jsonData, final String url) throws IOException {
+    protected AbstractHttpConnectorTest(final String instanceName, final String scriptPath, final String scriptName){
+        super(CONNECTOR_TYPE, instanceName, ImmutableMap.of(
+                "componentName", COMPONENT_NAME,
+                "parserScript", scriptName,
+                "parserScriptPath", scriptPath
+                )
+        );
+    }
+
+    private static void httpPost(final String data, final String url, final MediaType type) throws IOException {
         final URL postAddress = new URL(url);
         final HttpURLConnection connection = (HttpURLConnection)postAddress.openConnection();
         connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Content-Type", type.toString());
         connection.setDoOutput(true);
-        IOUtils.writeString(jsonData, connection.getOutputStream(), Charset.defaultCharset());
+        IOUtils.writeString(data, connection.getOutputStream(), Charset.defaultCharset());
         connection.connect();
         try{
             assertEquals(204, connection.getResponseCode());
@@ -42,10 +52,22 @@ public abstract class AbstractHttpConnectorTest extends AbstractResourceConnecto
     }
 
     protected static void sendMeasurement(final Measurement measurement) throws IOException{
-        httpPost(measurement.toJsonString(), "http://localhost:8181/snamp/data/acquisition");
+        httpPost(measurement.toJsonString(), "http://localhost:8181/snamp/data/acquisition/measurement", MediaType.APPLICATION_JSON_TYPE);
     }
 
     protected static void sendMeasurements(final Measurement... measurements) throws IOException{
-        httpPost(Measurement.toJsonString(measurements), "http://localhost:8181/snamp/data/acquisition/batch");
+        httpPost(Measurement.toJsonString(measurements), "http://localhost:8181/snamp/data/measurements", MediaType.APPLICATION_JSON_TYPE);
+    }
+
+    protected static void sendText(final String text) throws IOException{
+        httpPost(text, "http://localhost:8181/snamp/data/acquisition", MediaType.TEXT_PLAIN_TYPE);
+    }
+
+    protected static void sendJson(final String json) throws IOException{
+        httpPost(json, "http://localhost:8181/snamp/data/acquisition", MediaType.APPLICATION_JSON_TYPE);
+    }
+
+    protected static void sendXml(final String xml) throws IOException{
+        httpPost(xml, "http://localhost:8181/snamp/data/acquisition", MediaType.TEXT_XML_TYPE);
     }
 }

@@ -1,10 +1,11 @@
 package com.bytex.snamp.connector.http;
 
+import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.connector.md.MessageDrivenConnector;
-import com.bytex.snamp.connector.md.NotificationParser;
 import com.bytex.snamp.connector.md.groovy.GroovyNotificationParser;
 import com.bytex.snamp.connector.md.groovy.GroovyNotificationParserLoader;
 import com.bytex.snamp.connector.md.notifications.NotificationSource;
+import groovy.grape.GrabAnnotationTransformation;
 import groovy.lang.Binding;
 
 import java.net.URL;
@@ -19,21 +20,22 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
+@ImportClass(GrabAnnotationTransformation.class)
 final class HttpAcceptor extends MessageDrivenConnector {
 
     HttpAcceptor(final String resourceName, final Map<String, String> parameters) {
-        super(resourceName, parameters, HttpConnectorConfigurationDescriptor.getInstance());
+        super(resourceName, parameters, HttpConnectorConfigurationDescriptionProvider.getInstance());
     }
 
     @Override
     protected GroovyNotificationParser createNotificationParser(final String resourceName, final NotificationSource source, final Map<String, String> parameters) {
         return callUnchecked(() -> {
-            final URL[] path = HttpConnectorConfigurationDescriptor.getInstance().parseScriptPath(parameters);
+            final URL[] path = HttpConnectorConfigurationDescriptionProvider.getInstance().parseScriptPath(parameters);
             //load standard HTTP parser for measurements
             GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, parameters, true, path);
             final GroovyNotificationParser mainParser = loader.createScript("MeasurementParser.groovy", new Binding());
             //load user-defined parser
-            final String scriptFile = HttpConnectorConfigurationDescriptor.getInstance().parseScriptFile(parameters);
+            final String scriptFile = HttpConnectorConfigurationDescriptionProvider.getInstance().parseScriptFile(parameters);
             if(!isNullOrEmpty(scriptFile))   //user-defined parser as fallback parser
                 mainParser.setFallbackParser(loader.createScript(scriptFile, new Binding()));
             return mainParser;

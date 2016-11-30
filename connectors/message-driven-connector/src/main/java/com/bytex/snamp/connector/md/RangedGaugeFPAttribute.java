@@ -29,8 +29,8 @@ final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRe
     RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor) throws MDConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
         this(name,
                 descriptor,
-                MessageDrivenConnectorConfigurationDescriptor.parseRangeStartAsDouble(descriptor),
-                MessageDrivenConnectorConfigurationDescriptor.parseRangeEndAsDouble(descriptor));
+                MessageDrivenConnectorConfigurationDescriptionProvider.parseRangeStartAsDouble(descriptor),
+                MessageDrivenConnectorConfigurationDescriptionProvider.parseRangeEndAsDouble(descriptor));
     }
 
     @Override

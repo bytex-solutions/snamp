@@ -11,6 +11,7 @@ import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
 import javax.management.JMException;
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -23,7 +24,9 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
     private static final String INSTANCE_NAME = "testInstance";
 
     public HttpConnectorTest() {
-        super(INSTANCE_NAME);
+        super(INSTANCE_NAME,
+                "file:" + getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator,
+                "HttpAcceptorParser.groovy");
     }
 
     @Override
@@ -55,6 +58,24 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
     }
 
     @Test
+    public void testCustomTextParser() throws IOException, JMException {
+        sendText("Hello, world");
+        testAttribute("strValue", TypeToken.of(String.class), "Hello, world", true);
+    }
+
+    @Test
+    public void testCustomJsonParser() throws IOException, JMException {
+        sendJson("{\"content\": \"Frank Underwood\"}");
+        testAttribute("strValue", TypeToken.of(String.class), "Frank Underwood", true);
+    }
+
+    @Test
+    public void testCustomXmlParser() throws IOException, JMException {
+        sendXml("<root><content>Barry Burton</content></root>");
+        testAttribute("strValue", TypeToken.of(String.class), "Barry Burton", true);
+    }
+
+    @Test
     public void configurationTest(){
         testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
                 "instanceName",
@@ -78,7 +99,12 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
             attribute.getParameters().put("gauge", "gauge64");
             attribute.setAlternativeName(StandardMeasurements.FREE_RAM.getMeasurementName());
         });
+        attributes.addAndConsume("attribute2", attribute -> {
+            attribute.getParameters().put("gauge", "stringGauge");
+            attribute.setAlternativeName("customStrings");
+        });
         attributes.addAndConsume("longValue", attribute -> attribute.getParameters().put("gauge", "get lastValue from gauge64 attribute1"));
+        attributes.addAndConsume("strValue", attribute -> attribute.getParameters().put("gauge", "get lastValue from stringGauge attribute2"));
         attributes.addAndConsume("min", attribute -> attribute.getParameters().put("gauge", "get minValue from gauge64 attribute1"));
         attributes.addAndConsume("max", attribute -> attribute.getParameters().put("gauge", "get maxValue from gauge64 attribute1"));
     }

@@ -29,7 +29,7 @@ abstract class TypedMessageDrivenAttribute<N extends Notification> extends Messa
                                 final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(name, type, description, specifier, descriptor);
         expectedType = Objects.requireNonNull(notificationType);
-        filter = MessageDrivenConnectorConfigurationDescriptor.parseNotificationFilter(descriptor);
+        filter = MessageDrivenConnectorConfigurationDescriptionProvider.parseNotificationFilter(descriptor);
     }
 
     protected abstract Object changeAttributeValue(final N notification) throws Exception;

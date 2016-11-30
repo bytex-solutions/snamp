@@ -282,6 +282,22 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+            <version>${groovy.version}</version>
+            <classifier>indy</classifier>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-xml</artifactId>
+            <version>${groovy.version}</version>
+            <classifier>indy</classifier>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.ivy</groupId>
             <artifactId>ivy</artifactId>
             <version>${apache.ivy.version}</version>
@@ -357,6 +373,7 @@
     <module>infrastructure/security</module>
     <module>webconsole</module>
     <module>infrastructure/scripting</module>
+    <module>infrastructure/groovy-xml-bridge</module>
     <module>features/platform</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
