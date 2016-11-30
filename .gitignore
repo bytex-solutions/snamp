@@ -12,3 +12,5 @@ images/
 webconsole/src/main/resources/webapp/node_modules/
 webconsole/src/main/resources/webapp/app/*.js
 webconsole/src/main/resources/webapp/app/*.map
+webconsole/src/main/resources/webapp/app/model/*.js
+webconsole/src/main/resources/webapp/app/model/*.map
