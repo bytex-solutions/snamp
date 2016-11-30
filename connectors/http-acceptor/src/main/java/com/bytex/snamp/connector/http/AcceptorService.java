@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.http;
 import com.bytex.snamp.FixedKeysMap;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.md.notifications.NotificationSource;
+import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.instrumentation.Measurement;
 import com.google.common.base.Joiner;
@@ -18,6 +19,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -44,26 +46,48 @@ public final class AcceptorService {
         }
     }
 
+    private static final class HttpAcceptorFinder extends ExposedServiceHandler<ManagedResourceConnector, Void>{
+        private final BundleContext context;
+        private HttpAcceptor acceptor;
+
+        private HttpAcceptorFinder(final BundleContext context, final NotificationSource source) {
+            super(ManagedResourceConnector.class, ref -> filter(ref, context, source));
+            this.context = context;
+        }
+
+        private static boolean filter(final ServiceReference<?> ref, final BundleContext context, final NotificationSource source){
+            final ServiceHolder<?> connector = new ServiceHolder<>(context, ref);
+            try{
+                return connector.get() instanceof HttpAcceptor && ((HttpAcceptor) connector.get()).represents(source);
+            } finally {
+                connector.release(context);
+            }
+        }
+
+        @Override
+        protected BundleContext getBundleContext() {
+            return context;
+        }
+
+        @Override
+        protected void handleService(final ManagedResourceConnector service, final Void userData) {
+            acceptor = (HttpAcceptor) service;
+        }
+
+        private HttpAcceptor getAcceptor() throws AcceptorNotFoundException {
+            if (acceptor == null)
+                throw new AcceptorNotFoundException();
+            else
+                return acceptor;
+        }
+    }
+
     //represents loader of published HTTP acceptors in the form of cache with lazy values
     private static final class HttpAcceptorLoader extends CacheLoader<NotificationSource, HttpAcceptor>{
         @Override
         public HttpAcceptor load(final NotificationSource source) throws AcceptorNotFoundException {
-            final BundleContext context = getBundleContextOfObject(this);
-            final ServiceReference<?>[] services = context.getBundle().getRegisteredServices();
-            for(final ServiceReference<?> ref: services)
-                if(isInstanceOf(ref, ManagedResourceConnector.class)){
-                    final ServiceHolder<?> connector = new ServiceHolder<>(context, ref);
-                    try{
-                        if(connector.get() instanceof HttpAcceptor){
-                            final HttpAcceptor acceptor = (HttpAcceptor) connector.get();
-                            if(acceptor.represents(source))
-                                return acceptor;
-                        }
-                    } finally {
-                        connector.release(context);
-                    }
-                }
-            throw new AcceptorNotFoundException();
+            final HttpAcceptorFinder finder = new HttpAcceptorFinder(getBundleContextOfObject(this), source);
+            return finder.getAcceptor();
         }
     }
 
@@ -92,9 +116,10 @@ public final class AcceptorService {
                 .build();
     }
 
-    @Path("/batch")
+    @Path("/measurements")
     @POST
     @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response accept(final Measurement[] measurements, @Context final HttpHeaders headers){
         for(final Measurement measurement: measurements)
             accept(measurement, headers);
@@ -108,6 +133,7 @@ public final class AcceptorService {
     @Consumes(MediaType.APPLICATION_JSON)
     @POST
     @Produces(MediaType.TEXT_PLAIN)
+    @Path("/measurement")
     public Response accept(final Measurement measurement, @Context final HttpHeaders headers){
         final NotificationSource source = new NotificationSource(measurement.getComponentName(), measurement.getInstanceName());
         //find the appropriate connector and redirect
@@ -131,6 +157,13 @@ public final class AcceptorService {
             acceptor.getLogger().log(Level.SEVERE, String.format("Failed to dispatch measurement %s", measurement), e);
             throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
+        return Response.noContent().build();
+    }
+
+    @Consumes
+    @POST
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response accept(final String data, @Context final HttpHeaders headers){
         return Response.noContent().build();
     }
 }

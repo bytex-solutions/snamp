@@ -3,6 +3,7 @@ package com.bytex.snamp.scripting.groovy;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.StandardSystemProperty;
+import com.google.common.collect.ObjectArrays;
 import groovy.lang.Binding;
 import groovy.lang.Script;
 import groovy.util.GroovyScriptEngine;
@@ -37,7 +38,15 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
                                   final Properties properties,
                                   final Class<B> baseScriptClass,
                                   final URL... paths) throws IOException {
-        super(paths, rootClassLoader);
+        this(rootClassLoader, properties, baseScriptClass, false, paths);
+    }
+
+    public OSGiGroovyScriptEngine(final ClassLoader rootClassLoader,
+                                  final Properties properties,
+                                  final Class<B> baseScriptClass,
+                                  final boolean includeClassLoaderResources,
+                                  final URL... paths) throws IOException {
+        super(includeClassLoaderResources ? ObjectArrays.concat(paths, rootClassLoader.getResource("")) : paths, rootClassLoader);
         setupCompilerConfiguration(getConfig(), properties, baseScriptClass);
         rootBinding = new Binding();
         this.baseScriptClass = Objects.requireNonNull(baseScriptClass);
