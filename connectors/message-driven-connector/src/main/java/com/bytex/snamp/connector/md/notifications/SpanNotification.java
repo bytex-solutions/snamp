@@ -3,9 +3,7 @@ package com.bytex.snamp.connector.md.notifications;
 import com.bytex.snamp.instrumentation.Identifier;
 import com.bytex.snamp.instrumentation.Span;
 
-import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Represents event with description of span occurred in program.
@@ -41,9 +39,5 @@ public final class SpanNotification extends TimeMeasurementNotification {
 
     public Identifier getCorrelationID(){
         return getMeasurement().getCorrelationID();
-    }
-
-    public Duration getDuration() {
-        return Duration.ofNanos(getMeasurement().getDuration(TimeUnit.NANOSECONDS));
     }
 }

@@ -1,8 +1,6 @@
 package com.bytex.snamp.instrumentation;
 
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonDeserialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -41,8 +39,6 @@ public final class Span extends TimeMeasurement {
     }
 
     @JsonProperty("correl")
-    @JsonSerialize(using = IdentifierSerializer.class)
-    @JsonDeserialize(using = IdentifierDeserializer.class)
     public void setCorrelationID(final Identifier value) {
         if (value == null)
             throw new IllegalArgumentException();
@@ -51,8 +47,6 @@ public final class Span extends TimeMeasurement {
     }
 
     @JsonProperty("s")
-    @JsonSerialize(using = IdentifierSerializer.class)
-    @JsonDeserialize(using = IdentifierDeserializer.class)
     public Identifier getSpanID(){
         return spanID;
     }
@@ -65,8 +59,6 @@ public final class Span extends TimeMeasurement {
     }
 
     @JsonProperty("ps")
-    @JsonSerialize(using = IdentifierSerializer.class)
-    @JsonDeserialize(using = IdentifierDeserializer.class)
     public Identifier getParentSpanID(){
         return parentSpanID;
     }

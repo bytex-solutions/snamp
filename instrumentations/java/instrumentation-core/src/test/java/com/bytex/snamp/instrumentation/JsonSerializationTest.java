@@ -34,6 +34,7 @@ public final class JsonSerializationTest extends Assert {
         original.setDefaultComponentName();
         original.setDefaultInstanceName();
         original.setDuration(42L, TimeUnit.NANOSECONDS);
+        assertEquals(new Long(42L), original.convertTo(long.class));
         original.getUserData().put("key", "value");
         final ObjectMapper mapper = new ObjectMapper();
         final StringWriter writer = new StringWriter(1024);
@@ -41,7 +42,7 @@ public final class JsonSerializationTest extends Assert {
         final Measurement actual = mapper.readValue(writer.toString(), Measurement.class);
         writer.close();
         assertTrue(actual instanceof TimeMeasurement);
-        assertEquals(original.getDuration(TimeUnit.NANOSECONDS), ((TimeMeasurement)actual).getDuration(TimeUnit.NANOSECONDS));
+        assertEquals(original.getDuration(TimeUnit.NANOSECONDS), ((TimeMeasurement)actual).getDuration(TimeUnit.NANOSECONDS), 0.01D);
         assertEquals(original.getTimeStamp(), actual.getTimeStamp());
         assertEquals(original.getUserData(), actual.getUserData());
     }

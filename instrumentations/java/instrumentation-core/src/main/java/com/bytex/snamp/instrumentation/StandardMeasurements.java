@@ -1,52 +1,90 @@
 package com.bytex.snamp.instrumentation;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Represents well-known measurements.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public enum StandardMeasurements {
+public final class StandardMeasurements {
     /**
-     * Represents amount of available RAM in bytes.
+     * Represents amount of available RAM, in bytes.
      */
-    FREE_RAM("freeRAM"),
+    public static final String FREE_RAM = "freeRAM";
 
     /**
-     * Represents amount of used RAM in bytes.
+     * Represents amount of used RAM, in bytes.
      */
-    USED_RAM("usedRAM"),
+    public static final String USED_RAM = "usedRAM";
 
     /**
-     * Represents utilization of CPU in percents.
+     * Represents amount of available disk space, in bytes
      */
-    CPU_LOAD("cpuLoad"),
-    ;
-    private final String measurementName;
+    public static final String FREE_DISK_SPACE = "freeDiskSpace";
 
-    StandardMeasurements(final String name){
-        measurementName = name;
+    public static final String USED_DISK_SPACE = "usedDiskSpace";
+
+    public static final String RESPONSE_TIME = "responseTime";
+
+    /**
+     * Represents number of requests per second.
+     */
+    public static final String RPS = "rps";
+
+    /**
+     * Represents utilization of CPU, in percents.
+     */
+    public static final String CPU_LOAD = "cpuLoad";
+
+    private StandardMeasurements(){
+        throw new InstantiationError();
     }
 
-    public final String getMeasurementName(){
-        return measurementName;
+    private static IntegerMeasurement createIntegerMeasurement(final long value, final String name){
+        final IntegerMeasurement measurement = new IntegerMeasurement(value);
+        measurement.setName(name);
+        return measurement;
+    }
+
+    private static FloatingPointMeasurement createFloatingPointMeasurement(final double value, final String name){
+        final FloatingPointMeasurement measurement = new FloatingPointMeasurement(value);
+        measurement.setName(name);
+        return measurement;
+    }
+
+    private static TimeMeasurement createTimeMeasurement(final long duration, final TimeUnit unit, final String name){
+        final TimeMeasurement measurement = new TimeMeasurement(duration, unit);
+        measurement.setName(name);
+        return measurement;
     }
 
     public static IntegerMeasurement freeRam(final long freeRamInBytes){
-        final IntegerMeasurement measurement = new IntegerMeasurement(freeRamInBytes);
-        measurement.setName(FREE_RAM);
-        return measurement;
+        return createIntegerMeasurement(freeRamInBytes, FREE_RAM);
     }
 
     public static IntegerMeasurement usedRAM(final long usedRamInBytes){
-        final IntegerMeasurement measurement = new IntegerMeasurement(usedRamInBytes);
-        measurement.setName(USED_RAM);
-        return measurement;
+        return createIntegerMeasurement(usedRamInBytes, USED_RAM);
     }
 
-    public static FloatingPointMeasurement cpuLoad(final double load){
-        final FloatingPointMeasurement measurement = new FloatingPointMeasurement(load);
-        measurement.setValue(load);
-        return measurement;
+    public static FloatingPointMeasurement cpuLoad(final double load) {
+        return createFloatingPointMeasurement(load, CPU_LOAD);
+    }
+
+    public static IntegerMeasurement freeDiskSpace(final long space){
+        return createIntegerMeasurement(space, FREE_DISK_SPACE);
+    }
+
+    public static IntegerMeasurement usedDiskSpace(final long space){
+        return createIntegerMeasurement(space, USED_DISK_SPACE);
+    }
+
+    public static TimeMeasurement responseTime(final long duration, final TimeUnit unit){
+        return createTimeMeasurement(duration, unit, RESPONSE_TIME);
+    }
+
+    public static IntegerMeasurement rps(final long requests){
+        return createIntegerMeasurement(requests, RPS);
     }
 }

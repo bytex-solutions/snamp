@@ -4,7 +4,6 @@ import com.bytex.snamp.instrumentation.TimeMeasurement;
 
 import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Represents measurement of time.
@@ -34,7 +33,7 @@ public class TimeMeasurementNotification extends MeasurementNotification<TimeMea
         return measurement;
     }
 
-    public Duration getDuration() {
-        return Duration.ofNanos(getMeasurement().getDuration(TimeUnit.NANOSECONDS));
+    public final Duration getDuration() {
+        return getMeasurement().convertTo(Duration.class);
     }
 }

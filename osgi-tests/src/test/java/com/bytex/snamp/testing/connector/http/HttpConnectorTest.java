@@ -97,7 +97,7 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         attributes.addAndConsume("attribute1", attribute -> {
             attribute.getParameters().put("gauge", "gauge64");
-            attribute.setAlternativeName(StandardMeasurements.FREE_RAM.getMeasurementName());
+            attribute.setAlternativeName(StandardMeasurements.FREE_RAM);
         });
         attributes.addAndConsume("attribute2", attribute -> {
             attribute.getParameters().put("gauge", "stringGauge");

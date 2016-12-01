@@ -63,13 +63,6 @@ public abstract class Measurement implements Externalizable {
             name = value;
     }
 
-    public void setName(final StandardMeasurements value){
-        if(value == null)
-            throw new IllegalArgumentException();
-        else
-            name = value.getMeasurementName();
-    }
-
     @JsonIgnore
     public final String getMessage(final String defaultMessage){
         final String message = userData.get(MESSAGE_FIELD);

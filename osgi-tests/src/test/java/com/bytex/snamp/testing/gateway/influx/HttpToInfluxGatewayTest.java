@@ -142,6 +142,6 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
-        events.addAndConsume(StandardMeasurements.USED_RAM.getMeasurementName(), event -> event.setAlternativeName("com.bytex.snamp.measurement.value"));
+        events.addAndConsume(StandardMeasurements.USED_RAM, event -> event.setAlternativeName("com.bytex.snamp.measurement.value"));
     }
 }

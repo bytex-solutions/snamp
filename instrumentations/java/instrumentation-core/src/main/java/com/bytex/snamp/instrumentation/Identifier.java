@@ -3,15 +3,15 @@ package com.bytex.snamp.instrumentation;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.WeakHashMap;
 
 /**
  * Represents unique identifier.
@@ -19,6 +19,8 @@ import java.util.WeakHashMap;
  * @version 2.0
  * @since 2.0
  */
+@JsonSerialize(using = IdentifierSerializer.class)
+@JsonDeserialize(using = IdentifierDeserializer.class)
 public final class Identifier implements Serializable {
     private static final class SecureRandomHolder{
         private static final SecureRandom INSTANCE = new SecureRandom();
