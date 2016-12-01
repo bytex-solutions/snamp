@@ -25,11 +25,18 @@ export abstract class Entity {
     }
 
     public setParameter(parameter:KeyValue) {
+        let found:boolean = false;
         this.parameters.forEach(function(obj:KeyValue) {
-            if (obj.key == parameter.key) {
+            if (obj.key === parameter.key) {
                 obj.value = parameter.value;
+                found = true;
+                return;
             }
         });
+        // if nothing is found - just push it into the array
+        if (!found) {
+            this.parameters.push(parameter);
+        }
     }
 }
 

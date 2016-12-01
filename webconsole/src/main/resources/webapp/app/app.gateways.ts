@@ -1,4 +1,4 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ApiClient } from './app.restClient';
 import { Gateway } from './model/model.gateway';
 import { KeyValue } from './model/model.entity';
@@ -14,6 +14,9 @@ import 'rxjs/add/operator/toPromise';
   templateUrl: 'app/templates/gateways.html'
 })
 export class Gateways implements OnInit {
+
+   @ViewChild('newParam') newParamElement:ElementRef;
+
    gateways:Gateway[] = [];
    activeGateway:Gateway = new Gateway("", "", {});
    http:ApiClient;
@@ -55,6 +58,9 @@ export class Gateways implements OnInit {
         this.http.delete(url)
             .map((res: Response) => res.text())
             .subscribe(data => this.activeGateway.removeParameter(parameter.key));
+    }
 
+    addNewParameter() {
+        this.saveParameter(new KeyValue(this.newParamElement.nativeElement.value, "value"));
     }
 }
