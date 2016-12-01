@@ -32,7 +32,6 @@ public final class Identifier implements Serializable {
     public static final Identifier EMPTY = new Identifier();
 
     private final char[] content;
-    private int hash;
 
     private Identifier(final char[] content, final boolean cloneNeeded){
         this.content = cloneNeeded ? content.clone() : content;
@@ -154,9 +153,7 @@ public final class Identifier implements Serializable {
      */
     @Override
     public int hashCode() {
-        if(hash == 0 && content.length > 0)
-            hash = Arrays.hashCode(content);
-        return hash;
+        return Arrays.hashCode(content);
     }
 
     private boolean equals(final Identifier other){
