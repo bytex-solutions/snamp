@@ -8,6 +8,8 @@ import java.nio.charset.Charset;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.WeakHashMap;
+
 /**
  * Represents unique identifier.
  * @author Roman Sakno
@@ -18,16 +20,17 @@ public final class Identifier implements Serializable {
     private static final class SecureRandomHolder{
         private static final SecureRandom INSTANCE = new SecureRandom();
     }
-    private static final Charset UTF_8 = Charset.forName("UTF-8");
+    private static final WeakHashMap<String, Identifier> POOL = new WeakHashMap<String, Identifier>();
+
     private static final long serialVersionUID = -767298982099087481L;
     /**
      * Represents empty identifier.
      */
-    public static final Identifier EMPTY = new Identifier(new byte[0]);
+    public static final Identifier EMPTY = new Identifier("");
 
-    private final byte[] content;
+    private final String content;
 
-    private Identifier(final byte[] content){
+    private Identifier(final String content){
         this.content = content;
     }
 
@@ -51,16 +54,7 @@ public final class Identifier implements Serializable {
      * @return A new identifier.
      */
     public static Identifier ofString(final String value) {
-        return value.isEmpty() ? EMPTY : ofBytes(value.getBytes(UTF_8));
-    }
-
-    /**
-     * Constructs identifier using BASE-64 (RFC-4648) encoded string.
-     * @param base64 BASE-64 encoded string.
-     * @return A new identifier.
-     */
-    public static Identifier ofBase64(final String base64){
-        return ofBytes(DatatypeConverter.parseBase64Binary(base64));
+        return value.isEmpty() ? EMPTY : new Identifier(value);
     }
 
     /**
@@ -73,29 +67,23 @@ public final class Identifier implements Serializable {
     }
 
     public static Identifier ofBytes(final byte... values) {
-        return values.length == 0 ? EMPTY : new Identifier(values);
+        return values.length == 0 ? EMPTY : new Identifier(DatatypeConverter.printBase64Binary(values));
     }
 
     public static Identifier ofChars(final char... values){
         return ofString(new String(values));
     }
 
-    public static Identifier ofLong(long value){
-        final byte[] result = new byte[8];
-        for (int i = result.length - 1; i >= 0; i--) {
-            result[i] = (byte)(value & 0xFF);
-            value >>= 8;
-        }
-
-        return ofBytes(result);
+    public static Identifier ofLong(final long value){
+        return ofString(Long.toString(value));
     }
 
     public static Identifier ofDouble(final double value){
-        return ofLong(Double.doubleToRawLongBits(value));
+        return ofString(Double.toString(value));
     }
 
     public static Identifier ofBitInteger(final BigInteger value){
-        return new Identifier(value.toByteArray());
+        return ofString(value.toString());
     }
 
     /**
@@ -104,11 +92,11 @@ public final class Identifier implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Arrays.hashCode(content);
+        return content.hashCode();
     }
 
     private boolean equals(final Identifier other){
-        return Arrays.equals(content, other.content);
+        return content.equals(other.content);
     }
 
     @Override
@@ -116,12 +104,8 @@ public final class Identifier implements Serializable {
         return other == this || other instanceof Identifier && equals((Identifier) other);
     }
 
-    public String toBase64(){
-        return DatatypeConverter.printBase64Binary(content);
-    }
-
     @Override
     public String toString() {
-        return content.length == 0 ? "" : new String(content, UTF_8);
+        return content;
     }
 }

@@ -8,7 +8,6 @@
     <version>2.0.0</version>
   </parent>
   <artifactId>osgi-tests</artifactId>
-  <version>${project.parent.version}</version>
   <name>SNAMP Integration Tests</name>
   <description>Tests for connectors/gateways</description>
   <properties>

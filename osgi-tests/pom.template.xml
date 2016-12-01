@@ -12,7 +12,6 @@
     <name>SNAMP Integration Tests</name>
     <description>Tests for connectors/gateways</description>
     <artifactId>osgi-tests</artifactId>
-    <version>${project.parent.version}</version>
     <properties>
         <exam.version>4.9.1</exam.version>
     </properties>
