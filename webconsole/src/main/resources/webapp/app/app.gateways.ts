@@ -43,9 +43,18 @@ export class Gateways implements OnInit {
         this.activeGateway = gateway;
     }
 
-    saveAttribute(attribute:KeyValue) {
-        console.log("put call to /snamp/console/gateway/parameters/" + attribute.key
-            + " with value " + attribute.value);
-        this.activeGateway.setAttribute(attribute);
+    saveParameter(parameter:KeyValue) {
+        var url = "/snamp/console/gateway/" + this.activeGateway.name + "/parameters/" + parameter.key;
+        this.http.put(url, parameter.value)
+            .map((res: Response) => res.text())
+            .subscribe(data => this.activeGateway.setParameter(parameter));
+    }
+
+    removeParameter(parameter:KeyValue) {
+        var url = "/snamp/console/gateway/" + this.activeGateway.name + "/parameters/" + parameter.key;
+        this.http.delete(url)
+            .map((res: Response) => res.text())
+            .subscribe(data => this.activeGateway.removeParameter(parameter.key));
+
     }
 }

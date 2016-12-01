@@ -12,6 +12,7 @@ constructor(private http: Http, private _cookieService:CookieService) {}
     let headers = new Headers();
     headers.append('Authorization', 'Bearer ' +
       this._cookieService.get("snamp-auth-token"));
+    headers.append('Content-type', 'application/json');
     return headers;
   }
 
@@ -33,8 +34,8 @@ constructor(private http: Http, private _cookieService:CookieService) {}
     }).catch(this.handleError)
   }
 
-  post(url, data) {
-    return this.http.post(url, data, {
+  put(url, data) {
+    return this.http.put(url, data, {
       headers: this.createAuthorizationHeader()
     }).catch(this.handleError);
   }

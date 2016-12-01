@@ -6,7 +6,7 @@ export abstract class Entity {
         }
     }
 
-    public getAttribute(key:string):KeyValue {
+    public getParameter(key:string):KeyValue {
         this.parameters.forEach(function(obj:KeyValue) {
             if (obj.key == key) {
                 return obj;
@@ -15,10 +15,19 @@ export abstract class Entity {
         return null;
     }
 
-    public setAttribute(attribute:KeyValue) {
+    public removeParameter(key:string) {
+        for (let i = 0; i < this.parameters.length; i++) {
+            if (this.parameters[i].key == key) {
+                this.parameters.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    public setParameter(parameter:KeyValue) {
         this.parameters.forEach(function(obj:KeyValue) {
-            if (obj.key == attribute.key) {
-                obj.value = attribute.value;
+            if (obj.key == parameter.key) {
+                obj.value = parameter.value;
             }
         });
     }

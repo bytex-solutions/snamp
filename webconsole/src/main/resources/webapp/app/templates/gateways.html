@@ -21,7 +21,11 @@
                     </div>
                     <div class="col-md-9">
                         <select [(ngModel)]="activeGateway.type" class="form-control">
-                            <option *ngFor="let gateway of availableGateways" [value]="gateway.type">{{gateway.name}}</option>
+                            <option
+                                    *ngFor="let gateway of availableGateways"
+                                    [value]="gateway.type">
+                                {{gateway.name}}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -41,12 +45,19 @@
                         </thead>
                         <tbody>
                         <tr *ngFor="let param of activeGateway.parameters">
-                            <td></td>
+                            <td>
+                                <button
+                                        (click)="removeParameter(param)"
+                                        type="button"
+                                        class="btn btn-default btn-xs">
+                                    <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                                </button>
+                            </td>
                             <td>{{param.key}}</td>
                             <td>
                                 <inline-edit [(ngModel)]="param.value"
                                              [ngModelOptions]="{standalone: true}"
-                                             (onSave)="saveAttribute(param)">
+                                             (onSave)="saveParameter(param)">
 
                                 </inline-edit>
                             </td>
