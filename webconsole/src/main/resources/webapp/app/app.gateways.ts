@@ -1,6 +1,7 @@
 import { Component, OnInit} from '@angular/core';
 import { ApiClient } from './app.restClient';
 import { Gateway } from './model/model.gateway';
+import { KeyValue } from './model/model.entity';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
@@ -22,9 +23,9 @@ export class Gateways implements OnInit {
    }
 
     ngOnInit() {
+        // Get all configured gateways from the server
         this.http.get('/snamp/console/gateway')
             .map((res: Response) => res.json())
-            .do(data => console.log('All: ' + data))
             .subscribe(data => {
                 for (let key in data) {
                     this.gateways.push(new Gateway(key, data[key]['type'], data[key]['parameters']))
@@ -32,13 +33,19 @@ export class Gateways implements OnInit {
                 this.activeGateway = (this.gateways.length > 0) ? this.gateways[0] : this.activeGateway;
                 console.log(this.activeGateway);
             });
-
+        // Get all the available bundles that belong to Gateways
         this.http.get('/snamp/console/management/gateways')
             .map((res: Response) => res.json())
             .subscribe(data => this.availableGateways = data);
     }
 
-    setActiveGateway(gateway:any) {
+    setActiveGateway(gateway:Gateway) {
         this.activeGateway = gateway;
+    }
+
+    saveAttribute(attribute:KeyValue) {
+        console.log("put call to /snamp/console/gateway/parameters/" + attribute.key
+            + " with value " + attribute.value);
+        this.activeGateway.setAttribute(attribute);
     }
 }

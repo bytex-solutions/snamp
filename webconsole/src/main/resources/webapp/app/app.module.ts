@@ -7,12 +7,13 @@ import { HttpModule } from '@angular/http';
 import { CookieService } from 'angular2-cookie/core';
 import { KeysPipe } from './app.pipes'
 import { Header } from './app.header'
+import { InlineEditComponent } from './components/inline-edit.component'
 
 
 @NgModule({
   imports:      [ BrowserModule, HttpModule, FormsModule ],
-  declarations: [ Gateways, Header, KeysPipe],
+  declarations: [ Gateways, Header, KeysPipe, InlineEditComponent ],
   bootstrap:    [ Gateways, Header ],
-  providers: [ApiClient, CookieService]
+  providers:    [ ApiClient, CookieService ]
 })
 export class AppModule { }

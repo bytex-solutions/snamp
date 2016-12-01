@@ -44,7 +44,8 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @version 2.0
  * @since 1.0
  */
-@SnampDependencies({SnampFeature.WEBCONSOLE, SnampFeature.SNMP_GATEWAY})
+@SnampDependencies({SnampFeature.WEBCONSOLE, SnampFeature.SNMP_GATEWAY, SnampFeature.GROOVY_GATEWAY,
+SnampFeature.NAGIOS_GATEWAY, SnampFeature.NRDP_GATEWAY, SnampFeature.SSH_GATEWAY})
 public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
@@ -763,6 +764,15 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         snmpAdapter.getParameters().put(TEST_PARAMETER, "parameter");
         snmpAdapter.getParameters().put("socketTimeout", "5000");
         snmpAdapter.getParameters().put("context", "1.1");
+
+        // second instance of gateways for better console default content (dummyTest support)
+        final GatewayConfiguration snmpAdapterDummy = gateways.getOrAdd("new_snmp_adapter");
+        snmpAdapterDummy.setType(ADAPTER_NAME);
+        snmpAdapterDummy.getParameters().put("port", "3232");
+        snmpAdapterDummy.getParameters().put("host", SNMP_HOST);
+        snmpAdapterDummy.getParameters().put(TEST_PARAMETER, "parameter");
+        snmpAdapterDummy.getParameters().put("socketTimeout", "5000");
+        snmpAdapterDummy.getParameters().put("context", "1.2");
     }
 
     @Override

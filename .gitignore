@@ -14,3 +14,5 @@ webconsole/src/main/resources/webapp/app/*.js
 webconsole/src/main/resources/webapp/app/*.map
 webconsole/src/main/resources/webapp/app/model/*.js
 webconsole/src/main/resources/webapp/app/model/*.map
+webconsole/src/main/resources/webapp/app/components/*.js
+webconsole/src/main/resources/webapp/app/components/*.map

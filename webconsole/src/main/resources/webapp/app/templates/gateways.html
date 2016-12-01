@@ -4,7 +4,8 @@
             <a href="#"
                *ngFor="let gateway of gateways"
                class="list-group-item"
-               [class.active]="gateway.name == activeGateway.name">
+               [class.active]="gateway.name == activeGateway.name"
+               (click)="setActiveGateway(gateway)">
             {{gateway.name}}</a>
         </div>
     </div>
@@ -33,21 +34,25 @@
                     <table class="table">
                         <thead>
                         <tr>
+                            <th>#</th>
                             <th>Key</th>
                             <th>Value</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td>port</td>
-                            <td>9191</td>
-                        </tr>
-                        <tr>
-                            <td>key-file</td>
-                            <td>~/.ssh/keys/ssh-key.pem</td>
+                        <tr *ngFor="let param of activeGateway.parameters">
+                            <td></td>
+                            <td>{{param.key}}</td>
+                            <td>
+                                <inline-edit [(ngModel)]="param.value"
+                                             [ngModelOptions]="{standalone: true}"
+                                             (onSave)="saveAttribute(param)">
 
+                                </inline-edit>
+                            </td>
                         </tr>
                         <tr>
+                            <td></td>
                             <td></td>
                             <td align="right"><button type="button" class="btn btn-primary btn-sm">Add new</button></td>
                         </tr>
