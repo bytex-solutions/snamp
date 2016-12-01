@@ -1,8 +1,11 @@
 package com.bytex.snamp.instrumentation;
 
 
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+
 import javax.xml.bind.DatatypeConverter;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
@@ -20,18 +23,23 @@ public final class Identifier implements Serializable {
     private static final class SecureRandomHolder{
         private static final SecureRandom INSTANCE = new SecureRandom();
     }
-    private static final WeakHashMap<String, Identifier> POOL = new WeakHashMap<String, Identifier>();
 
     private static final long serialVersionUID = -767298982099087481L;
+
     /**
      * Represents empty identifier.
      */
-    public static final Identifier EMPTY = new Identifier("");
+    public static final Identifier EMPTY = new Identifier();
 
-    private final String content;
+    private final char[] content;
+    private int hash;
 
-    private Identifier(final String content){
-        this.content = content;
+    private Identifier(final char[] content, final boolean cloneNeeded){
+        this.content = cloneNeeded ? content.clone() : content;
+    }
+
+    private Identifier(){
+        this(new char[0], false);
     }
 
     private static SecureRandom getSecureRandom(){
@@ -54,7 +62,7 @@ public final class Identifier implements Serializable {
      * @return A new identifier.
      */
     public static Identifier ofString(final String value) {
-        return value.isEmpty() ? EMPTY : new Identifier(value);
+        return value.isEmpty() ? EMPTY : new Identifier(value.toCharArray(), false);
     }
 
     /**
@@ -67,11 +75,11 @@ public final class Identifier implements Serializable {
     }
 
     public static Identifier ofBytes(final byte... values) {
-        return values.length == 0 ? EMPTY : new Identifier(DatatypeConverter.printBase64Binary(values));
+        return values.length == 0 ? EMPTY : ofString(DatatypeConverter.printBase64Binary(values));
     }
 
     public static Identifier ofChars(final char... values){
-        return ofString(new String(values));
+        return values.length == 0 ? EMPTY : new Identifier(values, true);
     }
 
     public static Identifier ofLong(final long value){
@@ -86,17 +94,73 @@ public final class Identifier implements Serializable {
         return ofString(value.toString());
     }
 
+    public static Identifier deserialize(final ObjectInput input) throws IOException {
+        final int size = input.readInt();
+        if(size == 0) return EMPTY;
+        final char[] content = new char[size];
+        for(int i = 0; i < size; i++)
+            content[i] = input.readChar();
+        return new Identifier(content, false);
+    }
+
+    public static Identifier deserialize(final JsonParser input) throws IOException {
+        return ofString(input.getText());
+    }
+
+    public static Identifier deserialize(final Reader input) throws IOException{
+        final char[] buffer = new char[128];
+        char[] content = new char[0];
+        int count;
+        while ((count = input.read(buffer)) > 0)
+            if(content.length == 0)
+                content = Arrays.copyOf(buffer, count);
+            else {
+                char[] newContent = new char[content.length + count];
+                System.arraycopy(content, 0, newContent, 0, content.length);
+                System.arraycopy(buffer, 0, newContent, content.length, count);
+                content = newContent;
+            }
+        return content.length == 0 ? EMPTY : new Identifier(content, false);
+    }
+
+    public static Identifier deserialize(final StringBuilder input){
+        if(input.length() == 0) return EMPTY;
+        final char[] content = new char[input.length()];
+        input.getChars(0, content.length, content, 0);
+        return new Identifier(content, false);
+    }
+
+    public void serialize(final ObjectOutput output) throws IOException {
+        output.writeInt(content.length);
+        for(final char ch: content)
+            output.writeChar(ch);
+    }
+
+    public void serialize(final JsonGenerator output) throws IOException {
+        output.writeString(toString());
+    }
+
+    public void serialize(final Writer output) throws IOException {
+        output.write(content);
+    }
+
+    public void serialize(final StringBuilder output){
+        output.append(content);
+    }
+
     /**
      * Computes hash code for this identifier.
      * @return Hash code of this identifier.
      */
     @Override
     public int hashCode() {
-        return content.hashCode();
+        if(hash == 0 && content.length > 0)
+            hash = Arrays.hashCode(content);
+        return hash;
     }
 
     private boolean equals(final Identifier other){
-        return content.equals(other.content);
+        return Arrays.equals(content, other.content);
     }
 
     @Override
@@ -106,6 +170,6 @@ public final class Identifier implements Serializable {
 
     @Override
     public String toString() {
-        return content;
+        return new String(content);
     }
 }

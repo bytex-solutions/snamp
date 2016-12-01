@@ -12,6 +12,6 @@ import java.io.IOException;
 final class IdentifierDeserializer extends JsonDeserializer<Identifier> {
     @Override
     public Identifier deserialize(final JsonParser jp, final DeserializationContext ctxt) throws IOException {
-        return Identifier.ofBase64(jp.getText());
+        return Identifier.deserialize(jp);
     }
 }

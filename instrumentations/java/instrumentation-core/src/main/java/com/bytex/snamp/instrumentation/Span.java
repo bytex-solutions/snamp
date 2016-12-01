@@ -22,17 +22,17 @@ public final class Span extends TimeMeasurement {
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
-        out.writeUTF(correlationID.toBase64());
-        out.writeUTF(spanID.toBase64());
-        out.writeUTF(parentSpanID.toBase64());
+        correlationID.serialize(out);
+        spanID.serialize(out);
+        parentSpanID.serialize(out);
         super.writeExternal(out);
     }
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-        correlationID = Identifier.ofBase64(in.readUTF());
-        spanID = Identifier.ofBase64(in.readUTF());
-        parentSpanID = Identifier.ofBase64(in.readUTF());
+        correlationID = Identifier.deserialize(in);
+        spanID = Identifier.deserialize(in);
+        parentSpanID = Identifier.deserialize(in);
         super.readExternal(in);
     }
 
