@@ -40,6 +40,17 @@ export abstract class Entity {
             this.parameters.push(parameter);
         }
     }
+
+    private decapitalizeFirstLetter(object:string):string {
+        return object.charAt(0).toLowerCase() + object.slice(1);
+    }
+
+    // see https://www.stevefenton.co.uk/2013/04/obtaining-a-class-name-at-runtime-in-typescript/
+    getName() {
+        var funcNameRegex = /function (.{1,})\(/;
+        var results = (funcNameRegex).exec((<any> this).constructor.toString());
+        return (results && results.length > 1) ? this.decapitalizeFirstLetter(results[1]) : "";
+    }
 }
 
 export class KeyValue {

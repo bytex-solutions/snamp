@@ -1,0 +1,61 @@
+<!-- Modal for parameter appending -->
+<div class="modal fade" id="addParam" tabindex="-1" role="dialog" aria-labelledby="addParamModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="addParamModalLabel">Add new param to {{entity.name}}</h4>
+            </div>
+            <div class="modal-body">
+                <input type="text" #newParam/>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="addNewParameter()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Key</th>
+        <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let param of entity.parameters">
+        <td>
+            <button
+                    (click)="removeParameter(param)"
+                    type="button"
+                    class="btn btn-default btn-xs">
+                <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+            </button>
+        </td>
+        <td>{{param.key}}</td>
+        <td>
+            <inline-edit [(ngModel)]="param.value"
+                         [ngModelOptions]="{standalone: true}"
+                         (onSave)="saveParameter(param)">
+
+            </inline-edit>
+        </td>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+        <td align="right">
+            <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    data-toggle="modal"
+                    data-target="#addParam">
+                Add new
+            </button>
+        </td>
+    </tr>
+    </tbody>
+</table>

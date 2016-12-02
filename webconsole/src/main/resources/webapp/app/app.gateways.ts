@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ApiClient } from './app.restClient';
 import { Gateway } from './model/model.gateway';
 import { KeyValue } from './model/model.entity';
@@ -19,8 +19,6 @@ import { Modal } from 'angular2-modal/plugins/bootstrap';
 })
 export class Gateways implements OnInit {
 
-   @ViewChild('newParam') newParamElement:ElementRef;
-
    gateways:Gateway[] = [];
    activeGateway:Gateway;
    http:ApiClient;
@@ -33,7 +31,6 @@ export class Gateways implements OnInit {
    }
 
     ngOnInit() {
-
         // Get all configured gateways from the server
         this.http.get('/snamp/console/gateway')
             .map((res: Response) => res.json())
@@ -55,32 +52,13 @@ export class Gateways implements OnInit {
         this.activeGateway = gateway;
     }
 
-    saveParameter(parameter:KeyValue) {
-        var url = "/snamp/console/gateway/" + this.activeGateway.name + "/parameters/" + parameter.key;
-        this.http.put(url, parameter.value)
-            .map((res: Response) => res.text())
-            .subscribe(data => this.activeGateway.setParameter(parameter));
-    }
-
-    removeParameter(parameter:KeyValue) {
-        var url = "/snamp/console/gateway/" + this.activeGateway.name + "/parameters/" + parameter.key;
-        this.http.delete(url)
-            .map((res: Response) => res.text())
-            .subscribe(data => this.activeGateway.removeParameter(parameter.key));
-    }
-
-    addNewParameter() {
-        this.saveParameter(new KeyValue(this.newParamElement.nativeElement.value, "value"));
-    }
-
     showDetails(binding:Binding) {
         this.modal.alert()
             .size('lg')
             .showClose(true)
-            .title('A simple Alert style modal window')
+            .title("Binding information for entity " + binding.name)
             .body(`
-                <h4>Alert is a classic (title/body/footer) 1 button modal window that
-                does not block.</h4>
+                <h4>Binding name: </h4>
                 <b>Configuration:</b>
                 <ul>
                     <li>Non blocking (click anywhere outside to dismiss)</li>
