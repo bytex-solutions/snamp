@@ -50,22 +50,4 @@ export class Gateways implements OnInit {
     setActiveGateway(gateway:Gateway) {
         this.activeGateway = gateway;
     }
-
-    showDetails(binding:Binding) {
-        this.modal.alert()
-            .size('lg')
-            .showClose(true)
-            .title("Binding information for entity " + binding.name)
-            .body(`
-                <h4>Binding name: </h4>
-                <b>Configuration:</b>
-                <ul>
-                    <li>Non blocking (click anywhere outside to dismiss)</li>
-                    <li>Size large</li>
-                    <li>Dismissed with default keyboard key (ESC)</li>
-                    <li>Close wth button click</li>
-                    <li>HTML content</li>
-                </ul>`)
-            .open();
-    }
 }

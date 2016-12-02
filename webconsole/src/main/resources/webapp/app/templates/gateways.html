@@ -55,29 +55,7 @@
                         </div>
                         <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                             <div class="panel-body">
-                                <table class="table">
-                                    <thead>
-                                    <tr>
-                                        <th>Resource</th>
-                                        <th>Name</th>
-                                        <th>Details</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr *ngFor="let binding of activeGateway.attributes">
-                                        <td>{{binding.resourceName}}</td>
-                                        <td>{{binding.name}}</td>
-                                        <td align="center">
-                                            <button
-                                                    type="button"
-                                                    class="btn btn-primary btn-sm"
-                                                    (click)="showDetails(binding)">
-                                                Show
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
+                                <bindings [bindings]="activeGateway.attributes"></bindings>
                             </div>
                         </div>
                     </div>

@@ -590,6 +590,17 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         } finally {
             connection.disconnect();
         }
+
+        // remove parameter
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/console/gateway/%s/attributes/bindings", ADAPTER_INSTANCE_NAME)).openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            assertNotNull(IOUtils.toString(connection.getInputStream(), Charset.defaultCharset()));
+        } finally {
+            connection.disconnect();
+        }
     }
 
     /**

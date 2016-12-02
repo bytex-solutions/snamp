@@ -13,7 +13,7 @@ import 'rxjs/add/operator/toPromise';
   selector: 'parameters',
   templateUrl: 'app/components/templates/parameters-table.component.html'
 })
-export class AddParameterModal {
+export class ParametersTable {
     @Input() entity: TypedEntity;
     @ViewChild('newParam') newParamElement:ElementRef;
     http:ApiClient;

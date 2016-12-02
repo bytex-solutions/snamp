@@ -239,5 +239,9 @@ body {
 
   .modal-content {
     color: black;
+    text-shadow: none;
+    overflow-x: auto;
   }
+
+
 }
