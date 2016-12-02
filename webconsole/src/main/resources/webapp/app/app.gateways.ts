@@ -39,7 +39,6 @@ export class Gateways implements OnInit {
                     this.gateways.push(new Gateway(this.http, key, data[key]['type'], data[key]['parameters']))
                 }
                 this.activeGateway = (this.gateways.length > 0) ? this.gateways[0] : this.activeGateway;
-                console.log(this.activeGateway);
             });
 
         // Get all the available bundles that belong to Gateways

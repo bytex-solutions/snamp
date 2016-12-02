@@ -1,4 +1,4 @@
-import { Component, Input , OnInit, ViewChild, ElementRef, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, Input ,ViewChild, ElementRef } from '@angular/core';
 import { ApiClient } from '../app.restClient';
 import { KeyValue } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
