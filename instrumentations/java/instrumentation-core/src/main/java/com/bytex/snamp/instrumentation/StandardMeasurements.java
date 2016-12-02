@@ -42,6 +42,7 @@ public final class StandardMeasurements {
         throw new InstantiationError();
     }
 
+
     private static IntegerMeasurement createIntegerMeasurement(final long value, final String name){
         final IntegerMeasurement measurement = new IntegerMeasurement(value);
         measurement.setName(name);

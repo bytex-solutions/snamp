@@ -4,12 +4,9 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
-import java.lang.management.ManagementFactory;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Represents abstract POJO for all measurements.
@@ -31,11 +28,11 @@ public abstract class Measurement implements Externalizable {
     private static final class ObjectMapperHolder{
         private static final ObjectMapper INSTANCE = new ObjectMapper();
     }
-    private static final Pattern CLASS_NAME_SPLITTER = Pattern.compile("\\s+");
-    private static final Pattern DOT_SPLITTER = Pattern.compile("\\.");
 
     static final String VALUE_JSON_PROPERTY = "v";
     private static final long serialVersionUID = -5122847206545823797L;
+    private static final ComponentNameSource[] COMPONENT_NAME_SOURCES = ComponentNameSource.values();   //cache array of performance purposes
+    private static final ComponentInstanceSource[] COMPONENT_INSTANCE_SOURCES = ComponentInstanceSource.values();
 
     private static final String MESSAGE_FIELD = "message";
     private String instanceName;
@@ -47,9 +44,9 @@ public abstract class Measurement implements Externalizable {
     Measurement(){
         timestamp = System.currentTimeMillis();
         userData = new LinkedHashMap<String, String>();
-        instanceName = componentName = name = "";
+        instanceName = name = "";
+        componentName = getDefaultComponentName();
     }
-
 
     public final String getName(){
         return name;
@@ -77,6 +74,15 @@ public abstract class Measurement implements Externalizable {
     public final void setUserData(final Map<String, String> value){
         userData.clear();
         userData.putAll(value);
+    }
+
+    /**
+     * Fills user data from system properties passed to this JVM.
+     */
+    public final void useSystemPropertiesAsUserData(){
+        for(final String propertyName: System.getProperties().stringPropertyNames()){
+            userData.put(propertyName, System.getProperty(propertyName));
+        }
     }
 
     @Override
@@ -109,38 +115,21 @@ public abstract class Measurement implements Externalizable {
      * @return Instance name based on IP address.
      */
     public static String getDefaultInstanceName() {
-        final String LOCALHOST = "127.0.0.1";
-        final Enumeration<NetworkInterface> ifaces;
-        try {
-            ifaces = NetworkInterface.getNetworkInterfaces();
-        } catch (final SocketException e) {
-            return LOCALHOST;
+        for (final ComponentInstanceSource source : COMPONENT_INSTANCE_SOURCES) {
+            final String name = source.getInstance();
+            if (name != null && !name.isEmpty())
+                return name;
         }
-        final TreeSet<String> siteLocalCandidates = new TreeSet<String>();
-        final TreeSet<String> candidates = new TreeSet<String>();
-        for (NetworkInterface iface; ifaces.hasMoreElements(); ) {
-            iface = ifaces.nextElement();
-            for (final Enumeration<InetAddress> addrs = iface.getInetAddresses(); addrs.hasMoreElements(); ) {
-                final InetAddress addr = addrs.nextElement();
-                if (!addr.isLoopbackAddress())
-                    (addr.isSiteLocalAddress() ? siteLocalCandidates : candidates).add(addr.getHostAddress());
-            }
-        }
-        if (siteLocalCandidates.isEmpty())
-            return candidates.isEmpty() ? LOCALHOST : candidates.first();
-        else
-            return siteLocalCandidates.first();
+        return "";
     }
 
-    public static String getDefaultComponentName(){
-        String cmdLine = System.getProperty("sun.java.command");
-        if(cmdLine != null && !cmdLine.isEmpty()) {
-            final String[] classParts = DOT_SPLITTER.split(CLASS_NAME_SPLITTER.split(cmdLine)[0]);
-            cmdLine = classParts.length > 0 ? classParts[classParts.length - 1] : "";
+    public static String getDefaultComponentName() {
+        for (final ComponentNameSource source : COMPONENT_NAME_SOURCES) {
+            final String name = source.getName();
+            if (name != null && !name.isEmpty())
+                return name;
         }
-        return (cmdLine == null || cmdLine.isEmpty()) ?
-                ManagementFactory.getRuntimeMXBean().getName() :
-                cmdLine;
+        return "";
     }
 
     @JsonIgnore
