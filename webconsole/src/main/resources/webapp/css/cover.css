@@ -1,7 +1,3 @@
-/*
- * Globals
- */
-
 /* Links */
 a,
 a:focus,
@@ -18,7 +14,6 @@ a:hover {
   background-color: #fff;
   border: .05rem solid #fff;
 }
-
 
 /*
  * Base structure
@@ -243,5 +238,19 @@ body {
     overflow-x: auto;
   }
 
+  .contentRow {
+    padding-left: 30px;
+  }
 
+  .paramRow {
+    padding-top: 35px;
+  }
+
+  .bindingCol {
+    padding: 50px 0 0 50px;
+  }
+
+  .gatewaysContent {
+    padding: 20px 0;
+  }
 }
