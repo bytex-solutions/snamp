@@ -12,15 +12,18 @@ export class Gateway extends TypedEntity {
         super(type, parameters);
         this.http = http;
         this.name = name;
-
-        this.http.get("/snamp/console/gateway/" + name + "/attributes/bindings")
-            .map((res: Response) => {
-                var response = res.json();
-                for (let resourceKey in response) {
-                    for (let attributeKey in response[resourceKey]) {
-                        this.attributes.push(new Binding(attributeKey, resourceKey, response[resourceKey][attributeKey]));
+        if (name != "") {
+            this.http.get("/snamp/console/gateway/" + name + "/attributes/bindings")
+                .map((res: Response) => res.json())
+                .subscribe(response => {
+                    console.log("gateway ", name, response);
+                    for (let resourceKey in response) {
+                        console.log("gateway ", name, resourceKey, response[resourceKey]);
+                        for (let attributeKey in response[resourceKey]) {
+                            this.attributes.push(new Binding(attributeKey, resourceKey, response[resourceKey][attributeKey]));
+                        }
                     }
-                }
-            });
+                });
+        }
     }
 }

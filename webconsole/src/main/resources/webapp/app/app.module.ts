@@ -9,9 +9,12 @@ import { KeysPipe } from './app.pipes'
 import { Header } from './app.header'
 import { InlineEditComponent } from './components/inline-edit.component'
 
+import { ModalModule } from 'angular2-modal';
+import { BootstrapModalModule } from 'angular2-modal/plugins/bootstrap';
+
 
 @NgModule({
-  imports:      [ BrowserModule, HttpModule, FormsModule ],
+  imports:      [ BrowserModule, HttpModule, FormsModule, ModalModule.forRoot(), BootstrapModalModule ],
   declarations: [ Gateways, Header, KeysPipe, InlineEditComponent ],
   bootstrap:    [ Gateways, Header ],
   providers:    [ ApiClient, CookieService ]

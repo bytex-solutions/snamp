@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ApiClient } from './app.restClient';
 import { Gateway } from './model/model.gateway';
 import { KeyValue } from './model/model.entity';
@@ -9,6 +9,9 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
+
+import { Overlay } from 'angular2-modal';
+import { Modal } from 'angular2-modal/plugins/bootstrap';
 
 @Component({
   selector: 'gateways',
@@ -23,9 +26,10 @@ export class Gateways implements OnInit {
    http:ApiClient;
    availableGateways :any[] = [];
 
-   constructor(apiClient: ApiClient) {
+   constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
         this.http = apiClient;
         this.activeGateway = new Gateway(apiClient, "", "", {});
+        overlay.defaultViewContainer = vcRef;
    }
 
     ngOnInit() {
@@ -67,5 +71,24 @@ export class Gateways implements OnInit {
 
     addNewParameter() {
         this.saveParameter(new KeyValue(this.newParamElement.nativeElement.value, "value"));
+    }
+
+    showDetails(binding:Binding) {
+        this.modal.alert()
+            .size('lg')
+            .showClose(true)
+            .title('A simple Alert style modal window')
+            .body(`
+                <h4>Alert is a classic (title/body/footer) 1 button modal window that
+                does not block.</h4>
+                <b>Configuration:</b>
+                <ul>
+                    <li>Non blocking (click anywhere outside to dismiss)</li>
+                    <li>Size large</li>
+                    <li>Dismissed with default keyboard key (ESC)</li>
+                    <li>Close wth button click</li>
+                    <li>HTML content</li>
+                </ul>`)
+            .open();
     }
 }

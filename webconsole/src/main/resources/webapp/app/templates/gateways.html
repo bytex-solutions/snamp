@@ -127,8 +127,15 @@
                                     <tbody>
                                     <tr *ngFor="let binding of activeGateway.attributes">
                                         <td>{{binding.resourceName}}</td>
-                                        <td>{{binding.parameter.getParameter()}}</td>
-                                        <td align="center"><button type="button" class="btn btn-primary btn-sm">Show</button></td>
+                                        <td>{{binding.name}}</td>
+                                        <td align="center">
+                                            <button
+                                                    type="button"
+                                                    class="btn btn-primary btn-sm"
+                                                    (click)="showDetails(binding)">
+                                                Show
+                                            </button>
+                                        </td>
                                     </tr>
                                     </tbody>
                                 </table>
