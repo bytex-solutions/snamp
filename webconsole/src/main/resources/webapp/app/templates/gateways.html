@@ -1,4 +1,4 @@
-<!-- Modal -->
+<!-- Modal for parameter appending -->
 <div class="modal fade" id="addParam" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -125,14 +125,9 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr>
-                                        <td>snmpHub</td>
-                                        <td>memory</td>
-                                        <td align="center"><button type="button" class="btn btn-primary btn-sm">Show</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>snmpBridge</td>
-                                        <td>CPU</td>
+                                    <tr *ngFor="let binding of activeGateway.attributes">
+                                        <td>{{binding.resourceName}}</td>
+                                        <td>{{binding.parameter.getParameter()}}</td>
                                         <td align="center"><button type="button" class="btn btn-primary btn-sm">Show</button></td>
                                     </tr>
                                     </tbody>

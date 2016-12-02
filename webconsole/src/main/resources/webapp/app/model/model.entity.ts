@@ -6,13 +6,15 @@ export abstract class Entity {
         }
     }
 
-    public getParameter(key:string):KeyValue {
+    public getParameter(key:string):string {
+        let value:string = "";
         this.parameters.forEach(function(obj:KeyValue) {
             if (obj.key == key) {
-                return obj;
+                value = obj.value;
+                return;
             }
         });
-        return null;
+        return value;
     }
 
     public removeParameter(key:string) {
