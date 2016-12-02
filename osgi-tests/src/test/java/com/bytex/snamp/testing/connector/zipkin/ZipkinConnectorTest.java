@@ -2,19 +2,15 @@ package com.bytex.snamp.testing.connector.zipkin;
 
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.zipkin.embedding.EmbeddedKafka;
-import com.bytex.snamp.testing.ImportPackages;
-import com.bytex.snamp.testing.SnampDependencies;
-import com.bytex.snamp.testing.SnampFeature;
-import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import zipkin.Span;
-import zipkin.reporter.AsyncReporter;
 import zipkin.reporter.Sender;
-import zipkin.reporter.kafka08.KafkaSender;
-import zipkin.reporter.urlconnection.URLConnectionSender;
 
 import javax.management.JMException;
 import java.io.IOException;
@@ -27,16 +23,13 @@ import java.util.Properties;
  * @version 2.0
  * @since 2.0
  */
-@SnampDependencies({SnampFeature.ZIPKIN_CONNECTOR, SnampFeature.WRAPPED_LIBS})
-@ImportPackages({"zipkin.reporter.kafka08;version=\"[0.6.9,1)\""})
-public class ZipkinConnectorTest extends AbstractResourceConnectorTest {
-    private static final String CONNECTOR_TYPE = "zipkin";
+public class ZipkinConnectorTest extends AbstractZipkinConnectorTest {
     private EmbeddedKafka kafka;
     private final Path zookeeperDataDir;
     private final Path kafkaDir;
 
     public ZipkinConnectorTest() throws IOException {
-        super(CONNECTOR_TYPE, "kafka://localhost:2181");
+        super("kafka://localhost:2181");
         zookeeperDataDir = Files.createTempDirectory("zookeeper");
         kafkaDir = Files.createTempDirectory("kafka");
     }
@@ -75,39 +68,52 @@ public class ZipkinConnectorTest extends AbstractResourceConnectorTest {
 
     @Test
     public void kafkaTest() throws JMException, InterruptedException {
-        final KafkaSender sender = KafkaSender.builder()
-                .topic("zipkin")
-                .bootstrapServers("localhost:9092")
-                .build();
-        spanSendTest(sender);
+        spanSendTest(createKafkaSender("zipkin", "localhost:9092"));
     }
 
     @Test
     public void httpTest() throws InterruptedException, JMException {
-        final URLConnectionSender sender = URLConnectionSender.builder()
-                .endpoint("http://localhost:8181/zipkin/api/v1/spans")
-                .build();
-        spanSendTest(sender);
+        spanSendTest(createHttpSender());
     }
 
     private void spanSendTest(final Sender sender) throws JMException, InterruptedException {
-        final AsyncReporter<Span> reporter = AsyncReporter.builder(sender).build();
-        Span span = Span.builder()
+        final Span span1 = Span.builder()
                 .duration(1000L)
                 .id(123)
                 .name("customSpan")
                 .traceId(100500L)
+                .timestamp(System.currentTimeMillis())
                 .build();
-        reporter.report(span);
-        span = Span.builder()
+        final Span span2 = Span.builder()
                 .duration(1500L)
                 .id(124)
                 .name("customSpan")
+                .timestamp(System.currentTimeMillis())
                 .traceId(100500L)
                 .build();
-        reporter.report(span);
+        sendSpans(sender, span1, span2);
         Thread.sleep(5_000);
         testAttribute("summaryDuration", TypeToken.of(Double.class), 2_500D / 1_000_000D, true);   //microseconds to seconds
+    }
+
+    @Test
+    public void configurationTest(){
+        testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
+                "instanceName",
+                "componentName",
+                "synchronizationPeriod",
+                "parserScriptPath",
+                "parserScript"
+        ));
+        testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
+                "from",
+                "to",
+                "filter",
+                "gauge"
+        ));
+        testConfigurationDescriptor(EventConfiguration.class, ImmutableSet.of(
+                "filter"
+        ));
     }
 
     @Override

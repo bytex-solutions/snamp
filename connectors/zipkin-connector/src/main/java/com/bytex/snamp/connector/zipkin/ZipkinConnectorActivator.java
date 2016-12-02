@@ -51,7 +51,7 @@ public final class ZipkinConnectorActivator extends ManagedResourceActivator<Zip
 
     @SpecialUse
     public ZipkinConnectorActivator(){
-        super(ZipkinConnectorActivator::createConnector);
+        super(ZipkinConnectorActivator::createConnector, configurationDescriptor(ZipkinConnectorConfigurationDescriptionProvider::getInstance));
     }
 
     private static ZipkinConnector createConnector(final String resourceName,

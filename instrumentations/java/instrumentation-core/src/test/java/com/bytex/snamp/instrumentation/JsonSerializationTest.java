@@ -62,7 +62,7 @@ public final class JsonSerializationTest extends Assert {
         final Measurement actual = mapper.readValue(writer.toString(), Measurement.class);
         writer.close();
         assertTrue(actual instanceof Span);
-        assertEquals(original.getDuration(TimeUnit.NANOSECONDS), ((TimeMeasurement)actual).getDuration(TimeUnit.NANOSECONDS));
+        assertEquals(original.getDuration(TimeUnit.NANOSECONDS), ((TimeMeasurement)actual).getDuration(TimeUnit.NANOSECONDS), 0.01D);
         assertEquals(original.getTimeStamp(), actual.getTimeStamp());
         assertEquals(original.getUserData(), actual.getUserData());
         assertEquals(original.getSpanID(), ((Span) actual).getSpanID());

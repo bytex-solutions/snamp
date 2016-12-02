@@ -11,6 +11,7 @@ import zipkin.collector.CollectorComponent;
 import zipkin.storage.*;
 
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -97,8 +98,10 @@ final class ZipkinConnector extends MessageDrivenConnector implements AsyncSpanC
     @Override
     protected NotificationParser createNotificationParser(final String resourceName, final NotificationSource source, final Map<String, String> parameters) {
         return callUnchecked(() -> {
-            final GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, parameters);
-            return loader.createScript("ZipkinSpanParser.groovy", new Binding());
+            final URL[] scriptPath = ZipkinConnectorConfigurationDescriptionProvider.getInstance().parseScriptPath(parameters);
+            final GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, parameters, true, scriptPath);
+            final String scriptName = ZipkinConnectorConfigurationDescriptionProvider.getInstance().parseScriptFile(parameters);
+            return loader.createScript(scriptName, new Binding());
         });
     }
 

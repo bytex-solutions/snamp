@@ -1,8 +1,8 @@
 package com.bytex.snamp.instrumentation.reporting;
 
 import com.bytex.snamp.instrumentation.Measurement;
-import com.sun.xml.internal.ws.Closeable;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**

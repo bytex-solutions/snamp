@@ -9,8 +9,13 @@ import zipkin.storage.StorageComponent;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
+import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -19,11 +24,22 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  */
 final class ZipkinConnectorConfigurationDescriptionProvider extends MessageDrivenConnectorConfigurationDescriptionProvider {
-    private static final Splitter PATH_SPLITTER = Splitter.on('/').omitEmptyStrings();
+    private static final Splitter URL_PATH_SPLITTER = Splitter.on('/').omitEmptyStrings();
+    private static final Splitter SCRIPT_PATH_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
+    private static final String PARSER_SCRIPT_PATH_PARAM = "parserScriptPath";
+    private static final String PARSER_SCRIPT_NAME_PARAM = "parserScript";
+
+
     private static final LazySoftReference<ZipkinConnectorConfigurationDescriptionProvider> INSTANCE = new LazySoftReference<>();
 
+    private static final class ZipkinConnectorConfigurationDescription extends ConnectorConfigurationDescription{
+        private ZipkinConnectorConfigurationDescription(){
+            super("ConnectorParameters", PARSER_SCRIPT_NAME_PARAM, PARSER_SCRIPT_PATH_PARAM);
+        }
+    }
+
     private ZipkinConnectorConfigurationDescriptionProvider(){
-        super();
+        super(new ZipkinConnectorConfigurationDescription(), AttributeConfigurationDescription.createDefault(), EventConfigurationDescription.createDefault());
     }
 
     static ZipkinConnectorConfigurationDescriptionProvider getInstance(){
@@ -32,7 +48,7 @@ final class ZipkinConnectorConfigurationDescriptionProvider extends MessageDrive
 
     private static CollectorComponent createKafkaCollector(final URI connectionString, final StorageComponent storage){
         final String zookeeperAddress = connectionString.getHost() + ':' + (connectionString.getPort() < 0 ? 2181 : connectionString.getPort());
-        final List<String> parts = PATH_SPLITTER.splitToList(connectionString.getPath());
+        final List<String> parts = URL_PATH_SPLITTER.splitToList(connectionString.getPath());
         final String topic;
         final String groupID;
         switch (parts.size()){
@@ -66,5 +82,14 @@ final class ZipkinConnectorConfigurationDescriptionProvider extends MessageDrive
             default:
                 throw new URISyntaxException(connectionString, String.format("Unsupported protocol %s", url.getScheme()));
         }
+    }
+
+    URL[] parseScriptPath(final Map<String, String> parameters){
+        final String path = getValue(parameters, PARSER_SCRIPT_PATH_PARAM, Function.identity(), EMPTY_STRING);
+        return SCRIPT_PATH_SPLITTER.splitToList(path).stream().map(p -> callUnchecked((() -> new URL(p)))).toArray(URL[]::new);
+    }
+
+    String parseScriptFile(final Map<String, String> parameters){
+        return getValue(parameters, PARSER_SCRIPT_NAME_PARAM, Function.identity(), () -> "ZipkinSpanParser.groovy");
     }
 }

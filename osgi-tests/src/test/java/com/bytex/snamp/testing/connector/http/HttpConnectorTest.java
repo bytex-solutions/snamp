@@ -80,7 +80,9 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
         testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
                 "instanceName",
                 "componentName",
-                "synchronizationPeriod"
+                "synchronizationPeriod",
+                "parserScriptPath",
+                "parserScript"
         ));
         testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
                 "from",
