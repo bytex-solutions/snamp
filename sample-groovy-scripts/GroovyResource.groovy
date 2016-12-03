@@ -6,7 +6,7 @@ import groovy.json.JsonSlurper
 @GrabConfig(initContextClassLoader = true)
 import groovyx.net.http.RESTClient
 
-def longValue = 10L
+def intValue = 10
 
 if(!discovery) {
     def config = getResourceConfiguration resourceName
@@ -17,8 +17,8 @@ if(!discovery) {
 attribute {
     name "DummyAttribute"
     type INT32
-    get {longValue}
-    set {value -> longValue = value}
+    get {intValue}
+    set {value -> intValue = value}
 }
 
 attribute {

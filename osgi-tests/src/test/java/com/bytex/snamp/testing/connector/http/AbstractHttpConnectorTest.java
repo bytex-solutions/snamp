@@ -59,7 +59,7 @@ public abstract class AbstractHttpConnectorTest extends AbstractResourceConnecto
         httpPost(Measurement.toJsonString(measurements), "http://localhost:8181/snamp/data/measurements", MediaType.APPLICATION_JSON_TYPE);
     }
 
-    protected static void sendText(final String text) throws IOException{
+    public static void sendText(final String text) throws IOException{
         httpPost(text, "http://localhost:8181/snamp/data/acquisition", MediaType.TEXT_PLAIN_TYPE);
     }
 
