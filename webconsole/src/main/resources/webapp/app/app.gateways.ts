@@ -67,9 +67,7 @@ export class Gateways implements OnInit {
                 return (<Promise<boolean>>resultPromise.result)
                   .then((response) => {
                     this.oldTypeValue = event.target.value;
-                    this.http.put("/snamp/console/gateway/" + this.activeGateway.name + "/type", event.target.value)
-                        .map((res: Response) => res.text())
-                        .subscribe(data => this.activeGateway.clearParameters());
+                    this.http.put("/snamp/console/gateway/" + this.activeGateway.name + "/type", event.target.value);
                     return response;
                   })
                   .catch(() => {

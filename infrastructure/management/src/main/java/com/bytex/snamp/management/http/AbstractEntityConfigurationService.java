@@ -282,4 +282,22 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
                 return true;
         });
     }
+
+    /**
+     * Change gateway type response.
+     *
+     * @param name    the name
+     * @param newType the new type
+     * @return the response
+     */
+    @PUT
+    @Path("/{name}/type")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response changeEntityType(@PathParam("name") final String name, final String newType) {
+        return setConfigurationByName(name, config -> {
+            config.setType(newType);
+        });
+
+    }
 }
