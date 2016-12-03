@@ -1,5 +1,6 @@
-package com.bytex.snamp.instrumentation;
+package com.bytex.snamp.instrumentation.measurements;
 
+import com.bytex.snamp.instrumentation.Identifier;
 import org.junit.Assert;
 import org.junit.Test;
 
