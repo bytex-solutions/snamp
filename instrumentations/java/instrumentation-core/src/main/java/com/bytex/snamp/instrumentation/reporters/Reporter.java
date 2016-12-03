@@ -19,6 +19,12 @@ public interface Reporter extends Closeable {
     boolean isAsynchronous();
 
     /**
+     * Determines whether this reporter is connected to the SNAMP server.
+     * @return {@literal true}, if this reporter is connected to the server; otherwise, {@literal false}.
+     */
+    boolean isConnected();
+
+    /**
      * Flushes buffered measurements.
      * @throws IOException Some I/O error occurred when posting measurements to SNAMP.
      */

@@ -21,6 +21,11 @@ public final class InMemoryReporter extends LinkedBlockingQueue<Measurement> imp
             throw new IOException("In-memory reporter is closed");
     }
 
+    @Override
+    public boolean isConnected() {
+        return !closed;
+    }
+
     /**
      * Determines whether this sender is asynchronous.
      *

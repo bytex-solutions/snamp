@@ -21,6 +21,11 @@ public final class ConsoleReporter implements Reporter {
         output = System.out;
     }
 
+    @Override
+    public boolean isConnected() {
+        return true;
+    }
+
     /**
      * Determines whether this sender is asynchronous.
      *

@@ -109,10 +109,13 @@ public abstract class MeasurementReporter<M extends Measurement> {
         measurement.setComponentName(componentName);
         measurement.setInstanceName(instanceName);
         for (final Reporter reporter : reporters)
-            try {
-                reporter.report(measurement);
-            } catch (final IOException e) {
-                LOGGER.log(Level.SEVERE, String.format("Failed to report measurement %s via %s", measurement, reporter));
-            }
+            if (reporter.isConnected())
+                try {
+                    reporter.report(measurement);
+                } catch (final IOException e) {
+                    LOGGER.log(Level.SEVERE, String.format("Failed to report measurement %s via %s", measurement, reporter));
+                }
+            else
+                LOGGER.log(Level.WARNING, String.format("Reporter %s is not connected", reporter));
     }
 }
