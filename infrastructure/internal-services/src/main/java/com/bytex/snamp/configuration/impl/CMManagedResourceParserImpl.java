@@ -229,11 +229,10 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         final Map<String, ? extends SerializableManagedResourceConfiguration> resources = config.getEntities(SerializableManagedResourceConfiguration.class);
         callAndWrapException(() -> {
             forEachResource(admin, ALL_CONNECTORS_QUERY, output -> {
-                final String resourceName = getResourceName(output.getProperties());
                 final String connectorType = getConnectorType(output.getFactoryPid());
-                final ManagedResourceConfiguration resourceConfig = resources.get(resourceName);
+                final ManagedResourceConfiguration resourceConfig = resources.get(getResourceName(output.getProperties()));
                 //delete resource if its type was changed
-                if(resourceConfig == null || !resourceConfig.getType().equals(connectorType))
+                if(resourceConfig == null || !Objects.equals(resourceConfig.getType(), connectorType))
                     output.delete();
             });
             return null;

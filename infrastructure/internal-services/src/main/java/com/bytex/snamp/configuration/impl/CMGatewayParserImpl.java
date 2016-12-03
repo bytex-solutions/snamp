@@ -166,8 +166,10 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
         //remove all unnecessary gateway
         callAndWrapException(() -> {
             forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, output -> {
-                final String gatewayInstance = getInstanceName(output.getProperties());
-                if (!instances.containsKey(gatewayInstance))
+                final String gatewayType = getGatewayType(output.getFactoryPid());
+                final GatewayConfiguration gateway = instances.get(getInstanceName(output.getProperties()));
+                //delete resource if its type was changed
+                if (gateway == null || !Objects.equals(gatewayType, gateway.getType()))
                     output.delete();
             });
             return null;
