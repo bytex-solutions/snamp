@@ -12,6 +12,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -187,6 +188,27 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
                     .getIfPresent(name)
                     .orElseThrow(AbstractManagementService::notFound)
                     .setParameters(parameters);
+            return true;
+        });
+    }
+
+    /**
+     * Remove parameters for certain configured resource by its name.
+     *
+     * @param name   the name
+     * @return no content response
+     */
+    @DELETE
+    @Path("/{name}/parameters")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public final Response removeParameters(@PathParam("name") final String name) {
+        return changingActions(getBundleContext(), config -> {
+            config
+                    .getEntities(entityType)
+                    .getIfPresent(name)
+                    .orElseThrow(AbstractManagementService::notFound)
+                    .setParameters(Collections.EMPTY_MAP);
             return true;
         });
     }

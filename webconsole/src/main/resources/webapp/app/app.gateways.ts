@@ -21,6 +21,7 @@ export class Gateways implements OnInit {
 
    gateways:Gateway[] = [];
    activeGateway:Gateway;
+   oldTypeValue:string = "";
    http:ApiClient;
    availableGateways :any[] = [];
 
@@ -39,6 +40,7 @@ export class Gateways implements OnInit {
                     this.gateways.push(new Gateway(this.http, key, data[key]['type'], data[key]['parameters']))
                 }
                 this.activeGateway = (this.gateways.length > 0) ? this.gateways[0] : this.activeGateway;
+                this.oldTypeValue = this.activeGateway.type;
             });
 
         // Get all the available bundles that belong to Gateways
@@ -49,5 +51,31 @@ export class Gateways implements OnInit {
 
     setActiveGateway(gateway:Gateway) {
         this.activeGateway = gateway;
+        this.oldTypeValue = gateway.type;
+    }
+
+    changeType(event:any) {
+         let dialog = this.modal.confirm()
+            .size('sm')
+            .isBlocking(true)
+            .keyboard(27)
+            .showClose(true)
+            .title("Changing gateway type confirmation")
+            .body("If you change gateway type - all resources will be removed. Are you sure?")
+            .open()
+            .then((resultPromise) => {
+                return (<Promise<boolean>>resultPromise.result)
+                  .then((response) => {
+                    this.oldTypeValue = event.target.value;
+                    this.http.put("/snamp/console/gateway/" + this.activeGateway.name + "/type", event.target.value)
+                        .map((res: Response) => res.text())
+                        .subscribe(data => this.activeGateway.clearParameters());
+                    return response;
+                  })
+                  .catch(() => {
+                    this.activeGateway.type = this.oldTypeValue;
+                    return false;
+                  });
+              });
     }
 }

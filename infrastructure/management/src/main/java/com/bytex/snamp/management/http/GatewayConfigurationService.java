@@ -7,6 +7,7 @@ import com.bytex.snamp.management.http.model.GatewayDataObject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Map;
+import javax.ws.rs.core.Response;
 
 /**
  * Provides API for SNAMP gateway.
@@ -17,6 +18,10 @@ import java.util.Map;
  */
 @Path("/gateway")
 public final class GatewayConfigurationService extends AbstractEntityConfigurationService<GatewayConfiguration, GatewayDataObject> {
+
+    /**
+     * Instantiates a new Gateway configuration service.
+     */
     public GatewayConfigurationService(){
         super(GatewayConfiguration.class);
     }
@@ -30,6 +35,7 @@ public final class GatewayConfigurationService extends AbstractEntityConfigurati
      * Gets attributes bindings.
      *
      * @param name the name
+     * @param type the type
      * @return the attributes bindings
      */
     @GET
@@ -39,5 +45,24 @@ public final class GatewayConfigurationService extends AbstractEntityConfigurati
     public Map<String, Map<String, FeatureBindingDataObject>> getBindings(@PathParam("name") final String name,
                                                              @PathParam("feature") final FeatureType type) {
         return type.getBindings(getBundleContext(), name);
+    }
+
+    /**
+     * Change gateway type response.
+     *
+     * @param name    the name
+     * @param newType the new type
+     * @return the response
+     */
+    @PUT
+    @Path("/{name}/type")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response changeGatewayType(@PathParam("name") final String name, final String newType) {
+        return setConfigurationByName(name, config -> {
+            config.setType(newType);
+            config.getParameters().clear();
+        });
+
     }
 }

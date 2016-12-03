@@ -41,6 +41,10 @@ export abstract class Entity {
         }
     }
 
+    public clearParameters() {
+        this.parameters = [];
+    }
+
     private decapitalizeFirstLetter(object:string):string {
         return object.charAt(0).toLowerCase() + object.slice(1);
     }
