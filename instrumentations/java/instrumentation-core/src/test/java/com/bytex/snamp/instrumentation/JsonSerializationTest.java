@@ -1,5 +1,6 @@
 package com.bytex.snamp.instrumentation;
 
+import com.bytex.snamp.instrumentation.measurements.*;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;

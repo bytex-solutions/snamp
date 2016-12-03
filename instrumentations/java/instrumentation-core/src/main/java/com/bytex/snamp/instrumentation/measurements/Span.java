@@ -1,5 +1,6 @@
-package com.bytex.snamp.instrumentation;
+package com.bytex.snamp.instrumentation.measurements;
 
+import com.bytex.snamp.instrumentation.Identifier;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.io.IOException;

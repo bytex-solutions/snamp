@@ -1,4 +1,4 @@
-package com.bytex.snamp.instrumentation;
+package com.bytex.snamp.instrumentation.measurements;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;

@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.md;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.md.notifications.ValueMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RangedGauge64Recorder;
-import com.bytex.snamp.instrumentation.IntegerMeasurement;
+import com.bytex.snamp.instrumentation.measurements.IntegerMeasurement;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;

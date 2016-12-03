@@ -1,4 +1,4 @@
-package com.bytex.snamp.instrumentation;
+package com.bytex.snamp.instrumentation.measurements;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;

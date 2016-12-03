@@ -4,7 +4,7 @@ import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
-import com.bytex.snamp.instrumentation.Measurement;
+import com.bytex.snamp.instrumentation.measurements.Measurement;
 
 import javax.management.MBeanException;
 import javax.management.Notification;

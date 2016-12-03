@@ -5,7 +5,7 @@ import com.bytex.snamp.FixedKeysMap;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.md.notifications.NotificationSource;
 import com.bytex.snamp.core.ExposedServiceHandler;
-import com.bytex.snamp.instrumentation.Measurement;
+import com.bytex.snamp.instrumentation.measurements.Measurement;
 import com.bytex.snamp.scripting.groovy.xml.XmlSlurperSlim;
 import com.google.common.base.Joiner;
 import com.google.common.cache.CacheBuilder;

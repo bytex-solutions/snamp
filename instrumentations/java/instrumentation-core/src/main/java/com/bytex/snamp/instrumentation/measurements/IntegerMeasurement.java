@@ -1,28 +1,30 @@
-package com.bytex.snamp.instrumentation;
+package com.bytex.snamp.instrumentation.measurements;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeName;
 
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 /**
- * Represents measurement of {@code double} data type.
+ * Represents measurement of {@code long} data type.
  * @since 1.0
  * @version 1.0
  * @author Roman Sakno
  */
-public class FloatingPointMeasurement extends ValueMeasurement {
-    private static final long serialVersionUID = -5453349320908165683L;
-    private double value;
+@JsonTypeName("gauge64")
+public final class IntegerMeasurement extends ValueMeasurement {
+    private static final long serialVersionUID = 352280955315548002L;
+    private long value;
 
-    public FloatingPointMeasurement(final double value){
+    public IntegerMeasurement(final long value){
         this.value = value;
     }
 
-    public FloatingPointMeasurement(){
-        this(0D);
+    public IntegerMeasurement(){
+        this(0L);
     }
 
     /**
@@ -32,7 +34,7 @@ public class FloatingPointMeasurement extends ValueMeasurement {
      */
     @Override
     @JsonIgnore
-    public Double getRawValue() {
+    public Long getRawValue() {
         return value;
     }
 
@@ -43,44 +45,52 @@ public class FloatingPointMeasurement extends ValueMeasurement {
      */
     @Override
     @JsonIgnore
-    public Class<Double> getType() {
-        return double.class;
+    public Class<Long> getType() {
+        return long.class;
     }
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
-        out.writeDouble(value);
+        out.writeLong(value);
         super.writeExternal(out);
     }
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-        value = in.readDouble();
+        value = in.readLong();
         super.readExternal(in);
     }
 
     @JsonIgnore
-    public double getValue(final double existingValue){
+    public long getValue(final long existingValue){
         switch (getChangeType()){
             case SUB:
                 return existingValue - value;
             case SUM:
                 return existingValue + value;
             case MAX:
-                return Math.max(value, existingValue);
+                return Math.max(existingValue, value);
             case MIN:
-                return Math.min(value, existingValue);
+                return Math.min(existingValue, value);
             default:
                 return value;
         }
     }
 
+    /**
+     * Gets measured value.
+     * @return Measured value.
+     */
     @JsonProperty(VALUE_JSON_PROPERTY)
-    public double getValue(){
+    public long getValue(){
         return value;
     }
 
-    public void setValue(final double value){
+    /**
+     * Sets measured value.
+     * @param value Measured value.
+     */
+    public void setValue(final long value){
         this.value = value;
     }
 }

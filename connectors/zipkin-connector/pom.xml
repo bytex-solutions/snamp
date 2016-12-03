@@ -143,7 +143,7 @@
             <Bundle-Activator>com.bytex.snamp.connector.zipkin.ZipkinConnectorActivator</Bundle-Activator>
             <Export-Package>com.bytex.snamp.connector.zipkin.embedding</Export-Package>
             <Import-Package>com.bytex.snamp.concurrent,
-                            com.bytex.snamp.instrumentation,
+                            com.bytex.snamp.instrumentation.measurements,
                             com.bytex.snamp,
                             com.bytex.snamp.io,
                             com.bytex.snamp.connector,

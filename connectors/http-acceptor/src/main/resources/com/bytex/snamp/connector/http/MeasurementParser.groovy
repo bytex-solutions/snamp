@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.http
 
-import com.bytex.snamp.instrumentation.Measurement
+import com.bytex.snamp.instrumentation.measurements.Measurement
 
 def parse(headers, body){
     if(body instanceof Measurement){

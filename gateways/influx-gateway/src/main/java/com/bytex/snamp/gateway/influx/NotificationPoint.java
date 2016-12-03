@@ -5,10 +5,10 @@ import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.modeling.AttributeSet;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
-import com.bytex.snamp.instrumentation.Measurement;
-import com.bytex.snamp.instrumentation.Span;
-import com.bytex.snamp.instrumentation.TimeMeasurement;
-import com.bytex.snamp.instrumentation.ValueMeasurement;
+import com.bytex.snamp.instrumentation.measurements.Measurement;
+import com.bytex.snamp.instrumentation.measurements.Span;
+import com.bytex.snamp.instrumentation.measurements.TimeMeasurement;
+import com.bytex.snamp.instrumentation.measurements.ValueMeasurement;
 import org.influxdb.dto.Point;
 
 import javax.management.*;

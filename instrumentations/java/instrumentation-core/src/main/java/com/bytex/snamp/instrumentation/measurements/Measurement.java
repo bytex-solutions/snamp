@@ -1,4 +1,4 @@
-package com.bytex.snamp.instrumentation;
+package com.bytex.snamp.instrumentation.measurements;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -73,6 +73,10 @@ public abstract class Measurement implements Externalizable {
 
     public final void setUserData(final Map<String, String> value){
         userData.clear();
+        addUserData(value);
+    }
+
+    public final void addUserData(final Map<String, String> value){
         userData.putAll(value);
     }
 

@@ -1,8 +1,7 @@
-package com.bytex.snamp.instrumentation;
+package com.bytex.snamp.instrumentation.measurements;
 
 import java.lang.management.ManagementFactory;
 import java.util.regex.Pattern;
-import static com.bytex.snamp.instrumentation.Utils.getSystemProperty;
 
 /**
  * Provides different sources of component name.
@@ -15,7 +14,7 @@ enum ComponentNameSource {  //WARNING: order of this enum is significant for cal
         @Override
         String getName() {
             //https://github.com/spring-projects/spring-boot/blob/master/spring-boot/src/main/java/org/springframework/boot/context/ContextIdApplicationContextInitializer.java
-            return getSystemProperty("spring.application.name", "vcap.application.name", "spring.config.name");
+            return Utils.getSystemProperty("spring.application.name", "vcap.application.name", "spring.config.name");
         }
     },
 

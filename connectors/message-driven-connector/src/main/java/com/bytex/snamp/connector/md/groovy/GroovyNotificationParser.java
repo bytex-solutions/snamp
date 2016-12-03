@@ -8,7 +8,7 @@ import com.bytex.snamp.connector.md.notifications.SpanNotification;
 import com.bytex.snamp.connector.md.notifications.TimeMeasurementNotification;
 import com.bytex.snamp.connector.md.notifications.ValueMeasurementNotification;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
-import com.bytex.snamp.instrumentation.*;
+import com.bytex.snamp.instrumentation.measurements.*;
 import com.bytex.snamp.scripting.groovy.Scriptlet;
 
 import javax.management.Notification;

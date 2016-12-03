@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.md.notifications;
 
 import com.bytex.snamp.instrumentation.Identifier;
-import com.bytex.snamp.instrumentation.Span;
+import com.bytex.snamp.instrumentation.measurements.Span;
 
 import java.util.Objects;
 

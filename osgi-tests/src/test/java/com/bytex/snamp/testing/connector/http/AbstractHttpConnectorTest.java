@@ -1,6 +1,6 @@
 package com.bytex.snamp.testing.connector.http;
 
-import com.bytex.snamp.instrumentation.Measurement;
+import com.bytex.snamp.instrumentation.measurements.Measurement;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;

@@ -1,6 +1,6 @@
-package com.bytex.snamp.instrumentation.reporting;
+package com.bytex.snamp.instrumentation.reporters;
 
-import com.bytex.snamp.instrumentation.Measurement;
+import com.bytex.snamp.instrumentation.measurements.Measurement;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -20,8 +20,9 @@ public interface Reporter extends Closeable {
 
     /**
      * Flushes buffered measurements.
+     * @throws IOException Some I/O error occurred when posting measurements to SNAMP.
      */
-    void flush();
+    void flush() throws IOException;
 
     /**
      * Send one or more measurements.

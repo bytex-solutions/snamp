@@ -147,7 +147,7 @@
                         </Export-Package>
                         <Import-Package>
                             com.bytex.snamp.concurrent,
-                            com.bytex.snamp.instrumentation,
+                            com.bytex.snamp.instrumentation.measurements,
                             com.bytex.snamp,
                             com.bytex.snamp.io,
                             com.bytex.snamp.connector,

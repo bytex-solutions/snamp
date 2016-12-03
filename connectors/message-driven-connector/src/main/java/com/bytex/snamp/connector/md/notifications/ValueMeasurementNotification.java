@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.md.notifications;
 
-import com.bytex.snamp.instrumentation.*;
+import com.bytex.snamp.instrumentation.measurements.*;
 
 import java.util.Objects;
 import java.util.Optional;
