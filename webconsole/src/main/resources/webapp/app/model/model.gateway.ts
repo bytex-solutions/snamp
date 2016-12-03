@@ -3,12 +3,14 @@ import { ApiClient } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Binding } from './model.binding';
+import { ParamDescriptor } from './model.paramDescriptor';
 
 export class Gateway extends TypedEntity {
     http:ApiClient;
     attributes:Binding[] = [];
     events:Binding[] = [];
     operations:Binding[] = [];
+    parametersDescription:ParamDescriptor[] = [];
     constructor(http:ApiClient, name:string, type:string, parameters: { [key:string]:string; }) {
         super(name, type, parameters);
         this.http = http;
@@ -44,6 +46,15 @@ export class Gateway extends TypedEntity {
                             this.operations.push(new Binding(operationKey, resourceKey, response[resourceKey][operationKey]));
                         }
                     }
+                });
+
+            // retrieving parameters description
+            this.http.get("/snamp/console/management/gateways/" + type + "/configuration")
+                .map((res: Response) => res.json())
+                .subscribe(response => {
+                   for (let obj in response) {
+                      this.parametersDescription.push(new ParamDescriptor(obj));
+                   }
                 });
         }
     }
