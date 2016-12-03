@@ -167,7 +167,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
      * @return no content response
      */
     @PUT
-    @Path("/{name}/operations/{operationName}")
+    @Path("/{name}/" + FeatureType.OPERATIONS_TYPE + "/{operationName}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setOperation(@PathParam("name") final String name,

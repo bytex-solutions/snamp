@@ -7,7 +7,6 @@ import com.bytex.snamp.management.http.model.GatewayDataObject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Map;
-import javax.ws.rs.core.Response;
 
 /**
  * Provides API for SNAMP gateway.

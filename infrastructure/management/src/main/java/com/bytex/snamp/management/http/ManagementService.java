@@ -1,10 +1,16 @@
 package com.bytex.snamp.management.http;
 
+import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.AbstractSnampManager;
 import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.management.ManagementUtils;
 import com.bytex.snamp.management.SnampManagerImpl;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleException;
 
@@ -26,9 +32,31 @@ import java.util.stream.Collectors;
 @Path("/management")
 public final class ManagementService extends AbstractManagementService {
     private static final String INTERNAL_COMPONENT_TYPE_NAME = "Internal component";
-    private static final String GATEWAY_COMPONENT_TYPE_NAME = "Gateway";
-    private static final String RESOURCE_COMPONENT_TYPE_NAME = "Managed resource";
     private final AbstractSnampManager manager = new SnampManagerImpl();
+
+    private Map<String, String> stringifyDescription(final ConfigurationEntityDescription.ParameterDescription description) {
+        return ImmutableMap.<String, String>builder()
+                .put("name", description.getName())
+                .put("required", String.valueOf(description.isRequired()))
+                .put("defaultValue", description.getDefaultValue(null))
+                .put("pattern", description.getValuePattern(null))
+                .put("association", Joiner.on(",").skipNulls().join(
+                        description.getRelatedParameters
+                                (ConfigurationEntityDescription.ParameterRelationship.ASSOCIATION)
+                        )
+                )
+                .put("exclusion", Joiner.on(",").skipNulls().join(
+                        description.getRelatedParameters
+                                (ConfigurationEntityDescription.ParameterRelationship.EXCLUSION)
+                        )
+                )
+                .put("extension", Joiner.on(",").skipNulls().join(
+                        description.getRelatedParameters
+                                (ConfigurationEntityDescription.ParameterRelationship.EXTENSION)
+                        )
+                )
+                .build();
+    }
 
     /**
      * Returns all the snamp bundles.
@@ -190,6 +218,56 @@ public final class ManagementService extends AbstractManagementService {
             return GatewayActivator.enableGateway(getBundleContext(), name);
         } catch (final BundleException e) {
             throw new WebApplicationException(e);
+        }
+    }
+
+
+
+    /**
+     * Gets gateway description.
+     *
+     * @param name the name
+     * @return the entity description
+     */
+    @GET
+    @Path("/gateways/{name}/configuration")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public final Collection<Map<String, String>> getGatewayDescription(@PathParam("name") final String name) {
+        try {
+            final ConfigurationEntityDescription<GatewayConfiguration> descriptor =
+                    GatewayClient.getConfigurationEntityDescriptor(getBundleContext(), name,
+                            GatewayConfiguration.class);
+            return descriptor.stream()
+                    .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
+                    .collect(Collectors.toList());
+        } catch (final UnsupportedOperationException exception) {
+            throw AbstractEntityConfigurationService.notFound();
+        }
+    }
+
+
+
+    /**
+     * Gets managed resource description.
+     *
+     * @param name the name
+     * @return the entity description
+     */
+    @GET
+    @Path("/resources/{name}/configuration")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public final Collection<Map<String, String>> getResourceDescription(@PathParam("name") final String name) {
+        try {
+            final ConfigurationEntityDescription<ManagedResourceConfiguration> descriptor =
+                    ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,
+                            ManagedResourceConfiguration.class);
+            return descriptor.stream()
+                    .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
+                    .collect(Collectors.toList());
+        } catch (final UnsupportedOperationException exception) {
+            throw AbstractEntityConfigurationService.notFound();
         }
     }
 }

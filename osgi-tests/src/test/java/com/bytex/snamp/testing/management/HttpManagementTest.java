@@ -2,6 +2,7 @@ package com.bytex.snamp.testing.management;
 
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.io.IOUtils;
@@ -15,6 +16,7 @@ import com.google.gson.*;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.ws.rs.core.MediaType;
@@ -591,8 +593,21 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
             connection.disconnect();
         }
 
-        // remove parameter
-        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/console/gateway/%s/attributes/bindings", ADAPTER_INSTANCE_NAME)).openConnection();
+        // get some bindings
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/console/gateway/%s/attributes/bindings",
+                ADAPTER_INSTANCE_NAME)).openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            assertNotNull(IOUtils.toString(connection.getInputStream(), Charset.defaultCharset()));
+        } finally {
+            connection.disconnect();
+        }
+
+        // get the configuration
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/console/management/gateways/%s/configuration",
+                ADAPTER_NAME)).openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
         connection.connect();
@@ -845,5 +860,20 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903");
         attribute.getParameters().put("oid", "1.1.11.0");
+    }
+
+    @Override
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", BEAN_NAME);
+
+        event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.testnotif");
+        event.getParameters().put("severity", "panic");
+        event.getParameters().put("objectName", BEAN_NAME);
+
+        event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.plainnotif");
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("objectName", BEAN_NAME);
     }
 }
