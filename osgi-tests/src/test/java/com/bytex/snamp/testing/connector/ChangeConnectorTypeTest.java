@@ -4,6 +4,8 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.instrumentation.measurements.IntegerMeasurement;
+import com.bytex.snamp.instrumentation.measurements.StandardMeasurements;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -23,6 +25,11 @@ import java.util.concurrent.TimeoutException;
  */
 @SnampDependencies({SnampFeature.GROOVY_CONNECTOR, SnampFeature.HTTP_ACCEPTOR})
 public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest {
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
     @Test
     public void changeTypeTest() throws IOException, TimeoutException, InterruptedException, JMException {
         final String RESOURCE_NAME = "connector";
@@ -42,26 +49,33 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
             client.release(getTestBundleContext());
         }
         //let's change type of the connector
+        final String COMPONENT_NAME = "javaApp";
+        final String INSTANCE_NAME = "myComponent";
         processConfiguration(config -> {
             ManagedResourceConfiguration connector = config.getEntities(ManagedResourceConfiguration.class).getOrAdd(RESOURCE_NAME);
             assertEquals(AbstractGroovyConnectorTest.CONNECTOR_TYPE, connector.getType());
             connector.setType(AbstractHttpConnectorTest.CONNECTOR_TYPE);
-            connector.setConnectionString("myComponent");
+            connector.setConnectionString(INSTANCE_NAME);
+            connector.getParameters().put("componentName", COMPONENT_NAME);
             connector.getFeatures(AttributeConfiguration.class).clear();
             connector.getFeatures(AttributeConfiguration.class)
-                    .addAndConsume("strValue", attribute -> attribute.getParameters().put("gauge", "get lastValue from stringGauge attribute2"));
+                    .addAndConsume("longValue", attribute -> attribute.getParameters().put("gauge", "get lastValue from gauge64 attribute1"));
             connector.getFeatures(AttributeConfiguration.class)
-                    .addAndConsume("attribute2", attribute -> {
-                        attribute.getParameters().put("gauge", "stringGauge");
-                        attribute.setAlternativeName("customStrings");
+                    .addAndConsume("attribute1", attribute -> {
+                        attribute.getParameters().put("gauge", "gauge64");
+                        attribute.setAlternativeName(StandardMeasurements.FREE_RAM);
                     });
             return true;
         });
         client = new ManagedResourceConnectorClient(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2));
         try{
-            AbstractHttpConnectorTest.sendText("DS");
-            final Object attribute = client.getAttribute("strValue");
-            assertEquals("DS", attribute);
+            final IntegerMeasurement measurement = StandardMeasurements.freeRam(42L);
+            measurement.setInstanceName(INSTANCE_NAME);
+            measurement.setComponentName(COMPONENT_NAME);
+            AbstractHttpConnectorTest.sendMeasurement(measurement);
+            Thread.sleep(2_000);
+            final Object attribute = client.getAttribute("longValue");
+            assertEquals(42L, attribute);
         } finally {
             client.release(getTestBundleContext());
         }

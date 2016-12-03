@@ -65,10 +65,11 @@ public final class AcceptorService {
         @Override
         public HttpAcceptor load(final NotificationSource source) throws AcceptorNotFoundException {
             //used to find the appropriate acceptor
-            final class HttpAcceptorFinder extends HttpAcceptorHandler<Void, ExceptionPlaceholder>{
+            final class HttpAcceptorFinder extends HttpAcceptorHandler<NotificationSource, ExceptionPlaceholder>{
                 private HttpAcceptor acceptor;
 
-                private HttpAcceptor getAcceptor() throws AcceptorNotFoundException {
+                private HttpAcceptor getAcceptor(final NotificationSource source) throws AcceptorNotFoundException {
+                    handleService(source);
                     if (acceptor == null)
                         throw new AcceptorNotFoundException();
                     else
@@ -76,7 +77,7 @@ public final class AcceptorService {
                 }
 
                 @Override
-                boolean handleService(final HttpAcceptor acceptor, final Void userData) {
+                boolean handleService(final HttpAcceptor acceptor, final NotificationSource source) {
                     final boolean found;
                     if(found = acceptor.represents(source))
                         this.acceptor = acceptor;
@@ -84,7 +85,7 @@ public final class AcceptorService {
                 }
             }
 
-            return new HttpAcceptorFinder().getAcceptor();
+            return new HttpAcceptorFinder().getAcceptor(source);
         }
     }
 
