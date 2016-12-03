@@ -46,23 +46,4 @@ public final class GatewayConfigurationService extends AbstractEntityConfigurati
                                                              @PathParam("feature") final FeatureType type) {
         return type.getBindings(getBundleContext(), name);
     }
-
-    /**
-     * Change gateway type response.
-     *
-     * @param name    the name
-     * @param newType the new type
-     * @return the response
-     */
-    @PUT
-    @Path("/{name}/type")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response changeGatewayType(@PathParam("name") final String name, final String newType) {
-        return setConfigurationByName(name, config -> {
-            config.setType(newType);
-            config.getParameters().clear();
-        });
-
-    }
 }
