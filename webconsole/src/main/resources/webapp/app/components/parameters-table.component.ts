@@ -1,7 +1,8 @@
-import { Component, Input ,ViewChild, ElementRef } from '@angular/core';
+import { Component, Input ,ViewChild, ElementRef, OnInit } from '@angular/core';
 import { ApiClient } from '../app.restClient';
 import { KeyValue } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
+import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
@@ -13,13 +14,40 @@ import 'rxjs/add/operator/toPromise';
   selector: 'parameters',
   templateUrl: 'app/components/templates/parameters-table.component.html'
 })
-export class ParametersTable {
+export class ParametersTable implements OnInit {
     @Input() entity: TypedEntity;
     @ViewChild('newParam') newParamElement:ElementRef;
+    @ViewChild('listParamValue') listParamValue:ElementRef;
+    @ViewChild('customParamValue') customParamValue:ElementRef;
+    selectedParam:ParamDescriptor = undefined;
     http:ApiClient;
+    stabValue:string = ParamDescriptor.stubValue;
+
+    public containsRequired:boolean;
+    public containsOptional:boolean;
 
     constructor(http:ApiClient) {
         this.http = http;
+        this.containsOptional = false;
+        this.containsRequired = false;
+    }
+
+    ngOnInit() {
+        this.entity.paramDescriptors.subscribe((descriptors:ParamDescriptor[]) => {
+            for (let i in descriptors) {
+               if (descriptors[i].required) {
+                   this.containsRequired = true;
+                   if (this.selectedParam == undefined) {
+                     this.selectedParam = descriptors[i];
+                   }
+               } else {
+                   this.containsOptional = true;
+                   if (this.selectedParam == undefined) {
+                     this.selectedParam = descriptors[i];
+                   }
+               }
+            }
+        });
     }
 
     getUrlForParameter(key:string):string {
@@ -39,6 +67,19 @@ export class ParametersTable {
     }
 
     addNewParameter() {
-        this.saveParameter(new KeyValue(this.newParamElement.nativeElement.value, "value"));
+        let paramKey:string = "";
+        let paramValue:string = this.stabValue;
+        if (this.selectedParam == undefined) {
+            paramKey = this.newParamElement.nativeElement.value;
+            paramValue = this.customParamValue.nativeElement.value;
+        } else {
+            paramKey = this.selectedParam.name;
+            paramValue = this.listParamValue.nativeElement.value;
+        }
+        this.saveParameter(new KeyValue(paramKey, paramValue));
+    }
+
+    flushSelected() {
+        this.selectedParam = undefined;
     }
 }

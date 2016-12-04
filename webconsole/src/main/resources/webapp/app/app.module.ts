@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Gateways }  from './app.gateways';
 import { HttpModule } from '@angular/http';
 import { CookieService } from 'angular2-cookie/core';
-import { KeysPipe } from './app.pipes'
+import { KeysPipe, RequriedParametersFilter, OptionalParametersFilter } from './app.pipes'
 import { Header } from './app.header'
 import { InlineEditComponent } from './components/inline-edit.component'
 import { ParametersTable } from './components/parameters-table.component'
@@ -17,7 +17,8 @@ import { BootstrapModalModule } from 'angular2-modal/plugins/bootstrap';
 
 @NgModule({
   imports:      [ BrowserModule, HttpModule, FormsModule, ModalModule.forRoot(), BootstrapModalModule ],
-  declarations: [ Gateways, Header, KeysPipe, InlineEditComponent, ParametersTable, BindingTable ],
+  declarations: [ Gateways, Header, KeysPipe, InlineEditComponent, ParametersTable, BindingTable,
+                    RequriedParametersFilter, OptionalParametersFilter ],
   bootstrap:    [ Gateways, Header ],
   providers:    [ ApiClient, CookieService ]
 })

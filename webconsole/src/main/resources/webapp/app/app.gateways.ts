@@ -27,7 +27,6 @@ export class Gateways implements OnInit {
 
    constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
         this.http = apiClient;
-        this.activeGateway = new Gateway(apiClient, "", "", {});
         overlay.defaultViewContainer = vcRef;
    }
 

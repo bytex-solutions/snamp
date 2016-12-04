@@ -253,4 +253,8 @@ body {
   .gatewaysContent {
     padding: 20px 0;
   }
+
+  .leftAlign {
+    text-align: left;
+  }
 }

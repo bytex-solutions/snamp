@@ -155,7 +155,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the boolean
      */
     @POST
-    @Path("/resources/{name}/disable")
+    @Path("/resource/{name}/disable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public boolean disableConnector(@PathParam("name") final String name)  {
@@ -173,7 +173,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the boolean
      */
     @POST
-    @Path("/resources/{name}/enable")
+    @Path("/resource/{name}/enable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public boolean enableConnector(@PathParam("name") final String name)  {
@@ -192,7 +192,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the boolean
      */
     @POST
-    @Path("/gateways/{name}/disable")
+    @Path("/gateway/{name}/disable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public boolean disableGateway(@PathParam("name") final String name)  {
@@ -210,7 +210,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the boolean
      */
     @POST
-    @Path("/gateways/{name}/enable")
+    @Path("/gateway/{name}/enable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public boolean enableGateway(@PathParam("name") final String name)  {
@@ -230,7 +230,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the entity description
      */
     @GET
-    @Path("/gateways/{name}/configuration")
+    @Path("/gateway/{name}/configuration")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Collection<Map<String, String>> getGatewayDescription(@PathParam("name") final String name) {
@@ -255,7 +255,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the entity description
      */
     @GET
-    @Path("/resources/{name}/configuration")
+    @Path("/resource/{name}/configuration")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Collection<Map<String, String>> getResourceDescription(@PathParam("name") final String name) {

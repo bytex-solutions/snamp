@@ -1,5 +1,5 @@
 export abstract class Entity {
-    protected parameters : KeyValue[] = [];
+    public parameters : KeyValue[] = [];
     constructor(parameters: { [key:string]:string; }) {
         for (let key in parameters) {
             this.parameters.push(new KeyValue(key, parameters[key]));

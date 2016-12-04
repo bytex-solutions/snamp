@@ -11,7 +11,7 @@ export class ParamDescriptor {
         this.name = parameters["name"];
         this.defaultValue = parameters["defaultValue"];
         this.pattern = parameters["pattern"];
-        this.required = Boolean(parameters["required"]);
+        this.required = (parameters["required"] === "true");
         if (parameters["association"] != undefined) {
             this.association = parameters["association"].split(",");
         }
@@ -22,4 +22,6 @@ export class ParamDescriptor {
             this.extension = parameters["extension"].split(",");
         }
     }
+
+    public static stubValue:string = "Input the value";
 }

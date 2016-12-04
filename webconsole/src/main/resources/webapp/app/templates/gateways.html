@@ -1,4 +1,4 @@
-<div class="row gatewaysContent" *ngIf="gateways && gateways.length > 0">
+<div class="row gatewaysContent">
     <div class="col-md-2">
         <div class="list-group">
             <a href="#"
@@ -9,7 +9,7 @@
             {{gateway.name}}</a>
         </div>
     </div>
-    <div class="col-md-10">
+    <div class="col-md-10" *ngIf="gateways && gateways.length > 0">
         <!-- right area -->
         <div class="row contentRow">
             <!-- if we have binging - add next with col-md-5 -->
@@ -20,7 +20,7 @@
                         <label class="control-label">Select type:</label>
                     </div>
                     <div class="col-md-9">
-                        <select
+                        <select disabled
                                 [(ngModel)]="activeGateway.type"
                                 (change)="changeType($event)"
                                 class="form-control">

@@ -1,17 +1,17 @@
 <!-- Modal for parameter appending -->
 <div class="modal fade" id="addParam" tabindex="-1" role="dialog" aria-labelledby="addParamModalLabel">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="addParamModalLabel">Add new param to {{entity.name}}</h4>
+                <h4 class="modal-title leftAlign" id="addParamModalLabel">Appending new parameter to {{entity.name}} {{entity.getName()}}</h4>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <!-- accordeon element -->
                     <div class="col-md-5">
                         <div class="panel-group group-accordeon" id="accordion" role="tablist" aria-multiselectable="true">
-                            <div class="panel panel-default">
+                            <div class="panel panel-default" *ngIf="containsRequired">
                                 <div class="panel-heading" role="tab" id="headingOne">
                                     <h4 class="panel-title">
                                         <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
@@ -21,11 +21,22 @@
                                 </div>
                                 <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                                     <div class="panel-body">
-
+                                        <div class="radio leftAlign" *ngFor="let descr of entity.paramDescriptors | async | required">
+                                            <label>
+                                                <input
+                                                        type="radio"
+                                                        name="optionsRadios1"
+                                                        id="optionsRadios1"
+                                                        [value]="descr"
+                                                        [checked]="selectedParam == descr"
+                                                        [(ngModel)]="selectedParam">
+                                                {{descr.name}}
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="panel panel-default">
+                            <div class="panel panel-default" *ngIf="containsOptional">
                                 <div class="panel-heading" role="tab" id="headingTwo">
                                     <h4 class="panel-title">
                                         <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
@@ -35,14 +46,32 @@
                                 </div>
                                 <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                                     <div class="panel-body">
-
+                                        <div class="radio leftAlign" *ngFor="let descr of entity.paramDescriptors | async | optional">
+                                            <label>
+                                                <input
+                                                        type="radio"
+                                                        name="optionsRadios2"
+                                                        id="optionsRadios2"
+                                                        [value]="descr"
+                                                        [checked]="selectedParam == descr"
+                                                        [(ngModel)]="selectedParam">
+                                                {{descr.name}}
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="panel panel-default">
                                 <div class="panel-heading" role="tab" id="headingThree">
                                     <h4 class="panel-title">
-                                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                        <a class="collapsed"
+                                           role="button"
+                                           data-toggle="collapse"
+                                           data-parent="#accordion"
+                                           href="#collapseThree"
+                                           aria-expanded="false"
+                                           aria-controls="collapseThree"
+                                           (click)="flushSelected()">
                                             Custom
                                         </a>
                                     </h4>
@@ -50,7 +79,7 @@
                                 <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
                                     <div class="panel-body">
                                         <div class="input-group">
-                                            <span class="input-group-addon">@</span>
+                                            <span class="input-group-addon">Name:</span>
                                             <input type="text" class="form-control" #newParam >
                                         </div>
                                     </div>
@@ -60,7 +89,48 @@
                     </div>
                     <!-- description window -->
                     <div class="col-md-7">
-
+                        <!-- if we have selected param from required/optional section -->
+                        <div class="panel panel-default leftAlign" *ngIf="selectedParam != undefined">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Details of parameter {{selectedParam.name}}</h3>
+                            </div>
+                            <div class="panel-body">
+                                <!-- List group -->
+                                <ul class="list-group">
+                                    <li class="list-group-item">Name: {{selectedParam.name}}</li>
+                                    <li class="list-group-item" *ngIf="selectedParam.required != ''">Required: {{selectedParam.required}}</li>
+                                    <li class="list-group-item" *ngIf="selectedParam.pattern != ''">Pattern: {{selectedParam.pattern}}</li>
+                                    <li class="list-group-item" *ngIf="selectedParam.defaultValue != ''">Default value: {{selectedParam.defaultValue}}</li>
+                                    <li class="list-group-item" *ngIf="selectedParam.association != ''">Associated parameters: {{selectedParam.association}}</li>
+                                    <li class="list-group-item" *ngIf="selectedParam.exclucion != ''">Exclucion parameters: {{selectedParam.exclucion}}</li>
+                                    <li class="list-group-item" *ngIf="selectedParam.extension != ''">Extension parameters: {{selectedParam.extension}}</li>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">Value:</span>
+                                        <input
+                                               type="text"
+                                               class="form-control"
+                                               #listParamValue
+                                               value="{{selectedParam.defaultValue != '' ? selectedParam.defaultValue : stabValue}}">
+                                    </div>
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- in case user wants to append custom parameter -->
+                        <div class="panel panel-default leftAlign" *ngIf="selectedParam == undefined">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Custom parameter appending</h3>
+                            </div>
+                            <div class="panel-body">
+                                <div class="input-group">
+                                    <span class="input-group-addon">Value:</span>
+                                    <input
+                                            type="text"
+                                            class="form-control"
+                                            #customParamValue
+                                            value="{{stabValue}}">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
