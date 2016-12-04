@@ -3,13 +3,11 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp</groupId>
-    <artifactId>snamp</artifactId>
-    <version>2.0.0</version>
+    <groupId>com.bytex.snamp.instrumentation</groupId>
+    <artifactId>instrumentation-java</artifactId>
+    <version>1.0.0</version>
   </parent>
-  <groupId>com.bytex.snamp.instrumentation</groupId>
-  <artifactId>instrumentation-core</artifactId>
-  <version>1.0.0</version>
+  <artifactId>core</artifactId>
   <packaging>bundle</packaging>
   <name>SNAMP Instrumentation Library</name>
   <description>SNAMP Instrumentation library for embedding into applications</description>

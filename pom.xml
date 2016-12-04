@@ -27,7 +27,7 @@
     <module>features/platform</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
-    <module>instrumentations/java/instrumentation-core</module>
+    <module>instrumentations/java</module>
     <module>osgi-tests</module>
   </modules>
   <properties>

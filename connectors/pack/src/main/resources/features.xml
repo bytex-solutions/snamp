@@ -6,7 +6,7 @@
         <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-scripting-support</feature>
         <bundle>mvn:com.bytex.snamp/message-driven-connector/${snamp.connector.md.version}</bundle>
-        <bundle>mvn:com.bytex.snamp.instrumentation/instrumentation-core/${snamp.instrumentation.version}</bundle>
+        <bundle>mvn:com.bytex.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
     </feature>
 
     <feature name="snamp-composite-connector" description="Composite Connector Karaf Feature" version="${snamp.connector.composite.version}">
