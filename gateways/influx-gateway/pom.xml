@@ -26,7 +26,7 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>com.bytex.snamp.instrumentation</groupId>
       <artifactId>instrumentation-core</artifactId>
       <version>1.0.0</version>
       <scope>provided</scope>

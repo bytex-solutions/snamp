@@ -14,7 +14,6 @@
         <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
         <!--SNAMP dependencies-->
         <bundle>mvn:com.bytex.snamp/framework/${snamp.version}</bundle>
-        <bundle>mvn:com.bytex.snamp/instrumentation-core/${snamp.instrumentation.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/internal-services/${snamp.services.version}</bundle>
     </feature>
 

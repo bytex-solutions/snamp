@@ -87,7 +87,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>com.bytex.snamp.instrumentation</groupId>
             <artifactId>instrumentation-core</artifactId>
             <version>${snamp.instrumentation.version}</version>
             <scope>provided</scope>
