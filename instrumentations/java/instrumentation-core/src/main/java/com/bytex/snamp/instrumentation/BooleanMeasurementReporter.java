@@ -33,7 +33,7 @@ public class BooleanMeasurementReporter extends ValueMeasurementReporter<Boolean
      * Reports about new value of this metric.
      * @param value A new value of this metric.
      */
-    public void report(final boolean value){
+    public final void report(final boolean value){
         report(value, Collections.<String, String>emptyMap());
     }
 

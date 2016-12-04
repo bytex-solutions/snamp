@@ -37,7 +37,7 @@ public class StringMeasurementReporter extends ValueMeasurementReporter<StringMe
      * @param value A new value of this metric.
      * @param change Relationship between newly supplied value and previously reported values.
      */
-    public void report(final String value, final ChangeType change){
+    public final void report(final String value, final ChangeType change){
         report(value, change, Collections.<String, String>emptyMap());
     }
 
@@ -45,7 +45,7 @@ public class StringMeasurementReporter extends ValueMeasurementReporter<StringMe
      * Reports about new value of this metric.
      * @param value A new value of this metric.
      */
-    public void report(final String value){
+    public final void report(final String value){
         report(value, ChangeType.NEW_VALUE);
     }
 

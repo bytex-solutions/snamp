@@ -18,11 +18,20 @@ public class TimeMeasurementReporter extends MeasurementReporter<TimeMeasurement
         super(reporters, name, userData);
     }
 
-    public void report(final long nanos){
+    /**
+     * Reports about new value of this metric.
+     * @param nanos Time span, in nanoseconds.
+     */
+    public final void report(final long nanos){
         report(nanos, TimeUnit.NANOSECONDS);
     }
 
-    public void report(final long duration, final TimeUnit unit){
+    /**
+     * Reports about new value of this metric.
+     * @param duration Time span.
+     * @param unit Unit of time measurement.
+     */
+    public final void report(final long duration, final TimeUnit unit){
         report(duration, unit, Collections.<String, String>emptyMap());
     }
 
@@ -58,7 +67,7 @@ public class TimeMeasurementReporter extends MeasurementReporter<TimeMeasurement
      * Starts timer.
      * @return An object used to stop timer
      */
-    public MeasurementScope start(){
+    public final MeasurementScope start(){
         return start(Collections.<String, String>emptyMap());
     }
 

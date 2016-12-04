@@ -23,7 +23,7 @@ public class FloatingPointMeasurementReporter extends ValueMeasurementReporter<F
      * Reports about new value of this metric.
      * @param value A new value of this metric.
      */
-    public void report(final double value){
+    public final void report(final double value){
         report(value, ChangeType.NEW_VALUE);
     }
 
@@ -32,7 +32,7 @@ public class FloatingPointMeasurementReporter extends ValueMeasurementReporter<F
      * @param value A new value of this metric.
      * @param change Relationship between newly supplied value and previously reported values.
      */
-    public void report(final double value, final ChangeType change){
+    public final void report(final double value, final ChangeType change){
         report(value, change, Collections.<String, String>emptyMap());
     }
 
