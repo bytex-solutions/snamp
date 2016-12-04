@@ -17,6 +17,10 @@ import java.util.concurrent.TimeUnit;
 final class TimeUnitSerializer extends JsonSerializer<TimeUnit> {
     @Override
     public void serialize(final TimeUnit value, final JsonGenerator jgen, final SerializerProvider provider) throws IOException, JsonProcessingException {
-        jgen.writeString(value.name().toLowerCase());
+        jgen.writeString(toString(value));
+    }
+
+    static String toString(final TimeUnit unit){
+        return unit.name().toLowerCase();
     }
 }

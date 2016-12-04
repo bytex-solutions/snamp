@@ -1,5 +1,6 @@
 package com.bytex.snamp.instrumentation;
 
+import com.bytex.snamp.instrumentation.measurements.CorrelationPolicy;
 import com.bytex.snamp.instrumentation.measurements.Span;
 
 import java.util.LinkedHashMap;
@@ -18,9 +19,10 @@ public abstract class TraceScope implements MeasurementScope {
     private final Identifier spanID;
     private final TraceScope parent;
     private final Identifier correlationID;
+    private final CorrelationPolicy correlationPolicy;
     private volatile Map<String, String> annotations;
 
-    protected TraceScope(final Identifier correlationID, final Identifier parentSpanID){
+    protected TraceScope(final Identifier correlationID, final CorrelationPolicy correlationPolicy, final Identifier parentSpanID){
         if(correlationID == null)
             throw new IllegalArgumentException("correlationID cannot be null");
         else if(parentSpanID == null)
@@ -28,12 +30,13 @@ public abstract class TraceScope implements MeasurementScope {
         else {
             this.spanID = Identifier.randomID();
             this.correlationID = correlationID;
+            this.correlationPolicy = correlationPolicy;
             startTime = System.nanoTime();
             //push scope
             if (Identifier.EMPTY.equals(parentSpanID)) {
                 parent = CURRENT_SCOPE.get();
             } else {
-                parent = new TraceScope(correlationID, Identifier.EMPTY) {
+                parent = new TraceScope(correlationID, correlationPolicy, Identifier.EMPTY) {
                     @Override
                     protected void report(final Span s) {
                         TraceScope.this.report(s);
@@ -60,6 +63,10 @@ public abstract class TraceScope implements MeasurementScope {
         if(userData == null)
             userData = getAnnotations();
         userData.put(name, value);
+    }
+
+    public final CorrelationPolicy getCorrelationPolicy() {
+        return correlationPolicy == null && parent != null ? parent.getCorrelationPolicy() : correlationPolicy;
     }
 
     /**
@@ -114,6 +121,7 @@ public abstract class TraceScope implements MeasurementScope {
                 s.addAnnotations(userData);
         }
         s.setSpanID(spanID);
+        s.setCorrelationPolicy(getCorrelationPolicy());
         s.setCorrelationID(getCorrelationID());
         s.setDuration(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
         //pop scope

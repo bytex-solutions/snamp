@@ -49,6 +49,12 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
             return new TimeMeasurementReporter(reporters, name, userData);
         }
     };
+    private static final MeasurementReporterFactory<SpanReporter> SPAN_REPORTER_FACTORY = new MeasurementReporterFactory<SpanReporter>() {
+        @Override
+        public SpanReporter create(final Iterable<Reporter> reporters, final String name, final Map<String, String> userData) {
+            return new SpanReporter(reporters, name, userData);
+        }
+    };
 
     private final Iterable<Reporter> reporters;
     private final ConcurrentMap<String, IntegerMeasurementReporter> integerReporters = new ConcurrentHashMap<String, IntegerMeasurementReporter>();
@@ -56,6 +62,7 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
     private final ConcurrentMap<String, BooleanMeasurementReporter> boolReporters = new ConcurrentHashMap<String, BooleanMeasurementReporter>();
     private final ConcurrentMap<String, StringMeasurementReporter> stringReporters = new ConcurrentHashMap<String, StringMeasurementReporter>();
     private final ConcurrentMap<String, TimeMeasurementReporter> timeReporters = new ConcurrentHashMap<String, TimeMeasurementReporter>();
+    private final ConcurrentMap<String, SpanReporter> spanReporters = new ConcurrentHashMap<String, SpanReporter>();
 
     /**
      * Initializes a new registry with reporters loaded from specified class loader.
@@ -173,7 +180,7 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
     }
 
     /**
-     * Gets time reporter for {@link String} values.
+     * Gets time measurer.
      * @param name Name of the metric.
      * @param userData Additional data to be associated with each time report.
      * @return Time reporter.
@@ -183,12 +190,31 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
     }
 
     /**
-     * Gets time reporter for {@link String} values.
+     * Gets time measurer.
      * @param name Name of the metric.
      * @return Time reporter.
      */
     public final TimeMeasurementReporter timer(final String name){
         return timer(name, Collections.<String, String>emptyMap());
+    }
+
+    /**
+     * Gets tracer with the specified name.
+     * @param name Name of all traces detected by the tracer.
+     * @param userData Additional data to be associated with each trace.
+     * @return A new tracer.
+     */
+    public final SpanReporter tracer(final String name, final Map<String, String> userData){
+        return getOrAddReporter(spanReporters, name, userData, SPAN_REPORTER_FACTORY);
+    }
+
+    /**
+     * Gets tracer with the specified name.
+     * @param name Name of all traces detected by the tracer.
+     * @return A new tracer.
+     */
+    public final SpanReporter tracer(final String name){
+        return tracer(name, Collections.<String, String>emptyMap());
     }
 
     /**

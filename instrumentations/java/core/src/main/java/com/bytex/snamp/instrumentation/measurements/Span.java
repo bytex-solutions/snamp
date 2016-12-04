@@ -14,16 +14,20 @@ import java.io.ObjectOutput;
  * @author Roman Sakno
  */
 public final class Span extends TimeMeasurement {
+    public static final CorrelationPolicy DEFAULT_CORRELATION_POLICY = CorrelationPolicy.LOCAL;
+
     private static final long serialVersionUID = -1873210335013467017L;
     private Identifier correlationID = Identifier.EMPTY;
     private Identifier spanID = Identifier.EMPTY;
     private Identifier parentSpanID = Identifier.EMPTY;
+    private CorrelationPolicy correlationPolicy = DEFAULT_CORRELATION_POLICY;
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         correlationID.serialize(out);
         spanID.serialize(out);
         parentSpanID.serialize(out);
+        out.writeUTF(correlationPolicy.name());
         super.writeExternal(out);
     }
 
@@ -32,7 +36,19 @@ public final class Span extends TimeMeasurement {
         correlationID = Identifier.deserialize(in);
         spanID = Identifier.deserialize(in);
         parentSpanID = Identifier.deserialize(in);
+        correlationPolicy = CorrelationPolicy.valueOf(in.readUTF());
         super.readExternal(in);
+    }
+
+    @JsonProperty("correlType")
+    public CorrelationPolicy getCorrelationPolicy(){
+        return correlationPolicy;
+    }
+
+    public void setCorrelationPolicy(final CorrelationPolicy value){
+        if(value == null)
+            throw new IllegalArgumentException("value cannot be null");
+        correlationPolicy = value;
     }
 
     public Identifier getCorrelationID(){
