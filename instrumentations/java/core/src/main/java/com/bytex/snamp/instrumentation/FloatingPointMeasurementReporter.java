@@ -44,7 +44,7 @@ public class FloatingPointMeasurementReporter extends ValueMeasurementReporter<F
      */
     public void report(final double value, final ChangeType change, final Map<String, String> userData){
         final FloatingPointMeasurement measurement = new FloatingPointMeasurement(value);
-        measurement.setUserData(userData);
+        measurement.setAnnotations(userData);
         measurement.setChangeType(change);
         report(measurement);
     }

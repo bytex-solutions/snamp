@@ -29,7 +29,7 @@ public abstract class MeasurementNotification<M extends Measurement> extends Not
 
     @Override
     public Object getUserData() {
-        return firstNonNull(super.getUserData(), getMeasurement().getUserData());
+        return firstNonNull(super.getUserData(), getMeasurement().getAnnotations());
     }
 
     @Override

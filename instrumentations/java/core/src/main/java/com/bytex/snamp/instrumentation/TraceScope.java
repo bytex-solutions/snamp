@@ -111,7 +111,7 @@ public abstract class TraceScope implements MeasurementScope {
         {
             final Map<String, String> userData = annotations;
             if (userData != null)
-                s.addUserData(userData);
+                s.addAnnotations(userData);
         }
         s.setSpanID(spanID);
         s.setCorrelationID(getCorrelationID());

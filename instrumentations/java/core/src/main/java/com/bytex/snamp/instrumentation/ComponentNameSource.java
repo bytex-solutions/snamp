@@ -1,4 +1,4 @@
-package com.bytex.snamp.instrumentation.measurements;
+package com.bytex.snamp.instrumentation;
 
 import java.lang.management.ManagementFactory;
 import java.util.regex.Pattern;
@@ -7,6 +7,13 @@ import java.util.regex.Pattern;
  * Provides different sources of component name.
  */
 enum ComponentNameSource {  //WARNING: order of this enum is significant for callers
+    SNAMP{
+        @Override
+        String getName() {
+            return System.getProperty(NAME_SYSTEM_PROPERTY);
+        }
+    },
+
     /**
      * Extracts component name using Spring configuration property.
      */
@@ -45,6 +52,8 @@ enum ComponentNameSource {  //WARNING: order of this enum is significant for cal
             return ManagementFactory.getRuntimeMXBean().getName();
         }
     };
+
+    static final String NAME_SYSTEM_PROPERTY = "application.name";
 
     /**
      * Gets component name using the specified source.

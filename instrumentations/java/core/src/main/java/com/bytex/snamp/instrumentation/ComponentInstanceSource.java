@@ -1,8 +1,9 @@
-package com.bytex.snamp.instrumentation.measurements;
+package com.bytex.snamp.instrumentation;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.TreeSet;
 
@@ -10,13 +11,25 @@ import java.util.TreeSet;
  * Provides different sources of component name.
  */
 enum  ComponentInstanceSource { //WARNING: order of this enum is significant for callers
+    SNAMP{
+        @Override
+        String getInstance() {
+            return System.getProperty(INSTANCE_SYSTEM_PROPERTY);
+        }
+    },
+
     /**
      * Use network interface address as instance name.
      */
     MACHINE_ADDRESS {
         @Override
         String getInstance() {
-            final String LOCALHOST = "127.0.0.1";
+            String LOCALHOST;
+            try{
+                LOCALHOST = InetAddress.getLocalHost().getHostAddress();
+            } catch (final UnknownHostException e){
+                LOCALHOST = "127.0.0.1";
+            }
             final Enumeration<NetworkInterface> ifaces;
             try {
                 ifaces = NetworkInterface.getNetworkInterfaces();
@@ -39,6 +52,8 @@ enum  ComponentInstanceSource { //WARNING: order of this enum is significant for
                 return siteLocalCandidates.first();
         }
     };
+
+    static final String INSTANCE_SYSTEM_PROPERTY = "application.instance";
 
     /**
      * Gets instance using the specified source.

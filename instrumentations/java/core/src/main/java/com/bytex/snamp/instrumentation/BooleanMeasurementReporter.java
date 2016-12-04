@@ -25,7 +25,7 @@ public class BooleanMeasurementReporter extends ValueMeasurementReporter<Boolean
      */
     public void report(final boolean value, final Map<String, String> userData){
         final BooleanMeasurement measurement = new BooleanMeasurement(value);
-        measurement.setUserData(userData);
+        measurement.setAnnotations(userData);
         report(measurement);
     }
 

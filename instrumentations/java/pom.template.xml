@@ -14,5 +14,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>core</module>
+        <module>htrace</module>
     </modules>
 </project>

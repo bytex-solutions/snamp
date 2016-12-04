@@ -50,7 +50,7 @@ public final class GroovyNotificationParserTest extends Assert {
         assertFalse(result.isEmpty());
         result.forEach(n -> {
             assertTrue(n instanceof ValueMeasurementNotification);
-            assertEquals("application/xml", ((MeasurementNotification<?>)n).getMeasurement().getUserData().get("contentType"));
+            assertEquals("application/xml", ((MeasurementNotification<?>)n).getMeasurement().getAnnotations().get("contentType"));
         });
     }
 

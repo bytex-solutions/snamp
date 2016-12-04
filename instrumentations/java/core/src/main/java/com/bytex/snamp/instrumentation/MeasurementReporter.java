@@ -29,32 +29,24 @@ public abstract class MeasurementReporter<M extends Measurement> {
         boolean report(final R reporter);
     }
 
-    private static final AtomicLong timerCounter = new AtomicLong(0L);
+    private static final AtomicLong threadCounter = new AtomicLong(0L);
     private static final Logger LOGGER = Logger.getLogger("SnampMeasurementsReporter");
     private final Iterable<Reporter> reporters;
     private final String name;
     private final Map<String, String> userData;
-    private String componentName;
-    private String instanceName;
     private volatile ScheduledExecutorService scheduler;  //scheduler has lazy instantiation to reduce memory pressure and number of application threads.
 
     MeasurementReporter(final Iterable<Reporter> reporters, final String name, final Map<String, String> userData){
         this.reporters = reporters;
         this.name = name;
         this.userData = userData;
-        componentName = instanceName = "";
-    }
-
-    final void setApplicationInfo(final String name, final String instance){
-        componentName = name;
-        instanceName = instance;
     }
 
     private static ThreadFactory createThreadFactory(final String reporterName) {
         return new ThreadFactory() {
             @Override
             public Thread newThread(final Runnable r) {
-                final Thread t = new Thread(r, reporterName + "-reporter-" + timerCounter.getAndIncrement());
+                final Thread t = new Thread(r, reporterName + "-reporter-" + threadCounter.getAndIncrement());
                 t.setDaemon(true);
                 t.setPriority(3);   //at the middle between MIN and NORM priority to save CPU time when report measurements
                 return t;
@@ -99,15 +91,7 @@ public abstract class MeasurementReporter<M extends Measurement> {
         return taskScope(scheduler.scheduleWithFixedDelay(task, delay, delay, unit));
     }
 
-    /**
-     * Reports a new measurement.
-     * @param measurement Measurement to report.
-     */
-    protected final void report(final M measurement) {
-        measurement.setName(name);
-        measurement.addUserData(userData);
-        measurement.setComponentName(componentName);
-        measurement.setInstanceName(instanceName);
+    public static void report(final Iterable<Reporter> reporters, final Measurement measurement){
         for (final Reporter reporter : reporters)
             if (reporter.isConnected())
                 try {
@@ -117,5 +101,15 @@ public abstract class MeasurementReporter<M extends Measurement> {
                 }
             else
                 LOGGER.log(Level.WARNING, String.format("Reporter %s is not connected", reporter));
+    }
+
+    /**
+     * Reports a new measurement.
+     * @param measurement Measurement to report.
+     */
+    protected final void report(final M measurement) {
+        measurement.setName(name);
+        measurement.addAnnotations(userData);
+        report(reporters, measurement);
     }
 }

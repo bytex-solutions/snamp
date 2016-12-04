@@ -27,7 +27,7 @@ public class StringMeasurementReporter extends ValueMeasurementReporter<StringMe
      */
     public void report(final String value, final ChangeType change, final Map<String, String> userData){
         final StringMeasurement measurement = new StringMeasurement();
-        measurement.setUserData(userData);
+        measurement.setAnnotations(userData);
         measurement.setChangeType(change);
         report(measurement);
     }

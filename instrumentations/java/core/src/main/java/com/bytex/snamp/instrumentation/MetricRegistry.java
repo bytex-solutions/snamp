@@ -1,6 +1,5 @@
 package com.bytex.snamp.instrumentation;
 
-import com.bytex.snamp.instrumentation.measurements.Measurement;
 import com.bytex.snamp.instrumentation.reporters.Reporter;
 
 import java.io.Closeable;
@@ -57,8 +56,6 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
     private final ConcurrentMap<String, BooleanMeasurementReporter> boolReporters = new ConcurrentHashMap<String, BooleanMeasurementReporter>();
     private final ConcurrentMap<String, StringMeasurementReporter> stringReporters = new ConcurrentHashMap<String, StringMeasurementReporter>();
     private final ConcurrentMap<String, TimeMeasurementReporter> timeReporters = new ConcurrentHashMap<String, TimeMeasurementReporter>();
-    private String componentName = Measurement.getDefaultComponentName();
-    private String instanceName = Measurement.getDefaultInstanceName();
 
     /**
      * Initializes a new registry with reporters loaded from specified class loader.
@@ -80,30 +77,7 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
      * @param reporters Set of reporters.
      */
     public MetricRegistry(final Reporter... reporters){
-        this.reporters = Arrays.asList(reporters);
-    }
-
-    /**
-     * Overrides information about component or application in which this registry is hosted.
-     * @param name A new component/service/application name.
-     * @param instance A new component/service/instance name.
-     */
-    public void setApplicationInfo(final String name, final String instance){
-        componentName = name;
-        instanceName = instance;
-        setApplicationInfo(name, instance,
-                integerReporters.values(),
-                fpReporters.values(),
-                boolReporters.values(),
-                stringReporters.values(),
-                timeReporters.values()
-                );
-    }
-
-    private static void setApplicationInfo(final String name, final String instance, final Iterable<? extends MeasurementReporter<?>>... repositories){
-        for(final Iterable<? extends MeasurementReporter<?>> repository: repositories)
-            for(final MeasurementReporter<?> reporter: repository)
-                reporter.setApplicationInfo(name, instance);
+        this.reporters = Arrays.asList(reporters.clone());
     }
 
     private static <T> T coalesce(final T first, final T second){
@@ -117,7 +91,6 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
         R reporter = repository.get(name);
         if (reporter == null) {
             reporter = factory.create(reporters, name, userData);
-            reporter.setApplicationInfo(componentName, instanceName);
             return coalesce(repository.putIfAbsent(name, reporter), reporter);
         }
         return reporter;

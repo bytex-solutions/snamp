@@ -66,7 +66,7 @@ private void parseZipkinSpan(Span zipkinSpan) {
                 notif.type = "zipkin.error"
                 return true
             default:
-                expandUserData(it, result.userData)
+                expandUserData(it, result.getAnnotations)
                 return true
         }
     }

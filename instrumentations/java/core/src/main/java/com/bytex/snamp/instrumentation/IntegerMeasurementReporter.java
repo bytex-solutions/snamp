@@ -44,7 +44,7 @@ public class IntegerMeasurementReporter extends ValueMeasurementReporter<Integer
      */
     public void report(final long value, final ChangeType change, final Map<String, String> userData){
         final IntegerMeasurement measurement = new IntegerMeasurement(value);
-        measurement.setUserData(userData);
+        measurement.setAnnotations(userData);
         measurement.setChangeType(change);
         report(measurement);
     }

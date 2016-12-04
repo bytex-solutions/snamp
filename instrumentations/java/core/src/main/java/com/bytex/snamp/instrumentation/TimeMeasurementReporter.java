@@ -43,7 +43,7 @@ public class TimeMeasurementReporter extends MeasurementReporter<TimeMeasurement
      */
     public void report(final long duration, final TimeUnit unit, final Map<String, String> userData){
         final TimeMeasurement measurement = new TimeMeasurement(duration, unit);
-        measurement.setUserData(userData);
+        measurement.setAnnotations(userData);
         report(measurement);
     }
 

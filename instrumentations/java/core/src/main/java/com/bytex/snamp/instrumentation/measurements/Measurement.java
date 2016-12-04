@@ -1,5 +1,6 @@
 package com.bytex.snamp.instrumentation.measurements;
 
+import com.bytex.snamp.instrumentation.ApplicationInfo;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -29,23 +30,23 @@ public abstract class Measurement implements Externalizable {
         private static final ObjectMapper INSTANCE = new ObjectMapper();
     }
 
+    public static final String DESCRIPTION_ANNOTATION = "description";
     static final String VALUE_JSON_PROPERTY = "v";
     private static final long serialVersionUID = -5122847206545823797L;
-    private static final ComponentNameSource[] COMPONENT_NAME_SOURCES = ComponentNameSource.values();   //cache array of performance purposes
-    private static final ComponentInstanceSource[] COMPONENT_INSTANCE_SOURCES = ComponentInstanceSource.values();
 
     private static final String MESSAGE_FIELD = "message";
     private String instanceName;
     private String componentName;
     private long timestamp;
-    private final LinkedHashMap<String, String> userData;
+    private final LinkedHashMap<String, String> annotations;
     private String name;
 
     Measurement(){
         timestamp = System.currentTimeMillis();
-        userData = new LinkedHashMap<String, String>();
-        instanceName = name = "";
-        componentName = getDefaultComponentName();
+        annotations = new LinkedHashMap<String, String>();
+        name = "";
+        componentName = ApplicationInfo.getName();
+        instanceName = ApplicationInfo.getInstance();
     }
 
     public final String getName(){
@@ -62,22 +63,35 @@ public abstract class Measurement implements Externalizable {
 
     @JsonIgnore
     public final String getMessage(final String defaultMessage){
-        final String message = userData.get(MESSAGE_FIELD);
+        final String message = annotations.get(MESSAGE_FIELD);
         return message == null || message.isEmpty() ? defaultMessage : message;
     }
 
-    @JsonProperty("data")
-    public final Map<String, String> getUserData(){
-        return userData;
+    @JsonProperty("annotations")
+    public final Map<String, String> getAnnotations(){
+        return annotations;
     }
 
-    public final void setUserData(final Map<String, String> value){
-        userData.clear();
-        addUserData(value);
+    public final void setAnnotations(final Map<String, String> value){
+        annotations.clear();
+        addAnnotations(value);
     }
 
-    public final void addUserData(final Map<String, String> value){
-        userData.putAll(value);
+    public final void addAnnotations(final Map<String, String> value){
+        annotations.putAll(value);
+    }
+
+    public final void addAnnotation(final String name, final String value){
+        annotations.put(name, value);
+    }
+
+    @JsonIgnore
+    public final void setDescription(final String description){
+        addAnnotation(DESCRIPTION_ANNOTATION, description);
+    }
+
+    public final String getDescription(){
+        return annotations.get(DESCRIPTION_ANNOTATION);
     }
 
     /**
@@ -85,7 +99,7 @@ public abstract class Measurement implements Externalizable {
      */
     public final void useSystemPropertiesAsUserData(){
         for(final String propertyName: System.getProperties().stringPropertyNames()){
-            userData.put(propertyName, System.getProperty(propertyName));
+            annotations.put(propertyName, System.getProperty(propertyName));
         }
     }
 
@@ -96,8 +110,8 @@ public abstract class Measurement implements Externalizable {
         out.writeUTF(componentName);
         out.writeLong(timestamp);
         //save user data
-        out.writeInt(userData.size());
-        for(final Map.Entry<String, String> entry: userData.entrySet()){
+        out.writeInt(annotations.size());
+        for(final Map.Entry<String, String> entry: annotations.entrySet()){
             out.writeUTF(entry.getKey());
             out.writeUTF(entry.getValue());
         }
@@ -111,29 +125,7 @@ public abstract class Measurement implements Externalizable {
         timestamp = in.readLong();
         //load user data
         for (int size = in.readInt(); size > 0; size--)
-            userData.put(in.readUTF(), in.readUTF());
-    }
-
-    /**
-     * Gets default instance name based on IP address.
-     * @return Instance name based on IP address.
-     */
-    public static String getDefaultInstanceName() {
-        for (final ComponentInstanceSource source : COMPONENT_INSTANCE_SOURCES) {
-            final String name = source.getInstance();
-            if (name != null && !name.isEmpty())
-                return name;
-        }
-        return "";
-    }
-
-    public static String getDefaultComponentName() {
-        for (final ComponentNameSource source : COMPONENT_NAME_SOURCES) {
-            final String name = source.getName();
-            if (name != null && !name.isEmpty())
-                return name;
-        }
-        return "";
+            annotations.put(in.readUTF(), in.readUTF());
     }
 
     @JsonIgnore
@@ -165,14 +157,6 @@ public abstract class Measurement implements Externalizable {
     @JsonProperty("c")
     public final String getComponentName(){
         return componentName;
-    }
-
-    public final void setDefaultComponentName(){
-        setComponentName(getDefaultComponentName());
-    }
-
-    public final void setDefaultInstanceName(){
-        setInstanceName(getDefaultInstanceName());
     }
 
     /**
@@ -216,7 +200,7 @@ public abstract class Measurement implements Externalizable {
                 "instanceName='" + instanceName + '\'' +
                 ", componentName='" + componentName + '\'' +
                 ", timestamp=" + timestamp +
-                ", userData=" + userData +
+                ", annotations=" + annotations +
                 '}';
     }
 }

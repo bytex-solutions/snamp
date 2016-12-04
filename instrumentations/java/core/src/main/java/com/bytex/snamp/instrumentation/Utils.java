@@ -1,4 +1,4 @@
-package com.bytex.snamp.instrumentation.measurements;
+package com.bytex.snamp.instrumentation;
 
 /**
  * Provides different internal utilities.

@@ -212,7 +212,7 @@ public abstract class MessageDrivenConnectorConfigurationDescriptionProvider ext
             return notification -> {
                 final Map<String, ?> dataToFilter;
                 if (notification instanceof MeasurementNotification<?>)
-                    dataToFilter = ((MeasurementNotification<?>) notification).getMeasurement().getUserData();
+                    dataToFilter = ((MeasurementNotification<?>) notification).getMeasurement().getAnnotations();
                 else if (notification.getUserData() instanceof CompositeData)
                     dataToFilter = CompositeDataUtils.toMap((CompositeData) notification.getUserData());
                 else
