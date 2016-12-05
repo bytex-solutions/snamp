@@ -14,5 +14,6 @@
   <modules>
     <module>core</module>
     <module>htrace</module>
+    <module>http-reporter</module>
   </modules>
 </project>

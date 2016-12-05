@@ -8,9 +8,9 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>core</artifactId>
-    <name>SNAMP Instrumentation Library</name>
-    <description>SNAMP Instrumentation library for embedding into applications</description>
+    <name>HTTP Reporter</name>
+    <description>HTTP asynchronous reporter</description>
+    <artifactId>http-reporter</artifactId>
     <packaging>bundle</packaging>
     <properties>
         <maven.compiler.source>1.6</maven.compiler.source>
@@ -32,7 +32,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-                        <Export-Package>com.bytex.snamp.instrumentation.*</Export-Package>
+                        <Export-Package>com.bytex.snamp.instrumentation.reporters.http</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>
@@ -40,23 +40,10 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-core-asl</artifactId>
-            <version>${jackson.version}</version>
-            <optional>true</optional>
+            <groupId>com.bytex.snamp.instrumentation</groupId>
+            <artifactId>core</artifactId>
+            <version>${snamp.instrumentation.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>${jackson.version}</version>
-            <optional>true</optional>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
