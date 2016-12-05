@@ -1,6 +1,6 @@
 <div class="row gatewaysContent">
     <div class="col-md-2">
-        <h3>Choose gateway:</h3>
+        <h4>Choose gateway:</h4>
         <div class="list-group">
             <a href="#"
                *ngFor="let gateway of gateways"
@@ -14,29 +14,28 @@
         <!-- right area -->
         <div class="row contentRow">
             <!-- if we have binging - add next with col-md-5 -->
-            <div class="col-md-6">
+            <div class="col-md-6 leftAlign">
                 <!-- combobox with type -->
                 <div class="row">
-                    <div class="col-md-3" >
-                        <label class="control-label">Select type:</label>
-                    </div>
-                    <div class="col-md-9">
-                        <select disabled
-                                [(ngModel)]="activeGateway.type"
-                                (change)="changeType($event)"
-                                class="form-control">
-                            <option
-                                    *ngFor="let gateway of availableGateways"
-                                    [value]="gateway.type">
-                                {{gateway.name}}
-                            </option>
-                        </select>
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="entityType">Gateway type:</label>
+                        <div class="col-sm-9">
+                            <select disabled
+                                    id="entityType"
+                                    [(ngModel)]="activeGateway.type"
+                                    (change)="changeType($event)"
+                                    class="form-control">
+                                <option
+                                        *ngFor="let gateway of availableGateways"
+                                        [value]="gateway.type">
+                                    {{gateway.name}}
+                                </option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="row paramRow">
-                    <div class="col-md-3" >
-                        <h5>Parameters:</h5>
-                    </div>
+                        <h4>Parameters:</h4>
                 </div>
                 <div class="row">
                     <parameters [entity]="activeGateway"></parameters>
@@ -44,9 +43,9 @@
 
             </div>
             <!-- binding here -->
-            <div class="col-md-6 bindingCol">
+            <div class="col-md-6 bindingCol leftAlign">
                 <div class="row">
-                    <h5>Binding information:</h5>
+                    <h4>Binding information:</h4>
                 </div>
                 <div class="panel-group group-accordeon" id="accordionBindings" role="tablist" aria-multiselectable="true">
                     <div class="panel panel-default">

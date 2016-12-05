@@ -79,19 +79,19 @@ export class ParametersTable implements OnInit {
         this.entity.isParamRequired(parameter.key).subscribe((res:boolean) => {
              if (res) {
                 this.modal.confirm()
-                .className(<VEXBuiltInThemes>'wireframe')
-                .isBlocking(true)
-                .keyboard(27)
-                .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
-                .open()
-                .then((resultPromise) => {
-                    return (<Promise<boolean>>resultPromise.result)
-                      .then((response) => {
-                        this.removeParameter(parameter);
-                        return response;
-                      })
-                      .catch(() =>  false);
-                  });
+                    .className(<VEXBuiltInThemes>'wireframe')
+                    .isBlocking(true)
+                    .keyboard(27)
+                    .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
+                    .open()
+                    .then((resultPromise) => {
+                        return (<Promise<boolean>>resultPromise.result)
+                          .then((response) => {
+                            this.removeParameter(parameter);
+                            return response;
+                          })
+                          .catch(() =>  false);
+                      });
             } else {
                 this.removeParameter(parameter);
             }
@@ -110,21 +110,21 @@ export class ParametersTable implements OnInit {
         }
         if (this.entity.getParameter(paramKey) != undefined) {
             this.modal.confirm()
-                            .className(<VEXBuiltInThemes>'wireframe')
-                            .isBlocking(true)
-                            .keyboard(27)
-                            .message("Appending existing parameter. Edit dialog for parameter will display instead. Proceed?")
-                            .open()
-                            .then((resultPromise) => {
-                                return (<Promise<boolean>>resultPromise.result)
-                                  .then((response) => {
-                                        this.editComponents
-                                            .filter((entry:InlineEditComponent)=> entry.uniqueKey == paramKey)
-                                            .forEach(function(found:InlineEditComponent){found.edit(found.value)});
-                                        return response;
-                                  })
-                                  .catch(() =>  false);
-                              });
+                .className(<VEXBuiltInThemes>'wireframe')
+                .isBlocking(true)
+                .keyboard(27)
+                .message("Appending existing parameter. Edit dialog for parameter will display instead. Proceed?")
+                .open()
+                .then((resultPromise) => {
+                    return (<Promise<boolean>>resultPromise.result)
+                      .then((response) => {
+                            this.editComponents
+                                .filter((entry:InlineEditComponent)=> entry.uniqueKey == paramKey)
+                                .forEach(function(found:InlineEditComponent){found.edit(found.value)});
+                            return response;
+                      })
+                      .catch(() =>  false);
+                  });
         } else {
             this.saveParameter(new KeyValue(paramKey, paramValue));
         }
