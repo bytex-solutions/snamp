@@ -11,7 +11,7 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
 
 import { Overlay } from 'angular2-modal';
-import { Modal } from 'angular2-modal/plugins/bootstrap';
+import { Modal } from 'angular2-modal/plugins/vex';
 
 @Component({
   selector: 'gateways',
@@ -55,12 +55,9 @@ export class Gateways implements OnInit {
 
     changeType(event:any) {
          let dialog = this.modal.confirm()
-            .size('sm')
             .isBlocking(true)
             .keyboard(27)
-            .showClose(true)
-            .title("Changing gateway type confirmation")
-            .body("If you change gateway type - all resources will be removed. Are you sure?")
+            .message("If you change gateway type - all resources will be removed. Are you sure?")
             .open()
             .then((resultPromise) => {
                 return (<Promise<boolean>>resultPromise.result)

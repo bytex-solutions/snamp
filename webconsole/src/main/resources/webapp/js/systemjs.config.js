@@ -32,7 +32,8 @@
       'angular2-cookie':            'npm:angular2-cookie',
       'angular2-modal':            'npm:angular2-modal',
       'angular2-modal/platform-browser': 'npm:angular2-modal/platform-browser',
-      'angular2-modal/plugins/bootstrap': 'npm:angular2-modal/bundles/angular2-modal.bootstrap.umd.js'
+      'angular2-modal/plugins/bootstrap': 'npm:angular2-modal/bundles/angular2-modal.bootstrap.umd.js',
+      'angular2-modal/plugins/vex': 'npm:angular2-modal/bundles/angular2-modal.vex.umd.js'
     },
     // packages tells the System loader how to load when no filename and/or no extension
     packages: {

@@ -11,11 +11,21 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
 
 import { Overlay } from 'angular2-modal';
-import { Modal } from 'angular2-modal/plugins/bootstrap';
+import {
+  VEXBuiltInThemes,
+  Modal,
+  DialogPreset,
+  DialogFormModal,
+  DialogPresetBuilder,
+  VEXModalContext,
+  VexModalModule
+} from 'angular2-modal/plugins/vex';
 
 @Component({
   selector: 'parameters',
-  templateUrl: 'app/components/templates/parameters-table.component.html'
+  templateUrl: 'app/components/templates/parameters-table.component.html',
+  styleUrls: ['app/components/templates/css/vex.css', 'app/components/templates/css/vex-theme-wireframe.css'],
+  encapsulation: ViewEncapsulation.None
 })
 export class ParametersTable implements OnInit {
     @Input() entity: TypedEntity;
@@ -29,9 +39,8 @@ export class ParametersTable implements OnInit {
     containsRequired:boolean = false;
     containsOptional:boolean = false;
 
-    constructor(http:ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
+    constructor(http:ApiClient, public modal: Modal) {
         this.http = http;
-        overlay.defaultViewContainer = vcRef;
     }
 
     ngOnInit() {
@@ -72,12 +81,10 @@ export class ParametersTable implements OnInit {
         this.entity.isParamRequired(parameter.key).subscribe((res:boolean) => {
              if (res) {
                 this.modal.confirm()
-                .size('sm')
+                .className(<VEXBuiltInThemes>'wireframe')
                 .isBlocking(true)
                 .keyboard(27)
-                .showClose(true)
-                .title("Removing required parameter")
-                .body("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
+                .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
                 .open()
                 .then((resultPromise) => {
                     return (<Promise<boolean>>resultPromise.result)
