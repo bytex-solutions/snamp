@@ -22,6 +22,7 @@
                                 <div id="collapseRequired" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                                     <div class="panel-body">
                                         <div class="radio leftAlign" *ngFor="let descr of entity.paramDescriptors | async | required">
+                                            <span class="glyphicon glyphicon-ok glyph-icon-appended" aria-hidden="true" *ngIf="entity.contains(descr.name)"></span>
                                             <label>
                                                 <input
                                                         type="radio"
@@ -98,7 +99,7 @@
                                 <!-- List group -->
                                 <ul class="list-group">
                                     <li class="list-group-item">Name: {{selectedParam.name}}</li>
-                                    <li class="list-group-item" *ngIf="selectedParam.required != ''">Required: {{selectedParam.required}}</li>
+                                    <li class="list-group-item list-group-item-warning" *ngIf="selectedParam.required != ''">Required: {{selectedParam.required}}</li>
                                     <li class="list-group-item" *ngIf="selectedParam.pattern != ''">Pattern: {{selectedParam.pattern}}</li>
                                     <li class="list-group-item" *ngIf="selectedParam.defaultValue != ''">Default value: {{selectedParam.defaultValue}}</li>
                                     <li class="list-group-item" *ngIf="selectedParam.association != ''">Associated parameters: {{selectedParam.association}}</li>
@@ -154,10 +155,9 @@
     <tr *ngFor="let param of entity.parameters">
         <td>
             <span
-                    class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
-                    (click)="checkAndRemoveParameter(param)"
-                    aria-hidden="true">
-
+                class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
+                (click)="checkAndRemoveParameter(param)"
+                aria-hidden="true">
             </span>
         </td>
         <td>{{param.key}}</td>

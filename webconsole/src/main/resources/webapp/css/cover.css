@@ -257,4 +257,13 @@ body {
   .leftAlign {
     text-align: left;
   }
+
+  .list-group-item-warning {
+    border-left: 1px solid red;
+  }
+
+  .glyph-icon-appended {
+    color: green;
+    padding-right: 1em;
+  }
 }
