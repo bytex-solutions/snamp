@@ -107,7 +107,7 @@ public abstract class TraceScope implements MeasurementScope {
      * Closes measurement scope.
      */
     @Override
-    public void close() {
+    public final void close() {
         final Span s = new Span();
         //set parent span
         {

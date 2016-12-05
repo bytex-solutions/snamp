@@ -20,7 +20,7 @@ public final class ApplicationInfo {
     private static String name;
     private static String instance;
 
-    static{
+    static {
         name = getDefaultName();
         instance = getDefaultInstance();
     }

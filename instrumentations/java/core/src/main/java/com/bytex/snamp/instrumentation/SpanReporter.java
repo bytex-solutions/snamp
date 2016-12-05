@@ -74,13 +74,13 @@ public class SpanReporter extends MeasurementReporter<Span> {
         return beginTrace(Identifier.EMPTY);
     }
 
-    private InvocationHandler createHandler(){
+    private InvocationHandler createHandler(final Object obj){
         return new InvocationHandler() {
             @Override
             public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                 final TraceScope t = beginTrace();
                 try {
-                    return method.invoke(proxy, args);
+                    return method.invoke(obj, args);
                 } finally {
                     t.close();
                 }
@@ -89,7 +89,7 @@ public class SpanReporter extends MeasurementReporter<Span> {
     }
 
     private Object wrapImpl(final Object obj, final Class<?>... interfaces){
-        return Proxy.newProxyInstance(obj.getClass().getClassLoader(), interfaces, createHandler());
+        return Proxy.newProxyInstance(obj.getClass().getClassLoader(), interfaces, createHandler(obj));
     }
 
     /**
