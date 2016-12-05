@@ -21,19 +21,21 @@
                                 </div>
                                 <div id="collapseRequired" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                                     <div class="panel-body">
-                                        <div class="radio leftAlign" *ngFor="let descr of entity.paramDescriptors | async | required">
-                                            <span class="glyphicon glyphicon-ok glyph-icon-appended" aria-hidden="true" *ngIf="entity.contains(descr.name)"></span>
-                                            <label>
-                                                <input
-                                                        type="radio"
-                                                        name="optionsRadios1"
-                                                        id="optionsRadios1"
-                                                        [value]="descr"
-                                                        [checked]="selectedParam == descr"
-                                                        [(ngModel)]="selectedParam">
-                                                {{descr.name}}
-                                            </label>
-                                        </div>
+                                        <div class="input-group leftAlign" *ngFor="let descr of entity.paramDescriptors | async | required">
+                                              <span class="input-group-addon">
+                                                 <input
+                                                         type="radio"
+                                                         name="optionsRadios1"
+                                                         id="optionsRadios1"
+                                                         [value]="descr"
+                                                         [checked]="selectedParam == descr"
+                                                         [(ngModel)]="selectedParam">
+                                              </span>
+                                             <input type="text" class="form-control" value="{{descr.name}}">
+                                             <span class="input-group-addon"  *ngIf="entity.contains(descr.name)">
+                                                  <span class="glyphicon glyphicon-ok glyph-icon-appended" aria-hidden="true"></span>
+                                             </span>
+                                        </div><!-- /input-group -->
                                     </div>
                                 </div>
                             </div>
@@ -47,18 +49,21 @@
                                 </div>
                                 <div id="collapseOptional" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                                     <div class="panel-body">
-                                        <div class="radio leftAlign" *ngFor="let descr of entity.paramDescriptors | async | optional">
-                                            <label>
-                                                <input
-                                                        type="radio"
-                                                        name="optionsRadios2"
-                                                        id="optionsRadios2"
-                                                        [value]="descr"
-                                                        [checked]="selectedParam == descr"
-                                                        [(ngModel)]="selectedParam">
-                                                {{descr.name}}
-                                            </label>
-                                        </div>
+                                        <div class="input-group leftAlign" *ngFor="let descr of entity.paramDescriptors | async | optional">
+                                              <span class="input-group-addon">
+                                                  <input
+                                                          type="radio"
+                                                          name="optionsRadios2"
+                                                          id="optionsRadios2"
+                                                          [value]="descr"
+                                                          [checked]="selectedParam == descr"
+                                                          [(ngModel)]="selectedParam">
+                                              </span>
+                                             <input type="text" class="form-control" value="{{descr.name}}">
+                                             <span class="input-group-addon"  *ngIf="entity.contains(descr.name)">
+                                                  <span class="glyphicon glyphicon-ok glyph-icon-appended" aria-hidden="true"></span>
+                                             </span>
+                                        </div><!-- /input-group -->
                                     </div>
                                 </div>
                             </div>
@@ -98,7 +103,6 @@
                             <div class="panel-body">
                                 <!-- List group -->
                                 <ul class="list-group">
-                                    <li class="list-group-item">Name: {{selectedParam.name}}</li>
                                     <li class="list-group-item list-group-item-warning" *ngIf="selectedParam.required != ''">Required: {{selectedParam.required}}</li>
                                     <li class="list-group-item" *ngIf="selectedParam.pattern != ''">Pattern: {{selectedParam.pattern}}</li>
                                     <li class="list-group-item" *ngIf="selectedParam.defaultValue != ''">Default value: {{selectedParam.defaultValue}}</li>
@@ -133,6 +137,9 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="wall well-sm leftAlign">
+                    *icon <span class="glyphicon glyphicon-ok glyph-icon-appended" aria-hidden="true"></span> means configuration already contains this parameter
                 </div>
             </div>
             <div class="modal-footer">

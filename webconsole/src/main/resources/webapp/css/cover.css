@@ -264,6 +264,13 @@ body {
 
   .glyph-icon-appended {
     color: green;
-    padding-right: 1em;
+  }
+
+  .input-group-addon input[type="radio"], .input-group-addon input[type="checkbox"] {
+    cursor: pointer;
+  }
+
+  .well-sm {
+    font-size: small;
   }
 }
