@@ -1,4 +1,4 @@
-import {Component, Output, Provider, forwardRef, EventEmitter, ElementRef, ViewChild, Renderer} from '@angular/core';
+import {Component, Input, Output, Provider, forwardRef, EventEmitter, ElementRef, ViewChild, Renderer} from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 
 const INLINE_EDIT_CONTROL_VALUE_ACCESSOR = {
@@ -18,6 +18,7 @@ export class InlineEditComponent implements ControlValueAccessor{
     // inline edit form control
     @ViewChild('inlineEditControl') inlineEditControl;
     @Output() public onSave:EventEmitter<any> = new EventEmitter();
+    @Input() public uniqueKey:string;
 
     private _value:string = '';
     private preValue:string = '';
@@ -46,7 +47,8 @@ export class InlineEditComponent implements ControlValueAccessor{
     public registerOnTouched(fn:() => {}):void {this.onTouched = fn;};
 
     // Method to display the inline edit form and hide the <a> element
-    edit(value){
+    public edit(value){
+        console.log("edit has been invoked with value ", value);
         this.preValue = value;  // Store original value in case the form is cancelled
         this.editing = true;
 

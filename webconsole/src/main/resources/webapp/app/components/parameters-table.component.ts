@@ -1,10 +1,11 @@
-import { Component, Input ,ViewChild, ElementRef, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, Input ,ViewChild, ElementRef, OnInit, ViewContainerRef, ViewEncapsulation, ViewChildren, QueryList } from '@angular/core';
 import { ApiClient } from '../app.restClient';
 import { KeyValue } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
+import { InlineEditComponent } from './inline-edit.component';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
@@ -32,16 +33,16 @@ export class ParametersTable implements OnInit {
     @ViewChild('newParam') newParamElement:ElementRef;
     @ViewChild('listParamValue') listParamValue:ElementRef;
     @ViewChild('customParamValue') customParamValue:ElementRef;
+
+    @ViewChildren(InlineEditComponent) editComponents: QueryList<InlineEditComponent>;
+
     selectedParam:ParamDescriptor = undefined;
-    http:ApiClient;
     stabValue:string = ParamDescriptor.stubValue;
 
     containsRequired:boolean = false;
     containsOptional:boolean = false;
 
-    constructor(http:ApiClient, public modal: Modal) {
-        this.http = http;
-    }
+    constructor(public http:ApiClient, public modal: Modal) {}
 
     ngOnInit() {
         this.entity.paramDescriptors.subscribe((descriptors:ParamDescriptor[]) => {
@@ -110,7 +111,26 @@ export class ParametersTable implements OnInit {
             paramKey = this.selectedParam.name;
             paramValue = this.listParamValue.nativeElement.value;
         }
-        this.saveParameter(new KeyValue(paramKey, paramValue));
+        if (this.entity.getParameter(paramKey) != undefined) {
+            this.modal.confirm()
+                            .className(<VEXBuiltInThemes>'wireframe')
+                            .isBlocking(true)
+                            .keyboard(27)
+                            .message("Appending existing parameter. Edit dialog for parameter will display instead. Proceed?")
+                            .open()
+                            .then((resultPromise) => {
+                                return (<Promise<boolean>>resultPromise.result)
+                                  .then((response) => {
+                                        this.editComponents
+                                            .filter((entry:InlineEditComponent)=> entry.uniqueKey == paramKey)
+                                            .forEach(function(found:InlineEditComponent){found.edit(found.value)});
+                                        return response;
+                                  })
+                                  .catch(() =>  false);
+                              });
+        } else {
+            this.saveParameter(new KeyValue(paramKey, paramValue));
+        }
     }
 
     flushSelected() {
