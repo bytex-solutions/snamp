@@ -1,4 +1,4 @@
-import { Component, Input ,ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, Input ,ViewChild, ElementRef, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ApiClient } from '../app.restClient';
 import { KeyValue } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
@@ -9,6 +9,9 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
+
+import { Overlay } from 'angular2-modal';
+import { Modal } from 'angular2-modal/plugins/bootstrap';
 
 @Component({
   selector: 'parameters',
@@ -23,13 +26,12 @@ export class ParametersTable implements OnInit {
     http:ApiClient;
     stabValue:string = ParamDescriptor.stubValue;
 
-    public containsRequired:boolean;
-    public containsOptional:boolean;
+    containsRequired:boolean = false;
+    containsOptional:boolean = false;
 
-    constructor(http:ApiClient) {
+    constructor(http:ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
         this.http = http;
-        this.containsOptional = false;
-        this.containsRequired = false;
+        overlay.defaultViewContainer = vcRef;
     }
 
     ngOnInit() {
@@ -62,8 +64,33 @@ export class ParametersTable implements OnInit {
 
     removeParameter(parameter:KeyValue) {
         this.http.delete(this.getUrlForParameter(parameter.key))
-            .map((res: Response) => res.text())
-            .subscribe(data => this.entity.removeParameter(parameter.key));
+                .map((res: Response) => res.text())
+                .subscribe(data => this.entity.removeParameter(parameter.key));
+    }
+
+    checkAndRemoveParameter(parameter:KeyValue) {
+        this.entity.isParamRequired(parameter.key).subscribe((res:boolean) => {
+             if (res) {
+                this.modal.confirm()
+                .size('sm')
+                .isBlocking(true)
+                .keyboard(27)
+                .showClose(true)
+                .title("Removing required parameter")
+                .body("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
+                .open()
+                .then((resultPromise) => {
+                    return (<Promise<boolean>>resultPromise.result)
+                      .then((response) => {
+                        this.removeParameter(parameter);
+                        return response;
+                      })
+                      .catch(() =>  false);
+                  });
+            } else {
+                this.removeParameter(parameter);
+            }
+        });
     }
 
     addNewParameter() {

@@ -28,22 +28,23 @@ export abstract class TypedEntity extends Entity {
             });
     }
 
-    public isParamRequired(name:string):boolean {
-        let res:ParamDescriptor = this.getParamDescriptor(name);
-        return res != undefined && res.required;
+    public isParamRequired(name:string):Observable<boolean> {
+        return this.getParamDescriptor(name).map((res:ParamDescriptor) => {
+            return res != undefined && res.required;
+        });
     }
 
-    public getParamDescriptor(name:string):ParamDescriptor {
-        let res:ParamDescriptor;
-        this.paramDescriptors.subscribe((descriptors:ParamDescriptor[]) => {
+    public getParamDescriptor(name:string):Observable<ParamDescriptor> {
+        return this.paramDescriptors.map((descriptors:ParamDescriptor[]) => {
+            let res:ParamDescriptor = undefined;
             descriptors.forEach(function(current:ParamDescriptor) {
               if (current.name == name) {
                 res = current;
                 return;
               }
             });
+            return res;
         });
-        return res;
     }
 
     public isReadyToBeSaved() {

@@ -3,23 +3,23 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="addParam" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title leftAlign" id="addParamModalLabel">Appending new parameter to {{entity.name}} {{entity.getName()}}</h4>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <!-- accordeon element -->
                     <div class="col-md-5">
-                        <div class="panel-group group-accordeon" id="accordion" role="tablist" aria-multiselectable="true">
+                        <div class="panel-group group-accordeon" id="paramAccordion" role="tablist" aria-multiselectable="true">
                             <div class="panel panel-default" *ngIf="containsRequired">
                                 <div class="panel-heading" role="tab" id="headingOne">
                                     <h4 class="panel-title">
-                                        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        <a role="button" data-toggle="collapse" data-parent="#paramAccordion" href="#collapseRequired" aria-expanded="true" aria-controls="collapseRequired">
                                             Required
                                         </a>
                                     </h4>
                                 </div>
-                                <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                                <div id="collapseRequired" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                                     <div class="panel-body">
                                         <div class="radio leftAlign" *ngFor="let descr of entity.paramDescriptors | async | required">
                                             <label>
@@ -39,12 +39,12 @@
                             <div class="panel panel-default" *ngIf="containsOptional">
                                 <div class="panel-heading" role="tab" id="headingTwo">
                                     <h4 class="panel-title">
-                                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#paramAccordion" href="#collapseOptional" aria-expanded="false" aria-controls="collapseOptional">
                                             Optional
                                         </a>
                                     </h4>
                                 </div>
-                                <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                <div id="collapseOptional" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                                     <div class="panel-body">
                                         <div class="radio leftAlign" *ngFor="let descr of entity.paramDescriptors | async | optional">
                                             <label>
@@ -67,16 +67,16 @@
                                         <a class="collapsed"
                                            role="button"
                                            data-toggle="collapse"
-                                           data-parent="#accordion"
-                                           href="#collapseThree"
+                                           data-parent="#paramAccordion"
+                                           href="#collapseCustom"
                                            aria-expanded="false"
-                                           aria-controls="collapseThree"
+                                           aria-controls="collapseCustom"
                                            (click)="flushSelected()">
                                             Custom
                                         </a>
                                     </h4>
                                 </div>
-                                <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                                <div id="collapseCustom" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
                                     <div class="panel-body">
                                         <div class="input-group">
                                             <span class="input-group-addon">Name:</span>
@@ -154,7 +154,7 @@
     <tr *ngFor="let param of entity.parameters">
         <td>
             <button
-                    (click)="removeParameter(param)"
+                    (click)="checkAndRemoveParameter(param)"
                     type="button"
                     class="btn btn-default btn-xs">
                 <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
