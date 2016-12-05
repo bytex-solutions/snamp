@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.http;
 
+import com.sun.jersey.api.container.filter.GZIPContentEncodingFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
@@ -21,6 +22,8 @@ final class JerseyServletContainer extends ServletContainer {
     private static Application createAppConfig() {
         final DefaultResourceConfig result = new DefaultResourceConfig();
         result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
+        //support for GZIP compression over HTTP
+        result.getContainerRequestFilters().add(new GZIPContentEncodingFilter());
         result.getSingletons().add(new AcceptorService());
         return result;
     }

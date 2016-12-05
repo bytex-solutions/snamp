@@ -10,6 +10,9 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * Represents registry of all metrics.
+ * <p>
+ *     This class represents an entry point to work with SNAMP instrumentation and measurement reporting.
+ *     In OSGi environment it is highly recommended to use {@link OSGiMetricRegistry} class.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
@@ -69,14 +72,14 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
      * @param reporterLoader Class loader used to load reporters. Cannot be {@literal null}.
      */
     public MetricRegistry(final ClassLoader reporterLoader){
-        reporters = ServiceLoader.load(Reporter.class, reporterLoader);
+        this(ServiceLoader.load(Reporter.class, reporterLoader));
     }
 
     /**
      * Initializes a new registry with reporters loaded from {@link Thread#getContextClassLoader()}.
      */
     public MetricRegistry(){
-        reporters = ServiceLoader.load(Reporter.class);
+        this(ServiceLoader.load(Reporter.class));
     }
 
     /**
@@ -84,7 +87,11 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
      * @param reporters Set of reporters.
      */
     public MetricRegistry(final Reporter... reporters){
-        this.reporters = Arrays.asList(reporters.clone());
+        this(Arrays.asList(reporters.clone()));
+    }
+
+    MetricRegistry(final Iterable<Reporter> reporters){
+        this.reporters = reporters;
     }
 
     private static <T> T coalesce(final T first, final T second){

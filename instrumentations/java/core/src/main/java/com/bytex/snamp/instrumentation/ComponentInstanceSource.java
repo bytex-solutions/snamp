@@ -1,5 +1,7 @@
 package com.bytex.snamp.instrumentation;
 
+import org.osgi.framework.FrameworkUtil;
+
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -15,6 +17,17 @@ enum  ComponentInstanceSource { //WARNING: order of this enum is significant for
         @Override
         String getInstance() {
             return System.getProperty(INSTANCE_SYSTEM_PROPERTY);
+        }
+    },
+
+    SNAMP_OSGI{
+        private String readFromOSGi(){
+            return FrameworkUtil.getBundle(getClass()).getBundleContext().getProperty(INSTANCE_SYSTEM_PROPERTY);
+        }
+
+        @Override
+        String getInstance() {
+            return Utils.IS_IN_OSGI ? readFromOSGi() : null;
         }
     },
 

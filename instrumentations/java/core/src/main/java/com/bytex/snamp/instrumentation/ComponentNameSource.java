@@ -1,5 +1,7 @@
 package com.bytex.snamp.instrumentation;
 
+import org.osgi.framework.FrameworkUtil;
+
 import java.lang.management.ManagementFactory;
 import java.util.regex.Pattern;
 
@@ -11,6 +13,17 @@ enum ComponentNameSource {  //WARNING: order of this enum is significant for cal
         @Override
         String getName() {
             return System.getProperty(NAME_SYSTEM_PROPERTY);
+        }
+    },
+
+    SNAMP_OSGI{
+        private String readFromOSGi(){
+            return FrameworkUtil.getBundle(getClass()).getBundleContext().getProperty(NAME_SYSTEM_PROPERTY);
+        }
+
+        @Override
+        String getName() {
+            return Utils.IS_IN_OSGI ? readFromOSGi() : null;
         }
     },
 
