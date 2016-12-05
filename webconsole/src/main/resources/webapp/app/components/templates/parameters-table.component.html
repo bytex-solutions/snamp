@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="addParam" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title leftAlign" id="addParamModalLabel">Appending new parameter to {{entity.name}} {{entity.getName()}}</h4>
             </div>
             <div class="modal-body">
@@ -153,12 +153,12 @@
     <tbody>
     <tr *ngFor="let param of entity.parameters">
         <td>
-            <button
+            <span
+                    class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
                     (click)="checkAndRemoveParameter(param)"
-                    type="button"
-                    class="btn btn-default btn-xs">
-                <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
-            </button>
+                    aria-hidden="true">
+
+            </span>
         </td>
         <td>{{param.key}}</td>
         <td>

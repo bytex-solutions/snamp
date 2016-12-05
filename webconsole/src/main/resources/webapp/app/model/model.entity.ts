@@ -17,6 +17,10 @@ export abstract class Entity {
         return value;
     }
 
+    public contains(key:string):boolean {
+        return this.getParameter(key) != undefined;
+    }
+
     public removeParameter(key:string) {
         for (let i = 0; i < this.parameters.length; i++) {
             if (this.parameters[i].key == key) {

@@ -49,15 +49,12 @@ export class ParametersTable implements OnInit {
             for (let i in descriptors) {
                if (descriptors[i].required) {
                    this.containsRequired = true;
-                   if (this.selectedParam == undefined) {
-                     this.selectedParam = descriptors[i];
-                   }
                } else {
                    this.containsOptional = true;
-                   if (this.selectedParam == undefined) {
-                     this.selectedParam = descriptors[i];
-                   }
                }
+            }
+            if (this.selectedParam == undefined && descriptors.length > 0) {
+                 this.selectedParam = descriptors[0];
             }
         });
     }
