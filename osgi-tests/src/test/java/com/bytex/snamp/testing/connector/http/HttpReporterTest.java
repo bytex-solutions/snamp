@@ -26,10 +26,20 @@ public class HttpReporterTest extends AbstractHttpConnectorTest {
     private static final String INSTANCE_NAME = "testApplication";
     private MetricRegistry registry;
 
+    private static final class TestApplication extends ApplicationInfo{
+        private TestApplication(){
+
+        }
+
+        private static void init(){
+            setInstance(INSTANCE_NAME);
+            setName(COMPONENT_NAME);
+        }
+    }
+
     public HttpReporterTest() throws URISyntaxException {
         super(INSTANCE_NAME);
-        ApplicationInfo.setInstance(INSTANCE_NAME);
-        ApplicationInfo.setName(COMPONENT_NAME);
+        TestApplication.init();
     }
 
     @Override

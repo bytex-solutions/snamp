@@ -5,6 +5,7 @@ import com.bytex.snamp.instrumentation.reporters.Reporter;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -69,6 +70,32 @@ public class TimeMeasurementReporter extends MeasurementReporter<TimeMeasurement
      */
     public final MeasurementScope start(){
         return start(Collections.<String, String>emptyMap());
+    }
+
+    public <V> V call(final Callable<V> callable, final Map<String, String> userData) throws Exception{
+        final MeasurementScope scope = start(userData);
+        try {
+            return callable.call();
+        } finally {
+            scope.close();
+        }
+    }
+
+    public final <V> V call(final Callable<V> callable) throws Exception{
+        return call(callable, Collections.<String, String>emptyMap());
+    }
+
+    public void run(final Runnable runnable, final Map<String, String> userData){
+        final MeasurementScope scope = start(userData);
+        try {
+            runnable.run();
+        } finally {
+            scope.close();
+        }
+    }
+
+    public final void run(final Runnable runnable){
+        run(runnable, Collections.<String, String>emptyMap());
     }
 
     public MeasurementScope scheduleReporting(final ReportingTask<? super TimeMeasurementReporter> task, final long delay, final TimeUnit unit){

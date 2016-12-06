@@ -60,6 +60,7 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
     };
 
     private final Iterable<Reporter> reporters;
+    private boolean closeOnShutdown = false;
     private final ConcurrentMap<String, IntegerMeasurementReporter> integerReporters = new ConcurrentHashMap<String, IntegerMeasurementReporter>();
     private final ConcurrentMap<String, FloatingPointMeasurementReporter> fpReporters = new ConcurrentHashMap<String, FloatingPointMeasurementReporter>();
     private final ConcurrentMap<String, BooleanMeasurementReporter> boolReporters = new ConcurrentHashMap<String, BooleanMeasurementReporter>();
@@ -253,5 +254,26 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
         clear();
         for(final Reporter reporter: reporters)
             reporter.close();
+    }
+
+    /**
+     * Schedules call of {@link #close()} on JVM shutdown.
+     * @throws IllegalStateException The call is already scheduled.
+     */
+    public final void closeOnShutdown() throws IllegalStateException {
+        if (closeOnShutdown)
+            throw new IllegalStateException("Shutdown hook is already registered for this registry");
+        final Runnable shutdownHook = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    close();
+                } catch (final IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        Runtime.getRuntime().addShutdownHook(new Thread(shutdownHook, "MetricRegistryShutdownHook"));
+        closeOnShutdown = true;
     }
 }

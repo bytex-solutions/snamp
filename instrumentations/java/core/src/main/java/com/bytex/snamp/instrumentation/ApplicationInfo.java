@@ -6,7 +6,7 @@ package com.bytex.snamp.instrumentation;
  * @version 1.0
  * @since 1.0
  */
-public final class ApplicationInfo {
+public abstract class ApplicationInfo {
     /**
      * Represents JVM system property that holds instance of entire application/service/component.
      */
@@ -25,8 +25,10 @@ public final class ApplicationInfo {
         instance = getDefaultInstance();
     }
 
-    private ApplicationInfo(){
-        throw new InstantiationError();
+    /**
+     * This constructor is declared for inheritance purposes only.
+     */
+    protected ApplicationInfo(){
     }
 
     /**
@@ -37,7 +39,7 @@ public final class ApplicationInfo {
         return name;
     }
 
-    public static void setName(final String value){
+    protected static void setName(final String value){
         if(value == null || value.isEmpty())
             throw new IllegalArgumentException("Cannot be null or empty");
         name = value;
@@ -51,7 +53,7 @@ public final class ApplicationInfo {
         return instance;
     }
 
-    public static void setInstance(final String value){
+    protected static void setInstance(final String value){
         if(value == null || value.isEmpty())
             throw new IllegalArgumentException("Cannot be null or empty");
         instance = value;
