@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 /**
- * Created by Роман on 06.12.2016.
+ * Represents tests for SNAMP instrumentation based on HTTP reporter.
  */
 @SnampDependencies({SnampFeature.WRAPPED_LIBS})
 public class HttpReporterTest extends AbstractHttpConnectorTest {
@@ -36,7 +36,7 @@ public class HttpReporterTest extends AbstractHttpConnectorTest {
     public void testLastValueExtraction() throws IOException, JMException, InterruptedException {
         freeRAM.report(154L);
         Thread.sleep(300);//reporting is asynchronous
-        testAttribute("longValue", TypeToken.of(Long.class), 42L, true);
+        testAttribute("longValue", TypeToken.of(Long.class), 154L, true);
     }
 
     @Override

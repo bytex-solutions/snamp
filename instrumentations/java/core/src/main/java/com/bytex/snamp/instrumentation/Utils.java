@@ -1,10 +1,13 @@
 package com.bytex.snamp.instrumentation;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+
 /**
  * Provides different internal utilities.
  */
 final class Utils {
-    static final boolean IS_IN_OSGI;
+    private static final boolean IS_IN_OSGI;
 
     static {
         Class<?> bundleClass;
@@ -14,6 +17,15 @@ final class Utils {
             bundleClass = null;
         }
         IS_IN_OSGI = bundleClass != null;
+    }
+
+    private static String getFrameworkPropertyImpl(final Class<?> caller, final String propertyName){
+        final Bundle bundle =  FrameworkUtil.getBundle(caller);
+        return bundle == null ? null : bundle.getBundleContext().getProperty(propertyName);
+    }
+
+    static String getFrameworkProperty(final Class<?> caller, final String propertyName){
+        return IS_IN_OSGI ? getFrameworkPropertyImpl(caller, propertyName) : null;
     }
 
     static String getSystemProperty(final String... propertyNames){

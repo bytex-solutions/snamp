@@ -21,13 +21,9 @@ enum  ComponentInstanceSource { //WARNING: order of this enum is significant for
     },
 
     SNAMP_OSGI{
-        private String readFromOSGi(){
-            return FrameworkUtil.getBundle(getClass()).getBundleContext().getProperty(INSTANCE_SYSTEM_PROPERTY);
-        }
-
         @Override
         String getInstance() {
-            return Utils.IS_IN_OSGI ? readFromOSGi() : null;
+            return Utils.getFrameworkProperty(getClass(), INSTANCE_SYSTEM_PROPERTY);
         }
     },
 

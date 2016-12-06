@@ -17,13 +17,10 @@ enum ComponentNameSource {  //WARNING: order of this enum is significant for cal
     },
 
     SNAMP_OSGI{
-        private String readFromOSGi(){
-            return FrameworkUtil.getBundle(getClass()).getBundleContext().getProperty(NAME_SYSTEM_PROPERTY);
-        }
 
         @Override
         String getName() {
-            return Utils.IS_IN_OSGI ? readFromOSGi() : null;
+            return Utils.getFrameworkProperty(getClass(), NAME_SYSTEM_PROPERTY);
         }
     },
 
