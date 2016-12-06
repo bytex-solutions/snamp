@@ -13,6 +13,11 @@ import java.io.IOException;
  */
 public interface Reporter extends Closeable {
     /**
+     * Represents OSGi service registration property indicating type of reporter.
+     */
+    String TYPE_PROPERTY = "reporter.type";
+
+    /**
      * Determines whether this sender is asynchronous.
      * @return {@literal true} if this sender is asynchronous; otherwise, {@literal false}.
      */

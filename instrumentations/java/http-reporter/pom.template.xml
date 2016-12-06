@@ -33,6 +33,7 @@
                     <instructions>
                         <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
                         <Export-Package>com.bytex.snamp.instrumentation.reporters.http</Export-Package>
+                        <Bundle-Activator>com.bytex.snamp.instrumentation.reporters.http.osgi.HttpReporterActivator</Bundle-Activator>
                     </instructions>
                 </configuration>
             </plugin>
@@ -56,6 +57,12 @@
             <artifactId>jackson-jaxrs</artifactId>
             <version>${jackson.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

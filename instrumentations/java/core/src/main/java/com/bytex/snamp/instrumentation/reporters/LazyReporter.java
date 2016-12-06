@@ -18,16 +18,26 @@ public abstract class LazyReporter<R extends Reporter> implements Reporter {
      * Creates a new instance of reporter.
      * @return A new instance of reporter.
      */
-    protected abstract R createReporter();
+    protected abstract R createReporter() throws IOException;
 
-    private synchronized R getReporterSync(){
+    private synchronized R getReporterSync() throws IOException {
         if(reporter == null)
             reporter = createReporter();
         return reporter;
     }
 
-    private R getReporter(){
+    private R getReporter() throws IOException {
         return reporter == null ? getReporterSync() : reporter;
+    }
+
+    private R getReporterUnchecked(){
+        R result;
+        try{
+            result = getReporter();
+        } catch (final IOException e){
+            result = null;
+        }
+        return result;
     }
 
     /**
@@ -37,7 +47,7 @@ public abstract class LazyReporter<R extends Reporter> implements Reporter {
      */
     @Override
     public final boolean isAsynchronous() {
-        final Reporter reporter =  getReporter();
+        final Reporter reporter = getReporterUnchecked();
         return reporter != null && reporter.isAsynchronous();
     }
 
@@ -48,7 +58,7 @@ public abstract class LazyReporter<R extends Reporter> implements Reporter {
      */
     @Override
     public final boolean isConnected() {
-        final R reporter = getReporter();
+        final Reporter reporter = getReporterUnchecked();
         return reporter != null && reporter.isConnected();
     }
 
