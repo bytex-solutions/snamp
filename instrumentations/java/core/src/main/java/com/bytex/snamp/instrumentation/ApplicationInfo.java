@@ -37,12 +37,24 @@ public final class ApplicationInfo {
         return name;
     }
 
+    public static void setName(final String value){
+        if(value == null || value.isEmpty())
+            throw new IllegalArgumentException("Cannot be null or empty");
+        name = value;
+    }
+
     /**
      * Gets instance of entire application/service/component.
      * @return Instance of entire application/service/component.
      */
     public static String getInstance(){
         return instance;
+    }
+
+    public static void setInstance(final String value){
+        if(value == null || value.isEmpty())
+            throw new IllegalArgumentException("Cannot be null or empty");
+        instance = value;
     }
 
     /**

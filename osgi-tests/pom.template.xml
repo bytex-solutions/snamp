@@ -299,6 +299,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.bytex.snamp.instrumentation</groupId>
+            <artifactId>http-reporter</artifactId>
+            <version>${snamp.instrumentation.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <scope>test</scope>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
