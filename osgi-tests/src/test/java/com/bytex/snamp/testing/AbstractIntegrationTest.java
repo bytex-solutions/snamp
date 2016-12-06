@@ -9,6 +9,7 @@ import org.ops4j.pax.exam.TestProbeBuilder;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 import org.ops4j.pax.exam.karaf.options.LogLevelOption;
+import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
 import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
@@ -59,6 +60,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
          * @return A collection of features.
          */
         public abstract Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType);
+
+        public abstract Collection<MavenArtifactProvisionOption> getBundles(final Class<? extends  AbstractIntegrationTest> testType);
 
         /**
          * Returns an array of packages to be imported into test OSGi bundle.
@@ -145,6 +148,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         result.add(bootDelegationPackage("jdk.nashorn.*"));
         result.add(bootDelegationPackage("org.bouncycastle*"));
         result.addAll(builder.getFeatures(getClass()));
+        result.addAll(builder.getBundles(getClass()));
         return result.toArray(new Option[result.size()]);
     }
 

@@ -333,7 +333,6 @@
       <artifactId>http-reporter</artifactId>
       <version>1.0.0</version>
       <scope>test</scope>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>com.bytex.snamp</groupId>

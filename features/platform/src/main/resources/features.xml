@@ -39,6 +39,7 @@
         <bundle>mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-json/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-client/${jersey.version}</bundle>
     </feature>
 
     <feature name="snamp-scripting-support" description="SNAMP support bundles for scripting" version="${project.version}">

@@ -3,15 +3,14 @@ package com.bytex.snamp.testing.connector.http;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.instrumentation.ApplicationInfo;
-import com.bytex.snamp.instrumentation.IntegerMeasurementReporter;
 import com.bytex.snamp.instrumentation.MetricRegistry;
-import com.bytex.snamp.instrumentation.measurements.IntegerMeasurement;
 import com.bytex.snamp.instrumentation.measurements.StandardMeasurements;
 import com.bytex.snamp.instrumentation.reporters.http.HttpReporter;
-import com.bytex.snamp.testing.SnampDependencies;
-import com.bytex.snamp.testing.SnampFeature;
+import com.bytex.snamp.testing.MavenArtifact;
+import com.bytex.snamp.testing.MavenDependencies;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
+import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import java.io.IOException;
@@ -20,21 +19,38 @@ import java.net.URISyntaxException;
 /**
  * Represents tests for SNAMP instrumentation based on HTTP reporter.
  */
-@SnampDependencies({SnampFeature.WRAPPED_LIBS})
+@MavenDependencies(bundles = {
+        @MavenArtifact(groupId = "com.bytex.snamp.instrumentation", artifactId = "http-reporter", version = "1.0.0")
+})
 public class HttpReporterTest extends AbstractHttpConnectorTest {
     private static final String INSTANCE_NAME = "testApplication";
-    private final IntegerMeasurementReporter freeRAM;
+    private MetricRegistry registry;
 
     public HttpReporterTest() throws URISyntaxException {
         super(INSTANCE_NAME);
         ApplicationInfo.setInstance(INSTANCE_NAME);
-        final MetricRegistry registry = new MetricRegistry(new HttpReporter("http://localhost:8181", null));
-        freeRAM = registry.integer(StandardMeasurements.FREE_RAM);
+        ApplicationInfo.setName(COMPONENT_NAME);
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
+    @Override
+    protected void beforeStartTest(final BundleContext context) throws URISyntaxException {
+        registry = new MetricRegistry(new HttpReporter("http://localhost:8181", null));
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws IOException {
+        registry.close();
+        registry = null;
     }
 
     @Test
     public void testLastValueExtraction() throws IOException, JMException, InterruptedException {
-        freeRAM.report(154L);
+        registry.integer(StandardMeasurements.FREE_RAM).report(154L);
         Thread.sleep(300);//reporting is asynchronous
         testAttribute("longValue", TypeToken.of(Long.class), 154L, true);
     }

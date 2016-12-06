@@ -6,14 +6,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Represents a set of Maven dependencies used to resolve required features.
+ * Represents Karaf feature located in Maven Central repository.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface MavenDependencies {
-    MavenArtifact[] bundles() default {};
-    MavenFeature[] features() default {};
+public @interface MavenArtifact {
+    String groupId();
+    String artifactId();
+    String version();
 }

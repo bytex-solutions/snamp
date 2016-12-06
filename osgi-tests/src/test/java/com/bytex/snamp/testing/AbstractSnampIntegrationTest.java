@@ -7,6 +7,7 @@ import com.bytex.snamp.gateway.*;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
+import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
 import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
 import org.osgi.framework.BundleContext;
 
@@ -69,8 +70,17 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                         fail(e.getMessage());
                     }
             for(final MavenDependencies deps: TestUtils.getAnnotations(testType, MavenDependencies.class))
-                for(final MavenFeature feature: deps.value())
-                    result.add(new KarafFeaturesOption(new MavenArtifactUrlReference().artifactId(feature.artifactId()).groupId(feature.groupId()).version(feature.version()).type("xml").classifier("features"), feature.name()));
+                for(final MavenFeature feature: deps.features())
+                        result.add(new KarafFeaturesOption(new MavenArtifactUrlReference().artifactId(feature.artifact().artifactId()).groupId(feature.artifact().groupId()).version(feature.artifact().version()).type("xml").classifier("features"), feature.value()));
+            return result;
+        }
+
+        @Override
+        public Collection<MavenArtifactProvisionOption> getBundles(final Class<? extends AbstractIntegrationTest> testType) {
+            final Collection<MavenArtifactProvisionOption> result = new LinkedList<>();
+            for(final MavenDependencies deps: TestUtils.getAnnotations(testType, MavenDependencies.class))
+                for(final MavenArtifact bundle: deps.bundles())
+                        result.add(new MavenArtifactProvisionOption(new MavenArtifactUrlReference().artifactId(bundle.artifactId()).groupId(bundle.groupId()).version(bundle.version()).type("jar")));
             return result;
         }
     };
