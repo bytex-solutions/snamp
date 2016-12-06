@@ -57,4 +57,11 @@ export abstract class TypedEntity extends Entity {
         });
         return res;
     }
+
+    public stringify():string {
+        let resultValue:{ [key:string]:string; } = {};
+        resultValue["type"] = this.type;
+        resultValue["parameters"] = this.stringifyParameters();
+        return JSON.stringify(resultValue);
+    }
 }

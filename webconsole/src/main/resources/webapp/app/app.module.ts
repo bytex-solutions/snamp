@@ -10,6 +10,7 @@ import { Header } from './app.header'
 import { InlineEditComponent } from './components/inline-edit.component'
 import { ParametersTable } from './components/parameters-table.component'
 import { BindingTable } from './components/binding-table.component'
+import { AddEntity } from './components/add-entity.component'
 
 import { VexModalModule, providers } from 'angular2-modal/plugins/vex';
 import { ModalModule } from 'angular2-modal';
@@ -18,8 +19,8 @@ import { ModalModule } from 'angular2-modal';
 @NgModule({
   imports:      [ BrowserModule, HttpModule, FormsModule, ModalModule.forRoot(), VexModalModule ],
   declarations: [ Gateways, Header, KeysPipe, InlineEditComponent, ParametersTable, BindingTable,
-                    RequriedParametersFilter, OptionalParametersFilter ],
-  bootstrap:    [ Gateways, Header ],
+                    RequriedParametersFilter, OptionalParametersFilter, AddEntity ],
+  bootstrap:    [ Gateways ],
   providers:    [ ApiClient, CookieService, providers]
 })
 export class AppModule { }

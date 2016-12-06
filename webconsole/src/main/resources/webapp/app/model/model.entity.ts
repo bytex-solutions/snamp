@@ -59,6 +59,18 @@ export abstract class Entity {
         var results = (funcNameRegex).exec((<any> this).constructor.toString());
         return (results && results.length > 1) ? this.decapitalizeFirstLetter(results[1]) : "";
     }
+
+    public static stringifyParametersStatic(value:KeyValue[]): any {
+        let returnValue:{ [key:string]:string; } = {};
+            value.forEach(function(obj){
+                returnValue[obj.key] = obj.value;
+            });
+        return returnValue;
+    }
+
+    public stringifyParameters():any {
+        return Entity.stringifyParametersStatic(this.parameters);
+    }
 }
 
 export class KeyValue {

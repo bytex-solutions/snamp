@@ -8,6 +8,7 @@
                [class.active]="gateway.name == activeGateway.name"
                (click)="setActiveGateway(gateway)">
             {{gateway.name}}</a>
+            <newEntity [entities]="gateways" [type]="gateway"></newEntity>
         </div>
     </div>
     <div class="col-md-10" *ngIf="gateways && gateways.length > 0">
