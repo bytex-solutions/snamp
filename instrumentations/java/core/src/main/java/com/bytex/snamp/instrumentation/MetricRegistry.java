@@ -61,12 +61,12 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
 
     private final Iterable<Reporter> reporters;
     private boolean closeOnShutdown = false;
-    private final ConcurrentMap<String, IntegerMeasurementReporter> integerReporters = new ConcurrentHashMap<String, IntegerMeasurementReporter>();
-    private final ConcurrentMap<String, FloatingPointMeasurementReporter> fpReporters = new ConcurrentHashMap<String, FloatingPointMeasurementReporter>();
-    private final ConcurrentMap<String, BooleanMeasurementReporter> boolReporters = new ConcurrentHashMap<String, BooleanMeasurementReporter>();
-    private final ConcurrentMap<String, StringMeasurementReporter> stringReporters = new ConcurrentHashMap<String, StringMeasurementReporter>();
-    private final ConcurrentMap<String, TimeMeasurementReporter> timeReporters = new ConcurrentHashMap<String, TimeMeasurementReporter>();
-    private final ConcurrentMap<String, SpanReporter> spanReporters = new ConcurrentHashMap<String, SpanReporter>();
+    private final ConcurrentMap<String, IntegerMeasurementReporter> integerReporters = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, FloatingPointMeasurementReporter> fpReporters = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, BooleanMeasurementReporter> boolReporters = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, StringMeasurementReporter> stringReporters = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, TimeMeasurementReporter> timeReporters = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, SpanReporter> spanReporters = new ConcurrentHashMap<>();
 
     /**
      * Initializes a new registry with reporters loaded from specified class loader.

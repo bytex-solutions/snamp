@@ -22,7 +22,7 @@ public final class SoftMeasurementBuffer implements MeasurementBuffer {
     private synchronized BlockingQueue<Measurement> getQueueSync(){
         BlockingQueue<Measurement> queue;
         if(buffer == null || (queue = buffer.get()) == null)
-            buffer = new SoftReference<BlockingQueue<Measurement>>(queue = new LinkedBlockingQueue<Measurement>());
+            buffer = new SoftReference<>(queue = new LinkedBlockingQueue<>());
         return queue;
     }
 

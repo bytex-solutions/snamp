@@ -43,7 +43,7 @@ public abstract class Measurement implements Externalizable {
 
     Measurement(){
         timestamp = System.currentTimeMillis();
-        annotations = new LinkedHashMap<String, String>();
+        annotations = new LinkedHashMap<>();
         name = "";
         componentName = ApplicationInfo.getName();
         instanceName = ApplicationInfo.getInstance();
@@ -130,23 +130,17 @@ public abstract class Measurement implements Externalizable {
 
     @JsonIgnore
     public static String toJsonString(final Measurement... measurements) throws IOException {
-        final StringWriter writer = new StringWriter();
-        try {
+        try (final StringWriter writer = new StringWriter()) {
             ObjectMapperHolder.INSTANCE.writeValue(writer, measurements);
             return writer.toString();
-        } finally {
-            writer.close();
         }
     }
 
     @JsonIgnore
     public final String toJsonString() throws IOException {
-        final StringWriter writer = new StringWriter();
-        try {
+        try (final StringWriter writer = new StringWriter()) {
             ObjectMapperHolder.INSTANCE.writeValue(writer, this);
             return writer.toString();
-        } finally {
-            writer.close();
         }
     }
 

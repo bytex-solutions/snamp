@@ -11,10 +11,6 @@
   <packaging>bundle</packaging>
   <name>SNAMP Instrumentation Library</name>
   <description>SNAMP Instrumentation library for embedding into applications</description>
-  <properties>
-    <maven.compiler.source>1.6</maven.compiler.source>
-    <maven.compiler.target>1.6</maven.compiler.target>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
@@ -44,13 +40,6 @@
   </dependencies>
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>

@@ -72,12 +72,9 @@ public class TimeMeasurementReporter extends MeasurementReporter<TimeMeasurement
         return start(Collections.<String, String>emptyMap());
     }
 
-    public <V> V call(final Callable<V> callable, final Map<String, String> userData) throws Exception{
-        final MeasurementScope scope = start(userData);
-        try {
+    public <V> V call(final Callable<V> callable, final Map<String, String> userData) throws Exception {
+        try (final MeasurementScope scope = start(userData)) {
             return callable.call();
-        } finally {
-            scope.close();
         }
     }
 
@@ -85,12 +82,9 @@ public class TimeMeasurementReporter extends MeasurementReporter<TimeMeasurement
         return call(callable, Collections.<String, String>emptyMap());
     }
 
-    public void run(final Runnable runnable, final Map<String, String> userData){
-        final MeasurementScope scope = start(userData);
-        try {
+    public void run(final Runnable runnable, final Map<String, String> userData) {
+        try (final MeasurementScope scope = start(userData)) {
             runnable.run();
-        } finally {
-            scope.close();
         }
     }
 

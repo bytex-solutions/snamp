@@ -3,6 +3,7 @@ package com.bytex.snamp.instrumentation;
 import com.bytex.snamp.instrumentation.measurements.CorrelationPolicy;
 import com.bytex.snamp.instrumentation.measurements.Span;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +21,7 @@ public abstract class TraceScope implements MeasurementScope {
     private final TraceScope parent;
     private final Identifier correlationID;
     private final CorrelationPolicy correlationPolicy;
-    private volatile Map<String, String> annotations;
+    private Map<String, String> annotations;
 
     protected TraceScope(final Identifier correlationID, final CorrelationPolicy correlationPolicy, final Identifier parentSpanID){
         if(correlationID == null)
@@ -47,22 +48,15 @@ public abstract class TraceScope implements MeasurementScope {
         }
     }
 
-    private synchronized Map<String, String> getAnnotations(){
-        if(annotations == null)
-            annotations = new LinkedHashMap<String, String>();
-        return annotations;
-    }
-
     /**
      * Adds annotation to this scope.
      * @param name Annotation name.
      * @param value Annotation value.
      */
     public final void addAnnotation(final String name, final String value){
-        Map<String, String> userData = annotations;
-        if(userData == null)
-            userData = getAnnotations();
-        userData.put(name, value);
+        if(annotations == null)
+            annotations = new HashMap<>();
+        annotations.put(name, value);
     }
 
     public final CorrelationPolicy getCorrelationPolicy() {
@@ -116,9 +110,8 @@ public abstract class TraceScope implements MeasurementScope {
         }
         //add all annotations
         {
-            final Map<String, String> userData = annotations;
-            if (userData != null)
-                s.addAnnotations(userData);
+            if(annotations != null)
+                s.addAnnotations(annotations);
         }
         s.setSpanID(spanID);
         s.setCorrelationPolicy(getCorrelationPolicy());

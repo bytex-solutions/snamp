@@ -52,7 +52,7 @@ public class SpanReporter extends MeasurementReporter<Span> {
         return new TraceScope(correlationID, correlationPolicy, parentSpanID) {
             @Override
             protected void report(final Span s) {
-                SpanReporter.super.report(s);
+                SpanReporter.this.report(s);
             }
         };
     }
@@ -78,11 +78,8 @@ public class SpanReporter extends MeasurementReporter<Span> {
         return new InvocationHandler() {
             @Override
             public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                final TraceScope t = beginTrace();
-                try {
+                try(final TraceScope ignored = beginTrace()) {
                     return method.invoke(obj, args);
-                } finally {
-                    t.close();
                 }
             }
         };
@@ -125,11 +122,8 @@ public class SpanReporter extends MeasurementReporter<Span> {
         return new Callable<V>() {
             @Override
             public V call() throws Exception {
-                final TraceScope trace = scopeProvider.newScope();
-                try {
+                try(final TraceScope ignored = scopeProvider.newScope()) {
                     return obj.call();
-                } finally {
-                    trace.close();
                 }
             }
         };
@@ -144,11 +138,8 @@ public class SpanReporter extends MeasurementReporter<Span> {
         return new Runnable() {
             @Override
             public void run() {
-                final TraceScope trace = scopeProvider.newScope();
-                try {
+                try(final TraceScope ignored = scopeProvider.newScope()) {
                     obj.run();
-                } finally {
-                    trace.close();
                 }
             }
         };
