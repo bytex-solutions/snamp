@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { TypedEntity } from '../model/model.typedEntity';
 
-import { ApiClient } from '../app.restClient';
+import { ApiClient, REST } from '../app.restClient';
 import { KeyValue, Entity } from '../model/model.entity';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Response } from '@angular/http';
@@ -32,7 +32,7 @@ export class AddEntity implements OnInit {
     constructor(private http:ApiClient){};
 
     ngOnInit() {
-        this.http.get("/snamp/console/management/" + this.type + "s")
+        this.http.get(REST.AVAILABLE_ENTITIES_BY_TYPE(this.type))
             .map((res:Response) => res.json())
             .subscribe(data => {
                 for (let key in data) {
@@ -46,7 +46,7 @@ export class AddEntity implements OnInit {
 
     selectType(selected:EntityDescriptor) {
         this.selectedType = selected;
-         this.paramDescriptors = this.http.get("/snamp/console/management/"+ this.type + "/" + selected.type + "/configuration")
+         this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this.type, selected.type))
             .map((res: Response) => {
                 let data = res.json();
                 let returnValue:ParamDescriptor[] = [];
@@ -90,7 +90,7 @@ export class AddEntity implements OnInit {
                 this.selectedType.type,
                 Entity.stringifyParametersStatic(this.params)
             );
-            this.http.put("/snamp/console/gateway/" + newGateway.name, newGateway.stringify())
+            this.http.put(REST.GATEWAY_BY_NAME(newGateway.name), newGateway.stringify())
                 .map((res:Response) => res.json())
                 .subscribe(res => {
                     this.entities.push(newGateway);

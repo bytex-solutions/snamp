@@ -1,5 +1,5 @@
 import { Component, Input ,ViewChild, ElementRef, OnInit, ViewContainerRef, ViewEncapsulation, ViewChildren, QueryList } from '@angular/core';
-import { ApiClient } from '../app.restClient';
+import { ApiClient, REST } from '../app.restClient';
 import { KeyValue } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
@@ -60,7 +60,7 @@ export class ParametersTable implements OnInit {
     }
 
     getUrlForParameter(key:string):string {
-        return "/snamp/console/" + this.entity.getName() + "/" + this.entity.name + "/parameters/" + key;
+        return REST.GATEWAY_PARAMETERS(this.entity.name, key);
     }
 
     saveParameter(parameter:KeyValue) {

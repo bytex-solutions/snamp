@@ -1,5 +1,5 @@
 import { Entity, KeyValue } from './model.entity';
-import { ApiClient } from '../app.restClient';
+import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Binding } from './model.binding';
@@ -16,8 +16,8 @@ export abstract class TypedEntity extends Entity {
         this.type = type;
         this.name = name;
 
-        // retrieving parameters description
-        this.paramDescriptors = this.http.get("/snamp/console/management/"+ this.getName() + "/" + this.type + "/configuration")
+        // retrieving parameters description - extract as static to explicit class please @todo
+        this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this.getName(), this.type))
             .map((res: Response) => {
                 let data = res.json();
                 let returnValue:ParamDescriptor[] = [];

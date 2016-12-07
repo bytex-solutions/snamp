@@ -14,7 +14,7 @@ import 'rxjs/add/operator/toPromise';
 export class Header  {
    username:string;
    constructor(private apiClient: ApiClient) {
-        apiClient.get('/snamp/console/username')
+        apiClient.get('/snamp/security/login/username')
             .map((res: Response) => res.text())
             .subscribe(res => this.username = res)
    }

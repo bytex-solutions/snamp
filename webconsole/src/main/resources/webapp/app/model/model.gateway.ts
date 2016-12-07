@@ -1,5 +1,5 @@
 import { TypedEntity } from './model.typedEntity';
-import { ApiClient } from '../app.restClient';
+import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Binding } from './model.binding';
@@ -17,7 +17,7 @@ export class Gateway extends TypedEntity {
         this.http = http;
          if (name != "") {
             // retrieving attributes bindings
-            this.http.get("/snamp/console/gateway/" + name + "/attributes/bindings")
+            this.http.get(REST.BINDINGS(name, "attributes"))
                 .map((res: Response) => res.json())
                 .subscribe(response => {
                     for (let resourceKey in response) {
@@ -28,7 +28,7 @@ export class Gateway extends TypedEntity {
                 }, err => {if (err.status != 404) Observable.throw(err)});
 
             // retrieving events bindings
-            this.http.get("/snamp/console/gateway/" + name + "/events/bindings")
+            this.http.get(REST.BINDINGS(name, "events"))
                 .map((res: Response) => res.json())
                 .subscribe(response => {
                     for (let resourceKey in response) {
@@ -39,7 +39,7 @@ export class Gateway extends TypedEntity {
                 }, err => {if (err.status != 404) Observable.throw(err)});
 
             // retrieving operations bindings
-            this.http.get("/snamp/console/gateway/" + name + "/operations/bindings")
+            this.http.get(REST.BINDINGS(name, "operations"))
                 .map((res: Response) => res.json())
                 .subscribe(response => {
                     for (let resourceKey in response) {

@@ -46,3 +46,42 @@ constructor(private http: Http, private _cookieService:CookieService) {}
     }).catch(this.handleError);
   }
 }
+
+export class REST {
+    public static ROOT_PATH = "/snamp/management";
+    public static CFG_PATH = REST.ROOT_PATH + "/configuration";
+
+    public static GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";
+
+    public static AVAILABLE_GATEWAY_LIST = REST.ROOT_PATH + "/gateway/list";
+
+    public static AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/resource/list";
+
+    public static AVAILABLE_ENTITIES_BY_TYPE(entityType:string):string {
+        return REST.ROOT_PATH + "/" + entityType + "/list";
+    }
+
+    public static GATEWAY_BY_NAME(name:string):string {
+        return REST.GATEWAY_CONFIG + "/" + name;
+    }
+
+    public static ENTITY
+
+    public static GATEWAY_TYPE(name:string):string {
+        return REST.GATEWAY_BY_NAME(name) + "/type";
+    }
+
+    public static ENTITY_PARAMETERS_DESCRIPTION(entityClass:string, entityType:string):string {
+        return REST.ROOT_PATH + "/" + entityClass + "/" + entityType + "/configuration";
+    }
+
+    public static BINDINGS(gatewayName:string, bindingEntityType:string):string {
+        return REST.GATEWAY_BY_NAME(gatewayName) + "/" + bindingEntityType + "/bindings";
+    }
+
+    public static GATEWAY_PARAMETERS(entityName:string, key:string):string {
+        return REST.GATEWAY_CONFIG + "/" + entityName + "/parameters/" + key;
+    }
+
+    public static
+}

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
-import { ApiClient } from './app.restClient';
+import { ApiClient, REST } from './app.restClient';
 import { Gateway } from './model/model.gateway';
 import { KeyValue } from './model/model.entity';
 import { Binding } from './model/model.binding';
@@ -32,7 +32,7 @@ export class Gateways implements OnInit {
 
     ngOnInit() {
         // Get all configured gateways from the server
-        this.http.get('/snamp/console/gateway')
+        this.http.get(REST.GATEWAY_CONFIG)
             .map((res: Response) => res.json())
             .subscribe(data => {
                 for (let key in data) {
@@ -43,7 +43,7 @@ export class Gateways implements OnInit {
             });
 
         // Get all the available bundles that belong to Gateways
-        this.http.get('/snamp/console/management/gateways')
+        this.http.get(REST.AVAILABLE_GATEWAY_LIST)
             .map((res: Response) => res.json())
             .subscribe(data => this.availableGateways = data);
     }
@@ -63,7 +63,7 @@ export class Gateways implements OnInit {
                 return (<Promise<boolean>>resultPromise.result)
                   .then((response) => {
                     this.oldTypeValue = event.target.value;
-                    this.http.put("/snamp/console/gateway/" + this.activeGateway.name + "/type", event.target.value);
+                    this.http.put(REST.GATEWAY_TYPE(this.activeGateway.name), event.target.value);
                     return response;
                   })
                   .catch(() => {

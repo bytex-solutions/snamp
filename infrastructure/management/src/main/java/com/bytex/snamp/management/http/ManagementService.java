@@ -92,7 +92,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the installed resources
      */
     @GET
-    @Path("/resources")
+    @Path("/resource/list")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getInstalledResources() {
@@ -116,7 +116,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the installed gateways
      */
     @GET
-    @Path("/gateways")
+    @Path("/gateway/list")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getInstalledGateways() {
