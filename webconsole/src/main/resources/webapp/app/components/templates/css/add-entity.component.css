@@ -76,3 +76,8 @@ a.grid-item-link:focus,
 a.grid-item-link.active {
   border-color: #337ab7;
 }
+
+.btn-add-entity {
+    float: right;
+    margin-top: 1em;
+}

@@ -24,8 +24,7 @@ constructor(private http: Http, private _cookieService:CookieService) {}
             console.log("Auth is not working.", error);
             window.location.href = "login.html?tokenExpired=true";
       } else {
-        console.error(error.message ? error.message : error.toString());
-        return Observable.throw(error);
+         return Observable.throw(error);
       }
     }
 

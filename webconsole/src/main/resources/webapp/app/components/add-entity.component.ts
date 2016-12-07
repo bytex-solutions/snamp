@@ -1,4 +1,4 @@
-import { Component, Input ,ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { TypedEntity } from '../model/model.typedEntity';
 
 import { ApiClient } from '../app.restClient';
@@ -21,15 +21,15 @@ import 'rxjs/add/operator/toPromise';
 export class AddEntity implements OnInit {
     @Input() entities: TypedEntity[];
     @Input() type:string;
-    selectedType:EntityDescriptor;
-    selectedName:string;
-    paramDescriptors:Observable<ParamDescriptor[]> ;
+    selectedType:EntityDescriptor = undefined;
+    selectedName:string = undefined;
+    paramDescriptors:Observable<ParamDescriptor[]> = undefined ;
     params:KeyValue[] = [];
-    containsRequiredParam:boolean;
+    containsRequiredParam:boolean = false;
     readyForSave:boolean = false;
     availableEntities:EntityDescriptor[] = [];
 
-    constructor(private http:ApiClient, private elementRef:ElementRef){};
+    constructor(private http:ApiClient){};
 
     ngOnInit() {
         this.http.get("/snamp/console/management/" + this.type + "s")
@@ -104,6 +104,15 @@ export class AddEntity implements OnInit {
                 obj.value = param.value;
             }
         });
+    }
+
+    clear() {
+        this.selectedType = undefined;
+        this.selectedName = undefined;
+        this.paramDescriptors = undefined ;
+        this.params = [];
+        this.containsRequiredParam = false;
+        this.readyForSave = false;
     }
 }
 
