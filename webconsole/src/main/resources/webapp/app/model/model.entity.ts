@@ -7,14 +7,7 @@ export abstract class Entity {
     }
 
     public getParameter(key:string):KeyValue {
-        let value:KeyValue = undefined;
-        this.parameters.forEach(function(obj:KeyValue) {
-            if (obj.key == key) {
-                value = obj;
-                return;
-            }
-        });
-        return value;
+       return KeyValue.getParameterByName(this.parameters, key);
     }
 
     public contains(key:string):boolean {
@@ -80,4 +73,17 @@ export class KeyValue {
         this.key = key;
         this.value = value;
     };
+
+    public static getParameterByName(inputParams:KeyValue[], inputName:string):KeyValue {
+        let result:KeyValue = undefined;
+        if (inputParams != undefined) {
+            for (let i = 0; i < inputParams.length; i++) {
+                if (inputName === inputParams[i].key) {
+                    result = inputParams[i];
+                    break;
+                }
+            }
+        }
+        return result;
+    }
 }

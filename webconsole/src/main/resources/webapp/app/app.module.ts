@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Gateways }  from './app.gateways';
 import { HttpModule } from '@angular/http';
 import { CookieService } from 'angular2-cookie/core';
-import { KeysPipe, RequriedParametersFilter, OptionalParametersFilter } from './app.pipes'
+import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './app.pipes'
 import { Header } from './app.header'
 import { InlineEditComponent } from './components/inline-edit.component'
 import { ParametersTable } from './components/parameters-table.component'
@@ -20,7 +20,7 @@ import { TooltipModule } from 'ng2-tooltip';
 @NgModule({
   imports:      [ BrowserModule, HttpModule, FormsModule, ModalModule.forRoot(), VexModalModule, TooltipModule ],
   declarations: [ Gateways, Header, KeysPipe, InlineEditComponent, ParametersTable, BindingTable,
-                    RequriedParametersFilter, OptionalParametersFilter, AddEntity ],
+                    RequiredParametersFilter, OptionalParametersFilter, AddEntity ],
   bootstrap:    [ Gateways ],
   providers:    [ ApiClient, CookieService, providers]
 })

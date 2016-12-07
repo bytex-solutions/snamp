@@ -5,6 +5,8 @@ import { Observable } from 'rxjs/Observable';
 import { Binding } from './model.binding';
 import { OnInit } from '@angular/core';
 
+import 'rxjs/add/observable/throw';
+
 export class Gateway extends TypedEntity {
     http:ApiClient;
     attributes:Binding[] = [];
@@ -16,6 +18,7 @@ export class Gateway extends TypedEntity {
          if (name != "") {
             // retrieving attributes bindings
             this.http.get("/snamp/console/gateway/" + name + "/attributes/bindings")
+                .catch(this.handleError)
                 .map((res: Response) => res.json())
                 .subscribe(response => {
                     for (let resourceKey in response) {
@@ -27,6 +30,7 @@ export class Gateway extends TypedEntity {
 
             // retrieving events bindings
             this.http.get("/snamp/console/gateway/" + name + "/events/bindings")
+                .catch(this.handleError)
                 .map((res: Response) => res.json())
                 .subscribe(response => {
                     for (let resourceKey in response) {
@@ -38,6 +42,7 @@ export class Gateway extends TypedEntity {
 
             // retrieving operations bindings
             this.http.get("/snamp/console/gateway/" + name + "/operations/bindings")
+                .catch(this.handleError)
                 .map((res: Response) => res.json())
                 .subscribe(response => {
                     for (let resourceKey in response) {
@@ -47,5 +52,14 @@ export class Gateway extends TypedEntity {
                     }
                 });
          }
+    }
+
+    private handleError (error: Response | any) {
+      if (error instanceof Response && error.status == 404) {
+            console.log("No binding was found for gateway " + this.name + " of type " + this.type);
+      } else {
+        console.error("Unexpected error!", error.message ? error.message : error.toString());
+        return Observable.throw(error);
+      }
     }
 }

@@ -17,7 +17,7 @@ export class KeysPipe implements PipeTransform {
     name: 'required',
     pure: false
 })
-export class RequriedParametersFilter implements PipeTransform {
+export class RequiredParametersFilter implements PipeTransform {
     transform(items: ParamDescriptor[], args: any[]): ParamDescriptor[] {
         if (items == null) {
             return null;

@@ -3,6 +3,7 @@ import {Http, Headers, Response} from '@angular/http';
 import {CookieService} from 'angular2-cookie/core';
 import { Observable } from 'rxjs/Observable';
 
+import 'rxjs/add/observable/throw';
 import 'rxjs/add/operator/catch';
 
 @Injectable()
@@ -24,7 +25,7 @@ constructor(private http: Http, private _cookieService:CookieService) {}
             window.location.href = "login.html?tokenExpired=true";
       } else {
         console.error(error.message ? error.message : error.toString());
-        return Observable.throw(errMsg);
+        return Observable.throw(error);
       }
     }
 

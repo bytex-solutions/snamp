@@ -24,4 +24,17 @@ export class ParamDescriptor {
     }
 
     public static stubValue:string = "Input the value";
+
+    public static getDescriptorByName(inputValue:ParamDescriptor[], inputKey:string):ParamDescriptor {
+        let result:ParamDescriptor = undefined;
+        if (inputValue != undefined) {
+            for (let i = 0; i < inputValue.length; i++) {
+                if (inputValue[i].name === inputKey) {
+                    result = inputValue[i];
+                    break;
+                }
+            }
+        }
+        return result;
+    }
 }

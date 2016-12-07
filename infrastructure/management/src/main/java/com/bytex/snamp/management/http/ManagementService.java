@@ -18,6 +18,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -238,7 +239,7 @@ public final class ManagementService extends AbstractManagementService {
             final ConfigurationEntityDescription<GatewayConfiguration> descriptor =
                     GatewayClient.getConfigurationEntityDescriptor(getBundleContext(), name,
                             GatewayConfiguration.class);
-            return descriptor.stream()
+            return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
@@ -263,7 +264,7 @@ public final class ManagementService extends AbstractManagementService {
             final ConfigurationEntityDescription<ManagedResourceConfiguration> descriptor =
                     ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,
                             ManagedResourceConfiguration.class);
-            return descriptor.stream()
+            return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {

@@ -29,33 +29,31 @@ export abstract class TypedEntity extends Entity {
     }
 
     public isParamRequired(name:string):Observable<boolean> {
-        return this.getParamDescriptor(name).map((res:ParamDescriptor) => {
-            return res != undefined && res.required;
-        });
+        return this.getParamDescriptor(name).map((res:ParamDescriptor) => res.required);
     }
 
     public getParamDescriptor(name:string):Observable<ParamDescriptor> {
-        return this.paramDescriptors.map((descriptors:ParamDescriptor[]) => {
-            let res:ParamDescriptor = undefined;
-            descriptors.forEach(function(current:ParamDescriptor) {
-              if (current.name == name) {
-                res = current;
-                return;
-              }
-            });
-            return res;
-        });
+        return this.paramDescriptors
+            .map((descriptors:ParamDescriptor[]) => ParamDescriptor.getDescriptorByName(descriptors, name));
     }
 
-    public isReadyToBeSaved() {
-        let res:boolean = true;
-        this.parameters.forEach(function(param:KeyValue) {
-            if (this.isParamRequired(param.key) && param.value == ParamDescriptor.stubValue) {
-                res = false;
-                return;
+    public static checkForRequiredFilled(inputValue:KeyValue[], res:ParamDescriptor[]):boolean {
+         let result:boolean = true;
+         for (let i = 0; i < res.length; i++) {
+            if (res[i].required) {
+                let _param = KeyValue.getParameterByName(inputValue, res[i].name);
+                if (_param != undefined && _param.value == ParamDescriptor.stubValue) {
+                    result = false;
+                }
             }
-        });
-        return res;
+         }
+         return result;
+    }
+
+    public isReadyToBeSaved():Observable<boolean> {
+        return this.paramDescriptors.map((res:ParamDescriptor[]) => {
+            return TypedEntity.checkForRequiredFilled(this.parameters, res);
+        })
     }
 
     public stringify():string {

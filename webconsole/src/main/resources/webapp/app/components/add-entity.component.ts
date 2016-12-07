@@ -25,7 +25,8 @@ export class AddEntity implements OnInit {
     selectedName:string;
     paramDescriptors:Observable<ParamDescriptor[]> ;
     params:KeyValue[] = [];
-    containsRequiredParam:boolean = false;
+    containsRequiredParam:boolean;
+    readyForSave:boolean = false;
     availableEntities:EntityDescriptor[] = [];
 
     constructor(private http:ApiClient, private elementRef:ElementRef){};
@@ -36,9 +37,6 @@ export class AddEntity implements OnInit {
             .subscribe(data => {
                 for (let key in data) {
                     this.availableEntities.push(new EntityDescriptor(data[key]));
-                }
-                if (this.availableEntities.length > 0) {
-                    this.selectedType = this.availableEntities[0];
                 }
             });
     }
@@ -58,21 +56,30 @@ export class AddEntity implements OnInit {
                 return returnValue;
             });
          this.paramDescriptors
-            .filter((res:ParamDescriptor[], index:number) => res[index].required)
-            .do((res:ParamDescriptor[]) => {
-                res.forEach(function(obj:ParamDescriptor){
-                    this.containsRequiredParam = true;
-                    let paramValue:string = ParamDescriptor.stubValue;
-                    if (obj.defaultValue != undefined && obj.defaultValue.length > 0) {
-                        paramValue = obj.defaultValue;
-                    }
-                    this.params.push(new KeyValue(obj.name, paramValue));
-                });
+            .subscribe((res:ParamDescriptor[]) => {
+                this.params = [];
+                this.containsRequiredParam = false;
+                this.readyForSave = false;
+                for (let i = 0; i < res.length; i++) {
+                    let obj:ParamDescriptor = res[i];
+                    if (obj.required) {
+                        this.containsRequiredParam = true;
+                        let paramValue:string = ParamDescriptor.stubValue;
+                        if (obj.defaultValue != undefined && obj.defaultValue.length > 0) {
+                            paramValue = obj.defaultValue;
+                        }
+                        this.params.push(new KeyValue(obj.name, paramValue));
+                     }
+                }
+                this.readyForSave = TypedEntity.checkForRequiredFilled(this.params, res)
+                    && this.nameSelected() && this.selectedType != undefined;
              });
+
+
     }
 
     typeSelected():boolean {
-        return this.nameSelected()&& this.selectedType != undefined && this.containsRequiredParam;
+        return this.nameSelected() && this.selectedType != undefined && this.containsRequiredParam;
     }
 
     addEntity() {
@@ -87,8 +94,16 @@ export class AddEntity implements OnInit {
                 .map((res:Response) => res.json())
                 .subscribe(res => {
                     this.entities.push(newGateway);
-                })
+                });
         } // else for further entities type please
+    }
+
+    saveParameter(param:KeyValue) {
+        this.params.forEach(function(obj:KeyValue) {
+            if (obj.key === param.key) {
+                obj.value = param.value;
+            }
+        });
     }
 }
 
