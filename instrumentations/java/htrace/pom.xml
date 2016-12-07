@@ -10,6 +10,9 @@
   <artifactId>htrace</artifactId>
   <name>SNAMP-HTrace Bridge</name>
   <description>SNAMP Span Receiver for HTrace</description>
+  <properties>
+    <htrace.version>4.2.0-incubating</htrace.version>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.apache.htrace</groupId>

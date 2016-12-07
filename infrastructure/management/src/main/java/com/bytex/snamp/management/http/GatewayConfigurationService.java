@@ -15,13 +15,13 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-@Path("/gateway")
+@Path("/configuration/gateway")
 public final class GatewayConfigurationService extends AbstractEntityConfigurationService<GatewayConfiguration, GatewayDataObject> {
 
     /**
      * Instantiates a new Gateway configuration service.
      */
-    public GatewayConfigurationService(){
+    GatewayConfigurationService(){
         super(GatewayConfiguration.class);
     }
 

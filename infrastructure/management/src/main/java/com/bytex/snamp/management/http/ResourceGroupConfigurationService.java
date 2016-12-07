@@ -11,12 +11,11 @@ import javax.ws.rs.Path;
  * @version 2.0
  * @since 2.0
  */
-@Path("/resourceGroup")
+@Path("/configuration/resourceGroup")
 public final class ResourceGroupConfigurationService extends TemplateConfigurationService<ManagedResourceGroupConfiguration, ResourceGroupDataObject> {
-    public ResourceGroupConfigurationService(){
+    ResourceGroupConfigurationService(){
         super(ManagedResourceGroupConfiguration.class);
     }
-
 
     @Override
     protected ResourceGroupDataObject toDataTransferObject(final ManagedResourceGroupConfiguration entity) {

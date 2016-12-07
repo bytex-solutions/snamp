@@ -13,9 +13,9 @@ import javax.ws.rs.core.Response;
  * @version 2.0
  * @since 2.0
  */
-@Path("/resource")
+@Path("/configuration/resource")
 public final class ResourceConfigurationService extends TemplateConfigurationService<ManagedResourceConfiguration, ManagedResourceDataObject> {
-    public ResourceConfigurationService(){
+    ResourceConfigurationService(){
         super(ManagedResourceConfiguration.class);
     }
 

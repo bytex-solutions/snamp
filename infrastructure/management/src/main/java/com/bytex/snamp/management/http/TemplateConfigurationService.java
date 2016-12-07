@@ -10,8 +10,8 @@ import java.util.Map;
 
 /**
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
 public abstract class TemplateConfigurationService<E extends ManagedResourceTemplate, DTO extends TemplateDataObject<E>> extends AbstractEntityConfigurationService<E, DTO> {
 

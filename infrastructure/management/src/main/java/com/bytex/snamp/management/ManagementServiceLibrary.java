@@ -7,19 +7,20 @@ import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.core.SnampManager;
 import com.bytex.snamp.jmx.FrameworkMBean;
 import com.bytex.snamp.jmx.OpenMBeanServiceProvider;
+import com.bytex.snamp.management.http.ManagementServlet;
 import com.bytex.snamp.management.jmx.SnampClusterNodeMBean;
 import com.bytex.snamp.management.jmx.SnampCoreMBean;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
 import javax.management.JMException;
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+
+import static com.bytex.snamp.internal.Utils.acceptWithContextClassLoader;
 
 /**
  * Represents activator for SNAMP Management Library.
@@ -30,9 +31,8 @@ import java.util.Objects;
  */
 public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final String USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY = "com.bytex.snamp.management.usePlatformMBean";
-    private static final ActivationProperty<Boolean> usePlatformMBeanProperty = defineActivationProperty(Boolean.class, false);
-
-
+    private static final ActivationProperty<Boolean> USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY = defineActivationProperty(Boolean.class, false);
+    private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
     private static final class SnampManagerProvider extends ProvidedService<SnampManager, SnampManagerImpl>{
 
@@ -86,7 +86,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
 
         @Override
         protected boolean usePlatformMBeanServer(){
-            return getActivationPropertyValue(usePlatformMBeanProperty);
+            return getActivationPropertyValue(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY);
         }
 
         /**
@@ -112,7 +112,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
 
         @Override
         protected boolean usePlatformMBeanServer(){
-            return getActivationPropertyValue(usePlatformMBeanProperty);
+            return getActivationPropertyValue(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY);
         }
 
         /**
@@ -173,6 +173,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     @Override
     protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
         bundleLevelDependencies.add(new LogReaderServiceDependency(listener));
+        bundleLevelDependencies.add(new SimpleDependency<>(HttpService.class));
     }
 
     /**
@@ -183,8 +184,14 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
      */
     @Override
     @MethodStub
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) {
-        activationProperties.publish(usePlatformMBeanProperty, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
+    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
+        activationProperties.publish(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
+        @SuppressWarnings("unchecked")
+        final HttpService httpService = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
+        acceptWithContextClassLoader(getClass().getClassLoader(),
+                httpService,
+                (publisher) -> publisher.registerServlet(ManagementServlet.CONTEXT, new ManagementServlet(getLogger()), new Hashtable<>(), null));
+        activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, httpService);
     }
 
     /**
@@ -195,6 +202,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     @Override
     @MethodStub
     protected void deactivate(final ActivationPropertyReader activationProperties) {
-
+        final HttpService httpService = activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY);
+        httpService.unregister(ManagementServlet.CONTEXT);
     }
 }

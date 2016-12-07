@@ -1,10 +1,6 @@
 package com.bytex.snamp.webconsole;
 
 import com.bytex.snamp.core.AbstractBundleActivator;
-import com.bytex.snamp.management.http.GatewayConfigurationService;
-import com.bytex.snamp.management.http.ManagementService;
-import com.bytex.snamp.management.http.ResourceConfigurationService;
-import com.bytex.snamp.management.http.ResourceGroupConfigurationService;
 import com.google.common.collect.ImmutableMap;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.osgi.framework.BundleContext;
@@ -35,16 +31,14 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
         @SuppressWarnings("unchecked")
         // For Dashboard purpose // temporarily commented out
         // final ConfigurationAdmin configAdmin = getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
-        final WebConsoleService consoleAPI = new WebConsoleService(getLogger());
-        final String resourceBase = this.getClass().getClassLoader().getResource("webapp").toExternalForm();
+        final String resourceBase = getClass().getClassLoader().getResource("webapp").toExternalForm();
         @SuppressWarnings("unchecked")
         final HttpService httpService = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
                 (publisher) -> {
                     publisher.registerServlet(WebConsoleServlet.CONTEXT,
-                            new WebConsoleServlet(consoleAPI, new ResourceConfigurationService(),
-                                    new GatewayConfigurationService(), new ResourceGroupConfigurationService(), new ManagementService()), new Hashtable<>(), null);
+                            new WebConsoleServlet(), new Hashtable<>(), null);
                     publisher.registerServlet(STATIC_SERVLET_CONTEXT, new DefaultServlet(),
                             new Hashtable<>(ImmutableMap
                                     .of("resourceBase", resourceBase, "pathInfoOnly", "true")
@@ -55,7 +49,9 @@ public final class WebConsoleActivator extends AbstractBundleActivator {
 
     @Override
     protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY).unregister(WebConsoleServlet.CONTEXT);
+        final HttpService httpService = activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY);
+        httpService.unregister(WebConsoleServlet.CONTEXT);
+        httpService.unregister(STATIC_SERVLET_CONTEXT);
     }
 
     @Override

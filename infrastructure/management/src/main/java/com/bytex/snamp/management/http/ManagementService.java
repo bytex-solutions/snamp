@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * @version 2.0
  * @since 2.0
  */
-@Path("/management")
+@Path("/")
 public final class ManagementService extends AbstractManagementService {
     private static final String INTERNAL_COMPONENT_TYPE_NAME = "Internal component";
     private final AbstractSnampManager manager = new SnampManagerImpl();
@@ -234,7 +234,7 @@ public final class ManagementService extends AbstractManagementService {
     @Path("/gateway/{name}/configuration")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public final Collection<Map<String, String>> getGatewayDescription(@PathParam("name") final String name) {
+    public Collection<Map<String, String>> getGatewayDescription(@PathParam("name") final String name) {
         try {
             final ConfigurationEntityDescription<GatewayConfiguration> descriptor =
                     GatewayClient.getConfigurationEntityDescriptor(getBundleContext(), name,
@@ -259,7 +259,7 @@ public final class ManagementService extends AbstractManagementService {
     @Path("/resource/{name}/configuration")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public final Collection<Map<String, String>> getResourceDescription(@PathParam("name") final String name) {
+    public Collection<Map<String, String>> getResourceDescription(@PathParam("name") final String name) {
         try {
             final ConfigurationEntityDescription<ManagedResourceConfiguration> descriptor =
                     ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,

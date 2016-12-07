@@ -25,6 +25,10 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  */
 public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequestFilter {
+    /**
+     * Default name of cookie with authentication token.
+     */
+    public static final String DEFAULT_AUTH_COOKIE = "snamp-auth-token";
     private final Logger logger = Logger.getLogger(WebSecurityFilter.class.getName());
     private final String authCookieName;
     private final String securedPath;
@@ -36,6 +40,10 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
 
     public WebSecurityFilter(final String authCookieName){
         this(authCookieName, "/");
+    }
+
+    public WebSecurityFilter(){
+        this(DEFAULT_AUTH_COOKIE);
     }
 
     protected boolean authenticationRequired(final ContainerRequest request){

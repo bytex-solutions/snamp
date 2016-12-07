@@ -7,6 +7,7 @@
         <bundle>wrap:mvn:org.apache.vysper/vysper-core/0.7$Export-Package=org.apache.vysper.*;version="0.7"</bundle>
         <bundle>wrap:mvn:org.apache.vysper.extensions/xep0045-muc/0.7$Export-Package=org.apache.vysper.xmpp.modules.extension.xep0045_muc.*;version="0.7"</bundle>
         <bundle>wrap:mvn:org.apache.vysper/nbxml/0.7$Export-Package=org.apache.vysper.xml.*;version="0.7",org.apache.vysper.charset.*;version="0.7"</bundle>
+        <bundle>mvn:com.ning/async-http-client/1.9.5</bundle>
         <bundle>wrap:mvn:commons-lang/commons-lang/2.5$Export-Package=org.apache.commons.lang.*;version="2.5"</bundle>
         <bundle>wrap:mvn:commons-codec/commons-codec/1.10$Export-Package=org.apache.commons.codec.*;version="1.10"</bundle>
         <bundle>wrap:mvn:commons-io/commons-io/2.4$Export-Package=org.apache.commons.io.*;version="2.4"</bundle>

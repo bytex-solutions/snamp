@@ -12,7 +12,7 @@ import javax.ws.rs.core.Response;
  * @version 2.0
  * @since 2.0
  */
-public abstract class AbstractManagementService {
+abstract class AbstractManagementService {
     AbstractManagementService(){
 
     }
@@ -21,7 +21,7 @@ public abstract class AbstractManagementService {
         return new WebApplicationException(Response.Status.NOT_FOUND);
     }
 
-    protected final BundleContext getBundleContext(){
+    final BundleContext getBundleContext(){
         return Utils.getBundleContextOfObject(this);
     }
 }
