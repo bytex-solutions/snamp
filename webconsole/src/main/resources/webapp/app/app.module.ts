@@ -14,10 +14,11 @@ import { AddEntity } from './components/add-entity.component'
 
 import { VexModalModule, providers } from 'angular2-modal/plugins/vex';
 import { ModalModule } from 'angular2-modal';
+import { TooltipModule } from 'ng2-tooltip';
 
 
 @NgModule({
-  imports:      [ BrowserModule, HttpModule, FormsModule, ModalModule.forRoot(), VexModalModule ],
+  imports:      [ BrowserModule, HttpModule, FormsModule, ModalModule.forRoot(), VexModalModule, TooltipModule ],
   declarations: [ Gateways, Header, KeysPipe, InlineEditComponent, ParametersTable, BindingTable,
                     RequriedParametersFilter, OptionalParametersFilter, AddEntity ],
   bootstrap:    [ Gateways ],

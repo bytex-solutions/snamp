@@ -13,17 +13,16 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
 
-import 'rxjs/add/operator/toPromise';
-
 @Component({
   selector: 'newEntity',
-  templateUrl: 'app/components/templates/add-entity.component.html'
+  templateUrl: 'app/components/templates/add-entity.component.html',
+  styleUrls: ['app/components/templates/css/add-entity.component.css']
 })
-export class AddEntity implements OnInit{
+export class AddEntity implements OnInit {
     @Input() entities: TypedEntity[];
     @Input() type:string;
-    selectedType:EntityDescriptor = undefined;
-    selectedName:string = undefined;
+    selectedType:EntityDescriptor;
+    selectedName:string;
     paramDescriptors:Observable<ParamDescriptor[]> ;
     params:KeyValue[] = [];
     containsRequiredParam:boolean = false;
@@ -36,23 +35,15 @@ export class AddEntity implements OnInit{
             .map((res:Response) => res.json())
             .subscribe(data => {
                 for (let key in data) {
-                    this.availableEntities.push(new EntityDescriptor(key, data[key]));
+                    this.availableEntities.push(new EntityDescriptor(data[key]));
                 }
                 if (this.availableEntities.length > 0) {
                     this.selectedType = this.availableEntities[0];
                 }
-            })
+            });
     }
-
-    ngAfterViewInit() {
-      var s = document.createElement("script");
-      s.type = "text/javascript";
-      s.src = "../templates/js/isotope.pkgd.js";
-      this.elementRef.nativeElement.appendChild(s);
-    }
-
     nameSelected():boolean {
-        return this.selectedName != undefined && this.selectedName.length > 0;
+        return this.selectedName != undefined && this.selectedName.length > 3;
     }
 
     selectType(selected:EntityDescriptor) {
@@ -81,7 +72,7 @@ export class AddEntity implements OnInit{
     }
 
     typeSelected():boolean {
-        return this.selectedType != undefined && this.containsRequiredParam;
+        return this.nameSelected()&& this.selectedType != undefined && this.containsRequiredParam;
     }
 
     addEntity() {
@@ -107,8 +98,8 @@ class EntityDescriptor {
     isActive:boolean = false;
     version:string = "0.0";
     type:string = "";
-    constructor(name:string, parameters: { [key:string]:string; }) {
-        this.name = name;
+    constructor(parameters: { [key:string]:string; }) {
+        this.name = parameters["name"];
         this.description = parameters["description"];
         this.isActive = parameters["state"] === "ACTIVE";
         this.version = parameters["version"];

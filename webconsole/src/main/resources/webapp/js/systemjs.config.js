@@ -33,7 +33,8 @@
       'angular2-modal':            'npm:angular2-modal',
       'angular2-modal/platform-browser': 'npm:angular2-modal/platform-browser',
       'angular2-modal/plugins/bootstrap': 'npm:angular2-modal/bundles/angular2-modal.bootstrap.umd.js',
-      'angular2-modal/plugins/vex': 'npm:angular2-modal/bundles/angular2-modal.vex.umd.js'
+      'angular2-modal/plugins/vex': 'npm:angular2-modal/bundles/angular2-modal.vex.umd.js',
+      "ng2-tooltip": "npm:ng2-tooltip"
     },
     // packages tells the System loader how to load when no filename and/or no extension
     packages: {
@@ -55,6 +56,10 @@
        'angular2-modal/platform-browser': {
          main: 'index.js',
          defaultExtension: 'js'
+       },
+       "ng2-tooltip": {
+         main: "index.js",
+         defaultExtension: "js"
        }
     }
   });

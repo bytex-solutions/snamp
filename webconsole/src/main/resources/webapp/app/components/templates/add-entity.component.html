@@ -6,29 +6,18 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title leftAlign" id="addEntityLabel">Create new entity</h4>
             </div>
+            <br/>
             <div class="modal-body">
+                <div class="input-group">
+                    <span class="input-group-addon">Name of new entity:</span>
+                    <input
+                            type="text"
+                            class="form-control"
+                            [(ngModel)]="selectedName">
+                </div>
+                <br/>
                 <div class="panel-group group-accordeon" id="entityAccordion" role="tablist" aria-multiselectable="true">
-                    <div class="panel panel-default leftAlign">
-                        <div class="panel-heading" role="tab" id="headingZero">
-                            <h4 class="panel-title">
-                                <a role="button" data-toggle="collapse" data-parent="#entityAccordion" href="#collapseName" aria-expanded="true" aria-controls="collapseRequired">
-                                    Input name of new entity
-                                </a>
-                            </h4>
-                        </div>
-                        <div id="collapseName" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingZero">
-                            <div class="panel-body">
-                                <div class="input-group">
-                                    <span class="input-group-addon">Name:</span>
-                                    <input
-                                            type="text"
-                                            class="form-control"
-                                            [(ngModel)]="selectedName">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel panel-default leftAlign" *ngIf="nameSelected">
+                    <div class="panel panel-default leftAlign" *ngIf="nameSelected()">
                         <div class="panel-heading" role="tab" id="headingOne">
                             <h4 class="panel-title">
                                 <a role="button" data-toggle="collapse" data-parent="#entityAccordion" href="#collapseType" aria-expanded="true" aria-controls="collapseRequired">
@@ -38,11 +27,20 @@
                         </div>
                         <div id="collapseType" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                             <div class="panel-body">
-
-                            </div>
+                                    <a href="#" *ngFor="let entity of availableEntities"
+                                           class="grid-item-link"
+                                           (click)="selectType(entity)"
+                                           [tooltip]="entity.description">
+                                        <div [class.activeBundle]="entity.isActive" class="grid-item">
+                                                <h5 class="name">{{entity.name}}</h5>
+                                                <p class="symbol">{{entity.type}}</p>
+                                                <p class="weight">v.{{entity.version}}</p>
+                                        </div>
+                                    </a>
+                                </div>
                         </div>
                     </div>
-                    <div class="panel panel-default leftAlign" *ngIf="typeSelected">
+                    <div class="panel panel-default leftAlign" *ngIf="typeSelected()">
                         <div class="panel-heading" role="tab" id="headingTwo">
                             <h4 class="panel-title">
                                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#paramAccordion" href="#collapseParameters" aria-expanded="false" aria-controls="collapseOptional">
@@ -70,6 +68,6 @@
         type="button"
         class="btn btn-primary btn-sm"
         data-toggle="modal"
-        data-target="addEntity">
+        [attr.data-target]="'#addEntity'">
     Add new
 </button>
