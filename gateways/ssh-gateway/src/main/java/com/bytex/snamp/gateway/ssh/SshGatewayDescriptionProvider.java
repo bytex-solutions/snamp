@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
@@ -18,6 +19,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.bytex.snamp.MapUtils.getIfPresent;
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsInt;
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
@@ -42,7 +44,6 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
 
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 22;
-    private static final String DEFAULT_HOST_KEY = "ssh-gateway.ser";
 
     private static final class GatewayConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
         private static final String RESOURCE_NAME = "SshGatewayConfig";
@@ -105,9 +106,9 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
         return getValueAsInt(parameters, PORT_PARAM, Integer::parseInt, () -> DEFAULT_PORT);
     }
 
-    KeyPairProvider getKeyPairProvider(final Map<String, String> parameters) {
+    KeyPairProvider getKeyPairProvider(final Map<String, String> parameters) throws AbsentConfigurationParameterException {
         final KeyPairProviderFactory factory = getValue(parameters, HOST_KEY_FORMAT_PARAM, KeyPairProviderFactory::parse, () -> KeyPairProviderFactory.JAVA_KEY);
-        final String hostKeyFile = getValue(parameters, HOST_KEY_FILE_PARAM, Function.identity(), () -> DEFAULT_HOST_KEY);
+        final String hostKeyFile = getIfPresent(parameters, HOST_KEY_FILE_PARAM, Function.identity(), AbsentConfigurationParameterException::new);
         return factory.loadPair(hostKeyFile);
     }
 
