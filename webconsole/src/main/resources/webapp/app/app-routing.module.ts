@@ -3,6 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { ApiClient }     from './app.restClient';
 import { HttpModule } from '@angular/http';
 import { CookieService } from 'angular2-cookie/core';
+import {LocationStrategy, HashLocationStrategy} from '@angular/common';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'configuration', pathMatch: 'full'},
@@ -13,7 +14,7 @@ export const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [ HttpModule, RouterModule.forRoot(routes) ],
+  imports: [ HttpModule, RouterModule.forRoot(routes, {useHash: true}) ],
   exports: [ RouterModule ],
   providers: [ ApiClient, CookieService ]
 })

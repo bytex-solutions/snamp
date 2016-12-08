@@ -12,7 +12,7 @@ import { SnampCfgComponent }    from './configuration.snampcfg';
     { path: 'gateways', component: GatewaysComponent},
     { path: 'resources', component: ResourcesComponent},
     { path: 'rgroups', component: RGroupsComponent},
-    { path: 'snamp', component: SnampCfgComponent}
+    { path: 'snampcfg', component: SnampCfgComponent}
   ])],
   exports: [RouterModule]
 })
