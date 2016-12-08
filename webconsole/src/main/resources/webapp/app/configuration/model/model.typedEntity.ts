@@ -29,7 +29,7 @@ export abstract class TypedEntity extends Entity {
     }
 
     public isParamRequired(name:string):Observable<boolean> {
-        return this.getParamDescriptor(name).map((res:ParamDescriptor) => res.required);
+        return this.getParamDescriptor(name).map((res:ParamDescriptor) => res != undefined && res.required);
     }
 
     public getParamDescriptor(name:string):Observable<ParamDescriptor> {
