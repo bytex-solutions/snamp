@@ -11,11 +11,11 @@ import 'rxjs/add/operator/toPromise';
   selector: 'app-header',
   template: 'Hello, {{username}}!'
 })
-export class Header  {
+export class HeaderModule  {
    username:string;
    constructor(private apiClient: ApiClient) {
         apiClient.get('/snamp/security/login/username')
             .map((res: Response) => res.text())
-            .subscribe(res => this.username = res)
+            .subscribe(res => this.username = res, err => {if (err.status == 500) {window.location.href = "login.html?tokenExpired=true";}})
    }
 }

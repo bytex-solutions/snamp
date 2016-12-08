@@ -1,5 +1,8 @@
 import { NgModule }             from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import { ApiClient }     from './app.restClient';
+import { HttpModule } from '@angular/http';
+import { CookieService } from 'angular2-cookie/core';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'configuration', pathMatch: 'full'},
@@ -10,7 +13,8 @@ export const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  imports: [ HttpModule, RouterModule.forRoot(routes) ],
+  exports: [ RouterModule ],
+  providers: [ ApiClient, CookieService ]
 })
 export class AppRoutingModule {}

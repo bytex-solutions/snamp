@@ -28,8 +28,8 @@
                         </div>
                         <div id="collapseType" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                             <div class="panel-body">
-                                    <a href="#" *ngFor="let entity of availableEntities"
-                                           class="grid-item-link"
+                                    <a *ngFor="let entity of availableEntities"
+                                           class="grid-item-link pointerElement"
                                            (click)="selectType(entity)"
                                            [class.active]="selectedType == entity"
                                            [tooltip]="entity.description">

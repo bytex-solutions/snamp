@@ -8,7 +8,7 @@ import { SnampCfgComponent }    from './configuration.snampcfg';
 
 @NgModule({
   imports: [RouterModule.forChild([
-    { path: '', redirectTo: 'resources', pathMatch: 'full'},
+    { path: '', redirectTo: 'gateways', pathMatch: 'full'},
     { path: 'gateways', component: GatewaysComponent},
     { path: 'resources', component: ResourcesComponent},
     { path: 'rgroups', component: RGroupsComponent},

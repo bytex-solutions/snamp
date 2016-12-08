@@ -273,4 +273,8 @@ body {
   .well-sm {
     font-size: small;
   }
+
+  .pointerElement {
+    cursor: pointer;
+  }
 }

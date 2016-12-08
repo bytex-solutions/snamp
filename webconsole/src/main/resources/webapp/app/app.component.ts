@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'snamp-app',
+  selector: 'angular2-application',
   template: `
    <ul class="nav nav-tabs">
        <li role="presentation" routerLinkActive="active"><a routerLink="charts">Charts</a></li>
@@ -17,5 +17,4 @@ import { Component } from '@angular/core';
   `
 })
 export class AppComponent {
-  subtitle = '(v3)';
 }

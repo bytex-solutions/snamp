@@ -43,7 +43,7 @@ function showRequest(formData, jqForm, options) {
 // post-submit callback
 function redirect(data)  {
     $('.errorBlock').css("display", "none");
-    window.location.href = "index.html"
+    window.location.href = "."
 }
 // error handler
 function invalidCredentials(event, textStatus, error) {
