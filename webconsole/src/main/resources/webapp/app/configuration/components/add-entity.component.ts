@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { TypedEntity } from '../model/model.typedEntity';
 
-import { ApiClient, REST } from '../app.restClient';
+import { ApiClient, REST } from '../../app.restClient';
 import { KeyValue, Entity } from '../model/model.entity';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Response } from '@angular/http';
@@ -15,8 +15,8 @@ import 'rxjs/add/operator/toPromise';
 
 @Component({
   selector: 'newEntity',
-  templateUrl: 'app/components/templates/add-entity.component.html',
-  styleUrls: ['app/components/templates/css/add-entity.component.css']
+  templateUrl: 'app/configuration/components/templates/add-entity.component.html',
+  styleUrls: ['app/configuration/components/templates/css/add-entity.component.css']
 })
 export class AddEntity implements OnInit {
     @Input() entities: TypedEntity[];

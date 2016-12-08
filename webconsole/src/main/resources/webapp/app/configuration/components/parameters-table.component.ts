@@ -1,5 +1,5 @@
 import { Component, Input ,ViewChild, ElementRef, OnInit, ViewContainerRef, ViewEncapsulation, ViewChildren, QueryList } from '@angular/core';
-import { ApiClient, REST } from '../app.restClient';
+import { ApiClient, REST } from '../../app.restClient';
 import { KeyValue } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
@@ -24,8 +24,11 @@ import {
 
 @Component({
   selector: 'parameters',
-  templateUrl: 'app/components/templates/parameters-table.component.html',
-  styleUrls: ['app/components/templates/css/vex.css', 'app/components/templates/css/vex-theme-wireframe.css'],
+  templateUrl: 'app/configuration/components/templates/parameters-table.component.html',
+  styleUrls: [
+    'app/configuration/components/templates/css/vex.css',
+    'app/configuration/components/templates/css/vex-theme-wireframe.css'
+  ],
   encapsulation: ViewEncapsulation.None
 })
 export class ParametersTable implements OnInit {

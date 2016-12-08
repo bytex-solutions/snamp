@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
-import { ApiClient, REST } from './app.restClient';
+import { ApiClient, REST } from '../app.restClient';
 import { Gateway } from './model/model.gateway';
 import { KeyValue } from './model/model.entity';
 import { Binding } from './model/model.binding';
@@ -14,10 +14,9 @@ import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
 
 @Component({
-  selector: 'gateways',
-  templateUrl: 'app/templates/gateways.html'
+  templateUrl: 'app/configuration/templates/gateways.html'
 })
-export class Gateways implements OnInit {
+export class GatewaysComponent implements OnInit {
 
    gateways:Gateway[] = [];
    activeGateway:Gateway;

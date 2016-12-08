@@ -10,8 +10,8 @@ const INLINE_EDIT_CONTROL_VALUE_ACCESSOR = {
 @Component({
     selector: 'inline-edit',
     providers: [INLINE_EDIT_CONTROL_VALUE_ACCESSOR],
-    styleUrls: ['app/components/templates/css/inline-edit.component.css'],
-    templateUrl: 'app/components/templates/inline-edit.component.html'
+    styleUrls: ['app/configuration/components/templates/css/inline-edit.component.css'],
+    templateUrl: 'app/configuration/components/templates/inline-edit.component.html'
 })
 export class InlineEditComponent implements ControlValueAccessor{
 

@@ -23,6 +23,7 @@
         <script src="js/systemjs.config.js"></script>
 
         <script>
+          document.write('<base href="' + document.location + '" />');
           System.import('app').catch(function(err){ console.error(err); });
         </script>
     </head>
@@ -40,47 +41,7 @@
                     </div>
                     <div class="inner cover">
                         <div>
-
-                            <!-- Nav tabs -->
-                            <ul class="nav nav-tabs" role="tablist">
-                                <li role="presentation"><a href="#charts" aria-controls="charts" role="tab" data-toggle="tab">Charts</a></li>
-                                <li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab">Analysis</a></li>
-                                <li role="presentation"><a href="#watchers" aria-controls="watchers" role="tab" data-toggle="tab">Watchers</a></li>
-                                <li role="presentation" class="active"><a href="#configuration" aria-controls="configuration" role="tab" data-toggle="tab">Configuration</a></li>
-                            </ul>
-
-                            <!-- Tab panes -->
-                            <div class="tab-content">
-                                <div role="tabpanel" class="tab-pane" id="charts">...</div>
-                                <div role="tabpanel" class="tab-pane" id="analysis">...</div>
-                                <div role="tabpanel" class="tab-pane" id="watchers">...</div>
-                                <div role="tabpanel" class="tab-pane active" id="configuration">
-                                    <div class="col-xs-1 leftTabContainer"> <!-- required for floating -->
-                                        <!-- Nav tabs -->
-                                        <ul class="nav nav-tabs tabs-left">
-                                            <li class="active"><a href="#gateways" data-toggle="tab">Gateways</a></li>
-                                            <li><a href="#resources" data-toggle="tab">Resources</a></li>
-                                            <li><a href="#rgroups" data-toggle="tab">Resource Groups</a></li>
-                                            <li><a href="#info" data-toggle="tab">SNAMP Info</a></li>
-                                        </ul>
-                                    </div>
-
-                                    <div class="col-xs-11">
-                                        <!-- Tab panes -->
-                                        <div class="tab-content">
-                                            <div class="tab-pane active" id="gateways">
-                                                <gateways>Loading gateways ...</gateways>
-                                            </div>
-                                            <div class="tab-pane" id="resources">
-
-                                            </div>
-                                            <div class="tab-pane" id="rgroups">Messages Tab.</div>
-                                            <div class="tab-pane" id="info">Settings Tab.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
+                            <snamp-app></snamp-app>
                         </div>
                     </div>
                 </div>
