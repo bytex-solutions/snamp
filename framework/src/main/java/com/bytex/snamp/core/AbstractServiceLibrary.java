@@ -250,12 +250,25 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     ProvidedServiceState.PUBLISHED;
         }
 
-        private synchronized void activateAndRegisterService(final BundleContext context) throws Exception{
+        @MethodStub
+        protected void activated(final T service) throws Exception{
+
+        }
+
+        private synchronized void activateAndRegisterService(final BundleContext context) throws Exception {
             final Hashtable<String, Object> identity = new Hashtable<>(3);
-            this.registration = new ServiceRegistrationHolder<>(serviceContracts,
+            registration = new ServiceRegistrationHolder<>(serviceContracts,
                     activateService(identity, ownDependencies.toArray(new RequiredService<?>[ownDependencies.size()])),
                     identity,
                     context);
+            try {
+                activated(registration.get());
+            } catch (final Exception e) {
+                //cancel registration
+                registration.unregister();
+                registration = null;
+                throw e;
+            }
         }
 
         private void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
