@@ -283,8 +283,8 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
         return serviceRef.compareTo(reference);
     }
 
-    public final boolean equals(final ServiceHolder<?> refHolder){
-        return refHolder != null && Objects.equals(serviceRef, refHolder.serviceRef);
+    private boolean equals(final ServiceHolder<?> refHolder) {
+        return getClass().equals(refHolder.getClass()) && serviceRef.equals(refHolder.serviceRef);
     }
 
     @Override

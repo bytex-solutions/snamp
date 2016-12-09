@@ -141,11 +141,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             properties = emptyActivationPropertyReader;
         }
 
-        private T getService(){
-            final ServiceRegistrationHolder<S, T> reg = registration;
-            return reg != null ? reg.get() : null;
-        }
-
         /**
          * Initializes a new holder for the provided service.
          * @param contract Contract of the provided service. Cannot be {@literal null}.
@@ -284,6 +279,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             if (dependencyTracker != null) {
                 context.removeServiceListener(dependencyTracker);
                 dependencyTracker.clear();     //help GC
+                dependencyTracker = null;
             }
             //cancels registration
             final T serviceInstance;
@@ -307,7 +303,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                 //releases all dependencies
                 ownDependencies.forEach(dependency -> dependency.unbind(context));
                 properties = emptyActivationPropertyReader;
-                dependencyTracker = null;
                 activationContext = null;
             }
         }
