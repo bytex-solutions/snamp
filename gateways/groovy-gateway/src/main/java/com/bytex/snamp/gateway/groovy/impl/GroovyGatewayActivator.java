@@ -16,7 +16,7 @@ public final class GroovyGatewayActivator extends GatewayActivator<GroovyGateway
     }
 
     private static GroovyGateway newGateway(final String instanceName,
-                              final RequiredService<?>... dependencies){
+                              final DependencyManager dependencies){
         return new GroovyGateway(instanceName);
     }
 }

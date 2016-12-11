@@ -53,7 +53,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     @FunctionalInterface
     protected interface GatewayFactory<G extends Gateway>{
         G createInstance(final String gatewayInstance,
-                         final RequiredService<?>... dependencies) throws Exception;
+                         final DependencyManager dependencies) throws Exception;
     }
 
     private static final class GatewayInstances<G extends AbstractGateway> extends ServiceSubRegistryManager<Gateway, G>{
@@ -78,8 +78,8 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         }
 
         @SuppressWarnings("unchecked")
-        private static CMGatewayParser getParser(final RequiredService<?>... dependencies){
-            final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
+        private CMGatewayParser getParser(){
+            final ConfigurationManager configManager = getDependencies().getDependency(ConfigurationManager.class);
             assert configManager != null;
             final CMGatewayParser parser = configManager.queryObject(CMGatewayParser.class);
             assert parser != null;
@@ -88,7 +88,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
         @Override
         protected String getFactoryPID(final RequiredService<?>[] dependencies) {
-            return getParser(dependencies).getFactoryPersistentID(gatewayType);
+            return getParser().getFactoryPersistentID(gatewayType);
         }
 
         private G update(final G gatewayInstance,
@@ -99,12 +99,11 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
         @Override
         protected G update(final G gatewayInstance,
-                           final Dictionary<String, ?> configuration,
-                           final RequiredService<?>... dependencies) throws Exception {
-            final CMGatewayParser parser = getParser(dependencies);
+                           final Dictionary<String, ?> configuration) throws Exception {
+            final CMGatewayParser parser = getParser();
             final String instanceName = parser.getInstanceName(configuration);
             @SuppressWarnings("unchecked")
-            final GatewayConfiguration newConfig = getNewConfiguration(instanceName, getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies));
+            final GatewayConfiguration newConfig = getNewConfiguration(instanceName, getDependencies().getDependency(ConfigurationManager.class));
             if (newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be updated. Configuration not found.", instanceName));
             return update(gatewayInstance, newConfig);
@@ -116,10 +115,9 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
         private G createService(final Map<String, Object> identity,
                                 final String instanceName,
-                                final GatewayConfiguration configuration,
-                                final RequiredService<?>... dependencies) throws Exception{
+                                final GatewayConfiguration configuration) throws Exception{
             createIdentity(gatewayType, instanceName, identity);
-            final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, dependencies);
+            final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, getDependencies());
             if (gatewayInstance != null)
                 if (gatewayInstance.tryStart(configuration.getParameters())) {
                     return gatewayInstance;
@@ -132,15 +130,14 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
         @Override
         protected G createService(final Map<String, Object> identity,
-                                  final Dictionary<String, ?> configuration,
-                                  final RequiredService<?>... dependencies) throws Exception {
-            final CMGatewayParser parser = getParser(dependencies);
+                                  final Dictionary<String, ?> configuration) throws Exception {
+            final CMGatewayParser parser = getParser();
             final String instanceName = parser.getInstanceName(configuration);
             @SuppressWarnings("unchecked")
-            final GatewayConfiguration newConfig = getNewConfiguration(instanceName, getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies));
+            final GatewayConfiguration newConfig = getNewConfiguration(instanceName, getDependencies().getDependency(ConfigurationManager.class));
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be created. Configuration not found.", instanceName));
-            return createService(identity, instanceName, newConfig, dependencies);
+            return createService(identity, instanceName, newConfig);
         }
 
         @Override
@@ -181,8 +178,9 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * @param <T> Type of support service.
      * @since 2.0
      */
+    @FunctionalInterface
     protected interface SupportServiceActivator<T extends SupportService>{
-        T activateService(final RequiredService<?>... dependencies) throws Exception;
+        T activateService(final DependencyManager dependencies) throws Exception;
     }
 
     /**
@@ -206,9 +204,9 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         }
 
         @Override
-        protected T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+        protected T activateService(final Map<String, Object> identity) throws Exception {
             identity.put(GATEWAY_TYPE_IDENTITY_PROPERTY, getGatewayType());
-            return activator.activateService(dependencies);
+            return activator.activateService(getDependencies());
         }
 
         /**
@@ -297,11 +295,10 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * </p>
      *
      * @param activationProperties A collection of library activation properties to fill.
-     * @param dependencies         A collection of resolved library-level dependencies.
      * @throws Exception Unable to activate this library.
      */
     @Override
-    protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
+    protected final void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
         activationProperties.publish(GATEWAY_TYPE_HOLDER, getGatewayType());
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         getLogger().info(String.format("Activating gateway of type %s", getGatewayType()));
@@ -328,7 +325,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     }
 
     /**
-     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.bytex.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])}  method.
+     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.bytex.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher)}  method.
      *
      * @param e                    An exception to handle.
      * @param activationProperties A collection of activation properties to read.

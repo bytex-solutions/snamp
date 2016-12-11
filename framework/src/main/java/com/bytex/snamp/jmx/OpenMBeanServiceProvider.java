@@ -50,12 +50,11 @@ public abstract class OpenMBeanServiceProvider<T extends OpenMBean & FrameworkMB
      * Creates a new instance of the service.
      *
      * @param identity     A dictionary of properties that uniquely identifies service instance.
-     * @param dependencies A collection of dependencies.
      * @return A new instance of the service.
      * @throws javax.management.JMException Unable to instantiate MBean.
      */
     @Override
-    protected T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws JMException {
+    protected T activateService(final Map<String, Object> identity) throws JMException {
         final ObjectName objectName = new ObjectName(this.objectName);
         createIdentity(identity, objectName);
         final T mbean = createMBean();

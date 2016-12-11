@@ -8,9 +8,11 @@ import com.google.common.reflect.TypeToken;
 import org.osgi.framework.*;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
@@ -331,7 +333,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             }
         }
 
-
         final ServiceReference<?>[] getCandidates(final BundleContext context) {
             ServiceReference<?>[] refs;
             try {
@@ -378,7 +379,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 2.0
      */
-    public static abstract class RequiredServiceAccessor<S> extends RequiredService<S>{
+    protected static abstract class RequiredServiceAccessor<S> extends RequiredService<S>{
         private S serviceInstance;
 
         /**
@@ -433,7 +434,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 2.0
      */
-    public static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
+    protected static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
         /**
          * Initializes a new simple dependency descriptor.
          * @param serviceContract The type of the service contract.
@@ -486,35 +487,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * Bundle is deactivating.
          */
         DEACTIVATING
-    }
-
-    /**
-     * Finds dependency by its type and required service contract.
-     * @param descriptor The dependency descriptor.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @param <D> Type of the dependency.
-     * @return Search result; or {@literal null} if dependency not found.
-     */
-    public static <S, D extends RequiredService<S>> D findDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
-        return findDependency(descriptor, serviceContract, Arrays.asList(dependencies));
-    }
-
-    /**
-     * Finds dependency by its type and required service contract.
-     * @param descriptor The dependency descriptor.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @param <D> Type of the dependency.
-     * @return Search result; or {@literal null} if dependency not found.
-     */
-    public static <S, D extends RequiredService<S>> D findDependency(final Class<D> descriptor, final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
-        for(final RequiredService<?> dependency: dependencies)
-            if(descriptor.isInstance(dependency) && Objects.equals(dependency.dependencyContract, serviceContract))
-                return descriptor.cast(dependency);
-        return null;
     }
 
     /**
@@ -612,57 +584,177 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     }
 
     /**
-     * Finds dependency by its required service contract.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @return Search result; or {@literal null} if dependency not found.
+     * Represents collection of dependencies.
+     * @author Roman Sakno
+     * @since 2.0
+     * @version 2.0
      */
-    @SuppressWarnings("unchecked")
-    public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final RequiredService<?>... dependencies){
-        return findDependency(serviceContract, Arrays.asList(dependencies));
+    protected abstract static class DependencyManager implements Collection<RequiredService<?>>{
+
+        /**
+         * Finds dependency by its required service contract.
+         * @param serviceContract The service contract required by dependency.
+         * @param <S> Type of the service contract.
+         * @return Search result; or {@literal null} if dependency not found.
+         */
+        @SuppressWarnings("unchecked")
+        public final <S> RequiredService<S> getDependency(final Class<S> serviceContract,
+                                                    final Predicate<? super RequiredService<S>> filter){
+            for(final RequiredService<?> dependency: this)
+                if(Objects.equals(dependency.dependencyContract, serviceContract) && filter.test((RequiredService<S>) dependency))
+                    return (RequiredService<S>) dependency;
+            return null;
+        }
+
+        /**
+         * Obtains a service from the collection of dependencies.
+         * @param serviceContract The service contract required by dependency.
+         * @param <S> Type of the service contract.
+         * @return The resolved service; or {@literal null} if it is not available.
+         */
+        public final <S> S getDependency(final Class<S> serviceContract){
+            final RequiredService<S> found = getDependency(serviceContract, rs -> rs instanceof RequiredServiceAccessor<?>);
+            return found instanceof RequiredServiceAccessor<?> ? serviceContract.cast(((RequiredServiceAccessor<?>) found).serviceInstance) : null;
+        }
+
+        /**
+         * Gets number of dependencies.
+         * @return Number of dependencies.
+         */
+        @Override
+        public abstract int size();
+
+        @Override
+        public abstract void forEach(final Consumer<? super RequiredService<?>> action);
+
+        @Override
+        public abstract Spliterator<RequiredService<?>> spliterator();
+
+        final void unbind(final BundleContext context){
+            forEach(dependency -> dependency.unbind(context));
+        }
+
+        @Override
+        public boolean add(final RequiredService<?> requiredService) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean remove(final Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean addAll(final Collection<? extends RequiredService<?>> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removeAll(final Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean retainAll(final Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removeIf(final Predicate<? super RequiredService<?>> filter) {
+            throw new UnsupportedOperationException();
+        }
     }
 
-    /**
-     * Finds dependency by its required service contract.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @return Search result; or {@literal null} if dependency not found.
-     */
-    @SuppressWarnings("unchecked")
-    public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
-        return findDependency(RequiredService.class, serviceContract, dependencies);
+    static class ForwardingDependencyManager<L extends Collection<RequiredService<?>>> extends DependencyManager{
+        final L delegate;
+
+        ForwardingDependencyManager(final L services){
+            this.delegate = Objects.requireNonNull(services);
+        }
+
+        @Override
+        public final int size() {
+            return delegate.size();
+        }
+
+        @Override
+        public final boolean isEmpty() {
+            return delegate.isEmpty();
+        }
+
+        @Override
+        public final boolean contains(final Object o) {
+            return delegate.contains(o);
+        }
+
+        @Override
+        public final Object[] toArray() {
+            return delegate.toArray();
+        }
+
+        @Override
+        public final <T> T[] toArray(final T[] a) {
+            return delegate.toArray(a);
+        }
+
+        @Override
+        public final boolean containsAll(final Collection<?> c) {
+            return delegate.containsAll(c);
+        }
+
+        @Override
+        public final void forEach(final Consumer<? super RequiredService<?>> action) {
+            delegate.forEach(action);
+        }
+
+        @Override
+        public final Spliterator<RequiredService<?>> spliterator() {
+            return delegate.spliterator();
+        }
+
+        @Override
+        public final Iterator<RequiredService<?>> iterator() {
+            return delegate.iterator();
+        }
+
+        @Override
+        public final Stream<RequiredService<?>> stream() {
+            return delegate.stream();
+        }
+
+        @Override
+        public final Stream<RequiredService<?>> parallelStream() {
+            return delegate.parallelStream();
+        }
     }
 
-    /**
-     * Obtains a service from the collection of dependencies.
-     * @param descriptor The dependency type that provides direct access to the requested service.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @param <D> Type of the dependency.
-     * @return The resolved service; or {@literal null} if it is not available.
-     */
-    public static <S, D extends RequiredServiceAccessor<S>> S getDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
-        return getDependency(descriptor, serviceContract, Arrays.asList(dependencies));
+    private static final class BundleLevelDependencyManager extends ForwardingDependencyManager<List<RequiredService<?>>>{
+        private BundleLevelDependencyManager(){
+            super(new LinkedList<>());
+        }
+
+        @Override
+        public boolean add(final RequiredService<?> requiredService) {
+            return delegate.add(requiredService);
+        }
+
+        @Override
+        public boolean addAll(final Collection<? extends RequiredService<?>> c) {
+            return delegate.addAll(c);
+        }
+
+        @Override
+        public void clear() {
+            delegate.clear();
+        }
     }
 
-    /**
-     * Obtains a service from the collection of dependencies.
-     * @param descriptor The dependency type that provides direct access to the requested service.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @param <D> Type of the dependency.
-     * @return The resolved service; or {@literal null} if it is not available.
-     */
-    public static <S, D extends RequiredServiceAccessor<S>> S getDependency(final Class<D> descriptor, final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
-        final D found = findDependency(descriptor, serviceContract, dependencies);
-        return found != null ? found.getService() : null;
-    }
-
-    private final List<RequiredService<?>> bundleLevelDependencies;
+    private final BundleLevelDependencyManager bundleLevelDependencies;
     private final ActivationProperties properties;
     private ActivationState state;
 
@@ -670,9 +762,17 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * Initializes a new bundle activator in {@link com.bytex.snamp.core.AbstractBundleActivator.ActivationState#NOT_ACTIVATED} state.
      */
     protected AbstractBundleActivator(){
-        bundleLevelDependencies = new ArrayList<>(5);
+        bundleLevelDependencies = new BundleLevelDependencyManager();
         state = ActivationState.NOT_ACTIVATED;
         properties = new ActivationProperties();
+    }
+
+    /**
+     * Gets dependencies declared by this bundle.
+     * @return A collection of dependencies declared by this bundle.
+     */
+    protected final DependencyManager getDependencies(){
+        return bundleLevelDependencies;
     }
 
     /**
@@ -709,9 +809,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
                 if(resolvedDependencies == bundleLevelDependencies.size())
                     try {
                         state = ActivationState.ACTIVATING;
-                        activate(context,
-                                properties,
-                                bundleLevelDependencies.toArray(new RequiredService<?>[resolvedDependencies]));
+                        activate(context, properties);
                         state = ActivationState.ACTIVATED;
                     }
                     catch (final Exception e) {
@@ -740,7 +838,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @throws Exception An exception occurred during bundle starting.
      */
     @Override
-    public final void start(final BundleContext context) throws Exception {
+    public void start(final BundleContext context) throws Exception {
         try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(getLogger(), context)) {
             start(context, bundleLevelDependencies);
             final DependencyListeningFilterBuilder filter = new DependencyListeningFilterBuilder();
@@ -755,12 +853,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
     }
 
-    private static void unregister(final BundleContext context, final Collection<RequiredService<?>> dependencies){
-        dependencies.forEach(dependency -> dependency.unbind(context));
-    }
-
     private void deactivateInternal(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        unregister(context, bundleLevelDependencies);
+        bundleLevelDependencies.unbind(context);
         deactivate(context, activationProperties);
     }
 
@@ -810,13 +904,12 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @param context The execution context of the bundle being activated.
      * @param activationProperties A collection of bundle's activation properties to fill.
-     * @param dependencies A collection of resolved dependencies.
      * @throws Exception An exception occurred during activation.
      */
-    protected abstract void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, RequiredService<?>... dependencies) throws Exception;
+    protected abstract void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties) throws Exception;
 
     /**
-     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.bytex.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])}  method.
+     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.bytex.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher)}  method.
      * @param e An exception to handle.
      * @param activationProperties A collection of activation properties to read.
      */
@@ -874,6 +967,14 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      **/
     protected final String getFrameworkProperty(final String propertyName){
         return getBundleContextOfObject(this).getProperty(propertyName);
+    }
+
+    protected static RequiredServiceAccessor<?>[] simpleDependencies(final Class<?>... deps){
+        if(deps.length == 0) return ArrayUtils.emptyArray(RequiredServiceAccessor[].class);
+        final RequiredServiceAccessor<?>[] result = new RequiredServiceAccessor<?>[deps.length];
+        for(int i = 0; i < deps.length; i++)
+            result[i] = new SimpleDependency<>(deps[i]);
+        return result;
     }
 
     /**

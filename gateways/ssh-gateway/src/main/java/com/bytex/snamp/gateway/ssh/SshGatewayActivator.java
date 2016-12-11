@@ -17,7 +17,7 @@ public final class SshGatewayActivator extends GatewayActivator<SshGateway> {
         super(SshGatewayActivator::newGateway, configurationDescriptor(SshGatewayDescriptionProvider::getInstance));
     }
 
-    private static SshGateway newGateway(final String instanceName, final RequiredService<?>... dependencies) {
+    private static SshGateway newGateway(final String instanceName, final DependencyManager dependencies) {
         return new SshGateway(instanceName);
     }
 }

@@ -28,10 +28,10 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     @SpecialUse
     public SnmpResourceConnectorActivator() {
         super(SnmpResourceConnectorActivator::createConnector,
-                new RequiredService<?>[]{new SimpleDependency<>(ThreadPoolRepository.class)},
+                simpleDependencies(ThreadPoolRepository.class),
                 new SupportConnectorServiceManager<?, ?>[]{
                         configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance),
-                        discoveryService(SnmpResourceConnectorActivator::newDiscoveryService, new SimpleDependency<>(ConfigurationManager.class))
+                        discoveryService(SnmpResourceConnectorActivator::newDiscoveryService, simpleDependencies(ConfigurationManager.class))
                 });
     }
 
@@ -46,9 +46,8 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     private static SnmpResourceConnector createConnector(final String resourceName,
                                                  final String connectionString,
                                                  final Map<String, String> connectionOptions,
-                                                 final RequiredService<?>... dependencies) throws IOException {
-        @SuppressWarnings("unchecked")
-        final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
+                                                 final DependencyManager dependencies) throws IOException {
+        final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class);
         assert configManager != null;
 
         final SnmpResourceConnector result =
@@ -60,9 +59,9 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         return result;
     }
 
-    private static SnmpDiscoveryService newDiscoveryService(final RequiredService<?>... dependencies) throws IOException {
+    private static SnmpDiscoveryService newDiscoveryService(final DependencyManager dependencies) throws IOException {
         @SuppressWarnings("unchecked")
-        final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
+        final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class);
         assert configManager != null;
         return new SnmpDiscoveryService(configManager.transformConfiguration(SnmpResourceConnectorActivator::getDiscoveryTimeout));
     }

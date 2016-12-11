@@ -26,7 +26,7 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
     private static HttpAcceptor newResourceConnector(final String resourceName,
                                               final String connectionString,
                                               final Map<String, String> parameters,
-                                              final RequiredService<?>... dependencies) throws IOException{
+                                              final DependencyManager dependencies) throws IOException{
         parameters.put(COMPONENT_INSTANCE_PARAM, connectionString);
         return new HttpAcceptor(resourceName, parameters);
     }
@@ -40,14 +40,13 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
      * Activates this service library.
      *
      * @param activationProperties A collection of library activation properties to fill.
-     * @param dependencies         A collection of resolved library-level dependencies.
      * @throws Exception Unable to activate this library.
      */
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
-        super.activate(activationProperties, dependencies);
+    protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
+        super.activate(activationProperties);
         @SuppressWarnings("unchecked")
-        final HttpService publisher = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
+        final HttpService publisher = getDependencies().getDependency(HttpService.class);
         assert publisher != null;
         activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, publisher);
         //register servlet

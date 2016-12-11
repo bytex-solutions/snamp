@@ -21,7 +21,10 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
         super(ModbusResourceConnectorActivator::createConnector, configurationDescriptor(ModbusResourceConnectorConfigurationDescriptor::new));
     }
 
-    private static ModbusResourceConnector createConnector(final String resourceName, final String connectionString, final Map<String, String> connectionParameters, final RequiredService<?>... dependencies) throws URISyntaxException, IOException {
+    private static ModbusResourceConnector createConnector(final String resourceName,
+                                                           final String connectionString,
+                                                           final Map<String, String> connectionParameters,
+                                                           final DependencyManager dependencies) throws URISyntaxException, IOException {
         final ModbusResourceConnector connector = new ModbusResourceConnector(resourceName, new URI(connectionString));
         connector.connect(parseConnectionTimeout(connectionParameters), parseRetryCount(connectionParameters));
         return connector;

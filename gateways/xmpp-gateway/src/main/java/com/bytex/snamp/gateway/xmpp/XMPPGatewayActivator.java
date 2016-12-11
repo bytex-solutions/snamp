@@ -12,7 +12,7 @@ public final class XMPPGatewayActivator extends GatewayActivator<XMPPGateway> {
         super(XMPPGatewayActivator::newGateway, configurationDescriptor(XMPPGatewayConfigurationProvider::new));
     }
 
-    private static XMPPGateway newGateway(final String instanceName, final RequiredService<?>... dependencies) {
+    private static XMPPGateway newGateway(final String instanceName, final DependencyManager dependencies) {
         return new XMPPGateway(instanceName);
     }
 }

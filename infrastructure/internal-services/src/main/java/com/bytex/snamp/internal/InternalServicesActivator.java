@@ -1,6 +1,5 @@
 package com.bytex.snamp.internal;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.cluster.GridMember;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
@@ -35,27 +34,25 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final class ConfigurationServiceManager extends ProvidedService<ConfigurationManager, PersistentConfigurationManager>{
 
         private ConfigurationServiceManager() {
-            super(ConfigurationManager.class, new SimpleDependency<>(ConfigurationAdmin.class));
+            super(ConfigurationManager.class, simpleDependencies(ConfigurationAdmin.class));
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        protected PersistentConfigurationManager activateService(final Map<String, Object> identity, final RequiredService<?>... requiredServices) {
-            return new PersistentConfigurationManager(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, requiredServices));
+        protected PersistentConfigurationManager activateService(final Map<String, Object> identity) {
+            return new PersistentConfigurationManager(getDependencies().getDependency(ConfigurationAdmin.class));
         }
     }
 
     private static final class ClusterMemberProvider extends ProvidedService<ClusterMember, GridMember>{
         private ClusterMemberProvider(){
-            super(ClusterMember.class, new SimpleDependency<>(HazelcastInstance.class));
+            super(ClusterMember.class, simpleDependencies(HazelcastInstance.class));
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        protected GridMember activateService(final Map<String, Object> identity,
-                                             final RequiredService<?>... dependencies) {
-            final HazelcastInstance hazelcast =
-                    getDependency(RequiredServiceAccessor.class, HazelcastInstance.class, dependencies);
+        protected GridMember activateService(final Map<String, Object> identity) {
+            final HazelcastInstance hazelcast = getDependencies().getDependency(HazelcastInstance.class);
             return new GridMember(hazelcast);
         }
 
@@ -68,12 +65,12 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final class ThreadPoolRepositoryProvider extends ProvidedService<ThreadPoolRepository, ThreadPoolRepositoryImpl> {
 
         private ThreadPoolRepositoryProvider() {
-            super(ThreadPoolRepository.class, ArrayUtils.emptyArray(RequiredService[].class), ManagedService.class);
+            super(ThreadPoolRepository.class, simpleDependencies(), ManagedService.class);
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        protected ThreadPoolRepositoryImpl activateService(final Map<String, Object> identity, RequiredService<?>... dependencies) throws Exception {
+        protected ThreadPoolRepositoryImpl activateService(final Map<String, Object> identity) {
             identity.put(Constants.SERVICE_PID, ThreadPoolRepositoryImpl.PID);
             return new ThreadPoolRepositoryImpl();
         }
@@ -97,9 +94,9 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     }
 
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties, RequiredService<?>... dependencies) throws Exception {
+    protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
         @SuppressWarnings("unchecked")
-        final HttpService httpService = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
+        final HttpService httpService = getDependencies().getDependency(HttpService.class);
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
                 (publisher) ->

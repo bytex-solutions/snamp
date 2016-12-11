@@ -29,11 +29,11 @@ public final class JmxConnectorActivator extends ManagedResourceActivator<JmxCon
     private static JmxConnector createConnector(final String resourceName,
                                         final String connectionString,
                                         final Map<String, String> connectionOptions,
-                                        final RequiredService<?>... dependencies) throws MalformedURLException, MalformedObjectNameException {
+                                        final DependencyManager dependencies) throws MalformedURLException, MalformedObjectNameException {
         return new JmxConnector(resourceName, connectionString, connectionOptions);
     }
 
-    private static JmxDiscoveryService newDiscoveryService(final RequiredService<?>... dependencies){
+    private static JmxDiscoveryService newDiscoveryService(final DependencyManager dependencies){
         return new JmxDiscoveryService();
     }
 }

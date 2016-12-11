@@ -22,15 +22,14 @@ public final class SnmpGatewayActivator extends GatewayActivator<SnmpGateway> {
     @SpecialUse
     public SnmpGatewayActivator() {
         super(SnmpGatewayActivator::newGateway,
-                new RequiredService<?>[]{ new SimpleDependency<>(JNDIContextManager.class), new SimpleDependency<>(ThreadPoolRepository.class) },
+                simpleDependencies(JNDIContextManager.class, ThreadPoolRepository.class),
                 new SupportGatewayServiceManager<?, ?>[]{
                         configurationDescriptor(SnmpGatewayDescriptionProvider::getInstance)
                 });
     }
 
-    private static SnmpGateway newGateway(final String instanceName, final RequiredService<?>... dependencies) {
-        @SuppressWarnings("unchecked")
-        final JNDIContextManager contextManager = getDependency(RequiredServiceAccessor.class, JNDIContextManager.class, dependencies);
+    private static SnmpGateway newGateway(final String instanceName, final DependencyManager dependencies) {
+        final JNDIContextManager contextManager = dependencies.getDependency(JNDIContextManager.class);
         return new SnmpGateway(instanceName, contextManager);
     }
 }

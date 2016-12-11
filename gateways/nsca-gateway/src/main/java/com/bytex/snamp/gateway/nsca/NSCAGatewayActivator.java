@@ -17,7 +17,7 @@ public final class NSCAGatewayActivator extends GatewayActivator<NSCAGateway> {
     }
 
     private static NSCAGateway newGateway(final String instanceName,
-                                          final RequiredService<?>... dependencies) {
+                                          final DependencyManager dependencies) {
         return new NSCAGateway(instanceName);
     }
 }

@@ -27,13 +27,13 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
     private static final class WebConsoleServletProvider extends ProvidedService<Servlet, WebConsoleServlet>{
         private WebConsoleServletProvider(){
-            super(Servlet.class, new SimpleDependency<>(HttpService.class));
+            super(Servlet.class, simpleDependencies(HttpService.class));
         }
 
         @Override
-        protected WebConsoleServlet activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws InvalidSyntaxException, ServletException, NamespaceException {
-            @SuppressWarnings("unchecked")
-            final HttpService httpService = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
+        protected WebConsoleServlet activateService(final Map<String, Object> identity) throws InvalidSyntaxException, ServletException, NamespaceException {
+            final HttpService httpService = getDependencies().getDependency(HttpService.class);
+            assert httpService != null;
             final WebConsoleServlet registry = new WebConsoleServlet();
             httpService.registerServlet(WebConsoleServlet.CONTEXT, registry, new Hashtable<>(), null);
             return registry;
@@ -45,8 +45,10 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
-        protected void cleanupService(final WebConsoleServlet serviceInstance, final boolean stopBundle) throws Exception {
-
+        protected void cleanupService(final WebConsoleServlet serviceInstance, final boolean stopBundle) {
+            final HttpService httpService = getDependencies().getDependency(HttpService.class);
+            assert httpService != null;
+            httpService.unregister(WebConsoleServlet.CONTEXT);
         }
     }
 
@@ -68,10 +70,9 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
-        // final ConfigurationAdmin configAdmin = getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies);
-        @SuppressWarnings("unchecked")
-        final HttpService httpService = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
+    protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
+        final HttpService httpService = getDependencies().getDependency(HttpService.class);
+        //registering hosting servlet for static content with files for Web Console
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
                 (publisher) -> publisher.registerServlet(STATIC_SERVLET_CONTEXT, new DefaultServlet(),

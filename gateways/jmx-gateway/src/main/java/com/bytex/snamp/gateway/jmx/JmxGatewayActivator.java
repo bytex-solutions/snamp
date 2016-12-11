@@ -20,7 +20,7 @@ public final class JmxGatewayActivator extends GatewayActivator<JmxGateway> {
     }
 
     private static JmxGateway newGateway(final String instanceName,
-                                         final RequiredService<?>... dependencies) {
+                                         final DependencyManager dependencies) {
         return new JmxGateway(instanceName);
     }
 }

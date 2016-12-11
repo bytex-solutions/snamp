@@ -14,13 +14,13 @@ public final class NagiosGatewayActivator extends GatewayActivator<NagiosGateway
     @SpecialUse
     public NagiosGatewayActivator() {
         super(NagiosGatewayActivator::newGateway,
-                new RequiredService<?>[]{new SimpleDependency<>(HttpService.class)},
+                simpleDependencies(HttpService.class),
                 new SupportGatewayServiceManager<?, ?>[]{configurationDescriptor(NagiosGatewayConfigurationDescriptor::new)});
     }
 
     @SuppressWarnings("unchecked")
     private static NagiosGateway newGateway(final String instanceName,
-                                            final RequiredService<?>... dependencies) {
-        return new NagiosGateway(instanceName, getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies));
+                                            final DependencyManager dependencies) {
+        return new NagiosGateway(instanceName, dependencies.getDependency(HttpService.class));
     }
 }

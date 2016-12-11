@@ -3,6 +3,8 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -24,11 +26,10 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanFeatureInfo;
-import javax.management.MBeanOperationInfo;
+import javax.management.*;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.function.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,7 +80,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         TConnector createConnector(final String resourceName,
                                    final String connectionString,
                                    final Map<String, String> connectionParameters,
-                                   final RequiredService<?>... dependencies) throws Exception;
+                                   final DependencyManager dependencies) throws Exception;
 
         /**
          * Updates the resource connector with a new configuration.
@@ -95,7 +96,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                    final String resourceName,
                                    final String connectionString,
                                    final Map<String, String> connectionParameters,
-                                   final RequiredService<?>... dependencies) throws Exception{
+                                   final DependencyManager dependencies) throws Exception{
             //trying to update resource connector on-the-fly
             try {
                 connector.update(connectionString, connectionParameters);
@@ -109,6 +110,113 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                         dependencies);
             }
             return connector;
+        }
+    }
+
+    /**
+     * Represents proxy for {@link ManagedResourceConnector} used in composition of connectors.
+     * This class cannot be inherited.
+     * @author Roman Sakno
+     * @version 2.0
+     * @since 2.0
+     */
+    private static final class ManagedResourceConnectorProxy<TConnector extends ManagedResourceConnector> extends ThreadSafeObject implements ManagedResourceConnector {
+        @FunctionalInterface
+        private interface ManagedResourceConnectorUpdater<TConnector extends ManagedResourceConnector>{
+            TConnector update(final TConnector connector,
+                              final String connectionString,
+                              final Map<String, String> parameters) throws Exception;
+        }
+
+        private TConnector connector;
+        private final ManagedResourceConnectorUpdater<TConnector> updater;
+
+        ManagedResourceConnectorProxy(final ManagedResourceConnectorFactory<TConnector> factory,
+                                      final String resourceName,
+                                      final String connectionString,
+                                      final Map<String, String> parameters,
+                                      final DependencyManager dependencies) throws Exception {
+            super(SingleResourceGroup.class);
+            this.connector = factory.createConnector(resourceName, connectionString, parameters, dependencies);
+            this.updater = (connector, cstr, params) -> factory.updateConnector(connector, resourceName, cstr, params, dependencies);
+        }
+
+        @Override
+        public Logger getLogger() {
+            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.getLogger());
+        }
+
+        @Override
+        public <T> T queryObject(final Class<T> objectType) {
+            return readLock.apply(SingleResourceGroup.INSTANCE, this, objectType, (t, o) -> t.connector.queryObject(o));
+        }
+
+        @Override
+        public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
+            try(final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
+                connector = updater.update(connector, connectionString, connectionParameters);
+            }
+        }
+
+        @Override
+        public void addResourceEventListener(final ResourceEventListener listener) {
+            readLock.accept(SingleResourceGroup.INSTANCE, this, listener, (t, l) -> t.connector.addResourceEventListener(l));
+        }
+
+        @Override
+        public void removeResourceEventListener(final ResourceEventListener listener) {
+            readLock.accept(SingleResourceGroup.INSTANCE, this, listener, (t, l) -> t.connector.removeResourceEventListener(l));
+        }
+
+        @Override
+        public void close() throws Exception {
+            try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
+                connector.close();
+            } finally {
+                connector = null;
+            }
+        }
+
+        @Override
+        public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
+            try(final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
+                return connector.getAttribute(attribute);
+            } catch (final InterruptedException | TimeoutException e) {
+                throw new ReflectionException(e);
+            }
+        }
+
+        @Override
+        public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+            try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
+                connector.setAttribute(attribute);
+            } catch (final InterruptedException | TimeoutException e) {
+                throw new ReflectionException(e);
+            }
+        }
+
+        @Override
+        public AttributeList getAttributes(final String[] attributes) {
+            return readLock.apply(SingleResourceGroup.INSTANCE, this, attributes, (t, a) -> t.connector.getAttributes(a));
+        }
+
+        @Override
+        public AttributeList setAttributes(final AttributeList attributes) {
+            return readLock.apply(SingleResourceGroup.INSTANCE, this, attributes, (t, a) -> t.connector.setAttributes(a));
+        }
+
+        @Override
+        public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
+            try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
+                return connector.invoke(actionName, params, signature);
+            } catch (final InterruptedException | TimeoutException e) {
+                throw new ReflectionException(e);
+            }
+        }
+
+        @Override
+        public MBeanInfo getMBeanInfo() {
+            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.getMBeanInfo());
         }
     }
 
@@ -135,9 +243,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             this(ManagedResourceConnector.getResourceConnectorType(Utils.getBundleContextOfObject(controller).getBundle()), controller, dependencies);
         }
 
-        private static CMManagedResourceParser getParser(final RequiredService<?>... dependencies){
+        private CMManagedResourceParser getParser(){
             @SuppressWarnings("unchecked")
-            final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
+            final ConfigurationManager configManager = getDependencies().getDependency(ConfigurationManager.class);
             assert configManager != null;
             final CMManagedResourceParser parser = configManager.queryObject(CMManagedResourceParser.class);
             assert parser != null;
@@ -146,7 +254,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         @Override
         protected String getFactoryPID(final RequiredService<?>[] dependencies) {
-            return getParser(dependencies).getFactoryPersistentID(connectorType);
+            return getParser().getFactoryPersistentID(connectorType);
         }
 
         private static void setFeatureNameIfNecessary(final FeatureConfiguration feature,
@@ -223,8 +331,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private TConnector update(TConnector connector,
                                   final String resourceName,
-                                  final ManagedResourceConfiguration newConfig,
-                                  final RequiredService<?>... dependencies) throws Exception{
+                                  final ManagedResourceConfiguration newConfig) throws Exception{
             final Predicate<? super ManagedResourceConfiguration> oldConfig = loadedConfigurations.get(resourceName);
             //we should not update resource connector if connection parameters was not changed
             if(!oldConfig.test(newConfig)){
@@ -233,7 +340,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                         resourceName,
                         newConfig.getConnectionString(),
                         newConfig.getParameters(),
-                        dependencies);
+                        getDependencies());
             }
             //but we should always update resource features
             updateFeatures(connector, newConfig);
@@ -251,19 +358,18 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @Override
         protected TConnector update(final TConnector connector,
-                                    final Dictionary<String, ?> configuration,
-                                    final RequiredService<?>... dependencies) throws Exception {
-            final CMManagedResourceParser parser = getParser(dependencies);
+                                    final Dictionary<String, ?> configuration) throws Exception {
+            final CMManagedResourceParser parser = getParser();
             final String resourceName = parser.getResourceName(configuration);
             @SuppressWarnings("unchecked")
-            final ManagedResourceConfiguration newConfig = getNewConfiguration(resourceName, getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies));
+            final ManagedResourceConfiguration newConfig = getNewConfiguration(resourceName, getDependencies().getDependency(ConfigurationManager.class));
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Managed resource %s cannot be updated. Configuration not found.", resourceName));
-            return update(connector, resourceName, newConfig, dependencies);
+            return update(connector, resourceName, newConfig);
         }
 
         /**
-         * Log error details when {@link #updateService(Object, java.util.Dictionary, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
+         * Log error details when {@link #updateService(Object, java.util.Dictionary)} failed.
          * @param logger
          * @param servicePID    The persistent identifier associated with the service.
          * @param configuration The configuration of the service.
@@ -292,14 +398,13 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private TConnector createService(final Map<String, Object> identity,
                                          final String resourceName,
-                                         final ManagedResourceConfiguration configuration,
-                                         final RequiredService<?>... dependencies) throws Exception {
+                                         final ManagedResourceConfiguration configuration) throws Exception {
             loadedConfigurations.put(resourceName, configuration::equals);
             createIdentity(resourceName,
                     connectorType,
                     configuration.getConnectionString(),
                     identity);
-            final TConnector result = controller.createConnector(resourceName, configuration.getConnectionString(), configuration.getParameters(), dependencies);
+            final TConnector result = controller.createConnector(resourceName, configuration.getConnectionString(), configuration.getParameters(), getDependencies());
             updateFeatures(result, configuration);
             return result;
         }
@@ -309,22 +414,20 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          *
          * @param identity      The registration properties to fill.
          * @param configuration A new configuration of the service.
-         * @param dependencies  The dependencies required for the service.
          * @return A new instance of the service.
          * @throws Exception                                  Unable to instantiate a new service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
          */
         @Override
         protected TConnector createService(final Map<String, Object> identity,
-                                           final Dictionary<String, ?> configuration,
-                                           final RequiredService<?>... dependencies) throws Exception {
-            final CMManagedResourceParser parser = getParser(dependencies);
+                                           final Dictionary<String, ?> configuration) throws Exception {
+            final CMManagedResourceParser parser = getParser();
             final String resourceName = parser.getResourceName(configuration);
             @SuppressWarnings("unchecked")
-            final ManagedResourceConfiguration newConfig = getNewConfiguration(resourceName, getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies));
+            final ManagedResourceConfiguration newConfig = getNewConfiguration(resourceName, getDependencies().getDependency(ConfigurationManager.class));
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Managed resource %s cannot be created. Configuration not found.", resourceName));
-            return createService(identity, resourceName, newConfig, dependencies);
+            return createService(identity, resourceName, newConfig);
         }
 
         @Override
@@ -347,14 +450,14 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     private static class ManagedResourceConnectorFactoryServiceImpl<TConnector extends ManagedResourceConnector> extends AbstractFrameworkService implements ManagedResourceConnectorFactoryService {
         private final Logger logger;
         private final ManagedResourceConnectorFactory<TConnector> connectorFactory;
-        private final RequiredService<?>[] dependencies;
+        private final DependencyManager dependencies;
 
         private ManagedResourceConnectorFactoryServiceImpl(final ManagedResourceConnectorFactory<TConnector> factory,
                                                            final Logger logger,
-                                                           final RequiredService<?>[] dependencies) {
+                                                           final DependencyManager dependencies) {
             this.connectorFactory = Objects.requireNonNull(factory);
             this.logger = Objects.requireNonNull(logger);
-            this.dependencies = dependencies.clone();
+            this.dependencies = dependencies;
         }
 
         @Override
@@ -377,8 +480,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <T> Type of support service.
      * @since 2.0
      */
+    @FunctionalInterface
     protected interface SupportServiceActivator<T extends SupportService>{
-        T activateService(final RequiredService<?>... dependencies) throws Exception;
+        T activateService(final DependencyManager dependencies) throws Exception;
     }
 
     /**
@@ -399,12 +503,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             super(contract, dependencies);
         }
 
-        abstract T activateService(final RequiredService<?>... dependencies) throws Exception;
+        abstract T activateService() throws Exception;
 
         @Override
-        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+        protected final T activateService(final Map<String, Object> identity) throws Exception {
             identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, getConnectorName());
-            return activateService(dependencies);
+            return activateService();
         }
 
         final Logger getLogger(){
@@ -425,8 +529,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                                                                                            final RequiredService<?>... dependencies){
             return new SupportConnectorServiceManager<S, T>(contract, dependencies) {
                 @Override
-                T activateService(final RequiredService<?>... dependencies) throws Exception {
-                    return activator.activateService(dependencies);
+                T activateService() throws Exception {
+                    return activator.activateService(getDependencies());
                 }
             };
         }
@@ -462,8 +566,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                                                                                                                                           final RequiredService<?>... dependencies){
         return new SupportConnectorServiceManager<ManagedResourceConnectorFactoryService, ManagedResourceConnectorFactoryServiceImpl<TConnector>>(ManagedResourceConnectorFactoryService.class, dependencies) {
             @Override
-            ManagedResourceConnectorFactoryServiceImpl<TConnector> activateService(final RequiredService<?>... dependencies) {
-                return new ManagedResourceConnectorFactoryServiceImpl<>(factory, getLogger(), dependencies);
+            ManagedResourceConnectorFactoryServiceImpl<TConnector> activateService() {
+                return new ManagedResourceConnectorFactoryServiceImpl<>(factory, getLogger(), getDependencies());
             }
         };
     }
@@ -522,11 +626,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     /**
      * Activates this service library.
      * @param activationProperties A collection of library activation properties to fill.
-     * @param dependencies         A collection of resolved library-level dependencies.
      * @throws Exception Unable to activate this library.
      */
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
+    protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
         getLogger().info(String.format("Activating resource connector of type %s", getConnectorType()));
@@ -542,7 +645,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     /**
-     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.bytex.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])}  method.
+     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.bytex.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher)}  method.
      *
      * @param e                    An exception to handle.
      * @param activationProperties A collection of activation properties to read.

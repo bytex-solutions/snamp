@@ -115,6 +115,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         PUBLISHED
     }
 
+    private static final class ImmutableDependencyManager extends ForwardingDependencyManager<ImmutableList<RequiredService<?>>> {
+        private ImmutableDependencyManager(final RequiredService<?>... dependencies) {
+            super(ImmutableList.copyOf(dependencies));
+        }
+    }
+
     /**
      * Represents a holder for the provided service.
      * <p>
@@ -125,7 +131,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      */
     public static abstract class ProvidedService<S, T extends S> implements ServiceListener {
         private final Class<? super S>[] serviceContracts;
-        private final ImmutableList<RequiredService<?>> ownDependencies;
+        private final ImmutableDependencyManager ownDependencies;
 
         private volatile ServiceRegistrationHolder<S, T> registration;
         private volatile ActivationPropertyReader properties;
@@ -136,7 +142,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         private ProvidedService(final Supplier<Class<? super S>[]> contracts, final RequiredService<?>... dependencies){
             serviceContracts = contracts.get();
-            ownDependencies = ImmutableList.copyOf(dependencies);
+            ownDependencies = new ImmutableDependencyManager(dependencies);
             registration = null;
             properties = emptyActivationPropertyReader;
         }
@@ -154,6 +160,14 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         @SafeVarargs
         protected ProvidedService(final Class<S> mainContract, final RequiredService<?>[] dependencies, final Class<? super S>... subContracts){
             this(() -> ObjectArrays.concat(mainContract, subContracts), dependencies);
+        }
+
+        /**
+         * Gets dependencies of this service.
+         * @return A list of dependencies required by this service.
+         */
+        protected final DependencyManager getDependencies(){
+            return ownDependencies;
         }
 
         /**
@@ -258,7 +272,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         private synchronized void activateAndRegisterService(final BundleContext context) throws Exception {
             final Hashtable<String, Object> identity = new Hashtable<>(3);
             registration = new ServiceRegistrationHolder<>(serviceContracts,
-                    activateService(identity, ownDependencies.toArray(new RequiredService<?>[ownDependencies.size()])),
+                    activateService(identity),
                     identity,
                     context);
             try {
@@ -314,7 +328,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     cleanupService(serviceInstance, true);
             } finally {
                 //releases all dependencies
-                ownDependencies.forEach(dependency -> dependency.unbind(context));
+                ownDependencies.unbind(context);
                 properties = emptyActivationPropertyReader;
                 activationContext = null;
             }
@@ -338,10 +352,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         /**
          * Creates a new instance of the service.
          * @param identity A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
          * @return A new instance of the service.
          */
-        protected abstract T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception;
+        protected abstract T activateService(final Map<String, Object> identity) throws Exception;
     }
 
     private static abstract class ManagedServiceFactoryImpl<TService> extends HashMap<String, TService> implements ManagedServiceFactory{
@@ -397,14 +410,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          *     SNAMP infrastructure will call this method in synchronized context.
          * @param service The service to be updated.
          * @param configuration A new configuration of the service.
-         * @param dependencies A collection of dependencies required for the service.
          * @return An updated service.
          * @throws Exception Unable to create new service or update the existing service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         protected abstract TService updateService(final TService service,
-                                                  final Dictionary<String, ?> configuration,
-                                                  final RequiredService<?>... dependencies) throws Exception;
+                                                  final Dictionary<String, ?> configuration) throws Exception;
 
         /**
          * Automatically invokes by SNAMP when the new dynamic service should be created.
@@ -413,14 +424,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          *     SNAMP infrastructure will call this method in synchronized context.
          * @param servicePID The persistent identifier associated with a newly created service.
          * @param configuration A new configuration of the service.
-         * @param dependencies A collection of dependencies required for the newly created service.
          * @return A new instance of the service.
          * @throws Exception Unable to instantiate the service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         protected abstract TService activateService(final String servicePID,
-                                                    final Dictionary<String, ?> configuration,
-                                                    final RequiredService<?>... dependencies) throws Exception;
+                                                    final Dictionary<String, ?> configuration) throws Exception;
 
         /**
          * Automatically invokes by SNAMP when service is disposing.
@@ -433,7 +442,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected abstract void dispose(final TService service, final boolean bundleStop) throws Exception;
 
         /**
-         * Log error details when {@link #updateService(Object, java.util.Dictionary, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
+         * Log error details when {@link #updateService(Object, java.util.Dictionary)} failed.
          * @param logger Logger used to write information about error.
          * @param servicePID The persistent identifier associated with the service.
          * @param configuration The configuration of the service.
@@ -472,11 +481,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * Creates a new instance of the service.
          *
          * @param identity     A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
          * @return A new instance of the service.
          */
         @Override
-        protected final ManagedServiceFactoryImpl<TService> activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+        protected final ManagedServiceFactoryImpl<TService> activateService(final Map<String, Object> identity) throws Exception {
             final String factoryPID = getCachedFactoryPID();
             identity.put(Constants.SERVICE_PID, factoryPID);
             return new ManagedServiceFactoryImpl<TService>(){
@@ -493,8 +501,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     final LogicalOperation logger = createLogicalOperationForUpdate(pid);
                     try {
                         service = containsKey(pid) ?
-                                updateService(get(pid), properties, dependencies) :
-                                activateService(pid, properties, dependencies);
+                                updateService(get(pid), properties) :
+                                activateService(pid, properties);
                     } catch (final ConfigurationException e) {
                         throw e;
                     } catch (final Exception e) {
@@ -658,15 +666,13 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * Updates the service with a new configuration.
          * @param service The service to update.
          * @param configuration A new configuration of the service.
-         * @param dependencies A collection of dependencies required for the service.
          * @return The updated service.
          * @throws Exception Unable to update service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @ThreadSafe
         protected abstract T update(final T service,
-                                    final Dictionary<String, ?> configuration,
-                                    final RequiredService<?>... dependencies) throws Exception;
+                                    final Dictionary<String, ?> configuration) throws Exception;
 
         /**
          * Automatically invokes by SNAMP when the dynamic service should be updated with
@@ -674,7 +680,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          *
          * @param registration The service to be updated.
          * @param configuration        A new configuration of the service.
-         * @param dependencies A collection of dependencies required for the service.
          * @return An updated service.
          * @throws Exception                                  Unable to create new service or update the existing service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
@@ -682,10 +687,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         @Override
         @ThreadSafe
         protected final ServiceRegistrationHolder<S, T> updateService(ServiceRegistrationHolder<S, T> registration,
-                                                                      final Dictionary<String, ?> configuration,
-                                                                      final RequiredService<?>... dependencies) throws Exception {
+                                                                      final Dictionary<String, ?> configuration) throws Exception {
             final T oldService = registration.get();
-            final T newService = update(oldService, configuration, dependencies);
+            final T newService = update(oldService, configuration);
             if (newService == null) {
                 dispose(registration);
                 registration = null;
@@ -702,22 +706,19 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * Creates a new service.
          * @param identity The registration properties to fill.
          * @param configuration A new configuration of the service.
-         * @param dependencies The dependencies required for the service.
          * @return A new instance of the service.
          * @throws Exception Unable to instantiate a new service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
          */
         @ThreadSafe
         protected abstract T createService(final Map<String, Object> identity,
-                                           final Dictionary<String, ?> configuration,
-                                           final RequiredService<?>... dependencies) throws Exception;
+                                           final Dictionary<String, ?> configuration) throws Exception;
 
         /**
          * Automatically invokes by SNAMP when the new dynamic service should be created.
          *
          * @param servicePID    The persistent identifier associated with a newly created service.
          * @param configuration A new configuration of the service.
-         * @param dependencies  A collection of dependencies required for the newly created service.
          * @return A new instance of the service.
          * @throws Exception                                  Unable to instantiate the service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
@@ -725,11 +726,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         @Override
         @ThreadSafe
         protected final ServiceRegistrationHolder<S, T> activateService(final String servicePID,
-                                                                        final Dictionary<String, ?> configuration,
-                                                                        final RequiredService<?>... dependencies) throws Exception {
+                                                                        final Dictionary<String, ?> configuration) throws Exception {
             final Hashtable<String, Object> identity = new Hashtable<>(4);
             identity.put(Constants.SERVICE_PID, servicePID);
-            final T service = createService(identity, configuration, dependencies);
+            final T service = createService(identity, configuration);
             return service != null ? new ServiceRegistrationHolder<>(serviceContract, service, identity, super.getBundleContext()) : null;
         }
 
@@ -781,7 +781,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         void provide(final Collection<ProvidedService<?, ?>> services,
                      final ActivationPropertyReader activationProperties,
-                     final RequiredService<?>... bundleLevelDependencies);
+                     final DependencyManager bundleLevelDependencies);
     }
 
     private static final class ListOfProvidedServices extends ArrayList<ProvidedService<?, ?>> implements ProvidedServices{
@@ -794,7 +794,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         @Override
         public void provide(final Collection<ProvidedService<?, ?>> services,
                             final ActivationPropertyReader activationProperties,
-                            final RequiredService<?>... bundleLevelDependencies) {
+                            final DependencyManager bundleLevelDependencies) {
             services.addAll(this);
         }
     }
@@ -843,24 +843,21 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     /**
      * Activates this service library.
      * @param activationProperties A collection of library activation properties to fill.
-     * @param dependencies A collection of resolved library-level dependencies.
      * @throws Exception Unable to activate this library.
      */
-    protected abstract void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception;
+    protected abstract void activate(final ActivationPropertyPublisher activationProperties) throws Exception;
 
     /**
      * Registers all services in this library.
      * @param context The execution context of the library being activated.
      * @param activationProperties A collection of library activation properties to fill.
-     * @param dependencies A collection of resolved dependencies.
      * @throws Exception Bundle activation error.
      */
     @Override
     protected final synchronized void activate(final BundleContext context,
-                                  final ActivationPropertyPublisher activationProperties,
-                                  final RequiredService<?>... dependencies) throws Exception {
-        activate(activationProperties, dependencies);
-        serviceRegistry.provide(providedServices, getActivationProperties(), dependencies);
+                                  final ActivationPropertyPublisher activationProperties) throws Exception {
+        activate(activationProperties);
+        serviceRegistry.provide(providedServices, getActivationProperties(), getDependencies());
         for (final ProvidedService<?, ?> service : providedServices)
             service.register(context, getActivationProperties());
     }

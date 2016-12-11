@@ -24,7 +24,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
     private static RShellResourceConnector createConnector(final String resourceName,
                                                    final String connectionString,
                                                    final Map<String, String> connectionOptions,
-                                                   final RequiredService<?>... dependencies) throws Exception {
+                                                   final DependencyManager dependencies) throws Exception {
         return new RShellResourceConnector(resourceName,
                 connectionString,
                 connectionOptions);

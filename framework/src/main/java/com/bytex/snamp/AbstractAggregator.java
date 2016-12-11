@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import com.bytex.snamp.internal.InheritanceNavigator;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -117,10 +118,10 @@ public abstract class AbstractAggregator implements Aggregator {
     }
 
     private static final class ReflectionCacheLoader extends AggregationCacheLoader{
-        private final Class<? extends Aggregator> aggregatorType;
+        private final InheritanceNavigator<? extends AbstractAggregator> aggregatorType;
 
-        private ReflectionCacheLoader(final Class<? extends Aggregator> declaredType){
-            this.aggregatorType = declaredType;
+        private ReflectionCacheLoader(final Class<? extends AbstractAggregator> declaredType){
+            this.aggregatorType = InheritanceNavigator.of(declaredType, AbstractAggregator.class);
         }
 
         private static void setAccessibleIfNecessary(final AccessibleObject obj) {
@@ -161,12 +162,12 @@ public abstract class AbstractAggregator implements Aggregator {
 
         @Override
         public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException {
-            for (Class<?> inheritanceFrame = aggregatorType; !inheritanceFrame.equals(AbstractAggregator.class); inheritanceFrame = inheritanceFrame.getSuperclass()) {
+            for(final Class<?> inheritanceFrame: aggregatorType){
                 final AggregationSupplier result = load(inheritanceFrame, serviceType);
                 if (result != null) return result;
             }
             //detect whether the requested type is implemented by aggregator itself
-            if (serviceType.isAssignableFrom(aggregatorType))
+            if (serviceType.isAssignableFrom(aggregatorType.getStartingClass()))
                 return owner -> owner;
             throw new AggregationNotFoundException(serviceType);
         }
@@ -272,7 +273,7 @@ public abstract class AbstractAggregator implements Aggregator {
 
     private final LoadingCache<Class<?>, AggregationSupplier> providers;
 
-    private AbstractAggregator(final Function<Class<? extends Aggregator>, ? extends AggregationCacheLoader> cacheLoader){
+    private AbstractAggregator(final Function<Class<? extends AbstractAggregator>, ? extends AggregationCacheLoader> cacheLoader){
         providers = CacheBuilder.newBuilder().build(cacheLoader.apply(getClass()));
     }
 

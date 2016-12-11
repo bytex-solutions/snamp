@@ -57,7 +57,7 @@ public final class ZipkinConnectorActivator extends ManagedResourceActivator<Zip
     private static ZipkinConnector createConnector(final String resourceName,
                                                    final String connectionString,
                                                    final Map<String, String> connectionParameters,
-                                                   final RequiredService<?>... dependencies) throws URISyntaxException {
+                                                   final DependencyManager dependencies) throws URISyntaxException {
         return new ZipkinConnector(resourceName, connectionString, connectionParameters);
     }
 
@@ -70,14 +70,13 @@ public final class ZipkinConnectorActivator extends ManagedResourceActivator<Zip
      * Activates this service library.
      *
      * @param activationProperties A collection of library activation properties to fill.
-     * @param dependencies         A collection of resolved library-level dependencies.
      * @throws Exception Unable to activate this library.
      */
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
-        super.activate(activationProperties, dependencies);
+    protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
+        super.activate(activationProperties);
         @SuppressWarnings("unchecked")
-        final HttpService publisher = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
+        final HttpService publisher = getDependencies().getDependency(HttpService.class);
         assert publisher != null;
         activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, publisher);
         //register servlet

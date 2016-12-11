@@ -35,11 +35,11 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
     private static GroovyResourceConnector createConnector(final String resourceName,
                                                    final String connectionString,
                                                    final Map<String, String> connectionParameters,
-                                                   final RequiredService<?>... dependencies) throws IOException, ResourceException, ScriptException {
+                                                   final DependencyManager dependencies) throws IOException, ResourceException, ScriptException {
         return new GroovyResourceConnector(resourceName, connectionString, connectionParameters);
     }
 
-    private static AbstractDiscoveryService<ManagedResourceInfo> newDiscoveryService(final RequiredService<?>... dependencies){
+    private static AbstractDiscoveryService<ManagedResourceInfo> newDiscoveryService(final DependencyManager dependencies){
         return new AbstractDiscoveryService<ManagedResourceInfo>() {
             @Override
             protected ManagedResourceInfo createProvider(final String connectionString, final Map<String, String> connectionOptions) throws IOException, ResourceException, ScriptException {

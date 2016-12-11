@@ -16,7 +16,7 @@ public final class NRDPGatewayActivator extends GatewayActivator<NRDPGateway> {
     }
 
     private static NRDPGateway newGateway(final String instanceName,
-                                          final RequiredService<?>... dependencies){
+                                          final DependencyManager dependencies){
         return new NRDPGateway(instanceName);
     }
 }

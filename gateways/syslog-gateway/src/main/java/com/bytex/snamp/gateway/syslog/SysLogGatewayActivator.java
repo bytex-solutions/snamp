@@ -15,7 +15,7 @@ public final class SysLogGatewayActivator extends GatewayActivator<SysLogGateway
     }
 
     private static SysLogGateway newGateway(final String instanceName,
-                                            final RequiredService<?>... dependencies) {
+                                            final DependencyManager dependencies) {
         return new SysLogGateway(instanceName);
     }
 }

@@ -21,7 +21,7 @@ public final class CompositeResourceActivator extends ManagedResourceActivator<C
     private static CompositeResourceConnector newResourceConnector(final String resourceName,
                                                                    final String connectionString,
                                                                    final Map<String, String> parameters,
-                                                                   final RequiredService<?>... dependencies) throws Exception{
+                                                                   final DependencyManager dependencies) throws Exception{
         final CompositeResourceConfigurationDescriptor parser = CompositeResourceConfigurationDescriptor.getInstance();
         final CompositeResourceConnector result = new CompositeResourceConnector(resourceName,
                 parser.parseThreadPool(parameters),

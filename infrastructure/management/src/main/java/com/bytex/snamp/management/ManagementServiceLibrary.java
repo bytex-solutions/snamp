@@ -40,15 +40,8 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
             super(SnampManager.class);
         }
 
-        /**
-         * Creates a new instance of the service.
-         *
-         * @param identity     A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
-         * @return A new instance of the service.
-         */
         @Override
-        protected SnampManagerImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
+        protected SnampManagerImpl activateService(final Map<String, Object> identity) {
             return new SnampManagerImpl();
         }
     }
@@ -180,14 +173,13 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
      * Activates this service library.
      *
      * @param activationProperties A collection of library activation properties to fill.
-     * @param dependencies         A collection of resolved library-level dependencies.
      */
     @Override
     @MethodStub
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
+    protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
         activationProperties.publish(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
         @SuppressWarnings("unchecked")
-        final HttpService httpService = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
+        final HttpService httpService = getDependencies().getDependency(HttpService.class);
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
                 (publisher) -> publisher.registerServlet(ManagementServlet.CONTEXT, new ManagementServlet(getLogger()), new Hashtable<>(), null));
