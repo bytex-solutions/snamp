@@ -21,9 +21,10 @@
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
     <module>infrastructure/security</module>
-    <module>webconsole</module>
+    <module>infrastructure/persistence</module>
     <module>infrastructure/scripting</module>
     <module>infrastructure/groovy-xml-bridge</module>
+    <module>webconsole</module>
     <module>features/platform</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/webconsole-feature</module>
@@ -73,6 +74,7 @@
     <snamp.connector.md.version>2.0.0</snamp.connector.md.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
     <osgi.version>5.0.0</osgi.version>
+    <snamp.persistence.version>2.0.0</snamp.persistence.version>
     <hazelcast.version>3.4.2</hazelcast.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
