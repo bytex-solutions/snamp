@@ -1,6 +1,8 @@
 package com.bytex.snamp.security.web.impl;
 
+import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
+import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
@@ -20,9 +22,17 @@ public final class SecurityServlet extends ServletContainer {
         super(createAppConfig(logger));
     }
 
+    private static class InternalAuthFilter extends WebSecurityFilter {
+        @Override
+        protected boolean authenticationRequired(ContainerRequest request) {
+            return !request.getPath().equalsIgnoreCase(WebAuthenticator.PATH);
+        }
+    }
+
     private static Application createAppConfig(final Logger logger){
         final DefaultResourceConfig result = new DefaultResourceConfig();
         result.getSingletons().add(new WebAuthenticator(logger));
+        result.getContainerRequestFilters().add(new InternalAuthFilter());
         return result;
     }
 }

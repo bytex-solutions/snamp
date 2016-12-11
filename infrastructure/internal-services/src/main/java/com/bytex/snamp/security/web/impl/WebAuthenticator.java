@@ -76,6 +76,6 @@ public final class WebAuthenticator extends Authenticator {
     @Path("/username")
     @GET
     public String getCurrentUser(@Context final SecurityContext sc) {
-        return /*sc.getUserPrincipal().getName();*/ "karaf";
+        return sc.getUserPrincipal().getName();
     }
 }
