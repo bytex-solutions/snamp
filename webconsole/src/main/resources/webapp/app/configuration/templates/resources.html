@@ -13,7 +13,106 @@
         <div class="tab-pane active">
 
             <!-- main content here -->
-                <h5>Dummy resources</h5>
+            <div class="row mainContent">
+                <div class="col-md-2">
+                    <h4>Choose resource:</h4>
+                    <div class="list-group">
+                        <a *ngFor="let resource of resources"
+                           class="list-group-item pointerElement"
+                           [class.active]="resource.name == activeResource.name"
+                           (click)="setActiveResource(resource)">
+                            {{gateway.name}}</a>
+                        <newEntity
+                                [entities]="gateways"
+                                [type]="'gateway'">
+                        </newEntity>
+                    </div>
+                </div>
+                <div class="col-md-10" *ngIf="resources && resources.length > 0">
+                    <!-- right area -->
+                    <div class="row contentRow">
+                        <!-- if we have binging - add next with col-md-5 -->
+                        <div class="col-md-6 leftAlign">
+                            <!-- combobox with type -->
+                            <div class="row">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3" for="entityType">Resource type:</label>
+                                    <div class="col-sm-9">
+                                        <select disabled
+                                                id="entityType"
+                                                [(ngModel)]="activeResource.type"
+                                                (change)="changeType($event)"
+                                                class="form-control">
+                                            <option
+                                                    *ngFor="let resource of availableResources"
+                                                    [value]="resource.type">
+                                                {{resource.name}}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row paramRow">
+                                <h4>Parameters:</h4>
+                            </div>
+                            <div class="row">
+                                <parameters [entity]="activeResource"></parameters>
+                            </div>
+
+                        </div>
+                        <!-- binding here -->
+                        <div class="col-md-6 bindingCol leftAlign">
+                            <div class="row">
+                                <h4>Binding information:</h4>
+                            </div>
+                            <div class="panel-group group-accordeon" id="accordionBindings" role="tablist" aria-multiselectable="true">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="headingOne">
+                                        <h4 class="panel-title">
+                                            <a role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseAttributes" aria-expanded="true" aria-controls="collapseAttributes">
+                                                Attributes
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="collapseAttributes" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                                        <div class="panel-body">
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="headingTwo">
+                                        <h4 class="panel-title">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseEvents" aria-expanded="false" aria-controls="collapseEvents">
+                                                Events
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="collapseEvents" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                        <div class="panel-body">
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="headingThree">
+                                        <h4 class="panel-title">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseOperations" aria-expanded="false" aria-controls="collapseOperations">
+                                                Operations
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="collapseOperations" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                                        <div class="panel-body">
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- main content here -->
         </div>
     </div>

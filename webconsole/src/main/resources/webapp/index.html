@@ -23,7 +23,9 @@
         <script src="js/systemjs.config.js"></script>
 
         <script>
+          // required for angular2 navigation
           document.write('<base href="' + document.location + '" />');
+          // turn on the angular2 application
           System.import('app').catch(function(err){ console.error(err); });
         </script>
     </head>
