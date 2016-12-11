@@ -21,10 +21,10 @@
                            class="list-group-item pointerElement"
                            [class.active]="resource.name == activeResource.name"
                            (click)="setActiveResource(resource)">
-                            {{gateway.name}}</a>
+                            {{resource.name}}</a>
                         <newEntity
-                                [entities]="gateways"
-                                [type]="'gateway'">
+                                [entities]="resources"
+                                [type]="'resource'">
                         </newEntity>
                     </div>
                 </div>

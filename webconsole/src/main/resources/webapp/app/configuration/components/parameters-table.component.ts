@@ -63,7 +63,7 @@ export class ParametersTable implements OnInit {
     }
 
     getUrlForParameter(key:string):string {
-        return REST.GATEWAY_PARAMETERS(this.entity.name, key);
+        return REST.ENTITY_PARAMETERS(this.entity.getName(), this.entity.name, key);
     }
 
     saveParameter(parameter:KeyValue) {

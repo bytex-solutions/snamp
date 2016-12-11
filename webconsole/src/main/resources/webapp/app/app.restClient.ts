@@ -53,6 +53,8 @@ export class REST {
 
     public static GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";
 
+    public static RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
+
     public static AVAILABLE_GATEWAY_LIST = REST.ROOT_PATH + "/gateway/list";
 
     public static AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/resource/list";
@@ -65,10 +67,18 @@ export class REST {
         return REST.GATEWAY_CONFIG + "/" + name;
     }
 
+    public static RESOURCE_BY_NAME(name:string):string {
+        return REST.RESOURCE_CONFIG + "/" + name;
+    }
+
     public static ENTITY
 
     public static GATEWAY_TYPE(name:string):string {
         return REST.GATEWAY_BY_NAME(name) + "/type";
+    }
+
+    public static RESOURCE_TYPE(name:string):string {
+        return REST.RESOURCE_BY_NAME(name) + "/type";
     }
 
     public static ENTITY_PARAMETERS_DESCRIPTION(entityClass:string, entityType:string):string {
@@ -79,9 +89,7 @@ export class REST {
         return REST.GATEWAY_BY_NAME(gatewayName) + "/" + bindingEntityType + "/bindings";
     }
 
-    public static GATEWAY_PARAMETERS(entityName:string, key:string):string {
-        return REST.GATEWAY_CONFIG + "/" + entityName + "/parameters/" + key;
+    public static ENTITY_PARAMETERS(entityClass:string, entityName:string, key:string):string {
+        return REST.CFG_PATH + "/" + entityClass + "/" + entityName + "/parameters/" + key;
     }
-
-    public static
 }

@@ -8,6 +8,7 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
 import { Gateway } from '../model/model.gateway';
+import { Resource } from '../model/model.resource';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
@@ -88,14 +89,25 @@ export class AddEntity implements OnInit {
                 this.http,
                 this.selectedName,
                 this.selectedType.type,
-                Entity.stringifyParametersStatic(this.params)
+                KeyValue.stringifyParametersStatic(this.params)
             );
             this.http.put(REST.GATEWAY_BY_NAME(newGateway.name), newGateway.stringify())
                 .map((res:Response) => res.json())
                 .subscribe(res => {
                     this.entities.push(newGateway);
                 });
-        } // else for further entities type please
+        } else if(this.type == "resource") {
+             let newResource:TypedEntity = new Resource(
+                this.http,
+                this.selectedName,
+                Resource.stringifyTypeWithParams(this.selectedType.type, this.params)
+            );
+            this.http.put(REST.RESOURCE_BY_NAME(newResource.name), newResource.stringify())
+                .map((res:Response) => res.json())
+                .subscribe(res => {
+                    this.entities.push(newResource);
+                });
+        }
     }
 
     saveParameter(param:KeyValue) {

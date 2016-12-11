@@ -53,16 +53,8 @@ export abstract class Entity {
         return (results && results.length > 1) ? this.decapitalizeFirstLetter(results[1]) : "";
     }
 
-    public static stringifyParametersStatic(value:KeyValue[]): any {
-        let returnValue:{ [key:string]:string; } = {};
-            value.forEach(function(obj){
-                returnValue[obj.key] = obj.value;
-            });
-        return returnValue;
-    }
-
     public stringifyParameters():any {
-        return Entity.stringifyParametersStatic(this.parameters);
+        return KeyValue.stringifyParametersStatic(this.parameters);
     }
 }
 
@@ -85,6 +77,14 @@ export class KeyValue {
             }
         }
         return result;
+    }
+
+    public static stringifyParametersStatic(value:KeyValue[]): any {
+        let returnValue:{ [key:string]:string; } = {};
+            value.forEach(function(obj){
+                returnValue[obj.key] = obj.value;
+            });
+        return returnValue;
     }
 }
 
