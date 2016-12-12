@@ -38,7 +38,7 @@ export class ResourcesComponent implements OnInit {
             .subscribe(data => {
                 for (let key in data) {
                     this.resources.push(new Resource(this.http, key,
-                        Resource.removeGroupNameFromParametersIfExists(data[key]["parameters"]), data[key]))
+                        Resource.prepareParams(data[key]["parameters"]), data[key]))
                 }
                 this.activeResource = (this.resources.length > 0) ? this.resources[0] : this.activeResource;
                 this.oldTypeValue = this.activeResource.type;

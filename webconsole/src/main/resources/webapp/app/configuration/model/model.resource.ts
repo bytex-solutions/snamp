@@ -50,14 +50,15 @@ export class Resource extends TypedEntity {
         }
     }
 
-    public static stringifyTypeWithParams(type:string, params: KeyValue[]):any {
+    public static stringify(type:string, cstring:string, params: KeyValue[]):any {
         let returnValue:any = {};
         returnValue["type"] = type;
+        returnValue["connectionString"] = cstring;
         returnValue["parameters"] = KeyValue.stringifyParametersStatic(params);
         return returnValue;
     }
 
-    public static removeGroupNameFromParametersIfExists(params:any):string {
+    public static prepareParams(params:any):string {
         let groupName:string = "";
         if (params != undefined && params["group"] != undefined) {
             groupName = params["group"];
