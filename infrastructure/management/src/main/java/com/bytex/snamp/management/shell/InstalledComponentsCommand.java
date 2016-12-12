@@ -5,7 +5,6 @@ import com.bytex.snamp.core.SnampManager;
 import com.bytex.snamp.management.SnampManagerImpl;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
 
@@ -37,7 +36,7 @@ public final class InstalledComponentsCommand extends SnampShellCommand  {
     }
 
     @Override
-    protected CharSequence doExecute() throws IOException{
+    public CharSequence execute() throws IOException{
         final StringBuilder result = new StringBuilder(42);
         for(final SnampComponentDescriptor component: manager.getInstalledGateways())
             writeGateway(component, result);

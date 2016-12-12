@@ -2,9 +2,9 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.gateway.GatewayActivator;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.framework.BundleException;
 
 /**
@@ -16,14 +16,15 @@ import org.osgi.framework.BundleException;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "disable-gateway",
     description = "Disables bundle with gateway")
-public final class DisableGatewayCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class DisableGatewayCommand extends SnampShellCommand {
     @Argument(name = "gatewayType", index = 0, required = true, description = "Type of the gateway")
     @SpecialUse
     private String gatewayType = "";
 
     @Override
-    protected Void doExecute() throws BundleException {
-        GatewayActivator.disableGateway(bundleContext, gatewayType);
+    public Void execute() throws BundleException {
+        GatewayActivator.disableGateway(getBundleContext(), gatewayType);
         return null;
     }
 }

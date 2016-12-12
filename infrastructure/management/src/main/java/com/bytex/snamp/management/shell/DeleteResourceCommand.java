@@ -3,8 +3,9 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 /**
  * Deletes managed resource.
@@ -15,6 +16,7 @@ import org.apache.karaf.shell.commands.Command;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-resource",
     description = "Deletes managed resource")
+@Service
 public final class DeleteResourceCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     @SpecialUse
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to remove")

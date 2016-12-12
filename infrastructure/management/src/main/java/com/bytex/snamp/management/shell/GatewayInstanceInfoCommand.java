@@ -3,8 +3,9 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "gateway-instance",
     description = "Display configuration of gateway instance")
+@Service
 public final class GatewayInstanceInfoCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(index = 0, name = "instanceName", required = true, description = "Name of gateway instance to display")
     @SpecialUse

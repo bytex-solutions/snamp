@@ -3,9 +3,10 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.time.Duration;
 
@@ -17,6 +18,7 @@ import static com.bytex.snamp.configuration.ThreadPoolConfiguration.*;
 @Command(scope = SnampShellCommand.SCOPE,
         name = "thread-pool-add",
         description = "Register a new thread pool")
+@Service
 public final class AddThreadPoolCommand extends AbstractThreadPoolCommand {
     @Argument(index = 0, name = "name", required = true, description = "Name of the thread pool to register")
     @SpecialUse

@@ -3,8 +3,9 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 /**
  * Deletes configuration parameter of the gateway instance.
@@ -15,6 +16,7 @@ import org.apache.karaf.shell.commands.Command;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-gateway-param",
     description = "Delete configuration parameter of the gateway instance")
+@Service
 public final class DeleteGatewayParameterCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the gateway instance to modify")
     @SpecialUse

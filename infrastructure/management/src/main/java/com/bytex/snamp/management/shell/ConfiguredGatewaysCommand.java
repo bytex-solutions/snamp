@@ -2,7 +2,8 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Command;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;
 
@@ -15,6 +16,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
 @Command(scope = SnampShellCommand.SCOPE,
         name = "gateway-instances",
         description = "List of configured gateway instances")
+@Service
 public final class ConfiguredGatewaysCommand extends ConfigurationCommand<GatewayConfiguration> {
     public ConfiguredGatewaysCommand(){
         super(GatewayConfiguration.class);

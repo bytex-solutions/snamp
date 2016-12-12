@@ -5,9 +5,10 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 /**
  * Configures resource event.
@@ -18,6 +19,7 @@ import org.apache.karaf.shell.commands.Option;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "configure-event",
     description = "Configure resource event")
+@Service
 public final class ConfigEventCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     @SpecialUse
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to modify")

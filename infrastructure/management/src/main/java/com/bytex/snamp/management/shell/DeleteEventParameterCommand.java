@@ -4,8 +4,9 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 /**
  * Deletes configuration parameter from event.
@@ -16,6 +17,7 @@ import org.apache.karaf.shell.commands.Command;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-event-param",
     description = "Delete configuration parameter from event")
+@Service
 public final class DeleteEventParameterCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     @SpecialUse
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to modify")

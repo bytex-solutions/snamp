@@ -3,10 +3,10 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.management.javascript.SnampScriptAPI;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.framework.BundleContext;
 
 import javax.script.Bindings;
@@ -27,7 +27,8 @@ import java.io.StringReader;
 @Command(scope = SnampShellCommand.SCOPE,
 name = "script",
 description = "Run JavaScript from command line")
-public final class JavaScriptCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class JavaScriptCommand extends SnampShellCommand  {
     @Argument(index = 0, name = "script-or-file-path", description = "JavaScript code or file name with JavaScript", required = true)
     @SpecialUse
     private String scriptOrFilePath;
@@ -46,13 +47,13 @@ public final class JavaScriptCommand extends OsgiCommandSupport implements Snamp
     }
 
     @Override
-    protected Object doExecute() throws ScriptException, IOException {
-        final ScriptEngineManager engineManager = new OSGiScriptEngineManager(bundleContext);
+    public Object execute() throws ScriptException, IOException {
+        final ScriptEngineManager engineManager = new OSGiScriptEngineManager(getBundleContext());
         final ScriptEngine javaScriptEngine = engineManager.getEngineByName("JavaScript");
         if(javaScriptEngine == null)
             throw new ScriptException("JavaScript engine is not available");
         try(final Reader scriptReader = useFilePath ? new FileReader(scriptOrFilePath) : new StringReader(scriptOrFilePath)){
-            return doExecute(javaScriptEngine, scriptReader, bundleContext);
+            return doExecute(javaScriptEngine, scriptReader, getBundleContext());
         }
     }
 }

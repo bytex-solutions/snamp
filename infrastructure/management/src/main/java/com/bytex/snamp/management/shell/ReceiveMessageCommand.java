@@ -1,7 +1,11 @@
 package com.bytex.snamp.management.shell;
 
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.Communicator;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Reference;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.console.Session;
 
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
@@ -16,10 +20,14 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
 @Command(scope = SnampShellCommand.SCOPE,
         name = "receive-message",
         description = "Receive message posted by another cluster member")
+@Service
 public final class ReceiveMessageCommand extends MessageCommand {
+    @Reference
+    @SpecialUse
+    private Session session;
 
     @Override
-    protected CharSequence doExecute() throws InterruptedException, TimeoutException {
+    public CharSequence execute() throws InterruptedException, TimeoutException {
         final Communicator communicator = getCommunicator();
         session.getConsole().format("Waiting input message. Press Ctrl+C to abort");
         final Communicator.IncomingMessage message = communicator.receiveMessage(Communicator.ANY_MESSAGE, Function.identity(), null);

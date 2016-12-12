@@ -3,8 +3,9 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 /**
  * Deletes gateway instance.
@@ -15,6 +16,7 @@ import org.apache.karaf.shell.commands.Command;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-gateway",
     description = "Delete gateway instance from configuration")
+@Service
 public final class DeleteGatewayInstanceCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(index = 0, name = "instanceName", required = true, description = "The name of the gateway instance to remove")
     @SpecialUse

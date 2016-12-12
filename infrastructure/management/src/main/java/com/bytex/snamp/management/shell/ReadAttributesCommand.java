@@ -3,10 +3,12 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Reference;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.console.Session;
 
 import javax.management.DynamicMBean;
 import javax.management.JMException;
@@ -21,7 +23,8 @@ import java.io.PrintStream;
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "read-attributes")
-public final class ReadAttributesCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class ReadAttributesCommand extends SnampShellCommand  {
     @Argument(index = 0, name = "resource", required = true, description = "Name of the resource to read")
     @SpecialUse
     private String resourceName = "";
@@ -33,6 +36,10 @@ public final class ReadAttributesCommand extends OsgiCommandSupport implements S
     @Option(name = "-t", aliases = "--period", multiValued = false, required = false, description = "Period for reading attributes, in millis")
     @SpecialUse
     private int readPeriodMillis = 0;
+
+    @Reference
+    @SpecialUse
+    private Session session;
 
     private static void readAttributes(final DynamicMBean bean, final String[] attributes, final PrintStream output) throws JMException {
         for(final String name: attributes)
@@ -47,8 +54,8 @@ public final class ReadAttributesCommand extends OsgiCommandSupport implements S
     }
 
     @Override
-    protected Void doExecute() throws JMException, InterruptedException {
-        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(bundleContext, resourceName);
+    public Void execute() throws JMException, InterruptedException {
+        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), resourceName);
         try {
             String[] attributes = this.attributes;
             if(ArrayUtils.isNullOrEmpty(attributes))
@@ -65,7 +72,7 @@ public final class ReadAttributesCommand extends OsgiCommandSupport implements S
             else readAttributes(client, attributes, session.getConsole());
             return null;
         } finally {
-            client.release(bundleContext);
+            client.release(getBundleContext());
         }
     }
 }

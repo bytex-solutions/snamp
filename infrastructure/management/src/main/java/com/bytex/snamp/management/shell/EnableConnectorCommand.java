@@ -2,9 +2,9 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceActivator;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.framework.BundleException;
 
 /**
@@ -16,14 +16,15 @@ import org.osgi.framework.BundleException;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "enable-connector",
     description = "Enables bundle with resource connector")
-public final class EnableConnectorCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class EnableConnectorCommand extends SnampShellCommand {
     @Argument(name = "systemName", index = 0, required = true, description = "System name of resource connector")
     @SpecialUse
     private String connectorType = "";
 
     @Override
-    protected Void doExecute() throws BundleException {
-        ManagedResourceActivator.enableConnector(bundleContext, connectorType);
+    public Void execute() throws BundleException {
+        ManagedResourceActivator.enableConnector(getBundleContext(), connectorType);
         return null;
     }
 }

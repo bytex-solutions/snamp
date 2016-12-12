@@ -6,10 +6,11 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Reference;
+import org.apache.karaf.shell.api.console.Session;
 
 import javax.management.*;
 import java.io.PrintStream;
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "listen-events",
     description = "Listen and display events from the managed resources")
-public final class ListenEventsCommand extends OsgiCommandSupport implements SnampShellCommand {
+public final class ListenEventsCommand extends SnampShellCommand {
     private static final class AllowedCategories extends HashSet<String> implements NotificationFilter{
         private static final long serialVersionUID = -4310589461921201562L;
 
@@ -54,6 +55,10 @@ public final class ListenEventsCommand extends OsgiCommandSupport implements Sna
     @Option(name = "-t", aliases = "--period", multiValued = false, required = false, description = "Period of listening events, in millis")
     @SpecialUse
     private int listenPeriodMillis = 10;
+
+    @Reference
+    @SpecialUse
+    private Session session;
 
     private static String[] getNames(final MBeanNotificationInfo[] attributes) {
         final String[] result = new String[attributes.length];
@@ -92,8 +97,8 @@ public final class ListenEventsCommand extends OsgiCommandSupport implements Sna
     }
 
     @Override
-    protected Object doExecute() throws JMException, InterruptedException {
-        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(bundleContext, resourceName);
+    public Object execute() throws JMException, InterruptedException {
+        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), resourceName);
         try {
             String[] categories = this.categories;
             if(ArrayUtils.isNullOrEmpty(categories))
@@ -105,7 +110,7 @@ public final class ListenEventsCommand extends OsgiCommandSupport implements Sna
                     session.getConsole());
             return null;
         } finally {
-            client.release(bundleContext);
+            client.release(getBundleContext());
         }
     }
 }

@@ -5,9 +5,10 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 
 import java.time.temporal.ChronoUnit;
 
@@ -20,6 +21,7 @@ import java.time.temporal.ChronoUnit;
 @Command(scope = SnampShellCommand.SCOPE,
     description = "Configure attribute of the managed resource",
     name = "configure-attribute")
+@Service
 public final class ConfigAttributeCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     private static final long INFINITE_TIMEOUT = -1;
 

@@ -5,9 +5,10 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 
 import java.time.Duration;
 
@@ -20,6 +21,7 @@ import java.time.Duration;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "configure-operation",
     description = "Configure new or existing operation")
+@Service
 public final class ConfigOperationCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     private static final long INFINITE_TIMEOUT = -1;
 

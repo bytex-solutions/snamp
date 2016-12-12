@@ -2,7 +2,8 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Command;
 
 import java.util.Map;
 
@@ -17,6 +18,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "resources",
     description = "List of configured managed resources")
+@Service
 public final class ConfiguredResourcesCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     public ConfiguredResourcesCommand(){
         super(ManagedResourceConfiguration.class);
