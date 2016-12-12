@@ -100,6 +100,7 @@ export class AddEntity implements OnInit {
              let newResource:TypedEntity = new Resource(
                 this.http,
                 this.selectedName,
+                "",
                 Resource.stringifyTypeWithParams(this.selectedType.type, this.params)
             );
             this.http.put(REST.RESOURCE_BY_NAME(newResource.name), newResource.stringify())
