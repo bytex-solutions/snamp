@@ -28,7 +28,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         private LeaderElectionThread(final HazelcastInstance hazelcast){
             super("LeaderElection");
             setDaemon(true);
-            setPriority(MIN_PRIORITY);
+            setPriority(MIN_PRIORITY + 1);
             this.masterLock = hazelcast.getLock("SnampMasterLock");
         }
 

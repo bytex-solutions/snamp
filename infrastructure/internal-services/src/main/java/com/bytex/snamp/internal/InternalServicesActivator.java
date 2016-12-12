@@ -89,7 +89,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     }
 
     @Override
-    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
+    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
         bundleLevelDependencies.add(new SimpleDependency<>(HttpService.class));
     }
 
@@ -107,5 +107,15 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     @Override
     protected void deactivate(final ActivationPropertyReader activationProperties) {
         activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY).unregister(SecurityServlet.CONTEXT);
+    }
+
+    /**
+     * Releases all resources associated with this library.
+     *
+     * @throws Exception Abnormal library termination.
+     */
+    @Override
+    protected void shutdown() throws Exception {
+        super.shutdown();
     }
 }
