@@ -64,6 +64,18 @@
                                 </div>
                             </div>
                             <br/>
+                            <div class="row">
+                                <div class="checkbox checkbox-success">
+                                    <input id="smartModeCheckBox"
+                                           type="checkbox"
+                                           [(ngModel)]="activeResource.smartMode"
+                                           (change)="triggerSmartMode($event)">
+                                    <label for="smartModeCheckBox">
+                                        Smart mode
+                                    </label>
+                                </div>
+                            </div>
+                            <br/>
                             <div class="row" *ngIf="availableGroups && availableGroups.length > 0">
                                 <div class="form-group">
                                     <label class="control-label col-sm-3" for="resourceGroup">Resource group:</label>
@@ -92,7 +104,7 @@
 
                         </div>
                         <!-- binding here -->
-                        <div class="col-md-6 bindingCol leftAlign">
+                        <div class="col-md-6 bindingCol leftAlign" *ngIf="!this.activeResource.smartMode">
                             <div class="row">
                                 <h4>Binding information:</h4>
                             </div>
