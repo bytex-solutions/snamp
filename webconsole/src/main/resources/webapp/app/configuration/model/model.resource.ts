@@ -8,14 +8,22 @@ import { Operation } from './model.operation';
 export class Resource extends TypedEntity {
     http:ApiClient;
     connectionString:string = "";
+    smartMode:boolean = false;
     groupName:string = "";
     attributes:Attribute[] = [];
     events:Event[] = [];
     operations:Operation[] = [];
-    constructor(http:ApiClient, name:string, groupName:string, parameters: any) {
+    constructor(http:ApiClient, name:string, parameters: any) {
         super(http, name, parameters["type"], parameters["parameters"]);
         this.connectionString = parameters["connectionString"];
-        this.groupName = groupName;
+        if (parameters["smartMode"] != undefined) {
+            this.smartMode = parameters["smartMode"] == "true";
+            this.removeParameter("smartMode");
+        }
+        if (parameters["group"] != undefined) {
+            this.groupName = parameters["group"];
+            this.removeParameter("group");
+        }
         this.http = http;
         // filling attributes
         if (parameters["attributes"] != undefined) {
@@ -56,14 +64,5 @@ export class Resource extends TypedEntity {
         returnValue["connectionString"] = cstring;
         returnValue["parameters"] = KeyValue.stringifyParametersStatic(params);
         return returnValue;
-    }
-
-    public static prepareParams(params:any):string {
-        let groupName:string = "";
-        if (params != undefined && params["group"] != undefined) {
-            groupName = params["group"];
-            delete params["group"];
-        }
-        return groupName;
     }
 }

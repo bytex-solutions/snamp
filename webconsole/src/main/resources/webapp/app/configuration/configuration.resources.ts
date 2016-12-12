@@ -37,8 +37,7 @@ export class ResourcesComponent implements OnInit {
             .map((res: Response) => res.json())
             .subscribe(data => {
                 for (let key in data) {
-                    this.resources.push(new Resource(this.http, key,
-                        Resource.prepareParams(data[key]["parameters"]), data[key]))
+                    this.resources.push(new Resource(this.http, key, data[key]))
                 }
                 this.activeResource = (this.resources.length > 0) ? this.resources[0] : this.activeResource;
                 this.oldTypeValue = this.activeResource.type;
