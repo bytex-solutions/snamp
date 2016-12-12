@@ -68,13 +68,13 @@
     <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
     <snamp.maxVersion>3</snamp.maxVersion>
     <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
-    <cellar.version>4.0.7</cellar.version>
+    <cellar.version>4.0.3</cellar.version>
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
     <snamp.connector.md.version>2.0.0</snamp.connector.md.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
     <osgi.version>5.0.0</osgi.version>
     <snamp.persistence.version>2.0.0</snamp.persistence.version>
-    <hazelcast.version>3.4.2</hazelcast.version>
+    <hazelcast.version>3.7.2</hazelcast.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
     <jline.version>2.14.2</jline.version>

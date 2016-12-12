@@ -21,10 +21,10 @@
     <jersey.version>1.19.3</jersey.version>
     <groovy.version>2.4.7</groovy.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
-    <cellar.version>4.0.7</cellar.version>
+    <cellar.version>4.0.3</cellar.version>
     <jline.version>2.14.2</jline.version>
     <bouncycastle.version>1.54</bouncycastle.version>
-    <hazelcast.version>3.4.2</hazelcast.version>
+    <hazelcast.version>3.7.2</hazelcast.version>
     <atmosphere.version>2.2.9</atmosphere.version>
     <sshd.version>0.14.0</sshd.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>

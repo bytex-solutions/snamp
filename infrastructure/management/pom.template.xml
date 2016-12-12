@@ -35,6 +35,7 @@
                         <Bundle-Activator>com.bytex.snamp.management.ManagementServiceLibrary</Bundle-Activator>
                         <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
                         <Export-Package/>
+                        <Karaf-Commands>*</Karaf-Commands>
                     </instructions>
                 </configuration>
             </plugin>

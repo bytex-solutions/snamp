@@ -3,7 +3,8 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.core.SnampComponentDescriptor;
 import com.bytex.snamp.core.SnampManager;
 import com.bytex.snamp.management.SnampManagerImpl;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
@@ -23,7 +24,8 @@ import static com.bytex.snamp.management.shell.InstalledGatewaysCommand.writeGat
 @Command(scope = SnampShellCommand.SCOPE,
         name = "installed-components",
         description = "List of installed components")
-public final class InstalledComponentsCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class InstalledComponentsCommand extends SnampShellCommand  {
     private final SnampManager manager = new SnampManagerImpl();
 
     private static void writeComponent(final SnampComponentDescriptor component, final StringBuilder output) {

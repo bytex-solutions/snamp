@@ -3,8 +3,8 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.core.SnampComponentDescriptor;
 import com.bytex.snamp.core.SnampManager;
 import com.bytex.snamp.management.SnampManagerImpl;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.io.IOException;
 
@@ -21,7 +21,8 @@ import static com.bytex.snamp.management.ManagementUtils.getStateString;
 @Command(scope = SnampShellCommand.SCOPE,
         name = "installed-connectors",
         description = "List of installed resource connector")
-public final class InstalledConnectorsCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class InstalledConnectorsCommand extends SnampShellCommand {
     private final SnampManager manager = new SnampManagerImpl();
 
     static void writeConnector(final SnampComponentDescriptor component, final StringBuilder output) {
@@ -34,7 +35,7 @@ public final class InstalledConnectorsCommand extends OsgiCommandSupport impleme
     }
 
     @Override
-    protected CharSequence doExecute() throws IOException {
+    public CharSequence execute() throws IOException {
         final StringBuilder result = new StringBuilder(42);
         for(final SnampComponentDescriptor component: manager.getInstalledResourceConnectors())
             writeConnector(component, result);

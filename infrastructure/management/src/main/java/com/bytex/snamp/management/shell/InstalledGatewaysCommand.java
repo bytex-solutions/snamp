@@ -3,8 +3,8 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.core.SnampComponentDescriptor;
 import com.bytex.snamp.core.SnampManager;
 import com.bytex.snamp.management.SnampManagerImpl;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.io.IOException;
 
@@ -20,7 +20,8 @@ import static com.bytex.snamp.management.ManagementUtils.getStateString;
 @Command(scope = SnampShellCommand.SCOPE,
         name = "installed-gateways",
         description = "List of installed gateways")
-public final class InstalledGatewaysCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class InstalledGatewaysCommand extends SnampShellCommand  {
     private final SnampManager manager = new SnampManagerImpl();
 
     static void writeGateway(final SnampComponentDescriptor component, final StringBuilder output) {
@@ -33,7 +34,7 @@ public final class InstalledGatewaysCommand extends OsgiCommandSupport implement
     }
 
     @Override
-    protected CharSequence doExecute() throws IOException {
+    public CharSequence execute() throws IOException {
         final StringBuilder result = new StringBuilder(42);
         for(final SnampComponentDescriptor component: manager.getInstalledGateways())
             writeGateway(component, result);

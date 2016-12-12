@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.ServiceHolder;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -15,7 +14,7 @@ import java.util.Set;
  * @version 2.0
  * @since 1.0
  */
-abstract class ConfigurationCommand<E extends EntityConfiguration> extends OsgiCommandSupport implements SnampShellCommand {
+abstract class ConfigurationCommand<E extends EntityConfiguration> extends SnampShellCommand {
     private final Class<E> entityType;
 
     ConfigurationCommand(final Class<E> entityType){
@@ -25,15 +24,15 @@ abstract class ConfigurationCommand<E extends EntityConfiguration> extends OsgiC
     abstract boolean doExecute(final EntityMap<? extends E> configuration, final StringBuilder output) throws Exception;
 
     @Override
-    protected final CharSequence doExecute() throws Exception {
-        final ServiceHolder<ConfigurationManager> adminRef = ServiceHolder.tryCreate(bundleContext, ConfigurationManager.class);
+    public final CharSequence execute() throws Exception {
+        final ServiceHolder<ConfigurationManager> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
         if (adminRef != null)
             try {
                 final StringBuilder output = new StringBuilder(64);
                 adminRef.get().processConfiguration(config -> doExecute(config.getEntities(entityType), output));
                 return output;
             } finally {
-                adminRef.release(bundleContext);
+                adminRef.release(getBundleContext());
             }
         else throw new IOException("Configuration storage is not available");
     }
