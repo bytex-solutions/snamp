@@ -1,25 +1,20 @@
 package com.bytex.snamp.gateway.http;
 
-import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.eclipse.jetty.continuation.Continuation;
-import org.eclipse.jetty.continuation.Servlet3Continuation;
+import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
+@ImportClass({Continuation.class, WebSocketServerFactory.class})
 final class HttpGatewayHelpers {
 
     private HttpGatewayHelpers(){
 
-    }
-
-    //do not remove. It is necessary for Atmosphere and maven-bundle-plugin for correct import of Jetty package
-    @SpecialUse
-    private static Class<? extends Continuation> getJettyContinuationClass(){
-        return Servlet3Continuation.class;
     }
 
     static String getJsonType(final WellKnownType type){

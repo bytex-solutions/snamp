@@ -1,7 +1,9 @@
 package com.bytex.snamp.security.web.impl;
 
+import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
+import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitializer;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
@@ -14,6 +16,7 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
+@ImportClass(JerseyServletContainerInitializer.class)
 public final class SecurityServlet extends ServletContainer {
     private static final long serialVersionUID = 1107487431672546167L;
     public static final String CONTEXT = "/snamp/security";

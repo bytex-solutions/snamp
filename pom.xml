@@ -40,7 +40,7 @@
     <snmp4j.version>2.5.1</snmp4j.version>
     <gson.version>2.7</gson.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
-    <karaf.version>3.0.8</karaf.version>
+    <karaf.version>4.0.7</karaf.version>
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
     <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
     <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
@@ -60,15 +60,15 @@
     <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
     <sshj.version>0.18.0</sshj.version>
     <maven.compiler.source>1.8</maven.compiler.source>
-    <karaf.maxVersion>4</karaf.maxVersion>
+    <karaf.maxVersion>5</karaf.maxVersion>
     <snamp.connector.snmp.version>2.0.0</snamp.connector.snmp.version>
-    <jetty.version>8.1.17.v20150415</jetty.version>
+    <jetty.version>9.2.19.v20160908</jetty.version>
     <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
     <snamp.gateway.syslog.version>2.0.0</snamp.gateway.syslog.version>
     <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
     <snamp.maxVersion>3</snamp.maxVersion>
     <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
-    <cellar.version>3.0.3</cellar.version>
+    <cellar.version>4.0.7</cellar.version>
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
     <snamp.connector.md.version>2.0.0</snamp.connector.md.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
@@ -77,7 +77,7 @@
     <hazelcast.version>3.4.2</hazelcast.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
-    <jline.version>2.13</jline.version>
+    <jline.version>2.14.2</jline.version>
     <orientdb.version>2.2.13</orientdb.version>
     <jettison.version>1.3.8</jettison.version>
     <jersey.version>1.19.3</jersey.version>
@@ -85,6 +85,7 @@
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
     <groovy.version>2.4.7</groovy.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
+    <websocket.api.version>1.1</websocket.api.version>
     <sshd.version>0.14.0</sshd.version>
     <guava.version>19.0</guava.version>
     <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
@@ -160,14 +161,44 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>org.apache.geronimo.specs</groupId>
-        <artifactId>geronimo-servlet_3.0_spec</artifactId>
-        <version>1.0</version>
+        <groupId>javax.annotation</groupId>
+        <artifactId>javax.annotation-api</artifactId>
+        <version>1.2</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.jetty.aggregate</groupId>
-        <artifactId>jetty-all-server</artifactId>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>javax.websocket</groupId>
+        <artifactId>javax.websocket-api</artifactId>
+        <version>${websocket.api.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-servlet</artifactId>
+        <version>${jetty.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-server</artifactId>
+        <version>${jetty.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.websocket</groupId>
+        <artifactId>websocket-server</artifactId>
+        <version>${jetty.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-continuation</artifactId>
         <version>${jetty.version}</version>
         <scope>provided</scope>
       </dependency>

@@ -22,24 +22,24 @@
     <dependency>
       <groupId>org.apache.karaf.package</groupId>
       <artifactId>org.apache.karaf.package.core</artifactId>
-      <version>3.0.8</version>
+      <version>4.0.7</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf</groupId>
       <artifactId>org.apache.karaf.util</artifactId>
-      <version>3.0.8</version>
+      <version>4.0.7</version>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf.deployer</groupId>
       <artifactId>org.apache.karaf.deployer.features</artifactId>
-      <version>3.0.8</version>
+      <version>4.0.7</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf</groupId>
       <artifactId>apache-karaf</artifactId>
-      <version>3.0.8</version>
+      <version>4.0.7</version>
       <type>tar.gz</type>
       <scope>test</scope>
       <exclusions>
@@ -190,8 +190,8 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-servlet_3.0_spec</artifactId>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sun.jersey</groupId>
@@ -307,7 +307,7 @@
     <dependency>
       <groupId>org.apache.karaf.shell</groupId>
       <artifactId>org.apache.karaf.shell.console</artifactId>
-      <version>3.0.8</version>
+      <version>4.0.7</version>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -21,7 +21,7 @@
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
       <artifactId>framework</artifactId>
-      <version>3.0.8</version>
+      <version>4.0.7</version>
       <type>kar</type>
       <scope>compile</scope>
     </dependency>
@@ -36,7 +36,7 @@
     <dependency>
       <groupId>org.apache.karaf.cellar</groupId>
       <artifactId>apache-karaf-cellar</artifactId>
-      <version>3.0.3</version>
+      <version>4.0.7</version>
       <type>xml</type>
       <classifier>features</classifier>
       <scope>runtime</scope>
@@ -44,7 +44,7 @@
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
       <artifactId>standard</artifactId>
-      <version>3.0.8</version>
+      <version>4.0.7</version>
       <type>xml</type>
       <classifier>features</classifier>
       <scope>runtime</scope>
@@ -52,7 +52,7 @@
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
       <artifactId>enterprise</artifactId>
-      <version>3.0.8</version>
+      <version>4.0.7</version>
       <type>xml</type>
       <classifier>features</classifier>
       <scope>runtime</scope>

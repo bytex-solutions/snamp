@@ -11,18 +11,18 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <!--Global dependencies-->
-    <karaf.version>3.0.8</karaf.version>
-    <karaf.maxVersion>4</karaf.maxVersion>
+    <karaf.version>4.0.7</karaf.version>
+    <karaf.maxVersion>5</karaf.maxVersion>
     <osgi.version>5.0.0</osgi.version>
     <junit.version>4.12</junit.version>
-    <jetty.version>8.1.17.v20150415</jetty.version>
+    <jetty.version>9.2.19.v20160908</jetty.version>
     <gson.version>2.7</gson.version>
     <guava.version>19.0</guava.version>
     <jersey.version>1.19.3</jersey.version>
     <groovy.version>2.4.7</groovy.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
-    <cellar.version>3.0.3</cellar.version>
-    <jline.version>2.13</jline.version>
+    <cellar.version>4.0.7</cellar.version>
+    <jline.version>2.14.2</jline.version>
     <bouncycastle.version>1.54</bouncycastle.version>
     <hazelcast.version>3.4.2</hazelcast.version>
     <atmosphere.version>2.2.9</atmosphere.version>
@@ -35,6 +35,7 @@
     <sshj.version>0.18.0</sshj.version>
     <netty.version>3.10.6.Final</netty.version>
     <orientdb.version>2.2.13</orientdb.version>
+    <websocket.api.version>1.1</websocket.api.version>
       <!--Versioning of SNAMP Components-->
     <snamp.version>2.0.0</snamp.version>
     <snamp.maxVersion>3</snamp.maxVersion>
@@ -228,14 +229,44 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-servlet_3.0_spec</artifactId>
-            <version>1.0</version>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty.aggregate</groupId>
-            <artifactId>jetty-all-server</artifactId>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
+            <version>${websocket.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>${jetty.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${jetty.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-server</artifactId>
+            <version>${jetty.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-continuation</artifactId>
             <version>${jetty.version}</version>
             <scope>provided</scope>
         </dependency>

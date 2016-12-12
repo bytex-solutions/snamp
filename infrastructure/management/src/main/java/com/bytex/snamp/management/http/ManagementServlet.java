@@ -1,7 +1,9 @@
 package com.bytex.snamp.management.http;
 
+import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
+import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitializer;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
@@ -12,6 +14,7 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
+@ImportClass(JerseyServletContainerInitializer.class)
 public final class ManagementServlet extends ServletContainer {
     private static final long serialVersionUID = -2354174814566144236L;
     public static final String CONTEXT = "/snamp/management";

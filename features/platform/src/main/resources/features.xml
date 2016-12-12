@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp-platform">
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-platform">
     <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
     <repository>mvn:org.apache.karaf.features/framework/${karaf.version}/xml/features</repository>
     <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
@@ -12,8 +12,8 @@
         <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
-        <bundle>mvn:org.apache.geronimo.specs/geronimo-servlet_3.0_spec/1.0</bundle>
         <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
+        <bundle>mvn:javax.websocket/javax.websocket-api/${websocket.api.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>

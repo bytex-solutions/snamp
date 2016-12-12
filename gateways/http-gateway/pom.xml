@@ -44,8 +44,8 @@
       <artifactId>jersey-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-servlet_3.0_spec</artifactId>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
@@ -74,8 +74,21 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty.aggregate</groupId>
-      <artifactId>jetty-all-server</artifactId>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-continuation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.websocket</groupId>
+      <artifactId>websocket-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.websocket</groupId>
+      <artifactId>javax.websocket-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.ops4j.pax.web</groupId>
+      <artifactId>pax-web-jetty</artifactId>
+      <version>4.3.0</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -138,9 +151,13 @@
                             javax.management,
                             javax.servlet,
                             javax.servlet.http,
+                            javax.websocket,
                             javax.ws.rs,
                             javax.ws.rs.core,
                             org.eclipse.jetty.continuation,
+                            org.eclipse.jetty.websocket.server,
+                            org.eclipse.jetty.websocket.api,
+                            org.eclipse.jetty.websocket.servlet,
                             org.slf4j,
                             org.osgi.service.http</Import-Package>
             <Provide-Capability>com.bytex.snamp.gateway; type=http</Provide-Capability>
