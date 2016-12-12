@@ -92,4 +92,8 @@ export class REST {
     public static ENTITY_PARAMETERS(entityClass:string, entityName:string, key:string):string {
         return REST.CFG_PATH + "/" + entityClass + "/" + entityName + "/parameters/" + key;
     }
+
+    public static RESOURCE_CONNECTION_STRING(entityName:string):string {
+        return REST.RESOURCE_BY_NAME(entityName) + "/connectionString";
+    }
 }

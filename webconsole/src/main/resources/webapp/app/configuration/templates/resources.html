@@ -28,7 +28,7 @@
                         </newEntity>
                     </div>
                 </div>
-                <div class="col-md-10" *ngIf="resources && resources.length > 0">
+                <div class="col-md-10" *ngIf="resources && resources.length > 0 && activeResource != undefined">
                     <!-- right area -->
                     <div class="row contentRow">
                         <!-- if we have binging - add next with col-md-5 -->
@@ -49,6 +49,17 @@
                                                 {{resource.name}}
                                             </option>
                                         </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <br/>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3" for="entityType">Connection string:</label>
+                                    <div class="col-sm-9">
+                                        <inline-edit [(ngModel)]="activeResource.connectionString"
+                                                     (onSave)="saveConnectionString()">
+                                        </inline-edit>
                                     </div>
                                 </div>
                             </div>

@@ -12,7 +12,7 @@ export class Resource extends TypedEntity {
     attributes:Attribute[] = [];
     events:Event[] = [];
     operations:Operation[] = [];
-    constructor(http:ApiClient, groupName:string, name:string, parameters: any) {
+    constructor(http:ApiClient, name:string, groupName:string, parameters: any) {
         super(http, name, parameters["type"], parameters["parameters"]);
         this.connectionString = parameters["connectionString"];
         this.groupName = groupName;

@@ -48,7 +48,6 @@ export class InlineEditComponent implements ControlValueAccessor{
 
     // Method to display the inline edit form and hide the <a> element
     public edit(value){
-        console.log("edit has been invoked with value ", value);
         this.preValue = value;  // Store original value in case the form is cancelled
         this.editing = true;
 

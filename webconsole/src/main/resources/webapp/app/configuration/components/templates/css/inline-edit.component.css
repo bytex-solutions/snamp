@@ -16,7 +16,7 @@ a {
  display: inline-block;
 }
 .inlineEditForm input, select{
- width: auto;
+ width: 110%;
  display: inline;
 }
 .editInvalid{

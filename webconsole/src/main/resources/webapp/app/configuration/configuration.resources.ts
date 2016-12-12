@@ -72,4 +72,11 @@ export class ResourcesComponent implements OnInit {
                   });
               });
     }
+
+    saveConnectionString() {
+            this.http.put(REST.RESOURCE_CONNECTION_STRING(this.activeResource.name),
+                this.activeResource.connectionString)
+                .subscribe(res => console.log("connection string for " + this.activeResource.name +
+                    " has been changed to " + this.activeResource.connectionString + " with result " + res));
+    }
 }
