@@ -65,14 +65,22 @@
                             </div>
                             <br/>
                             <div class="row">
-                                <div class="checkbox checkbox-success">
-                                    <input id="smartModeCheckBox"
-                                           type="checkbox"
-                                           [(ngModel)]="activeResource.smartMode"
-                                           (change)="triggerSmartMode($event)">
-                                    <label for="smartModeCheckBox">
-                                        Smart mode
-                                    </label>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3" for="entityType">Smart mode:</label>
+                                    <div class="col-sm-9">
+                                        <label class="switch-light pointerElement" onclick="">
+                                            <input id="smartModeCheckBox"
+                                                   type="checkbox"
+                                                   [(ngModel)]="activeResource.smartMode"
+                                                   (change)="triggerSmartMode($event)">
+
+                                            <span class="well">
+                                                <span>Off</span>
+                                                <span>On</span>
+                                                <a class="btn btn-primary"></a>
+                                            </span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                             <br/>
