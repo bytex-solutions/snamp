@@ -1,6 +1,12 @@
 package com.bytex.snamp.persistence;
 
+import com.orientechnologies.orient.core.conflict.ORecordConflictStrategyFactory;
 import com.orientechnologies.orient.core.db.OPartitionedDatabasePool;
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.query.OQuery;
+import com.orientechnologies.orient.core.record.ORecord;
+import com.orientechnologies.orient.core.storage.OStorage;
+import com.orientechnologies.orient.core.tx.OTransaction;
 
 /**
  * @author Roman Sakno
@@ -9,7 +15,5 @@ import com.orientechnologies.orient.core.db.OPartitionedDatabasePool;
  */
 public class OrientDBTest {
     public void tst(){
-        OPartitionedDatabasePool pool;
-
     }
 }
