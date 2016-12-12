@@ -21,8 +21,10 @@ export class ResourcesComponent implements OnInit {
    resources:Resource[] = [];
    activeResource:Resource;
    oldTypeValue:string = "";
+   oldGroupValue:string = "";
    http:ApiClient;
    availableResources :any[] = [];
+   availableGroups:string[] = [];
 
    constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
         this.http = apiClient;
@@ -40,12 +42,22 @@ export class ResourcesComponent implements OnInit {
                 }
                 this.activeResource = (this.resources.length > 0) ? this.resources[0] : this.activeResource;
                 this.oldTypeValue = this.activeResource.type;
+                this.oldGroupValue = this.activeResource.groupName;
             });
 
         // Get all the available bundles that belong to Resources
         this.http.get(REST.AVAILABLE_RESOURCE_LIST)
             .map((res: Response) => res.json())
             .subscribe(data => this.availableResources = data);
+
+        // Get available group names for listing in the select element
+        this.http.get(REST.RGROUP_LIST)
+            .map((res: Response) => res.json())
+            .subscribe(data => {
+                for(let i = 0; i < data.length; i++){
+                  this.availableGroups.push(data[i]);
+                }
+            });
     }
 
     setActiveResource(resource:Resource) {
@@ -73,10 +85,36 @@ export class ResourcesComponent implements OnInit {
               });
     }
 
+    changeGroup(event:any) {
+         let dialog = this.modal.confirm()
+            .isBlocking(true)
+            .keyboard(27)
+            .message("Setting group for resource leads to appending all entities from the group to resource. " +
+                "The page is going to be refreshed. Proceed?")
+            .open()
+            .then((resultPromise) => {
+                return (<Promise<boolean>>resultPromise.result)
+                  .then((response) => {
+                    this.oldGroupValue = event.target.value;
+                    this.http.put(REST.RESOURCE_GROUP(this.activeResource.name), event.target.value)
+                        .subscribe(data => {
+                            location.reload();
+                        });
+                    return response;
+                  })
+                  .catch(() => {
+                    this.activeResource.groupName = this.oldGroupValue;
+                    return false;
+                  });
+              });
+    }
+
     saveConnectionString() {
             this.http.put(REST.RESOURCE_CONNECTION_STRING(this.activeResource.name),
                 this.activeResource.connectionString)
                 .subscribe(res => console.log("connection string for " + this.activeResource.name +
                     " has been changed to " + this.activeResource.connectionString + " with result " + res));
     }
+
+
 }

@@ -63,6 +63,26 @@
                                     </div>
                                 </div>
                             </div>
+                            <br/>
+                            <div class="row" *ngIf="availableGroups && availableGroups.length > 0">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3" for="resourceGroup">Resource group:</label>
+                                    <div class="col-sm-9">
+                                        <select
+                                                id="resourceGroup"
+                                                [(ngModel)]="activeResource.groupName"
+                                                (change)="changeGroup($event)"
+                                                class="form-control">
+                                            <option
+                                                    *ngFor="let name of availableGroups"
+                                                    [value]="name">
+                                                {{name}}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row paramRow">
                                 <h4>Parameters:</h4>
                             </div>
