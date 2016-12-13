@@ -30,7 +30,7 @@ public enum SnampFeature {
     GROOVY_CONNECTOR("connectors-pack", "2.0.0", "snamp-groovy-connector"),
     GROOVY_GATEWAY("gateways-pack", "2.0.0", "snamp-groovy-gateway"),
     MODBUS_CONNECTOR("connectors-pack", "2.0.0", "snamp-modbus-connector"),
-    WEBCONSOLE("webconsole-feature", "2.0.0", "webconsole-feature");
+    WEBCONSOLE("webconsole-feature", "2.0.0", "snamp-web-console");
 
     final String[] featureNames;
     private final String artifactId;

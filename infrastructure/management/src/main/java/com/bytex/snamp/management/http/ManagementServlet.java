@@ -7,7 +7,6 @@ import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitia
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno

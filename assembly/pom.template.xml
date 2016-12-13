@@ -34,19 +34,12 @@
                     <finalName>${project.parent.name}-{$project.version}</finalName>
                     <ignoreScopeProvided>true</ignoreScopeProvided>
                     <bootFeatures>
-                        <feature>wrap</feature>
-                        <feature>feature</feature>
-                        <feature>kar</feature>
-                        <feature>bundle</feature>
-                        <feature>deployer</feature>
-                        <feature>log</feature>
-                        <feature>system</feature>
-                        <feature>management</feature>
-                        <feature>ssh</feature>
-                        <feature>config</feature>
+                        <feature>standard</feature>
                     </bootFeatures>
-                    <installedFeatures>
+                    <startupFeatures>
                         <feature>eventadmin</feature>
+                    </startupFeatures>
+                    <installedFeatures>
                         <feature>jndi</feature>
                         <feature>http</feature>
                         <feature>war</feature>
@@ -130,7 +123,7 @@
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>platform</artifactId>
-            <version>${project.version}</version>
+            <version>${snamp.version}</version>
             <type>xml</type>
             <classifier>features</classifier>
             <scope>runtime</scope>

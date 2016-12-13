@@ -37,7 +37,13 @@ final class WebConsoleServlet extends ServletContainer implements ServiceListene
     }
 
     WebConsoleServlet() throws InvalidSyntaxException {
-        this(new DefaultResourceConfig());
+        this(createResourceConfig());
+    }
+
+    private static ResourceConfig createResourceConfig(){
+        final ResourceConfig result = new DefaultResourceConfig();
+        result.getSingletons().add(new VersionResource());
+        return result;
     }
 
     private BundleContext getBundleContext(){

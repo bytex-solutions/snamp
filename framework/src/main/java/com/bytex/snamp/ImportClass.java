@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * @version 2.0
  * @since 2.0
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface ImportClass {
     /**
