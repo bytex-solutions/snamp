@@ -136,4 +136,12 @@ export class ParametersTable implements OnInit {
     flushSelected() {
         this.selectedParam = undefined;
     }
+
+    clear() {
+        this.listParamValue.nativeElement.value = "";
+        if (this.customParamValue != undefined) {
+            this.customParamValue.nativeElement.value = this.stabValue;
+        }
+        this.newParamElement.nativeElement.value = "";
+    }
 }

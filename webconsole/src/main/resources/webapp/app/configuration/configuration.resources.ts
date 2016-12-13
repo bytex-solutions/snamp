@@ -127,7 +127,8 @@ export class ResourcesComponent implements OnInit {
     }
 
     triggerSmartMode(event:any) {
-        if (this.activeResource.smartMode == false) {
+        console.log("current state of smart mode is ", this.activeResource.smartMode, " old one is ", this.oldSmartMode);
+        if (!this.oldSmartMode) {
           this.modal.confirm()
             .className(<VEXBuiltInThemes>'wireframe')
             .isBlocking(true)
@@ -139,6 +140,7 @@ export class ResourcesComponent implements OnInit {
                   .then((response) => {
                     this.http.put(REST.ENTITY_PARAMETERS("resource", this.activeResource.name, "smartMode"), true)
                         .subscribe(data => {
+                           console.log("setting to true result is ", data);
                            this.oldSmartMode = true;
                            this.activeResource.smartMode = true;
                            location.reload();

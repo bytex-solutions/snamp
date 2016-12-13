@@ -16,12 +16,12 @@ export class Resource extends TypedEntity {
     constructor(http:ApiClient, name:string, parameters: any) {
         super(http, name, parameters["type"], parameters["parameters"]);
         this.connectionString = parameters["connectionString"];
-        if (parameters["smartMode"] != undefined) {
-            this.smartMode = parameters["smartMode"] == "true";
+        if (this.contains("smartMode")) {
+            this.smartMode = this.getParameter("smartMode").value === "true";
             this.removeParameter("smartMode");
         }
-        if (parameters["group"] != undefined) {
-            this.groupName = parameters["group"];
+        if (this.contains("group")) {
+            this.groupName = this.getParameter("group").value;
             this.removeParameter("group");
         }
         this.http = http;
