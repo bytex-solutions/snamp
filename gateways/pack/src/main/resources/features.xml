@@ -23,7 +23,6 @@
 
     <feature name="snamp-jmx-gateway" description="SNAMP JMX Gateway" version="${snamp.gateway.jmx.version}" install="auto">
         <details>Exposes monitoring and management information provided by connectors via JMX</details>
-        <details>${project.description}</details>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-core</feature>
         <bundle start="true">mvn:com.bytex.snamp/jmx-gateway/${snamp.gateway.jmx.version}</bundle>
     </feature>
@@ -67,7 +66,7 @@
 
     <feature name="snamp-xmpp-gateway" description="SNAMP XMPP Gateway" version="${snamp.gateway.xmpp.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-core</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-security-support</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-security</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-jmx-support</feature>
         <bundle>mvn:com.bytex.snamp/xmpp-gateway/${snamp.gateway.xmpp.version}</bundle>
     </feature>

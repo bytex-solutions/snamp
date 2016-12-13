@@ -121,6 +121,14 @@
             <type>kar</type>
         </dependency>
         <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>framework</artifactId>
+            <version>${karaf.version}</version>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>platform</artifactId>
             <version>${snamp.version}</version>
@@ -142,7 +150,6 @@
             <classifier>features</classifier>
             <version>${karaf.version}</version>
             <type>xml</type>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.karaf.features</groupId>

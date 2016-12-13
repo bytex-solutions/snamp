@@ -47,8 +47,8 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         @Override
         protected void cleanupService(final WebConsoleServlet serviceInstance, final boolean stopBundle) {
             final HttpService httpService = getDependencies().getDependency(HttpService.class);
-            assert httpService != null;
-            httpService.unregister(WebConsoleServlet.CONTEXT);
+            if (httpService != null)
+                httpService.unregister(WebConsoleServlet.CONTEXT);
         }
     }
 
