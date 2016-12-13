@@ -5,9 +5,9 @@
     <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
         <details>${project.description}</details>
         <!-- Third-party features -->
-        <feature version="[${karaf.version}, ${karaf.maxVersion})" prerequisite="true">eventadmin</feature>
-        <feature version="[${karaf.version}, ${karaf.maxVersion})" prerequisite="true">war</feature>
-        <feature version="[${karaf.version}, ${karaf.maxVersion})" prerequisite="true">framework</feature>
+        <feature version="[${karaf.version}, ${karaf.maxVersion})" >eventadmin</feature>
+        <feature version="[${karaf.version}, ${karaf.maxVersion})" >war</feature>
+        <feature version="[${karaf.version}, ${karaf.maxVersion})" >framework</feature>
         <!-- Third-party bundles -->
         <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
@@ -42,7 +42,7 @@
     </feature>
 
     <feature name="snamp-scripting-support" description="SNAMP support bundles for scripting" version="${project.version}">
-        <feature version="${project.version}" prerequisite="true">snamp-core</feature>
+        <feature version="${project.version}" >snamp-core</feature>
         <bundle>mvn:org.codehaus.groovy/groovy/${groovy.version}/jar/indy</bundle>
         <bundle>mvn:org.codehaus.groovy/groovy-xml/${groovy.version}/jar/indy</bundle>
         <bundle>mvn:org.codehaus.groovy/groovy-json/${groovy.version}/jar/indy</bundle>
@@ -52,8 +52,8 @@
     </feature>
 
     <feature name="snamp-management" description="SNAMP management tools" version="${project.version}">
-        <feature version="${project.version}" prerequisite="true">snamp-core</feature>
-        <feature version="${project.version}" prerequisite="true">snamp-web-support</feature>
+        <feature version="${project.version}" >snamp-core</feature>
+        <feature version="${project.version}" >snamp-web-support</feature>
         <bundle start="true">mvn:com.bytex.snamp/management/${snamp.management.version}</bundle>
     </feature>
 
@@ -63,7 +63,7 @@
     </feature>
 
     <feature name="snamp-ssh-support" description="Set of Java libraries for SSH" version="${project.version}">
-        <feature version="${project.version}" prerequisite="true">snamp-security</feature>
+        <feature version="${project.version}" >snamp-security</feature>
         <bundle>mvn:net.i2p.crypto/eddsa/${eddsa.version}</bundle>
         <bundle>mvn:com.bytex.snamp/sshj/${sshj.version}</bundle>
     </feature>

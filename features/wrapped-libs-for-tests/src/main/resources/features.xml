@@ -2,7 +2,7 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="wrapped-bundles">
     <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
     <feature name="${project.artifactId}" description="Repackaged libraries as Apache Karaf Features" version="2.0.0">
-        <feature prerequisite="true">wrap</feature>
+        <feature >wrap</feature>
         <details>Repackaged libraries as Apache Karaf Features</details>
         <bundle>wrap:mvn:org.apache.directory.server/apacheds-all/2.0.0-M16$Export-Package=org.apache.directory.*;version="2.0.0.16"</bundle>
         <bundle>wrap:mvn:org.atmosphere/wasync/2.0.0$Export-Package=org.atmosphere.wasync.*;version="2.0.0"</bundle>

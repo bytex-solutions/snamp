@@ -3,8 +3,8 @@
     <repository>mvn:com.bytex.snamp/platform/${snamp.version}/xml/features</repository>
 
     <feature name="snamp-web-console" description="${project.name}" version="${snamp.webconsole.version}">
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-core</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-web-support</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
         <bundle start="true">mvn:com.bytex.snamp/webconsole/${snamp.webconsole.version}</bundle>
     </feature>
 </features>
