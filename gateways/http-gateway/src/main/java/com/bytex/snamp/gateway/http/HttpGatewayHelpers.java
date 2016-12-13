@@ -1,16 +1,12 @@
 package com.bytex.snamp.gateway.http;
 
-import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.jmx.WellKnownType;
-import org.eclipse.jetty.continuation.Continuation;
-import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
-@ImportClass({Continuation.class, WebSocketServerFactory.class})
 final class HttpGatewayHelpers {
 
     private HttpGatewayHelpers(){

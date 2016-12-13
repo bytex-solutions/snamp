@@ -22,4 +22,11 @@ abstract class SnampShellCommand implements Action {
 
     @Override
     public abstract Object execute() throws Exception;
+
+    static void checkInterrupted() throws InterruptedException {
+        Thread.yield();
+        if (Thread.currentThread().isInterrupted()) {
+            throw new InterruptedException();
+        }
+    }
 }

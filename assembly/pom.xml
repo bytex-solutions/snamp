@@ -26,6 +26,14 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.apache.karaf.features</groupId>
+      <artifactId>framework</artifactId>
+      <version>4.0.7</version>
+      <type>xml</type>
+      <classifier>features</classifier>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>com.bytex.snamp</groupId>
       <artifactId>platform</artifactId>
       <version>${project.version}</version>
@@ -47,7 +55,6 @@
       <version>4.0.7</version>
       <type>xml</type>
       <classifier>features</classifier>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
@@ -75,22 +82,20 @@
           <ignoreScopeProvided>true</ignoreScopeProvided>
           <bootFeatures>
             <feature>standard</feature>
-            <feature>management</feature>
-            <feature>ssh</feature>
-            <feature>region</feature>
-            <feature>eventadmin</feature>
-            <feature>jndi</feature>
-            <feature>jms</feature>
           </bootFeatures>
+          <startupFeatures>
+            <feature>eventadmin</feature>
+          </startupFeatures>
           <installedFeatures>
-            <feature>snamp-core</feature>
-            <feature>snamp-management</feature>
-            <feature>wrapper</feature>
+            <feature>jndi</feature>
             <feature>http</feature>
             <feature>war</feature>
             <feature>http-whiteboard</feature>
             <feature>cellar</feature>
             <feature>scr</feature>
+            <feature>snamp-core</feature>
+            <feature>snamp-management</feature>
+            <feature>wrapper</feature>
           </installedFeatures>
         </configuration>
       </plugin>

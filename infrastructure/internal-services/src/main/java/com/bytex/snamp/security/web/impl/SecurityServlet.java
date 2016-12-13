@@ -18,6 +18,7 @@ import java.util.logging.Logger;
  */
 @ImportClass(JerseyServletContainerInitializer.class)
 public final class SecurityServlet extends ServletContainer {
+
     private static final long serialVersionUID = 1107487431672546167L;
     public static final String CONTEXT = "/snamp/security";
 

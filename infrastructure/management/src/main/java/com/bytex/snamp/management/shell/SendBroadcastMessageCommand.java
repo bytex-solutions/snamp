@@ -2,8 +2,9 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.Communicator;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 /**
  * @author Roman Sakno
@@ -13,13 +14,14 @@ import org.apache.karaf.shell.commands.Command;
 @Command(scope = SnampShellCommand.SCOPE,
         name = "post-message",
         description = "Send text message to all members in cluster")
+@Service
 public final class SendBroadcastMessageCommand extends MessageCommand {
     @Argument(index = 0, required = true, name = "message", description = "A message to send")
     @SpecialUse
     private String message = "";
 
     @Override
-    protected String doExecute() throws Exception {
+    public String execute() throws Exception {
         final Communicator communicator = getCommunicator();
         communicator.sendSignal(message);
         return String.format("Message posted successfully: '%s'", message);

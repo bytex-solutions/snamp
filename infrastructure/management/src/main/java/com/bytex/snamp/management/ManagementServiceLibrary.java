@@ -182,7 +182,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         final HttpService httpService = getDependencies().getDependency(HttpService.class);
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
-                (publisher) -> publisher.registerServlet(ManagementServlet.CONTEXT, new ManagementServlet(getLogger()), new Hashtable<>(), null));
+                (publisher) -> publisher.registerServlet(ManagementServlet.CONTEXT, new ManagementServlet(), new Hashtable<>(), null));
         activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, httpService);
     }
 

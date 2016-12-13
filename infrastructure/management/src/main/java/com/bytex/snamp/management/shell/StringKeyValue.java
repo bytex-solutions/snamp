@@ -18,7 +18,7 @@ final class StringKeyValue implements Map.Entry<String, String>, Serializable {
     private final String key;
     private final String value;
 
-    StringKeyValue(final String key, String value){
+    private StringKeyValue(final String key, String value){
         this.key = Objects.requireNonNull(key);
         this.value = Objects.requireNonNull(value);
     }
@@ -43,6 +43,20 @@ final class StringKeyValue implements Map.Entry<String, String>, Serializable {
     @Override
     public String setValue(final String value) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, value);
+    }
+
+    private boolean equals(final StringKeyValue other){
+        return Objects.equals(key, other.key) && Objects.equals(value, other.value);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof StringKeyValue && equals((StringKeyValue) other);
     }
 
     @Override

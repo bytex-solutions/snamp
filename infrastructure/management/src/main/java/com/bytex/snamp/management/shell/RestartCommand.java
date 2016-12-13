@@ -1,8 +1,8 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.management.SnampManagerImpl;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.framework.BundleException;
 
 /**
@@ -14,11 +14,12 @@ import org.osgi.framework.BundleException;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "restart",
     description = "Restarts SNAMP components")
-public final class RestartCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class RestartCommand extends SnampShellCommand {
 
     @Override
-    protected Void doExecute() throws BundleException {
-        SnampManagerImpl.restart(bundleContext);
+    public Void execute() throws BundleException {
+        SnampManagerImpl.restart(getBundleContext());
         return null;
     }
 }

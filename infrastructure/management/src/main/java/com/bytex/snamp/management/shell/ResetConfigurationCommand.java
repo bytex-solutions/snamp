@@ -2,7 +2,8 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.ServiceHolder;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
@@ -16,10 +17,11 @@ import java.io.IOException;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "reset-config",
     description = "Reset configuration to empty")
-public final class ResetConfigurationCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class ResetConfigurationCommand extends SnampShellCommand  {
     @Override
-    protected CharSequence doExecute() throws IOException {
-        final ServiceHolder<ConfigurationManager> adminRef = ServiceHolder.tryCreate(bundleContext, ConfigurationManager.class);
+    public CharSequence execute() throws IOException {
+        final ServiceHolder<ConfigurationManager> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
         if (adminRef != null)
             try {
                 final StringBuilder output = new StringBuilder(64);
@@ -29,7 +31,7 @@ public final class ResetConfigurationCommand extends OsgiCommandSupport implemen
                 });
                 return output;
             } finally {
-                adminRef.release(bundleContext);
+                adminRef.release(getBundleContext());
             }
         else throw new IOException("Configuration storage is not available");
     }

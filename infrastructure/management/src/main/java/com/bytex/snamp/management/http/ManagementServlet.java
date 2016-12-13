@@ -19,11 +19,11 @@ public final class ManagementServlet extends ServletContainer {
     private static final long serialVersionUID = -2354174814566144236L;
     public static final String CONTEXT = "/snamp/management";
 
-    public ManagementServlet(final Logger logger){
-        super(createAppConfig(logger));
+    public ManagementServlet(){
+        super(createAppConfig());
     }
 
-    private static Application createAppConfig(final Logger logger){
+    private static Application createAppConfig(){
         final DefaultResourceConfig result = new DefaultResourceConfig();
         final WebSecurityFilter filter = new WebSecurityFilter();
         result.getContainerRequestFilters().add(filter);

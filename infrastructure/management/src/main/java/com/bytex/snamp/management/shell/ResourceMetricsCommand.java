@@ -3,10 +3,10 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.metrics.*;
 import com.bytex.snamp.management.jmx.MetricsAttribute;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.openmbean.CompositeData;
@@ -22,7 +22,8 @@ import static com.google.common.collect.Iterables.getFirst;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "resource-metrics",
     description = "View runtime metrics associated with managed resources")
-public final class ResourceMetricsCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class ResourceMetricsCommand extends SnampShellCommand {
     @Argument(index = 0, name = "resourceName", required = false, description = "Name of the managed resource for which metrics should be displayed")
     @SpecialUse
     private String resourceName = "";
@@ -112,8 +113,8 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
     }
 
     @Override
-    protected CharSequence doExecute() throws InstanceNotFoundException {
-        final MetricsSupport metrics = MetricsAttribute.getMetrics(resourceName, bundleContext);
+    public CharSequence execute() throws InstanceNotFoundException {
+        final MetricsSupport metrics = MetricsAttribute.getMetrics(resourceName, getBundleContext());
         if (metrics == null) return "Metrics are not supported";
         return resetMetrics ? resetMetrics(metrics) : collectMetrics(metrics);
     }

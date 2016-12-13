@@ -2,9 +2,10 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.util.Map;
 
@@ -20,6 +21,7 @@ import static com.bytex.snamp.management.ManagementUtils.newLine;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "resource",
     description = "Display configuration of the managed resource")
+@Service
 public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of configured resource to display")
     @SpecialUse

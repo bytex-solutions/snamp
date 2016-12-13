@@ -3,8 +3,9 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 /**
  * Removes thread pool.
@@ -12,6 +13,7 @@ import org.apache.karaf.shell.commands.Command;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "thread-pool-remove",
     description = "Remove thread pool and, optionally, terminate all scheduled tasks")
+@Service
 public final class RemoveThreadPoolCommand extends AbstractThreadPoolCommand {
     @Argument(index = 0, name = "name", required = true, description = "Name of thread pool to remove")
     @SpecialUse

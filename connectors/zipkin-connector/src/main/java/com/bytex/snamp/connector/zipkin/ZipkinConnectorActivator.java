@@ -1,25 +1,9 @@
 package com.bytex.snamp.connector.zipkin;
 
-import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceActivator;
-import com.bytex.snamp.instrumentation.Identifier;
-import com.bytex.snamp.io.Buffers;
-import org.apache.log4j.Logger;
-import org.codehaus.groovy.reflection.ClassInfo;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.codehaus.groovy.runtime.powerassert.ValueRecorder;
-import org.codehaus.groovy.transform.BaseScriptASTTransformation;
-import org.codehaus.groovy.vmplugin.v7.IndyInterface;
-import org.ietf.jgss.GSSException;
 import org.osgi.service.http.HttpService;
-import org.slf4j.LoggerFactory;
 
-import javax.management.ObjectName;
-import javax.security.auth.Subject;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.login.LoginException;
-import javax.security.sasl.SaslException;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -31,21 +15,6 @@ import java.util.Map;
  * @since 2.0
  * @version 2.0
  */
-@ImportClass({BaseScriptASTTransformation.class,
-        ClassInfo.class,
-        ValueRecorder.class,
-        DefaultGroovyMethods.class,
-        IndyInterface.class,
-        Identifier.class,
-        Buffers.class,
-        ObjectName.class,
-        Logger.class,
-        LoggerFactory.class,
-        SaslException.class,
-        Subject.class,
-        LoginException.class,
-        GSSException.class,
-        CallbackHandler.class})
 public final class ZipkinConnectorActivator extends ManagedResourceActivator<ZipkinConnector> {
     private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
