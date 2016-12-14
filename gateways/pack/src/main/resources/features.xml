@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-gateways">
-    <repository>mvn:org.apache.karaf.features/enterprise/${karaf.version}/xml/features</repository>
+    <!--<repository>mvn:org.apache.karaf.features/enterprise/${karaf.version}/xml/features</repository>-->
     <repository>mvn:com.bytex.snamp/core-features/${snamp.version}/xml/features</repository>
 
     <feature name="snamp-groovy-gateway" description="SNAMP Groovy Gateway" version="${snamp.gateway.groovy.version}" install="auto">
@@ -47,7 +47,7 @@
         <details>Exposes monitoring and management information provided by connectors via SNMPv2/SNMPv3</details>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-snmp-support</feature>
-        <feature version="[${karaf.version}, ${karaf.maxVersion})" >jndi</feature>
+        <!--<feature version="[${karaf.version}, ${karaf.maxVersion})" >jndi</feature>-->
         <bundle start="true">mvn:com.bytex.snamp/snmp-gateway/${snamp.gateway.snmp.version}</bundle>
     </feature>
 

@@ -23,10 +23,6 @@ final class InfluxModelOfNotifications extends ModelOfNotifications<Notification
         reporter = Objects.requireNonNull(value);
     }
 
-    private Reporter getReporter(){
-        return reporter;
-    }
-
     @Override
     protected NotificationPoint createAccessor(final String resourceName, final MBeanNotificationInfo metadata) throws Exception {
         return new NotificationPoint(metadata) {

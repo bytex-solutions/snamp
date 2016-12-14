@@ -62,7 +62,6 @@
       <version>4.0.7</version>
       <type>xml</type>
       <classifier>features</classifier>
-      <scope>runtime</scope>
     </dependency>
   </dependencies>
   <build>
