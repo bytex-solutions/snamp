@@ -65,4 +65,11 @@
     <feature name="snamp-snmp-support" description="Set of Java libraries for SNMPv2/SNMPv3" version="${project.version}">
         <bundle>mvn:com.bytex.snamp/snmp4j/${snmp4j.version}</bundle>
     </feature>
+
+    <feature name="snamp-message-processing" description="SNAMP instrumentation library and connector for measurements" version="${snamp.connector.md.version}">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
+        <bundle>mvn:com.bytex.snamp/message-driven-connector/${snamp.connector.md.version}</bundle>
+        <bundle>mvn:com.bytex.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
+    </feature>
 </features>

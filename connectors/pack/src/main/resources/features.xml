@@ -2,13 +2,6 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-connectors">
     <repository>mvn:com.bytex.snamp/core-features/${snamp.version}/xml/features</repository>
 
-    <feature name="snamp-message-processing" description="SNAMP instrumentation library and connector for measurements" version="${snamp.connector.md.version}">
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
-        <bundle>mvn:com.bytex.snamp/message-driven-connector/${snamp.connector.md.version}</bundle>
-        <bundle>mvn:com.bytex.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
-    </feature>
-
     <feature name="snamp-composite-connector" description="Composite Connector Karaf Feature" version="${snamp.connector.composite.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
