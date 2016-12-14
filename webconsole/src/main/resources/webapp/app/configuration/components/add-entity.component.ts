@@ -98,10 +98,14 @@ export class AddEntity implements OnInit {
                     this.entities.push(newGateway);
                 });
         } else if(this.type == "resource") {
+             let connectionString:string = this.selectedConnectionString;
+             if (connectionString == undefined || connectionString.length < 4) {
+                connectionString = ParamDescriptor.stubValue;
+             }
              let newResource:TypedEntity = new Resource(
                 this.http,
                 this.selectedName,
-                Resource.stringify(this.selectedType.type, this.selectedConnectionString, this.params)
+                Resource.stringify(this.selectedType.type, connectionString, this.params)
             );
             this.http.put(REST.RESOURCE_BY_NAME(newResource.name), newResource.stringify())
                 .map((res:Response) => res.json())

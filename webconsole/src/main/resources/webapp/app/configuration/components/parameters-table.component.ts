@@ -40,7 +40,7 @@ export class ParametersTable implements OnInit {
     @ViewChildren(InlineEditComponent) editComponents: QueryList<InlineEditComponent>;
 
     selectedParam:ParamDescriptor = undefined;
-    stabValue:string = ParamDescriptor.stubValue;
+    stubValue:string = ParamDescriptor.stubValue;
 
     containsRequired:boolean = false;
     containsOptional:boolean = false;
@@ -103,7 +103,7 @@ export class ParametersTable implements OnInit {
 
     addNewParameter() {
         let paramKey:string = "";
-        let paramValue:string = this.stabValue;
+        let paramValue:string = this.stubValue;
         if (this.selectedParam == undefined) {
             paramKey = this.newParamElement.nativeElement.value;
             paramValue = this.customParamValue.nativeElement.value;
@@ -140,7 +140,7 @@ export class ParametersTable implements OnInit {
     clear() {
         this.listParamValue.nativeElement.value = "";
         if (this.customParamValue != undefined) {
-            this.customParamValue.nativeElement.value = this.stabValue;
+            this.customParamValue.nativeElement.value = this.stubValue;
         }
         this.newParamElement.nativeElement.value = "";
     }

@@ -2,6 +2,7 @@ import { TypedEntity } from './model.typedEntity';
 import { KeyValue } from './model.entity';
 import { ApiClient } from '../../app.restClient';
 import { Attribute } from './model.attribute';
+import { ParamDescriptor } from './model.paramDescriptor';
 import { Event } from './model.event';
 import { Operation } from './model.operation';
 
@@ -16,6 +17,9 @@ export class Resource extends TypedEntity {
     constructor(http:ApiClient, name:string, parameters: any) {
         super(http, name, parameters["type"], parameters["parameters"]);
         this.connectionString = parameters["connectionString"];
+        if (this.connectionString == undefined || this.connectionString.length < 4) {
+            this.connectionString = ParamDescriptor.stubValue;
+        }
         if (this.contains("smartMode")) {
             this.smartMode = this.getParameter("smartMode").value === "true";
             this.removeParameter("smartMode");
