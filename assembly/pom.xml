@@ -62,6 +62,7 @@
       <version>4.0.7</version>
       <type>xml</type>
       <classifier>features</classifier>
+      <scope>runtime</scope>
     </dependency>
   </dependencies>
   <build>
@@ -92,8 +93,15 @@
             <feature>http-whiteboard</feature>
             <feature>cellar</feature>
             <feature>scr</feature>
-            <feature>snamp-core</feature>
             <feature>wrapper</feature>
+            <feature>snamp-core</feature>
+            <feature>snamp-security</feature>
+            <feature>snamp-web-support</feature>
+            <feature>snamp-scripting-support</feature>
+            <feature>snamp-jmx-support</feature>
+            <feature>snamp-ssh-support</feature>
+            <feature>snamp-snmp-support</feature>
+            <feature>snamp-message-processing</feature>
           </installedFeatures>
         </configuration>
       </plugin>
