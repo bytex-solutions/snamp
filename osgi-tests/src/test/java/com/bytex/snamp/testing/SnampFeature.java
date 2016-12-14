@@ -9,7 +9,8 @@ import java.util.Objects;
  * @since 1.0
  */
 public enum SnampFeature {
-    PLATFORM("platform", "2.0.0", "snamp-core", "snamp-management"),
+    PLATFORM("core-features", "2.0.0", "snamp-core"),
+
     HTTP_ACCEPTOR("connectors-pack", "2.0.0", "snamp-http-acceptor"),
     JMX_CONNECTOR("connectors-pack", "2.0.0", "snamp-jmx-connector"),
     ZIPKIN_CONNECTOR("connectors-pack", "2.0.0", "snamp-zipkin-connector"),
@@ -30,7 +31,7 @@ public enum SnampFeature {
     GROOVY_CONNECTOR("connectors-pack", "2.0.0", "snamp-groovy-connector"),
     GROOVY_GATEWAY("gateways-pack", "2.0.0", "snamp-groovy-gateway"),
     MODBUS_CONNECTOR("connectors-pack", "2.0.0", "snamp-modbus-connector"),
-    WEBCONSOLE("webconsole-feature", "2.0.0", "snamp-web-console");
+    STANDARD_TOOLS("standard-features", "2.0.0", "snamp-web-console", "snamp-management");
 
     final String[] featureNames;
     private final String artifactId;

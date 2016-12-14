@@ -6,13 +6,12 @@
     <groupId>com.bytex.snamp</groupId>
     <artifactId>snamp</artifactId>
     <version>2.0.0</version>
-    <relativePath>../../pom.xml</relativePath>
   </parent>
-  <artifactId>webconsole-feature</artifactId>
+  <artifactId>standard-features</artifactId>
   <version>2.0.0</version>
   <packaging>kar</packaging>
-  <name>Webconsole feature</name>
-  <description>Feature for webconsole</description>
+  <name>SNAMP Standard Features</name>
+  <description>SNAMP Standard Features</description>
   <build>
     <resources>
       <resource>

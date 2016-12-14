@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-standard">
+    <repository>mvn:com.bytex.snamp/platform/${snamp.version}/xml/features</repository>
+
+    <feature name="snamp-web-console" description="${project.name}" version="${snamp.webconsole.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp/webconsole/${snamp.webconsole.version}</bundle>
+    </feature>
+
+    <feature name="snamp-management" description="SNAMP management tools" version="${snamp.management.version}" install="auto">
+        <feature version="${project.version}" >snamp-core</feature>
+        <feature version="${project.version}" >snamp-web-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp/management/${snamp.management.version}</bundle>
+    </feature>
+</features>

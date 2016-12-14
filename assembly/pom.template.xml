@@ -47,7 +47,6 @@
                         <feature>cellar</feature>
                         <feature>scr</feature>
                         <feature>snamp-core</feature>
-                        <feature>snamp-management</feature>
                         <feature>wrapper</feature>
                     </installedFeatures>
                 </configuration>
@@ -98,8 +97,8 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.bytex.snamp</groupId>
-                                    <artifactId>webconsole-feature</artifactId>
-                                    <version>${snamp.webconsole.version}</version>
+                                    <artifactId>standard-features</artifactId>
+                                    <version>${snamp.version}</version>
                                     <type>kar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>

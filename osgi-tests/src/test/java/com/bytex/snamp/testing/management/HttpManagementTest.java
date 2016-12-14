@@ -48,7 +48,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.SNMP_GATEWAY, SnampFeature.GROOVY_GATEWAY,
-SnampFeature.NAGIOS_GATEWAY, SnampFeature.NRDP_GATEWAY, SnampFeature.SSH_GATEWAY, SnampFeature.WEBCONSOLE})
+SnampFeature.NAGIOS_GATEWAY, SnampFeature.NRDP_GATEWAY, SnampFeature.SSH_GATEWAY, SnampFeature.STANDARD_TOOLS})
 public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";

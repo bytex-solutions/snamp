@@ -97,8 +97,8 @@
           <instructions>
             <Bundle-Activator>com.bytex.snamp.management.ManagementServiceLibrary</Bundle-Activator>
             <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-            <Karaf-Commands>com.bytex.snamp.management.shell.*</Karaf-Commands>
             <Export-Package />
+            <Karaf-Commands>com.bytex.snamp.management.shell.*</Karaf-Commands>
           </instructions>
         </configuration>
       </plugin>

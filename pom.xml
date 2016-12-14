@@ -24,9 +24,9 @@
     <module>infrastructure/scripting</module>
     <module>infrastructure/groovy-xml-bridge</module>
     <module>webconsole</module>
-    <module>features/platform</module>
+    <module>features/core-features</module>
     <module>features/wrapped-libs-for-tests</module>
-    <module>features/webconsole-feature</module>
+    <module>features/standard-features</module>
     <module>instrumentations/java</module>
     <module>osgi-tests</module>
   </modules>

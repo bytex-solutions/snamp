@@ -51,12 +51,6 @@
         <bundle>mvn:com.bytex.snamp/groovy-xml-bridge/${snamp.scripting.version}</bundle>
     </feature>
 
-    <feature name="snamp-management" description="SNAMP management tools" version="${project.version}">
-        <feature version="${project.version}" >snamp-core</feature>
-        <feature version="${project.version}" >snamp-web-support</feature>
-        <bundle start="true">mvn:com.bytex.snamp/management/${snamp.management.version}</bundle>
-    </feature>
-
     <feature name="snamp-jmx-support" description="Various JMX helpers and JMX-to-JSON serialization" version="${project.version}">
         <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
         <bundle>mvn:com.bytex.snamp/jmx-helpers/${snamp.jmxhelper.version}</bundle>
