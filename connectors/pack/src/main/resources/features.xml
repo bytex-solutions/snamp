@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-connectors">
-    <repository>mvn:com.bytex.snamp/platform/${snamp.version}/xml/features</repository>
+    <repository>mvn:com.bytex.snamp/core-features/${snamp.version}/xml/features</repository>
 
     <feature name="snamp-message-processing" description="SNAMP instrumentation library and connector for measurements" version="${snamp.connector.md.version}">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
