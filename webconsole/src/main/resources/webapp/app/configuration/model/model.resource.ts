@@ -16,19 +16,24 @@ export class Resource extends TypedEntity {
     operations:Operation[] = [];
     constructor(http:ApiClient, name:string, parameters: any) {
         super(http, name, parameters["type"], parameters["parameters"]);
+        this.http = http;
+
+        // set right connection string
         this.connectionString = parameters["connectionString"];
         if (this.connectionString == undefined || this.connectionString.length < 4) {
             this.connectionString = ParamDescriptor.stubValue;
         }
+        // set the smart mode
         if (this.contains("smartMode")) {
             this.smartMode = this.getParameter("smartMode").value === "true";
             this.removeParameter("smartMode");
         }
+        // set the group
         if (this.contains("group")) {
             this.groupName = this.getParameter("group").value;
             this.removeParameter("group");
         }
-        this.http = http;
+
         // filling attributes
         if (parameters["attributes"] != undefined) {
             let attrs = parameters["attributes"];
