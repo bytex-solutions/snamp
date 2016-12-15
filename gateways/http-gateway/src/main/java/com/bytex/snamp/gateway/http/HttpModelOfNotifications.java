@@ -14,6 +14,7 @@ import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse;
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
 
 import javax.management.MBeanNotificationInfo;
+import javax.management.Notification;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
@@ -21,27 +22,28 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents collection of connected events.
  */
 final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificationAccessor> implements WebSocketCreator, NotificationListener {
-    private final class NotificationChannel extends WebSocketAdapter implements NotificationListener {
-        private final String resourceName;
-
-        NotificationChannel(final String resourceName){
-            this.resourceName = resourceName;
-        }
-
+    private class NotificationChannel extends WebSocketAdapter implements NotificationListener{
         @Override
-        public void onWebSocketConnect(final Session sess) {
-            super.onWebSocketConnect(sess);
+        public final void onWebSocketConnect(final Session session) {
+            super.onWebSocketConnect(session);
             webSocketListeners.add(this);
         }
 
+        boolean isAllowed(final Notification notification){
+            return true;
+        }
+
         @Override
-        public void handleNotification(final NotificationEvent event) {
-            if (isConnected() && Objects.equals(resourceName, event.getNotification().getSource())) {
+        public final void handleNotification(final NotificationEvent event) {
+            if (isConnected() && isAllowed(event.getNotification())) {
                 try {
                     getRemote().sendString(formatter.toJson(event.getNotification()));
                 } catch (final IOException e) {
@@ -51,18 +53,32 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
         }
 
         @Override
-        public void onWebSocketError(final Throwable cause) {
+        public final void onWebSocketError(final Throwable cause) {
             logger.log(Level.WARNING, "WebSocket error detected", cause);
         }
 
         @Override
-        public void onWebSocketClose(final int statusCode, final String reason) {
+        public final void onWebSocketClose(final int statusCode, final String reason) {
             logger.fine(() -> String.format("WebSocket is closed with status %s (%s)", statusCode, reason));
             super.onWebSocketClose(statusCode, reason);
             webSocketListeners.remove(this);
         }
     }
 
+    private final class FilteredNotificationChannel extends NotificationChannel implements NotificationListener {
+        private final String resourceName;
+
+        FilteredNotificationChannel(final String resourceName){
+            this.resourceName = resourceName;
+        }
+
+        @Override
+        boolean isAllowed(final Notification notification) {
+            return Objects.equals(resourceName, notification.getSource());
+        }
+    }
+
+    private final Pattern slashReplace = Pattern.compile("/", Pattern.LITERAL);
     private final Gson formatter = JsonUtils.registerTypeAdapters(new GsonBuilder())
             .serializeSpecialFloatingPointValues()
             .serializeNulls()
@@ -83,7 +99,9 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
 
     @Override
     public WebSocketListener createWebSocket(final ServletUpgradeRequest req, final ServletUpgradeResponse resp) {
-        return new NotificationChannel(req.getRequestPath());
+        String resourceName = req.getHttpServletRequest().getPathInfo();
+        resourceName = slashReplace.matcher(resourceName).replaceAll("");
+        return isNullOrEmpty(resourceName) ? new NotificationChannel() : new FilteredNotificationChannel(resourceName);
     }
 
     @Override

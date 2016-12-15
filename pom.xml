@@ -49,7 +49,6 @@
     <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
     <snamp.scripting.version>2.0.0</snamp.scripting.version>
     <jackson.version>1.9.13</jackson.version>
-    <atmosphere.version>2.2.9</atmosphere.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <snamp.security.version>2.0.0</snamp.security.version>
     <netty.version>3.10.6.Final</netty.version>

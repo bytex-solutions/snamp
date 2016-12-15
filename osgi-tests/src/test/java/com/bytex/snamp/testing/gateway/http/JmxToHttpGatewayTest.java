@@ -1,6 +1,6 @@
 package com.bytex.snamp.testing.gateway.http;
 
-import com.bytex.snamp.concurrent.SpinWait;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
@@ -34,14 +35,10 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.Duration;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 import static com.bytex.snamp.jmx.json.JsonUtils.toJsonArray;
@@ -54,8 +51,9 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies({SnampFeature.HTTP_GATEWAY, SnampFeature.WRAPPED_LIBS})
 public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    //must be public
     @WebSocket
-    private static final class NotificationReceiver extends LinkedBlockingQueue<JsonElement>{
+    public static final class NotificationReceiver extends LinkedBlockingQueue<JsonElement>{
         private static final long serialVersionUID = 2056675059549300951L;
         private final Gson formatter;
 
@@ -64,6 +62,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
         }
 
         @OnWebSocketMessage
+        @SpecialUse
         public void onMessage(final String notification) {
             offer(formatter.toJsonTree(notification));
         }
@@ -199,13 +198,13 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
     public void testNotificationViaWebSocket() throws Exception {
         final WebSocketClient client = new WebSocketClient();
         final NotificationReceiver receiver = new NotificationReceiver(formatter);
-        client.connect(receiver, new URI(String.format("http://localhost:8181/snamp/gateway/http/%s/notifications/%s", INSTANCE_NAME, TEST_RESOURCE_NAME)), new ClientUpgradeRequest());
         client.start();
         try {
+            final Session session = client.connect(receiver, new URI(String.format("ws://localhost:8181/snamp/gateway/http/%s/notifications/%s", INSTANCE_NAME, TEST_RESOURCE_NAME)), new ClientUpgradeRequest()).get(3, TimeUnit.SECONDS);
             //force attribute change
             testStringAttribute();
             //wait for notifications
-            receiver.poll(3, TimeUnit.SECONDS);
+            assertNotNull(receiver.poll(3, TimeUnit.HOURS));
         } catch (final InterruptedException e) {
             fail(String.format("Invalid message count: %s", receiver.size()));
         } finally {
@@ -221,7 +220,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Override

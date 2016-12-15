@@ -25,7 +25,6 @@
     <jline.version>2.14.2</jline.version>
     <bouncycastle.version>1.54</bouncycastle.version>
     <hazelcast.version>3.7.2</hazelcast.version>
-    <atmosphere.version>2.2.9</atmosphere.version>
     <sshd.version>0.14.0</sshd.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
     <jackson.version>1.9.13</jackson.version>

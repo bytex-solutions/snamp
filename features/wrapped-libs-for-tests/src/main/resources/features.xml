@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="wrapped-bundles">
     <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
-    <feature name="${project.artifactId}" description="Repackaged libraries as Apache Karaf Features" version="2.0.0">
-        <feature >wrap</feature>
-        <details>Repackaged libraries as Apache Karaf Features</details>
+    <feature name="${project.artifactId}" description="Repackaged libraries as Apache Karaf Features" version="2.0.0" install="auto">
+        <feature prerequisite="true">wrap</feature>
         <bundle>wrap:mvn:org.apache.directory.server/apacheds-all/2.0.0-M16$Export-Package=org.apache.directory.*;version="2.0.0.16"</bundle>
         <bundle>wrap:mvn:org.apache.vysper/vysper-core/0.7$Export-Package=org.apache.vysper.*;version="0.7"</bundle>
         <bundle>wrap:mvn:org.apache.vysper.extensions/xep0045-muc/0.7$Export-Package=org.apache.vysper.xmpp.modules.extension.xep0045_muc.*;version="0.7"</bundle>
