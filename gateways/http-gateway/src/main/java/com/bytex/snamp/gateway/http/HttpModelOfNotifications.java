@@ -9,13 +9,13 @@ import com.google.gson.GsonBuilder;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
+import org.eclipse.jetty.websocket.api.WriteCallback;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse;
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
@@ -44,11 +44,17 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
         @Override
         public final void handleNotification(final NotificationEvent event) {
             if (isConnected() && isAllowed(event.getNotification())) {
-                try {
-                    getRemote().sendString(formatter.toJson(event.getNotification()));
-                } catch (final IOException e) {
-                    logger.log(Level.WARNING, String.format("Failed to send notification %s from %s", event.getNotification(), Arrays.toString(event.getSource().getNotifTypes())));
-                }
+                getRemote().sendString(formatter.toJson(event.getNotification()), new WriteCallback() {
+                    @Override
+                    public void writeFailed(final Throwable x) {
+                        logger.log(Level.WARNING, String.format("Failed to send notification %s from %s", event.getNotification(), Arrays.toString(event.getSource().getNotifTypes())));
+                    }
+
+                    @Override
+                    public void writeSuccess() {
+
+                    }
+                });
             }
         }
 

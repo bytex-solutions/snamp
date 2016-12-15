@@ -6,6 +6,7 @@ package com.bytex.snamp.database;
  * @since 2.0
  */
 public final class OrientDatabaseService /*extends OServer implements DatabaseService, ManagedService*/ {
+
 //    public static final String PERSISTENCE_ID = "com.bytex.snamp.db.configuration";
 //    private final Marshaller xmlSerializer;
 //    private final Unmarshaller xmlDeserializer;

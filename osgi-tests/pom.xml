@@ -88,6 +88,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.eclipse.jetty.websocket</groupId>
+      <artifactId>websocket-client</artifactId>
+      <version>9.2.19.v20160908</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.ops4j.pax.exam</groupId>
       <artifactId>pax-exam-container-karaf</artifactId>
       <version>4.9.1</version>
@@ -285,11 +291,6 @@
       <artifactId>xmpp-gateway</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty.websocket</groupId>
-      <artifactId>websocket-client</artifactId>
-      <version>9.2.19.v20160908</version>
     </dependency>
     <dependency>
       <groupId>com.bytex.snamp</groupId>
