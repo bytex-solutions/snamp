@@ -1,7 +1,6 @@
 package com.bytex.jcommands.impl;
 
 import com.bytex.jcommands.ChannelProcessor;
-import com.bytex.snamp.ThreadSafe;
 import org.antlr.runtime.tree.Tree;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
@@ -124,7 +123,6 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @return The command to apply.
      */
     @Override
-    @ThreadSafe()
     public final String renderCommand(final Map<String, ?> channelParameters,
                                                    final Map<String, ?> input) {
         if(precompiledTemplate == null)
@@ -149,7 +147,6 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @return The command to apply.
      * @throws java.lang.IllegalStateException The command template is not specified.
      */
-    @ThreadSafe()
     public final String renderCommand(final Map<String, ?> channelParameters) throws IllegalStateException {
         return renderCommand(channelParameters, Collections.emptyMap());
     }
@@ -168,7 +165,6 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @throws javax.script.ScriptException Some non I/O processing exception.
      */
     @Override
-    @ThreadSafe(false)
     public Object process(final String result, final Exception error) throws ScriptException {
         if (error != null) throw new ScriptException(error);
         return getCommandOutputParser().parse(result,

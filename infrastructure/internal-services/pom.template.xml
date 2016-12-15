@@ -52,6 +52,10 @@
             <artifactId>orientdb-distributed</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>

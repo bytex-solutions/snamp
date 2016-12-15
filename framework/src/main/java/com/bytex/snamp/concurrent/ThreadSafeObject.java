@@ -3,6 +3,7 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SafeCloseable;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.EnumMap;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
@@ -20,6 +21,7 @@ import java.util.function.Function;
  * @version 2.0
  * @since 1.0
  */
+@ThreadSafe
 public abstract class ThreadSafeObject {
 
     private interface LockScope extends SafeCloseable, Lock {

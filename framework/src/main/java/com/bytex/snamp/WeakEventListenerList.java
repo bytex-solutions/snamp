@@ -2,6 +2,7 @@ package com.bytex.snamp;
 
 import com.google.common.collect.ObjectArrays;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.BiConsumer;

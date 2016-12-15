@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -12,6 +13,7 @@ import java.util.function.Function;
  * @version 2.0
  * @since 1.0
  */
+@ThreadSafe
 public class FutureThread<V> extends Thread implements ComputationPipeline<V>{
 
     private final Callable<V> implementation;

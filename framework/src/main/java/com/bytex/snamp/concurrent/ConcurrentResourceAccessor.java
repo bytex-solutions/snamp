@@ -1,5 +1,7 @@
 package com.bytex.snamp.concurrent;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Provides thread-safe access to the thread-unsafe resource.
  * <p>
@@ -40,6 +42,7 @@ package com.bytex.snamp.concurrent;
  * @since 1.0
  * @version 2.0
  */
+@ThreadSafe
 public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAccessor<R> {
     private static final long serialVersionUID = -5981763196807390411L;
 

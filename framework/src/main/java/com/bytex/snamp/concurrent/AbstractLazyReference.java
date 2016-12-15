@@ -4,6 +4,7 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
 import com.bytex.snamp.BoxFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.Reference;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
@@ -17,6 +18,7 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 abstract class AbstractLazyReference<V> extends AtomicReference<Reference<V>> implements LazyReference<V> {
     private static final long serialVersionUID = 1898537173263220348L;
     private final Function<? super V, ? extends Reference<V>> makeRef;

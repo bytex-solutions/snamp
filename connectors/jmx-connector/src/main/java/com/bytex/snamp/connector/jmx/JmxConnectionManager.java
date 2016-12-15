@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.Internal;
-import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.Repeater;
 
 import javax.management.JMException;
@@ -168,7 +167,6 @@ final class JmxConnectionManager implements AutoCloseable {
         watchDog.run();
     }
 
-    @ThreadSafe(false)
     boolean connect() {
         try {
             return connectionHolder.createConnection() != null;
@@ -178,7 +176,6 @@ final class JmxConnectionManager implements AutoCloseable {
         }
     }
 
-    @ThreadSafe
     <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws InterruptedException, JMException, IOException {
         readLock.lockInterruptibly();
         try {
@@ -195,12 +192,10 @@ final class JmxConnectionManager implements AutoCloseable {
         }
     }
 
-    @ThreadSafe
     void addReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
         watchDog.reconnectionHandlers.add(handler);
     }
 
-    @ThreadSafe
     void removeReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
         watchDog.reconnectionHandlers.add(handler);
     }
@@ -232,7 +227,6 @@ final class JmxConnectionManager implements AutoCloseable {
     }
 
     @Override
-    @ThreadSafe(false)
     public void close() throws Exception {
         try {
             watchDog.reconnectionHandlers.clear();

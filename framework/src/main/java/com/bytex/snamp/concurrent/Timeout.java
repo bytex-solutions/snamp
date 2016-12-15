@@ -2,8 +2,8 @@ package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.ThreadSafe;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;

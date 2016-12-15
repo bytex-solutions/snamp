@@ -2,6 +2,7 @@ package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SafeCloseable;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeoutException;
  * @since 1.0
  * @version 2.0
  */
+@ThreadSafe
 public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeObject implements Serializable {
     private static final long serialVersionUID = -7263363564614921684L;
 

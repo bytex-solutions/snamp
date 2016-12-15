@@ -2,7 +2,6 @@ package com.bytex.snamp.connector;
 
 import com.bytex.snamp.Localizable;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -65,7 +64,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @throws Exception Unable to release resources associated with this connector.
      */
     @Override
-    @ThreadSafe(false)
     public void close() throws Exception {
         //change state of the connector
         metrics.reset();

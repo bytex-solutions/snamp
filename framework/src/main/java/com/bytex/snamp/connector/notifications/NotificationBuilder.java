@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.notifications;
 
-import com.bytex.snamp.ThreadSafe;
-
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.management.Notification;
 import java.util.Objects;
 
@@ -12,7 +11,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 1.0
  */
-@ThreadSafe(false)
+@NotThreadSafe
 public class NotificationBuilder extends AbstractNotificationBuilder<Notification> {
     private String type = "";
 

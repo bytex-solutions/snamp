@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.ResettableIterator;
-import com.bytex.snamp.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Arrays;

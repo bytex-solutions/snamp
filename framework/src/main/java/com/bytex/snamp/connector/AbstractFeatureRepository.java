@@ -1,12 +1,12 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.metrics.Metric;
 import com.google.common.collect.Sets;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.management.MBeanFeatureInfo;
 import java.util.Collection;
 import java.util.Objects;
@@ -23,6 +23,7 @@ import static com.bytex.snamp.ArrayUtils.arrayConstructor;
  * @since 1.0
  * @version 2.0
  */
+@ThreadSafe
 public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F> {
     private static final class WeakResourceEventListener extends WeakEventListener<ResourceEventListener, ResourceEvent> implements ResourceEventListener{
         private WeakResourceEventListener(final ResourceEventListener listener) {
@@ -109,7 +110,6 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      * @param featureID ID of the feature.
      * @return Feature instance; or {@literal null}, if feature with the specified ID doesn't exist.
      */
-    @ThreadSafe
     public abstract F get(final String featureID);
 
     /**

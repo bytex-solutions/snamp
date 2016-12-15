@@ -2,7 +2,6 @@ package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.ThreadSafe;
 
 import javax.management.MBeanOperationInfo;
 import java.util.Collection;
@@ -43,7 +42,6 @@ public abstract class ModelOfOperations<TAccessor extends OperationAccessor> ext
         forEachFeature(operationReader);
     }
 
-    @ThreadSafe
     public final Collection<MBeanOperationInfo> getResourceOperationsMetadata(final String resourceName){
         return getResourceFeaturesMetadata(resourceName);
     }

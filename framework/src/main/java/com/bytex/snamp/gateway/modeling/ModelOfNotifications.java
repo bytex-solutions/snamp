@@ -2,7 +2,6 @@ package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.ThreadSafe;
 
 import javax.management.MBeanNotificationInfo;
 import java.util.Collection;
@@ -30,13 +29,11 @@ public abstract class ModelOfNotifications<TAccessor extends NotificationAccesso
         this(SingleResourceGroup.class, SingleResourceGroup.INSTANCE);
     }
 
-    @ThreadSafe
     public final TAccessor addNotification(final String resourceName,
                                         final MBeanNotificationInfo metadata) throws Exception{
         return addFeature(resourceName, metadata);
     }
 
-    @ThreadSafe
     public final TAccessor removeNotification(final String resourceName,
                                            final MBeanNotificationInfo metadata){
         return removeFeature(resourceName, metadata);
@@ -55,7 +52,6 @@ public abstract class ModelOfNotifications<TAccessor extends NotificationAccesso
         return processFeature(resourceName, notificationType, processor);
     }
 
-    @ThreadSafe
     public final Collection<MBeanNotificationInfo> getResourceNotificationsMetadata(final String resourceName){
         return getResourceFeaturesMetadata(resourceName);
     }

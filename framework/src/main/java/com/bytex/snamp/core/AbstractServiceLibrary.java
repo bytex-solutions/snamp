@@ -2,7 +2,6 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -11,6 +10,7 @@ import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
@@ -635,6 +635,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <S> The contract of the dynamic service.
      * @param <T> The implementation of the dynamic service.
      */
+    @ThreadSafe
     public static abstract class ServiceSubRegistryManager<S, T extends S> extends DynamicServiceManager<ServiceRegistrationHolder<S, T>> {
         /**
          * Represents the contract of the dynamic service.
@@ -670,7 +671,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws Exception Unable to update service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
-        @ThreadSafe
         protected abstract T update(final T service,
                                     final Dictionary<String, ?> configuration) throws Exception;
 
@@ -685,7 +685,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @Override
-        @ThreadSafe
         protected final ServiceRegistrationHolder<S, T> updateService(ServiceRegistrationHolder<S, T> registration,
                                                                       final Dictionary<String, ?> configuration) throws Exception {
             final T oldService = registration.get();
@@ -710,7 +709,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws Exception Unable to instantiate a new service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
          */
-        @ThreadSafe
         protected abstract T createService(final Map<String, Object> identity,
                                            final Dictionary<String, ?> configuration) throws Exception;
 
@@ -724,7 +722,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @Override
-        @ThreadSafe
         protected final ServiceRegistrationHolder<S, T> activateService(final String servicePID,
                                                                         final Dictionary<String, ?> configuration) throws Exception {
             final Hashtable<String, Object> identity = new Hashtable<>(4);
@@ -739,7 +736,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @param identity Service identity.
          * @throws Exception Unable to dispose service.
          */
-        @ThreadSafe
         protected abstract void cleanupService(final T service,
                                                final Map<String, ?> identity) throws Exception;
 

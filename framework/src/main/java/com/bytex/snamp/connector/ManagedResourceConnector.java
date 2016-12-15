@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
@@ -87,14 +86,12 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      *     The managed resource connector should holds a weak reference to all added event listeners.
      * @param listener An event listener to add.
      */
-    @ThreadSafe
     void addResourceEventListener(final ResourceEventListener listener);
 
     /**
      * Removes connector event listener.
      * @param listener The listener to remove.
      */
-    @ThreadSafe
     void removeResourceEventListener(final ResourceEventListener listener);
 
     static String getResourceConnectorType(final Bundle bnd){

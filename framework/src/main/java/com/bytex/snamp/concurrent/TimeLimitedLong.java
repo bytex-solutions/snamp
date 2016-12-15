@@ -1,6 +1,6 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;

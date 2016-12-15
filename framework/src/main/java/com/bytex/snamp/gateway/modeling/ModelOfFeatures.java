@@ -3,7 +3,6 @@ package com.bytex.snamp.gateway.modeling;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableList;
@@ -71,7 +70,6 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
         return writeLock.apply(listGroup, resourceName, metadata, this::removeFeatureImpl);
     }
 
-    @ThreadSafe(false)
     final TAccessor getAccessor(final String resourceName, final String featureName) {
         final L f = features.get(resourceName);
         return f != null ? f.get(featureName) : null;
@@ -108,7 +106,6 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
      * Returns a read-only set of connected managed resources.
      * @return The read-only set of connected managed resources.
      */
-    @ThreadSafe
     public final Set<String> getHostedResources(){
         return readLock.apply(listGroup, features, attrs -> ImmutableSet.copyOf(attrs.keySet()));
     }
@@ -120,7 +117,6 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
                 ImmutableSet.of();
     }
 
-    @ThreadSafe
     final Set<String> getResourceFeatures(final String resourceName) {
         return readLock.apply(listGroup, resourceName, features, ModelOfFeatures::getFeaturesImpl);
     }
@@ -136,7 +132,6 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
             return ImmutableList.of();
     }
 
-    @ThreadSafe
     final Collection<M> getResourceFeaturesMetadata(final String resourceName){
         return readLock.apply(listGroup, resourceName, features, ModelOfFeatures::getFeatures);
     }
@@ -153,7 +148,6 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
      * @param resourceName The name of the managed resource.
      * @return The read-only collection of removed attributes.
      */
-    @ThreadSafe
     public Collection<TAccessor> clear(final String resourceName) {
         return writeLock.apply(listGroup, resourceName, features, ModelOfFeatures::clearImpl);
     }
@@ -176,7 +170,6 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
     /**
      * Removes all attributes from this model.
      */
-    @ThreadSafe
     public void clear(){
         writeLock.accept(SingleResourceGroup.INSTANCE, features, ModelOfFeatures::clearImpl);
     }

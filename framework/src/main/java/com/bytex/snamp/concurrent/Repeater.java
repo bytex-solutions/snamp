@@ -1,8 +1,8 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.ThreadSafe;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +20,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  * @since 1.0
  */
+@ThreadSafe
 public abstract class Repeater implements AutoCloseable, Runnable {
     /**
      * Represents state of this timer.
@@ -208,7 +209,6 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         }
     }
 
-    @ThreadSafe(false)
     private void runImpl(){
         switch (state){
             case STOPPED:
@@ -245,7 +245,6 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @throws java.lang.IllegalStateException This repeater is not in {@link RepeaterState#STOPPED} or {@link RepeaterState#FAILED} state.
      */
     @Override
-    @ThreadSafe
     public final void run() {
         monitor.lock();
         try{
@@ -262,7 +261,6 @@ public abstract class Repeater implements AutoCloseable, Runnable {
             throw new TimeoutException(String.format("Thread %s is alive", th));
     }
 
-    @ThreadSafe(false)
     private boolean tryStop(final long timeoutMillis) throws TimeoutException, InterruptedException{
         switch (state) {
             case STOPPING:
@@ -281,7 +279,6 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         return true;
     }
 
-    @ThreadSafe
     private void stop(final long millis) throws TimeoutException, InterruptedException {
         long duration = System.currentTimeMillis();
         if (monitor.tryLock(millis, TimeUnit.MILLISECONDS)) {

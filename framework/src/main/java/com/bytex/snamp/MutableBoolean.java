@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.function.BinaryOperator;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
@@ -12,7 +13,7 @@ import java.util.function.UnaryOperator;
  * @version 2.0
  * @since 2.0
  */
-@ThreadSafe(false)
+@NotThreadSafe
 final class MutableBoolean implements BooleanBox {
     private static final long serialVersionUID = 5106640286011881150L;
     private boolean value;

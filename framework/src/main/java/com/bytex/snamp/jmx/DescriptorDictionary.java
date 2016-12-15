@@ -2,8 +2,8 @@ package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.ResettableIterator;
-import com.bytex.snamp.ThreadSafe;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.management.Descriptor;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -16,7 +16,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 1.0
  */
-@ThreadSafe(false)
+@NotThreadSafe
 final class DescriptorDictionary extends Dictionary<String, Object> {
     private final Descriptor descr;
     private String[] fields;    //cached fields for fast access

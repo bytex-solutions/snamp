@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;

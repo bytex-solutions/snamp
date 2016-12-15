@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
@@ -13,6 +14,7 @@ import java.util.function.Function;
  * @version 2.0
  * @since 1.0
  */
+@ThreadSafe
 public final class SpinWait {
     private SpinWait(){
         throw new InstantiationError();

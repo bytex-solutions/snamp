@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway.modeling;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 import javax.management.*;
 import java.util.Collection;
@@ -45,13 +45,11 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      * @return An instance of the managed resource attribute accessor.
      * @throws Exception Unable to instantiate attribute accessor.
      */
-    @ThreadSafe
     public final TAccessor addAttribute(final String resourceName,
                                   final MBeanAttributeInfo metadata) throws Exception{
         return addFeature(resourceName, metadata);
     }
 
-    @ThreadSafe
     public final TAccessor removeAttribute(final String resourceName,
                                            final MBeanAttributeInfo metadata){
         return removeFeature(resourceName, metadata);
@@ -98,12 +96,10 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
         return processFeature(resourceName, attributeName, processor);
     }
 
-    @ThreadSafe
     public final Set<String> getResourceAttributes(final String resourceName) {
         return getResourceFeatures(resourceName);
     }
 
-    @ThreadSafe
     public final Collection<MBeanAttributeInfo> getResourceAttributesMetadata(final String resourceName){
         return getResourceFeaturesMetadata(resourceName);
     }

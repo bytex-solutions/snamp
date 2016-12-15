@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.function.*;
 
 /**
@@ -9,7 +10,7 @@ import java.util.function.*;
  * @version 2.0
  * @since 2.0
  */
-@ThreadSafe(false)
+@NotThreadSafe
 final class MutableInteger extends Number implements IntBox {
     private static final long serialVersionUID = 6827831423137642850L;
     private int value;

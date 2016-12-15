@@ -2,6 +2,7 @@ package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.Acceptor;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -16,6 +17,7 @@ import java.util.function.Supplier;
  * @since 2.0
  * @see LazySoftReference
  */
+@ThreadSafe
 public final class LazyStrongReference<V> extends AtomicReference<V> implements LazyReference<V> {
     private static final long serialVersionUID = 813414681121113370L;
 

@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntBinaryOperator;
@@ -12,6 +13,7 @@ import java.util.function.IntSupplier;
  * @version 2.0
  * @since 1.0
  */
+@ThreadSafe
 public abstract class TimeLimitedInt extends Timeout implements IntSupplier, IntConsumer {
     private static final long serialVersionUID = -3529410942029219094L;
     private final AtomicInteger current;

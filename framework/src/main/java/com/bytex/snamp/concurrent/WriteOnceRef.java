@@ -1,8 +1,8 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.ThreadSafe;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Supplier;
@@ -13,6 +13,7 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 1.0
  */
+@ThreadSafe
 public class WriteOnceRef<T> implements Supplier<T> {
     private static final AtomicIntegerFieldUpdater<WriteOnceRef> LOCKED_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(WriteOnceRef.class, "locked");
@@ -43,7 +44,6 @@ public class WriteOnceRef<T> implements Supplier<T> {
      * @param value The value to set.
      * @return {@literal true}, if container is changed successfully; otherwise, {@literal false}.
      */
-    @ThreadSafe
     public final boolean set(final T value) {
         if (LOCKED_UPDATER.compareAndSet(this, 0, 1)) {
             this.value = value;
@@ -55,7 +55,6 @@ public class WriteOnceRef<T> implements Supplier<T> {
      * Determines whether the container is locked and value inside of it cannot be changed.
      * @return {@literal true}, if this container is locked; otherwise, {@literal false}.
      */
-    @ThreadSafe
     public final boolean isLocked(){
         return LOCKED_UPDATER.get(this) > 0;
     }
@@ -64,7 +63,6 @@ public class WriteOnceRef<T> implements Supplier<T> {
      * Gets the value stored in this container.
      * @return The value stored in this container.
      */
-    @ThreadSafe
     public final T get(){
         return value;
     }

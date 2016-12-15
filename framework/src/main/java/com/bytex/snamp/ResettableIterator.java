@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -13,7 +14,7 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 1.0
  */
-@ThreadSafe(false)
+@NotThreadSafe
 public abstract class ResettableIterator<T> implements Iterator<T>, Serializable, Enumeration<T> {
     //iterator with zero elements
     private static final class EmptyIterator extends ResettableIterator{

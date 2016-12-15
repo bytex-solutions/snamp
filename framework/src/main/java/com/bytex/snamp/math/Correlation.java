@@ -1,9 +1,9 @@
 package com.bytex.snamp.math;
 
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.ThreadSafe;
 import com.google.common.util.concurrent.AtomicDouble;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.DoubleBinaryOperator;
