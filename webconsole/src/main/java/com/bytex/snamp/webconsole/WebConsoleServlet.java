@@ -24,20 +24,12 @@ final class WebConsoleServlet extends ServletContainer implements ServiceListene
     private transient final Map<String, WebConsoleServiceHolder> services;
     private transient final ResourceConfig resourceConfig;
 
-    private WebConsoleServlet(final ResourceConfig resourceConfig) throws InvalidSyntaxException {
+    WebConsoleServlet(final ResourceConfig resourceConfig) throws InvalidSyntaxException {
         super(resourceConfig);
         this.resourceConfig = Objects.requireNonNull(resourceConfig);
-        final WebSecurityFilter filter = new WebSecurityFilter();
-        resourceConfig.getContainerResponseFilters().add(filter);
-        resourceConfig.getContainerRequestFilters().add(filter);
-        resourceConfig.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
 
         services = new HashMap<>();
         getBundleContext().addServiceListener(this, String.format("(%s=%s)", OBJECTCLASS, WebConsoleService.class.getName()));
-    }
-
-    WebConsoleServlet() throws InvalidSyntaxException {
-        this(new DefaultResourceConfig());
     }
 
     private BundleContext getBundleContext(){

@@ -2,7 +2,11 @@ package com.bytex.snamp.webconsole;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.google.common.collect.ImmutableMap;
+import com.sun.jersey.api.core.DefaultResourceConfig;
+import com.sun.jersey.api.core.ResourceConfig;
+import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -34,7 +38,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         protected WebConsoleServlet activateService(final Map<String, Object> identity) throws InvalidSyntaxException, ServletException, NamespaceException {
             final HttpService httpService = getDependencies().getDependency(HttpService.class);
             assert httpService != null;
-            final WebConsoleServlet registry = new WebConsoleServlet();
+            final WebConsoleServlet registry = new WebConsoleServlet(prepareConfig());
             httpService.registerServlet(WebConsoleServlet.CONTEXT, registry, new Hashtable<>(), null);
             return registry;
         }
@@ -67,6 +71,17 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         final URL resourceRoot = getClass().getClassLoader().getResource("webapp");
         assert resourceRoot != null;
         return resourceRoot.toExternalForm();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static DefaultResourceConfig prepareConfig() {
+        final DefaultResourceConfig rc = new DefaultResourceConfig();
+        final WebSecurityFilter filter = new WebSecurityFilter();
+        rc.getContainerResponseFilters().add(filter);
+        rc.getContainerRequestFilters().add(filter);
+        rc.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
+        rc.getSingletons().add(new WebConsoleRestService());
+        return rc;
     }
 
     @Override

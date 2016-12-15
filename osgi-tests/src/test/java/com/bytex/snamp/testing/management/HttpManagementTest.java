@@ -300,7 +300,22 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         }
 
         // Get resource by name
-         query = new URL(String.format("http://localhost:8181/snamp/management/configuration/resource/%s", TEST_RESOURCE_NAME));
+        query = new URL(String.format("http://localhost:8181/snamp/management/configuration/resource/%s", TEST_RESOURCE_NAME));
+        //write attribute
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(false);
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            final String attributeValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertNotEquals("{}", attributeValue);
+        } finally {
+            connection.disconnect();
+        }
+
+        // Get resource by name
+        query = new URL(String.format("http://localhost:8181/snamp/management/configuration/resource/%s/attributes/1.0", TEST_RESOURCE_NAME));
         //write attribute
         connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
