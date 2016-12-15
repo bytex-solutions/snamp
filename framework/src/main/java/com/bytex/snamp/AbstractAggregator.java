@@ -6,6 +6,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.Nonnull;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -114,7 +115,7 @@ public abstract class AbstractAggregator implements Aggregator {
 
     private static abstract class AggregationCacheLoader extends CacheLoader<Class<?>, AggregationSupplier>{
         @Override
-        public abstract AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException;
+        public abstract AggregationSupplier load(@Nonnull final Class<?> serviceType) throws AggregationNotFoundException;
     }
 
     private static final class ReflectionCacheLoader extends AggregationCacheLoader{
@@ -161,7 +162,7 @@ public abstract class AbstractAggregator implements Aggregator {
         }
 
         @Override
-        public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException {
+        public AggregationSupplier load(@Nonnull final Class<?> serviceType) throws AggregationNotFoundException {
             for(final Class<?> inheritanceFrame: aggregatorType){
                 final AggregationSupplier result = load(inheritanceFrame, serviceType);
                 if (result != null) return result;
@@ -187,7 +188,7 @@ public abstract class AbstractAggregator implements Aggregator {
         }
 
         @Override
-        public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException {
+        public AggregationSupplier load(@Nonnull final Class<?> serviceType) throws AggregationNotFoundException {
             if (serviceType.isAssignableFrom(expectedType))
                 return supplier;
             throw new AggregationNotFoundException(serviceType);
@@ -202,7 +203,7 @@ public abstract class AbstractAggregator implements Aggregator {
         }
 
         @Override
-        public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException {
+        public AggregationSupplier load(@Nonnull final Class<?> serviceType) throws AggregationNotFoundException {
             //check exact match
             Callable<?> provider = predefinedSuppliers.get(serviceType);
             if (provider == null) {   //find suitable class in the map

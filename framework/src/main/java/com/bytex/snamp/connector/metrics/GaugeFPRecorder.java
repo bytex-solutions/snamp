@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.metrics;
 import com.bytex.snamp.concurrent.TimeLimitedDouble;
 import com.google.common.util.concurrent.AtomicDouble;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleUnaryOperator;
@@ -12,6 +13,7 @@ import java.util.function.DoubleUnaryOperator;
  * @since 2.0
  * @version 2.0
  */
+@ThreadSafe
 public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, DoubleConsumer {
     private static final long serialVersionUID = 8109332123969613035L;
     private final AtomicDouble maxValue;

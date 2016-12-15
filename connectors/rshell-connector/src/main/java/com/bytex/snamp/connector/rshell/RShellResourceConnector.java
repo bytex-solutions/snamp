@@ -60,16 +60,16 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
             return result == null || result.isEmpty() ? "RShell Operation" : result;
         }
 
-        private static OpenMBeanParameterInfoSupplier[] getSignature(final XmlCommandLineToolProfile profile,
+        private static OpenMBeanParameterInfoSupplier<?>[] getSignature(final XmlCommandLineToolProfile profile,
                                                                      final String description) {
             final List<String> token = profile.getReaderTemplate().extractTemplateParameters();
             if (!token.isEmpty()) {
                 return token.stream()
-                        .map(param -> new OpenMBeanParameterInfoSupplier(param,
+                        .map(param -> new OpenMBeanParameterInfoSupplier<>(param,
                                 String.format("Argument %s for %s", param, description),
                                 SimpleType.STRING))
                         .collect(Collectors.toList())
-                        .toArray(new OpenMBeanParameterInfoSupplier[token.size()]);
+                        .toArray(new OpenMBeanParameterInfoSupplier<?>[token.size()]);
             } else {
                 return new OpenMBeanParameterInfoSupplier[0];
             }

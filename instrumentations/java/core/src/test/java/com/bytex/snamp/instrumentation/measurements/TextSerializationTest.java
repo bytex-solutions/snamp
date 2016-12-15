@@ -15,12 +15,9 @@ public final class TextSerializationTest extends Assert {
     @Test
     public void readerDeserializationTest() throws IOException {
         final String ID = "kwhflhf3gfh3ugfwiugwuigfwegkekjfjkegfgwjkgfkwjhfjkg2gfugugggjkhgjkjejgejgejgjegh3ug3gu3hg3ugh3ugu3gjkskhwkjg;lwl;kq;ld2elej2l;j;ljf2krjkl2hrlk2hrj2hr";
-        final Reader reader = new StringReader(ID);
-        try{
+        try (final Reader reader = new StringReader(ID)) {
             final Identifier id = Identifier.deserialize(reader);
             assertEquals(ID, id.toString());
-        } finally {
-            reader.close();
         }
     }
 

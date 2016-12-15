@@ -2,6 +2,7 @@ package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SafeCloseable;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -63,7 +64,7 @@ public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, 
      * create a thread is rejected
      */
     @Override
-    public final Thread newThread(@SuppressWarnings("NullableProblems") final Runnable r) {
+    public final Thread newThread(@Nonnull final Runnable r) {
         final Thread t = new Thread(this, r, generateThreadName());
         t.setDaemon(true);
         t.setPriority(newThreadPriority);

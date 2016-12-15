@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
@@ -8,6 +9,7 @@ import java.util.function.DoubleUnaryOperator;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class RangedGaugeFPRecorder extends RangedValueFPRecorder implements RangedGaugeFP {
     private static final long serialVersionUID = 7803345140265603197L;
     private final GaugeFPRecorder gaugeFP;

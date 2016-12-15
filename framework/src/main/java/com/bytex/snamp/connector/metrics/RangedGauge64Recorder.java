@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongUnaryOperator;
 
@@ -9,6 +10,7 @@ import java.util.function.LongUnaryOperator;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class RangedGauge64Recorder extends RangedValue64Recorder implements RangedGauge64 {
     private static final long serialVersionUID = -8084771859605410577L;
     private final Gauge64Recorder gauge64;

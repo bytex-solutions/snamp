@@ -4,6 +4,7 @@ import com.bytex.snamp.ResourceReader;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
@@ -262,7 +263,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      *
      * @return an <tt>Iterator</tt> over the elements in this collection
      */
-    @SuppressWarnings("NullableProblems")
+    @Nonnull
     @Override
     public final Iterator<String> iterator() {
         return parameters.iterator();
@@ -284,8 +285,8 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      *
      * @return an array containing all of the elements in this collection
      */
-    @SuppressWarnings("NullableProblems")
     @Override
+    @Nonnull
     public final Object[] toArray() {
         return parameters.toArray();
     }
@@ -332,9 +333,8 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      *                              this collection
      * @throws NullPointerException if the specified array is null
      */
-    @SuppressWarnings("NullableProblems")
     @Override
-    public final <E> E[] toArray(final E[] a) {
+    public final <E> E[] toArray(@Nonnull final E[] a) {
         return parameters.toArray(a);
     }
 
@@ -419,9 +419,8 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      *                              or if the specified collection is null.
      * @see #contains(Object)
      */
-    @SuppressWarnings("NullableProblems")
     @Override
-    public final boolean containsAll(final Collection<?> c) {
+    public final boolean containsAll(@Nonnull final Collection<?> c) {
         return parameters.containsAll(c);
     }
 
@@ -450,7 +449,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @see #add(Object)
      */
     @Override
-    public final boolean addAll(@SuppressWarnings("NullableProblems") final Collection<? extends String> c) {
+    public final boolean addAll(@Nonnull final Collection<? extends String> c) {
         throw new UnsupportedOperationException();
     }
 
@@ -478,7 +477,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @see #contains(Object)
      */
     @Override
-    public final boolean removeAll(@SuppressWarnings("NullableProblems") final Collection<?> c) {
+    public final boolean removeAll(@Nonnull final Collection<?> c) {
         throw new UnsupportedOperationException();
     }
 
@@ -504,9 +503,8 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @see #remove(Object)
      * @see #contains(Object)
      */
-    @SuppressWarnings("NullableProblems")
     @Override
-    public final boolean retainAll(final Collection<?> c) {
+    public final boolean retainAll(@Nonnull final Collection<?> c) {
         throw new UnsupportedOperationException();
     }
 

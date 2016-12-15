@@ -1,7 +1,5 @@
 package com.bytex.snamp.instrumentation;
 
-import org.osgi.framework.FrameworkUtil;
-
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -45,8 +43,8 @@ enum  ComponentInstanceSource { //WARNING: order of this enum is significant for
             } catch (final SocketException e) {
                 return LOCALHOST;
             }
-            final TreeSet<String> siteLocalCandidates = new TreeSet<String>();
-            final TreeSet<String> candidates = new TreeSet<String>();
+            final TreeSet<String> siteLocalCandidates = new TreeSet<>();
+            final TreeSet<String> candidates = new TreeSet<>();
             for (NetworkInterface iface; ifaces.hasMoreElements(); ) {
                 iface = ifaces.nextElement();
                 for (final Enumeration<InetAddress> addrs = iface.getInetAddresses(); addrs.hasMoreElements(); ) {

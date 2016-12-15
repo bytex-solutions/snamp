@@ -205,7 +205,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         }
     }
 
-    private InternalState mutableState;
+    private volatile InternalState mutableState;
     private final String instanceName;
 
     /**

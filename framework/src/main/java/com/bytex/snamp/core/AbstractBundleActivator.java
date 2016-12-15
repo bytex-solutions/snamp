@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.osgi.framework.*;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -645,17 +646,17 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
 
         @Override
-        public boolean addAll(final Collection<? extends RequiredService<?>> c) {
+        public boolean addAll(@Nonnull final Collection<? extends RequiredService<?>> c) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public boolean removeAll(final Collection<?> c) {
+        public boolean removeAll(@Nonnull final Collection<?> c) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public boolean retainAll(final Collection<?> c) {
+        public boolean retainAll(@Nonnull final Collection<?> c) {
             throw new UnsupportedOperationException();
         }
 
@@ -733,7 +734,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
     }
 
-    private static final class BundleLevelDependencyManager extends ForwardingDependencyManager<List<RequiredService<?>>>{
+    private static final class BundleLevelDependencyManager extends ForwardingDependencyManager<Collection<RequiredService<?>>>{
         private BundleLevelDependencyManager(){
             super(new LinkedList<>());
         }
@@ -744,7 +745,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
 
         @Override
-        public boolean addAll(final Collection<? extends RequiredService<?>> c) {
+        public boolean addAll(@Nonnull final Collection<? extends RequiredService<?>> c) {
             return delegate.addAll(c);
         }
 
@@ -756,7 +757,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
     private final BundleLevelDependencyManager bundleLevelDependencies;
     private final ActivationProperties properties;
-    private ActivationState state;
+    private volatile ActivationState state;
 
     /**
      * Initializes a new bundle activator in {@link com.bytex.snamp.core.AbstractBundleActivator.ActivationState#NOT_ACTIVATED} state.
@@ -1008,7 +1009,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
                         .collect(Collectors.toList()));
             }
 
-            public Object get(final String key){
+            private Object get(final String key){
                 return reference.getProperty(key);
             }
 

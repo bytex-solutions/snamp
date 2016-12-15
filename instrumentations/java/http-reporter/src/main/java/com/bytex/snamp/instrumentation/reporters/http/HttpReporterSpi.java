@@ -27,7 +27,7 @@ public final class HttpReporterSpi extends LazyReporter<HttpReporter> {
 
     private static Map<String, ?> fromSystemProperties(){
         final Properties systemProps = System.getProperties();
-        final Map<String, String> result = new HashMap<String, String>();
+        final Map<String, String> result = new HashMap<>();
         for(final String name: systemProps.stringPropertyNames())
             result.put(name, systemProps.getProperty(name));
         return result;

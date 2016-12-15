@@ -1,7 +1,6 @@
 package com.bytex.snamp.instrumentation.measurements;
 
 import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 
@@ -19,13 +18,13 @@ final class CorrelationDeserializer extends JsonDeserializer<CorrelationPolicy> 
     private final Map<String, CorrelationPolicy> binding;
 
     public CorrelationDeserializer(){
-        binding = new HashMap<String, CorrelationPolicy>();
+        binding = new HashMap<>();
         for(final CorrelationPolicy c: CorrelationPolicy.values())
             binding.put(c.toString(), c);
     }
 
     @Override
-    public CorrelationPolicy deserialize(final JsonParser jp, final DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public CorrelationPolicy deserialize(final JsonParser jp, final DeserializationContext ctxt) throws IOException {
         return binding.get(jp.getText());
     }
 }

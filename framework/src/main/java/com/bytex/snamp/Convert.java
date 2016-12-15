@@ -8,6 +8,7 @@ import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 import com.google.common.reflect.TypeToken;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.math.BigDecimal;
@@ -26,6 +27,7 @@ import java.util.function.*;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public final class Convert {
     private static abstract class TypeConverter<C> extends ClassMap<C> {
         private static final long serialVersionUID = -2745877310143387409L;

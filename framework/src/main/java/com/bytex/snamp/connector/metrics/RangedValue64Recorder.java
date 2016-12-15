@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.LongConsumer;
 
 /**
@@ -8,6 +9,7 @@ import java.util.function.LongConsumer;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class RangedValue64Recorder extends AbstractRangedRecorder implements LongConsumer {
     private static final long serialVersionUID = 2992622425510225162L;
     private final long rangeStart;

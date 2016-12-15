@@ -92,7 +92,6 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
          * @return {@literal true}, if the specified service is invoked successfully.
-         * @see com.bytex.snamp.management.Maintainable
          */
         @Override
         public <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
@@ -200,7 +199,6 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          *
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
-         * @see com.bytex.snamp.management.Maintainable
          */
         @Override
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
@@ -316,7 +314,6 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          *
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
-         * @see com.bytex.snamp.management.Maintainable
          */
         @Override
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {

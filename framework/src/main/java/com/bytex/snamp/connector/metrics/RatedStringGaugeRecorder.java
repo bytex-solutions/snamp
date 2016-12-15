@@ -1,11 +1,14 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Represents implementation of {@link RatedStringGauge}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class RatedStringGaugeRecorder extends StringGaugeRecorder implements RatedStringGauge {
     private static final long serialVersionUID = 956217566486645152L;
     private final RateRecorder rate;

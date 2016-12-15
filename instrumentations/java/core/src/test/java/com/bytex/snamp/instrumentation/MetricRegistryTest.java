@@ -55,11 +55,8 @@ public final class MetricRegistryTest extends Assert {
         final String NAME = "testTimer";
         final TimeMeasurementReporter timer = registry.timer(NAME);
         assertEquals(timer, registry.timer(NAME));
-        final MeasurementScope scope = timer.start();
-        try {
+        try (final MeasurementScope scope = timer.start()) {
             Thread.sleep(1000);
-        } finally {
-            scope.close();
         }
         assertEquals(1L, reporter.size());
     }

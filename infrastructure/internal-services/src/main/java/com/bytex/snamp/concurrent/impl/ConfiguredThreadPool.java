@@ -3,6 +3,7 @@ package com.bytex.snamp.concurrent.impl;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
@@ -123,47 +124,47 @@ final class ConfiguredThreadPool implements ExecutorService, ThreadPoolConfigura
     }
 
     @Override
-    public boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
+    public boolean awaitTermination(final long timeout, @Nonnull final TimeUnit unit) throws InterruptedException {
         return threadPool.awaitTermination(timeout, unit);
     }
 
     @Override
-    public <T> Future<T> submit(final Callable<T> task) {
+    public <T> Future<T> submit(@Nonnull final Callable<T> task) {
         return threadPool.submit(task);
     }
 
     @Override
-    public <T> Future<T> submit(final Runnable task, final T result) {
+    public <T> Future<T> submit(@Nonnull final Runnable task, final T result) {
         return threadPool.submit(task, result);
     }
 
     @Override
-    public Future<?> submit(final Runnable task) {
+    public Future<?> submit(@Nonnull final Runnable task) {
         return threadPool.submit(task);
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(@Nonnull final Collection<? extends Callable<T>> tasks) throws InterruptedException {
         return threadPool.invokeAll(tasks);
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks, final long timeout, final TimeUnit unit) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(@Nonnull final Collection<? extends Callable<T>> tasks, final long timeout, @Nonnull final TimeUnit unit) throws InterruptedException {
         return threadPool.invokeAll(tasks, timeout, unit);
     }
 
     @Override
-    public <T> T invokeAny(final Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+    public <T> T invokeAny(@Nonnull final Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
         return threadPool.invokeAny(tasks);
     }
 
     @Override
-    public <T> T invokeAny(final Collection<? extends Callable<T>> tasks, final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public <T> T invokeAny(@Nonnull final Collection<? extends Callable<T>> tasks, final long timeout, @Nonnull final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return threadPool.invokeAny(tasks, timeout, unit);
     }
 
     @Override
-    public void execute(final Runnable command) {
+    public void execute(@Nonnull final Runnable command) {
         threadPool.execute(command);
     }
 

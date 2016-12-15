@@ -4,6 +4,7 @@ import com.bytex.snamp.BooleanBinaryOperator;
 import com.bytex.snamp.BooleanUnaryOperator;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -13,6 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class FlagRecorder extends AbstractMetric implements Flag {
     private static final long serialVersionUID = -620668865127205732L;
     private final AtomicBoolean value;

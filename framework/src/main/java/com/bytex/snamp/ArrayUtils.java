@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.*;
 
+import javax.annotation.Nonnull;
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.io.Serializable;
@@ -48,7 +49,7 @@ public final class ArrayUtils {
             .softValues()
             .build(new CacheLoader<Class<?>, Object>() {
                 @Override
-                public Object load(final Class<?> componentType) throws IllegalArgumentException, NegativeArraySizeException {
+                public Object load(@Nonnull final Class<?> componentType) throws IllegalArgumentException, NegativeArraySizeException {
                     return Array.newInstance(componentType, 0);
                 }
             });
@@ -76,7 +77,7 @@ public final class ArrayUtils {
                                 .build();
 
                         @Override
-                        public Class<?> load(final OpenType<?> elementType) throws ClassNotFoundException {
+                        public Class<?> load(@Nonnull final OpenType<?> elementType) throws ClassNotFoundException {
                             if(elementType instanceof CompositeType)
                                 return CompositeData.class;
                             else if(elementType instanceof TabularType)

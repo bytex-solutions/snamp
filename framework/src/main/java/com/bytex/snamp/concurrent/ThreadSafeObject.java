@@ -3,6 +3,7 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SafeCloseable;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.EnumMap;
 import java.util.Objects;
@@ -29,6 +30,7 @@ public abstract class ThreadSafeObject {
         void close();
     }
 
+    @ThreadSafe
     private static final class ReadLockScope extends ReentrantReadWriteLock.ReadLock implements LockScope{
         private static final long serialVersionUID = -4674488641147301623L;
 
@@ -55,6 +57,7 @@ public abstract class ThreadSafeObject {
         }
     }
 
+    @ThreadSafe
     private static final class ReentrantReadWriteLockSlim implements ReadWriteLock {
         private final ReadLockScope readLock;
         private final WriteLockScope writeLock;
@@ -66,16 +69,19 @@ public abstract class ThreadSafeObject {
         }
 
         @Override
+        @Nonnull
         public ReadLockScope readLock() {
             return readLock;
         }
 
         @Override
+        @Nonnull
         public WriteLockScope writeLock() {
             return writeLock;
         }
     }
 
+    @ThreadSafe
     private static final class ReadOrWriteLockManager extends LockManager{
         private final Function<Enum<?>, ? extends LockScope> scopeProvider;
 

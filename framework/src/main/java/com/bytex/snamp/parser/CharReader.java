@@ -2,6 +2,8 @@ package com.bytex.snamp.parser;
 
 import com.bytex.snamp.SafeCloseable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.CharBuffer;
@@ -13,6 +15,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
+@NotThreadSafe
 public final class CharReader extends Reader implements SafeCloseable {
     private CharSequence sequence;
     private int position;
@@ -131,7 +134,7 @@ public final class CharReader extends Reader implements SafeCloseable {
     }
 
     @Override
-    public synchronized int read(final char[] cbuf) throws IOException {
+    public synchronized int read(@Nonnull final char[] cbuf) throws IOException {
         ensureOpen();
         int index;
         for (index = 0; hasMore() && index < cbuf.length; index++, position++)
@@ -140,7 +143,7 @@ public final class CharReader extends Reader implements SafeCloseable {
     }
 
     @Override
-    public synchronized int read(final char[] cbuf, int off, final int len) throws IOException {
+    public synchronized int read(@Nonnull final char[] cbuf, int off, final int len) throws IOException {
         ensureOpen();
         int index;
         for(index = 0; hasMore() && off < len; index++, position++)
@@ -160,7 +163,7 @@ public final class CharReader extends Reader implements SafeCloseable {
     }
 
     @Override
-    public int read(final CharBuffer target) throws IOException {
+    public int read(@Nonnull final CharBuffer target) throws IOException {
         ensureOpen();
         int remaining = target.remaining();
         int count = 0;

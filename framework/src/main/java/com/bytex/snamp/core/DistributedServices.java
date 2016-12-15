@@ -8,6 +8,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
 import org.osgi.framework.BundleContext;
 
+import javax.annotation.Nonnull;
 import javax.management.openmbean.InvalidKeyException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
@@ -53,7 +54,7 @@ public final class DistributedServices {
             .build(new CacheLoader<LocalServiceKey, Object>() {
 
                 @Override
-                public Object load(final LocalServiceKey key) throws InvalidKeyException {
+                public Object load(@Nonnull final LocalServiceKey key) throws InvalidKeyException {
                     if(ClusterMember.IDGEN_SERVICE.equals(key.serviceType))
                         return new LocalLongCounter();
                     else if(ClusterMember.STORAGE_SERVICE.equals(key.serviceType))

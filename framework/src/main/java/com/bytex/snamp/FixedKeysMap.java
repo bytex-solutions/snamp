@@ -2,6 +2,8 @@ package com.bytex.snamp;
 
 import com.google.common.collect.ImmutableSet;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
  * @version 2.0
  * @since 2.0
  */
+@Immutable
 public final class FixedKeysMap<K, V> implements Map<K, V> {
     private static final class DynamicEntry<K, V> implements Entry<K, V>{
         private final K key;
@@ -292,7 +295,7 @@ public final class FixedKeysMap<K, V> implements Map<K, V> {
      *                                       the specified map prevents it from being stored in this map
      */
     @Override
-    public void putAll(final Map<? extends K, ? extends V> m) {
+    public void putAll(@Nonnull final Map<? extends K, ? extends V> m) {
         throw new UnsupportedOperationException();
     }
 
@@ -324,6 +327,7 @@ public final class FixedKeysMap<K, V> implements Map<K, V> {
      * @return a set view of the keys contained in this map
      */
     @Override
+    @Nonnull
     public ImmutableSet<K> keySet() {
         return keys;
     }
@@ -344,6 +348,7 @@ public final class FixedKeysMap<K, V> implements Map<K, V> {
      * @return a collection view of the values contained in this map
      */
     @Override
+    @Nonnull
     public Collection<V> values() {
         return entries.stream().map(Entry::getValue).collect(Collectors.toList());
     }
@@ -365,6 +370,7 @@ public final class FixedKeysMap<K, V> implements Map<K, V> {
      * @return a set view of the mappings contained in this map
      */
     @Override
+    @Nonnull
     public ImmutableSet<Entry<K, V>> entrySet() {
         return entries;
     }

@@ -85,7 +85,7 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
         }
     }
 
-    protected final class MeasurementPipeline implements DSLStarter<MeasurementPipeline> {
+    protected final static class MeasurementPipeline implements DSLStarter<MeasurementPipeline> {
         private MeasurementPipeline(){
 
         }

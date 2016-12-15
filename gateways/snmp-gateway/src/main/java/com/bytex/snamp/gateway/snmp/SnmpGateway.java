@@ -105,7 +105,7 @@ final class SnmpGateway extends AbstractGateway {
      * @throws Exception Unable to start gateway.
      */
     @Override
-    protected void start(final Map<String, String> parameters) throws Exception {
+    protected synchronized void start(final Map<String, String> parameters) throws Exception {
         final SnmpGatewayDescriptionProvider parser = SnmpGatewayDescriptionProvider.getInstance();
         final Callable<SnmpAgent> agentFactory = () -> new SnmpAgent(parser.parseContext(parameters),
                 parser.parseEngineID(parameters),

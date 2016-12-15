@@ -1,7 +1,6 @@
 package com.bytex.snamp.instrumentation.measurements;
 
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 
@@ -16,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 final class TimeUnitSerializer extends JsonSerializer<TimeUnit> {
     @Override
-    public void serialize(final TimeUnit value, final JsonGenerator jgen, final SerializerProvider provider) throws IOException, JsonProcessingException {
+    public void serialize(final TimeUnit value, final JsonGenerator jgen, final SerializerProvider provider) throws IOException {
         jgen.writeString(toString(value));
     }
 

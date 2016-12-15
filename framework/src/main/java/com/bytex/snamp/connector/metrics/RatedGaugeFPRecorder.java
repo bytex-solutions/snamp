@@ -1,11 +1,14 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Represents implementation of {@link RatedGaugeFP}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class RatedGaugeFPRecorder extends GaugeFPRecorder implements RatedGaugeFP {
     private static final long serialVersionUID = 1843602850458733111L;
     private final RateRecorder rate;

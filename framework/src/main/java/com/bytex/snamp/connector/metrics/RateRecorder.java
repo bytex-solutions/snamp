@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.metrics;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 import com.bytex.snamp.math.ExponentialMovingAverage;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
@@ -16,6 +17,7 @@ import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class RateRecorder extends AbstractMetric implements Rate {
     private static final long serialVersionUID = -6735931494509416689L;
     private final MetricsIntervalMap<TimeLimitedLong> lastRate;

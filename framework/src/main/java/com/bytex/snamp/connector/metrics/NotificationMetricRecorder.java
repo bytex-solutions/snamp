@@ -1,11 +1,14 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Represents default implementation of interface {@link NotificationMetric}.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
+@ThreadSafe
 public class NotificationMetricRecorder extends AbstractMetric implements NotificationMetric {
     public static final String DEFAULT_NAME = "notifications";
     private static final long serialVersionUID = 6355507158499182709L;

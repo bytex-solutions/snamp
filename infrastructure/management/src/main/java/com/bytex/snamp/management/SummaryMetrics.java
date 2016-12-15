@@ -19,28 +19,6 @@ import java.util.stream.StreamSupport;
  * @version 2.0
  */
 public final class SummaryMetrics extends ImmutableMetrics {
-    private static final class LongMetricConsumer<M extends Metric> implements Consumer<M>, LongSupplier{
-        private final ToLongFunction<? super M> longExtractor;
-        private final LongBinaryOperator aggregator;
-        private long value;
-
-        private LongMetricConsumer(final ToLongFunction<? super M> extractor,
-                                   final LongBinaryOperator aggregator){
-            this.longExtractor = extractor;
-            this.aggregator = aggregator;
-        }
-
-        @Override
-        public void accept(final M m) {
-            value = aggregator.applyAsLong(value, longExtractor.applyAsLong(m));
-        }
-
-        @Override
-        public long getAsLong() {
-            return value;
-        }
-    }
-
     private static abstract class SummaryMetric<M extends Metric> implements Metric {
         private final Class<M> metricsType;
         private final BundleContext context;

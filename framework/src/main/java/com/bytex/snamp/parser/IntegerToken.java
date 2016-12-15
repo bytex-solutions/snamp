@@ -1,5 +1,6 @@
 package com.bytex.snamp.parser;
 
+import javax.annotation.concurrent.Immutable;
 import java.io.IOException;
 import java.util.function.LongSupplier;
 
@@ -9,6 +10,7 @@ import java.util.function.LongSupplier;
  * @version 2.0
  * @since 2.0
  */
+@Immutable
 public class IntegerToken extends Token implements LongSupplier {
     private static final long serialVersionUID = 5296717972150866303L;
 

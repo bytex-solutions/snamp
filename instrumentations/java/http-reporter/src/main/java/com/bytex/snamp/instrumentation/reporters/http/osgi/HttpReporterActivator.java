@@ -21,7 +21,7 @@ public final class HttpReporterActivator implements BundleActivator {
             throw new BundleException("Unable to instantiate HttpReporter for OSGi environment");
 
         final HttpReporter reporter = new HttpReporter(snampUrl, null);
-        final Dictionary<String, String> regProperties = new Hashtable<String, String>();
+        final Dictionary<String, String> regProperties = new Hashtable<>();
         regProperties.put(Reporter.TYPE_PROPERTY, HttpReporter.TYPE);
         regProperties.put(HttpReporterSpi.SNAMP_URL_PROPERTY, snampUrl);
         reporterRegistration = context.registerService(Reporter.class, reporter, regProperties);

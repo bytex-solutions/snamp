@@ -4,6 +4,7 @@ import com.bytex.snamp.Stateful;
 import com.bytex.snamp.io.SerializableMap;
 import com.google.common.collect.ForwardingMap;
 
+import javax.annotation.Nonnull;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -22,7 +23,7 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
     }
 
     @Override
-    public final V remove(final Object key) {
+    public final V remove(@Nonnull final Object key) {
         modified = containsKey(key);
         return delegate().remove(key);
     }
@@ -40,13 +41,14 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
     }
 
     @Override
-    public final V put(final K key, final V value) {
+    @Nonnull
+    public final V put(@Nonnull final K key, @Nonnull final V value) {
         modified = true;
         return delegate().put(key, value);
     }
 
     @Override
-    public final void putAll(final Map<? extends K, ? extends V> map) {
+    public final void putAll(@Nonnull final Map<? extends K, ? extends V> map) {
         modified = true;
         delegate().putAll(map);
     }

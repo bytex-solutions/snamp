@@ -1,11 +1,14 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Represents gauge of type {@link String}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class StringGaugeRecorder extends GaugeImpl<String> implements StringGauge {
     private static final long serialVersionUID = -8088704775399041609L;
 

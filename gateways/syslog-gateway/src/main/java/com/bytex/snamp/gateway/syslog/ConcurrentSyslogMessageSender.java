@@ -5,10 +5,9 @@ import com.cloudbees.syslog.SyslogMessage;
 import com.cloudbees.syslog.sender.AbstractSyslogMessageSender;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
 
+import javax.annotation.Nonnull;
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -29,17 +28,14 @@ final class ConcurrentSyslogMessageSender extends AbstractSyslogMessageSender im
     private static void sendMessage(final SyslogMessageSender sender,
                                     final ExecutorService executor,
                                     final SyslogMessage message) {
-        executor.submit(new Callable<Void>() {
-            @Override
-            public Void call() throws IOException {
-                sender.sendMessage(message);
-                return null;
-            }
+        executor.submit(() -> {
+            sender.sendMessage(message);
+            return null;
         });
     }
 
     @Override
-    public void sendMessage(@SuppressWarnings("NullableProblems") final SyslogMessage message) {
+    public void sendMessage(@Nonnull final SyslogMessage message) {
         sendMessage(messageSender, executor, message);
     }
 

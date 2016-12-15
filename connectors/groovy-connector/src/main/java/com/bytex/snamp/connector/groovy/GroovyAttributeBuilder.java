@@ -48,7 +48,7 @@ public final class GroovyAttributeBuilder extends GroovyFeatureBuilder<Attribute
      * Gets declared name of this attribute.
      * @return Declared attribute name.
      */
-    final String name(){
+    String name(){
         return name;
     }
 

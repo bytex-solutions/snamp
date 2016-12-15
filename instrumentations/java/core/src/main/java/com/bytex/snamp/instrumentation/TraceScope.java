@@ -4,7 +4,6 @@ import com.bytex.snamp.instrumentation.measurements.CorrelationPolicy;
 import com.bytex.snamp.instrumentation.measurements.Span;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  * @since 1.0
  */
 public abstract class TraceScope implements MeasurementScope {
-    private static final ThreadLocal<TraceScope> CURRENT_SCOPE = new ThreadLocal<TraceScope>();
+    private static final ThreadLocal<TraceScope> CURRENT_SCOPE = new ThreadLocal<>();
 
     private final long startTime;
     private final Identifier spanID;

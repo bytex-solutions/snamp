@@ -458,7 +458,6 @@ public class XmlParserDefinition {
     private NumberParser numberFormatter;
     private DateParser dateFormatter;
     private BLOBFormat blobFormatter;
-    private ScriptEngine localEngine;
 
     /**
      * Initializes a new parser without settings.
@@ -632,7 +631,7 @@ public class XmlParserDefinition {
         else if(scriptManager == null)
             throw new NullPointerException("scriptManager is null.");
         else {
-            localEngine = createScriptEngine(scriptManager);
+            final ScriptEngine localEngine = createScriptEngine(scriptManager);
             if(localEngine == null) throw new IllegalStateException(String.format("Script engine %s not found", getParsingLanguage()));
             else return parse(input, localEngine);
         }

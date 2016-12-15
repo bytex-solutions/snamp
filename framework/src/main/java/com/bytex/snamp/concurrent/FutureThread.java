@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
@@ -191,9 +192,8 @@ public class FutureThread<V> extends Thread implements ComputationPipeline<V>{
      * @throws java.util.concurrent.TimeoutException
      *                              if the wait timed out
      */
-    @SuppressWarnings("NullableProblems")
     @Override
-    public final V get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public final V get(final long timeout, @Nonnull final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return result.get(timeout, unit);
     }
 

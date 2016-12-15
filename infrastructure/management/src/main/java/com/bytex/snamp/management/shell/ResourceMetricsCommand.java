@@ -89,11 +89,11 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
 
     private  CharSequence collectMetrics(final MetricsSupport metrics) {
         final StringBuilder result = new StringBuilder();
-        if (showAttributes | showAll())
+        if (showAttributes || showAll())
             collectMetrics(getFirst(metrics.getMetrics(AttributeMetric.class), (AttributeMetric)null), result);
-        if (showNotifications | showAll())
+        if (showNotifications || showAll())
             collectMetrics(getFirst(metrics.getMetrics(NotificationMetric.class), (NotificationMetric)null), result);
-        if (showOperations | showAll())
+        if (showOperations || showAll())
             collectMetrics(getFirst(metrics.getMetrics(OperationMetric.class), (OperationMetric)null), result);
         return result;
     }
@@ -103,11 +103,11 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
     }
 
     private CharSequence resetMetrics(final MetricsSupport metrics) {
-        if (showAttributes | showAll())
+        if (showAttributes || showAll())
             resetMetrics(metrics.getMetrics(AttributeMetric.class));
-        if (showOperations | showAll())
+        if (showOperations || showAll())
             resetMetrics(metrics.getMetrics(OperationMetric.class));
-        if (showNotifications | showAll())
+        if (showNotifications || showAll())
             resetMetrics(metrics.getMetrics(NotificationMetric.class));
         return "Metrics reset";
     }

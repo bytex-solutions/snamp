@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.DoubleConsumer;
 
 /**
@@ -8,6 +9,7 @@ import java.util.function.DoubleConsumer;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class RangedValueFPRecorder extends AbstractRangedRecorder implements DoubleConsumer {
     private static final long serialVersionUID = -5078974473014037352L;
     private final double rangeStart;

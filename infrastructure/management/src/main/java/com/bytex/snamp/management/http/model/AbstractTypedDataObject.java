@@ -13,7 +13,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public abstract class AbstractTypedDataObject<E extends TypedEntityConfiguration> extends AbstractDataObject<E> implements TypedEntityConfiguration {
     private String type;
 
-    AbstractTypedDataObject() {};
+    AbstractTypedDataObject() {}
 
     AbstractTypedDataObject(final E configuration) {
         super(configuration);

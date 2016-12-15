@@ -61,7 +61,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
     }
 
     @Override
-    public final Object writeReplace() {
+    public Object writeReplace() {
         return takeSnapshot();
     }
 
@@ -77,7 +77,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * Resets internal state of the object.
      */
     @Override
-    public final void reset() {
+    public void reset() {
         try(final SafeCloseable ignored = acquireWriteLock()){
             actualSize = 0;
             Arrays.fill(values, 0D);
@@ -90,7 +90,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @return The size of this reservoir.
      */
     @Override
-    public final int getSize() {
+    public int getSize() {
         try(final SafeCloseable ignored = acquireReadLock()){
             return actualSize;
         }
@@ -102,7 +102,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @return The capacity of this reservoir.
      */
     @Override
-    public final int getCapacity() {
+    public int getCapacity() {
         return values.length;
     }
 
@@ -158,7 +158,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * Adds a new value to this reservoir.
      * @param value A value to add.
      */
-    public final void add(final double value){
+    public void add(final double value){
         try (final SafeCloseable ignored = acquireWriteLock()) {
             int index = computeIndex(value);
             if (actualSize < values.length) {  //buffer is not fully occupied
@@ -178,7 +178,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @param value A value to add.
      */
     @Override
-    public final void add(final Number value) {
+    public void add(final Number value) {
         add(value.doubleValue());
     }
 
@@ -188,7 +188,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @return Value inside of this reservoir.
      * @throws IndexOutOfBoundsException Incorrect index.
      */
-    public final double get(final int index) {
+    public double get(final int index) {
         try (final SafeCloseable ignored = acquireReadLock()) {
             if (index < actualSize)
                 return values[index];
@@ -204,7 +204,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @throws IndexOutOfBoundsException Incorrect index.
      */
     @Override
-    public final double applyAsDouble(final int index) {
+    public double applyAsDouble(final int index) {
         return get(index);
     }
 
@@ -212,7 +212,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * Adds a new value to this reservoir.
      * @param value A value to add.
      */
-    public final void accept(final double value) {
+    public void accept(final double value) {
         add(value);
     }
 
@@ -224,7 +224,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
     }
 
     @Override
-    public final double getMean(){
+    public double getMean(){
         try(final SafeCloseable ignored = acquireReadLock()){
             return getMeanImpl();
         }
@@ -254,7 +254,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
     }
 
     @Override
-    public final double getQuantile(final double quantile) {
+    public double getQuantile(final double quantile) {
         try(final SafeCloseable ignored = acquireReadLock()){
             return getQuantileImpl(quantile);
         }

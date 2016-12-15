@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.metrics;
 import com.bytex.snamp.concurrent.TimeLimitedObject;
 import com.bytex.snamp.io.SerializableBinaryOperator;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -18,6 +19,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 class GaugeImpl<V extends Comparable<V> & Serializable> extends AbstractMetric implements Gauge<V>, Consumer<V>{
     private static final long serialVersionUID = 7899285535676342920L;
     private final AtomicReference<V> maxValue;

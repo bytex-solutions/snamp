@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
@@ -31,7 +32,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
             .maximumSize(50)
             .build(new CacheLoader<String, Pattern>() {
                 @Override
-                public Pattern load(final String splitter) throws PatternSyntaxException {
+                public Pattern load(@Nonnull final String splitter) throws PatternSyntaxException {
                     return Pattern.compile(splitter);
                 }
             })::getUnchecked;

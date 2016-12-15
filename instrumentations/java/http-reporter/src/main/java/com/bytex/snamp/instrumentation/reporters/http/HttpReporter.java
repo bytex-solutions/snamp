@@ -38,7 +38,7 @@ public final class HttpReporter implements Reporter {
         private final Map<String, Object> properties;
 
         private SnampClientConfig(final Map<String, ?> properties){
-            this.properties = properties == null ? new HashMap<String, Object>() : new HashMap<String, Object>(properties);
+            this.properties = properties == null ? new HashMap<String, Object>() : new HashMap<>(properties);
         }
 
         @Override

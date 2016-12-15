@@ -5,6 +5,7 @@ import com.bytex.snamp.io.SerializedState;
 import com.bytex.snamp.math.DoubleReservoir;
 import com.bytex.snamp.math.ExponentialMovingAverage;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -16,6 +17,7 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
     private static final long serialVersionUID = 7250210436685797077L;
     private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;

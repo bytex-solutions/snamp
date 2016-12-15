@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.function.BinaryOperator;
 import java.util.function.BooleanSupplier;
@@ -121,7 +122,7 @@ final class MutableBoolean implements BooleanBox {
     }
 
     @Override
-    public int compareTo(final BooleanSupplier other) {
+    public int compareTo(@Nonnull final BooleanSupplier other) {
         return compareTo(other.getAsBoolean());
     }
 

@@ -3,6 +3,7 @@ package com.bytex.snamp.cluster;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -21,22 +22,22 @@ final class HazelcastStorage implements ConcurrentMap<String, Object> {
     }
 
     @Override
-    public Object putIfAbsent(final String key, final Object value) {
+    public Object putIfAbsent(@Nonnull final String key, final Object value) {
         return underlyingMap.putIfAbsent(key, value);
     }
 
     @Override
-    public boolean remove(final Object key, final Object value) {
+    public boolean remove(@Nonnull final Object key, final Object value) {
         return underlyingMap.remove(key, value);
     }
 
     @Override
-    public boolean replace(final String key, final Object oldValue, final Object newValue) {
+    public boolean replace(@Nonnull final String key, @Nonnull final Object oldValue, @Nonnull final Object newValue) {
         return underlyingMap.replace(key, oldValue, newValue);
     }
 
     @Override
-    public Object replace(final String key, final Object value) {
+    public Object replace(@Nonnull final String key, @Nonnull final Object value) {
         return underlyingMap.replace(key, value);
     }
 
@@ -76,7 +77,7 @@ final class HazelcastStorage implements ConcurrentMap<String, Object> {
     }
 
     @Override
-    public void putAll(final Map<? extends String, ?> m) {
+    public void putAll(@Nonnull final Map<? extends String, ?> m) {
         underlyingMap.putAll(m);
     }
 

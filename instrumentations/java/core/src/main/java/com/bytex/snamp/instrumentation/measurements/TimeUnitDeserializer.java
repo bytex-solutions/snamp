@@ -1,7 +1,6 @@
 package com.bytex.snamp.instrumentation.measurements;
 
 import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 
@@ -20,13 +19,13 @@ final class TimeUnitDeserializer extends JsonDeserializer<TimeUnit> {
     private final Map<String, TimeUnit> binding;
 
     public TimeUnitDeserializer(){
-        binding = new HashMap<String, TimeUnit>();
+        binding = new HashMap<>();
         for(final TimeUnit unit: TimeUnit.values())
             binding.put(TimeUnitSerializer.toString(unit), unit);
     }
 
     @Override
-    public TimeUnit deserialize(final JsonParser jp, final DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public TimeUnit deserialize(final JsonParser jp, final DeserializationContext ctxt) throws IOException {
         return binding.get(jp.getText());
     }
 }

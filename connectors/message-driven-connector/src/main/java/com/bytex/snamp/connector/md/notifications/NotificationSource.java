@@ -20,11 +20,11 @@ public final class NotificationSource implements Serializable {
         this.instanceName = Objects.requireNonNull(instanceName);
     }
 
-    public final String getComponentName(){
+    public String getComponentName(){
         return componentName;
     }
 
-    public final String getInstanceName(){
+    public String getInstanceName(){
         return instanceName;
     }
 

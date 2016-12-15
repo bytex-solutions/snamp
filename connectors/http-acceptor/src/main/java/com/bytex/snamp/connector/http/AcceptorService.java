@@ -16,6 +16,7 @@ import groovy.json.JsonSlurper;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.io.StringReader;
@@ -63,7 +64,7 @@ public final class AcceptorService {
     //represents loader of published HTTP acceptors in the form of cache with lazy values
     private static final class HttpAcceptorLoader extends CacheLoader<NotificationSource, HttpAcceptor>{
         @Override
-        public HttpAcceptor load(final NotificationSource source) throws AcceptorNotFoundException {
+        public HttpAcceptor load(@Nonnull final NotificationSource source) throws AcceptorNotFoundException {
             //used to find the appropriate acceptor
             final class HttpAcceptorFinder extends HttpAcceptorHandler<NotificationSource, ExceptionPlaceholder>{
                 private HttpAcceptor acceptor;

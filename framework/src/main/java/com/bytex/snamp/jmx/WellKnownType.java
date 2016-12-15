@@ -7,6 +7,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
 
+import javax.annotation.Nonnull;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
@@ -545,7 +546,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
         }
 
         @Override
-        public WellKnownType load(final Object key) throws InvalidKeyException {
+        public WellKnownType load(@Nonnull final Object key) throws InvalidKeyException {
             if(key instanceof String)
                 return load((String)key);
             else if(key instanceof TypeToken<?>)

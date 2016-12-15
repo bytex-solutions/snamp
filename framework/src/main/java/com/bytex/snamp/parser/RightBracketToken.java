@@ -1,11 +1,14 @@
 package com.bytex.snamp.parser;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Represents left bracket as a token.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
+@Immutable
 public final class RightBracketToken extends PunctuationToken {
     private static final long serialVersionUID = -1210661219600635416L;
     public static final char VALUE = ')';

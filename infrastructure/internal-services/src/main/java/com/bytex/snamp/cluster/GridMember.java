@@ -58,7 +58,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
     private final Logger logger = Logger.getLogger("com.bytex.snamp.cluster");
 
     private final HazelcastInstance hazelcast;
-    private LeaderElectionThread electionThread;
+    private volatile LeaderElectionThread electionThread;
     private final boolean shutdownHazelcast;
 
     private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdown){

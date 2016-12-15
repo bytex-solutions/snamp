@@ -285,7 +285,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             }
         }
 
-        private void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
+        private synchronized void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
             this.properties = properties;
             activationContext = context;
             if (ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies, no dependency tracking is required

@@ -318,12 +318,6 @@
             <version>${gson.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-client</artifactId>
-            <version>9.2.7.v20150116</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>rshell-connector</artifactId>
             <version>${snamp.connector.rshell.version}</version>

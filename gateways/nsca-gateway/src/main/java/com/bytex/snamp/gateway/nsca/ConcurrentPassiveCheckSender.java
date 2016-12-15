@@ -1,12 +1,9 @@
 package com.bytex.snamp.gateway.nsca;
 
 import com.googlecode.jsendnsca.core.MessagePayload;
-import com.googlecode.jsendnsca.core.NagiosException;
 import com.googlecode.jsendnsca.core.NagiosPassiveCheckSender;
 import com.googlecode.jsendnsca.core.NagiosSettings;
 
-import java.io.IOException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 
@@ -35,12 +32,9 @@ final class ConcurrentPassiveCheckSender extends NagiosPassiveCheckSender {
 
     @Override
     public void send(final MessagePayload payload) {
-        executor.submit(new Callable<Void>() {
-            @Override
-            public Void call() throws IOException, NagiosException {
-                ConcurrentPassiveCheckSender.super.send(payload);
-                return null;
-            }
+        executor.submit(() -> {
+            ConcurrentPassiveCheckSender.super.send(payload);
+            return null;
         });
     }
 }

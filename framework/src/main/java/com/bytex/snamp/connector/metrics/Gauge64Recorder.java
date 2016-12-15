@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
@@ -11,6 +12,7 @@ import java.util.function.LongUnaryOperator;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class Gauge64Recorder extends AbstractNumericGauge implements Gauge64, LongConsumer {
     private static final long serialVersionUID = 7528670309055651559L;
     private final AtomicLong maxValue;

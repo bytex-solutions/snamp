@@ -2,6 +2,7 @@ package com.bytex.snamp;
 
 import com.google.common.collect.ObjectArrays;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -186,7 +187,8 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     }
 
     @Override
-    public final  <T> T[] toArray(T[] a) {
+    @Nonnull
+    public final  <T> T[] toArray(@Nonnull T[] a) {
         final WeakEventListener<L, ?>[] snapshot = listeners;
         switch (a.length) {
             default:
@@ -209,7 +211,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
 
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized final boolean addAll(final Collection<? extends L> c) {
+    public synchronized final boolean addAll(@Nonnull final Collection<? extends L> c) {
         final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length + c.size()];
         int outputIndex = 0;
         //remove dead references
@@ -226,7 +228,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     }
 
     @Override
-    public synchronized final boolean removeAll(final Collection<?> c) {
+    public synchronized final boolean removeAll(@Nonnull final Collection<?> c) {
         @SuppressWarnings("unchecked")
         final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length];
         boolean result = false;
@@ -244,7 +246,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     }
 
     @Override
-    public synchronized final boolean retainAll(final Collection<?> c) {
+    public synchronized final boolean retainAll(@Nonnull final Collection<?> c) {
         @SuppressWarnings("unchecked")
         final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length];
         boolean result = false;
@@ -261,7 +263,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     }
 
     @Override
-    public final boolean containsAll(final Collection<?> c) {
+    public final boolean containsAll(@Nonnull final Collection<?> c) {
         final WeakEventListener<L, ?>[] snapshot = listeners;
         if (snapshot.length == 0) return c.size() == 0;
         int matched = 0;
@@ -359,6 +361,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      * @return an Iterator.
      */
     @Override
+    @Nonnull
     public final Iterator<L> iterator() {
         final WeakEventListener<L, ?>[] snapshot = listeners;
         return snapshot.length == 0 ?

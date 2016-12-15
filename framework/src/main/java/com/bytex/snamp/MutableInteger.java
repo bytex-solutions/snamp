@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.function.*;
 
@@ -193,7 +194,7 @@ final class MutableInteger extends Number implements IntBox {
     }
 
     @Override
-    public int compareTo(final IntSupplier other) {
+    public int compareTo(@Nonnull final IntSupplier other) {
         return compareTo(other.getAsInt());
     }
 

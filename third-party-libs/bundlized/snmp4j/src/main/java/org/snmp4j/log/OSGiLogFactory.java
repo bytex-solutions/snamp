@@ -3,7 +3,7 @@ package org.snmp4j.log;
 import java.util.logging.Logger;
 
 /**
- * Represents log bridge between OSGi {@link org.osgi.service.log.LogService}
+ * Represents log bridge between OSGi logging subsystem
  * and SNMP4J logging subsystem.
  * This class cannot be inherited or instantiated directly.
  * @author Roman Sakno

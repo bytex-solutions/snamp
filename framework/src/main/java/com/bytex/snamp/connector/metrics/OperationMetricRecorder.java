@@ -1,11 +1,14 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Represents default implementation of interface {@link OperationMetric}.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
+@ThreadSafe
 public class OperationMetricRecorder extends AbstractMetric implements OperationMetric {
     public static final String DEFAULT_NAME = "operations";
     private static final long serialVersionUID = 2944470493827345462L;

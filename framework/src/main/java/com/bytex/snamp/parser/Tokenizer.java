@@ -2,6 +2,7 @@ package com.bytex.snamp.parser;
 
 import com.bytex.snamp.SafeCloseable;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
@@ -21,6 +22,7 @@ import java.util.function.Predicate;
  * @see SemicolonToken
  * @see DotToken
  */
+@NotThreadSafe
 public class Tokenizer implements SafeCloseable {
     /**
      * Represents parser for a token of the specified type.

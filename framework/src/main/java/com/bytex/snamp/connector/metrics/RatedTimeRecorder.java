@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -8,6 +9,7 @@ import java.time.Instant;
  * @since 2.0
  * @version 2.0
  */
+@ThreadSafe
 public class RatedTimeRecorder extends TimeRecorder implements RatedTimer {
     private static final long serialVersionUID = -1501369457653393355L;
     private final RateRecorder rate;

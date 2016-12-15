@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.InvocationTargetException;
@@ -58,12 +59,14 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
          * @return Copy of array with arguments.
          */
         @Override
+        @Nonnull
         public Object[] toArray() {
             return arguments.clone();
         }
 
         @Override
-        public <T> T[] toArray(T[] a) {
+        @Nonnull
+        public <T> T[] toArray(@Nonnull T[] a) {
             if (a.length == 0) a = ObjectArrays.newArray(a, arguments.length);
             System.arraycopy(arguments, 0, a, 0, a.length);
             return a;
@@ -426,7 +429,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @param removeResourceListeners {@literal true} to remove all resource listeners; otherwise, {@literal false}.
      */
     public final void removeAll(final boolean removeResourceListeners) {
-        writeLock.accept(SingleResourceGroup.INSTANCE, this, operations, AbstractOperationRepository::removeAllImpl);
+        writeLock.accept(SingleResourceGroup.INSTANCE, this, operations, AbstractOperationRepository<M>::removeAllImpl);
         if (removeResourceListeners)
             removeAllResourceEventListeners();
     }

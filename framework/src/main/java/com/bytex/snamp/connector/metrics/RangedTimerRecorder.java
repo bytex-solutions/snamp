@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
 import java.util.function.Consumer;
 
@@ -9,6 +10,7 @@ import java.util.function.Consumer;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class RangedTimerRecorder extends AbstractRangedRecorder implements RangedTimer, Consumer<Duration> {
     private static final long serialVersionUID = -6020447472626416864L;
     private final TimeRecorder timer;

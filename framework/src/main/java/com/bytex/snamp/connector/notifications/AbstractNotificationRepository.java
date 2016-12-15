@@ -440,7 +440,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     public final void removeAll(final boolean removeNotificationListeners,
                                 final boolean removeResourceEventListeners) {
-        writeLock.accept(SingleResourceGroup.INSTANCE, this, notifications, AbstractNotificationRepository::removeAllImpl);
+        writeLock.accept(SingleResourceGroup.INSTANCE, this, notifications, AbstractNotificationRepository<M>::removeAllImpl);
         if (removeNotificationListeners)
             listeners.clear();
         if (removeResourceEventListeners)

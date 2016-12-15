@@ -1,11 +1,14 @@
 package com.bytex.snamp.connector.metrics;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Represents implementation of {@link RatedFlag}
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class RatedFlagRecorder extends FlagRecorder implements RatedFlag {
     private static final long serialVersionUID = -6871509716735928335L;
     private final RateRecorder rate;

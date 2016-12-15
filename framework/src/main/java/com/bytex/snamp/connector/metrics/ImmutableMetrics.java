@@ -1,9 +1,10 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.ResettableIterator;
-import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -18,6 +19,7 @@ import java.util.function.Function;
  * @since 2.0
  */
 @ThreadSafe
+@Immutable
 public class ImmutableMetrics implements MetricsSupport {
     private final ImmutableMap<String, Metric> metrics;
 

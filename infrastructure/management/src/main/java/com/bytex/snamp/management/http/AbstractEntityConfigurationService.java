@@ -208,7 +208,7 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
                     .getEntities(entityType)
                     .getIfPresent(name)
                     .orElseThrow(AbstractManagementService::notFound)
-                    .setParameters(Collections.EMPTY_MAP);
+                    .setParameters(Collections.emptyMap());
             return true;
         });
     }
