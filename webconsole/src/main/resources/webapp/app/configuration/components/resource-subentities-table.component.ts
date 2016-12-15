@@ -44,7 +44,7 @@ export class ResourceEntitiesTable implements OnInit {
             .isBlocking(true)
             .className(<VEXBuiltInThemes>'wireframe')
             .keyboard(27)
-            .message("Remove " + entity.getName + " " + entity.name + "?")
+            .message("Remove " + entity.getName() + " " + entity.name + "?")
             .open()
             .then((resultPromise) => {
                 return (<Promise<boolean>>resultPromise.result)
