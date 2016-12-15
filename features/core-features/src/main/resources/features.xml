@@ -12,7 +12,7 @@
 
     <feature name="orientdb-server" description="OrientDB NoSQL Database" version="${orientdb.version}">
         <bundle>mvn:com.orientechnologies/orientdb-core/${orientdb.version}</bundle>
-        <!--<bundle>mvn:com.orientechnologies/orientdb-tools/${orientdb.version}</bundle>-->
+        <bundle>mvn:com.orientechnologies/orientdb-tools/${orientdb.version}</bundle>
         <bundle>mvn:com.orientechnologies/orientdb-client/${orientdb.version}</bundle>
         <bundle>mvn:com.orientechnologies/orientdb-server/${orientdb.version}</bundle>
         <bundle>mvn:com.orientechnologies/orientdb-distributed/${orientdb.version}</bundle>
@@ -23,6 +23,7 @@
         <!-- Third-party bundles -->
         <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
+        <bundle>mvn:com.google.code.findbugs/jsr305/${jsr305.version}</bundle>
         <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
         <bundle>mvn:com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru/1.4.2</bundle>
         <!-- Third-party features -->

@@ -73,6 +73,7 @@
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
     <osgi.version>5.0.0</osgi.version>
     <hazelcast.version>3.7.2</hazelcast.version>
+    <jsr305.version>3.0.1</jsr305.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
     <jline.version>2.14.2</jline.version>
@@ -83,7 +84,6 @@
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
     <groovy.version>2.4.7</groovy.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
-    <websocket.api.version>1.1</websocket.api.version>
     <sshd.version>0.14.0</sshd.version>
     <guava.version>19.0</guava.version>
     <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
@@ -108,6 +108,12 @@
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
         <version>${gson.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>${jsr305.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
@@ -168,12 +174,6 @@
         <groupId>javax.servlet</groupId>
         <artifactId>javax.servlet-api</artifactId>
         <version>3.1.0</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>javax.websocket</groupId>
-        <artifactId>javax.websocket-api</artifactId>
-        <version>${websocket.api.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>

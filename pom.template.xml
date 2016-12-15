@@ -34,7 +34,7 @@
     <sshj.version>0.18.0</sshj.version>
     <netty.version>3.10.6.Final</netty.version>
     <orientdb.version>2.2.13</orientdb.version>
-    <websocket.api.version>1.1</websocket.api.version>
+      <jsr305.version>3.0.1</jsr305.version>
       <!--Versioning of SNAMP Components-->
     <snamp.version>2.0.0</snamp.version>
     <snamp.maxVersion>3</snamp.maxVersion>
@@ -174,6 +174,12 @@
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>${jsr305.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.sun.jersey</groupId>
@@ -236,12 +242,6 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>${websocket.api.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
