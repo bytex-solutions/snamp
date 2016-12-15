@@ -9,7 +9,6 @@ import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.bytex.snamp.testing.BundleExceptionCallable;
-import com.bytex.snamp.testing.ImportPackages;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
@@ -18,8 +17,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import org.atmosphere.wasync.*;
-import org.atmosphere.wasync.impl.AtmosphereClient;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
+import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -32,11 +33,14 @@ import javax.management.openmbean.TabularData;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
@@ -49,10 +53,9 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.HTTP_GATEWAY, SnampFeature.WRAPPED_LIBS})
-@ImportPackages({"com.bytex.snamp.jmx.json;version=\"[2.0,3)\"",
-        "org.atmosphere.wasync;version=\"[2.0.0,3)\""})
 public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final class NotificationReceiver extends LinkedBlockingQueue<JsonElement> implements Function<String>{
+    @WebSocket
+    private static final class NotificationReceiver extends LinkedBlockingQueue<JsonElement>{
         private static final long serialVersionUID = 2056675059549300951L;
         private final Gson formatter;
 
@@ -60,8 +63,8 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
             this.formatter = formatter;
         }
 
-        @Override
-        public void on(final String notification) {
+        @OnWebSocketMessage
+        public void onMessage(final String notification) {
             offer(formatter.toJsonTree(notification));
         }
     }
@@ -192,36 +195,22 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
 
     }
 
-    private void testNotificationTransport(final Request.TRANSPORT transport) throws IOException{
-        final AtmosphereClient client = ClientFactory.getDefault().newClient(AtmosphereClient.class);
-        final RequestBuilder requestBuilder = client.newRequestBuilder()
-                .method(Request.METHOD.GET)
-                .uri(String.format("http://localhost:8181/snamp/gateway/http/%s/notifications/%s", INSTANCE_NAME, TEST_RESOURCE_NAME))
-                //.trackMessageLength(true)
-                .transport(transport);
-        final Socket sock = client.create();
+    @Test
+    public void testNotificationViaWebSocket() throws Exception {
+        final WebSocketClient client = new WebSocketClient();
         final NotificationReceiver receiver = new NotificationReceiver(formatter);
-        sock.on("message", receiver).open(requestBuilder.build());
-        try{
+        client.connect(receiver, new URI(String.format("http://localhost:8181/snamp/gateway/http/%s/notifications/%s", INSTANCE_NAME, TEST_RESOURCE_NAME)), new ClientUpgradeRequest());
+        client.start();
+        try {
             //force attribute change
             testStringAttribute();
             //wait for notifications
-            SpinWait.spinUntil(() -> receiver.size() < 1, Duration.ofSeconds(3));
-        } catch (final InterruptedException | TimeoutException e) {
+            receiver.poll(3, TimeUnit.SECONDS);
+        } catch (final InterruptedException e) {
             fail(String.format("Invalid message count: %s", receiver.size()));
         } finally {
-            sock.close();
+            client.stop();
         }
-    }
-
-    @Test
-    public void testNotificationViaWebSocket() throws IOException {
-        testNotificationTransport(Request.TRANSPORT.WEBSOCKET);
-    }
-
-    @Test
-    public void testNotificationViaComet() throws IOException{
-        testNotificationTransport(Request.TRANSPORT.LONG_POLLING);
     }
 
     @Test

@@ -12,7 +12,6 @@ import javax.management.Notification;
  * @since 1.0
  */
 final class HttpNotificationAccessor extends NotificationRouter implements HttpAccessor {
-    static final String NOTIFICATION_ACCESS_PATH = "/notifications/{" + RESOURCE_URL_PARAM + "}";
     private final String resourceName;
 
     HttpNotificationAccessor(final String resourceName,
@@ -31,7 +30,6 @@ final class HttpNotificationAccessor extends NotificationRouter implements HttpA
     @Override
     public String getPath(final String servletContext,
                           final String resourceName) {
-        return servletContext +
-                NOTIFICATION_ACCESS_PATH.replace("{" + RESOURCE_URL_PARAM + "}", resourceName);
+        return servletContext + '/' + resourceName;
     }
 }

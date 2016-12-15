@@ -3,49 +3,22 @@ package com.bytex.snamp.gateway.http;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.sun.jersey.spi.resource.Singleton;
-import org.atmosphere.annotation.Suspend;
-import org.atmosphere.jersey.SuspendResponse;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
-
 @Singleton
-@org.atmosphere.config.service.Singleton
 @Path("/")
-public final class GatewayRestService {
+public final class AttributeAccessService {
     private final AttributeSupport attributes;
     private final Gson formatter;
-    private final NotificationSupport notifications;
 
-    GatewayRestService(final AttributeSupport registeredAttributes,
-                       final NotificationSupport notifications){
+    AttributeAccessService(final AttributeSupport registeredAttributes){
         this.attributes = Objects.requireNonNull(registeredAttributes);
         this.formatter = new Gson();
-        this.notifications = Objects.requireNonNull(notifications);
-    }
-
-    @GET
-    @Path(HttpNotificationAccessor.NOTIFICATION_ACCESS_PATH)
-    @Suspend(contentType = MediaType.APPLICATION_JSON)
-    public SuspendResponse<String> subscribe(@PathParam(HttpNotificationAccessor.RESOURCE_URL_PARAM) final String resourceName,
-                                             @Context final HttpServletRequest request) throws WebApplicationException {
-        final InternalBroadcaster broadcaster = notifications.getBroadcaster(resourceName);
-        if (broadcaster != null)
-            return callAndWrapException(() -> {
-                broadcaster.initialize(request);
-                return new SuspendResponse.SuspendResponseBuilder<String>()
-                        .broadcaster(broadcaster)
-                        .build();
-            }, WebApplicationException::new);
-        else
-            throw new WebApplicationException(new IllegalArgumentException(String.format("Unknown resource %s", resourceName)), Response.Status.NOT_FOUND);
     }
 
     @GET
