@@ -220,7 +220,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Override
