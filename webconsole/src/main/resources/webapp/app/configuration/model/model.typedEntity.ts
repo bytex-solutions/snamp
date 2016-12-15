@@ -7,13 +7,12 @@ import { ParamDescriptor } from './model.paramDescriptor';
 
 export abstract class TypedEntity extends Entity {
     public type:string;
-    public name:string;
     http:ApiClient;
     private static readonly SMART_MODE = "smartMode";
     private static readonly GROUP = "group";
     public paramDescriptors:Observable<ParamDescriptor[]>;
     constructor(http:ApiClient, name:string, type:string, parameters: { [key:string]:string; }) {
-        super(parameters);
+        super(name, parameters);
         this.http = http;
         this.type = type;
         this.name = name;

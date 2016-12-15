@@ -11,6 +11,7 @@ import { CookieService } from 'angular2-cookie/core';
 import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './configuration.pipes'
 import { InlineEditComponent } from './components/inline-edit.component'
 import { ParametersTable } from './components/parameters-table.component'
+import { ResourceEntitiesTable } from './components/resource-subentities-table.component'
 import { BindingTable } from './components/binding-table.component'
 import { AddEntity } from './components/add-entity.component'
 import { ConfigurationRoutingModule } from './configuration-routing.module'
@@ -24,7 +25,7 @@ import { TooltipModule } from 'ng2-tooltip';
   imports:      [ CommonModule,ConfigurationRoutingModule,  HttpModule, FormsModule, ModalModule.forRoot(),
                     VexModalModule, TooltipModule ],
   declarations: [ GatewaysComponent, ResourcesComponent, RGroupsComponent, SnampCfgComponent,
-                    KeysPipe,  InlineEditComponent, ParametersTable, BindingTable,
+                    KeysPipe,  InlineEditComponent, ParametersTable, BindingTable, ResourceEntitiesTable,
                     RequiredParametersFilter, OptionalParametersFilter, AddEntity ],
   providers:    [ ApiClient, CookieService, providers]
 })

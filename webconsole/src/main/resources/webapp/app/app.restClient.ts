@@ -104,4 +104,8 @@ export class REST {
     public static RESOURCE_GROUP(name:string):string {
         return REST.RESOURCE_BY_NAME(name) + "/group";
     }
+
+    public static RESOURCE_ENTITY_BY_TYPE_AND_NAME(entityType:string, name:string, entityName:string):string {
+        return REST.RESOURCE_BY_NAME(name) + "/" + entityType + "/" + entityName;
+    }
 }

@@ -1,15 +1,11 @@
-import { Entity, Guid } from './model.entity';
+import { Entity } from './model.entity';
 
 export class Binding extends Entity {
-    public name:string;
     public resourceName:string;
     public mappedType:string;
-    public guid:string;
     constructor(name:string, resourceName:string, jsonObject:any) {
-        super(jsonObject["bindingProperties"]);
-        this.name = name;
+        super(name, jsonObject["bindingProperties"]);
         this.resourceName = resourceName;
         this.mappedType = jsonObject["mappedType"];
-        this.guid = Guid.newGuid();
     }
 }

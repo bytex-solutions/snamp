@@ -32,7 +32,7 @@
                     <!-- right area -->
                     <div class="row contentRow">
                         <!-- if we have binging - add next with col-md-5 -->
-                        <div class="col-md-6 leftAlign">
+                        <div class="col-md-8 leftAlign">
                             <!-- combobox with type -->
                             <div class="row">
                                 <div class="form-group">
@@ -112,9 +112,9 @@
 
                         </div>
                         <!-- binding here -->
-                        <div class="col-md-6 bindingCol leftAlign" *ngIf="!this.activeResource.smartMode">
+                        <div class="col-md-4 bindingCol leftAlign" *ngIf="!activeResource.smartMode">
                             <div class="row">
-                                <h4>Binding information:</h4>
+                                <h4>Entities:</h4>
                             </div>
                             <div class="panel-group group-accordeon" id="accordionBindings" role="tablist" aria-multiselectable="true">
                                 <div class="panel panel-default">
@@ -127,7 +127,10 @@
                                     </div>
                                     <div id="collapseAttributes" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                                         <div class="panel-body">
-
+                                            <resourceEntity
+                                                    [entities]="activeResource.attributes"
+                                                    [resourceName]="activeResource.name">
+                                            </resourceEntity>
                                         </div>
                                     </div>
                                 </div>
@@ -141,7 +144,10 @@
                                     </div>
                                     <div id="collapseEvents" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                                         <div class="panel-body">
-
+                                            <resourceEntity
+                                                    [entities]="activeResource.events"
+                                                    [resourceName]="activeResource.name">
+                                            </resourceEntity>
                                         </div>
                                     </div>
                                 </div>
@@ -155,7 +161,10 @@
                                     </div>
                                     <div id="collapseOperations" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
                                         <div class="panel-body">
-                                            
+                                            <resourceEntity
+                                                    [entities]="activeResource.operations"
+                                                    [resourceName]="activeResource.name">
+                                            </resourceEntity>
                                         </div>
                                     </div>
                                 </div>
