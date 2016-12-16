@@ -24,6 +24,7 @@ export class AddEntity implements OnInit {
     @Input() type:string;
     selectedType:EntityDescriptor = undefined;
     selectedName:string = undefined;
+    selectedConnectionString:string = "";
     paramDescriptors:Observable<ParamDescriptor[]> = undefined ;
     params:KeyValue[] = [];
     containsRequiredParam:boolean = false;
@@ -97,11 +98,14 @@ export class AddEntity implements OnInit {
                     this.entities.push(newGateway);
                 });
         } else if(this.type == "resource") {
+             let connectionString:string = this.selectedConnectionString;
+             if (connectionString == undefined || connectionString.length < 4) {
+                connectionString = ParamDescriptor.stubValue;
+             }
              let newResource:TypedEntity = new Resource(
                 this.http,
                 this.selectedName,
-                "",
-                Resource.stringifyTypeWithParams(this.selectedType.type, this.params)
+                Resource.stringify(this.selectedType.type, connectionString, this.params)
             );
             this.http.put(REST.RESOURCE_BY_NAME(newResource.name), newResource.stringify())
                 .map((res:Response) => res.json())
@@ -122,7 +126,8 @@ export class AddEntity implements OnInit {
     clear() {
         this.selectedType = undefined;
         this.selectedName = undefined;
-        this.paramDescriptors = undefined ;
+        this.selectedConnectionString = "";
+        this.paramDescriptors = undefined;
         this.params = [];
         this.containsRequiredParam = false;
         this.readyForSave = false;

@@ -55,6 +55,8 @@ export class REST {
 
     public static RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
 
+    public static RGROUP_CONFIG = REST.CFG_PATH + "/resourceGroup";
+
     public static AVAILABLE_GATEWAY_LIST = REST.ROOT_PATH + "/gateway/list";
 
     public static AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/resource/list";
@@ -95,5 +97,15 @@ export class REST {
 
     public static RESOURCE_CONNECTION_STRING(entityName:string):string {
         return REST.RESOURCE_BY_NAME(entityName) + "/connectionString";
+    }
+
+    public static RGROUP_LIST = REST.RGROUP_CONFIG + "/list";
+
+    public static RESOURCE_GROUP(name:string):string {
+        return REST.RESOURCE_BY_NAME(name) + "/group";
+    }
+
+    public static RESOURCE_ENTITY_BY_TYPE_AND_NAME(entityType:string, name:string, entityName:string):string {
+        return REST.RESOURCE_BY_NAME(name) + "/" + entityType + "/" + entityName;
     }
 }

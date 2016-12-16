@@ -7,11 +7,12 @@ import { ParamDescriptor } from './model.paramDescriptor';
 
 export abstract class TypedEntity extends Entity {
     public type:string;
-    public name:string;
     http:ApiClient;
+    private static readonly SMART_MODE = "smartMode";
+    private static readonly GROUP = "group";
     public paramDescriptors:Observable<ParamDescriptor[]>;
     constructor(http:ApiClient, name:string, type:string, parameters: { [key:string]:string; }) {
-        super(parameters);
+        super(name, parameters);
         this.http = http;
         this.type = type;
         this.name = name;
@@ -22,7 +23,13 @@ export abstract class TypedEntity extends Entity {
                 let data = res.json();
                 let returnValue:ParamDescriptor[] = [];
                 for (let obj in data) {
-                   returnValue.push(new ParamDescriptor(data[obj]));
+                   let newDescriptor:ParamDescriptor = new ParamDescriptor(data[obj]);
+                   // remove group and smart mode descriptors because they are processed another way
+                   if (!(this.getName() == "resource"
+                        && (newDescriptor.name == TypedEntity.SMART_MODE
+                        || newDescriptor.name == TypedEntity.GROUP))) {
+                           returnValue.push(newDescriptor);
+                   }
                 }
                 return returnValue;
             });

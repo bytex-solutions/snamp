@@ -164,7 +164,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     public void testCheckSimpleResourceWithAndWithoutToken() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
-        final URL query = new URL("http://localhost:8181/snamp/security/username");
+        final URL query = new URL("http://localhost:8181/snamp/security/login/username");
         //with token
         HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
@@ -213,7 +213,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
             assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
             final String attributeValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             assertNotNull(attributeValue);
-            assertTrue(attributeValue.contains("<h1 class=\"cover-heading\">Set up your SNAMP.</h1>"));
+            assertTrue(attributeValue.contains("<h3 class=\"masthead-brand\">SNAMP WEB UI</h3>"));
 
         } finally {
             connection.disconnect();
@@ -265,7 +265,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
      *
      * @throws InterruptedException the interrupted exception
      */
-    @Test
+    //@Test
     public void dummyTest() throws InterruptedException {
         Thread.sleep(10000000);
     }
@@ -300,7 +300,22 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         }
 
         // Get resource by name
-         query = new URL(String.format("http://localhost:8181/snamp/management/configuration/resource/%s", TEST_RESOURCE_NAME));
+        query = new URL(String.format("http://localhost:8181/snamp/management/configuration/resource/%s", TEST_RESOURCE_NAME));
+        //write attribute
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(false);
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            final String attributeValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            assertNotEquals("{}", attributeValue);
+        } finally {
+            connection.disconnect();
+        }
+
+        // Get resource by name
+        query = new URL(String.format("http://localhost:8181/snamp/management/configuration/resource/%s/attributes/1.0", TEST_RESOURCE_NAME));
         //write attribute
         connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
@@ -601,7 +616,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         }
 
         // get the configuration
-        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/configuration/gateways/%s/configuration",
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/gateway/%s/configuration",
                 ADAPTER_NAME)).openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
@@ -658,7 +673,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
 
         // Get all resources
-        URL query = new URL("http://localhost:8181/snamp/management/resources/");
+        URL query = new URL("http://localhost:8181/snamp/management/resource/list");
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
@@ -679,7 +694,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
             connection.disconnect();
         }
 
-        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/resources/%s/disable",
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/resource/%s/disable",
                 CONNECTOR_NAME)).openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));

@@ -8,7 +8,7 @@
             </div>
             <br/>
             <div class="modal-body">
-                <div class="input-group">
+                <div class="input-group" style="margin-bottom: 20px;">
                     <span class="input-group-addon">Name</span>
                     <input
                             type="text"
@@ -16,7 +16,14 @@
                             [tooltip]="'Input at least 4 symbols please'"
                             [(ngModel)]="selectedName">
                 </div>
-                <br/>
+                <div class="input-group" style="margin-bottom: 20px;" *ngIf="type == 'resource'">
+                    <span class="input-group-addon">Connection string</span>
+                    <input
+                            type="text"
+                            class="form-control"
+                            [tooltip]="'Connection string is optional, but in almost all cases should be prefilled'"
+                            [(ngModel)]="selectedConnectionString">
+                </div>
                 <div class="panel-group group-accordeon" id="entityAccordion" role="tablist" aria-multiselectable="true">
                     <div class="panel panel-default leftAlign" *ngIf="nameSelected()">
                         <div class="panel-heading" role="tab" id="headingOne">

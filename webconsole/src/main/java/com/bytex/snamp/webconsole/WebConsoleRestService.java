@@ -16,7 +16,7 @@ import javax.ws.rs.core.MediaType;
  * @since 2.0
  */
 @Path("/")
-public final class WebConsoleService extends Authenticator {
+public final class WebConsoleRestService {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
