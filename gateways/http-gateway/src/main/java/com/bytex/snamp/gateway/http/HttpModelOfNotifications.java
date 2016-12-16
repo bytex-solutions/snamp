@@ -44,17 +44,7 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
         @Override
         public final void handleNotification(final NotificationEvent event) {
             if (isConnected() && isAllowed(event.getNotification())) {
-                getRemote().sendString(formatter.toJson(event.getNotification()), new WriteCallback() {
-                    @Override
-                    public void writeFailed(final Throwable x) {
-                        logger.log(Level.WARNING, String.format("Failed to send notification %s from %s", event.getNotification(), Arrays.toString(event.getSource().getNotifTypes())));
-                    }
-
-                    @Override
-                    public void writeSuccess() {
-
-                    }
-                });
+                getRemote().sendString(formatter.toJson(event.getNotification()), createCallback(event.getNotification()));
             }
         }
 
@@ -96,6 +86,24 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
     HttpModelOfNotifications(final Logger logger) {
         this.logger = Objects.requireNonNull(logger);
         webSocketListeners = new CopyOnWriteArraySet<>();
+    }
+
+    private static WriteCallback createCallback(final Logger logger, final Notification notification){
+        return new WriteCallback() {
+            @Override
+            public void writeFailed(final Throwable e) {
+                logger.log(Level.WARNING, String.format("Failed to send notification %s", notification), e);
+            }
+
+            @Override
+            public void writeSuccess() {
+
+            }
+        };
+    }
+
+    private WriteCallback createCallback(final Notification notification){
+        return createCallback(logger, notification);
     }
 
     @Override
