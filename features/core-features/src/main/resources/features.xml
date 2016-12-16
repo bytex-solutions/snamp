@@ -31,7 +31,7 @@
         <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
         <feature version="[${karaf.version}, ${karaf.maxVersion})">framework</feature>
         <feature version="${jersey.version}">jersey-server</feature>
-        <!--<feature version="${orientdb.version}">orientdb-server</feature>-->
+        <feature version="${orientdb.version}">orientdb-server</feature>
         <!--SNAMP dependencies-->
         <bundle>mvn:com.bytex.snamp/framework/${snamp.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/security/${snamp.security.version}</bundle>
