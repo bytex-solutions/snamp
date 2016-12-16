@@ -24,7 +24,7 @@ final class WebConsoleServlet extends ServletContainer implements ServiceListene
     private transient final Map<String, WebConsoleServiceHolder> services;
     private transient final ResourceConfig resourceConfig;
 
-    WebConsoleServlet(final ResourceConfig resourceConfig) throws InvalidSyntaxException {
+    private WebConsoleServlet(final ResourceConfig resourceConfig) throws InvalidSyntaxException {
         super(resourceConfig);
         this.resourceConfig = Objects.requireNonNull(resourceConfig);
 
@@ -39,6 +39,10 @@ final class WebConsoleServlet extends ServletContainer implements ServiceListene
     private static ResourceConfig createResourceConfig(){
         final ResourceConfig result = new DefaultResourceConfig();
         result.getSingletons().add(new VersionResource());
+        final WebSecurityFilter filter = new WebSecurityFilter();
+        result.getContainerRequestFilters().add(filter);
+        result.getContainerResponseFilters().add(filter);
+        result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
         return result;
     }
 
