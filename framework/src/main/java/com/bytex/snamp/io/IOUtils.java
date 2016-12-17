@@ -26,6 +26,13 @@ public final class IOUtils {
         throw new InstantiationError();
     }
 
+    public static void copy(final Reader input, final Writer output) throws IOException {
+        final char[] buffer = new char[1024];
+        int count;
+        while ((count = input.read(buffer)) > 0)
+            output.write(buffer, 0, count);
+    }
+
     public static String toString(final InputStream stream, final Charset encoding) throws IOException {
         if (encoding == null) return toString(stream, Charset.defaultCharset());
         final StringBuilder result = new StringBuilder(1024);
