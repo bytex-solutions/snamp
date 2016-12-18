@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.attributes;
 
 import com.bytex.snamp.SafeCloseable;
-import javax.annotation.concurrent.ThreadSafe;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.AttributeMetric;
 import com.bytex.snamp.connector.metrics.AttributeMetricRecorder;

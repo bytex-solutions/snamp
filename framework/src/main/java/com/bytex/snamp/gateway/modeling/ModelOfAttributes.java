@@ -3,8 +3,8 @@ package com.bytex.snamp.gateway.modeling;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
-import javax.annotation.concurrent.ThreadSafe;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.management.*;
 import java.util.Collection;
 import java.util.Set;

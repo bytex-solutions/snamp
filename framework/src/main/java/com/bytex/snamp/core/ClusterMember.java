@@ -28,7 +28,7 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
     /**
      * Represents distributed map.
      */
-    TypeToken<ConcurrentMap<String, Object>> STORAGE_SERVICE = new TypeToken<ConcurrentMap<String, Object>>() {};
+    TypeToken<ConcurrentMap<String, Object>> MAP_SERVICE = new TypeToken<ConcurrentMap<String, Object>>() {};
 
     /**
      * Represents communication service.
@@ -40,12 +40,7 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
      */
     TypeToken<Box<Object>> BOX = new TypeToken<Box<Object>>() {};
 
-    /**
-     * Gets number of neighborhood nodes in the cluster.
-     * @return Number of nodes in the cluster.
-     * @since 2.0
-     */
-    int getNeighbors();
+    TypeToken<KeyValueStorage> KV_STORAGE_SERVICE = TypeToken.of(KeyValueStorage.class);
 
     /**
      * Marks this node as passive and execute leader election.
@@ -59,7 +54,7 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
      * @param <S> Type of the service contract.
      * @return Distributed service; or {@literal null}, if service is not supported.
      * @see #IDGEN_SERVICE
-     * @see #STORAGE_SERVICE
+     * @see #MAP_SERVICE
      */
     <S> S getService(final String serviceName, final TypeToken<S> serviceType);
 

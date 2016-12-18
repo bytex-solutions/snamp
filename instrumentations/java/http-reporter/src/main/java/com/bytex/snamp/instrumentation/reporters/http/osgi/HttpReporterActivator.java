@@ -3,7 +3,10 @@ package com.bytex.snamp.instrumentation.reporters.http.osgi;
 import com.bytex.snamp.instrumentation.reporters.Reporter;
 import com.bytex.snamp.instrumentation.reporters.http.HttpReporter;
 import com.bytex.snamp.instrumentation.reporters.http.HttpReporterSpi;
-import org.osgi.framework.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceRegistration;
 
 import java.util.Dictionary;
 import java.util.Hashtable;

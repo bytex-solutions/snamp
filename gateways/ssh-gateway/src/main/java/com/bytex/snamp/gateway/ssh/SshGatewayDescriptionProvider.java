@@ -19,9 +19,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.MapUtils.getIfPresent;
-import static com.bytex.snamp.MapUtils.getValue;
-import static com.bytex.snamp.MapUtils.getValueAsInt;
+import static com.bytex.snamp.MapUtils.*;
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 

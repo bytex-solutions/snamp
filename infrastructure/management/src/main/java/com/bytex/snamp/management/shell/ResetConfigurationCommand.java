@@ -4,7 +4,6 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.ServiceHolder;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
 

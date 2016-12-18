@@ -1,7 +1,6 @@
 package com.bytex.snamp.concurrent;
 
 import javax.annotation.concurrent.ThreadSafe;
-
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongBinaryOperator;

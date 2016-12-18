@@ -25,23 +25,25 @@ public final class DistributedServicesTest extends Assert {
     private GridMember instance2;
 
     @Before
-    public void setupHazelcastNodes(){
+    public void setupHazelcastNodes() throws Exception {
         instance1 = new GridMember();
+        instance1.start();
         instance2 = new GridMember();
+        instance2.start();
     }
 
     @After
     public void shutdownHazelcastNodes() throws InterruptedException {
-        instance1.close();
-        instance2.close();
+        instance1.shutdownAndClose();
+        instance2.shutdownAndClose();
         instance1 = null;
         instance2 = null;
     }
 
     @Test
     public void storageTest() throws InterruptedException {
-        final ConcurrentMap<String, Object> storage1 = instance1.getService("storage", ClusterMember.STORAGE_SERVICE);
-        final ConcurrentMap<String, Object> storage2 = instance2.getService("storage", ClusterMember.STORAGE_SERVICE);
+        final ConcurrentMap<String, Object> storage1 = instance1.getService("storage", ClusterMember.MAP_SERVICE);
+        final ConcurrentMap<String, Object> storage2 = instance2.getService("storage", ClusterMember.MAP_SERVICE);
         assertTrue(storage1 instanceof HazelcastStorage);
         assertTrue(storage2 instanceof HazelcastStorage);
         storage1.put("key", Duration.ofSeconds(10));

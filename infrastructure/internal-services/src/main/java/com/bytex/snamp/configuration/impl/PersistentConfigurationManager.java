@@ -1,6 +1,9 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.*;
+import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import org.osgi.service.cm.ConfigurationAdmin;

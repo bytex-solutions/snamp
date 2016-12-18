@@ -1,6 +1,13 @@
 @GrabConfig(initContextClassLoader = true)
 @Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
 import groovy.json.JsonSlurper
+@GrabConfig(initContextClassLoader = true)
+@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
+import groovy.json.JsonSlurper
+@Grab(group = 'org.codehaus.groovy.modules.http-builder', module = 'http-builder', version = '0.7.1')
+@Grab(group = 'org.codehaus.groovy', module = 'groovy-xml', version = '2.4.5')
+@GrabConfig(initContextClassLoader = true)
+import groovyx.net.http.RESTClient
 @Grab(group = 'org.codehaus.groovy.modules.http-builder', module = 'http-builder', version = '0.7.1')
 @Grab(group = 'org.codehaus.groovy', module = 'groovy-xml', version = '2.4.5')
 @GrabConfig(initContextClassLoader = true)

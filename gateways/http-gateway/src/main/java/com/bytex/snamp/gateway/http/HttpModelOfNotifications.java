@@ -16,7 +16,6 @@ import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;

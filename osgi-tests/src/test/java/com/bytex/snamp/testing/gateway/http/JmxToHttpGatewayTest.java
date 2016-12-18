@@ -38,7 +38,10 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.Duration;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 import static com.bytex.snamp.jmx.json.JsonUtils.toJsonArray;

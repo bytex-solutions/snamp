@@ -13,6 +13,7 @@
     <users>
         <user name="snamp" password="snamp" resources="*"/>
     </users>
+    <storages/>
     <properties>
         <entry name="log.console.level" value="info"/>
         <entry name="log.file.level" value="fine"/>

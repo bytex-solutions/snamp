@@ -1,15 +1,13 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.Stateful;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -18,7 +16,7 @@ import java.util.stream.Stream;
  * @version 2.0
  * @since 2.0
  */
-public interface KeyValueStorage {
+public interface KeyValueStorage extends Closeable {
     /**
      * Represents state of the record.
      */
@@ -46,21 +44,16 @@ public interface KeyValueStorage {
     /**
      * Represents entry stored in this storage.
      */
-    interface Record extends Stateful{
+    interface Record{
         /**
          * Saves entry into storage.
          */
-        void save();
-
-        /**
-         * All the fields are deleted but the record identity is maintained.
-         */
-        void clear();
+        Record save();
 
         /**
          * Resets all changes.
          */
-        void reset();
+        Record reset();
 
         /**
          * Gets version of this record.
@@ -72,8 +65,12 @@ public interface KeyValueStorage {
          * Deletes this record.
          * @return {@literal true}, if this record is deleted successfully; {@literal false}, if record doesn't exist.
          */
-        boolean delete();
+        Record delete();
 
+        /**
+         * Gets state of this record.
+         * @return State of this record.
+         */
         RecordState getState();
     }
 
@@ -136,19 +133,13 @@ public interface KeyValueStorage {
      */
     enum IsolationLevel {
         READ_COMMITTED,
-        REPEATABLE_READ,
-        READ_UNCOMMITTED
+        REPEATABLE_READ
     }
 
     /**
      * Represents transaction scope.
      */
     interface TransactionScope extends SafeCloseable{
-        /**
-         * Gets isolation level of this transaction.
-         * @return Isolation level.
-         */
-        IsolationLevel getIsolationLevel();
 
         /**
          * Commits all changes that was made during this transaction.
@@ -164,7 +155,7 @@ public interface KeyValueStorage {
          * Unique ID of this transaction.
          * @return ID of this transaction.
          */
-        String getId();
+        int getId();
     }
 
     /**
@@ -172,6 +163,7 @@ public interface KeyValueStorage {
      * @param key The key of the record.
      * @param <R> Type of the record view.
      * @return Selector for records in this storage.
+     * @throws ClassCastException Unsupported record view.
      */
     <R extends Record> R getRecord(final long key, final Class<R> recordView);
 
@@ -180,6 +172,7 @@ public interface KeyValueStorage {
      * @param key The key of the record.
      * @param <R> Type of the record view.
      * @return Selector for records in this storage.
+     * @throws ClassCastException Unsupported record view.
      */
     <R extends Record> R getRecord(final double key, final Class<R> recordView);
 
@@ -188,6 +181,7 @@ public interface KeyValueStorage {
      * @param key The key of the record.
      * @param <R> Type of the record view.
      * @return Selector for records in this storage.
+     * @throws ClassCastException Unsupported record view.
      */
     <R extends Record> R getRecord(final String key, final Class<R> recordView);
 
@@ -196,6 +190,7 @@ public interface KeyValueStorage {
      * @param key The key of the record.
      * @param <R> Type of the record view.
      * @return Selector for records in this storage.
+     * @throws ClassCastException Unsupported record view.
      */
     <R extends Record> R getRecord(final Instant key, final Class<R> recordView);
 

@@ -1,7 +1,5 @@
 package com.bytex.snamp.instrumentation;
 
-import org.osgi.framework.FrameworkUtil;
-
 import java.lang.management.ManagementFactory;
 import java.util.regex.Pattern;
 

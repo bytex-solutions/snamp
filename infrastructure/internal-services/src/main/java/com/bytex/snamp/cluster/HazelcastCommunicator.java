@@ -184,6 +184,16 @@ final class HazelcastCommunicator implements Communicator {
     }
 
     @Override
+    public String getName() {
+        return communicatorName;
+    }
+
+    @Override
+    public boolean isPersistent() {
+        return false;
+    }
+
+    @Override
     public long newMessageID() {
         return hazelcast.getAtomicLong("MSGID-".concat(communicatorName)).getAndIncrement();
     }

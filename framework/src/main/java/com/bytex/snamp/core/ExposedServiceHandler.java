@@ -1,7 +1,10 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.internal.Utils;
-import org.osgi.framework.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 
 import java.util.Objects;
 import java.util.function.Predicate;

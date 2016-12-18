@@ -374,9 +374,9 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     private final HeadMessageListenerNode firstNode;
     private final TailMessageListenerNode lastNode;
 
-    LocalCommunicator() {
+    LocalCommunicator(final String name) {
         super(SingleResourceGroup.class);
-        idGenerator = new LocalLongCounter();
+        idGenerator = new LocalLongCounter(name);
         firstNode = new HeadMessageListenerNode();
         lastNode = new TailMessageListenerNode();   //tail empty node
         firstNode.setNext(lastNode);
@@ -490,6 +490,16 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
         final MessageFuture<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser, true);
         sendMessage(message, MessageType.REQUEST, messageID);
         return receiver;
+    }
+
+    @Override
+    public String getName() {
+        return idGenerator.getName();
+    }
+
+    @Override
+    public boolean isPersistent() {
+        return false;
     }
 
     boolean hasNoSubscribers(){

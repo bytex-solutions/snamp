@@ -7,7 +7,8 @@ import com.bytex.snamp.core.ServiceHolder;
 import org.osgi.framework.BundleContext;
 
 import java.util.Objects;
-import java.util.function.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 

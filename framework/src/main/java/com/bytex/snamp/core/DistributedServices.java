@@ -56,11 +56,11 @@ public final class DistributedServices {
                 @Override
                 public Object load(@Nonnull final LocalServiceKey key) throws InvalidKeyException {
                     if(ClusterMember.IDGEN_SERVICE.equals(key.serviceType))
-                        return new LocalLongCounter();
-                    else if(ClusterMember.STORAGE_SERVICE.equals(key.serviceType))
+                        return new LocalLongCounter(key.serviceName);
+                    else if(ClusterMember.MAP_SERVICE.equals(key.serviceType))
                         return new LocalStorage();
                     else if(ClusterMember.COMMUNICATION_SERVICE.equals(key.serviceType))
-                        return new LocalCommunicator();
+                        return new LocalCommunicator(key.serviceName);
                     else if(ClusterMember.BOX.equals(key.serviceType))
                         return new LocalBox();
                     else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
@@ -97,8 +97,8 @@ public final class DistributedServices {
         return getProcessLocalService(generatorName, ClusterMember.IDGEN_SERVICE);
     }
 
-    public static ConcurrentMap<String, Object> getProcessLocalStorage(final String collectionName){
-        return getProcessLocalService(collectionName, ClusterMember.STORAGE_SERVICE);
+    public static ConcurrentMap<String, Object> getProcessLocalMap(final String collectionName){
+        return getProcessLocalService(collectionName, ClusterMember.MAP_SERVICE);
     }
 
     private static <S> S processClusterNode(final BundleContext context,
@@ -139,7 +139,7 @@ public final class DistributedServices {
      */
     public static ConcurrentMap<String, Object> getDistributedStorage(final BundleContext context,
                                                                             final String collectionName){
-        return getService(context, collectionName, ClusterMember.STORAGE_SERVICE);
+        return getService(context, collectionName, ClusterMember.MAP_SERVICE);
     }
 
     /**

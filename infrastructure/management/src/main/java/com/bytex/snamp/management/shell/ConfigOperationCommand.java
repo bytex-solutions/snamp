@@ -5,10 +5,10 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
-import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.time.Duration;
 

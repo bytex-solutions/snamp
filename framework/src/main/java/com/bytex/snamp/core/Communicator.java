@@ -17,7 +17,7 @@ import java.util.function.Predicate;
  * @since 2.0
  * @version 2.0
  */
-public interface Communicator {
+public interface Communicator extends DistributedService {
     Predicate<? super IncomingMessage> ANY_MESSAGE = msg -> true;
     Predicate<IncomingMessage> REMOTE_MESSAGE = IncomingMessage::isRemote;
 

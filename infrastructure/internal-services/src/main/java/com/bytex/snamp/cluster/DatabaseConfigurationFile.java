@@ -1,4 +1,4 @@
-package com.bytex.snamp.database;
+package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.io.IOUtils;
 
@@ -30,7 +30,7 @@ enum DatabaseConfigurationFile {
         final File result = isNullOrEmpty(karafConfigFolder) ?
                 Files.createTempFile("orientdb", fileName).toFile() :
                 Paths.get(karafConfigFolder, fileName).toFile();
-        if (!result.exists() && createDefaultIfNotExists)
+        if ((!result.exists() || result.length() == 0) && createDefaultIfNotExists)
             writeDefaultConfig(result);
         return result;
     }

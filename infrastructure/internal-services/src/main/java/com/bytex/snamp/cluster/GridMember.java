@@ -9,6 +9,9 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 
+import javax.management.JMException;
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +43,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
                     lockAcquired = masterLock.tryLock(3, TimeUnit.MILLISECONDS);
                 } catch (final InterruptedException e) {
                     lockAcquired = false;
-                    break;
+                    return;
                 }
         }
 
@@ -59,21 +62,25 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
 
     private final HazelcastInstance hazelcast;
     private volatile LeaderElectionThread electionThread;
-    private final boolean shutdownHazelcast;
+    private final OrientDatabaseService dbService;
 
-    private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdown){
+    public GridMember(final HazelcastInstance hazelcastInstance) throws ReflectiveOperationException, JAXBException, IOException, JMException {
         this.electionThread = new LeaderElectionThread(hazelcastInstance);
         this.hazelcast = hazelcastInstance;
+        this.dbService = new OrientDatabaseService(hazelcastInstance);
+    }
+
+    GridMember() throws JMException, ReflectiveOperationException, IOException, JAXBException {
+        this(Hazelcast.newHazelcastInstance());
+    }
+
+    public void start() throws IOException {
+        try {
+            dbService.startupFromConfiguration();
+        } catch (final ReflectiveOperationException e) {
+            throw new IOException(e);
+        }
         electionThread.start();
-        this.shutdownHazelcast = shutdown;
-    }
-
-    public GridMember(final HazelcastInstance hazelcastInstance){
-        this(hazelcastInstance, false);
-    }
-
-    GridMember(){
-        this(Hazelcast.newHazelcastInstance(), true);
     }
 
     /**
@@ -103,11 +110,6 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         }
         electionThread = new LeaderElectionThread(hazelcast);
         electionThread.start();
-    }
-
-    @Override
-    public int getNeighbors() {
-        return hazelcast.getCluster().getMembers().size() - 1;
     }
 
     /**
@@ -140,7 +142,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
     @Override
     public <S> S getService(final String serviceName, final TypeToken<S> serviceType) {
         final Object result;
-        if (STORAGE_SERVICE.equals(serviceType))
+        if (MAP_SERVICE.equals(serviceType))
             result = getStorage(serviceName);
         else if (IDGEN_SERVICE.equals(serviceType))
             result = getLongCounter(serviceName);
@@ -150,6 +152,13 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
             result = getBox(serviceName);
         else return null;
         return Convert.toTypeToken(result, serviceType);
+    }
+
+    private OrientKeyValueStorage getKeyValueStorage(final String collectionName){
+        final OrientKeyValueStorage storage = new OrientKeyValueStorage(dbService, collectionName);
+        if(!storage.exists())
+            storage.create();
+        return storage;
     }
 
     private HazelcastBox getBox(final String boxName){
@@ -165,7 +174,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
     }
 
     private LongCounter getLongCounter(final String counterName){
-        return hazelcast.getAtomicLong(counterName)::getAndIncrement;
+        return new HazelcastLongCounter(hazelcast, counterName);
     }
 
     /**
@@ -176,7 +185,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
      */
     @Override
     public void releaseService(final String serviceName, final TypeToken<?> serviceType) {
-        if(STORAGE_SERVICE.equals(serviceType))
+        if(MAP_SERVICE.equals(serviceType))
             releaseStorage(serviceName);
         else if(IDGEN_SERVICE.equals(serviceType))
             releaseLongCounter(serviceName);
@@ -211,15 +220,28 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         return hazelcast.getCluster().getLocalMember().getSocketAddress();
     }
 
-    @Override
-    public synchronized void close() throws InterruptedException {
+    private synchronized void close(final boolean shutdownHazelcast) throws InterruptedException {
+        final String instanceName = getName();
+        logger.info(() -> String.format("GridMember service %s is closing. Shutdown Hazelcast? %s", instanceName, shutdownHazelcast ? "yes" : "no"));
+        dbService.shutdown();
         try {
             electionThread.close();
-        }finally {
+        } finally {
             electionThread = null;
             if (shutdownHazelcast)
                 hazelcast.shutdown();
             clearCache();
         }
+        logger.info(() -> String.format("GridMember service %s is closed successfully", instanceName));
+    }
+
+    //for testing purposes
+    void shutdownAndClose() throws InterruptedException {
+        close(true);
+    }
+
+    @Override
+    public void close() throws InterruptedException {
+        close(false);
     }
 }
