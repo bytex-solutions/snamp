@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.groovy;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.LongCounter;
+import com.bytex.snamp.core.SharedCounter;
 import org.osgi.framework.BundleContext;
 
 import javax.management.MBeanException;
@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  */
 final class GroovyNotificationRepository extends AccurateNotificationRepository<GroovyEvent> implements NotificationListener {
     private final NotificationListenerInvoker listenerInvoker;
-    private final LongCounter sequenceNumberGenerator;
+    private final SharedCounter sequenceNumberGenerator;
     private final ManagedResourceScriptlet scriptlet;
 
     GroovyNotificationRepository(final String resourceName,

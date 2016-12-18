@@ -16,7 +16,7 @@ import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.LongCounter;
+import com.bytex.snamp.core.SharedCounter;
 import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.OpenType;
@@ -114,7 +114,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private final Logger logger;
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
         private final NotificationListenerInvoker listenerInvoker;
-        private final LongCounter sequenceNumberGenerator;
+        private final SharedCounter sequenceNumberGenerator;
 
         private JavaBeanNotificationRepository(final String resourceName,
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,

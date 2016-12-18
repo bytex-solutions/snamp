@@ -3,7 +3,7 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.ClusterMember;
-import com.bytex.snamp.core.LongCounter;
+import com.bytex.snamp.core.SharedCounter;
 import com.google.common.reflect.TypeToken;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
@@ -58,6 +58,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
             }
         }
     }
+
     private final Logger logger = Logger.getLogger("com.bytex.snamp.cluster");
 
     private final HazelcastInstance hazelcast;
@@ -173,8 +174,8 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         return new HazelcastStorage(hazelcast, collectionName);
     }
 
-    private LongCounter getLongCounter(final String counterName){
-        return new HazelcastLongCounter(hazelcast, counterName);
+    private SharedCounter getLongCounter(final String counterName){
+        return new HazelcastSharedCounter(hazelcast, counterName);
     }
 
     /**

@@ -370,13 +370,13 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     private static final LazySoftReference<ExecutorService> LOCAL_MESSAGE_SENDER = new LazySoftReference<>();
-    private final LongCounter idGenerator;
+    private final SharedCounter idGenerator;
     private final HeadMessageListenerNode firstNode;
     private final TailMessageListenerNode lastNode;
 
     LocalCommunicator(final String name) {
         super(SingleResourceGroup.class);
-        idGenerator = new LocalLongCounter(name);
+        idGenerator = new LocalCounter(name);
         firstNode = new HeadMessageListenerNode();
         lastNode = new TailMessageListenerNode();   //tail empty node
         firstNode.setNext(lastNode);

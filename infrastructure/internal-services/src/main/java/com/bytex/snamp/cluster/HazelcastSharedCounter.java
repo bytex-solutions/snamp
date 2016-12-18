@@ -1,19 +1,19 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.core.LongCounter;
+import com.bytex.snamp.core.SharedCounter;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicLong;
 
 /**
- * Represents {@link com.bytex.snamp.core.LongCounter} backed by Hazelcast.
+ * Represents {@link SharedCounter} backed by Hazelcast.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-final class HazelcastLongCounter implements LongCounter {
+final class HazelcastSharedCounter implements SharedCounter {
     private final IAtomicLong counter;
 
-    HazelcastLongCounter(final HazelcastInstance hazelcast, final String counterName){
+    HazelcastSharedCounter(final HazelcastInstance hazelcast, final String counterName){
         counter = hazelcast.getAtomicLong(counterName);
     }
 

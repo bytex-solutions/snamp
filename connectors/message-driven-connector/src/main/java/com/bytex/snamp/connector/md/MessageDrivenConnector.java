@@ -9,7 +9,7 @@ import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationReposito
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
 import com.bytex.snamp.connector.operations.reflection.OperationParameter;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.LongCounter;
+import com.bytex.snamp.core.SharedCounter;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
@@ -47,7 +47,7 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
     private final NotificationParser notificationParser;
     @Aggregation(cached = true)
     private final JavaBeanOperationRepository operations;
-    private final LongCounter sequenceNumberProvider;
+    private final SharedCounter sequenceNumberProvider;
     /**
      * Represents thread pool for parallel operations.
      */

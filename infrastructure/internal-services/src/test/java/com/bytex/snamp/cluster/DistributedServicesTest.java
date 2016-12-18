@@ -3,7 +3,7 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
-import com.bytex.snamp.core.LongCounter;
+import com.bytex.snamp.core.SharedCounter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,8 +55,8 @@ public final class DistributedServicesTest extends Assert {
 
     @Test
     public void counterTest() throws InterruptedException {
-        final LongCounter counter1 = instance1.getService("testCounter", ClusterMember.IDGEN_SERVICE);
-        final LongCounter counter2 = instance2.getService("testCounter", ClusterMember.IDGEN_SERVICE);
+        final SharedCounter counter1 = instance1.getService("testCounter", ClusterMember.IDGEN_SERVICE);
+        final SharedCounter counter2 = instance2.getService("testCounter", ClusterMember.IDGEN_SERVICE);
         assertNotNull(counter1);
         assertNotNull(counter2);
         counter1.getAsLong();

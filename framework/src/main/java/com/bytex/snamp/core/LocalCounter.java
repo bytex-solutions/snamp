@@ -7,11 +7,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 2.0
  * @version 2.0
  */
-final class LocalLongCounter extends AtomicLong implements LongCounter {
+final class LocalCounter extends AtomicLong implements SharedCounter {
     private static final long serialVersionUID = 498408165929062468L;
     private final String counterName;
 
-    LocalLongCounter(final String name) {
+    LocalCounter(final String name) {
         super(0L);
         counterName = name;
     }

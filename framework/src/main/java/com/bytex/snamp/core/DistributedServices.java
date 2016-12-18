@@ -56,7 +56,7 @@ public final class DistributedServices {
                 @Override
                 public Object load(@Nonnull final LocalServiceKey key) throws InvalidKeyException {
                     if(ClusterMember.IDGEN_SERVICE.equals(key.serviceType))
-                        return new LocalLongCounter(key.serviceName);
+                        return new LocalCounter(key.serviceName);
                     else if(ClusterMember.MAP_SERVICE.equals(key.serviceType))
                         return new LocalStorage();
                     else if(ClusterMember.COMMUNICATION_SERVICE.equals(key.serviceType))
@@ -93,7 +93,7 @@ public final class DistributedServices {
      * @param generatorName The name of generator.
      * @return ID generator instance.
      */
-    public static LongCounter getProcessLocalCounterGenerator(final String generatorName){
+    public static SharedCounter getProcessLocalCounterGenerator(final String generatorName){
         return getProcessLocalService(generatorName, ClusterMember.IDGEN_SERVICE);
     }
 
@@ -143,13 +143,13 @@ public final class DistributedServices {
     }
 
     /**
-     * Gets distributed {@link LongCounter}.
+     * Gets distributed {@link SharedCounter}.
      * @param context Context of the caller OSGi bundle.
      * @param generatorName Name of the generator to obtain.
      * @return Distributed or process-local generator.
      */
-    public static LongCounter getDistributedCounter(final BundleContext context,
-                                                    final String generatorName){
+    public static SharedCounter getDistributedCounter(final BundleContext context,
+                                                      final String generatorName){
         return getService(context, generatorName, ClusterMember.IDGEN_SERVICE);
     }
 
