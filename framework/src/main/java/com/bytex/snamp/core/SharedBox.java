@@ -8,5 +8,5 @@ import com.bytex.snamp.Box;
  * @version 2.0
  * @since 2.0
  */
-public interface SharedBox extends Box<Object>, DistributedService {
+public interface SharedBox extends Box<Object>, SharedObject {
 }

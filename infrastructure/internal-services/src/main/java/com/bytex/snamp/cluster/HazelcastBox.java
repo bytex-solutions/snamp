@@ -14,7 +14,7 @@ import java.util.function.UnaryOperator;
  * @version 2.0
  * @since 2.0
  */
-final class HazelcastBox extends HazelcastDistributedService implements Box<Object> {
+final class HazelcastBox extends HazelcastSharedObject implements Box<Object> {
     private final IAtomicReference<Object> distributedRef;
 
     HazelcastBox(final HazelcastInstance hazelcast, final String boxName){

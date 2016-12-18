@@ -25,7 +25,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  * @since 2.0
  */
-final class HazelcastCommunicator extends HazelcastDistributedService implements Communicator {
+final class HazelcastCommunicator extends HazelcastSharedObject implements Communicator {
     private static final class TransferObjectListener implements MessageListener<TransferObject>, SafeCloseable{
         private final String localMemberID;
         private final Predicate<? super HazelcastIncomingMessage> filter;

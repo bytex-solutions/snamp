@@ -5,6 +5,7 @@ import com.bytex.snamp.SafeCloseable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
@@ -72,6 +73,14 @@ public interface KeyValueStorage extends Closeable {
          * @return State of this record.
          */
         RecordState getState();
+    }
+
+    /**
+     * Represents entry as serializable single value.
+     */
+    interface SerializableView extends Record{
+        Serializable getValue();
+        void setValue(final Serializable value);
     }
 
     /**
@@ -215,4 +224,6 @@ public interface KeyValueStorage extends Closeable {
      * @throws UnsupportedOperationException Transactions are not supported by this storage.
      */
     TransactionScope beginTransaction(final IsolationLevel level) throws UnsupportedOperationException;
+
+    boolean isViewSupported(final Class<? extends Record> recordView);
 }

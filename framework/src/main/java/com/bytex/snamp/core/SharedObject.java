@@ -1,12 +1,12 @@
 package com.bytex.snamp.core;
 
 /**
- * Represents distributed service.
+ * Represents object which can be shared across cluster nodes.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public interface DistributedService {
+public interface SharedObject {
     /**
      * Gets name of the distributed service.
      * @return Name of this distributed service.

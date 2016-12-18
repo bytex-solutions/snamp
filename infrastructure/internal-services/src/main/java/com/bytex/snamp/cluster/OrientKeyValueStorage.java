@@ -301,4 +301,9 @@ final class OrientKeyValueStorage extends ODatabaseDocumentTx implements KeyValu
         transaction.begin();
         return transaction;
     }
+
+    @Override
+    public boolean isViewSupported(final Class<? extends Record> recordView) {
+        return recordView.isAssignableFrom(RecordImpl.class);
+    }
 }
