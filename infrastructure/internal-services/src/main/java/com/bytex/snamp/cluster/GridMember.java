@@ -155,6 +155,8 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
             result = getCommunicator(serviceName);
         else if(SHARED_BOX.equals(serviceType))
             result = getBox(serviceName);
+        else if(KV_STORAGE_SERVICE.equals(serviceType))
+            result = getKeyValueStorage(serviceName);
         else return null;
         return serviceType.cast(result);
     }
