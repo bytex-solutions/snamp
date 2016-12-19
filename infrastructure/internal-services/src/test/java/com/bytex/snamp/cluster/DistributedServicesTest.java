@@ -27,15 +27,15 @@ public final class DistributedServicesTest extends Assert {
     @Before
     public void setupHazelcastNodes() throws Exception {
         instance1 = new GridMember();
-        instance1.start();
+        instance1.startupFromConfiguration();
         instance2 = new GridMember();
-        instance2.start();
+        instance2.startupFromConfiguration();
     }
 
     @After
     public void shutdownHazelcastNodes() throws InterruptedException {
-        instance1.shutdownAndClose();
-        instance2.shutdownAndClose();
+        instance1.close();
+        instance2.close();
         instance1 = null;
         instance2 = null;
     }

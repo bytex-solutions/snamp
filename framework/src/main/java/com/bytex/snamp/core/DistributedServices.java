@@ -99,6 +99,10 @@ public final class DistributedServices {
         return getProcessLocalService(collectionName, ClusterMember.SHARED_MAP);
     }
 
+    public static KeyValueStorage getProcessLocalKVStorage(final String storageName){
+        return getProcessLocalService(storageName, ClusterMember.KV_STORAGE_SERVICE);
+    }
+
     private static <S> S processClusterNode(final BundleContext context,
                                             final Function<? super ClusterMember, S> processor,
                                             final Supplier<S> def) {
@@ -159,6 +163,10 @@ public final class DistributedServices {
      */
     public static SharedBox getDistributedBox(final BundleContext context, final String boxName){
         return getService(context, boxName, ClusterMember.SHARED_BOX);
+    }
+
+    public static KeyValueStorage getDistributedKVStorage(final BundleContext context, final String storageName){
+        return getService(context, storageName, ClusterMember.KV_STORAGE_SERVICE);
     }
 
     /**

@@ -1,10 +1,9 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.core.SharedCounter;
 import com.bytex.snamp.core.SharedObject;
-import com.google.common.reflect.TypeToken;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
@@ -12,6 +11,7 @@ import com.hazelcast.core.ILock;
 import javax.management.JMException;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +23,8 @@ import java.util.logging.Logger;
  * @version 2.0.0
  * @since 1.0
  */
-public final class GridMember extends AbstractFrameworkService implements ClusterMember, AutoCloseable {
+public final class GridMember extends DatabaseNode implements ClusterMember, AutoCloseable {
+
     private static final class LeaderElectionThread extends Thread implements AutoCloseable{
         private final ILock masterLock;
         private volatile boolean lockAcquired;
@@ -63,25 +64,28 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
 
     private final HazelcastInstance hazelcast;
     private volatile LeaderElectionThread electionThread;
-    private final OrientDatabaseService dbService;
+    private final boolean shutdownHazelcast;
 
-    public GridMember(final HazelcastInstance hazelcastInstance) throws ReflectiveOperationException, JAXBException, IOException, JMException {
+    private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdownHazelcast) throws ReflectiveOperationException, JAXBException, IOException, JMException{
+        super(hazelcastInstance);
         this.electionThread = new LeaderElectionThread(hazelcastInstance);
         this.hazelcast = hazelcastInstance;
-        this.dbService = new OrientDatabaseService(hazelcastInstance);
+        this.shutdownHazelcast = shutdownHazelcast;
+    }
+
+    public GridMember(final HazelcastInstance hazelcastInstance) throws ReflectiveOperationException, JAXBException, IOException, JMException {
+        this(hazelcastInstance, false);
     }
 
     GridMember() throws JMException, ReflectiveOperationException, IOException, JAXBException {
-        this(Hazelcast.newHazelcastInstance());
+        this(Hazelcast.newHazelcastInstance(), true);
     }
 
-    public void start() throws IOException {
-        try {
-            dbService.startupFromConfiguration();
-        } catch (final ReflectiveOperationException e) {
-            throw new IOException(e);
-        }
+    @Override
+    public GridMember startupFromConfiguration() throws InvocationTargetException, NoSuchMethodException, IOException {
+        super.startupFromConfiguration();
         electionThread.start();
+        return this;
     }
 
     /**
@@ -155,12 +159,21 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         return serviceType.cast(result);
     }
 
-    private OrientKeyValueStorage getKeyValueStorage(final String collectionName){
-//        final OrientKeyValueStorage storage = new OrientKeyValueStorage(dbService, collectionName);
-//        if(!storage.exists())
-//            storage.create();
-//        return storage;
-        return null;
+    private PersistentKeyValueStorage createPersistentKV(final String collectionName){
+        final PersistentKeyValueStorage storage = new PersistentKeyValueStorage(this, collectionName);
+        if (!storage.exists())
+            storage.create();
+        return storage;
+    }
+
+    private HazelcastKeyValueStorage createDistributedKV(final String collectionName){
+        return new HazelcastKeyValueStorage(hazelcast, collectionName);
+    }
+
+    private KeyValueStorage getKeyValueStorage(final String collectionName) {
+        return collectionName.startsWith("$") ?
+                createPersistentKV(collectionName):
+                createDistributedKV(collectionName);
     }
 
     private HazelcastBox getBox(final String boxName){
@@ -203,7 +216,6 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
      * @return The logger associated with this service.
      */
     @Override
-    @Aggregation(cached = true)
     public Logger getLogger() {
         return logger;
     }
@@ -218,28 +230,38 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         return hazelcast.getCluster().getLocalMember().getSocketAddress();
     }
 
-    private synchronized void close(final boolean shutdownHazelcast) throws InterruptedException {
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the requested object.
+     * @return An instance of the aggregated object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(final Class<T> objectType) {
+        final Object result;
+        if (objectType.isInstance(this))
+            result = this;
+        else if (objectType.isInstance(logger))
+            result = logger;
+        else if (objectType.isInstance(hazelcast))
+            result = hazelcast;
+        else
+            return null;
+        return objectType.cast(result);
+    }
+
+    @Override
+    public void close() throws InterruptedException {
         final String instanceName = getName();
         logger.info(() -> String.format("GridMember service %s is closing. Shutdown Hazelcast? %s", instanceName, shutdownHazelcast ? "yes" : "no"));
-        dbService.shutdown();
+        shutdown();
         try {
             electionThread.close();
         } finally {
             electionThread = null;
             if (shutdownHazelcast)
                 hazelcast.shutdown();
-            clearCache();
         }
         logger.info(() -> String.format("GridMember service %s is closed successfully", instanceName));
-    }
-
-    //for testing purposes
-    void shutdownAndClose() throws InterruptedException {
-        close(true);
-    }
-
-    @Override
-    public void close() throws InterruptedException {
-        close(false);
     }
 }

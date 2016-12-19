@@ -3,8 +3,6 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.ArrayUtils;
 import com.hazelcast.core.HazelcastInstance;
 import com.orientechnologies.orient.core.Orient;
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
-import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.server.OServer;
 import com.orientechnologies.orient.server.config.OServerConfigurationManager;
 import com.orientechnologies.orient.server.config.OServerParameterConfiguration;
@@ -26,7 +24,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-public final class OrientDatabaseService extends OServer {
+class DatabaseNode extends OServer {
     public static final File ORIENTDB_HOME = interfaceStaticInitialize(() -> {
         String karafDataFolder = System.getProperty("karaf.data");
         final String ORIENTDB_PREFIX = "orientdb";
@@ -47,7 +45,7 @@ public final class OrientDatabaseService extends OServer {
 
     private final File databaseConfigFile;
 
-    public OrientDatabaseService(final HazelcastInstance hazelcast) throws ReflectiveOperationException, JMException, JAXBException, IOException {
+    public DatabaseNode(final HazelcastInstance hazelcast) throws ReflectiveOperationException, JMException, JAXBException, IOException {
         super(true);
         databaseConfigFile = DatabaseConfigurationFile.EMBEDDED_CONFIG.toFile(true);
         updateConfig();
@@ -55,7 +53,7 @@ public final class OrientDatabaseService extends OServer {
     }
 
     @Override
-    public OrientDatabaseService startupFromConfiguration() throws InvocationTargetException, NoSuchMethodException, IOException {
+    public DatabaseNode startupFromConfiguration() throws InvocationTargetException, NoSuchMethodException, IOException {
         super.startupFromConfiguration();
         if (distributedManager instanceof OServerPlugin) {
             final OServerPlugin plugin = (OServerPlugin) distributedManager;

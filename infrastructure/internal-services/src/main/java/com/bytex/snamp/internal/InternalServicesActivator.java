@@ -2,7 +2,6 @@ package com.bytex.snamp.internal;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.cluster.GridMember;
-import com.bytex.snamp.cluster.OrientDatabaseService;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.concurrent.impl.ThreadPoolRepositoryImpl;
 import com.bytex.snamp.configuration.ConfigurationManager;
@@ -58,13 +57,13 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         @Override
         protected GridMember activateService(final Map<String, Object> identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
             final HazelcastInstance hazelcast = getDependencies().getDependency(HazelcastInstance.class);
-            identity.put(Orient.ORIENTDB_HOME, OrientDatabaseService.ORIENTDB_HOME.getAbsolutePath());
+            identity.put(Orient.ORIENTDB_HOME, GridMember.ORIENTDB_HOME.getAbsolutePath());
             return new GridMember(hazelcast);
         }
 
         @Override
-        protected void activated(final GridMember member) throws Exception {
-            member.start();
+        protected void activated(final GridMember member) throws ReflectiveOperationException, IOException {
+            member.startupFromConfiguration();
         }
 
         @Override

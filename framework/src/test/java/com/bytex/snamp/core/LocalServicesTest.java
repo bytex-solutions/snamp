@@ -36,10 +36,14 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void storageTest(){
-        DistributedServices.getProcessLocalMap("collection1").put("k1", 42L);
-        DistributedServices.getProcessLocalMap("collection2").put("k1", 43L);
-        assertEquals(42L, DistributedServices.getProcessLocalMap("collection1").get("k1"));
-        assertEquals(43L, DistributedServices.getProcessLocalMap("collection2").get("k1"));
+        final KeyValueStorage storage = DistributedServices.getProcessLocalKVStorage("localStorage");
+        assertNotNull(storage);
+        KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("a", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
+        assertNotNull(record);
+        record.setAsText("Hello, world!");
+        record = storage.getRecord("a", KeyValueStorage.TextRecordView.class).get();
+        assertNotNull(record);
+        assertEquals("Hello, world!", record.getAsText());
     }
 
     @Test

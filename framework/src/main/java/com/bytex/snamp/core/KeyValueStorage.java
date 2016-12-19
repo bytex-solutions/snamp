@@ -1,16 +1,14 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.Stateful;
+import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
-import java.time.Instant;
+import java.io.*;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -20,26 +18,6 @@ import java.util.stream.Stream;
  * @since 2.0
  */
 public interface KeyValueStorage extends Closeable, SharedObject {
-    /**
-     * Represents state of the record.
-     */
-    enum RecordState{
-        /**
-         * Record has no data.
-         */
-        NEW,
-
-        /**
-         * Record is active.
-         */
-        ACTIVE,
-
-        /**
-         * Record is deleted and no longer associated with persisted record.
-         */
-        DETACHED
-    }
-
     /**
      * Represents entry stored in this storage.
      */
@@ -57,10 +35,10 @@ public interface KeyValueStorage extends Closeable, SharedObject {
         int getVersion();
 
         /**
-         * Gets state of this record.
-         * @return State of this record.
+         * Determines whether this record is no longer associated with storage.
+         * @return {@literal true}, if this record is detached from the storage; otherwise, {@literal false}.
          */
-        RecordState getState();
+        boolean isDetached();
     }
 
     /**
@@ -75,6 +53,7 @@ public interface KeyValueStorage extends Closeable, SharedObject {
      * Represents entry as key/value map.
      */
     interface MapRecordView extends Record{
+        Acceptor<MapRecordView, ExceptionPlaceholder> INITIALIZER = record -> record.setAsMap(ImmutableMap.of());
         Map<String, ?> getAsMap();
         void setAsMap(final Map<String, ?> values);
     }
@@ -83,6 +62,7 @@ public interface KeyValueStorage extends Closeable, SharedObject {
      * Represents entry as JSON.
      */
     interface JsonRecordView extends Record {
+        Acceptor<JsonRecordView, IOException> INITIALIZER = record -> record.setAsJson(new StringReader("{}"));
         Reader getAsJson();
         void setAsJson(final Reader value) throws IOException;
     }
@@ -91,6 +71,7 @@ public interface KeyValueStorage extends Closeable, SharedObject {
      * Represents entry as plain text.
      */
     interface TextRecordView extends Record{
+        Acceptor<TextRecordView, ExceptionPlaceholder> INITIALIZER = record -> record.setAsText("");
         String getAsText();
         void setAsText(final String value);
     }
@@ -99,6 +80,7 @@ public interface KeyValueStorage extends Closeable, SharedObject {
      * Represents entry as {@code long} value.
      */
     interface LongRecordView extends Record{
+        Acceptor<LongRecordView, ExceptionPlaceholder> INITIALIZER = record -> record.setAsLong(0L);
         long getAsLong();
         void setAsLong(final long value);
     }
@@ -107,6 +89,7 @@ public interface KeyValueStorage extends Closeable, SharedObject {
      * Represents entry as {@code double} value.
      */
     interface DoubleRecordView extends Record{
+        Acceptor<DoubleRecordView, ExceptionPlaceholder> INITIALIZER = record -> record.setAsDouble(0D);
         double getAsDouble();
         void setAsDouble(final double value);
     }
@@ -143,12 +126,25 @@ public interface KeyValueStorage extends Closeable, SharedObject {
 
     /**
      * Gets record associated with the specified key.
-     * @param key The key of the record.
+     * @param key The key of the record. Cannot be {@literal null}.
+     * @param recordView Type of the record representation.
      * @param <R> Type of the record view.
      * @return Selector for records in this storage.
      * @throws ClassCastException Unsupported record view.
      */
-    <R extends Record> R getRecord(final Comparable<?> key, final Class<R> recordView);
+    <R extends Record> Optional<R> getRecord(final Comparable<?> key, final Class<R> recordView);
+
+    /**
+     * Gets record associated with the specified key.
+     * @param key The key of the record.
+     * @param recordView Type of the record representation.
+     * @param initializer A function used to initialize record for the first time when it is created.
+     * @param <R> Type of record to get or create.
+     * @param <E> Type of exception that can be produced by initializer.
+     * @throws E Unable to initialize record.
+     * @return Existing or newly created record.
+     */
+    <R extends Record, E extends Throwable> R getOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> initializer) throws E;
 
     /**
      * Deletes the record associated with key.
