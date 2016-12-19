@@ -66,7 +66,7 @@
                     <h4>Binding information:</h4>
                 </div>
                 <div class="panel-group group-accordeon" id="accordionBindings" role="tablist" aria-multiselectable="true">
-                    <div class="panel panel-default">
+                    <div class="panel panel-default"  *ngIf="activeGateway.attributes.length > 0">
                         <div class="panel-heading" role="tab" id="headingOne">
                             <h4 class="panel-title">
                                 <a role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseAttributes" aria-expanded="true" aria-controls="collapseAttributes">
@@ -80,7 +80,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="panel panel-default">
+                    <div class="panel panel-default" *ngIf="activeGateway.events.length > 0">
                         <div class="panel-heading" role="tab" id="headingTwo">
                             <h4 class="panel-title">
                                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseEvents" aria-expanded="false" aria-controls="collapseEvents">
@@ -94,7 +94,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="panel panel-default">
+                    <div class="panel panel-default" *ngIf="activeGateway.operations.length > 0">
                         <div class="panel-heading" role="tab" id="headingThree">
                             <h4 class="panel-title">
                                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseOperations" aria-expanded="false" aria-controls="collapseOperations">

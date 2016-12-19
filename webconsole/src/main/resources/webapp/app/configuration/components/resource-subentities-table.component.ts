@@ -1,10 +1,11 @@
 import { Component, Input ,ViewChild, ElementRef, OnInit } from '@angular/core';
 
 import { ApiClient, REST } from '../../app.restClient';
-import { KeyValue } from '../model/model.entity';
-import { Entity } from '../model/model.entity';
+import { KeyValue, Entity } from '../model/model.entity';
+import { TypedEntity } from '../model/model.typedEntity';
 import { Attribute } from '../model/model.attribute';
 import { Event } from '../model/model.event';
+import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Operation } from '../model/model.operation';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -36,6 +37,7 @@ export class ResourceEntitiesTable implements OnInit {
     @Input() resource:TypedEntity;
     @Input() entityType:string;
     readyForSave:boolean = false;
+    paramDescriptors:ParamDescriptor[] = [];
     @Input() entities: Entity[];
     activeEntity:Entity;
 
@@ -59,6 +61,12 @@ export class ResourceEntitiesTable implements OnInit {
             // if we have no entities - we definitely are appending new one
             this.activeEntity = this.makeEmptyEntity();
         }
+
+        this.http.get(REST.RESOURCE_SUBENTITY(this.resource.type, this.entityType))
+            .map((res:Response) => res.json())
+            .subscribe(res => {
+
+            });
     }
 
     setEntity(entity:Entity) {

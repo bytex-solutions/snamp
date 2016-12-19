@@ -108,4 +108,8 @@ export class REST {
     public static RESOURCE_ENTITY_BY_TYPE_AND_NAME(entityType:string, name:string, entityName:string):string {
         return REST.RESOURCE_BY_NAME(name) + "/" + entityType + "/" + entityName;
     }
+
+    public static RESOURCE_SUBENTITY(resourceName:string, entityType:string):string {
+        return REST.ROOT_PATH + "/resource/" + resourceName + "/" + entityType + "/configuration";
+    }
 }
