@@ -1,8 +1,6 @@
 package com.bytex.snamp.management.http;
 
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.configuration.GatewayConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.AbstractSnampManager;
@@ -135,6 +133,8 @@ public final class ManagementService extends AbstractManagementService {
 
     /**
      * Restart all the system.
+     *
+     * @return the response
      */
     @GET
     @Path("/restart")
@@ -223,7 +223,6 @@ public final class ManagementService extends AbstractManagementService {
     }
 
 
-
     /**
      * Gets gateway description.
      *
@@ -248,7 +247,6 @@ public final class ManagementService extends AbstractManagementService {
     }
 
 
-
     /**
      * Gets managed resource description.
      *
@@ -264,6 +262,75 @@ public final class ManagementService extends AbstractManagementService {
             final ConfigurationEntityDescription<ManagedResourceConfiguration> descriptor =
                     ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,
                             ManagedResourceConfiguration.class);
+            return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
+                    .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
+                    .collect(Collectors.toList());
+        } catch (final UnsupportedOperationException exception) {
+            throw AbstractEntityConfigurationService.notFound();
+        }
+    }
+
+    /**
+     * Gets resource attribute description.
+     *
+     * @param name the name
+     * @return the resource attribute description
+     */
+    @GET
+    @Path("/resource/{name}/attribute/configuration")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Collection<Map<String, String>> getResourceAttributeDescription(@PathParam("name") final String name) {
+        try {
+            final ConfigurationEntityDescription<AttributeConfiguration> descriptor =
+                    ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,
+                            AttributeConfiguration.class);
+            return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
+                    .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
+                    .collect(Collectors.toList());
+        } catch (final UnsupportedOperationException exception) {
+            throw AbstractEntityConfigurationService.notFound();
+        }
+    }
+
+    /**
+     * Gets resource event description.
+     *
+     * @param name the name
+     * @return the resource event description
+     */
+    @GET
+    @Path("/resource/{name}/event/configuration")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Collection<Map<String, String>> getResourceEventDescription(@PathParam("name") final String name) {
+        try {
+            final ConfigurationEntityDescription<EventConfiguration> descriptor =
+                    ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,
+                            EventConfiguration.class);
+            return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
+                    .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
+                    .collect(Collectors.toList());
+        } catch (final UnsupportedOperationException exception) {
+            throw AbstractEntityConfigurationService.notFound();
+        }
+    }
+
+    /**
+     * Gets resource operation description.
+     *
+     * @param name the name
+     * @return the resource operation description
+     */
+    @GET
+    @Path("/resource/{name}/operation/configuration")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Collection<Map<String, String>> getResourceOperationDescription(@PathParam("name") final String name) {
+        try {
+            final ConfigurationEntityDescription<OperationConfiguration> descriptor =
+                    ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,
+                            OperationConfiguration.class);
             return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());

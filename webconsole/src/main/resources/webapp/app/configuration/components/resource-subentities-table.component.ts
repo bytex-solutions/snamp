@@ -3,6 +3,9 @@ import { Component, Input ,ViewChild, ElementRef, OnInit } from '@angular/core';
 import { ApiClient, REST } from '../../app.restClient';
 import { KeyValue } from '../model/model.entity';
 import { Entity } from '../model/model.entity';
+import { Attribute } from '../model/model.attribute';
+import { Event } from '../model/model.event';
+import { Operation } from '../model/model.operation';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
@@ -30,7 +33,7 @@ import {
     ]
 })
 export class ResourceEntitiesTable implements OnInit {
-    @Input() resourceName:string;
+    @Input() resource:TypedEntity;
     @Input() entityType:string;
     readyForSave:boolean = false;
     @Input() entities: Entity[];
@@ -38,13 +41,23 @@ export class ResourceEntitiesTable implements OnInit {
 
     constructor(private http:ApiClient, private modal: Modal) {}
 
+    private makeEmptyEntity():Entity {
+        if (this.entityType == "attribute") {
+            return new Attribute("", 0, {});
+        } else if (this.entityType == "event") {
+            return new Event("", {});
+        } else if (this.entityType == "operation") {
+            return new Operation("", 0, {});
+        }
+    }
+
     ngOnInit() {
         // it might be overkill but let's set the first entity as an active one
         if (this.entities.length > 0) {
             this.activeEntity = this.entities[0];
         } else {
             // if we have no entities - we definitely are appending new one
-
+            this.activeEntity = this.makeEmptyEntity();
         }
     }
 
@@ -62,7 +75,7 @@ export class ResourceEntitiesTable implements OnInit {
             .then((resultPromise) => {
                 return (<Promise<boolean>>resultPromise.result)
                   .then((response) => {
-                    this.http.delete(REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME(entity.getName() + "s", this.resourceName, entity.name))
+                    this.http.delete(REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME(entity.getName() + "s", this.resource.name, entity.name))
                         .subscribe(data => {
                             for (let i = 0; i < this.entities.length; i++) {
                                 if (this.entities[i].name == entity.name) {
