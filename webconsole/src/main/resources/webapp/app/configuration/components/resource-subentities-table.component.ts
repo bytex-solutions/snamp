@@ -31,12 +31,25 @@ import {
 })
 export class ResourceEntitiesTable implements OnInit {
     @Input() resourceName:string;
+    @Input() entityType:string;
+    readyForSave:boolean = false;
     @Input() entities: Entity[];
+    activeEntity:Entity;
 
     constructor(private http:ApiClient, private modal: Modal) {}
 
     ngOnInit() {
+        // it might be overkill but let's set the first entity as an active one
+        if (this.entities.length > 0) {
+            this.activeEntity = this.entities[0];
+        } else {
+            // if we have no entities - we definitely are appending new one
 
+        }
+    }
+
+    setEntity(entity:Entity) {
+        this.activeEntity = entity;
     }
 
     remove(entity:Entity) {
@@ -60,5 +73,9 @@ export class ResourceEntitiesTable implements OnInit {
                         });
                     })
             });
+    }
+
+    saveEntity() {
+
     }
 }

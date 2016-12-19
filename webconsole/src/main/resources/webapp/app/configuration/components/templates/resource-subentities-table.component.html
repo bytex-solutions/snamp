@@ -1,3 +1,52 @@
+<!-- Modal for entity appending -->
+<div class="modal fade" id="editEntity" tabindex="-1" role="dialog" aria-labelledby="editEntityLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title leftAlign" id="editEntityLabel">Edit {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>
+            </div>
+            <br/>
+            <div class="modal-body">
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <span class="input-group-addon">{{activeEntity.getName()}} name</span>
+                    <input
+                            type="text"
+                            class="form-control"
+                            [tooltip]="'Input at least 4 symbols please'"
+                            [(ngModel)]="activeEntity.name">
+                </div>
+                <div class="input-group" style="margin-bottom: 20px;" *ngIf="entityType == 'attribute'">
+                    <span class="input-group-addon">Read/Write timeout</span>
+                    <input
+                            type="text"
+                            class="form-control"
+                            [tooltip]="'Input valid number or 0 for infinite timeout'"
+                            [(ngModel)]="activeEntity.rwto">
+                </div>
+                <div class="input-group" style="margin-bottom: 20px;" *ngIf="entityType == 'operation'">
+                    <span class="input-group-addon">Invocation timeout</span>
+                    <input
+                            type="text"
+                            class="form-control"
+                            [tooltip]="'Input valid number or 0 for infinite timeout'"
+                            [(ngModel)]="activeEntity.invokto">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button
+                        type="button"
+                        class="btn btn-primary"
+                        [disabled]="readyForSave == false"
+                        (click)="saveEntity()">
+                    Save changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <table class="table">
     <thead>
     <tr>
@@ -10,9 +59,16 @@
 
         <td>{{entity.name}}</td>
         <td>
-            <div class="btn-group" role="group" aria-label="...">
-                <button type="button" class="btn btn-default">Edit</button>
-                <button type="button" class="btn btn-default" (click)="remove(entity)">Remove</button>
+            <div class="btn-group" role="group">
+                <button
+                        type="button"
+                        data-toggle="modal"
+                        (click)="setEntity(entity)"
+                        [attr.data-target]="'#editEntity'"
+                        class="btn btn-default btn-xs">
+                    Edit
+                </button>
+                <button type="button" class="btn btn-default btn-xs" (click)="remove(entity)">Remove</button>
             </div>
         </td>
     </tr>

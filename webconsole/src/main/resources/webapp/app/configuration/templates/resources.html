@@ -129,6 +129,7 @@
                                         <div class="panel-body">
                                             <resourceEntity
                                                     [entities]="activeResource.attributes"
+                                                    [entityType]="'attribute'"
                                                     [resourceName]="activeResource.name">
                                             </resourceEntity>
                                         </div>
@@ -146,6 +147,7 @@
                                         <div class="panel-body">
                                             <resourceEntity
                                                     [entities]="activeResource.events"
+                                                    [entityType]="'event'"
                                                     [resourceName]="activeResource.name">
                                             </resourceEntity>
                                         </div>
@@ -163,6 +165,7 @@
                                         <div class="panel-body">
                                             <resourceEntity
                                                     [entities]="activeResource.operations"
+                                                    [entityType]="'operation'"
                                                     [resourceName]="activeResource.name">
                                             </resourceEntity>
                                         </div>
