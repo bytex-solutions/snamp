@@ -9,12 +9,16 @@ import javax.ws.rs.core.Response;
 
 /**
  * Provides API for SNAMP resources management.
+ *
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
 @Path("/configuration/resource")
 public final class ResourceConfigurationService extends TemplateConfigurationService<ManagedResourceConfiguration, ManagedResourceDataObject> {
+    /**
+     * Instantiates a new Resource configuration service.
+     */
     ResourceConfigurationService(){
         super(ManagedResourceConfiguration.class);
     }
@@ -24,6 +28,12 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
         return new ManagedResourceDataObject(entity);
     }
 
+    /**
+     * Gets connection string.
+     *
+     * @param resourceName the resource name
+     * @return the connection string
+     */
     @GET
     @Path("/{name}/connectionString")
     @Produces(MediaType.APPLICATION_JSON)
@@ -31,6 +41,13 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
         return getConfigurationByName(resourceName, ManagedResourceConfiguration::getConnectionString);
     }
 
+    /**
+     * Sets connection string.
+     *
+     * @param resourceName the resource name
+     * @param value        the value
+     * @return the connection string
+     */
     @PUT
     @Path("/{name}/connectionString")
     @Produces(MediaType.TEXT_PLAIN)
@@ -39,6 +56,12 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
         return setConfigurationByName(resourceName, config -> config.setConnectionString(value));
     }
 
+    /**
+     * Gets group name.
+     *
+     * @param resourceName the resource name
+     * @return the group name
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{name}/group")
@@ -46,6 +69,13 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
         return getConfigurationByName(resourceName, ManagedResourceConfiguration::getGroupName);
     }
 
+    /**
+     * Sets group name.
+     *
+     * @param resourceName the resource name
+     * @param value        the value
+     * @return the group name
+     */
     @Path("/{name}/group")
     @PUT
     @Produces(MediaType.TEXT_PLAIN)
