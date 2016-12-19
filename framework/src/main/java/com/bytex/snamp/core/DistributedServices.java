@@ -1,17 +1,13 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.Box;
-import com.bytex.snamp.Convert;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.reflect.TypeToken;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
 import javax.management.openmbean.InvalidKeyException;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -25,9 +21,9 @@ import java.util.function.Supplier;
 public final class DistributedServices {
     private static final class LocalServiceKey<S> {
         private final String serviceName;
-        private final TypeToken<S> serviceType;
+        private final Class<S> serviceType;
 
-        private LocalServiceKey(final String serviceName, final TypeToken<S> serviceType){
+        private LocalServiceKey(final String serviceName, final Class<S> serviceType){
             this.serviceName = Objects.requireNonNull(serviceName);
             this.serviceType = Objects.requireNonNull(serviceType);
         }
@@ -49,20 +45,22 @@ public final class DistributedServices {
 
     //in-memory services should be stored as soft-reference. This strategy helps to avoid memory
     //leaks in long-running scenarios
-    private static LoadingCache<LocalServiceKey, Object> LOCAL_SERVICES = CacheBuilder.newBuilder()
+    private static LoadingCache<LocalServiceKey, SharedObject> LOCAL_SERVICES = CacheBuilder.newBuilder()
             .softValues()
-            .build(new CacheLoader<LocalServiceKey, Object>() {
+            .build(new CacheLoader<LocalServiceKey, SharedObject>() {
 
                 @Override
-                public Object load(@Nonnull final LocalServiceKey key) throws InvalidKeyException {
-                    if(ClusterMember.IDGEN_SERVICE.equals(key.serviceType))
+                public SharedObject load(@Nonnull final LocalServiceKey key) throws InvalidKeyException {
+                    if(ClusterMember.SHARED_COUNTER.equals(key.serviceType))
                         return new LocalCounter(key.serviceName);
-                    else if(ClusterMember.MAP_SERVICE.equals(key.serviceType))
-                        return new LocalStorage();
-                    else if(ClusterMember.COMMUNICATION_SERVICE.equals(key.serviceType))
+                    else if(ClusterMember.SHARED_MAP.equals(key.serviceType))
+                        return new LocalStorage(key.serviceName);
+                    else if(ClusterMember.COMMUNICATOR.equals(key.serviceType))
                         return new LocalCommunicator(key.serviceName);
-                    else if(ClusterMember.BOX.equals(key.serviceType))
-                        return new LocalBox();
+                    else if(ClusterMember.SHARED_BOX.equals(key.serviceType))
+                        return new LocalBox(key.serviceName);
+                    else if(ClusterMember.KV_STORAGE_SERVICE.equals(key.serviceType))
+                        return new LocalKeyValueStorage(key.serviceName);
                     else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
                 }
             });
@@ -71,21 +69,21 @@ public final class DistributedServices {
         throw new InstantiationError();
     }
 
-    private static <S> S getProcessLocalService(final String serviceName, final TypeToken<S> serviceType) {
+    private static <S extends SharedObject> S getProcessLocalService(final String serviceName, final Class<S> serviceType) {
         final LocalServiceKey<S> key = new LocalServiceKey<>(serviceName, serviceType);
         try {
-            return Convert.toTypeToken(LOCAL_SERVICES.get(key), serviceType);
+            return serviceType.cast(LOCAL_SERVICES.get(key));
         } catch (final ExecutionException e) {
             return null;
         }
     }
 
     public static Communicator getProcessLocalCommunicator(final String channelName){
-        return getProcessLocalService(channelName, ClusterMember.COMMUNICATION_SERVICE);
+        return getProcessLocalService(channelName, ClusterMember.COMMUNICATOR);
     }
 
-    public static Box<Object> getProcessLocalBox(final String boxName){
-        return getProcessLocalService(boxName, ClusterMember.BOX);
+    public static SharedBox getProcessLocalBox(final String boxName){
+        return getProcessLocalService(boxName, ClusterMember.SHARED_BOX);
     }
 
     /**
@@ -93,12 +91,12 @@ public final class DistributedServices {
      * @param generatorName The name of generator.
      * @return ID generator instance.
      */
-    public static SharedCounter getProcessLocalCounterGenerator(final String generatorName){
-        return getProcessLocalService(generatorName, ClusterMember.IDGEN_SERVICE);
+    public static SharedCounter getProcessLocalCounter(final String generatorName){
+        return getProcessLocalService(generatorName, ClusterMember.SHARED_COUNTER);
     }
 
-    public static ConcurrentMap<String, Object> getProcessLocalMap(final String collectionName){
-        return getProcessLocalService(collectionName, ClusterMember.MAP_SERVICE);
+    public static SharedMap getProcessLocalMap(final String collectionName){
+        return getProcessLocalService(collectionName, ClusterMember.SHARED_MAP);
     }
 
     private static <S> S processClusterNode(final BundleContext context,
@@ -115,9 +113,9 @@ public final class DistributedServices {
         else return def.get();
     }
 
-    private static <S> S getService(final BundleContext context,
+    private static <S extends SharedObject> S getService(final BundleContext context,
                                     final String serviceName,
-                                    final TypeToken<S> serviceType) {
+                                    final Class<S> serviceType) {
         return processClusterNode(context, node -> node.getService(serviceName, serviceType), () -> getProcessLocalService(serviceName, serviceType));
     }
 
@@ -128,18 +126,18 @@ public final class DistributedServices {
      * @return Distributed or process-local communicator.
      */
     public static Communicator getDistributedCommunicator(final BundleContext context, final String channelName){
-        return getService(context, channelName, ClusterMember.COMMUNICATION_SERVICE);
+        return getService(context, channelName, ClusterMember.COMMUNICATOR);
     }
 
     /**
-     * Gets distributed {@link java.util.concurrent.ConcurrentMap}.
+     * Gets distributed {@link SharedMap}.
      * @param context Context of the caller OSGi bundle.
      * @param collectionName Name of the distributed collection.
      * @return Distributed or process-local storage.
      */
-    public static ConcurrentMap<String, Object> getDistributedStorage(final BundleContext context,
+    public static SharedMap getDistributedStorage(final BundleContext context,
                                                                             final String collectionName){
-        return getService(context, collectionName, ClusterMember.MAP_SERVICE);
+        return getService(context, collectionName, ClusterMember.SHARED_MAP);
     }
 
     /**
@@ -150,11 +148,17 @@ public final class DistributedServices {
      */
     public static SharedCounter getDistributedCounter(final BundleContext context,
                                                       final String generatorName){
-        return getService(context, generatorName, ClusterMember.IDGEN_SERVICE);
+        return getService(context, generatorName, ClusterMember.SHARED_COUNTER);
     }
 
-    public static Box<Object> getDistributedBox(final BundleContext context, final String boxName){
-        return getService(context, boxName, ClusterMember.BOX);
+    /**
+     * Gets distributed {@link SharedBox}.
+     * @param context Context of the caller OSGi bundle.
+     * @param boxName Name of the generator to obtain.
+     * @return Distributed or process-local generator.
+     */
+    public static SharedBox getDistributedBox(final BundleContext context, final String boxName){
+        return getService(context, boxName, ClusterMember.SHARED_BOX);
     }
 
     /**

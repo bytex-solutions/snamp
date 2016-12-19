@@ -3,6 +3,7 @@ package com.bytex.snamp.io;
 import com.bytex.snamp.Convert;
 import com.google.common.reflect.TypeToken;
 
+import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +22,21 @@ public final class IOUtils {
      * Represents charset used by default in SNAMP for string encoding/decoding.
      */
     public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
+    /**
+     * Represents empty {@link Reader}.
+     */
+    public static final Reader EMPTY_READER = new Reader() {
+        @Override
+        public int read(@Nonnull final char[] cbuf, final int off, final int len) {
+            return 0;
+        }
+
+        @Override
+        public void close() {
+
+        }
+    };
 
     private IOUtils() {
         throw new InstantiationError();
@@ -140,7 +156,7 @@ public final class IOUtils {
 
     public static String toString(final Reader reader) throws IOException {
         final StringBuilder result = new StringBuilder(512);
-        final char[] buffer = new char[10];
+        final char[] buffer = new char[16];
         while (reader.ready()) {
             final int count = reader.read(buffer);
             result.append(buffer, 0, count);

@@ -3,6 +3,8 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.ArrayUtils;
 import com.hazelcast.core.HazelcastInstance;
 import com.orientechnologies.orient.core.Orient;
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.server.OServer;
 import com.orientechnologies.orient.server.config.OServerConfigurationManager;
 import com.orientechnologies.orient.server.config.OServerParameterConfiguration;

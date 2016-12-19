@@ -92,4 +92,8 @@ final class HazelcastBox extends HazelcastSharedObject implements Box<Object> {
     public void accept(final Object value) {
         distributedRef.set(value);
     }
+
+    static void destroy(final HazelcastInstance hazelcast, final String serviceName) {
+        hazelcast.getAtomicReference(serviceName).destroy();
+    }
 }

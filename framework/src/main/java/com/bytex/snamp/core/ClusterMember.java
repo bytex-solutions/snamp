@@ -1,6 +1,5 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.Box;
 import com.google.common.reflect.TypeToken;
 
 import java.util.concurrent.ConcurrentMap;
@@ -23,24 +22,24 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
     /**
      * Represents cluster-wide generator of unique identifiers.
      */
-    TypeToken<SharedCounter> IDGEN_SERVICE = TypeToken.of(SharedCounter.class);
+    Class<SharedCounter> SHARED_COUNTER = SharedCounter.class;
 
     /**
      * Represents distributed map.
      */
-    TypeToken<ConcurrentMap<String, Object>> MAP_SERVICE = new TypeToken<ConcurrentMap<String, Object>>() {};
+    Class<SharedMap> SHARED_MAP = SharedMap.class;
 
     /**
      * Represents communication service.
      */
-    TypeToken<Communicator> COMMUNICATION_SERVICE = TypeToken.of(Communicator.class);
+    Class<Communicator> COMMUNICATOR = Communicator.class;
 
     /**
      * Represents distributed box.
      */
-    TypeToken<Box<Object>> BOX = new TypeToken<Box<Object>>() {};
+    Class<SharedBox> SHARED_BOX = SharedBox.class;
 
-    TypeToken<KeyValueStorage> KV_STORAGE_SERVICE = TypeToken.of(KeyValueStorage.class);
+    Class<KeyValueStorage> KV_STORAGE_SERVICE = KeyValueStorage.class;
 
     /**
      * Marks this node as passive and execute leader election.
@@ -53,15 +52,15 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
      * @param serviceType Service type.
      * @param <S> Type of the service contract.
      * @return Distributed service; or {@literal null}, if service is not supported.
-     * @see #IDGEN_SERVICE
-     * @see #MAP_SERVICE
+     * @see #SHARED_COUNTER
+     * @see #SHARED_MAP
      */
-    <S> S getService(final String serviceName, final TypeToken<S> serviceType);
+    <S extends SharedObject> S getService(final String serviceName, final Class<S> serviceType);
 
     /**
      * Destroys the specified service
      * @param serviceName Name of the service to release.
      * @param serviceType Type of the service to release.
      */
-    void releaseService(final String serviceName, final TypeToken<?> serviceType);
+    void releaseService(final String serviceName, final Class<? extends SharedObject> serviceType);
 }

@@ -1,9 +1,9 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.Convert;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.SharedCounter;
+import com.bytex.snamp.core.SharedObject;
 import com.google.common.reflect.TypeToken;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
@@ -141,25 +141,26 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
      * @return Distributed service; or {@literal null}, if service is not supported.
      */
     @Override
-    public <S> S getService(final String serviceName, final TypeToken<S> serviceType) {
+    public <S extends SharedObject> S getService(final String serviceName, final Class<S> serviceType) {
         final Object result;
-        if (MAP_SERVICE.equals(serviceType))
+        if (SHARED_MAP.equals(serviceType))
             result = getStorage(serviceName);
-        else if (IDGEN_SERVICE.equals(serviceType))
+        else if (SHARED_COUNTER.equals(serviceType))
             result = getLongCounter(serviceName);
-        else if(COMMUNICATION_SERVICE.equals(serviceType))
+        else if(COMMUNICATOR.equals(serviceType))
             result = getCommunicator(serviceName);
-        else if(BOX.equals(serviceType))
+        else if(SHARED_BOX.equals(serviceType))
             result = getBox(serviceName);
         else return null;
-        return Convert.toTypeToken(result, serviceType);
+        return serviceType.cast(result);
     }
 
     private OrientKeyValueStorage getKeyValueStorage(final String collectionName){
-        final OrientKeyValueStorage storage = new OrientKeyValueStorage(dbService, collectionName);
-        if(!storage.exists())
-            storage.create();
-        return storage;
+//        final OrientKeyValueStorage storage = new OrientKeyValueStorage(dbService, collectionName);
+//        if(!storage.exists())
+//            storage.create();
+//        return storage;
+        return null;
     }
 
     private HazelcastBox getBox(final String boxName){
@@ -175,7 +176,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
     }
 
     private SharedCounter getLongCounter(final String counterName){
-        return new HazelcastSharedCounter(hazelcast, counterName);
+        return new HazelcastCounter(hazelcast, counterName);
     }
 
     /**
@@ -185,19 +186,15 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
      * @param serviceType Type of the service to release.
      */
     @Override
-    public void releaseService(final String serviceName, final TypeToken<?> serviceType) {
-        if(MAP_SERVICE.equals(serviceType))
-            releaseStorage(serviceName);
-        else if(IDGEN_SERVICE.equals(serviceType))
-            releaseLongCounter(serviceName);
-    }
-
-    private void releaseStorage(final String collectionName) {
-        hazelcast.getMap(collectionName).destroy();
-    }
-
-    private void releaseLongCounter(final String generatorName) {
-        hazelcast.getIdGenerator(generatorName).destroy();
+    public void releaseService(final String serviceName, final Class<? extends SharedObject> serviceType) {
+        if(SHARED_MAP.equals(serviceType))
+            HazelcastStorage.destroy(hazelcast, serviceName);
+        else if(SHARED_COUNTER.equals(serviceType))
+            HazelcastCounter.destroy(hazelcast, serviceName);
+        else if(SHARED_BOX.equals(serviceType))
+            HazelcastBox.destroy(hazelcast, serviceName);
+        else if(COMMUNICATOR.equals(serviceType))
+            HazelcastCommunicator.destroy(hazelcast, serviceName);
     }
 
     /**

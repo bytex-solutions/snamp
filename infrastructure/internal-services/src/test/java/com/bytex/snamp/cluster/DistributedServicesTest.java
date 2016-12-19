@@ -42,8 +42,8 @@ public final class DistributedServicesTest extends Assert {
 
     @Test
     public void storageTest() throws InterruptedException {
-        final ConcurrentMap<String, Object> storage1 = instance1.getService("storage", ClusterMember.MAP_SERVICE);
-        final ConcurrentMap<String, Object> storage2 = instance2.getService("storage", ClusterMember.MAP_SERVICE);
+        final ConcurrentMap<String, Object> storage1 = instance1.getService("storage", ClusterMember.SHARED_MAP);
+        final ConcurrentMap<String, Object> storage2 = instance2.getService("storage", ClusterMember.SHARED_MAP);
         assertTrue(storage1 instanceof HazelcastStorage);
         assertTrue(storage2 instanceof HazelcastStorage);
         storage1.put("key", Duration.ofSeconds(10));
@@ -55,8 +55,8 @@ public final class DistributedServicesTest extends Assert {
 
     @Test
     public void counterTest() throws InterruptedException {
-        final SharedCounter counter1 = instance1.getService("testCounter", ClusterMember.IDGEN_SERVICE);
-        final SharedCounter counter2 = instance2.getService("testCounter", ClusterMember.IDGEN_SERVICE);
+        final SharedCounter counter1 = instance1.getService("testCounter", ClusterMember.SHARED_COUNTER);
+        final SharedCounter counter2 = instance2.getService("testCounter", ClusterMember.SHARED_COUNTER);
         assertNotNull(counter1);
         assertNotNull(counter2);
         counter1.getAsLong();
@@ -64,24 +64,24 @@ public final class DistributedServicesTest extends Assert {
         counter2.getAsLong();
         Thread.sleep(300);
         assertEquals(3L, counter1.getAsLong());
-        instance1.releaseService("testCounter", ClusterMember.IDGEN_SERVICE);
+        instance1.releaseService("testCounter", ClusterMember.SHARED_COUNTER);
     }
 
     @Test
     public void dialogTest() throws InterruptedException, ExecutionException, TimeoutException {
-        final Communicator com1 = instance1.getService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
-        final Communicator com2 = instance2.getService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
+        final Communicator com1 = instance1.getService("hzCommunicator", ClusterMember.COMMUNICATOR);
+        final Communicator com2 = instance2.getService("hzCommunicator", ClusterMember.COMMUNICATOR);
         assertTrue(com1 instanceof HazelcastCommunicator);
         assertTrue(com2 instanceof HazelcastCommunicator);
         final Future<String> receiver2 = com2.receiveMessage(Communicator.MessageType.SIGNAL, Communicator::getPayloadAsString);
         com1.sendSignal("Request");
         assertEquals("Request", receiver2.get(1, TimeUnit.SECONDS));
-        instance1.releaseService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
+        instance1.releaseService("hzCommunicator", ClusterMember.COMMUNICATOR);
     }
 
     @Test
     public void communicatorTest() throws InterruptedException, TimeoutException, ExecutionException {
-        final Communicator com = instance1.getService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
+        final Communicator com = instance1.getService("hzCommunicator", ClusterMember.COMMUNICATOR);
         assertTrue(com instanceof HazelcastCommunicator);
         //test message box
         try (final Communicator.MessageBox<String> box = com.createMessageBox(Communicator.ANY_MESSAGE, Communicator::getPayloadAsString)) {
@@ -114,6 +114,6 @@ public final class DistributedServicesTest extends Assert {
             final String response = com.sendRequest("Request", Communicator::getPayloadAsString, Duration.ofSeconds(1L));
             assertEquals(EXPECTED_RESPONSE, response);
         }
-        instance1.releaseService("hzCommunicator", ClusterMember.COMMUNICATION_SERVICE);
+        instance1.releaseService("hzCommunicator", ClusterMember.COMMUNICATOR);
     }
 }

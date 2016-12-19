@@ -1,7 +1,9 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.Stateful;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
@@ -17,7 +19,7 @@ import java.util.stream.Stream;
  * @version 2.0
  * @since 2.0
  */
-public interface KeyValueStorage extends Closeable {
+public interface KeyValueStorage extends Closeable, SharedObject {
     /**
      * Represents state of the record.
      */
@@ -25,16 +27,12 @@ public interface KeyValueStorage extends Closeable {
         /**
          * Record has no data.
          */
-        EMPTY,
-        /**
-         * Record is modified in memory but not saved.
-         */
-        DIRTY,
+        NEW,
 
         /**
-         * Record is not changed.
+         * Record is active.
          */
-        UNCHANGED,
+        ACTIVE,
 
         /**
          * Record is deleted and no longer associated with persisted record.
@@ -45,28 +43,18 @@ public interface KeyValueStorage extends Closeable {
     /**
      * Represents entry stored in this storage.
      */
+    @NotThreadSafe
     interface Record{
         /**
-         * Saves entry into storage.
+         * Synchronize record stored at server with local version of this record.
          */
-        Record save();
-
-        /**
-         * Resets all changes.
-         */
-        Record reset();
+        void refresh();
 
         /**
          * Gets version of this record.
          * @return Version of this record.
          */
         int getVersion();
-
-        /**
-         * Deletes this record.
-         * @return {@literal true}, if this record is deleted successfully; {@literal false}, if record doesn't exist.
-         */
-        Record delete();
 
         /**
          * Gets state of this record.
@@ -78,7 +66,7 @@ public interface KeyValueStorage extends Closeable {
     /**
      * Represents entry as serializable single value.
      */
-    interface SerializableView extends Record{
+    interface SerializableRecordView extends Record{
         Serializable getValue();
         void setValue(final Serializable value);
     }
@@ -124,20 +112,6 @@ public interface KeyValueStorage extends Closeable {
     }
 
     /**
-     * Represents characteristics of this storage.
-     */
-    enum Characteristics{
-        /**
-         * The storage is persistent.
-         */
-        PERSISTENT,
-        /**
-         * The storage supports transactions with optimistic lock.
-         */
-        TRANSACTED
-    }
-
-    /**
      * Represents isolation level of transaction.
      */
     enum IsolationLevel {
@@ -174,34 +148,21 @@ public interface KeyValueStorage extends Closeable {
      * @return Selector for records in this storage.
      * @throws ClassCastException Unsupported record view.
      */
-    <R extends Record> R getRecord(final long key, final Class<R> recordView);
+    <R extends Record> R getRecord(final Comparable<?> key, final Class<R> recordView);
 
     /**
-     * Gets record associated with the specified key.
-     * @param key The key of the record.
-     * @param <R> Type of the record view.
-     * @return Selector for records in this storage.
-     * @throws ClassCastException Unsupported record view.
+     * Deletes the record associated with key.
+     * @param key The key to remove.
+     * @return {@literal true}, if record was exist; otherwise, {@literal false}.
      */
-    <R extends Record> R getRecord(final double key, final Class<R> recordView);
+    boolean delete(final Comparable<?> key);
 
     /**
-     * Gets record associated with the specified key.
-     * @param key The key of the record.
-     * @param <R> Type of the record view.
-     * @return Selector for records in this storage.
-     * @throws ClassCastException Unsupported record view.
+     * Determines whether the record of the specified key exists.
+     * @param key The key to check.
+     * @return {@literal true}, if record exists; otherwise, {@literal false}.
      */
-    <R extends Record> R getRecord(final String key, final Class<R> recordView);
-
-    /**
-     * Gets record associated with the specified key.
-     * @param key The key of the record.
-     * @param <R> Type of the record view.
-     * @return Selector for records in this storage.
-     * @throws ClassCastException Unsupported record view.
-     */
-    <R extends Record> R getRecord(final Instant key, final Class<R> recordView);
+    boolean exists(final Comparable<?> key);
 
     /**
      * Gets stream over all records in this storage.
@@ -212,10 +173,15 @@ public interface KeyValueStorage extends Closeable {
     <R extends Record> Stream<R> getRecords(final Class<R> recordType);
 
     /**
-     * Gets characteristics of this storage.
-     * @return Characteristics of this storage.
+     * Removes all record.
      */
-    Set<Characteristics> getCharacteristics();
+    void clear();
+
+    /**
+     * Determines whether this storage supports transactions.
+     * @return {@literal true} if transactions are supported; otherwise, {@literal false}.
+     */
+    boolean isTransactional();
 
     /**
      * Starts transaction.

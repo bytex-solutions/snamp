@@ -105,4 +105,8 @@ final class HazelcastStorage implements ConcurrentMap<String, Object> {
     public String toString(){
         return underlyingMap.toString();
     }
+
+    static void destroy(HazelcastInstance hazelcast, String collectionName) {
+        hazelcast.getMap(collectionName).destroy();
+    }
 }

@@ -125,7 +125,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
             this.sequenceNumberGenerator = context == null ?  //may be null when executing through unit tests
-                    DistributedServices.getProcessLocalCounterGenerator("notifications-".concat(resourceName)) :
+                    DistributedServices.getProcessLocalCounter("notifications-".concat(resourceName)) :
                     DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
         }
 

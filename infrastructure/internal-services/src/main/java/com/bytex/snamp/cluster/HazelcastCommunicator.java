@@ -263,4 +263,8 @@ final class HazelcastCommunicator extends HazelcastSharedObject implements Commu
         sendMessage(request, MessageType.REQUEST, messageID);
         return receiver;
     }
+
+    static void destroy(final HazelcastInstance hazelcast, final String serviceName) {
+        hazelcast.getTopic(serviceName).destroy();
+    }
 }

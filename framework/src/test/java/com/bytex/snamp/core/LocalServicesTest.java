@@ -29,9 +29,9 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void idGeneratorTest(){
-        assertEquals(0L, DistributedServices.getProcessLocalCounterGenerator("gen1").getAsLong());
-        assertEquals(1L, DistributedServices.getProcessLocalCounterGenerator("gen1").getAsLong());
-        assertEquals(0L, DistributedServices.getProcessLocalCounterGenerator("gen2").getAsLong());
+        assertEquals(0L, DistributedServices.getProcessLocalCounter("gen1").getAsLong());
+        assertEquals(1L, DistributedServices.getProcessLocalCounter("gen1").getAsLong());
+        assertEquals(0L, DistributedServices.getProcessLocalCounter("gen2").getAsLong());
     }
 
     @Test

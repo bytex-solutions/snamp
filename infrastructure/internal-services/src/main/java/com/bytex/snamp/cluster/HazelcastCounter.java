@@ -10,10 +10,10 @@ import com.hazelcast.core.IAtomicLong;
  * @version 2.0
  * @since 2.0
  */
-final class HazelcastSharedCounter implements SharedCounter {
+final class HazelcastCounter implements SharedCounter {
     private final IAtomicLong counter;
 
-    HazelcastSharedCounter(final HazelcastInstance hazelcast, final String counterName){
+    HazelcastCounter(final HazelcastInstance hazelcast, final String counterName){
         counter = hazelcast.getAtomicLong(counterName);
     }
 
@@ -30,5 +30,9 @@ final class HazelcastSharedCounter implements SharedCounter {
     @Override
     public long getAsLong() {
         return counter.getAndIncrement();
+    }
+
+    static void destroy(HazelcastInstance hazelcast, String serviceName) {
+        hazelcast.getIdGenerator(serviceName).destroy();
     }
 }
