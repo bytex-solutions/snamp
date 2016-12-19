@@ -9,6 +9,10 @@ import javax.ws.rs.core.Response;
 import java.util.Map;
 
 /**
+ * The type Template configuration service.
+ *
+ * @param <E>   the type parameter
+ * @param <DTO> the type parameter
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
@@ -16,6 +20,11 @@ import java.util.Map;
 public abstract class TemplateConfigurationService<E extends ManagedResourceTemplate, DTO extends TemplateDataObject<E>> extends AbstractEntityConfigurationService<E, DTO> {
 
 
+    /**
+     * Instantiates a new Template configuration service.
+     *
+     * @param entityType the entity type
+     */
     TemplateConfigurationService(final Class<E> entityType){
         super(entityType);
     }
@@ -51,45 +60,154 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
         });
     }
 
+    /**
+     * Delete attribute response.
+     *
+     * @param name        the name
+     * @param featureName the feature name
+     * @return the response
+     */
     @DELETE
-    @Path("/{name}/{feature}/{featureName}")
-    public final Response deleteFeature(@PathParam("name") final String name,
-                                        @PathParam("feature") final FeatureType type,
+    @Path("/{name}/" + FeatureType.ATTRIBUTES_TYPE + "/{featureName}")
+    public final Response deleteAttribute(@PathParam("name") final String name,
                                         @PathParam("featureName") final String featureName){
-        return type.removeFeature(getBundleContext(), name, entityType, featureName);
+        return FeatureType.ATTRIBUTES.removeFeature(getBundleContext(), name, entityType, featureName);
     }
 
     /**
-     * Returns attributes for certain configured resource by its name.
+     * Delete event response.
      *
-     * @return Map that contains attributes configuration (or empty map if no resources are configured)
+     * @param name        the name
+     * @param featureName the feature name
+     * @return the response
      */
-    @GET
-    @Path("/{name}/{feature}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public final Map<String, ? extends AbstractFeatureDataObject<?>> getFeatures(@PathParam("name") final String name, @PathParam("feature") final FeatureType type) {
-        return type.getFeatures(getBundleContext(), name, entityType);
+    @DELETE
+    @Path("/{name}/" + FeatureType.EVENTS_TYPE + "/{featureName}")
+    public final Response deleteEvent(@PathParam("name") final String name,
+                                        @PathParam("featureName") final String featureName){
+        return FeatureType.EVENTS.removeFeature(getBundleContext(), name, entityType, featureName);
     }
 
     /**
-     * Returns certain attribute for specific resource.
+     * Delete operation response.
      *
-     * @return AbstractDTOEntity that contains attributes configuration (or null)
+     * @param name        the name
+     * @param featureName the feature name
+     * @return the response
      */
+    @DELETE
+    @Path("/{name}/" + FeatureType.OPERATIONS_TYPE + "/{featureName}")
+    public final Response deleteOperation(@PathParam("name") final String name,
+                                        @PathParam("featureName") final String featureName){
+        return FeatureType.OPERATIONS.removeFeature(getBundleContext(), name, entityType, featureName);
+    }
+
+
+    /**
+     * Gets attributes.
+     *
+     * @param name the name
+     * @return the attributes
+     */
+    @SuppressWarnings("unchecked")
     @GET
-    @Path("/{name}/{feature}/{featureName}")
+    @Path("/{name}/" + FeatureType.ATTRIBUTES_TYPE)
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public final AbstractFeatureDataObject<?> getFeature(@PathParam("name") final String name,
-                                                @PathParam("feature") final FeatureType type,
+    public final Map<String, AttributeDataObject> getAttributes(@PathParam("name") final String name) {
+        return (Map<String, AttributeDataObject>) FeatureType.ATTRIBUTES.getFeatures(getBundleContext(), name, entityType);
+    }
+
+    /**
+     * Gets events.
+     *
+     * @param name the name
+     * @return the events
+     */
+    @SuppressWarnings("unchecked")
+    @GET
+    @Path("/{name}/" + FeatureType.EVENTS_TYPE)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public final Map<String, EventDataObject> getEvents(@PathParam("name") final String name) {
+        return (Map<String, EventDataObject>) FeatureType.EVENTS.getFeatures(getBundleContext(), name, entityType);
+    }
+
+    /**
+     * Gets operations.
+     *
+     * @param name the name
+     * @return the operations
+     */
+    @SuppressWarnings("unchecked")
+    @GET
+    @Path("/{name}/" + FeatureType.OPERATIONS_TYPE)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public final Map<String, OperationDataObject> getOperations(@PathParam("name") final String name) {
+        return (Map<String, OperationDataObject>) FeatureType.OPERATIONS.getFeatures(getBundleContext(), name, entityType);
+    }
+
+
+    /**
+     * Gets attribute.
+     *
+     * @param name        the name
+     * @param featureName the feature name
+     * @return the attribute
+     */
+    @GET
+    @Path("/{name}/" + FeatureType.ATTRIBUTES_TYPE + "/{featureName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public final AttributeDataObject getAttribute(@PathParam("name") final String name,
                                                         @PathParam("featureName") final String featureName) {
-        return type.getFeature(getBundleContext(), name, entityType, featureName).orElseThrow(ResourceConfigurationService::notFound);
+        return (AttributeDataObject) FeatureType.ATTRIBUTES.getFeature(getBundleContext(), name, entityType, featureName)
+                .orElseThrow(ResourceConfigurationService::notFound);
     }
+
+    /**
+     * Ge event abstract feature data object.
+     *
+     * @param name        the name
+     * @param featureName the feature name
+     * @return the abstract feature data object
+     */
+    @GET
+    @Path("/{name}/" + FeatureType.EVENTS_TYPE + "/{featureName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public final EventDataObject geEvent(@PathParam("name") final String name,
+                                                         @PathParam("featureName") final String featureName) {
+        return (EventDataObject) FeatureType.EVENTS.getFeature(getBundleContext(), name, entityType, featureName)
+                .orElseThrow(ResourceConfigurationService::notFound);
+    }
+
+
+    /**
+     * Gets operation.
+     *
+     * @param name        the name
+     * @param featureName the feature name
+     * @return the operation
+     */
+    @GET
+    @Path("/{name}/" + FeatureType.OPERATIONS_TYPE + "/{featureName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public final OperationDataObject getOperation(@PathParam("name") final String name,
+                                                         @PathParam("featureName") final String featureName) {
+        return (OperationDataObject) FeatureType.OPERATIONS.getFeature(getBundleContext(), name, entityType, featureName)
+                .orElseThrow(ResourceConfigurationService::notFound);
+    }
+
 
     /**
      * Set certain attribute for specific resource.
      *
+     * @param name          the name
+     * @param attributeName the attribute name
+     * @param dto           the dto
      * @return no content response
      */
     @PUT
@@ -105,6 +223,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     /**
      * Saves attributes for certain configured resource by its name.
      *
+     * @param name the name
+     * @param dto  the dto
      * @return no content
      */
     @PUT
@@ -117,10 +237,11 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     }
 
 
-
     /**
      * Saves events for certain configured resource by its name.
      *
+     * @param name the name
+     * @param dto  the dto
      * @return no content
      */
     @PUT
@@ -135,6 +256,9 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     /**
      * Set certain event for specific resource.
      *
+     * @param name      the name
+     * @param eventName the event name
+     * @param dto       the dto
      * @return no content response
      */
     @PUT
@@ -150,6 +274,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     /**
      * Saves operations for certain configured resource by its name.
      *
+     * @param name the name
+     * @param dto  the dto
      * @return no content
      */
     @PUT
@@ -164,6 +290,9 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     /**
      * Set certain operation for specific resource.
      *
+     * @param name          the name
+     * @param operationName the operation name
+     * @param dto           the dto
      * @return no content response
      */
     @PUT
