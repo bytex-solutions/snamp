@@ -682,7 +682,7 @@ a:hover, a:focus {
   line-height: 30px;
 }
 .main_menu_side {
-  padding: 0;
+  padding: 90px 0 0 0;
 }
 .bs-docs-sidebar .nav>li>a {
   display: block;
