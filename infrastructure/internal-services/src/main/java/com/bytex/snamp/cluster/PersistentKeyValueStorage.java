@@ -3,12 +3,14 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.KeyValueStorage;
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.hazelcast.security.Credentials;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.exception.ORecordNotFoundException;
@@ -22,10 +24,7 @@ import com.orientechnologies.orient.core.tx.OTransactionOptimistic;
 import com.orientechnologies.orient.server.OServer;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -44,7 +43,7 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
         }
     }
 
-    private static final class PersistentRecord extends ODocument implements Record, MapRecordView, JsonRecordView, TextRecordView, LongRecordView, DoubleRecordView{
+    private static final class PersistentRecord extends ODocument implements Record, MapRecordView, JsonRecordView, TextRecordView, LongRecordView, DoubleRecordView, SerializableRecordView{
         private static final Gson JSON_FORMATTER = new Gson();
         private static final long serialVersionUID = -7040180709722600847L;
         private static final String KEY_FIELD = "key";
@@ -71,7 +70,8 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
             else {
                 final OClass documentClass = schema.createClass(PersistentRecord.CLASS);
                 documentClass
-                        .createProperty(PersistentRecord.KEY_FIELD, OType.ANY)
+                        .createProperty(KEY_FIELD, OType.ANY)
+                        .setNotNull(true)
                         .createIndex(OClass.INDEX_TYPE.UNIQUE)
                         .flush();
                 documentClass
@@ -114,6 +114,36 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
             return detached;
         }
 
+        private void saveValue(final Object value){
+            field(VALUE_FIELD, value).save();
+        }
+
+        @Override
+        public Serializable getValue() {
+            final Object result = field(VALUE_FIELD);
+            if (result instanceof byte[])
+                try {
+                    return IOUtils.deserialize((byte[]) result, Serializable.class);
+                } catch (final IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            else if (result instanceof Serializable)
+                return (Serializable) result;
+            else
+                return null;
+        }
+
+        @Override
+        public void setValue(final Serializable value) {
+            final byte[] bytes;
+            try {
+                bytes = IOUtils.serialize(value);
+            } catch (final IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            saveValue(bytes);
+        }
+
         @Override
         public Map<String, ?> getAsMap() {
             final Object value = field(VALUE_FIELD);
@@ -127,10 +157,10 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
 
         @Override
         public void setAsMap(final Map<String, ?> values) {
-            if(values.size() == 1 && values.containsKey(VALUE_FIELD))
-                field(VALUE_FIELD, values.get(VALUE_FIELD));
+            if (values.size() == 1 && values.containsKey(VALUE_FIELD))
+                saveValue(values.get(VALUE_FIELD));
             else
-                field(VALUE_FIELD, new ODocument().fromMap(values));
+                saveValue(new ODocument().fromMap(values));
         }
 
         @Override
@@ -163,7 +193,7 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
         public void setAsJson(final Reader value) throws IOException {
             final Object persistentValue = toValue(JSON_FORMATTER.fromJson(value, JsonElement.class))
                     .orElseThrow(IOException::new);
-            field(VALUE_FIELD, persistentValue);
+            saveValue(persistentValue);
         }
 
         @Override
@@ -173,7 +203,7 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
 
         @Override
         public void setAsText(final String value) {
-            field(VALUE_FIELD, value);
+            saveValue(value);
         }
 
         @Override
@@ -183,7 +213,7 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
 
         @Override
         public void setAsLong(final long value) {
-            field(VALUE_FIELD, value);
+            saveValue(value);
         }
 
         @Override
@@ -193,15 +223,27 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
 
         @Override
         public void setAsDouble(final double value) {
-            field(VALUE_FIELD, double.class);
+            saveValue(value);
         }
     }
 
-    private final OClass documentClass;
+    private OClass documentClass;
 
-    PersistentKeyValueStorage(@Nonnull final OServer databaseServer, final String name) {
+    private PersistentKeyValueStorage(@Nonnull final OServer databaseServer,
+                              final String name) {
         super(databaseServer.getStoragePath(name));
+    }
+
+    private void init(){
         documentClass = PersistentRecord.initClass(getMetadata().getSchema());
+    }
+
+    static PersistentKeyValueStorage openOrCreate(@Nonnull final OServer databaseServer, final String storageName) {
+        final PersistentKeyValueStorage result = new PersistentKeyValueStorage(databaseServer, storageName);
+        if (!result.exists())
+            result.create();
+        result.init();
+        return result;
     }
 
     /**

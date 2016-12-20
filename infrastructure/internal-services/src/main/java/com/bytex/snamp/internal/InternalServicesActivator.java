@@ -58,12 +58,9 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         protected GridMember activateService(final Map<String, Object> identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
             final HazelcastInstance hazelcast = getDependencies().getDependency(HazelcastInstance.class);
             identity.put(Orient.ORIENTDB_HOME, GridMember.ORIENTDB_HOME.getAbsolutePath());
-            return new GridMember(hazelcast);
-        }
-
-        @Override
-        protected void activated(final GridMember member) throws ReflectiveOperationException, IOException {
-            member.startupFromConfiguration();
+            final GridMember member = new GridMember(hazelcast);
+            member.startupFromConfiguration().activate();
+            return member;
         }
 
         @Override

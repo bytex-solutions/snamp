@@ -4,6 +4,9 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.orientechnologies.common.log.OLogManager;
 import com.orientechnologies.common.util.OCallableUtils;
+import com.orientechnologies.orient.core.Orient;
+import com.orientechnologies.orient.server.distributed.ORemoteServerController;
+import com.orientechnologies.orient.server.distributed.impl.ODistributedStorage;
 import com.orientechnologies.orient.server.hazelcast.OHazelcastPlugin;
 
 import java.io.FileNotFoundException;
@@ -37,6 +40,40 @@ final class OrientHazelcastBridge extends OHazelcastPlugin {
         defaultDatabaseConfigFile = DatabaseConfigurationFile.DISTRIBUTED_CONFIG.toFile(true);
     }
 
+    private void shutdownDistributedPlugin() {
+        // CLOSE ALL CONNECTIONS TO THE SERVERS
+        remoteServers.values().forEach(ORemoteServerController::close);
+        remoteServers.clear();
+
+        if (publishLocalNodeConfigurationTask != null)
+            publishLocalNodeConfigurationTask.cancel();
+
+        if (healthCheckerTask != null)
+            healthCheckerTask.cancel();
+
+        if (messageService != null)
+            messageService.shutdown();
+
+        activeNodes.clear();
+        activeNodesNamesByUuid.clear();
+        activeNodesUuidByName.clear();
+
+        setNodeStatus(NODE_STATUS.OFFLINE);
+
+        Orient.instance().removeDbLifecycleListener(this);
+
+        // CLOSE AND FREE ALL THE STORAGES
+        storages.values().forEach(s -> {
+            try {
+                s.shutdownAsynchronousWorker();
+                s.close();
+            } catch (final Exception e) {
+                OLogManager.instance().error(this, "Failed to close storage", e);
+            }
+        });
+        storages.clear();
+    }
+
     @Override
     public void shutdown() {
         if (!enabled)
@@ -46,33 +83,31 @@ final class OrientHazelcastBridge extends OHazelcastPlugin {
         setNodeStatus(NODE_STATUS.SHUTTINGDOWN);
 
         try {
-            final Set<String> databases = new HashSet<String>();
+            final Set<String> databases = new HashSet<>();
 
-            for (Map.Entry<String, Object> entry : configurationMap.entrySet()) {
-                if (entry.getKey().startsWith(CONFIG_DBSTATUS_PREFIX)) {
+            configurationMap.entrySet().stream().filter(entry -> entry.getKey().startsWith(CONFIG_DBSTATUS_PREFIX)).forEach(entry -> {
 
-                    final String nodeDb = entry.getKey().substring(CONFIG_DBSTATUS_PREFIX.length());
+                final String nodeDb = entry.getKey().substring(CONFIG_DBSTATUS_PREFIX.length());
 
-                    if (nodeDb.startsWith(nodeName))
-                        databases.add(entry.getKey());
-                }
-            }
+                if (nodeDb.startsWith(nodeName))
+                    databases.add(entry.getKey());
+            });
 
             // PUT DATABASES AS NOT_AVAILABLE
             for (String k : databases)
                 configurationMap.put(k, DB_STATUS.NOT_AVAILABLE);
 
-        } catch (HazelcastInstanceNotActiveException e) {
-            // HZ IS ALREADY DOWN, IGNORE IT
+        } catch (final HazelcastInstanceNotActiveException e) {
+            OLogManager.instance().error(this, "Hazelcast is already down", e);
         }
 
-        super.shutdown();
+        shutdownDistributedPlugin();
 
         if (membershipListenerRegistration != null) {
             try {
                 hazelcastInstance.getCluster().removeMembershipListener(membershipListenerRegistration);
             } catch (HazelcastInstanceNotActiveException e) {
-                // HZ IS ALREADY DOWN, IGNORE IT
+                OLogManager.instance().error(this, "Hazelcast is already down", e);
             }
         }
 
@@ -81,8 +116,6 @@ final class OrientHazelcastBridge extends OHazelcastPlugin {
         OCallableUtils.executeIgnoringAnyExceptions(() -> configurationMap.destroy());
 
         OCallableUtils.executeIgnoringAnyExceptions(() -> configurationMap.getHazelcastMap().removeEntryListener(membershipListenerMapRegistration));
-
-        setNodeStatus(NODE_STATUS.OFFLINE);
     }
 
     @Override

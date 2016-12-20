@@ -4,6 +4,7 @@ import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.core.SharedCounter;
 import com.bytex.snamp.core.SharedObject;
+import com.bytex.snamp.internal.Utils;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
@@ -161,10 +162,13 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
         return serviceType.cast(result);
     }
 
-    private PersistentKeyValueStorage createPersistentKV(final String collectionName){
-        final PersistentKeyValueStorage storage = new PersistentKeyValueStorage(this, collectionName);
-        if (!storage.exists())
-            storage.create();
+    private KeyValueStorage createPersistentKV(final String collectionName) {
+        final DatabaseCredentials credentials = DatabaseCredentials.resolveSnampUser(Utils.getBundleContextOfObject(this), getConfiguration());
+        if (credentials == null) {
+            logger.severe(String.format("Unable to create persistent storage %s because database credentials are not specified. Non-persistent storage is created.", collectionName));
+            return createDistributedKV(collectionName);
+        }
+        final PersistentKeyValueStorage storage = PersistentKeyValueStorage.openOrCreate(this, collectionName);
         return storage;
     }
 

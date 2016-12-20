@@ -3,7 +3,9 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
+import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.core.SharedCounter;
+import com.orientechnologies.orient.server.security.ODefaultServerSecurity;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,30 +29,28 @@ public final class DistributedServicesTest extends Assert {
     @Before
     public void setupHazelcastNodes() throws Exception {
         instance1 = new GridMember();
-        instance1.startupFromConfiguration();
-        instance2 = new GridMember();
-        instance2.startupFromConfiguration();
+        instance1.startupFromConfiguration().activate();
+//        instance2 = new GridMember();
+//        instance2.startupFromConfiguration().activate();
     }
 
     @After
     public void shutdownHazelcastNodes() throws InterruptedException {
         instance1.close();
-        instance2.close();
+//        instance2.close();
         instance1 = null;
         instance2 = null;
     }
 
     @Test
     public void storageTest() throws InterruptedException {
-        final ConcurrentMap<String, Object> storage1 = instance1.getService("storage", ClusterMember.SHARED_MAP);
-        final ConcurrentMap<String, Object> storage2 = instance2.getService("storage", ClusterMember.SHARED_MAP);
-        assertTrue(storage1 instanceof HazelcastStorage);
-        assertTrue(storage2 instanceof HazelcastStorage);
-        storage1.put("key", Duration.ofSeconds(10));
-        Thread.sleep(400);
-        final Object value = storage2.get("key");
-        assertTrue(value instanceof Duration);
-        assertEquals(Duration.ofSeconds(10), value);
+        final KeyValueStorage storage = instance1.getService("$testStorage", KeyValueStorage.class);
+        assertNotNull(storage);
+        KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("String Key", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
+        record.setAsText("Hello, world");
+        record = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).get();
+        assertNotNull(record);
+        assertEquals("Hello, world", record.getAsText());
     }
 
     @Test

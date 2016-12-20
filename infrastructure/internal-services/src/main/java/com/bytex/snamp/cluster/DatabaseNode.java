@@ -2,10 +2,15 @@ package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.ArrayUtils;
 import com.hazelcast.core.HazelcastInstance;
+import com.orientechnologies.common.log.OLogManager;
 import com.orientechnologies.orient.core.Orient;
+import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.orientechnologies.orient.core.exception.OConfigurationException;
 import com.orientechnologies.orient.server.OServer;
-import com.orientechnologies.orient.server.config.OServerConfigurationManager;
-import com.orientechnologies.orient.server.config.OServerParameterConfiguration;
+import com.orientechnologies.orient.server.config.*;
+import com.orientechnologies.orient.server.network.OServerNetworkListener;
+import com.orientechnologies.orient.server.network.OServerSocketFactory;
+import com.orientechnologies.orient.server.network.protocol.ONetworkProtocol;
 import com.orientechnologies.orient.server.plugin.OServerPlugin;
 
 import javax.management.JMException;
@@ -43,9 +48,13 @@ class DatabaseNode extends OServer {
         return home;
     });
 
+    static {
+        OGlobalConfiguration.SECURITY_USER_PASSWORD_SALT_ITERATIONS.setValue(1024); //fix performance issues with default hash security provider
+    }
+
     private final File databaseConfigFile;
 
-    public DatabaseNode(final HazelcastInstance hazelcast) throws ReflectiveOperationException, JMException, JAXBException, IOException {
+    DatabaseNode(final HazelcastInstance hazelcast) throws ReflectiveOperationException, JMException, JAXBException, IOException {
         super(true);
         databaseConfigFile = DatabaseConfigurationFile.EMBEDDED_CONFIG.toFile(true);
         updateConfig();
@@ -53,8 +62,8 @@ class DatabaseNode extends OServer {
     }
 
     @Override
-    public DatabaseNode startupFromConfiguration() throws InvocationTargetException, NoSuchMethodException, IOException {
-        super.startupFromConfiguration();
+    public DatabaseNode activate() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+        super.activate();
         if (distributedManager instanceof OServerPlugin) {
             final OServerPlugin plugin = (OServerPlugin) distributedManager;
             plugin.config(this, ArrayUtils.emptyArray(OServerParameterConfiguration[].class));
