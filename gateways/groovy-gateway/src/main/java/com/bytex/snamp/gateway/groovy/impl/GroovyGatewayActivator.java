@@ -1,7 +1,11 @@
 package com.bytex.snamp.gateway.groovy.impl;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.core.AbstractBundleActivator;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.gateway.GatewayActivator;
+
+import java.util.Collection;
 
 /**
  * @author Roman Sakno
@@ -18,5 +22,10 @@ public final class GroovyGatewayActivator extends GatewayActivator<GroovyGateway
     private static GroovyGateway newGateway(final String instanceName,
                               final DependencyManager dependencies){
         return new GroovyGateway(instanceName);
+    }
+
+    @Override
+    protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
+        dependencies.add(new SimpleDependency<>(ClusterMember.class));
     }
 }

@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import com.bytex.snamp.core.ClusterMember;
 import org.osgi.service.http.HttpService;
 
 import java.io.IOException;
@@ -34,6 +35,7 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
     @Override
     protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
         dependencies.add(new SimpleDependency<>(HttpService.class));
+        dependencies.add(new SimpleDependency<>(ClusterMember.class));
     }
 
     /**

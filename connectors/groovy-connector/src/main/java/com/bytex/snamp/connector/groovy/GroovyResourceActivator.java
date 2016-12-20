@@ -6,6 +6,8 @@ import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
+import com.bytex.snamp.core.AbstractBundleActivator;
+import com.bytex.snamp.core.ClusterMember;
 import groovy.grape.GrabAnnotationTransformation;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
@@ -67,5 +69,10 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
                 return AbstractManagedResourceConnector.getLogger(GroovyResourceConnector.class);
             }
         };
+    }
+
+    @Override
+    protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
+        dependencies.add(new SimpleDependency<>(ClusterMember.class));
     }
 }

@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.zipkin;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import com.bytex.snamp.core.ClusterMember;
 import org.osgi.service.http.HttpService;
 
 import java.net.URISyntaxException;
@@ -33,6 +34,7 @@ public final class ZipkinConnectorActivator extends ManagedResourceActivator<Zip
     @Override
     protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
         dependencies.add(new SimpleDependency<>(HttpService.class));
+        dependencies.add(new SimpleDependency<>(ClusterMember.class));
     }
 
     /**
@@ -62,4 +64,6 @@ public final class ZipkinConnectorActivator extends ManagedResourceActivator<Zip
         final HttpService publisher = activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY);
         publisher.unregister(ZipkinServlet.CONTEXT);
     }
+
+
 }

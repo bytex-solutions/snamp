@@ -3,6 +3,7 @@ package com.bytex.snamp.management;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.core.SnampManager;
 import com.bytex.snamp.jmx.FrameworkMBean;
@@ -167,6 +168,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
         bundleLevelDependencies.add(new LogReaderServiceDependency(listener));
         bundleLevelDependencies.add(new SimpleDependency<>(HttpService.class));
+        bundleLevelDependencies.add(new SimpleDependency<>(ClusterMember.class));
     }
 
     /**
