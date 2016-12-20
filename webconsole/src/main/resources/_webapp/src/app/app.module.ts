@@ -28,6 +28,7 @@ import { XLarge } from './home/x-large';
 import { FontAwesomeDirective } from 'ng2-fontawesome';
 import { ApiClient } from './app.restClient'
 import { CookieService } from 'angular2-cookie/core';
+import { DropdownModule } from 'ng2-bootstrap';
 
 // Application wide providers
 const APP_PROVIDERS = [
@@ -67,6 +68,7 @@ type StoreType = {
     BrowserModule,
     FormsModule,
     HttpModule,
+    DropdownModule.forRoot(),
     RouterModule.forRoot(ROUTES, { useHash: true })
   ],
   providers: [ // expose our Services and Providers into Angular's dependency injection

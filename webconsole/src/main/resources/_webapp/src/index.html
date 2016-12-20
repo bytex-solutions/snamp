@@ -16,7 +16,8 @@
 
   <!-- base url -->
   <base href="<%= webpackConfig.metadata.baseUrl %>">
-  <script src="assets/vendors/tether/tether.min.js"></script>
+ <!-- <script src="assets/vendors/tether/tether.min.js"></script>-->
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body class="nav-md">
@@ -33,5 +34,7 @@
 
     </div>
   </div>
+  <script>window.__theme = 'bs4';</script>
+  <script src="assets/js/prettify.min.js"></script>
 </body>
 </html>
