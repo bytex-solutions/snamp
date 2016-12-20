@@ -15,7 +15,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ForkCheckerPlugin = require('awesome-typescript-loader').ForkCheckerPlugin;
 const HtmlElementsPlugin = require('./html-elements-plugin');
 const AssetsPlugin = require('assets-webpack-plugin');
-const ContextReplacementPlugin = require('webpack/lib/ContextReplacementPlugin'); 
+const ContextReplacementPlugin = require('webpack/lib/ContextReplacementPlugin');
 
 /*
  * Webpack Constants
@@ -230,7 +230,7 @@ module.exports = function(options) {
       /**
        * Plugin: ContextReplacementPlugin
        * Description: Provides context to Angular's use of System.import
-       * 
+       *
        * See: https://webpack.github.io/docs/list-of-plugins.html#contextreplacementplugin
        * See: https://github.com/angular/angular/issues/11580
        */
@@ -257,11 +257,16 @@ module.exports = function(options) {
           'robots.txt'
         ]
       }),
-      new CopyWebpackPlugin([{ 
+      new CopyWebpackPlugin([{
         from: 'src/assets/robots.txt'
-      }, { 
-        from: 'src/assets/humans.txt' 
+      }, {
+        from: 'src/assets/humans.txt'
       }]),
+      new CopyWebpackPlugin([{
+        from: 'src/login.html',
+        to: 'login.html'
+      }]),
+
 
       /*
        * Plugin: HtmlWebpackPlugin

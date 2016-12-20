@@ -30,6 +30,7 @@ export class App implements AfterViewInit {
 
    ngAfterViewInit() {
       $(document).ready(function(){
+
          $('.collapse-link').on('click', function() {
              var $BOX_PANEL = $(this).closest('.x_panel'),
                  $ICON = $(this).find('i'),

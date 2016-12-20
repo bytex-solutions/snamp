@@ -21,15 +21,20 @@ import { Sidebar } from './menu/sidebar.component';
 import { TopNavBar } from './menu/topnavbar.component';
 import { FlotCmp } from './controls/network-activities.component'
 import { Content } from './content';
+import { UsernameComponent } from './app.username'
 import { Inbox } from './content';
 import { NoContent } from './no-content';
 import { XLarge } from './home/x-large';
 import { FontAwesomeDirective } from 'ng2-fontawesome';
+import { ApiClient } from './app.restClient'
+import { CookieService } from 'angular2-cookie/core';
 
 // Application wide providers
 const APP_PROVIDERS = [
   ...APP_RESOLVER_PROVIDERS,
-  AppState
+  AppState,
+  ApiClient,
+  CookieService
 ];
 
 type StoreType = {
@@ -55,7 +60,8 @@ type StoreType = {
     FlotCmp,
     NoContent,
     XLarge,
-    FontAwesomeDirective
+    FontAwesomeDirective,
+    UsernameComponent
   ],
   imports: [ // import Angular's modules
     BrowserModule,
