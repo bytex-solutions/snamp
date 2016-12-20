@@ -88,7 +88,6 @@
             <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
             <Export-Package />
             <Bundle-Activator>com.bytex.snamp.webconsole.WebConsoleActivator</Bundle-Activator>
-            <Include-Resource>src/main/resources/_webapp/dist</Include-Resource>
             <Web-ContextPath>snamp</Web-ContextPath>
             <Webapp-Context>snamp</Webapp-Context>
             <_wab>src/main/resources/_webapp/dist</_wab>
