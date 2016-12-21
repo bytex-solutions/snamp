@@ -14,21 +14,24 @@ import { ROUTES } from './app.routes';
 import { App } from './app.component';
 import { APP_RESOLVER_PROVIDERS } from './app.resolver';
 import { AppState, InteralStateType } from './app.service';
-import { Home } from './home';
-import { About } from './about';
 import { Footer } from './controls/footer.component';
 import { Sidebar } from './menu/sidebar.component';
 import { TopNavBar } from './menu/topnavbar.component';
 import { FlotCmp } from './controls/network-activities.component'
-import { Content } from './content';
 import { UsernameComponent } from './app.username'
-import { Inbox } from './content';
 import { NoContent } from './no-content';
-import { XLarge } from './home/x-large';
 import { FontAwesomeDirective } from 'ng2-fontawesome';
 import { ApiClient } from './app.restClient'
 import { CookieService } from 'angular2-cookie/core';
 import { DropdownModule } from 'ng2-bootstrap';
+
+import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './configuration/configuration.pipes';
+import { InlineEditComponent } from './configuration/components/inline-edit.component';
+import { ParametersTable } from './configuration/components/parameters-table.component';
+import { ResourceEntitiesTable } from './configuration/components/resource-subentities-table.component';
+import { AddEntity } from './configuration/components/add-entity.component';
+
+import { TooltipModule } from 'ng2-tooltip';
 
 // Application wide providers
 const APP_PROVIDERS = [
@@ -44,28 +47,34 @@ type StoreType = {
   disposeOldHosts: () => void
 };
 
+const DECLARATIONS:any = [
+  KeysPipe,
+  InlineEditComponent,
+  ParametersTable,
+  ResourceEntitiesTable,
+  RequiredParametersFilter,
+  OptionalParametersFilter,
+  AddEntity
+];
+
 /**
  * `AppModule` is the main entry point into Angular2's bootstraping process
  */
 @NgModule({
   bootstrap: [ App ],
-  declarations: [
+  declarations: DECLARATIONS.concat([
     App,
-    About,
-    Home,
-    Content,
-    Inbox,
     Footer,
     Sidebar,
     TopNavBar,
     FlotCmp,
     NoContent,
-    XLarge,
     FontAwesomeDirective,
     UsernameComponent
-  ],
+  ]),
   imports: [ // import Angular's modules
     BrowserModule,
+    TooltipModule,
     FormsModule,
     HttpModule,
     DropdownModule.forRoot(),

@@ -88,7 +88,9 @@
     "zone.js": "~0.6.17",
     "angular2-cookie": "^1.2.4",
     "ng2-bootstrap": "1.1.16-7",
-    "moment": "^2.13.0"
+    "moment": "^2.13.0",
+    "angular2-modal": "2.0.2",
+    "ng2-tooltip": "0.0.5"
   },
   "devDependencies": {
     "@types/hammerjs": "^2.0.33",
