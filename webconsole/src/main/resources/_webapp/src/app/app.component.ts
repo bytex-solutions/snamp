@@ -17,7 +17,7 @@ import { AppState } from './app.service';
   ],
   templateUrl: './app.component.html'
 })
-export class App implements AfterViewInit {
+export class App  {
 
   constructor(
     public appState: AppState) {
@@ -28,7 +28,7 @@ export class App implements AfterViewInit {
     console.log('Initial App State', this.appState.state);
   }
 
-   ngAfterViewInit() {
+   ngAfterContentInit() {
       $(document).ready(function(){
 
          $('.collapse-link').on('click', function() {

@@ -8,7 +8,7 @@
         <div class="form-group">
 
             <!-- inline edit control  -->
-            <input #inlineEditControl class="form-control" [(ngModel)]="value" />
+            <input #inlineEditControl class="form-control" [(ngModel)]="value" [ngModelOptions]="{standalone: true}"/>
 
             <!-- inline edit save and cancel buttons -->
             <span>
