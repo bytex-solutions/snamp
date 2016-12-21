@@ -5,6 +5,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.orientechnologies.common.log.OLogManager;
 import com.orientechnologies.orient.core.Orient;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.exception.OConfigurationException;
 import com.orientechnologies.orient.server.OServer;
 import com.orientechnologies.orient.server.config.*;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -30,6 +32,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  */
 class DatabaseNode extends OServer {
+    private static final String SNAMP_DATABASE = "snamp_storage";
+
     public static final File ORIENTDB_HOME = interfaceStaticInitialize(() -> {
         String karafDataFolder = System.getProperty("karaf.data");
         final String ORIENTDB_PREFIX = "orientdb";
@@ -53,6 +57,7 @@ class DatabaseNode extends OServer {
     }
 
     private final File databaseConfigFile;
+    private ODatabaseDocumentTx snampDatabase;
 
     DatabaseNode(final HazelcastInstance hazelcast) throws ReflectiveOperationException, JMException, JAXBException, IOException {
         super(true);
@@ -61,19 +66,30 @@ class DatabaseNode extends OServer {
         distributedManager = new OrientHazelcastBridge(hazelcast);
     }
 
+    final ODatabaseDocumentTx getSnampDatabase(){
+        return snampDatabase;
+    }
+
     @Override
     public DatabaseNode activate() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         super.activate();
+        //activate Hazelcast-based distributor
         if (distributedManager instanceof OServerPlugin) {
             final OServerPlugin plugin = (OServerPlugin) distributedManager;
             plugin.config(this, ArrayUtils.emptyArray(OServerParameterConfiguration[].class));
             plugin.startup();
         }
+        //initialize SNAMP database
+        snampDatabase = new ODatabaseDocumentTx(getStoragePath(SNAMP_DATABASE));
+        if(!snampDatabase.exists())
+            snampDatabase.create();
         return this;
     }
 
     @Override
     public boolean shutdown() {
+        snampDatabase.close();
+        snampDatabase = null;
         final boolean success = super.shutdown();
         if (success && distributedManager instanceof OServerPlugin)
             ((OServerPlugin) distributedManager).shutdown();

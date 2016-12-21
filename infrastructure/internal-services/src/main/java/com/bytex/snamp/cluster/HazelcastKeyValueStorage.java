@@ -121,9 +121,4 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject implements Ke
     public boolean isViewSupported(final Class<? extends Record> recordView) {
         return false;
     }
-
-    @Override
-    public void close() throws IOException {
-
-    }
 }

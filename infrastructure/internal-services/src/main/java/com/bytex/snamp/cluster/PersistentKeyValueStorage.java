@@ -1,32 +1,38 @@
 package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterators;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.hazelcast.security.Credentials;
+import com.orientechnologies.orient.core.db.ODatabase;
+import com.orientechnologies.orient.core.db.ODatabaseDocumentInternal;
+import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.exception.ORecordNotFoundException;
 import com.orientechnologies.orient.core.id.ORID;
+import com.orientechnologies.orient.core.index.OCompositeKey;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OSchema;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.tx.OTransaction;
 import com.orientechnologies.orient.core.tx.OTransactionOptimistic;
-import com.orientechnologies.orient.server.OServer;
 
-import javax.annotation.Nonnull;
 import java.io.*;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -36,52 +42,171 @@ import java.util.stream.StreamSupport;
  * @version 2.0
  * @since 2.0
  */
-final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements KeyValueStorage {
+final class PersistentKeyValueStorage implements KeyValueStorage {
+
     private static final class TransactionScopeImpl extends OTransactionOptimistic implements TransactionScope {
         private TransactionScopeImpl(final ODatabaseDocumentTx iDatabase) {
             super(iDatabase);
         }
     }
 
+    private enum FieldDefinition{
+        DECIMAL_KEY(OType.DECIMAL, "nKey", true, true) {
+            @Override
+            Optional<Number> getKey(final Comparable<?> key) {
+                return key instanceof Number ? Optional.of((Number) key) : Optional.empty();
+            }
+        },
+        STRING_KEY(OType.STRING, "sKey", true, true) {
+            @Override
+            Optional<String> getKey(final Comparable<?> key) {
+                if(key instanceof String)
+                    return Optional.of(key.toString());
+                else if(key instanceof Enum<?>)
+                    return Optional.of(((Enum<?>) key).name());
+                else
+                    return Optional.empty();
+            }
+        },
+        DATE_KEY(OType.DATE, "dKey", true, true) {
+            @Override
+            Optional<Date> getKey(final Comparable<?> key) {
+                if(key instanceof Date)
+                    return Optional.of((Date) key);
+                else if(key instanceof Instant)
+                    return Optional.of(Date.from((Instant) key));
+                else
+                    return Optional.empty();
+            }
+        },
+        VALUE(OType.ANY, "value", false, true) {
+            @Override
+            Optional<?> getKey(final Comparable<?> key) {
+                return Optional.empty();
+            }
+        };
+
+        private static final String INDEX_NAME = "SnampIndex";
+        private static final ImmutableSortedSet<FieldDefinition> ALL_FIELDS = ImmutableSortedSet.copyOf(values());
+        private static final ImmutableSortedSet<FieldDefinition> INDEX_FIELDS = ImmutableSortedSet.copyOf(ALL_FIELDS.stream().filter(f -> f.isIndex).iterator());
+        private final OType fieldType;
+        private final String fieldName;
+        private final boolean isIndex;
+        private final boolean notNull;
+
+        FieldDefinition(final OType type, final String fieldName, final boolean index, final boolean notNull){
+            this.fieldType = type;
+            this.fieldName = fieldName;
+            this.isIndex = index;
+            this.notNull = notNull;
+        }
+
+        abstract Optional<?> getKey(final Comparable<?> key);
+
+        static List<?> getCompositeKey(final Comparable<?> key) {
+            final List<Object> keys = new LinkedList<>();
+            for (final FieldDefinition index : INDEX_FIELDS) {
+                final Optional<?> value = index.getKey(key);
+                keys.add(value.orElseGet(() -> null));
+            }
+            return keys;
+        }
+
+        static void setKey(final Comparable<?> key, final ODocument document) {
+            for (final FieldDefinition index : INDEX_FIELDS) {
+                final Optional<?> value = index.getKey(key);
+                if (value.isPresent()) {
+                    index.setField(value.get(), document);
+                    return;
+                }
+            }
+            throw new IllegalArgumentException(String.format("Unsupported key %s", key));
+        }
+
+        private void setField(final Object fieldValue, final ODocument document){
+            document.field(fieldName, fieldValue);
+        }
+
+        private Object getField(final ODocument document) {
+            return document.field(fieldName, fieldType);
+        }
+
+        private void registerProperty(final OClass documentClass){
+            documentClass.createProperty(fieldName, fieldType).setNotNull(notNull);
+        }
+
+        static void defineFields(final OClass documentClass) {
+            for (final FieldDefinition field : ALL_FIELDS)
+                field.registerProperty(documentClass);
+        }
+
+        static void createIndex(final OClass documentClass) {
+            documentClass.createIndex(INDEX_NAME, OClass.INDEX_TYPE.DICTIONARY_HASH_INDEX, INDEX_FIELDS.stream().map(f -> f.fieldName).toArray(String[]::new));
+        }
+
+        @Override
+        public String toString() {
+            return fieldName;
+        }
+    }
+
     private static final class PersistentRecord extends ODocument implements Record, MapRecordView, JsonRecordView, TextRecordView, LongRecordView, DoubleRecordView, SerializableRecordView{
         private static final Gson JSON_FORMATTER = new Gson();
         private static final long serialVersionUID = -7040180709722600847L;
-        private static final String KEY_FIELD = "key";
-        private static final String VALUE_FIELD = "value";
-        private static final String CLASS = "SnampDocument";
+
         private volatile boolean detached;
+        private transient ODatabaseDocumentInternal database;
 
         @SpecialUse
-        public PersistentRecord(){
-            super(CLASS);
+        public PersistentRecord() {
         }
 
         private PersistentRecord(final OIdentifiable prototype) {
-            super(CLASS, prototype.getIdentity());
+            super(prototype.getIdentity());
         }
 
-        private void setKey(final Comparable<?> key){
-            field(KEY_FIELD, key);
+        private void setDatabase(final ODatabaseDocumentInternal value) {
+            this.database = Objects.requireNonNull(value);
+            _recordFormat = value.getSerializer();
         }
 
-        private static OClass initClass(final OSchema schema) {
-            if (schema.existsClass(PersistentRecord.CLASS))
-                return schema.getClass(PersistentRecord.CLASS);
+        @Override
+        public ODatabaseDocumentInternal getDatabase() {
+            return database;
+        }
+
+        @Override
+        public ODatabaseDocument getDatabaseIfDefined() {
+            return database;
+        }
+
+        @Override
+        protected ODatabaseDocumentInternal getDatabaseInternal() {
+            return database;
+        }
+
+        @Override
+        protected ODatabaseDocumentInternal getDatabaseIfDefinedInternal() {
+            return database;
+        }
+
+        private void setKey(final Comparable<?> key) {
+            FieldDefinition.setKey(key, this);
+        }
+
+        private static OClass initClass(final OSchema schema, final String name) {
+            if (schema.existsClass(name))
+                return schema.getClass(name);
             else {
-                final OClass documentClass = schema.createClass(PersistentRecord.CLASS);
-                documentClass
-                        .createProperty(KEY_FIELD, OType.ANY)
-                        .setNotNull(true)
-                        .createIndex(OClass.INDEX_TYPE.UNIQUE)
-                        .flush();
-                documentClass
-                        .createProperty(PersistentRecord.VALUE_FIELD, OType.ANY);
+                final OClass documentClass = schema.createClass(name);
+                FieldDefinition.defineFields(documentClass);
+                FieldDefinition.createIndex(documentClass);
                 return documentClass;
             }
         }
 
         private static <V> V get(final OClass documentClass, final Comparable<?> indexKey, final Function<? super OIdentifiable, ? extends V> transform) {
-            final OIdentifiable identifiable = (OIdentifiable) documentClass.getClassIndex(KEY_FIELD).get(indexKey);
+            final OIdentifiable identifiable = (OIdentifiable) documentClass.getClassIndex(FieldDefinition.INDEX_NAME).get(FieldDefinition.getCompositeKey(indexKey));
             return identifiable == null ? null : transform.apply(identifiable);
         }
 
@@ -115,12 +240,13 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
         }
 
         private void saveValue(final Object value){
-            field(VALUE_FIELD, value).save();
+            FieldDefinition.VALUE.setField(value, this);
+            save();
         }
 
         @Override
         public Serializable getValue() {
-            final Object result = field(VALUE_FIELD);
+            final Object result = FieldDefinition.VALUE.getField(this);
             if (result instanceof byte[])
                 try {
                     return IOUtils.deserialize((byte[]) result, Serializable.class);
@@ -146,26 +272,23 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
 
         @Override
         public Map<String, ?> getAsMap() {
-            final Object value = field(VALUE_FIELD);
+            final Object value = FieldDefinition.VALUE.getField(this);
             if (value == null)
                 return ImmutableMap.of();
             else if (value instanceof ODocument)
                 return ((ODocument) value).toMap();
             else
-                return ImmutableMap.of(VALUE_FIELD, value);
+                return ImmutableMap.of(FieldDefinition.VALUE.fieldName, value);
         }
 
         @Override
         public void setAsMap(final Map<String, ?> values) {
-            if (values.size() == 1 && values.containsKey(VALUE_FIELD))
-                saveValue(values.get(VALUE_FIELD));
-            else
-                saveValue(new ODocument().fromMap(values));
+            saveValue(new ODocument().fromMap(values));
         }
 
         @Override
         public Reader getAsJson() {
-            final Object content = field(VALUE_FIELD);
+            final Object content = FieldDefinition.VALUE.getField(this);
             if(content instanceof ODocument)
                 return new StringReader(((ODocument) content).toJSON());
             else
@@ -198,7 +321,7 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
 
         @Override
         public String getAsText() {
-            return field(VALUE_FIELD, String.class);
+            return FieldDefinition.VALUE.getField(this).toString();
         }
 
         @Override
@@ -208,7 +331,7 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
 
         @Override
         public long getAsLong() {
-            return field(VALUE_FIELD, long.class);
+            return Convert.toLong(FieldDefinition.VALUE.getField(this));
         }
 
         @Override
@@ -218,7 +341,7 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
 
         @Override
         public double getAsDouble() {
-            return field(VALUE_FIELD, double.class);
+            return Convert.toDouble(FieldDefinition.VALUE.getField(this));
         }
 
         @Override
@@ -227,23 +350,18 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
         }
     }
 
-    private OClass documentClass;
+    private final OClass documentClass;
+    private final ODatabaseDocumentTx database;
 
-    private PersistentKeyValueStorage(@Nonnull final OServer databaseServer,
-                              final String name) {
-        super(databaseServer.getStoragePath(name));
+    PersistentKeyValueStorage(final ODatabaseDocumentTx database,
+                              final String collectionName) {
+        this.database = Objects.requireNonNull(database);
+        documentClass = PersistentRecord.initClass(database.getMetadata().getSchema(), collectionName);
     }
 
-    private void init(){
-        documentClass = PersistentRecord.initClass(getMetadata().getSchema());
-    }
-
-    static PersistentKeyValueStorage openOrCreate(@Nonnull final OServer databaseServer, final String storageName) {
-        final PersistentKeyValueStorage result = new PersistentKeyValueStorage(databaseServer, storageName);
-        if (!result.exists())
-            result.create();
-        result.init();
-        return result;
+    @Override
+    public String getName() {
+        return documentClass.getName();
     }
 
     /**
@@ -269,7 +387,9 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
         final PersistentRecord record = PersistentRecord.get(documentClass, key, PersistentRecord::new);
         if (record != null) {
             try {
-                load(record);
+                record.setDatabase(database);
+                record.setClassName(documentClass.getName());
+                record.load();
             } catch (final ORecordNotFoundException e) {
                 return Optional.empty();
             }
@@ -290,13 +410,14 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
     @Override
     public <R extends Record, E extends Throwable> R getOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> initializer) throws E {
         final PersistentRecord record = new PersistentRecord();
+        record.setDatabase(database);
         record.setKey(key);
+        record.setClassName(documentClass.getName());
         try {
-            load(record);
+            record.load();
         } catch (final ORecordNotFoundException e) {
             //new record detected
             initializer.accept(recordView.cast(record));
-            record.save(true);
         }
         return recordView.cast(record);
     }
@@ -312,7 +433,7 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
         final ORID recordId = PersistentRecord.get(documentClass, key, OIdentifiable::getIdentity);
         final boolean success;
         if (success = recordId != null)
-            delete(recordId, OPERATION_MODE.SYNCHRONOUS);
+            database.delete(recordId, ODatabase.OPERATION_MODE.SYNCHRONOUS);
         return success;
     }
 
@@ -357,7 +478,7 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
      */
     @Override
     public <R extends Record> Stream<R> getRecords(final Class<R> recordType) {
-        final Iterator<R> records = Iterators.transform(browseClass(documentClass.getName()), proto -> recordType.cast(new PersistentRecord(proto)));
+        final Iterator<R> records = Iterators.transform(database.browseClass(documentClass.getName()), proto -> recordType.cast(new PersistentRecord(proto)));
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(records, Spliterator.IMMUTABLE), false);
     }
 
@@ -369,7 +490,7 @@ final class PersistentKeyValueStorage extends ODatabaseDocumentTx implements Key
      */
     @Override
     public TransactionScope beginTransaction(final IsolationLevel level) {
-        final TransactionScopeImpl transaction = new TransactionScopeImpl(this);
+        final TransactionScopeImpl transaction = new TransactionScopeImpl(database);
         switch (level) {
             case READ_COMMITTED:
                 transaction.setIsolationLevel(OTransaction.ISOLATION_LEVEL.READ_COMMITTED);

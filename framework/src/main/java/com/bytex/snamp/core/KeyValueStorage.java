@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  * @version 2.0
  * @since 2.0
  */
-public interface KeyValueStorage extends Closeable, SharedObject {
+public interface KeyValueStorage extends SharedObject {
     /**
      * Represents entry stored in this storage.
      */

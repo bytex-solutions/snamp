@@ -97,9 +97,4 @@ final class LocalKeyValueStorage extends ConcurrentHashMap<Comparable<?>, InMemo
     public boolean isViewSupported(final Class<? extends Record> recordView) {
         return recordView.isAssignableFrom(InMemoryRecord.class);
     }
-
-    @Override
-    public void close() {
-
-    }
 }
