@@ -16,8 +16,9 @@ import { ModalModule } from 'angular2-modal';
 import { TooltipModule } from 'ng2-tooltip';
 import { Routes, RouterModule } from '@angular/router';
 
-import { AddEntity } from './components/add-entity.component';
+import { SharedConfigurationModule } from '../app.module'
 
+// must read http://blog.angular-university.io/angular2-ngmodule/
 
 const IMPORTS:any = [
   CommonModule,
@@ -25,40 +26,39 @@ const IMPORTS:any = [
   FormsModule,
   ModalModule.forRoot(),
   VexModalModule,
-  TooltipModule
+  TooltipModule,
+  SharedConfigurationModule
 ];
 
 const PROVIDERS:any =  [
   ApiClient,
-  CookieService,
-  providers
+  CookieService
 ];
 
 @NgModule({
-  imports:      IMPORTS.concat(RouterModule.forChild([{ path: '', component: GatewaysComponent }])),
+  imports:      IMPORTS.concat([RouterModule.forChild([{ path: '', component: GatewaysComponent }])]),
   declarations: [ GatewaysComponent, BindingTable ],
   providers:    PROVIDERS
 })
 export class GatewaysModule { }
 
 @NgModule({
-  imports:      IMPORTS.concat(RouterModule.forChild([{ path: '', component: ResourcesComponent }])),
+  imports:      IMPORTS.concat([RouterModule.forChild([{ path: '', component: ResourcesComponent }])]),
   declarations: [ ResourcesComponent ],
   providers:    PROVIDERS
 })
 export class ResourcesModule { }
 
 @NgModule({
-  imports:      IMPORTS.concat(RouterModule.forChild([{ path: '', component: RGroupsComponent }])),
+  imports:      IMPORTS.concat([RouterModule.forChild([{ path: '', component: RGroupsComponent }])]),
   declarations: [ RGroupsComponent ],
   providers:    PROVIDERS
 })
 export class RGroupsModule { }
 
 @NgModule({
-  imports:      IMPORTS.concat(RouterModule.forChild([{ path: '', component: SnampCfgComponent }])),
+  imports:      IMPORTS.concat([RouterModule.forChild([{ path: '', component: SnampCfgComponent }])]),
   declarations: [ SnampCfgComponent ],
   providers:    PROVIDERS
 })
 export class SnampCFGModule { }
-

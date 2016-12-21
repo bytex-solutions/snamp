@@ -1,5 +1,6 @@
 import { NgModule, ApplicationRef } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { RouterModule } from '@angular/router';
@@ -47,22 +48,13 @@ type StoreType = {
   disposeOldHosts: () => void
 };
 
-const DECLARATIONS:any = [
-  KeysPipe,
-  InlineEditComponent,
-  ParametersTable,
-  ResourceEntitiesTable,
-  RequiredParametersFilter,
-  OptionalParametersFilter,
-  AddEntity
-];
 
 /**
  * `AppModule` is the main entry point into Angular2's bootstraping process
  */
 @NgModule({
   bootstrap: [ App ],
-  declarations: DECLARATIONS.concat([
+  declarations:[
     App,
     Footer,
     Sidebar,
@@ -71,7 +63,7 @@ const DECLARATIONS:any = [
     NoContent,
     FontAwesomeDirective,
     UsernameComponent
-  ]),
+  ],
   imports: [ // import Angular's modules
     BrowserModule,
     TooltipModule,
@@ -124,4 +116,26 @@ export class AppModule {
   }
 
 }
+
+
+// http://stackoverflow.com/questions/39927357/many-modules-using-the-same-component-causes-error-angular-2
+const EXPORTS:any = [
+  KeysPipe,
+  InlineEditComponent,
+  ParametersTable,
+  ResourceEntitiesTable,
+  RequiredParametersFilter,
+  OptionalParametersFilter,
+  AddEntity
+];
+
+@NgModule({
+  imports: [    CommonModule,
+                TooltipModule,
+                FormsModule,
+                HttpModule ],
+  declarations: EXPORTS,
+  exports: EXPORTS
+})
+export class SharedConfigurationModule {}
 
