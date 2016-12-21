@@ -1,6 +1,7 @@
 package com.bytex.snamp.cluster;
 
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.gson.Gson;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
@@ -32,7 +33,65 @@ enum PersistentRecordFieldDefinition {
         else
             return Optional.empty();
     }),
-    VALUE(OType.ANY, "value");
+    VALUE(OType.ANY, "value"),
+    TEXT_VALUE(OType.STRING, "textValue"){
+        @Override
+        boolean setField(final Object fieldValue, final ODocument document) {
+            final boolean success;
+            if (success = fieldValue instanceof String)
+                document.field(super.fieldName, fieldValue);
+            return success;
+        }
+
+        @Override
+        String getField(final ODocument document) {
+            return document.field(super.fieldName, String.class);
+        }
+    },
+    LONG_VALUE(OType.LONG, "longValue"){
+        @Override
+        boolean setField(final Object fieldValue, final ODocument document) {
+            final boolean success;
+            if (success = fieldValue instanceof Number)
+                document.field(super.fieldName, fieldValue);
+            return success;
+        }
+
+        @Override
+        Long getField(final ODocument document) {
+            final Number result = document.field(super.fieldName, Number.class);
+            return result instanceof Long ? (Long) result : result.longValue();
+        }
+    },
+    DOUBLE_VALUE(OType.DOUBLE, "doubleValue"){
+        @Override
+        boolean setField(final Object fieldValue, final ODocument document) {
+            final boolean success;
+            if (success = fieldValue instanceof Number)
+                document.field(super.fieldName, fieldValue);
+            return success;
+        }
+
+        @Override
+        Double getField(final ODocument document) {
+            final Number result = document.field(super.fieldName, Number.class);
+            return result instanceof Double ? (Double) result : result.longValue();
+        }
+    },
+    MAP_VALUE(OType.EMBEDDEDMAP, "documentValue"){
+        @Override
+        boolean setField(final Object fieldValue, final ODocument document) {
+            final boolean success;
+            if (success = fieldValue instanceof Map<?, ?>)
+                document.field(super.fieldName, fieldValue);
+            return success;
+        }
+
+        @Override
+        Map getField(final ODocument document) {
+            return document.field(super.fieldName, Map.class);
+        }
+    };
 
     static final String INDEX_NAME = "SnampIndex";
     private static final ImmutableSortedSet<PersistentRecordFieldDefinition> ALL_FIELDS = ImmutableSortedSet.copyOf(values());
