@@ -5,14 +5,16 @@ import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.core.SharedCounter;
-import com.orientechnologies.orient.server.security.ODefaultServerSecurity;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 /**
@@ -30,22 +32,23 @@ public final class DistributedServicesTest extends Assert {
     public void setupHazelcastNodes() throws Exception {
         instance1 = new GridMember();
         instance1.startupFromConfiguration().activate();
-//        instance2 = new GridMember();
-//        instance2.startupFromConfiguration().activate();
+        instance2 = new GridMember();
+        instance2.startupFromConfiguration().activate();
     }
 
     @After
     public void shutdownHazelcastNodes() throws InterruptedException {
         instance1.close();
-//        instance2.close();
+        instance2.close();
         instance1 = null;
         instance2 = null;
     }
 
     @Test
     public void storageTest() throws InterruptedException {
-        final KeyValueStorage storage = instance1.getService("$testStorage", KeyValueStorage.class);
+        final KeyValueStorage storage = instance1.getService("testStorage", KeyValueStorage.class);
         assertNotNull(storage);
+        assertFalse(storage.isPersistent());
         KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("String Key", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         record.setAsText("Hello, world");
         record = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).get();

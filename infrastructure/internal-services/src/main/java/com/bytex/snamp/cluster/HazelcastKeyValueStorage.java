@@ -5,7 +5,6 @@ import com.bytex.snamp.core.KeyValueStorage;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.stream.Stream;

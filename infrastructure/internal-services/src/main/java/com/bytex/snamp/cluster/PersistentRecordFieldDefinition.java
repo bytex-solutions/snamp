@@ -1,15 +1,16 @@
 package com.bytex.snamp.cluster;
 
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gson.Gson;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
+import java.io.*;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -33,7 +34,20 @@ enum PersistentRecordFieldDefinition {
         else
             return Optional.empty();
     }),
-    VALUE(OType.ANY, "value"),
+    RAW_VALUE(OType.CUSTOM, "serializedObject"){
+        @Override
+        boolean setField(final Object fieldValue, final ODocument document) {
+            final boolean success;
+            if (success = fieldValue instanceof Serializable)
+                document.field(super.fieldName, fieldValue);
+            return success;
+        }
+
+        @Override
+        Serializable getField(final ODocument document) {
+            return document.field(super.fieldName);
+        }
+    },
     TEXT_VALUE(OType.STRING, "textValue"){
         @Override
         boolean setField(final Object fieldValue, final ODocument document) {
@@ -91,13 +105,35 @@ enum PersistentRecordFieldDefinition {
         Map getField(final ODocument document) {
             return document.field(super.fieldName, Map.class);
         }
+    },
+    JSON_DOCUMENT_VALUE(OType.EMBEDDED, "jsonDocumentValue"){
+        private final Gson formatter = new Gson();
+
+        @Override
+        boolean setField(final Object fieldValue, final ODocument document) {
+            final boolean success;
+            if (success = fieldValue instanceof Reader){
+                final ODocument subDocument;
+                try{
+                    subDocument = new ODocument().fromJSON(IOUtils.toString((Reader) fieldValue));
+                } catch (final IOException e){
+                    throw new UncheckedIOException(e);
+                }
+                document.field(super.fieldName, subDocument);
+            }
+            return success;
+        }
+
+        @Override
+        Reader getField(final ODocument document) {
+            return new StringReader(document.<ODocument>field(super.fieldName, ODocument.class).toJSON("prettyPrint"));
+        }
     };
 
-    static final String INDEX_NAME = "SnampIndex";
     private static final ImmutableSortedSet<PersistentRecordFieldDefinition> ALL_FIELDS = ImmutableSortedSet.copyOf(values());
     private static final ImmutableSortedSet<PersistentRecordFieldDefinition> INDEX_FIELDS = ImmutableSortedSet.copyOf(ALL_FIELDS.stream().filter(PersistentRecordFieldDefinition::isIndex).iterator());
     private final OType fieldType;
-    final String fieldName;
+    private final String fieldName;
     private final Function<Comparable<?>, Optional<?>> keyTransformer;
 
     PersistentRecordFieldDefinition(final OType type, final String fieldName, final Function<Comparable<?>, Optional<?>> keyTransformer) {
@@ -154,8 +190,8 @@ enum PersistentRecordFieldDefinition {
             field.registerProperty(documentClass);
     }
 
-    static void createIndex(final OClass documentClass) {
-        documentClass.createIndex(INDEX_NAME, OClass.INDEX_TYPE.DICTIONARY_HASH_INDEX, INDEX_FIELDS.stream().map(f -> f.fieldName).toArray(String[]::new));
+    static void createIndex(final OClass documentClass, final String indexName) {
+        documentClass.createIndex(indexName, OClass.INDEX_TYPE.UNIQUE_HASH_INDEX, INDEX_FIELDS.stream().map(f -> f.fieldName).toArray(String[]::new));
     }
 
     @Override

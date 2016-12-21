@@ -3,30 +3,25 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.KeyValueStorage;
-import com.bytex.snamp.io.IOUtils;
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import com.orientechnologies.orient.core.db.ODatabaseDocumentInternal;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
-import com.orientechnologies.orient.core.metadata.schema.OClass;
-import com.orientechnologies.orient.core.metadata.schema.OSchema;
+import com.orientechnologies.orient.core.db.record.ORecordElement;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
 
 /**
- * Represents persistent record,
+ * Represents record in document-oriented database OrientDB.
+ * @author Roman Sakno
+ * @since 2.0
+ * @version 2.0
  */
 final class PersistentRecord extends ODocument implements KeyValueStorage.Record, KeyValueStorage.MapRecordView, KeyValueStorage.JsonRecordView, KeyValueStorage.TextRecordView, KeyValueStorage.LongRecordView, KeyValueStorage.DoubleRecordView, KeyValueStorage.SerializableRecordView {
-    private static final Gson JSON_FORMATTER = new Gson();
     private static final long serialVersionUID = -7040180709722600847L;
 
     private volatile boolean detached;
@@ -65,24 +60,14 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
         return database;
     }
 
+    @Override
+    protected void checkForLoading() {
+        if (_status == ORecordElement.STATUS.NOT_LOADED && database != null)
+            reload(null, true);
+    }
+
     void setKey(final Comparable<?> key) {
         PersistentRecordFieldDefinition.setKey(key, this);
-    }
-
-    static OClass initClass(final OSchema schema, final String name) {
-        if (schema.existsClass(name))
-            return schema.getClass(name);
-        else {
-            final OClass documentClass = schema.createClass(name);
-            PersistentRecordFieldDefinition.defineFields(documentClass);
-            PersistentRecordFieldDefinition.createIndex(documentClass);
-            return documentClass;
-        }
-    }
-
-    static <V> V get(final OClass documentClass, final Comparable<?> indexKey, final Function<? super OIdentifiable, ? extends V> transform) {
-        final OIdentifiable identifiable = (OIdentifiable) documentClass.getClassIndex(PersistentRecordFieldDefinition.INDEX_NAME).get(PersistentRecordFieldDefinition.getCompositeKey(indexKey));
-        return identifiable == null ? null : transform.apply(identifiable);
     }
 
     /**
@@ -90,7 +75,7 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
      */
     @Override
     public void refresh() {
-        load();
+        reload();
     }
 
     /**
@@ -114,112 +99,71 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
         return detached;
     }
 
-    private void saveValue(final Object value) {
-        PersistentRecordFieldDefinition.VALUE.setField(value, this);
-        save();
-    }
-
     @Override
     public Serializable getValue() {
-        final Object result = PersistentRecordFieldDefinition.VALUE.getField(this);
-        if (result instanceof byte[])
-            try {
-                return IOUtils.deserialize((byte[]) result, Serializable.class);
-            } catch (final IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        else if (result instanceof Serializable)
-            return (Serializable) result;
+        return (Serializable) PersistentRecordFieldDefinition.RAW_VALUE.getField(this);
+    }
+
+    private void saveField(final PersistentRecordFieldDefinition field, final Object value) {
+        if (!field.setField(value, this))
+            throw new IllegalArgumentException(String.format("Value %s is incompatible with field %s", value, field));
         else
-            return null;
+            save();
     }
 
     @Override
     public void setValue(final Serializable value) {
-        final byte[] bytes;
-        try {
-            bytes = IOUtils.serialize(value);
-        } catch (final IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        saveValue(bytes);
+        saveField(PersistentRecordFieldDefinition.RAW_VALUE, value);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Map<String, ?> getAsMap() {
-        final Object value = PersistentRecordFieldDefinition.VALUE.getField(this);
-        if (value == null)
-            return ImmutableMap.of();
-        else if (value instanceof ODocument)
-            return ((ODocument) value).toMap();
-        else
-            return ImmutableMap.of(PersistentRecordFieldDefinition.VALUE.fieldName, value);
+        return (Map<String, ?>) PersistentRecordFieldDefinition.MAP_VALUE.getField(this);
     }
 
     @Override
     public void setAsMap(final Map<String, ?> values) {
-        saveValue(new ODocument().fromMap(values));
+        saveField(PersistentRecordFieldDefinition.MAP_VALUE, values);
     }
 
     @Override
     public Reader getAsJson() {
-        final Object content = PersistentRecordFieldDefinition.VALUE.getField(this);
-        if (content instanceof ODocument)
-            return new StringReader(((ODocument) content).toJSON());
-        else
-            return new StringReader(JSON_FORMATTER.toJson(content));
-    }
-
-    private static Optional<?> toValue(final JsonElement value) {
-        if (value instanceof JsonObject)
-            return Optional.of(new ODocument().fromJSON(JSON_FORMATTER.toJson(value)));
-        else if (value instanceof JsonPrimitive) {
-            final JsonPrimitive primitive = (JsonPrimitive) value;
-            if (primitive.isBoolean())
-                return Optional.of(primitive.getAsBoolean());
-            else if (primitive.isString())
-                return Optional.of(primitive.getAsString());
-            else if (primitive.isNumber())
-                return Optional.of(primitive.getAsDouble());
-        } else
-            return Optional.of(JSON_FORMATTER.toJson(value));
-        return Optional.empty();
+        return (Reader) PersistentRecordFieldDefinition.JSON_DOCUMENT_VALUE.getField(this);
     }
 
     @Override
     public void setAsJson(final Reader value) throws IOException {
-        final Object persistentValue = toValue(JSON_FORMATTER.fromJson(value, JsonElement.class))
-                .orElseThrow(IOException::new);
-        saveValue(persistentValue);
+        saveField(PersistentRecordFieldDefinition.JSON_DOCUMENT_VALUE, value);
     }
 
     @Override
     public String getAsText() {
-        return PersistentRecordFieldDefinition.VALUE.getField(this).toString();
+        return (String) PersistentRecordFieldDefinition.TEXT_VALUE.getField(this);
     }
 
     @Override
     public void setAsText(final String value) {
-        saveValue(value);
+        saveField(PersistentRecordFieldDefinition.TEXT_VALUE, value);
     }
 
     @Override
     public long getAsLong() {
-        return Convert.toLong(PersistentRecordFieldDefinition.VALUE.getField(this));
+        return Convert.toLong(PersistentRecordFieldDefinition.LONG_VALUE.getField(this));
     }
 
     @Override
     public void setAsLong(final long value) {
-        saveValue(value);
+        saveField(PersistentRecordFieldDefinition.LONG_VALUE, value);
     }
 
     @Override
     public double getAsDouble() {
-        return Convert.toDouble(PersistentRecordFieldDefinition.VALUE.getField(this));
+        return Convert.toDouble(PersistentRecordFieldDefinition.DOUBLE_VALUE.getField(this));
     }
 
     @Override
     public void setAsDouble(final double value) {
-        saveValue(value);
+        saveField(PersistentRecordFieldDefinition.DOUBLE_VALUE, value);
     }
 }

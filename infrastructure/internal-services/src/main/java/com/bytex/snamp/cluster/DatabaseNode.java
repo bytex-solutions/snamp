@@ -1,27 +1,25 @@
 package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.internal.Utils;
+import com.google.common.collect.ImmutableMap;
 import com.hazelcast.core.HazelcastInstance;
-import com.orientechnologies.common.log.OLogManager;
 import com.orientechnologies.orient.core.Orient;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
-import com.orientechnologies.orient.core.exception.OConfigurationException;
 import com.orientechnologies.orient.server.OServer;
-import com.orientechnologies.orient.server.config.*;
-import com.orientechnologies.orient.server.network.OServerNetworkListener;
-import com.orientechnologies.orient.server.network.OServerSocketFactory;
-import com.orientechnologies.orient.server.network.protocol.ONetworkProtocol;
+import com.orientechnologies.orient.server.config.OServerConfigurationManager;
+import com.orientechnologies.orient.server.config.OServerParameterConfiguration;
 import com.orientechnologies.orient.server.plugin.OServerPlugin;
+import com.orientechnologies.orient.server.plugin.OServerPluginInfo;
+import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.regex.Pattern;
 
 import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -70,6 +68,14 @@ class DatabaseNode extends OServer {
         return snampDatabase;
     }
 
+    private OServerPluginInfo createPluginInfo(final OServerPlugin plugin) {
+        final BundleContext context = Utils.getBundleContextOfObject(this);
+        final String name = "DistributedOrientDB";
+        final String description = "OrientDB distributed environment based on Hazelcast";
+        final String version = context == null ? "Not Defined" : context.getBundle().getVersion().toString();
+        return new OServerPluginInfo(name, version, description, null, plugin, ImmutableMap.of(), System.currentTimeMillis(), null);
+    }
+
     @Override
     public DatabaseNode activate() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         super.activate();
@@ -78,6 +84,7 @@ class DatabaseNode extends OServer {
             final OServerPlugin plugin = (OServerPlugin) distributedManager;
             plugin.config(this, ArrayUtils.emptyArray(OServerParameterConfiguration[].class));
             plugin.startup();
+            pluginManager.registerPlugin(createPluginInfo(plugin));
         }
         //initialize SNAMP database
         snampDatabase = new ODatabaseDocumentTx(getStoragePath(SNAMP_DATABASE));
@@ -91,8 +98,6 @@ class DatabaseNode extends OServer {
         snampDatabase.close();
         snampDatabase = null;
         final boolean success = super.shutdown();
-        if (success && distributedManager instanceof OServerPlugin)
-            ((OServerPlugin) distributedManager).shutdown();
         distributedManager = null;
         return success;
     }

@@ -6,14 +6,16 @@ import com.google.common.collect.Iterators;
 import com.orientechnologies.orient.core.db.ODatabase;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
-import com.orientechnologies.orient.core.exception.ORecordNotFoundException;
 import com.orientechnologies.orient.core.id.ORID;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
+import com.orientechnologies.orient.core.metadata.schema.OSchema;
 import com.orientechnologies.orient.core.tx.OTransaction;
 import com.orientechnologies.orient.core.tx.OTransactionOptimistic;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -23,7 +25,7 @@ import java.util.stream.StreamSupport;
  * @version 2.0
  * @since 2.0
  */
-final class PersistentKeyValueStorage implements KeyValueStorage {
+final class OrientKeyValueStorage implements KeyValueStorage {
     private static final class TransactionScopeImpl extends OTransactionOptimistic implements TransactionScope {
         private TransactionScopeImpl(final ODatabaseDocumentTx iDatabase) {
             super(iDatabase);
@@ -32,11 +34,26 @@ final class PersistentKeyValueStorage implements KeyValueStorage {
 
     private final OClass documentClass;
     private final ODatabaseDocumentTx database;
+    private final String indexName;
 
-    PersistentKeyValueStorage(final ODatabaseDocumentTx database,
-                              final String collectionName) {
+    OrientKeyValueStorage(final ODatabaseDocumentTx database,
+                          final String collectionName) {
         this.database = Objects.requireNonNull(database);
-        documentClass = PersistentRecord.initClass(database.getMetadata().getSchema(), collectionName);
+        indexName = collectionName + "Index";
+        //init class
+        final OSchema schema = database.getMetadata().getSchema();
+        if (schema.existsClass(collectionName))
+            documentClass = schema.getClass(collectionName);
+        else {
+            documentClass = schema.createClass(collectionName);
+            PersistentRecordFieldDefinition.defineFields(documentClass);
+            PersistentRecordFieldDefinition.createIndex(documentClass, indexName);
+        }
+    }
+
+    private  <V> V getRecord(final Comparable<?> indexKey, final Function<? super OIdentifiable, ? extends V> transform) {
+        final OIdentifiable identifiable = (OIdentifiable) documentClass.getClassIndex(indexName).get(PersistentRecordFieldDefinition.getCompositeKey(indexKey));
+        return identifiable == null ? null : transform.apply(identifiable);
     }
 
     @Override
@@ -64,16 +81,11 @@ final class PersistentKeyValueStorage implements KeyValueStorage {
      */
     @Override
     public <R extends Record> Optional<R> getRecord(final Comparable<?> key, final Class<R> recordView) {
-        final PersistentRecord record = PersistentRecord.get(documentClass, key, PersistentRecord::new);
+        final PersistentRecord record = getRecord(key, PersistentRecord::new);
         if (record != null) {
-            try {
-                record.setDatabase(database);
-                record.setClassName(documentClass.getName());
-                record.load();
-            } catch (final ORecordNotFoundException e) {
-                return Optional.empty();
-            }
-            return Optional.of(record).map(recordView::cast);
+            record.setDatabase(database);
+            record.setClassName(documentClass.getName());
+            return database.load(record) == null ? Optional.empty() : Optional.of(record).map(recordView::cast);
         } else
             return Optional.empty();
     }
@@ -89,16 +101,19 @@ final class PersistentKeyValueStorage implements KeyValueStorage {
      */
     @Override
     public <R extends Record, E extends Throwable> R getOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> initializer) throws E {
-        final PersistentRecord record = new PersistentRecord();
+        PersistentRecord record = getRecord(key, PersistentRecord::new);
+        final boolean isNew;
+        if (isNew = record == null) {
+            record = new PersistentRecord();
+            record.setKey(key);
+        }
         record.setDatabase(database);
-        record.setKey(key);
         record.setClassName(documentClass.getName());
-        try {
-            record.load();
-        } catch (final ORecordNotFoundException e) {
+        if (isNew) {
             //new record detected
             initializer.accept(recordView.cast(record));
-        }
+        } else
+            database.reload(record);
         return recordView.cast(record);
     }
 
@@ -110,7 +125,7 @@ final class PersistentKeyValueStorage implements KeyValueStorage {
      */
     @Override
     public boolean delete(final Comparable<?> key) {
-        final ORID recordId = PersistentRecord.get(documentClass, key, OIdentifiable::getIdentity);
+        final ORID recordId = getRecord(key, OIdentifiable::getIdentity);
         final boolean success;
         if (success = recordId != null)
             database.delete(recordId, ODatabase.OPERATION_MODE.SYNCHRONOUS);
@@ -125,7 +140,7 @@ final class PersistentKeyValueStorage implements KeyValueStorage {
      */
     @Override
     public boolean exists(final Comparable<?> key) {
-        return PersistentRecord.get(documentClass, key, OIdentifiable::getIdentity) != null;
+        return getRecord(key, OIdentifiable::getIdentity) != null;
     }
 
     /**

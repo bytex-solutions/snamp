@@ -8,7 +8,6 @@ import com.bytex.snamp.internal.Utils;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 
 import javax.management.JMException;
 import javax.xml.bind.JAXBException;
@@ -169,7 +168,7 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
             logger.severe(String.format("Unable to create persistent storage %s because database credentials are not specified. Non-persistent storage is created.", collectionName));
             return createDistributedKV(collectionName);
         }
-        return new PersistentKeyValueStorage(getSnampDatabase(), collectionName);
+        return new OrientKeyValueStorage(getSnampDatabase(), collectionName);
     }
 
     private HazelcastKeyValueStorage createDistributedKV(final String collectionName){

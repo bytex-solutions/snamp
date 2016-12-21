@@ -45,6 +45,10 @@ public interface KeyValueStorage extends SharedObject {
      * Represents entry as serializable single value.
      */
     interface SerializableRecordView extends Record{
+        /**
+         * Gets serializable value stored in the view.
+         * @return Sets serializable value stored in the view.
+         */
         Serializable getValue();
         void setValue(final Serializable value);
     }
@@ -59,7 +63,7 @@ public interface KeyValueStorage extends SharedObject {
     }
 
     /**
-     * Represents entry as JSON.
+     * Represents entry as JSON document.
      */
     interface JsonRecordView extends Record {
         Acceptor<JsonRecordView, IOException> INITIALIZER = record -> record.setAsJson(new StringReader("{}"));
