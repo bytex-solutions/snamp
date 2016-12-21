@@ -120,6 +120,8 @@ final class OrientHazelcastBridge extends OHazelcastPlugin {
             configurationMap.getHazelcastMap().removeEntryListener(membershipListenerMapRegistration);
         } catch (final Exception e) {
             OLogManager.instance().warn(this, "Failed to remove entry listener", e);
+        } finally {
+            configurationMap = null;
         }
     }
 
