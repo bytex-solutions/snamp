@@ -4622,3 +4622,26 @@ ul.notifications {
   border: 1px solid #e5e5e5;
 }
 /** /Dropzone.js **/
+.leftAlign {
+  text-align: left;
+}
+
+.list-group-item-warning {
+  border-left: 1px solid red;
+}
+
+.glyph-icon-appended {
+  color: green;
+}
+
+.input-group-addon input[type="radio"], .input-group-addon input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.well-sm {
+  font-size: small;
+}
+
+.pointerElement {
+  cursor: pointer;
+}

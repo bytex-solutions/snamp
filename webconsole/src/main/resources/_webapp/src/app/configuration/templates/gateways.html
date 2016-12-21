@@ -28,6 +28,7 @@
                                     id="entityType"
                                     [(ngModel)]="activeGateway.type"
                                     (change)="changeType($event)"
+                                    style="height: auto;"
                                     class="form-control">
                                 <option
                                         *ngFor="let gateway of availableGateways"
