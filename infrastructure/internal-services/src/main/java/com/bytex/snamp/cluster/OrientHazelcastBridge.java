@@ -3,10 +3,8 @@ package com.bytex.snamp.cluster;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.orientechnologies.common.log.OLogManager;
-import com.orientechnologies.common.util.OCallableUtils;
 import com.orientechnologies.orient.core.Orient;
 import com.orientechnologies.orient.server.distributed.ORemoteServerController;
-import com.orientechnologies.orient.server.distributed.impl.ODistributedStorage;
 import com.orientechnologies.orient.server.hazelcast.OHazelcastPlugin;
 
 import java.io.FileNotFoundException;
@@ -15,7 +13,6 @@ import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -94,7 +91,7 @@ final class OrientHazelcastBridge extends OHazelcastPlugin {
             });
 
             // PUT DATABASES AS NOT_AVAILABLE
-            for (String k : databases)
+            for (final String k : databases)
                 configurationMap.put(k, DB_STATUS.NOT_AVAILABLE);
 
         } catch (final HazelcastInstanceNotActiveException e) {
@@ -113,9 +110,17 @@ final class OrientHazelcastBridge extends OHazelcastPlugin {
 
         hazelcastInstance = null;     //do not shutdown Hazelcast
 
-        OCallableUtils.executeIgnoringAnyExceptions(() -> configurationMap.destroy());
+        try {
+            configurationMap.destroy();
+        } catch (final Exception e) {
+            OLogManager.instance().warn(this, "Failed to destroy distributed configuration map", e);
+        }
 
-        OCallableUtils.executeIgnoringAnyExceptions(() -> configurationMap.getHazelcastMap().removeEntryListener(membershipListenerMapRegistration));
+        try {
+            configurationMap.getHazelcastMap().removeEntryListener(membershipListenerMapRegistration);
+        } catch (final Exception e) {
+            OLogManager.instance().warn(this, "Failed to remove entry listener", e);
+        }
     }
 
     @Override
