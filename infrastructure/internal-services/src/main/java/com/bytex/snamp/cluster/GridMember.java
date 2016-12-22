@@ -1,8 +1,12 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.core.*;
-import com.bytex.snamp.internal.Utils;
-import com.google.common.cache.*;
+import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.core.SharedObject;
+import com.bytex.snamp.core.SharedObjectDefinition;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalNotification;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;

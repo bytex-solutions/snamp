@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.syslog;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.core.AbstractBundleActivator;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.gateway.GatewayActivator;
 

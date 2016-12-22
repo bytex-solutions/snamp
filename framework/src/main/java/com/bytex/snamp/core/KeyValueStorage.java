@@ -6,7 +6,10 @@ import com.bytex.snamp.SafeCloseable;
 import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Serializable;
+import java.io.StringReader;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.DoubleConsumer;

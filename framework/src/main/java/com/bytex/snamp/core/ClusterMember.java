@@ -1,7 +1,5 @@
 package com.bytex.snamp.core;
 
-import com.google.common.reflect.TypeToken;
-
 import java.util.concurrent.ConcurrentMap;
 
 /**

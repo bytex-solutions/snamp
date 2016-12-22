@@ -6,7 +6,6 @@ import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
-import com.bytex.snamp.core.AbstractBundleActivator;
 import com.bytex.snamp.core.ClusterMember;
 import groovy.grape.GrabAnnotationTransformation;
 import groovy.util.ResourceException;

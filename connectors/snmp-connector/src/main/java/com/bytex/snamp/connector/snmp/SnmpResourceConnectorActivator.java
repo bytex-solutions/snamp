@@ -5,7 +5,6 @@ import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connector.ManagedResourceActivator;
-import com.bytex.snamp.core.AbstractBundleActivator;
 import com.bytex.snamp.core.ClusterMember;
 import org.snmp4j.log.OSGiLogFactory;
 
