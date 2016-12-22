@@ -282,14 +282,16 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
     public void close() throws InterruptedException {
         final String instanceName = getName();
         logger.info(() -> String.format("GridMember service %s is closing. Shutdown Hazelcast? %s", instanceName, shutdownHazelcast ? "yes" : "no"));
+        if(shutdownHazelcast)
+            sharedObjects.invalidateAll();
+        else
+            sharedObjects.cleanUp();
         shutdown();
-        sharedObjects.cleanUp();
         try {
             electionThread.close();
         } finally {
             electionThread = null;
             if (shutdownHazelcast) {
-                sharedObjects.invalidateAll();
                 hazelcast.shutdown();
             }
         }

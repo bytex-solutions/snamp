@@ -68,4 +68,15 @@ public final class PersistentStorageTest extends Assert {
         KeyValueStorage.TextRecordView record2 = storage1.getOrCreateRecord("Frank Underwood", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         assertEquals(record1.getAsText(), record2.getAsText());
     }
+
+    @Test
+    public void differentTypesTest(){
+        final KeyValueStorage storage1 = instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE);
+        assertNotNull(storage1);
+        final KeyValueStorage.TextRecordView textRecord = storage1.getOrCreateRecord("Frank Underwood", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
+        textRecord.setAsText("Hello, world!");
+        final KeyValueStorage.SerializableRecordView customRecord = storage1.getOrCreateRecord("Frank Underwood", KeyValueStorage.SerializableRecordView.class, record -> record.setValue(""));
+        customRecord.setValue(new StringBuffer("Hello, world!"));
+        assertTrue(customRecord.getValue() instanceof StringBuffer);
+    }
 }
