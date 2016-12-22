@@ -54,6 +54,11 @@ export class GatewaysComponent implements OnInit {
             .subscribe(data => this.availableGateways = data);
     }
 
+    initSelectionComponent() {
+      $("#gatewaySelection").select2('destroy');
+      $("#gatewaySelection").select2();
+    }
+
     ngAfterViewInit() {
        var _this = this;
        $(document).ready(function() {

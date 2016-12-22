@@ -12,8 +12,10 @@
 
       <panel [header]="'Choose gateway'">
         <div class="row">
-          <select id="gatewaySelection"
-            class="select2_group form-control">
+          <select
+              id="gatewaySelection"
+              class="select2_group form-control"
+              >
             <optgroup label="Gateways" *ngIf="gateways.length > 0">
               <option
                 *ngFor="let gateway of gateways"
@@ -25,6 +27,7 @@
           <br/>
           <newEntity
             [entities]="gateways"
+            (onSave)="initSelectionComponent()"
             [type]="'gateway'">
           </newEntity>
         </div>

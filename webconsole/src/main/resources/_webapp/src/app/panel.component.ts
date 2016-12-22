@@ -8,6 +8,7 @@ import { Component, Input, AfterViewInit } from '@angular/core';
 export class PanelComponent {
    @Input() public header: string = 'Panel header';
    @Input() public column: string = '2';
+   @Input() public showCloseButton:boolean = false;
 
     closeClicked(event: MouseEvent) {
         $(event.srcElement).closest('.x_panel').remove();
