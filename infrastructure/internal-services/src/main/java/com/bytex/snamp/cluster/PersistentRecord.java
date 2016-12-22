@@ -40,6 +40,8 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
         _recordFormat = value.getSerializer();
     }
 
+
+
     @Override
     public ODatabaseDocumentInternal getDatabase() {
         return database;
@@ -75,7 +77,7 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
      */
     @Override
     public void refresh() {
-        reload();
+        DBUtils.runWithDatabase(database, this::reload);
     }
 
     /**
@@ -86,7 +88,7 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
      */
     @Override
     public boolean detach() {
-        return detached = super.detach();
+        return detached = DBUtils.supplyWithDatabase(database, super::detach);
     }
 
     /**
@@ -108,7 +110,7 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
         if (!field.setField(value, this))
             throw new IllegalArgumentException(String.format("Value %s is incompatible with field %s", value, field));
         else
-            save();
+            DBUtils.runWithDatabase(database, this::save);
     }
 
     @Override

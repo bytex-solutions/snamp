@@ -4,9 +4,11 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.google.common.collect.Iterators;
 import com.orientechnologies.orient.core.db.ODatabase;
+import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.id.ORID;
+import com.orientechnologies.orient.core.index.OIndex;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OSchema;
 import com.orientechnologies.orient.core.tx.OTransaction;
@@ -38,7 +40,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
 
     OrientKeyValueStorage(final ODatabaseDocumentTx database,
                           final String collectionName) {
-        this.database = Objects.requireNonNull(database);
+        ODatabaseRecordThreadLocal.INSTANCE.set(this.database = Objects.requireNonNull(database));
         indexName = collectionName + "Index";
         //init class
         final OSchema schema = database.getMetadata().getSchema();
@@ -49,11 +51,12 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
             PersistentFieldDefinition.defineFields(documentClass);
             PersistentFieldDefinition.createIndex(documentClass, indexName);
         }
+        ODatabaseRecordThreadLocal.INSTANCE.remove();
     }
 
-    private  <V> V getRecord(final Comparable<?> indexKey, final Function<? super OIdentifiable, ? extends V> transform) {
-        final OIdentifiable identifiable = (OIdentifiable) documentClass.getClassIndex(indexName).get(PersistentFieldDefinition.getCompositeKey(indexKey));
-        return identifiable == null ? null : transform.apply(identifiable);
+    private <V> V getRecord(final Comparable<?> indexKey, final Function<? super OIdentifiable, ? extends V> transform) {
+        final OIdentifiable recordId = DBUtils.supplyWithDatabase(database, () -> (OIdentifiable) documentClass.getClassIndex(indexName).get(PersistentFieldDefinition.getCompositeKey(indexKey)));
+        return recordId == null ? null : transform.apply(recordId);
     }
 
     @Override
@@ -128,7 +131,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         final ORID recordId = getRecord(key, OIdentifiable::getIdentity);
         final boolean success;
         if (success = recordId != null)
-            database.delete(recordId, ODatabase.OPERATION_MODE.SYNCHRONOUS);
+            DBUtils.runWithDatabase(database, () -> database.delete(recordId, ODatabase.OPERATION_MODE.SYNCHRONOUS));
         return success;
     }
 
@@ -148,17 +151,27 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
      */
     @Override
     public void clear() {
+        ODatabaseRecordThreadLocal.INSTANCE.set(database);
         try {
             documentClass.truncate();
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            ODatabaseRecordThreadLocal.INSTANCE.remove();
         }
     }
 
     @Override
-    void destroy(){
-        clear();
-        database.getMetadata().getSchema().dropClass(documentClass.getName());
+    void destroy() {
+        DBUtils.runWithDatabase(database, () -> {
+            try {
+                documentClass.truncate();
+            } catch (final IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            documentClass.getIndexes().forEach(OIndex::delete);
+            database.getMetadata().getSchema().dropClass(documentClass.getName());
+        });
     }
 
     /**

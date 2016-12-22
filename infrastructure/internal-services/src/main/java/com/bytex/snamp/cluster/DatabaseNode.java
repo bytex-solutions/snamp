@@ -55,7 +55,7 @@ class DatabaseNode extends OServer {
     }
 
     private final File databaseConfigFile;
-    private ODatabaseDocumentTx snampDatabase;
+    private SnampDatabase snampDatabase;
 
     DatabaseNode(final HazelcastInstance hazelcast) throws ReflectiveOperationException, JMException, JAXBException, IOException {
         super(true);
@@ -87,7 +87,7 @@ class DatabaseNode extends OServer {
             pluginManager.registerPlugin(createPluginInfo(plugin));
         }
         //initialize SNAMP database
-        snampDatabase = new ODatabaseDocumentTx(getStoragePath(SNAMP_DATABASE));
+        snampDatabase = new SnampDatabase(getStoragePath(SNAMP_DATABASE));
         if(!snampDatabase.exists())
             snampDatabase.create();
         return this;
