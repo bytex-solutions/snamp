@@ -9,35 +9,20 @@
     <div class="clearfix"></div>
 
     <div class="row" style="margin-top: 30px">
-      <div class="col-md-2 col-sm-2 col-xs-12">
-        <div class="x_panel tile">
-          <div class="x_title">
-            <h2>Choose gateway</h2>
-            <ul class="nav navbar-right panel_toolbox">
-              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-              </li>
 
-              <li><a class="close-link"><i class="fa fa-close"></i></a>
-              </li>
-            </ul>
-            <div class="clearfix"></div>
-          </div>
-          <div class="x_content">
-            <div class="list-group">
-              <a *ngFor="let gateway of gateways"
-                 class="list-group-item pointerElement"
-                 [class.active]="gateway.name == activeGateway.name"
-                 (click)="setActiveGateway(gateway)">
-                {{gateway.name}}</a>
-              <newEntity
-                [entities]="gateways"
-                [type]="'gateway'">
-              </newEntity>
-            </div>
-
-          </div>
+      <panel [header]="'Choose gateway'">
+        <div class="list-group">
+          <a *ngFor="let gateway of gateways"
+             class="list-group-item pointerElement"
+             [class.active]="gateway.name == activeGateway.name"
+             (click)="setActiveGateway(gateway)">
+            {{gateway.name}}</a>
+          <newEntity
+            [entities]="gateways"
+            [type]="'gateway'">
+          </newEntity>
         </div>
-      </div>
+      </panel>
 
       <div class="col-md-10" *ngIf="gateways && gateways.length > 0">
           <!-- right area -->

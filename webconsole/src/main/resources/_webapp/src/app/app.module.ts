@@ -26,6 +26,8 @@ import { ApiClient } from './app.restClient'
 import { CookieService } from 'angular2-cookie/core';
 import { DropdownModule } from 'ng2-bootstrap';
 
+import { PanelComponent } from './panel.component'
+
 import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './configuration/configuration.pipes';
 import { InlineEditComponent } from './configuration/components/inline-edit.component';
 import { ParametersTable } from './configuration/components/parameters-table.component';
@@ -120,6 +122,7 @@ export class AppModule {
 
 // http://stackoverflow.com/questions/39927357/many-modules-using-the-same-component-causes-error-angular-2
 const EXPORTS:any = [
+  PanelComponent,
   KeysPipe,
   InlineEditComponent,
   ParametersTable,
