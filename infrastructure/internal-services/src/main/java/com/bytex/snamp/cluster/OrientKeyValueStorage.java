@@ -165,12 +165,12 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     void destroy() {
         DBUtils.runWithDatabase(database, () -> {
             try {
-                documentClass.truncate();
+                documentClass.truncate();   //remove all records associated with document class
             } catch (final IOException e) {
                 throw new UncheckedIOException(e);
             }
-            documentClass.getIndexes().forEach(OIndex::delete);
-            database.getMetadata().getSchema().dropClass(documentClass.getName());
+            documentClass.getIndexes().forEach(OIndex::delete);       //remove all indexes
+            database.getMetadata().getSchema().dropClass(documentClass.getName());   //drop class
         });
     }
 
