@@ -36,7 +36,7 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void storageTest(){
-        final KeyValueStorage storage = DistributedServices.getProcessLocalKVStorage("localStorage");
+        final KeyValueStorage storage = DistributedServices.getProcessLocalStorage("localStorage");
         assertNotNull(storage);
         KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("a", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         assertNotNull(record);

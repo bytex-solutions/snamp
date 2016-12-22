@@ -1,11 +1,20 @@
 package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.core.KeyValueStorage;
+import com.bytex.snamp.io.IOUtils;
+import com.google.common.collect.ImmutableMap;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.io.Serializable;
+import java.io.StringReader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -15,21 +24,127 @@ import java.util.stream.Stream;
  * @version 2.0
  * @since 2.0
  */
-final class HazelcastKeyValueStorage extends HazelcastSharedObject implements KeyValueStorage {
-    private final IMap<String, Serializable> storage;
+final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparable<?>, Serializable>> implements KeyValueStorage {
 
-    HazelcastKeyValueStorage(final HazelcastInstance hazelcast, final String name){
-        storage = hazelcast.getMap(name);
+    private static final class MapValue extends HashMap<String, Object> {
+        private static final long serialVersionUID = 8695790321685285451L;
+
+        private MapValue(final Map<String, ?> values) {
+            super(values);
+        }
     }
 
-    /**
-     * Gets name of the distributed service.
-     *
-     * @return Name of this distributed service.
-     */
-    @Override
-    public String getName() {
-        return storage.getName();
+    private static final class HazelcastRecord implements Record, SerializableRecordView, TextRecordView, LongRecordView, DoubleRecordView, MapRecordView, JsonRecordView {
+        private final Comparable<?> recordKey;
+        private final IMap<Comparable<?>, Serializable> distributedMap;
+        private boolean detached;
+
+        private HazelcastRecord(final IMap<Comparable<?>, Serializable> map, final Comparable<?> key) {
+            this.distributedMap = Objects.requireNonNull(map);
+            this.recordKey = Objects.requireNonNull(key);
+            detached = false;
+        }
+
+        private RuntimeException detachedException(){
+            return new IllegalStateException(String.format("Record with key %s is detached", recordKey));
+        }
+
+        @Override
+        public void refresh() {
+            if (detached)
+                throw detachedException();
+            distributedMap.flush();
+        }
+
+        @Override
+        public int getVersion() {
+            if (detached)
+                throw detachedException();
+            return (int) distributedMap.getLocalMapStats().getPutOperationCount();
+        }
+
+        @Override
+        public boolean isDetached() {
+            return detached || (detached = distributedMap.containsKey(recordKey));
+        }
+
+        @Override
+        public Serializable getValue() {
+            final Serializable result = distributedMap.get(recordKey);
+            if (result == null) {
+                detached = true;
+                throw detachedException();
+            } else
+                return result;
+        }
+
+        private boolean isInitialized() {
+            return distributedMap.containsKey(recordKey);
+        }
+
+        @Override
+        public void setValue(final Serializable value) {
+            if (detached)
+                throw detachedException();
+            distributedMap.put(recordKey, value);
+        }
+
+        @Override
+        public String getAsText() {
+            return getValue().toString();
+        }
+
+        @Override
+        public void setAsText(final String value) {
+            setValue(value);
+        }
+
+        @Override
+        public long getAsLong() {
+            return Convert.toLong(getValue());
+        }
+
+        @Override
+        public void setAsLong(final long value) {
+            setValue(value);
+        }
+
+        @Override
+        public double getAsDouble() {
+            return Convert.toDouble(getValue());
+        }
+
+        @Override
+        public void setAsDouble(final double value) {
+            setValue(value);
+        }
+
+        @Override
+        public MapValue getAsMap() {
+            final Serializable value = getValue();
+            return value instanceof MapValue ?
+                    (MapValue) value :
+                    new MapValue(ImmutableMap.of("value", value));
+        }
+
+        @Override
+        public void setAsMap(final Map<String, ?> values) {
+            setValue(new MapValue(values));
+        }
+
+        @Override
+        public Reader getAsJson() {
+            return new StringReader(getAsText());
+        }
+
+        @Override
+        public void setAsJson(final Reader value) throws IOException {
+            setAsText(IOUtils.toString(value));
+        }
+    }
+
+    HazelcastKeyValueStorage(final HazelcastInstance hazelcast, final String name) {
+        super(hazelcast, name, HazelcastInstance::getMap);
     }
 
     /**
@@ -42,7 +157,8 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject implements Ke
      */
     @Override
     public <R extends Record> Optional<R> getRecord(final Comparable<?> key, final Class<R> recordView) {
-        return null;
+        final HazelcastRecord record = distributedObject.containsKey(key) ? new HazelcastRecord(distributedObject, key) : null;
+        return Optional.ofNullable(record).map(recordView::cast);
     }
 
     /**
@@ -56,7 +172,17 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject implements Ke
      */
     @Override
     public <R extends Record, E extends Throwable> R getOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> initializer) throws E {
-        return null;
+        final HazelcastRecord record = new HazelcastRecord(distributedObject, key);
+        if (!record.isInitialized()) {
+            distributedObject.lock(key);
+            try {
+                if (!record.isInitialized())
+                    initializer.accept(recordView.cast(record));
+            } finally {
+                distributedObject.unlock(key);
+            }
+        }
+        return recordView.cast(record);
     }
 
     /**
@@ -67,7 +193,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject implements Ke
      */
     @Override
     public boolean delete(final Comparable<?> key) {
-        return false;
+        return distributedObject.remove(key) != null;
     }
 
     /**
@@ -78,7 +204,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject implements Ke
      */
     @Override
     public boolean exists(final Comparable<?> key) {
-        return false;
+        return distributedObject.containsKey(key);
     }
 
     /**
@@ -89,7 +215,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject implements Ke
      */
     @Override
     public <R extends Record> Stream<R> getRecords(final Class<R> recordType) {
-        return null;
+        return distributedObject.keySet().stream().map(key -> new HazelcastRecord(distributedObject, key)).map(recordType::cast);
     }
 
     /**
@@ -97,7 +223,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject implements Ke
      */
     @Override
     public void clear() {
-        storage.clear();
+        distributedObject.clear();
     }
 
     /**
@@ -110,7 +236,6 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject implements Ke
         return false;
     }
 
-
     @Override
     public TransactionScope beginTransaction(final IsolationLevel level) throws UnsupportedOperationException {
         throw new UnsupportedOperationException("Transaction is not supported");
@@ -118,6 +243,6 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject implements Ke
 
     @Override
     public boolean isViewSupported(final Class<? extends Record> recordView) {
-        return false;
+        return recordView.isAssignableFrom(HazelcastRecord.class);
     }
 }

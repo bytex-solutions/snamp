@@ -14,26 +14,20 @@ import java.util.function.UnaryOperator;
  * @version 2.0
  * @since 2.0
  */
-final class HazelcastBox extends HazelcastSharedObject implements Box<Object> {
-    private final IAtomicReference<Object> distributedRef;
+final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>> implements Box<Object> {
 
     HazelcastBox(final HazelcastInstance hazelcast, final String boxName){
-        distributedRef = hazelcast.getAtomicReference(boxName);
-    }
-
-    @Override
-    public String getName() {
-        return distributedRef.getName();
+        super(hazelcast, boxName, HazelcastInstance::getAtomicReference);
     }
 
     @Override
     public Object get() {
-        return distributedRef.get();
+        return distributedObject.get();
     }
 
     @Override
     public void set(final Object value) {
-        distributedRef.set(value);
+        distributedObject.set(value);
     }
 
     @Override
@@ -45,7 +39,7 @@ final class HazelcastBox extends HazelcastSharedObject implements Box<Object> {
                 current = valueProvider.get();
             else
                 break;
-        } while (!distributedRef.compareAndSet(null, current));
+        } while (!distributedObject.compareAndSet(null, current));
         return current;
     }
 
@@ -53,8 +47,8 @@ final class HazelcastBox extends HazelcastSharedObject implements Box<Object> {
     public Object accumulateAndGet(final Object right, final BinaryOperator<Object> operator) {
         Object prev, next;
         do{
-            next = operator.apply(prev = distributedRef.get(), right);
-        } while (!distributedRef.compareAndSet(prev, next));
+            next = operator.apply(prev = distributedObject.get(), right);
+        } while (!distributedObject.compareAndSet(prev, next));
         return next;
     }
 
@@ -62,20 +56,20 @@ final class HazelcastBox extends HazelcastSharedObject implements Box<Object> {
     public Object updateAndGet(final UnaryOperator<Object> operator) {
         Object prev, next;
         do{
-            next = operator.apply(prev = distributedRef.get());
-        } while (!distributedRef.compareAndSet(prev, next));
+            next = operator.apply(prev = distributedObject.get());
+        } while (!distributedObject.compareAndSet(prev, next));
         return next;
     }
 
     @Override
     public Object getAndSet(final Object newValue) {
-        return distributedRef.getAndSet(newValue);
+        return distributedObject.getAndSet(newValue);
     }
 
     @Override
     public Object getOrDefault(final Supplier<?> defaultProvider) {
-        final Object current = distributedRef.get();
-        return current == null ? defaultProvider.get() : distributedRef.get();
+        final Object current = distributedObject.get();
+        return current == null ? defaultProvider.get() : distributedObject.get();
     }
 
     /**
@@ -85,12 +79,12 @@ final class HazelcastBox extends HazelcastSharedObject implements Box<Object> {
      */
     @Override
     public boolean hasValue() {
-        return !distributedRef.isNull();
+        return !distributedObject.isNull();
     }
 
     @Override
     public void accept(final Object value) {
-        distributedRef.set(value);
+        distributedObject.set(value);
     }
 
     static void destroy(final HazelcastInstance hazelcast, final String serviceName) {

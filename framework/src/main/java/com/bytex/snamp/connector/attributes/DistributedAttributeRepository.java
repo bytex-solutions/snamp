@@ -1,13 +1,13 @@
 package com.bytex.snamp.connector.attributes;
 
 import com.bytex.snamp.concurrent.Repeater;
+import com.bytex.snamp.core.KeyValueStorage;
 import org.osgi.framework.BundleContext;
 
 import javax.management.MBeanAttributeInfo;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 
 import static com.bytex.snamp.core.DistributedServices.getDistributedStorage;
@@ -27,11 +27,12 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
     private static final int SYNC_THREAD_PRIORITY = Thread.MIN_PRIORITY;
 
     private final class SynchronizationJob extends Repeater{
-        private final ConcurrentMap<String, Object> storage;
+        private final KeyValueStorage storage;
 
         private SynchronizationJob(final Duration syncPeriod) {
             super(syncPeriod);
-            storage = getDistributedStorage(getBundleContext(), getResourceName().concat(STORAGE_NAME_POSTFIX));
+            storage = getDistributedStorage(getBundleContext(), getResourceName().concat(STORAGE_NAME_POSTFIX), false);
+            assert storage.isViewSupported(KeyValueStorage.SerializableRecordView.class);
         }
 
         @Override
@@ -63,12 +64,9 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
             if (isActiveNode(getBundleContext())) {   //save snapshot of the active node into cluster-wide storage
                 final Serializable snapshot = takeSnapshot(attribute);
                 if (snapshot != null)
-                    storage.put(storageKey, snapshot);
-            } else {    //passive node should reload its state from the storage
-                final Object snapshot = storage.get(storageKey);
-                if (snapshot instanceof Serializable)
-                    loadFromSnapshot(attribute, (Serializable) snapshot);
-            }
+                    storage.getOrCreateRecord(storageKey, KeyValueStorage.SerializableRecordView.class, record -> record.setValue(snapshot)).setValue(snapshot);
+            } else     //passive node should reload its state from the storage
+                storage.getRecord(storageKey, KeyValueStorage.SerializableRecordView.class).ifPresent(record -> loadFromSnapshot(attribute, record.getValue()));
         }
 
         private void sync(final M attribute) {
@@ -99,7 +97,7 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
      */
     @Override
     protected void disconnectAttribute(final M attributeInfo) {
-        getStorageKey(attributeInfo).ifPresent(syncThread.storage::remove);
+        getStorageKey(attributeInfo).ifPresent(syncThread.storage::delete);
         super.disconnectAttribute(attributeInfo);
     }
 

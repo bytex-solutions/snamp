@@ -19,49 +19,59 @@ import java.util.function.Supplier;
  * @since 1.0
  */
 public final class DistributedServices {
-    private static final class LocalServiceKey<S> {
+    private static final class LocalServiceKey<S extends SharedObject> extends SharedObjectDefinition<S> {
         private final String serviceName;
-        private final Class<S> serviceType;
 
-        private LocalServiceKey(final String serviceName, final Class<S> serviceType){
-            this.serviceName = Objects.requireNonNull(serviceName);
-            this.serviceType = Objects.requireNonNull(serviceType);
+        private LocalServiceKey(final String serviceName, final SharedObjectDefinition<S> definition) {
+            super(definition);
+            this.serviceName = serviceName;
         }
 
-        private boolean equals(final LocalServiceKey other){
-            return serviceName.equals(other.serviceName) && serviceType.equals(other.serviceType);
+        private boolean represents(final SharedObjectDefinition<?> definition){
+            return Objects.equals(getType(), definition.getType()) && isPersistent() == definition.isPersistent();
+        }
+
+        private boolean equals(final LocalServiceKey<?> other){
+            return serviceName.equals(other.serviceName) && Objects.equals(getType(), other.getType()) && isPersistent() == other.isPersistent();
         }
 
         @Override
         public boolean equals(final Object other) {
-            return other instanceof LocalServiceKey && equals((LocalServiceKey)other);
+            return other instanceof LocalServiceKey<?> && equals((LocalServiceKey<?>) other);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(serviceName, serviceType);
+            return Objects.hash(serviceName, getType(), isPersistent());
+        }
+
+        @Override
+        public String toString() {
+            return "LocalServiceKey{" +
+                    "persistent=" + isPersistent() +
+                    ", objectType=" + getType() +
+                    ", serviceName=" + serviceName +
+                    '}';
         }
     }
 
     //in-memory services should be stored as soft-reference. This strategy helps to avoid memory
     //leaks in long-running scenarios
-    private static LoadingCache<LocalServiceKey, SharedObject> LOCAL_SERVICES = CacheBuilder.newBuilder()
+    private static LoadingCache<LocalServiceKey<?>, SharedObject> LOCAL_SERVICES = CacheBuilder.newBuilder()
             .softValues()
-            .build(new CacheLoader<LocalServiceKey, SharedObject>() {
+            .build(new CacheLoader<LocalServiceKey<?>, SharedObject>() {
 
                 @Override
-                public SharedObject load(@Nonnull final LocalServiceKey key) throws InvalidKeyException {
-                    if(ClusterMember.SHARED_COUNTER.equals(key.serviceType))
+                public SharedObject load(@Nonnull final LocalServiceKey<?> key) throws InvalidKeyException {
+                    if(key.represents(ClusterMember.SHARED_COUNTER))
                         return new LocalCounter(key.serviceName);
-                    else if(ClusterMember.SHARED_MAP.equals(key.serviceType))
-                        return new LocalStorage(key.serviceName);
-                    else if(ClusterMember.COMMUNICATOR.equals(key.serviceType))
+                    else if(key.represents(ClusterMember.COMMUNICATOR))
                         return new LocalCommunicator(key.serviceName);
-                    else if(ClusterMember.SHARED_BOX.equals(key.serviceType))
+                    else if(key.represents(ClusterMember.SHARED_BOX))
                         return new LocalBox(key.serviceName);
-                    else if(ClusterMember.KV_STORAGE_SERVICE.equals(key.serviceType))
+                    else if(key.represents(ClusterMember.KV_STORAGE))
                         return new LocalKeyValueStorage(key.serviceName);
-                    else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
+                    else throw new InvalidKeyException(String.format("Service %s is not supported", key));
                 }
             });
 
@@ -69,7 +79,7 @@ public final class DistributedServices {
         throw new InstantiationError();
     }
 
-    private static <S extends SharedObject> S getProcessLocalService(final String serviceName, final Class<S> serviceType) {
+    private static <S extends SharedObject> S getProcessLocalService(final String serviceName, final SharedObjectDefinition<S> serviceType) {
         final LocalServiceKey<S> key = new LocalServiceKey<>(serviceName, serviceType);
         try {
             return serviceType.cast(LOCAL_SERVICES.get(key));
@@ -95,12 +105,8 @@ public final class DistributedServices {
         return getProcessLocalService(generatorName, ClusterMember.SHARED_COUNTER);
     }
 
-    public static SharedMap getProcessLocalMap(final String collectionName){
-        return getProcessLocalService(collectionName, ClusterMember.SHARED_MAP);
-    }
-
-    public static KeyValueStorage getProcessLocalKVStorage(final String storageName){
-        return getProcessLocalService(storageName, ClusterMember.KV_STORAGE_SERVICE);
+    public static KeyValueStorage getProcessLocalStorage(final String storageName){
+        return getProcessLocalService(storageName, ClusterMember.KV_STORAGE);
     }
 
     private static <S> S processClusterNode(final BundleContext context,
@@ -119,7 +125,7 @@ public final class DistributedServices {
 
     private static <S extends SharedObject> S getService(final BundleContext context,
                                     final String serviceName,
-                                    final Class<S> serviceType) {
+                                    final SharedObjectDefinition<S> serviceType) {
         return processClusterNode(context, node -> node.getService(serviceName, serviceType), () -> getProcessLocalService(serviceName, serviceType));
     }
 
@@ -134,14 +140,14 @@ public final class DistributedServices {
     }
 
     /**
-     * Gets distributed {@link SharedMap}.
+     * Gets distributed {@link KeyValueStorage}.
      * @param context Context of the caller OSGi bundle.
      * @param collectionName Name of the distributed collection.
      * @return Distributed or process-local storage.
      */
-    public static SharedMap getDistributedStorage(final BundleContext context,
-                                                                            final String collectionName){
-        return getService(context, collectionName, ClusterMember.SHARED_MAP);
+    public static KeyValueStorage getDistributedStorage(final BundleContext context,
+                                                                            final String collectionName, final boolean persistent){
+        return getService(context, collectionName, persistent ? ClusterMember.PERSISTENT_KV_STORAGE : ClusterMember.KV_STORAGE);
     }
 
     /**
@@ -163,10 +169,6 @@ public final class DistributedServices {
      */
     public static SharedBox getDistributedBox(final BundleContext context, final String boxName){
         return getService(context, boxName, ClusterMember.SHARED_BOX);
-    }
-
-    public static KeyValueStorage getDistributedKVStorage(final BundleContext context, final String storageName){
-        return getService(context, storageName, ClusterMember.KV_STORAGE_SERVICE);
     }
 
     /**

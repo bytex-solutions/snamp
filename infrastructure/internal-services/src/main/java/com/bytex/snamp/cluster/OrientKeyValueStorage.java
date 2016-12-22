@@ -25,7 +25,7 @@ import java.util.stream.StreamSupport;
  * @version 2.0
  * @since 2.0
  */
-final class OrientKeyValueStorage implements KeyValueStorage {
+final class OrientKeyValueStorage extends GridSharedObject implements KeyValueStorage {
     private static final class TransactionScopeImpl extends OTransactionOptimistic implements TransactionScope {
         private TransactionScopeImpl(final ODatabaseDocumentTx iDatabase) {
             super(iDatabase);
@@ -153,6 +153,12 @@ final class OrientKeyValueStorage implements KeyValueStorage {
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    @Override
+    void destroy(){
+        clear();
+        database.getMetadata().getSchema().dropClass(documentClass.getName());
     }
 
     /**

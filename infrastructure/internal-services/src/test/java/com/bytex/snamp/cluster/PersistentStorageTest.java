@@ -1,5 +1,6 @@
 package com.bytex.snamp.cluster;
 
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.KeyValueStorage;
 import org.junit.After;
 import org.junit.Assert;
@@ -28,7 +29,7 @@ public final class PersistentStorageTest extends Assert {
 
     @Test
     public void getOrCreateRecordTest() {
-        final KeyValueStorage storage = instance1.getService("$testStorage", KeyValueStorage.class);
+        final KeyValueStorage storage = instance1.getService("$testStorage", ClusterMember.PERSISTENT_KV_STORAGE);
         assertNotNull(storage);
         assertTrue(storage.isPersistent());
         KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("String Key", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
@@ -40,8 +41,8 @@ public final class PersistentStorageTest extends Assert {
 
     @Test
     public void differentCollectionsTest(){
-        final KeyValueStorage storage1 = instance1.getService("$testStorage1", KeyValueStorage.class);
-        final KeyValueStorage storage2 = instance1.getService("$testStorage2", KeyValueStorage.class);
+        final KeyValueStorage storage1 = instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE);
+        final KeyValueStorage storage2 = instance1.getService("$testStorage2", ClusterMember.PERSISTENT_KV_STORAGE);
         assertNotNull(storage1);
         assertNotNull(storage2);
         assertTrue(storage1.isPersistent());
@@ -60,7 +61,7 @@ public final class PersistentStorageTest extends Assert {
 
     @Test
     public void theSameCollectionTest(){
-        final KeyValueStorage storage1 = instance1.getService("$testStorage1", KeyValueStorage.class);
+        final KeyValueStorage storage1 = instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE);
         assertNotNull(storage1);
         KeyValueStorage.TextRecordView record1 = storage1.getOrCreateRecord("Frank Underwood", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         record1.setAsText("Hello, world!");

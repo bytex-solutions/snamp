@@ -5,6 +5,7 @@ import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.core.SharedCounter;
+import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,9 +32,9 @@ public final class DistributedServicesTest extends Assert {
     @Before
     public void setupHazelcastNodes() throws Exception {
         instance1 = new GridMember();
-        instance1.startupFromConfiguration().activate();
+        //instance1.startupFromConfiguration().activate();
         instance2 = new GridMember();
-        instance2.startupFromConfiguration().activate();
+        //instance2.startupFromConfiguration().activate();
     }
 
     @After
@@ -46,14 +47,20 @@ public final class DistributedServicesTest extends Assert {
 
     @Test
     public void storageTest() throws InterruptedException {
-        final KeyValueStorage storage = instance1.getService("testStorage", KeyValueStorage.class);
+        final KeyValueStorage storage = instance1.getService("testStorage", ClusterMember.KV_STORAGE);
         assertNotNull(storage);
         assertFalse(storage.isPersistent());
-        KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("String Key", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
-        record.setAsText("Hello, world");
-        record = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).get();
-        assertNotNull(record);
-        assertEquals("Hello, world", record.getAsText());
+        KeyValueStorage.TextRecordView textRecord = storage.getOrCreateRecord("String Key", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
+        textRecord.setAsText("Hello, world");
+        textRecord = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).get();
+        assertNotNull(textRecord);
+        assertEquals("Hello, world", textRecord.getAsText());
+        final KeyValueStorage storage2 = instance2.getService("testStorage", ClusterMember.KV_STORAGE);
+        KeyValueStorage.MapRecordView mapRecord = storage2.getOrCreateRecord("NewMap", KeyValueStorage.MapRecordView.class, KeyValueStorage.MapRecordView.INITIALIZER);
+        mapRecord.setAsMap(ImmutableMap.of("key1", "value1", "key2", "value2"));
+        mapRecord = storage.getRecord("NewMap", KeyValueStorage.MapRecordView.class).get();
+        assertEquals("value1", mapRecord.getAsMap().get("key1"));
+        assertEquals("value2", mapRecord.getAsMap().get("key2"));
     }
 
     @Test

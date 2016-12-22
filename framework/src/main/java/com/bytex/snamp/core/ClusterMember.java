@@ -20,26 +20,30 @@ import java.util.concurrent.ConcurrentMap;
  */
 public interface ClusterMember extends ClusterMemberInfo, SupportService {
     /**
-     * Represents cluster-wide generator of unique identifiers.
+     * Represents definition of non-persistent cluster-wide generator of unique identifiers.
      */
-    Class<SharedCounter> SHARED_COUNTER = SharedCounter.class;
+    SharedObjectDefinition<SharedCounter> SHARED_COUNTER = new SharedObjectDefinition<>(SharedCounter.class, false);
 
     /**
-     * Represents distributed map.
+     * Represents definition of non-durable communication service.
      */
-    Class<SharedMap> SHARED_MAP = SharedMap.class;
+    SharedObjectDefinition<Communicator> COMMUNICATOR = new SharedObjectDefinition<>(Communicator.class, false);
 
     /**
-     * Represents communication service.
+     * Represents definition of distributed non-persistent scalar storage.
      */
-    Class<Communicator> COMMUNICATOR = Communicator.class;
+    SharedObjectDefinition<SharedBox> SHARED_BOX = new SharedObjectDefinition<>(SharedBox.class, false);
 
     /**
-     * Represents distributed box.
+     * Represents definition of distributed non-persistent key/value storage.
      */
-    Class<SharedBox> SHARED_BOX = SharedBox.class;
+    SharedObjectDefinition<KeyValueStorage> KV_STORAGE = new SharedObjectDefinition<>(KeyValueStorage.class, false);
 
-    Class<KeyValueStorage> KV_STORAGE_SERVICE = KeyValueStorage.class;
+    /**
+     * Represents definition of distributed persistent key/value storage.
+     */
+    SharedObjectDefinition<KeyValueStorage> PERSISTENT_KV_STORAGE = new SharedObjectDefinition<>(KeyValueStorage.class, true);
+
 
     /**
      * Marks this node as passive and execute leader election.
@@ -48,19 +52,23 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
 
     /**
      * Gets distributed service.
+     *
      * @param serviceName Service name.
      * @param serviceType Service type.
-     * @param <S> Type of the service contract.
+     * @param <S>         Type of the service contract.
      * @return Distributed service; or {@literal null}, if service is not supported.
      * @see #SHARED_COUNTER
-     * @see #SHARED_MAP
+     * @see #KV_STORAGE
+     * @see #COMMUNICATOR
+     * @see #SHARED_BOX
      */
-    <S extends SharedObject> S getService(final String serviceName, final Class<S> serviceType);
+    <S extends SharedObject> S getService(final String serviceName, final SharedObjectDefinition<S> serviceType);
 
     /**
      * Destroys the specified service
+     *
      * @param serviceName Name of the service to release.
      * @param serviceType Type of the service to release.
      */
-    void releaseService(final String serviceName, final Class<? extends SharedObject> serviceType);
+    void releaseService(final String serviceName, final SharedObjectDefinition<?> serviceType);
 }

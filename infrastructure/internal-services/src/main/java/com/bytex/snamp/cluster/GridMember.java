@@ -1,20 +1,23 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.core.ClusterMember;
-import com.bytex.snamp.core.KeyValueStorage;
-import com.bytex.snamp.core.SharedCounter;
-import com.bytex.snamp.core.SharedObject;
+import com.bytex.snamp.core.*;
 import com.bytex.snamp.internal.Utils;
+import com.google.common.cache.*;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
+import com.hazelcast.core.Member;
 
+import javax.annotation.Nonnull;
 import javax.management.JMException;
+import javax.management.openmbean.InvalidKeyException;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,25 +29,30 @@ import java.util.logging.Logger;
  */
 public final class GridMember extends DatabaseNode implements ClusterMember, AutoCloseable {
 
-    private static final class LeaderElectionThread extends Thread implements AutoCloseable{
+    private static final class LeaderElectionThread extends Thread implements AutoCloseable {
         private final ILock masterLock;
-        private volatile boolean lockAcquired;
+        private final Member localMember;
 
-        private LeaderElectionThread(final HazelcastInstance hazelcast){
+        private LeaderElectionThread(final HazelcastInstance hazelcast) {
             super("LeaderElection");
             setDaemon(true);
             setPriority(MIN_PRIORITY + 1);
             this.masterLock = hazelcast.getLock("SnampMasterLock");
+            this.localMember = hazelcast.getCluster().getLocalMember();
+        }
+
+        private boolean isActive(){
+            return HazelcastNodeInfo.isActive(localMember);
         }
 
         @Override
         public void run() {
-            while (!lockAcquired)
+            while (!HazelcastNodeInfo.isActive(localMember))
                 try {
                     //try to become a master
-                    lockAcquired = masterLock.tryLock(3, TimeUnit.MILLISECONDS);
+                    HazelcastNodeInfo.setActive(localMember, masterLock.tryLock(3, TimeUnit.MILLISECONDS));
                 } catch (final InterruptedException e) {
-                    lockAcquired = false;
+                    HazelcastNodeInfo.setActive(localMember, false);
                     return;
                 }
         }
@@ -56,8 +64,61 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
                 join();
             } finally {
                 masterLock.forceUnlock();
-                lockAcquired = false;
+                HazelcastNodeInfo.setActive(localMember, false);
             }
+        }
+    }
+
+    private static final class GridServiceKey<S extends SharedObject> extends SharedObjectDefinition<S> {
+        private final String serviceName;
+
+        private GridServiceKey(final String serviceName, final SharedObjectDefinition<S> definition) {
+            super(definition);
+            this.serviceName = serviceName;
+        }
+
+        private boolean represents(final SharedObjectDefinition<?> definition){
+            return Objects.equals(getType(), definition.getType()) && isPersistent() == definition.isPersistent();
+        }
+
+        private boolean equals(final GridServiceKey<?> other){
+            return serviceName.equals(other.serviceName) && Objects.equals(getType(), other.getType()) && isPersistent() == other.isPersistent();
+        }
+
+        @Override
+        public boolean equals(final Object other) {
+            return other instanceof GridServiceKey<?> && equals((GridServiceKey<?>) other);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(serviceName, getType(), isPersistent());
+        }
+
+        @Override
+        public String toString() {
+            return "LocalServiceKey{" +
+                    "persistent=" + isPersistent() +
+                    ", objectType=" + getType() +
+                    ", serviceName=" + serviceName +
+                    '}';
+        }
+    }
+
+    private final class GridServiceLoader extends CacheLoader<GridServiceKey<?>, GridSharedObject> {
+        @Override
+        public GridSharedObject load(@Nonnull final GridServiceKey<?> key) throws Exception {
+            if (key.represents(SHARED_COUNTER))
+                return new HazelcastCounter(hazelcast, key.serviceName);
+            else if (key.represents(COMMUNICATOR))
+                return new HazelcastCommunicator(hazelcast, key.serviceName);
+            else if (key.represents(SHARED_BOX))
+                return new HazelcastBox(hazelcast, key.serviceName);
+            else if (key.represents(KV_STORAGE))
+                return new HazelcastKeyValueStorage(hazelcast, key.serviceName);
+            else if (key.represents(PERSISTENT_KV_STORAGE))
+                return new OrientKeyValueStorage(getSnampDatabase(), key.serviceName);
+            else throw new InvalidKeyException(String.format("Service %s is not supported", key));
         }
     }
 
@@ -66,12 +127,21 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
     private final HazelcastInstance hazelcast;
     private volatile LeaderElectionThread electionThread;
     private final boolean shutdownHazelcast;
+    private final LoadingCache<GridServiceKey<?>, GridSharedObject> sharedObjects;
 
-    private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdownHazelcast) throws ReflectiveOperationException, JAXBException, IOException, JMException{
+    private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdownHazelcast) throws ReflectiveOperationException, JAXBException, IOException, JMException {
         super(hazelcastInstance);
         this.electionThread = new LeaderElectionThread(hazelcastInstance);
         this.hazelcast = hazelcastInstance;
         this.shutdownHazelcast = shutdownHazelcast;
+        sharedObjects = CacheBuilder.<GridServiceKey<?>, GridSharedObject>newBuilder()
+                .removalListener(GridMember::cleanupSharedObject)
+                .build(new GridServiceLoader());
+    }
+
+    private static void cleanupSharedObject(final RemovalNotification<GridServiceKey<?>, GridSharedObject> notification){
+        if (!notification.wasEvicted() && notification.getValue() != null)
+            notification.getValue().destroy();
     }
 
     public GridMember(final HazelcastInstance hazelcastInstance) throws ReflectiveOperationException, JAXBException, IOException, JMException {
@@ -100,7 +170,7 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
      */
     @Override
     public boolean isActive() {
-        return electionThread.lockAcquired;
+        return electionThread.isActive();
     }
 
     /**
@@ -146,55 +216,15 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
      * @return Distributed service; or {@literal null}, if service is not supported.
      */
     @Override
-    public <S extends SharedObject> S getService(final String serviceName, final Class<S> serviceType) {
-        final Object result;
-        if (SHARED_MAP.equals(serviceType))
-            result = getStorage(serviceName);
-        else if (SHARED_COUNTER.equals(serviceType))
-            result = getLongCounter(serviceName);
-        else if(COMMUNICATOR.equals(serviceType))
-            result = getCommunicator(serviceName);
-        else if(SHARED_BOX.equals(serviceType))
-            result = getBox(serviceName);
-        else if(KV_STORAGE_SERVICE.equals(serviceType))
-            result = getKeyValueStorage(serviceName);
-        else return null;
-        return serviceType.cast(result);
-    }
-
-    private KeyValueStorage createPersistentKV(final String collectionName) {
-        final DatabaseCredentials credentials = DatabaseCredentials.resolveSnampUser(Utils.getBundleContextOfObject(this), getConfiguration());
-        if (credentials == null) {
-            logger.severe(String.format("Unable to create persistent storage %s because database credentials are not specified. Non-persistent storage is created.", collectionName));
-            return createDistributedKV(collectionName);
+    public <S extends SharedObject> S getService(final String serviceName, final SharedObjectDefinition<S> serviceType) {
+        GridSharedObject result;
+        try {
+            result = sharedObjects.get(new GridServiceKey<>(serviceName, serviceType));
+        } catch (final ExecutionException e) {
+            logger.log(Level.WARNING, String.format("Failed to query service %s with name %s", serviceType, serviceName), e);
+            result = null;
         }
-        return new OrientKeyValueStorage(getSnampDatabase(), collectionName);
-    }
-
-    private HazelcastKeyValueStorage createDistributedKV(final String collectionName){
-        return new HazelcastKeyValueStorage(hazelcast, collectionName);
-    }
-
-    private KeyValueStorage getKeyValueStorage(final String collectionName) {
-        return collectionName.startsWith("$") ?
-                createPersistentKV(collectionName):
-                createDistributedKV(collectionName);
-    }
-
-    private HazelcastBox getBox(final String boxName){
-        return new HazelcastBox(hazelcast, boxName);
-    }
-
-    private HazelcastCommunicator getCommunicator(final String serviceName) {
-        return new HazelcastCommunicator(hazelcast, this::isActive, serviceName);
-    }
-
-    private HazelcastStorage getStorage(final String collectionName){
-        return new HazelcastStorage(hazelcast, collectionName);
-    }
-
-    private SharedCounter getLongCounter(final String counterName){
-        return new HazelcastCounter(hazelcast, counterName);
+        return serviceType.cast(result);
     }
 
     /**
@@ -204,15 +234,8 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
      * @param serviceType Type of the service to release.
      */
     @Override
-    public void releaseService(final String serviceName, final Class<? extends SharedObject> serviceType) {
-        if(SHARED_MAP.equals(serviceType))
-            HazelcastStorage.destroy(hazelcast, serviceName);
-        else if(SHARED_COUNTER.equals(serviceType))
-            HazelcastCounter.destroy(hazelcast, serviceName);
-        else if(SHARED_BOX.equals(serviceType))
-            HazelcastBox.destroy(hazelcast, serviceName);
-        else if(COMMUNICATOR.equals(serviceType))
-            HazelcastCommunicator.destroy(hazelcast, serviceName);
+    public void releaseService(final String serviceName, final SharedObjectDefinition<?> serviceType) {
+        sharedObjects.invalidate(new GridServiceKey<>(serviceName, serviceType));
     }
 
     /**
@@ -260,12 +283,15 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
         final String instanceName = getName();
         logger.info(() -> String.format("GridMember service %s is closing. Shutdown Hazelcast? %s", instanceName, shutdownHazelcast ? "yes" : "no"));
         shutdown();
+        sharedObjects.cleanUp();
         try {
             electionThread.close();
         } finally {
             electionThread = null;
-            if (shutdownHazelcast)
+            if (shutdownHazelcast) {
+                sharedObjects.invalidateAll();
                 hazelcast.shutdown();
+            }
         }
         logger.info(() -> String.format("GridMember service %s is closed successfully", instanceName));
     }

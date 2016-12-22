@@ -3,10 +3,8 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.ComputationPipeline;
 import com.bytex.snamp.core.Communicator;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
+import com.bytex.snamp.core.SharedObject;
+import com.hazelcast.core.*;
 
 import java.io.Serializable;
 import java.time.Duration;
@@ -25,7 +23,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  * @since 2.0
  */
-final class HazelcastCommunicator extends HazelcastSharedObject implements Communicator {
+final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferObject>> implements Communicator {
     private static final class TransferObjectListener implements MessageListener<TransferObject>, SafeCloseable{
         private final String localMemberID;
         private final Predicate<? super HazelcastIncomingMessage> filter;
@@ -33,11 +31,11 @@ final class HazelcastCommunicator extends HazelcastSharedObject implements Commu
         private final ITopic<TransferObject> topic;
         private final String subscription;
 
-        private TransferObjectListener(final HazelcastInstance hazelcast, final String communicatorName, final Predicate<? super HazelcastIncomingMessage> filter, final Consumer<? super HazelcastIncomingMessage> listener){
-            this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
+        private TransferObjectListener(final ITopic<TransferObject> topic, final String localMember, final Predicate<? super HazelcastIncomingMessage> filter, final Consumer<? super HazelcastIncomingMessage> listener){
+            this.localMemberID = localMember;
             this.filter = Objects.requireNonNull(filter);
             this.listener = Objects.requireNonNull(listener);
-            this.topic = hazelcast.getTopic(communicatorName);
+            this.topic = Objects.requireNonNull(topic);
             this.subscription = topic.addMessageListener(this);
         }
 
@@ -66,13 +64,13 @@ final class HazelcastCommunicator extends HazelcastSharedObject implements Commu
         private final String localMemberID;
         private final Function<? super IncomingMessage, ? extends V> messageParser;
 
-        private MessageReceiver(final HazelcastInstance hazelcast,
-                                final String communicatorName,
+        private MessageReceiver(final ITopic<TransferObject> topic,
+                                final String localMember,
                                 final Predicate<? super HazelcastIncomingMessage> filter,
                                 final Function<? super IncomingMessage, ? extends V> messageParser){
             this.filter = Objects.requireNonNull(filter);
-            this.topic = hazelcast.getTopic(communicatorName);
-            this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
+            this.topic = Objects.requireNonNull(topic);
+            this.localMemberID = localMember;
             this.subscription = topic.addMessageListener(this);
             this.messageParser = Objects.requireNonNull(messageParser);
         }
@@ -103,14 +101,14 @@ final class HazelcastCommunicator extends HazelcastSharedObject implements Commu
         private final String localMemberID;
         private final Function<? super IncomingMessage, ? extends V> messageParser;
 
-        private LinkedMessageBox(final HazelcastInstance hazelcast,
-                                 final String communicatorName,
+        private LinkedMessageBox(final ITopic<TransferObject> topic,
+                                 final String localMember,
                                  final Predicate<? super IncomingMessage> filter,
-                                 final Function<? super IncomingMessage, ? extends V> messageParser){
+                                 final Function<? super IncomingMessage, ? extends V> messageParser) {
             this.filter = Objects.requireNonNull(filter);
-            this.topic = hazelcast.getTopic(communicatorName);
+            this.topic = Objects.requireNonNull(topic);
             this.subscription = topic.addMessageListener(this);
-            this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
+            this.localMemberID = localMember;
             this.messageParser = Objects.requireNonNull(messageParser);
         }
 
@@ -141,15 +139,15 @@ final class HazelcastCommunicator extends HazelcastSharedObject implements Commu
         private final Function<? super IncomingMessage, ? extends V> messageParser;
 
         private FixedSizeMessageBox(final int capacity,
-                                    final HazelcastInstance hazelcast,
-                                    final String communicatorName,
+                                    final ITopic<TransferObject> topic,
+                                    final String localMember,
                                     final Predicate<? super IncomingMessage> filter,
                                     final Function<? super IncomingMessage, ? extends V> messageParser){
             super(capacity);
             this.filter = Objects.requireNonNull(filter);
-            this.topic = hazelcast.getTopic(communicatorName);
+            this.topic = Objects.requireNonNull(topic);
             this.subscription = topic.addMessageListener(this);
-            this.localMemberID = hazelcast.getCluster().getLocalMember().getUuid();
+            this.localMemberID = localMember;
             this.messageParser = Objects.requireNonNull(messageParser);
         }
 
@@ -172,30 +170,18 @@ final class HazelcastCommunicator extends HazelcastSharedObject implements Commu
     }
 
     private final HazelcastInstance hazelcast;
-    private final String communicatorName;
-    private final BooleanSupplier activeNodeDetector;
+    private final String localMember;
 
     HazelcastCommunicator(final HazelcastInstance hazelcast,
-                          final BooleanSupplier activeNodeDetector,
                           final String communicatorName){
+        super(hazelcast, communicatorName, HazelcastInstance::getTopic);
         this.hazelcast = Objects.requireNonNull(hazelcast);
-        this.activeNodeDetector = Objects.requireNonNull(activeNodeDetector);
-        this.communicatorName = communicatorName;
-    }
-
-    @Override
-    public String getName() {
-        return communicatorName;
-    }
-
-    @Override
-    public boolean isPersistent() {
-        return false;
+        localMember = hazelcast.getCluster().getLocalMember().getUuid();
     }
 
     @Override
     public long newMessageID() {
-        return hazelcast.getAtomicLong("MSGID-".concat(communicatorName)).getAndIncrement();
+        return hazelcast.getAtomicLong("MSGID-".concat(getName())).getAndIncrement();
     }
 
     @Override
@@ -208,14 +194,9 @@ final class HazelcastCommunicator extends HazelcastSharedObject implements Commu
         sendMessage(payload, type, newMessageID());
     }
 
-    private HazelcastNodeInfo createLocalNodeInfo(){
-        return new HazelcastNodeInfo(hazelcast, activeNodeDetector.getAsBoolean());
-    }
-
     @Override
     public void sendMessage(final Serializable payload, final MessageType type, final long messageID) {
-        final ITopic<TransferObject> topic = hazelcast.getTopic(communicatorName);
-        topic.publish(new TransferObject(createLocalNodeInfo(), payload, type, messageID));
+        distributedObject.publish(new TransferObject(new HazelcastNodeInfo(hazelcast), payload, type, messageID));
     }
 
     @Override
@@ -228,22 +209,22 @@ final class HazelcastCommunicator extends HazelcastSharedObject implements Commu
 
     @Override
     public <V> MessageReceiver<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
-        return new MessageReceiver<>(hazelcast, communicatorName, filter, messageParser);
+        return new MessageReceiver<>(distributedObject, localMember, filter, messageParser);
     }
 
     @Override
     public TransferObjectListener addMessageListener(final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter) {
-        return new TransferObjectListener(hazelcast, communicatorName, filter, listener);
+        return new TransferObjectListener(distributedObject, localMember, filter, listener);
     }
 
     @Override
     public <V> FixedSizeMessageBox<V> createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
-        return new FixedSizeMessageBox<>(capacity, hazelcast, communicatorName, filter, messageParser);
+        return new FixedSizeMessageBox<>(capacity, distributedObject, localMember, filter, messageParser);
     }
 
     @Override
     public <V> LinkedMessageBox<V> createMessageBox(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
-        return new LinkedMessageBox<>(hazelcast, communicatorName, filter, messageParser);
+        return new LinkedMessageBox<>(distributedObject, localMember, filter, messageParser);
     }
 
     @Override

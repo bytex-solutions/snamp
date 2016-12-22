@@ -95,7 +95,8 @@ class DatabaseNode extends OServer {
 
     @Override
     public boolean shutdown() {
-        snampDatabase.close();
+        if (snampDatabase != null)
+            snampDatabase.close();
         snampDatabase = null;
         final boolean success = super.shutdown();
         distributedManager = null;
