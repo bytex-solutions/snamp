@@ -157,10 +157,9 @@ public final class IOUtils {
     public static String toString(final Reader reader) throws IOException {
         final StringBuilder result = new StringBuilder(512);
         final char[] buffer = new char[16];
-        while (reader.ready()) {
-            final int count = reader.read(buffer);
+        int count;
+        while ((count = reader.read(buffer)) >= 0)
             result.append(buffer, 0, count);
-        }
         return result.toString();
     }
 

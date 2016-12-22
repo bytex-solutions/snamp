@@ -2,10 +2,16 @@ package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.KeyValueStorage;
+import com.bytex.snamp.io.IOUtils;
+import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Map;
 
 /**
  * @author Roman Sakno
@@ -70,13 +76,33 @@ public final class PersistentStorageTest extends Assert {
     }
 
     @Test
-    public void differentTypesTest(){
+    public void differentTypesTest() throws IOException {
+        final String KEY = "Frank Underwood";
         final KeyValueStorage storage1 = instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE);
         assertNotNull(storage1);
-        final KeyValueStorage.TextRecordView textRecord = storage1.getOrCreateRecord("Frank Underwood", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
-        textRecord.setAsText("Hello, world!");
-        final KeyValueStorage.SerializableRecordView customRecord = storage1.getOrCreateRecord("Frank Underwood", KeyValueStorage.SerializableRecordView.class, record -> record.setValue(""));
+
+        storage1.getOrCreateRecord(KEY, KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
+
+        final KeyValueStorage.SerializableRecordView customRecord = storage1.getRecord(KEY, KeyValueStorage.SerializableRecordView.class).get();
         customRecord.setValue(new StringBuffer("Hello, world!"));
         assertTrue(customRecord.getValue() instanceof StringBuffer);
+
+        final KeyValueStorage.MapRecordView mapRecord = storage1.getRecord(KEY, KeyValueStorage.MapRecordView.class).get();
+        mapRecord.setAsMap(ImmutableMap.of("key1", "value1", "key2", "value2"));
+        final Map<String, ?> map = mapRecord.getAsMap();
+        assertNotNull(map);
+        assertEquals("value1", map.get("key1"));
+        assertEquals("value2", map.get("key2"));
+
+        final KeyValueStorage.JsonRecordView jsonRecord = storage1.getRecord(KEY, KeyValueStorage.JsonRecordView.class).get();
+        jsonRecord.setAsJson(new StringReader("{\"a\": 10, \"b\": {\"c\": true}}"));
+        final String json = IOUtils.toString(jsonRecord.getAsJson());
+        assertNotNull(json);
+        assertFalse(json.isEmpty());
+
+        final KeyValueStorage.DoubleRecordView doubleRecord = storage1.getOrCreateRecord(10.50D, KeyValueStorage.DoubleRecordView.class, KeyValueStorage.DoubleRecordView.INITIALIZER);
+        assertNotNull(doubleRecord);
+        doubleRecord.accept(50L);
+        assertEquals(50D, doubleRecord.getAsDouble(), 0.01D);
     }
 }

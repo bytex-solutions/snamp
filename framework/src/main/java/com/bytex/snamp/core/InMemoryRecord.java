@@ -112,7 +112,7 @@ final class InMemoryRecord extends AtomicReference<Serializable> implements Reco
     }
 
     @Override
-    public void setAsLong(final long value) {
+    public void accept(final long value) {
         setValue(value);
     }
 
@@ -122,7 +122,7 @@ final class InMemoryRecord extends AtomicReference<Serializable> implements Reco
     }
 
     @Override
-    public void setAsDouble(final double value) {
+    public void accept(final double value) {
         setValue(value);
     }
 

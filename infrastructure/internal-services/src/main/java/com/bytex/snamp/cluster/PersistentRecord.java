@@ -67,7 +67,7 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
     }
 
     void setKey(final Comparable<?> key) {
-        PersistentRecordFieldDefinition.setKey(key, this);
+        PersistentFieldDefinition.setKey(key, this);
     }
 
     /**
@@ -101,10 +101,10 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
 
     @Override
     public Serializable getValue() {
-        return (Serializable) PersistentRecordFieldDefinition.RAW_VALUE.getField(this);
+        return (Serializable) PersistentFieldDefinition.RAW_VALUE.getField(this);
     }
 
-    private void saveField(final PersistentRecordFieldDefinition field, final Object value) {
+    private void saveField(final PersistentFieldDefinition field, final Object value) {
         if (!field.setField(value, this))
             throw new IllegalArgumentException(String.format("Value %s is incompatible with field %s", value, field));
         else
@@ -113,57 +113,57 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
 
     @Override
     public void setValue(final Serializable value) {
-        saveField(PersistentRecordFieldDefinition.RAW_VALUE, value);
+        saveField(PersistentFieldDefinition.RAW_VALUE, value);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Map<String, ?> getAsMap() {
-        return (Map<String, ?>) PersistentRecordFieldDefinition.MAP_VALUE.getField(this);
+        return (Map<String, ?>) PersistentFieldDefinition.MAP_VALUE.getField(this);
     }
 
     @Override
     public void setAsMap(final Map<String, ?> values) {
-        saveField(PersistentRecordFieldDefinition.MAP_VALUE, values);
+        saveField(PersistentFieldDefinition.MAP_VALUE, values);
     }
 
     @Override
     public Reader getAsJson() {
-        return (Reader) PersistentRecordFieldDefinition.JSON_DOCUMENT_VALUE.getField(this);
+        return (Reader) PersistentFieldDefinition.JSON_DOCUMENT_VALUE.getField(this);
     }
 
     @Override
     public void setAsJson(final Reader value) throws IOException {
-        saveField(PersistentRecordFieldDefinition.JSON_DOCUMENT_VALUE, value);
+        saveField(PersistentFieldDefinition.JSON_DOCUMENT_VALUE, value);
     }
 
     @Override
     public String getAsText() {
-        return (String) PersistentRecordFieldDefinition.TEXT_VALUE.getField(this);
+        return (String) PersistentFieldDefinition.TEXT_VALUE.getField(this);
     }
 
     @Override
     public void setAsText(final String value) {
-        saveField(PersistentRecordFieldDefinition.TEXT_VALUE, value);
+        saveField(PersistentFieldDefinition.TEXT_VALUE, value);
     }
 
     @Override
     public long getAsLong() {
-        return Convert.toLong(PersistentRecordFieldDefinition.LONG_VALUE.getField(this));
+        return Convert.toLong(PersistentFieldDefinition.LONG_VALUE.getField(this));
     }
 
     @Override
-    public void setAsLong(final long value) {
-        saveField(PersistentRecordFieldDefinition.LONG_VALUE, value);
+    public void accept(final long value) {
+        saveField(PersistentFieldDefinition.LONG_VALUE, value);
     }
 
     @Override
     public double getAsDouble() {
-        return Convert.toDouble(PersistentRecordFieldDefinition.DOUBLE_VALUE.getField(this));
+        return Convert.toDouble(PersistentFieldDefinition.DOUBLE_VALUE.getField(this));
     }
 
     @Override
-    public void setAsDouble(final double value) {
-        saveField(PersistentRecordFieldDefinition.DOUBLE_VALUE, value);
+    public void accept(final double value) {
+        saveField(PersistentFieldDefinition.DOUBLE_VALUE, value);
     }
 }

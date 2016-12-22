@@ -46,13 +46,13 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
             documentClass = schema.getClass(collectionName);
         else {
             documentClass = schema.createClass(collectionName);
-            PersistentRecordFieldDefinition.defineFields(documentClass);
-            PersistentRecordFieldDefinition.createIndex(documentClass, indexName);
+            PersistentFieldDefinition.defineFields(documentClass);
+            PersistentFieldDefinition.createIndex(documentClass, indexName);
         }
     }
 
     private  <V> V getRecord(final Comparable<?> indexKey, final Function<? super OIdentifiable, ? extends V> transform) {
-        final OIdentifiable identifiable = (OIdentifiable) documentClass.getClassIndex(indexName).get(PersistentRecordFieldDefinition.getCompositeKey(indexKey));
+        final OIdentifiable identifiable = (OIdentifiable) documentClass.getClassIndex(indexName).get(PersistentFieldDefinition.getCompositeKey(indexKey));
         return identifiable == null ? null : transform.apply(identifiable);
     }
 

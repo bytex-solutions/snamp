@@ -3,11 +3,14 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
@@ -16,8 +19,21 @@ import java.util.stream.Collectors;
 /**
  * Represents field definition of the persistent record.
  */
-enum PersistentRecordFieldDefinition {
-    DECIMAL_KEY(OType.DECIMAL, "nKey", key -> key instanceof Number ? Optional.of((Number) key) : Optional.empty()),
+enum PersistentFieldDefinition {
+    DECIMAL_KEY(OType.DECIMAL, "nKey", key -> {
+        BigDecimal result;
+        if(key instanceof BigDecimal)
+            result = (BigDecimal) key;
+        else if(key instanceof BigInteger)
+            result = new BigDecimal((BigInteger) key);
+        else if(key instanceof Long)
+            result = BigDecimal.valueOf((Long) key);
+        else if(key instanceof Number)
+            result = BigDecimal.valueOf(((Number) key).doubleValue());
+        else
+            result = null;
+        return Optional.ofNullable(result);
+    }),
     STRING_KEY(OType.STRING, "sKey", key -> {
         if (key instanceof String)
             return Optional.of(key.toString());
@@ -27,12 +43,14 @@ enum PersistentRecordFieldDefinition {
             return Optional.empty();
     }),
     DATE_KEY(OType.DATE, "dKey", key -> {
-        if (key instanceof Date)
-            return Optional.of((Date) key);
-        else if (key instanceof Instant)
-            return Optional.of(Date.from((Instant) key));
+        Date result;
+        if(key instanceof Date)
+            result = (Date) key;
+        else if(key instanceof Instant)
+            result = Date.from((Instant) key);
         else
-            return Optional.empty();
+            result = null;
+        return Optional.ofNullable(result);
     }),
     RAW_VALUE(OType.CUSTOM, "serializedObject"){
         @Override
@@ -111,17 +129,19 @@ enum PersistentRecordFieldDefinition {
 
         @Override
         boolean setField(final Object fieldValue, final ODocument document) {
-            final boolean success;
-            if (success = fieldValue instanceof Reader){
-                final ODocument subDocument;
-                try{
+            final ODocument subDocument;
+            if (fieldValue instanceof Reader)
+                try {
                     subDocument = new ODocument().fromJSON(IOUtils.toString((Reader) fieldValue));
-                } catch (final IOException e){
+                } catch (final IOException e) {
                     throw new UncheckedIOException(e);
                 }
-                document.field(super.fieldName, subDocument);
-            }
-            return success;
+            else if (fieldValue instanceof JsonElement) {
+                subDocument = new ODocument().fromJSON(formatter.toJson((JsonElement) fieldValue));
+            } else
+                return false;
+            document.field(super.fieldName, subDocument);
+            return true;
         }
 
         @Override
@@ -130,19 +150,19 @@ enum PersistentRecordFieldDefinition {
         }
     };
 
-    private static final ImmutableSortedSet<PersistentRecordFieldDefinition> ALL_FIELDS = ImmutableSortedSet.copyOf(values());
-    private static final ImmutableSortedSet<PersistentRecordFieldDefinition> INDEX_FIELDS = ImmutableSortedSet.copyOf(ALL_FIELDS.stream().filter(PersistentRecordFieldDefinition::isIndex).iterator());
+    private static final ImmutableSortedSet<PersistentFieldDefinition> ALL_FIELDS = ImmutableSortedSet.copyOf(values());
+    private static final ImmutableSortedSet<PersistentFieldDefinition> INDEX_FIELDS = ImmutableSortedSet.copyOf(ALL_FIELDS.stream().filter(PersistentFieldDefinition::isIndex).iterator());
     private final OType fieldType;
     private final String fieldName;
     private final Function<Comparable<?>, Optional<?>> keyTransformer;
 
-    PersistentRecordFieldDefinition(final OType type, final String fieldName, final Function<Comparable<?>, Optional<?>> keyTransformer) {
+    PersistentFieldDefinition(final OType type, final String fieldName, final Function<Comparable<?>, Optional<?>> keyTransformer) {
         this.fieldType = type;
         this.fieldName = fieldName;
         this.keyTransformer = Objects.requireNonNull(keyTransformer);
     }
 
-    PersistentRecordFieldDefinition(final OType type, final String fieldName){
+    PersistentFieldDefinition(final OType type, final String fieldName){
         this.fieldType = type;
         this.fieldName = fieldName;
         this.keyTransformer = null;
@@ -157,7 +177,7 @@ enum PersistentRecordFieldDefinition {
     }
 
     static void setKey(final Comparable<?> key, final ODocument document) {
-        for (final PersistentRecordFieldDefinition index : INDEX_FIELDS)
+        for (final PersistentFieldDefinition index : INDEX_FIELDS)
             if (index.setField(key, document))
                 return;
         throw new IllegalArgumentException(String.format("Unsupported key %s", key));
@@ -186,7 +206,7 @@ enum PersistentRecordFieldDefinition {
     }
 
     static void defineFields(final OClass documentClass) {
-        for (final PersistentRecordFieldDefinition field : ALL_FIELDS)
+        for (final PersistentFieldDefinition field : ALL_FIELDS)
             field.registerProperty(documentClass);
     }
 

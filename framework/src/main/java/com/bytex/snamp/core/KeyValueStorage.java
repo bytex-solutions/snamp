@@ -9,6 +9,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.*;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
+import java.util.function.LongConsumer;
+import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 
 /**
@@ -83,19 +87,19 @@ public interface KeyValueStorage extends SharedObject {
     /**
      * Represents entry as {@code long} value.
      */
-    interface LongRecordView extends Record{
-        Acceptor<LongRecordView, ExceptionPlaceholder> INITIALIZER = record -> record.setAsLong(0L);
+    interface LongRecordView extends Record, LongSupplier, LongConsumer{
+        Acceptor<LongRecordView, ExceptionPlaceholder> INITIALIZER = record -> record.accept(0L);
         long getAsLong();
-        void setAsLong(final long value);
+        void accept(final long value);
     }
 
     /**
      * Represents entry as {@code double} value.
      */
-    interface DoubleRecordView extends Record{
-        Acceptor<DoubleRecordView, ExceptionPlaceholder> INITIALIZER = record -> record.setAsDouble(0D);
+    interface DoubleRecordView extends Record, DoubleSupplier, DoubleConsumer{
+        Acceptor<DoubleRecordView, ExceptionPlaceholder> INITIALIZER = record -> record.accept(0D);
         double getAsDouble();
-        void setAsDouble(final double value);
+        void accept(final double value);
     }
 
     /**

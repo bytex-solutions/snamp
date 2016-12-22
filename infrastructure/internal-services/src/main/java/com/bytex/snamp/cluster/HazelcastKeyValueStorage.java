@@ -105,7 +105,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
         }
 
         @Override
-        public void setAsLong(final long value) {
+        public void accept(final long value) {
             setValue(value);
         }
 
@@ -115,7 +115,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
         }
 
         @Override
-        public void setAsDouble(final double value) {
+        public void accept(final double value) {
             setValue(value);
         }
 
