@@ -33,7 +33,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     private final AbstractConcurrentResourceAccessor<Map<String, ConfiguredThreadPool>> threadPools =
             new ConcurrentResourceAccessor<>(new HashMap<>());
 
-    private final ExecutorService defaultThreadPool = new ConfiguredThreadPool(DefaultThreadPoolConfiguration.getInstance(), "SnampThread");
+    private final ExecutorService defaultThreadPool = new ConfiguredThreadPool();
     private final Logger logger = Logger.getLogger("SnampThreadPoolRepository");
 
     @Override
