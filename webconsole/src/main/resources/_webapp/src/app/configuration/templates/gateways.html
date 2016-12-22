@@ -1,102 +1,130 @@
 <!-- main content here -->
-<div class="right_col" role="main">
-    <div class="col-md-2">
-        <h4>Choose gateway:</h4>
-        <div class="list-group">
-            <a *ngFor="let gateway of gateways"
-               class="list-group-item pointerElement"
-               [class.active]="gateway.name == activeGateway.name"
-               (click)="setActiveGateway(gateway)">
-            {{gateway.name}}</a>
-            <newEntity
-                    [entities]="gateways"
-                    [type]="'gateway'">
-            </newEntity>
-        </div>
+<div class="right_col" role="main" style="min-height: 949px;">
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>Gateways configuration</h3>
+      </div>
     </div>
-    <div class="col-md-10" *ngIf="gateways && gateways.length > 0">
-        <!-- right area -->
-        <div class="row contentRow">
-            <!-- if we have binging - add next with col-md-5 -->
-            <div class="col-md-6 leftAlign">
-                <!-- combobox with type -->
-                <div class="row">
-                    <div class="form-group">
-                        <label class="control-label col-sm-3" for="entityType">Gateway type:</label>
-                        <div class="col-sm-9">
-                            <select disabled
-                                    id="entityType"
-                                    [(ngModel)]="activeGateway.type"
-                                    (change)="changeType($event)"
-                                    style="height: auto;"
-                                    class="form-control">
-                                <option
-                                        *ngFor="let gateway of availableGateways"
-                                        [value]="gateway.type">
-                                    {{gateway.name}}
-                                </option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row paramRow">
-                        <h4>Parameters:</h4>
-                </div>
-                <div class="row">
-                    <parameters [entity]="activeGateway"></parameters>
-                </div>
+    <div class="clearfix"></div>
 
+    <div class="row" style="margin-top: 30px">
+      <div class="col-md-2 col-sm-2 col-xs-12">
+        <div class="x_panel tile">
+          <div class="x_title">
+            <h2>Choose gateway</h2>
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+
+              <li><a class="close-link"><i class="fa fa-close"></i></a>
+              </li>
+            </ul>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <div class="list-group">
+              <a *ngFor="let gateway of gateways"
+                 class="list-group-item pointerElement"
+                 [class.active]="gateway.name == activeGateway.name"
+                 (click)="setActiveGateway(gateway)">
+                {{gateway.name}}</a>
+              <newEntity
+                [entities]="gateways"
+                [type]="'gateway'">
+              </newEntity>
             </div>
-            <!-- binding here -->
-            <div class="col-md-6 bindingCol leftAlign">
-                <div class="row">
-                    <h4>Binding information:</h4>
-                </div>
-                <div class="panel-group group-accordeon" id="accordionBindings" role="tablist" aria-multiselectable="true">
-                    <div class="panel panel-default"  *ngIf="activeGateway.attributes.length > 0">
-                        <div class="panel-heading" role="tab" id="headingOne">
-                            <h4 class="panel-title">
-                                <a role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseAttributes" aria-expanded="true" aria-controls="collapseAttributes">
-                                    Attributes
-                                </a>
-                            </h4>
-                        </div>
-                        <div id="collapseAttributes" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-                            <div class="panel-body">
-                                <bindings [bindings]="activeGateway.attributes"></bindings>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel panel-default" *ngIf="activeGateway.events.length > 0">
-                        <div class="panel-heading" role="tab" id="headingTwo">
-                            <h4 class="panel-title">
-                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseEvents" aria-expanded="false" aria-controls="collapseEvents">
-                                    Events
-                                </a>
-                            </h4>
-                        </div>
-                        <div id="collapseEvents" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-                            <div class="panel-body">
-                                <bindings [bindings]="activeGateway.events"></bindings>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel panel-default" *ngIf="activeGateway.operations.length > 0">
-                        <div class="panel-heading" role="tab" id="headingThree">
-                            <h4 class="panel-title">
-                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseOperations" aria-expanded="false" aria-controls="collapseOperations">
-                                    Operations
-                                </a>
-                            </h4>
-                        </div>
-                        <div id="collapseOperations" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-                            <div class="panel-body">
-                                <bindings [bindings]="activeGateway.operations"></bindings>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+          </div>
         </div>
-    </div>
+      </div>
+
+      <div class="col-md-10" *ngIf="gateways && gateways.length > 0">
+          <!-- right area -->
+          <div class="row contentRow">
+              <!-- if we have binging - add next with col-md-5 -->
+              <div class="col-md-8 leftAlign">
+                  <!-- combobox with type -->
+                  <div class="row">
+                      <div class="form-group">
+                          <label class="control-label col-sm-3" for="entityType">Gateway type:</label>
+                          <div class="col-sm-9">
+                              <select disabled
+                                      id="entityType"
+                                      [(ngModel)]="activeGateway.type"
+                                      (change)="changeType($event)"
+                                      style="height: auto;"
+                                      class="form-control">
+                                  <option
+                                          *ngFor="let gateway of availableGateways"
+                                          [value]="gateway.type">
+                                      {{gateway.name}}
+                                  </option>
+                              </select>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="row paramRow">
+                          <h4>Parameters:</h4>
+                  </div>
+                  <div class="row">
+                      <parameters [entity]="activeGateway"></parameters>
+                  </div>
+
+              </div>
+              <!-- binding here -->
+              <div class="col-md-4 bindingCol leftAlign">
+                  <div class="row">
+                      <h4>Binding information:</h4>
+                  </div>
+                  <div class="panel-group group-accordeon" id="accordionBindings" role="tablist" aria-multiselectable="true">
+                      <div class="panel panel-default"  *ngIf="activeGateway.attributes.length > 0">
+                          <div class="panel-heading" role="tab" id="headingOne">
+                              <h4 class="panel-title">
+                                  <a role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseAttributes" aria-expanded="true" aria-controls="collapseAttributes">
+                                      Attributes
+                                  </a>
+                              </h4>
+                          </div>
+                          <div id="collapseAttributes" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                              <div class="panel-body">
+                                  <bindings [bindings]="activeGateway.attributes"></bindings>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="panel panel-default" *ngIf="activeGateway.events.length > 0">
+                          <div class="panel-heading" role="tab" id="headingTwo">
+                              <h4 class="panel-title">
+                                  <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseEvents" aria-expanded="false" aria-controls="collapseEvents">
+                                      Events
+                                  </a>
+                              </h4>
+                          </div>
+                          <div id="collapseEvents" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                              <div class="panel-body">
+                                  <bindings [bindings]="activeGateway.events"></bindings>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="panel panel-default" *ngIf="activeGateway.operations.length > 0">
+                          <div class="panel-heading" role="tab" id="headingThree">
+                              <h4 class="panel-title">
+                                  <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseOperations" aria-expanded="false" aria-controls="collapseOperations">
+                                      Operations
+                                  </a>
+                              </h4>
+                          </div>
+                          <div id="collapseOperations" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                              <div class="panel-body">
+                                  <bindings [bindings]="activeGateway.operations"></bindings>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+  </div>
 </div>
+
