@@ -13,6 +13,8 @@ import 'rxjs/add/operator/toPromise';
 import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
 
+import 'select2';
+
 @Component({
   moduleId: module.id,
   templateUrl: './templates/gateways.html'
@@ -38,7 +40,11 @@ export class GatewaysComponent implements OnInit {
                 for (let key in data) {
                     this.gateways.push(new Gateway(this.http, key, data[key]['type'], data[key]['parameters']))
                 }
-                this.activeGateway = (this.gateways.length > 0) ? this.gateways[0] : this.activeGateway;
+                if (this.gateways.length > 0) {
+                  this.activeGateway = this.gateways[0];
+                  // dirty hack to make select element work
+                  $("#select2-gatewaySelection-container").html(this.activeGateway.name);
+                }
                 this.oldTypeValue = this.activeGateway.type;
             });
 
@@ -48,9 +54,26 @@ export class GatewaysComponent implements OnInit {
             .subscribe(data => this.availableGateways = data);
     }
 
-    setActiveGateway(gateway:Gateway) {
-        this.activeGateway = gateway;
-        this.oldTypeValue = gateway.type;
+    ngAfterViewInit() {
+       var _this = this;
+       $(document).ready(function() {
+          $("#gatewaySelection").select2();
+          $("#gatewaySelection").on('change', (e) => {
+             console.log($(e.target).val());
+            _this.selectCurrentlyActiveGateway($(e.target).val());
+          });
+        });
+    }
+
+    selectCurrentlyActiveGateway(gatewayName:string) {
+        let selection:Gateway;
+        for (let i = 0; i < this.gateways.length; i++) {
+          if (this.gateways[i].name == gatewayName) {
+            selection = this.gateways[i];
+          }
+        }
+        this.activeGateway = selection;
+        this.oldTypeValue = selection.type;
     }
 
     changeType(event:any) {
