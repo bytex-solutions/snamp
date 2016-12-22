@@ -99,10 +99,12 @@
     </div>
 </div>
 
-<option
-        class="pointerElement"
-        data-toggle="modal"
-        (click)="clear()"
-        [attr.data-target]="'#addEntity'">
-    + New
-</option>
+<div class="row">
+  <button
+          class="center-block btn btn-primary"
+          data-toggle="modal"
+          (click)="clear()"
+          [attr.data-target]="'#addEntity'">
+    <i class="fa fa-plus"></i> Add new
+  </button>
+</div>

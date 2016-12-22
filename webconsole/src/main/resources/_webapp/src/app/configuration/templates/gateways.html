@@ -21,14 +21,12 @@
                 {{gateway.name}}
               </option>
             </optgroup>
-            <optgroup label="Actions">
-              <newEntity
-                [entities]="gateways"
-                [type]="'gateway'">
-              </newEntity>
-            </optgroup>
-
           </select>
+          <br/>
+          <newEntity
+            [entities]="gateways"
+            [type]="'gateway'">
+          </newEntity>
         </div>
       </panel>
 
