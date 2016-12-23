@@ -5,35 +5,44 @@
       <div class="title_left">
         <h3>Gateways configuration</h3>
       </div>
+
+      <div class="title_right">
+        <div class="col-md-8 col-sm-8 col-xs-12 form-group pull-right top_search">
+            <div class="row">
+              <div class="col-md-3">
+                <h2>Choose gateway</h2>
+              </div>
+              <div class="col-md-6">
+                <select
+                  id="gatewaySelection"
+                  class="select2_group form-control">
+                  <optgroup label="Gateways" *ngIf="gateways.length > 0">
+                    <option
+                      *ngFor="let gateway of gateways"
+                      [value]="gateway.name">
+                      {{gateway.name}}
+                    </option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <newEntity
+                  [entities]="gateways"
+                  (onSave)="initSelectionComponent()"
+                  [type]="'gateway'">
+                </newEntity>
+              </div>
+            </div>
+        </div>
+      </div>
+
     </div>
     <div class="clearfix"></div>
 
-    <div class="row" style="margin-top: 30px">
+    <div class="row" *ngIf="gateways && gateways.length > 0">
+      <panel [header]="activeGateway.name" [column]="'12'">
 
-      <panel [header]="'Choose gateway'">
-        <div class="row">
-          <select
-              id="gatewaySelection"
-              class="select2_group form-control"
-              >
-            <optgroup label="Gateways" *ngIf="gateways.length > 0">
-              <option
-                *ngFor="let gateway of gateways"
-                [value]="gateway.name">
-                {{gateway.name}}
-              </option>
-            </optgroup>
-          </select>
-          <br/>
-          <newEntity
-            [entities]="gateways"
-            (onSave)="initSelectionComponent()"
-            [type]="'gateway'">
-          </newEntity>
-        </div>
-      </panel>
-
-      <div class="col-md-10" *ngIf="gateways && gateways.length > 0">
+        <div class="row" style="margin-top: 30px" *ngIf="gateways && gateways.length > 0">
           <!-- right area -->
           <div class="row contentRow">
               <!-- if we have binging - add next with col-md-5 -->
@@ -118,7 +127,8 @@
               </div>
           </div>
       </div>
-  </div>
+      </panel>
+    </div>
   </div>
 </div>
 
