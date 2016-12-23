@@ -9,10 +9,23 @@ import java.util.function.BiFunction;
  * Represents shared object based on Hazelcast distributed object.
  */
 abstract class HazelcastSharedObject<S extends DistributedObject> extends GridSharedObject {
-    final S distributedObject;
+    private volatile S distributedObject;
 
-    HazelcastSharedObject(final HazelcastInstance hazelcast, final String objectName, final BiFunction<? super HazelcastInstance, ? super String, ? extends S> objectProvider){
+    HazelcastSharedObject(final HazelcastInstance hazelcast, final String objectName, final BiFunction<? super HazelcastInstance, ? super String, ? extends S> objectProvider) {
         distributedObject = objectProvider.apply(hazelcast, objectName);
+    }
+
+    @Override
+    final boolean isDestroyed() {
+        return distributedObject == null;
+    }
+
+    final S getDistributedObject() {
+        final S result = distributedObject;
+        if (result == null)
+            throw objectIsDestroyed();
+        else
+            return result;
     }
 
     @Override
@@ -22,7 +35,9 @@ abstract class HazelcastSharedObject<S extends DistributedObject> extends GridSh
 
     @Override
     final void destroy() {
-        distributedObject.destroy();
+        final S obj = distributedObject;
+        distributedObject = null;
+        obj.destroy();
     }
 
     @Override

@@ -6,7 +6,6 @@ import com.bytex.snamp.core.SharedObjectDefinition;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.cache.RemovalNotification;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
@@ -112,17 +111,7 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
     private final class GridServiceLoader extends CacheLoader<GridServiceKey<?>, GridSharedObject> {
         @Override
         public GridSharedObject load(@Nonnull final GridServiceKey<?> key) throws Exception {
-            if (key.represents(SHARED_COUNTER))
-                return new HazelcastCounter(hazelcast, key.serviceName);
-            else if (key.represents(COMMUNICATOR))
-                return new HazelcastCommunicator(hazelcast, key.serviceName);
-            else if (key.represents(SHARED_BOX))
-                return new HazelcastBox(hazelcast, key.serviceName);
-            else if (key.represents(KV_STORAGE))
-                return new HazelcastKeyValueStorage(hazelcast, key.serviceName);
-            else if (key.represents(PERSISTENT_KV_STORAGE))
-                return new OrientKeyValueStorage(getSnampDatabase(), key.serviceName);
-            else throw new InvalidKeyException(String.format("Service %s is not supported", key));
+            return getOrCreateSharedObject(key, true);
         }
     }
 
@@ -139,13 +128,7 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
         this.hazelcast = hazelcastInstance;
         this.shutdownHazelcast = shutdownHazelcast;
         sharedObjects = CacheBuilder.<GridServiceKey<?>, GridSharedObject>newBuilder()
-                .removalListener(GridMember::cleanupSharedObject)
                 .build(new GridServiceLoader());
-    }
-
-    private static void cleanupSharedObject(final RemovalNotification<GridServiceKey<?>, GridSharedObject> notification){
-        if (!notification.wasEvicted() && notification.getValue() != null)
-            notification.getValue().destroy();
     }
 
     public GridMember(final HazelcastInstance hazelcastInstance) throws ReflectiveOperationException, JAXBException, IOException, JMException {
@@ -185,7 +168,7 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
         try {
             electionThread.close();
         } catch (final InterruptedException e) {
-            getLogger().log(Level.SEVERE, "Election thread interrupted", e);
+            logger.log(Level.SEVERE, "Election thread interrupted", e);
             return;
         }
         electionThread = new LeaderElectionThread(hazelcast);
@@ -210,6 +193,24 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
     @Override
     public String getName() {
         return hazelcast.getName();
+    }
+
+    private GridSharedObject getOrCreateSharedObject(final GridServiceKey<?> key, final boolean forceCreate) {
+        logger.fine(() -> String.format("Querying service %s", key));
+        if (key.represents(SHARED_COUNTER))
+            return new HazelcastCounter(hazelcast, key.serviceName);
+        else if (key.represents(COMMUNICATOR))
+            return new HazelcastCommunicator(hazelcast, key.serviceName);
+        else if (key.represents(SHARED_BOX))
+            return new HazelcastBox(hazelcast, key.serviceName);
+        else if (key.represents(KV_STORAGE))
+            return new HazelcastKeyValueStorage(hazelcast, key.serviceName);
+        else if (key.represents(PERSISTENT_KV_STORAGE))
+            return new OrientKeyValueStorage(getSnampDatabase(), key.serviceName, forceCreate);
+        else {
+            logger.warning(() -> String.format("Requested service %s is not supported", key));
+            throw new InvalidKeyException(String.format("Service %s is not supported", key));
+        }
     }
 
     /**
@@ -239,7 +240,17 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
      */
     @Override
     public void releaseService(final String serviceName, final SharedObjectDefinition<?> serviceType) {
-        sharedObjects.invalidate(new GridServiceKey<>(serviceName, serviceType));
+        final GridServiceKey<?> serviceKey = new GridServiceKey<>(serviceName, serviceType);
+        logger.info(() -> String.format("Destroying distributed service %s", serviceKey));
+        GridSharedObject sharedObject = sharedObjects.asMap().remove(serviceKey);
+        if (sharedObject == null)
+            sharedObject = getOrCreateSharedObject(serviceKey, false);
+        if (sharedObject == null || sharedObject.isDestroyed())
+            logger.info(() -> String.format("Distributed service %s cannot be destroyed because it doesn't exist", serviceKey));
+        else {
+            sharedObject.destroy();
+            logger.info(() -> String.format("Distributed service %s is destroyed", serviceKey));
+        }
     }
 
     /**
@@ -282,22 +293,25 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
         return objectType.cast(result);
     }
 
+    //only for testing purposes
+    //NOT THREAD SAFE
+    void destroyLocalServices(){
+        sharedObjects.asMap().values().forEach(GridSharedObject::destroy);
+        sharedObjects.invalidateAll();
+    }
+
     @Override
     public void close() throws InterruptedException {
         final String instanceName = getName();
         logger.info(() -> String.format("GridMember service %s is closing. Shutdown Hazelcast? %s", instanceName, shutdownHazelcast ? "yes" : "no"));
-        if(shutdownHazelcast)
-            sharedObjects.invalidateAll();
-        else
-            sharedObjects.cleanUp();
         shutdown();
         try {
             electionThread.close();
         } finally {
             electionThread = null;
-            if (shutdownHazelcast) {
+            sharedObjects.invalidateAll();
+            if (shutdownHazelcast)
                 hazelcast.shutdown();
-            }
         }
         logger.info(() -> String.format("GridMember service %s is closed successfully", instanceName));
     }

@@ -18,10 +18,6 @@ final class HazelcastCounter extends HazelcastSharedObject<IAtomicLong> implemen
 
     @Override
     public long getAsLong() {
-        return distributedObject.getAndIncrement();
-    }
-
-    static void destroy(HazelcastInstance hazelcast, String serviceName) {
-        hazelcast.getIdGenerator(serviceName).destroy();
+        return getDistributedObject().getAndIncrement();
     }
 }

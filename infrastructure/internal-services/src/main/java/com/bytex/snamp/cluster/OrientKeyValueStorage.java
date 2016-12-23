@@ -8,9 +8,9 @@ import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.id.ORID;
-import com.orientechnologies.orient.core.index.OIndex;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OSchema;
+import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.orientechnologies.orient.core.tx.OTransaction;
 import com.orientechnologies.orient.core.tx.OTransactionOptimistic;
 
@@ -34,34 +34,49 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         }
     }
 
-    private final OClass documentClass;
+    private volatile OClass documentClass;
     private final ODatabaseDocumentTx database;
     private final String indexName;
 
     OrientKeyValueStorage(final ODatabaseDocumentTx database,
-                          final String collectionName) {
+                          final String collectionName,
+                          final boolean forceCreate) {
         ODatabaseRecordThreadLocal.INSTANCE.set(this.database = Objects.requireNonNull(database));
         indexName = collectionName + "Index";
         //init class
         final OSchema schema = database.getMetadata().getSchema();
         if (schema.existsClass(collectionName))
             documentClass = schema.getClass(collectionName);
-        else {
+        else if (forceCreate) {
             documentClass = schema.createClass(collectionName);
             PersistentFieldDefinition.defineFields(documentClass);
             PersistentFieldDefinition.createIndex(documentClass, indexName);
-        }
+        } else
+            documentClass = null;
         ODatabaseRecordThreadLocal.INSTANCE.remove();
     }
 
+    @Override
+    boolean isDestroyed(){
+        return documentClass == null;
+    }
+
+    private OClass getDocumentClass(){
+        if(isDestroyed())
+            throw objectIsDestroyed();
+        else
+            return documentClass;
+    }
+
     private <V> V getRecord(final Comparable<?> indexKey, final Function<? super OIdentifiable, ? extends V> transform) {
+        final OClass documentClass = getDocumentClass();
         final OIdentifiable recordId = DBUtils.supplyWithDatabase(database, () -> (OIdentifiable) documentClass.getClassIndex(indexName).get(PersistentFieldDefinition.getCompositeKey(indexKey)));
         return recordId == null ? null : transform.apply(recordId);
     }
 
     @Override
     public String getName() {
-        return documentClass.getName();
+        return getDocumentClass().getName();
     }
 
     /**
@@ -87,7 +102,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         final PersistentRecord record = getRecord(key, PersistentRecord::new);
         if (record != null) {
             record.setDatabase(database);
-            record.setClassName(documentClass.getName());
+            record.setClassName(getDocumentClass().getName());
             return database.load(record) == null ? Optional.empty() : Optional.of(record).map(recordView::cast);
         } else
             return Optional.empty();
@@ -111,7 +126,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
             record.setKey(key);
         }
         record.setDatabase(database);
-        record.setClassName(documentClass.getName());
+        record.setClassName(getDocumentClass().getName());
         if (isNew) {
             //new record detected
             initializer.accept(recordView.cast(record));
@@ -151,6 +166,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
      */
     @Override
     public void clear() {
+        final OClass documentClass = this.getDocumentClass();
         ODatabaseRecordThreadLocal.INSTANCE.set(database);
         try {
             documentClass.truncate();
@@ -161,17 +177,18 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         }
     }
 
+    private void destroyImpl() {
+        final OClass documentClass = this.documentClass;
+        this.documentClass = null;
+        if (documentClass != null) {
+            database.command(new OCommandSQL(String.format("drop class %s", documentClass.getName()))).execute(); //remove class
+            database.command(new OCommandSQL(String.format("drop index %s", indexName))).execute();       //remove indexes
+        }
+    }
+
     @Override
     void destroy() {
-        DBUtils.runWithDatabase(database, () -> {
-            try {
-                documentClass.truncate();   //remove all records associated with document class
-            } catch (final IOException e) {
-                throw new UncheckedIOException(e);
-            }
-            documentClass.getIndexes().forEach(OIndex::delete);       //remove all indexes
-            database.getMetadata().getSchema().dropClass(documentClass.getName());   //drop class
-        });
+        DBUtils.runWithDatabase(database, this::destroyImpl);
     }
 
     /**
@@ -192,6 +209,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
      */
     @Override
     public <R extends Record> Stream<R> getRecords(final Class<R> recordType) {
+        final OClass documentClass = getDocumentClass();
         final Iterator<R> records = Iterators.transform(database.browseClass(documentClass.getName()), proto -> recordType.cast(new PersistentRecord(proto)));
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(records, Spliterator.IMMUTABLE), false);
     }
@@ -204,6 +222,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
      */
     @Override
     public TransactionScope beginTransaction(final IsolationLevel level) {
+        getDocumentClass();
         final TransactionScopeImpl transaction = new TransactionScopeImpl(database);
         switch (level) {
             case READ_COMMITTED:

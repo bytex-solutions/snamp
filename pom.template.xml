@@ -33,7 +33,7 @@
     <snmp4j.version>2.5.1</snmp4j.version>
     <sshj.version>0.18.0</sshj.version>
     <netty.version>3.10.6.Final</netty.version>
-    <orientdb.version>2.2.13</orientdb.version>
+    <orientdb.version>2.2.14</orientdb.version>
       <jsr305.version>3.0.1</jsr305.version>
       <!--Versioning of SNAMP Components-->
     <snamp.version>2.0.0</snamp.version>

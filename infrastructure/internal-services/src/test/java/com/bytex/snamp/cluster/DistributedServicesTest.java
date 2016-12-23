@@ -39,7 +39,9 @@ public final class DistributedServicesTest extends Assert {
 
     @After
     public void shutdownHazelcastNodes() throws InterruptedException {
+        instance1.destroyLocalServices();
         instance1.close();
+        instance2.destroyLocalServices();
         instance2.close();
         instance1 = null;
         instance2 = null;

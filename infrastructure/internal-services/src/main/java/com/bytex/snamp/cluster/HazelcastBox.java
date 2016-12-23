@@ -22,12 +22,12 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
 
     @Override
     public Object get() {
-        return distributedObject.get();
+        return getDistributedObject().get();
     }
 
     @Override
     public void set(final Object value) {
-        distributedObject.set(value);
+        getDistributedObject().set(value);
     }
 
     @Override
@@ -39,7 +39,7 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
                 current = valueProvider.get();
             else
                 break;
-        } while (!distributedObject.compareAndSet(null, current));
+        } while (!getDistributedObject().compareAndSet(null, current));
         return current;
     }
 
@@ -47,8 +47,8 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
     public Object accumulateAndGet(final Object right, final BinaryOperator<Object> operator) {
         Object prev, next;
         do{
-            next = operator.apply(prev = distributedObject.get(), right);
-        } while (!distributedObject.compareAndSet(prev, next));
+            next = operator.apply(prev = getDistributedObject().get(), right);
+        } while (!getDistributedObject().compareAndSet(prev, next));
         return next;
     }
 
@@ -56,20 +56,20 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
     public Object updateAndGet(final UnaryOperator<Object> operator) {
         Object prev, next;
         do{
-            next = operator.apply(prev = distributedObject.get());
-        } while (!distributedObject.compareAndSet(prev, next));
+            next = operator.apply(prev = getDistributedObject().get());
+        } while (!getDistributedObject().compareAndSet(prev, next));
         return next;
     }
 
     @Override
     public Object getAndSet(final Object newValue) {
-        return distributedObject.getAndSet(newValue);
+        return getDistributedObject().getAndSet(newValue);
     }
 
     @Override
     public Object getOrDefault(final Supplier<?> defaultProvider) {
-        final Object current = distributedObject.get();
-        return current == null ? defaultProvider.get() : distributedObject.get();
+        final Object current = getDistributedObject().get();
+        return current == null ? defaultProvider.get() : getDistributedObject().get();
     }
 
     /**
@@ -79,15 +79,11 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
      */
     @Override
     public boolean hasValue() {
-        return !distributedObject.isNull();
+        return !getDistributedObject().isNull();
     }
 
     @Override
     public void accept(final Object value) {
-        distributedObject.set(value);
-    }
-
-    static void destroy(final HazelcastInstance hazelcast, final String serviceName) {
-        hazelcast.getAtomicReference(serviceName).destroy();
+        getDistributedObject().set(value);
     }
 }

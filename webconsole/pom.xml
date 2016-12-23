@@ -73,11 +73,6 @@
     </dependency>
   </dependencies>
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources/_webapp/dist</directory>
-      </resource>
-    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
@@ -88,9 +83,6 @@
             <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
             <Export-Package />
             <Bundle-Activator>com.bytex.snamp.webconsole.WebConsoleActivator</Bundle-Activator>
-            <Web-ContextPath>snamp</Web-ContextPath>
-            <Webapp-Context>snamp</Webapp-Context>
-            <_wab>src/main/resources/_webapp/dist</_wab>
           </instructions>
         </configuration>
       </plugin>

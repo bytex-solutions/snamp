@@ -157,7 +157,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
      */
     @Override
     public <R extends Record> Optional<R> getRecord(final Comparable<?> key, final Class<R> recordView) {
-        final HazelcastRecord record = distributedObject.containsKey(key) ? new HazelcastRecord(distributedObject, key) : null;
+        final HazelcastRecord record = getDistributedObject().containsKey(key) ? new HazelcastRecord(getDistributedObject(), key) : null;
         return Optional.ofNullable(record).map(recordView::cast);
     }
 
@@ -172,14 +172,14 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
      */
     @Override
     public <R extends Record, E extends Throwable> R getOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> initializer) throws E {
-        final HazelcastRecord record = new HazelcastRecord(distributedObject, key);
+        final HazelcastRecord record = new HazelcastRecord(getDistributedObject(), key);
         if (!record.isInitialized()) {
-            distributedObject.lock(key);
+            getDistributedObject().lock(key);
             try {
                 if (!record.isInitialized())
                     initializer.accept(recordView.cast(record));
             } finally {
-                distributedObject.unlock(key);
+                getDistributedObject().unlock(key);
             }
         }
         return recordView.cast(record);
@@ -193,7 +193,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
      */
     @Override
     public boolean delete(final Comparable<?> key) {
-        return distributedObject.remove(key) != null;
+        return getDistributedObject().remove(key) != null;
     }
 
     /**
@@ -204,7 +204,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
      */
     @Override
     public boolean exists(final Comparable<?> key) {
-        return distributedObject.containsKey(key);
+        return getDistributedObject().containsKey(key);
     }
 
     /**
@@ -215,7 +215,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
      */
     @Override
     public <R extends Record> Stream<R> getRecords(final Class<R> recordType) {
-        return distributedObject.keySet().stream().map(key -> new HazelcastRecord(distributedObject, key)).map(recordType::cast);
+        return getDistributedObject().keySet().stream().map(key -> new HazelcastRecord(getDistributedObject(), key)).map(recordType::cast);
     }
 
     /**
@@ -223,7 +223,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
      */
     @Override
     public void clear() {
-        distributedObject.clear();
+        getDistributedObject().clear();
     }
 
     /**

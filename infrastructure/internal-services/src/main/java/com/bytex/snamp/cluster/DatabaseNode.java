@@ -34,19 +34,18 @@ class DatabaseNode extends OServer {
     private static final String SNAMP_DATABASE = "snamp_storage";
 
     public static final File ORIENTDB_HOME = interfaceStaticInitialize(() -> {
-        String karafDataFolder = System.getProperty("karaf.data");
-        final String ORIENTDB_PREFIX = "orientdb";
         final File home;
-        if(isNullOrEmpty(karafDataFolder))
-             home = Files.createTempDirectory(ORIENTDB_PREFIX).toFile();
-        else {
-            home = Paths.get(karafDataFolder, ORIENTDB_PREFIX).toFile();
-            if (!home.exists()) {
-                final boolean created = home.mkdir();
-                assert created;
-            }
+        {
+            final String rootDirectory = System.getProperty(Orient.ORIENTDB_HOME, System.getProperty("karaf.data"));
+            final String ORIENTDB_PREFIX = "orientdb";
+            home = isNullOrEmpty(rootDirectory) ?
+                    Files.createTempDirectory(ORIENTDB_PREFIX).toFile() :
+                    Paths.get(rootDirectory, ORIENTDB_PREFIX).toFile();
         }
-
+        if (!home.exists()) {
+            final boolean created = home.mkdir();
+            assert created;
+        }
         System.setProperty(Orient.ORIENTDB_HOME, home.getAbsolutePath());
         return home;
     });
@@ -88,15 +87,17 @@ class DatabaseNode extends OServer {
             pluginManager.registerPlugin(createPluginInfo(plugin));
         }
         final DatabaseCredentials credentials = DatabaseCredentials.resolveSnampUser(getBundleContextOfObject(this), getConfiguration());
-        if(credentials == null)
+        if (credentials == null)
             throw new SecurityException(String.format("Credentials for special SNAMP user not found. Database %s cannot be opened", databaseConfigFile));
         //initialize SNAMP database
         snampDatabase = new SnampDatabase(getStoragePath(SNAMP_DATABASE));
-        if (snampDatabase.exists())
-            credentials.login(snampDatabase);
-         else {
+        if (!snampDatabase.exists()) {
             snampDatabase.create();
+            credentials.createUser(snampDatabase);
+            snampDatabase.close();
+
         }
+        credentials.login(snampDatabase);
         return this;
     }
 

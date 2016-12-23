@@ -19,6 +19,13 @@ import java.util.concurrent.ExecutionException;
 public final class PersistentStorageTest extends Assert {
     private GridMember instance1;
 
+//    @BeforeClass
+//    public static void setupDatabaseHome(){
+//        final String userHome = StandardSystemProperty.USER_HOME.value();
+//        assertFalse(Strings.isNullOrEmpty(userHome));
+//        System.setProperty(Orient.ORIENTDB_HOME, userHome);
+//    }
+
     @Before
     public void setupHazelcastNodes() throws Exception {
         instance1 = new GridMember();
@@ -27,6 +34,7 @@ public final class PersistentStorageTest extends Assert {
 
     @After
     public void shutdownHazelcastNodes() throws InterruptedException {
+        instance1.destroyLocalServices();
         instance1.close();
         instance1 = null;
     }
@@ -64,7 +72,6 @@ public final class PersistentStorageTest extends Assert {
     }
 
     @Test
-    @Ignore
     public void theSameCollectionTest(){
         final KeyValueStorage storage1 = instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE);
         assertNotNull(storage1);
@@ -75,7 +82,6 @@ public final class PersistentStorageTest extends Assert {
     }
 
     @Test
-    @Ignore
     public void differentTypesTest() throws ExecutionException, InterruptedException {
         final String KEY = "Frank Underwood";
         final FutureThread<Void> thread = FutureThread.start(() -> {

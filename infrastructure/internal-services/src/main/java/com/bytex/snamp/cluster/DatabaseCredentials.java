@@ -1,12 +1,14 @@
 package com.bytex.snamp.cluster;
 
 import com.orientechnologies.orient.core.db.ODatabase;
+import com.orientechnologies.orient.core.metadata.security.ORole;
 import com.orientechnologies.orient.server.config.OServerConfiguration;
 import com.orientechnologies.orient.server.config.OServerUserConfiguration;
 import org.osgi.framework.BundleContext;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 import java.util.Objects;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents credentials for database.
@@ -44,5 +46,13 @@ final class DatabaseCredentials {
 
     void login(final ODatabase<?> database){
         database.open(userName, new String(password));
+    }
+
+    void createUser(final ODatabase<?> database) {
+        database.getMetadata().getSecurity().createUser(
+                userName,
+                new String(password),
+                database.getMetadata().getSecurity().getRole(ORole.ADMIN)
+        );
     }
 }

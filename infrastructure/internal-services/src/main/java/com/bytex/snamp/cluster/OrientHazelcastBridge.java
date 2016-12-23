@@ -4,6 +4,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.orientechnologies.common.log.OLogManager;
 import com.orientechnologies.orient.core.Orient;
+import com.orientechnologies.orient.server.config.OServerConfiguration;
 import com.orientechnologies.orient.server.distributed.ORemoteServerController;
 import com.orientechnologies.orient.server.hazelcast.OHazelcastPlugin;
 
@@ -16,25 +17,34 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
 final class OrientHazelcastBridge extends OHazelcastPlugin {
-
     OrientHazelcastBridge(final HazelcastInstance instance) throws IOException {
         hazelcastInstance = Objects.requireNonNull(instance);
         hazelcastConfig = instance.getConfig();
-        String machineName;
-        try {
-            machineName = InetAddress.getLocalHost().getHostName();
-        } catch (final UnknownHostException e) {
-            machineName = ManagementFactory.getRuntimeMXBean().getName();
-        }
-        nodeName = "OrientDB-" + machineName + '-' + System.currentTimeMillis();
         //read OrientDB distributed configuration
         defaultDatabaseConfigFile = DatabaseConfigurationFile.DISTRIBUTED_CONFIG.toFile(true);
+    }
+
+    @Override
+    protected void assignNodeName() {
+        final OServerConfiguration configuration = getServerInstance().getConfiguration();
+        nodeName = configuration.getProperty("nodeName");
+        if (isNullOrEmpty(nodeName)) {
+            String machineName;
+            try {
+                machineName = InetAddress.getLocalHost().getHostName();
+            } catch (final UnknownHostException e) {
+                machineName = ManagementFactory.getRuntimeMXBean().getName();
+            }
+            nodeName = "OrientDB-" + machineName + '-';
+        }
     }
 
     private void shutdownDistributedPlugin() {

@@ -197,7 +197,7 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
 
     @Override
     public void sendMessage(final Serializable payload, final MessageType type, final long messageID) {
-        distributedObject.publish(new TransferObject(new HazelcastNodeInfo(hazelcast), payload, type, messageID));
+        getDistributedObject().publish(new TransferObject(new HazelcastNodeInfo(hazelcast), payload, type, messageID));
     }
 
     @Override
@@ -210,22 +210,22 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
 
     @Override
     public <V> MessageReceiver<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
-        return new MessageReceiver<>(distributedObject, localMember, filter, messageParser);
+        return new MessageReceiver<>(getDistributedObject(), localMember, filter, messageParser);
     }
 
     @Override
     public TransferObjectListener addMessageListener(final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter) {
-        return new TransferObjectListener(distributedObject, localMember, filter, listener);
+        return new TransferObjectListener(getDistributedObject(), localMember, filter, listener);
     }
 
     @Override
     public <V> FixedSizeMessageBox<V> createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
-        return new FixedSizeMessageBox<>(capacity, distributedObject, localMember, filter, messageParser);
+        return new FixedSizeMessageBox<>(capacity, getDistributedObject(), localMember, filter, messageParser);
     }
 
     @Override
     public <V> LinkedMessageBox<V> createMessageBox(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
-        return new LinkedMessageBox<>(distributedObject, localMember, filter, messageParser);
+        return new LinkedMessageBox<>(getDistributedObject(), localMember, filter, messageParser);
     }
 
     @Override
@@ -244,9 +244,5 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
         final MessageReceiver<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser);
         sendMessage(request, MessageType.REQUEST, messageID);
         return receiver;
-    }
-
-    static void destroy(final HazelcastInstance hazelcast, final String serviceName) {
-        hazelcast.getTopic(serviceName).destroy();
     }
 }
