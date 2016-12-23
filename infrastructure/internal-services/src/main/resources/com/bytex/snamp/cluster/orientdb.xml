@@ -12,8 +12,8 @@
     </network>
     <users>
         <!--See http://orientdb.com/docs/2.2/Server-Security.html about permissions-->
-        <user name="root" password="snamp" resources="*"/>
-        <user name="snamp" password="snamp" resources="database.create,database.exists"/> <!--Special user used by SNAMP-->
+        <user name="root" password="root" resources="*"/>
+        <user name="snamp" password="snamp" resources="database"/> <!--Special user used by SNAMP-->
         <user name="guest" password="guest" resources="connect,server.listDatabases"/>
     </users>
     <storages/>

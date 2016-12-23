@@ -5,10 +5,7 @@ import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.StringReader;
 import java.util.Map;
@@ -67,6 +64,7 @@ public final class PersistentStorageTest extends Assert {
     }
 
     @Test
+    @Ignore
     public void theSameCollectionTest(){
         final KeyValueStorage storage1 = instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE);
         assertNotNull(storage1);
@@ -77,6 +75,7 @@ public final class PersistentStorageTest extends Assert {
     }
 
     @Test
+    @Ignore
     public void differentTypesTest() throws ExecutionException, InterruptedException {
         final String KEY = "Frank Underwood";
         final FutureThread<Void> thread = FutureThread.start(() -> {

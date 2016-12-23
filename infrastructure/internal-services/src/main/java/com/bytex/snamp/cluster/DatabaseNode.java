@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -86,10 +87,16 @@ class DatabaseNode extends OServer {
             plugin.startup();
             pluginManager.registerPlugin(createPluginInfo(plugin));
         }
+        final DatabaseCredentials credentials = DatabaseCredentials.resolveSnampUser(getBundleContextOfObject(this), getConfiguration());
+        if(credentials == null)
+            throw new SecurityException(String.format("Credentials for special SNAMP user not found. Database %s cannot be opened", databaseConfigFile));
         //initialize SNAMP database
         snampDatabase = new SnampDatabase(getStoragePath(SNAMP_DATABASE));
-        if(!snampDatabase.exists())
+        if (snampDatabase.exists())
+            credentials.login(snampDatabase);
+         else {
             snampDatabase.create();
+        }
         return this;
     }
 

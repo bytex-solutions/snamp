@@ -211,7 +211,7 @@ enum PersistentFieldDefinition {
     }
 
     static void createIndex(final OClass documentClass, final String indexName) {
-        documentClass.createIndex(indexName, OClass.INDEX_TYPE.UNIQUE_HASH_INDEX, INDEX_FIELDS.stream().map(f -> f.fieldName).toArray(String[]::new));
+        documentClass.createIndex(indexName, OClass.INDEX_TYPE.UNIQUE_HASH_INDEX, INDEX_FIELDS.stream().map(f -> f.fieldName).toArray(String[]::new)).flush();
     }
 
     @Override
