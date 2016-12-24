@@ -82,6 +82,7 @@
           <ignoreScopeProvided>true</ignoreScopeProvided>
           <bootFeatures>
             <feature>standard</feature>
+            <feature>framework</feature>
           </bootFeatures>
           <startupFeatures>
             <feature>eventadmin</feature>
