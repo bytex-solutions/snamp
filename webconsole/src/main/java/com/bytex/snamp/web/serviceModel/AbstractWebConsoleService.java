@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole.serviceModel;
+package com.bytex.snamp.web.serviceModel;
 
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.internal.InheritanceNavigator;
@@ -13,6 +13,11 @@ import java.io.IOException;
  */
 public abstract class AbstractWebConsoleService implements WebConsoleService {
     private final WeakEventListenerList<WebEventListener, WebEvent> listeners = WeakEventListenerList.create(WebEventListener::accept);
+
+    @Override
+    public final String getName() {
+        return getClass().getSimpleName();
+    }
 
     @Override
     public final void addWebEventListener(final WebEventListener listener) {

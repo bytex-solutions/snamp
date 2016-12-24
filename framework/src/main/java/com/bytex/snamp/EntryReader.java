@@ -18,5 +18,5 @@ public interface EntryReader<I, R, E extends Throwable> {
      * @throws E Unable to process record.
      * @return {@literal true} to continue iteration; {@literal false} to abort iteration
      */
-    boolean read(final I index, final R value) throws E;
+    boolean accept(final I index, final R value) throws E;
 }

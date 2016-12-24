@@ -122,7 +122,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         private <E extends Throwable> void forEachNotificationImpl(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E{
             for (final ResourceNotificationList<ScriptNotificationAccessor> notifs : notifications.values())
                 for (final ScriptNotificationAccessor accessor : notifs.values())
-                    if(!notificationReader.read(accessor.getResourceName(), accessor)) return;
+                    if(!notificationReader.accept(accessor.getResourceName(), accessor)) return;
         }
 
         /**

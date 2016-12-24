@@ -35,7 +35,7 @@ public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor
      * @return {@literal true} to continue processing; otherwise, {@literal false}.
      */
     @Override
-    public abstract boolean read(final String resourceName, final TAccessor accessor) throws Exception;
+    public abstract boolean accept(final String resourceName, final TAccessor accessor) throws Exception;
 
     /**
      * Sends attribute check status.

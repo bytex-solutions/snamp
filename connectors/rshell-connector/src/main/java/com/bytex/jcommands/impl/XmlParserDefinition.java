@@ -983,10 +983,10 @@ public class XmlParserDefinition {
         for (final Object templateFragment : getParsingTemplate())
             if (templateFragment instanceof TableColumnParsingRule) {
                 final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;
-                if(!reader.read(rule.getColumnName(), rule.getColumnType())) return;
+                if(!reader.accept(rule.getColumnName(), rule.getColumnType())) return;
             } else if (templateFragment instanceof DictionaryEntryParsingRule) {
                 final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule) templateFragment;
-                if(!reader.read(rule.getKeyName(), rule.getValueType())) return;
+                if(!reader.accept(rule.getKeyName(), rule.getValueType())) return;
             }
     }
 }

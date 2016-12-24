@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole.serviceModel.logging;
+package com.bytex.snamp.web.serviceModel.logging;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;

@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole.serviceModel;
+package com.bytex.snamp.web.serviceModel;
 
 import java.io.Closeable;
 
@@ -19,4 +19,6 @@ public interface WebConsoleService extends Closeable {
      * @return {@literal true}, if this service exposes resource model; otherwise, {@literal false}.
      */
     boolean isResourceModel();
+
+    String getName();
 }

@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole.serviceModel;
+package com.bytex.snamp.web.serviceModel;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 

@@ -22,7 +22,6 @@ import java.lang.management.ManagementFactory;
 import java.nio.*;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -498,7 +497,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     <E extends Throwable> boolean forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
         try (final SafeCloseable ignored = readLock.acquireLock(MBeanResources.ATTRIBUTES)) {
             for (final JmxAttributeAccessor accessor : attributes.values())
-                if (!attributeReader.read(resourceName, accessor))
+                if (!attributeReader.accept(resourceName, accessor))
                     return false;
             return true;
         }
@@ -507,7 +506,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     <E extends Throwable> boolean forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
         try(final SafeCloseable ignored = readLock.acquireLock(MBeanResources.NOTIFICATIONS)){
             for(final JmxNotificationAccessor accessor: notifications.values())
-                if(!notificationReader.read(resourceName, accessor))
+                if(!notificationReader.accept(resourceName, accessor))
                     return false;
             return true;
         }
@@ -516,7 +515,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     <E extends Throwable> boolean forEachOperation(final EntryReader<String, ? super JmxOperationAccessor, E> operationReader) throws E {
         try(final SafeCloseable ignored = readLock.acquireLock(MBeanResources.OPERATIONS)){
             for(final JmxOperationAccessor accessor: operations.values())
-                if(!operationReader.read(resourceName, accessor))
+                if(!operationReader.accept(resourceName, accessor))
                     return false;
             return true;
         }

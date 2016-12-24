@@ -24,7 +24,7 @@ final class SysLogAttributeSender extends PeriodicPassiveChecker<SysLogAttribute
     }
 
     @Override
-    public boolean read(final String resourceName, final SysLogAttributeAccessor accessor) {
+    public boolean accept(final String resourceName, final SysLogAttributeAccessor accessor) {
         if(DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
             messageSender.sendMessage(accessor.toMessage(resourceName));
             return true;

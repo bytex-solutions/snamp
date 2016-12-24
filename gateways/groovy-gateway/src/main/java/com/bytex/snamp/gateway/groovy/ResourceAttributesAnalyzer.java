@@ -169,7 +169,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
     }
 
     @Override
-    public final boolean read(final String resourceName, final TAccessor accessor) {
+    public final boolean accept(final String resourceName, final TAccessor accessor) {
         //abort if passive node
         if (DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
             selectionStatements.stream()

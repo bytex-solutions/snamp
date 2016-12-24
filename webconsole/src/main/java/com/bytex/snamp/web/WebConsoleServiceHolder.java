@@ -1,7 +1,7 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.web;
 
 import com.bytex.snamp.core.ServiceHolder;
-import com.bytex.snamp.webconsole.serviceModel.WebConsoleService;
+import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 

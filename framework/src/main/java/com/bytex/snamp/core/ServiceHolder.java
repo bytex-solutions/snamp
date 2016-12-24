@@ -179,7 +179,7 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
         final Map<String, V> result = new HashMap<>();
         for (final String key : getPropertyKeys()) {
             final Object value;
-            if (filter.read(key, value = getProperty(key)))
+            if (filter.accept(key, value = getProperty(key)))
                 result.put(key, converter.apply(value));
         }
         return result;

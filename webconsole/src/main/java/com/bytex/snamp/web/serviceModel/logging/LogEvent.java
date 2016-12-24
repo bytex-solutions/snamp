@@ -1,7 +1,7 @@
-package com.bytex.snamp.webconsole.serviceModel.logging;
+package com.bytex.snamp.web.serviceModel.logging;
 
-import com.bytex.snamp.webconsole.serviceModel.WebConsoleService;
-import com.bytex.snamp.webconsole.serviceModel.WebEvent;
+import com.bytex.snamp.web.serviceModel.WebConsoleService;
+import com.bytex.snamp.web.serviceModel.WebEvent;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.osgi.service.log.LogEntry;

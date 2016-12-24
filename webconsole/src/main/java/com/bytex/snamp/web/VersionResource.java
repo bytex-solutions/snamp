@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.web;
 
 import com.bytex.snamp.internal.Utils;
 

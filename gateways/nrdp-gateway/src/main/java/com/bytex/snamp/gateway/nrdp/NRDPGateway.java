@@ -81,7 +81,7 @@ final class NRDPGateway extends AbstractGateway {
         }
 
         @Override
-        public boolean read(final String resourceName, final NRDPAttributeAccessor accessor) {
+        public boolean accept(final String resourceName, final NRDPAttributeAccessor accessor) {
             if (DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
                 checkSender.send(accessor, resourceName);
                 return true;

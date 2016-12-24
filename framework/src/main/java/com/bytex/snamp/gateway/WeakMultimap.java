@@ -57,7 +57,7 @@ final class WeakMultimap {
                 final V value = ref != null ? ref.get() : null;
                 if (ref == null || value == null)
                     it.remove();
-                else if (!reader.read(key, value)) break;
+                else if (!reader.accept(key, value)) break;
             }
     }
 }

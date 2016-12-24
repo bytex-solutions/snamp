@@ -27,7 +27,7 @@ abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiabl
             final E entity = e.getValue();
             final String name = e.getKey();
             if (entity.isModified())
-                if (!reader.read(name, entity)) break;
+                if (!reader.accept(name, entity)) break;
         }
     }
 

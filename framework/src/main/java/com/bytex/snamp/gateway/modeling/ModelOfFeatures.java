@@ -155,7 +155,7 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
     private <E extends Throwable> void forEachFeatureImpl(final EntryReader<String, ? super TAccessor, E> featureReader) throws E {
         for (final Map.Entry<String, L> entry : features.entrySet())
             for (final TAccessor accessor : entry.getValue().values())
-                if (!featureReader.read(entry.getKey(), accessor)) return;
+                if (!featureReader.accept(entry.getKey(), accessor)) return;
     }
 
     final <E extends Throwable> void forEachFeature(final EntryReader<String, ? super TAccessor, E> featureReader) throws E {

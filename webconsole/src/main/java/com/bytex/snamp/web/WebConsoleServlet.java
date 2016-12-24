@@ -1,8 +1,8 @@
-package com.bytex.snamp.webconsole;
+package com.bytex.snamp.web;
 
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.web.WebSecurityFilter;
-import com.bytex.snamp.webconsole.serviceModel.WebConsoleService;
+import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;

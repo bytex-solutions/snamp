@@ -1,4 +1,4 @@
-package com.bytex.snamp.webconsole.serviceModel;
+package com.bytex.snamp.web.serviceModel;
 
 import java.util.EventListener;
 import java.util.function.Consumer;

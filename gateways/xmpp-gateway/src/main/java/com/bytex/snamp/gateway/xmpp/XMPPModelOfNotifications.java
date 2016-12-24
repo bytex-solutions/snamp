@@ -88,7 +88,7 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
     private  <E extends Throwable> void forEachNotificationImpl(final EntryReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
         for (final ResourceNotificationList<XMPPNotificationAccessor> list : notifications.values())
             for (final XMPPNotificationAccessor accessor : list.values())
-                if (!notificationReader.read(accessor.resourceName, accessor)) return;
+                if (!notificationReader.accept(accessor.resourceName, accessor)) return;
 
     }
 

@@ -221,7 +221,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
                 get().getBindings(featureType);
         for (final String resourceName : features.keySet())
             for (final FeatureBindingInfo<M> bindingInfo : features.get(resourceName))
-                if (!reader.read(resourceName, bindingInfo)) return false;
+                if (!reader.accept(resourceName, bindingInfo)) return false;
         return !features.isEmpty();
     }
 
