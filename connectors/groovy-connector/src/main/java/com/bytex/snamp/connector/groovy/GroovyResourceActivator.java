@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.groovy;
 import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.FeatureConfiguration;
-import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
 import com.bytex.snamp.core.ClusterMember;
@@ -14,7 +13,6 @@ import groovy.util.ScriptException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import static com.bytex.snamp.MapUtils.toProperties;
 
@@ -48,7 +46,6 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
                 //the last path is a path to groovy
                 final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(
                         connectionInfo.getScriptName(),
-                        getLogger(),
                         getClass().getClassLoader(),
                         true,
                         toProperties(connectionOptions),
@@ -61,11 +58,6 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
             @Override
             protected <T extends FeatureConfiguration> Collection<T> getEntities(final Class<T> entityType, final ManagedResourceInfo provider) {
                 return provider.getEntities(entityType);
-            }
-
-            @Override
-            public Logger getLogger() {
-                return AbstractManagedResourceConnector.getLogger(GroovyResourceConnector.class);
             }
         };
     }

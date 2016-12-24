@@ -8,22 +8,17 @@ import javax.management.MBeanException;
 import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents composition of operations.
  */
 final class OperationComposition extends AbstractOperationRepository<CompositeOperation> {
     private final OperationSupportProvider provider;
-    private final Logger logger;
 
     OperationComposition(final String resourceName,
-                         final OperationSupportProvider provider,
-                         final Logger logger) {
+                         final OperationSupportProvider provider) {
         super(resourceName, CompositeOperation.class, false);
         this.provider = Objects.requireNonNull(provider);
-        this.logger = Objects.requireNonNull(logger);
     }
 
     @Override
@@ -41,12 +36,6 @@ final class OperationComposition extends AbstractOperationRepository<CompositeOp
     private static ReflectionException operationsNotSupported(final Object connectorType) {
         return new ReflectionException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support operations", connectorType)));
     }
-
-    @Override
-    protected void failedToEnableOperation(final String operationName, final Exception e) {
-        failedToEnableOperation(logger, Level.WARNING, operationName, e);
-    }
-
 
     @Override
     protected Object invoke(final OperationCallInfo<CompositeOperation> callInfo) throws Exception {

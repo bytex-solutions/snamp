@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.concurrent.WriteOnceRef;
+import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -82,9 +83,9 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
         } catch (final Throwable e) {
             errStream.println(e.getMessage());
             errStream.flush();
-            SshHelpers.log(Level.WARNING, "Unable to process command %s with arguments %s",
+            LoggerProvider.getLoggerForObject(this).log(Level.WARNING, String.format("Unable to process command %s with arguments %s",
                     getClass().getSimpleName(),
-                    Joiner.on(' ').join(arguments),
+                    Joiner.on(' ').join(arguments)),
                     e);
         }
     }

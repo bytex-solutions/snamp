@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Properties;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -23,7 +22,7 @@ public final class ManagedResourceScriptEngineTest extends Assert {
     public ManagedResourceScriptEngineTest() throws IOException, URISyntaxException {
         final URL resource = getClass().getClassLoader().getResource("scripts/");
         assertNotNull(resource);
-        engine = new ManagedResourceScriptEngine("testResource", Logger.getLogger("test"), getClass().getClassLoader(), false, new Properties(), resource);
+        engine = new ManagedResourceScriptEngine("testResource", getClass().getClassLoader(), false, new Properties(), resource);
     }
 
     @Test

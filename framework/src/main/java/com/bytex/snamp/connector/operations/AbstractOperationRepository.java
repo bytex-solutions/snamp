@@ -5,6 +5,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.OperationMetric;
 import com.bytex.snamp.connector.metrics.OperationMetricRecorder;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableSet;
@@ -246,7 +247,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M remove(final String operationID) {
-        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, operationID, AbstractOperationRepository::removeImpl);
+        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, operationID, AbstractOperationRepository<M>::removeImpl);
         if (metadata != null)
             disconnectOperation(metadata);
         return metadata;
@@ -319,33 +320,14 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
         try{
             return writeLock.call(SingleResourceGroup.INSTANCE, () -> enableOperationImpl(operationName, descriptor), null);
         } catch (final Exception e) {
-            failedToEnableOperation(operationName, e);
+            getLogger().log(Level.WARNING, String.format("Failed to enable operation '%s'", operationName), e);
             return null;
         }
     }
 
-    /**
-     * Reports an error when enabling operation.
-     * @param logger The logger instance. Cannot be {@literal null}.
-     * @param logLevel Logging level.
-     * @param operationName The name of the operation as it is declared in the resource.
-     * @param e Internal connector error.
-     */
-    protected static void failedToEnableOperation(final Logger logger,
-                                                      final Level logLevel,
-                                                      final String operationName,
-                                                      final Exception e){
-        logger.log(logLevel, String.format("Failed to enable operation '%s'", operationName), e);
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
-
-    /**
-     * Reports an error when enabling operation.
-     * @param operationName The name of the operation as it is declared in the resource.
-     * @param e Internal connector error.
-     * @see #failedToEnableOperation(Logger, Level, String, Exception)
-     */
-    protected abstract void failedToEnableOperation(final String operationName,
-                                                    final Exception e);
 
     /**
      * Returns an array of supported operations.
@@ -464,8 +446,8 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
         readLock.accept(SingleResourceGroup.INSTANCE, operations.values(), action, Iterable::forEach);
     }
 
-    protected final void failedToExpand(final Logger logger, final Level level, final Exception e){
-        logger.log(level, String.format("Unable to expand operations for resource %s", getResourceName()), e);
+    protected final void failedToExpand(final Level level, final Exception e){
+        getLogger().log(level, String.format("Unable to expand operations for resource %s", getResourceName()), e);
     }
 
     /**

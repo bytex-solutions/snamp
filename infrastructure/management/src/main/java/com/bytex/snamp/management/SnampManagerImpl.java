@@ -6,8 +6,6 @@ import com.bytex.snamp.gateway.GatewayActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
-import java.util.logging.Logger;
-
 /**
  * Represents management operations that can be applied to SNAMP-related software components.
  * @author Roman Sakno
@@ -15,7 +13,6 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public final class SnampManagerImpl extends AbstractSnampManager {
-    private static final String LOGGER_NAME = "com.bytex.snamp.management";
 
     private static final class ResourceConnectorDescriptorImpl extends ResourceConnectorDescriptor{
         private static final long serialVersionUID = -9051897273537657012L;
@@ -63,16 +60,6 @@ public final class SnampManagerImpl extends AbstractSnampManager {
     @Override
     protected GatewayDescriptorImpl createGatewayDescriptor(final String gatewayType) {
         return new GatewayDescriptorImpl(gatewayType);
-    }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return Logger.getLogger(LOGGER_NAME);
     }
 
     public static void restart(final BundleContext context) throws BundleException {

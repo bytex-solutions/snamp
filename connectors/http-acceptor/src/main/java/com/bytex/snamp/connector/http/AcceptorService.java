@@ -5,6 +5,7 @@ import com.bytex.snamp.FixedKeysMap;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.md.notifications.NotificationSource;
 import com.bytex.snamp.core.ExposedServiceHandler;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.instrumentation.measurements.Measurement;
 import com.bytex.snamp.scripting.groovy.xml.XmlSlurperSlim;
 import com.google.common.base.Joiner;
@@ -175,7 +176,7 @@ public final class AcceptorService {
         try {
             acceptor.dispatch(wrapHeaders(headers), measurement);
         } catch (final Exception e) {
-            acceptor.getLogger().log(Level.SEVERE, String.format("Failed to dispatch measurement %s", measurement), e);
+            LoggerProvider.getLoggerForObject(acceptor).log(Level.SEVERE, String.format("Failed to dispatch measurement %s", measurement), e);
             throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         return Response.noContent().build();

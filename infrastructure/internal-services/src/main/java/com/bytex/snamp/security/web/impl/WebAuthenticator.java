@@ -1,12 +1,12 @@
 package com.bytex.snamp.security.web.impl;
 
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.security.web.Authenticator;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 
 import javax.security.auth.login.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,10 +32,12 @@ public final class WebAuthenticator extends Authenticator {
      */
     private static final String AUTH_COOKIE = WebSecurityFilter.DEFAULT_AUTH_COOKIE;
 
-    private final Logger logger;
 
-    WebAuthenticator(final Logger logger){
-        this.logger = Objects.requireNonNull(logger);
+    WebAuthenticator(){
+    }
+
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     @POST
@@ -45,22 +47,22 @@ public final class WebAuthenticator extends Authenticator {
         try {
             context = new LoginContext(JAAS_REALM, new NamePasswordHandler(userName, password));
         } catch (final LoginException e) {
-            logger.log(Level.SEVERE, "Cannot retrieve login context.", e);
+            getLogger().log(Level.SEVERE, "Cannot retrieve login context.", e);
             throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
-        logger.fine(() -> String.format("Trying to authenticate... Username is %s", userName));
+        getLogger().fine(() -> String.format("Trying to authenticate... Username is %s", userName));
         final String jwToken;
         //login and issue new JWT token
         try {
             jwToken = authenticate(context);
         } catch (final FailedLoginException | AccountException | CredentialException e) {
-            logger.log(Level.WARNING, "Cannot login", e);
+            getLogger().log(Level.WARNING, "Cannot login", e);
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (final LoginException e) {
-            logger.log(Level.SEVERE, "Login subsystem failed", e);
+            getLogger().log(Level.SEVERE, "Login subsystem failed", e);
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
-        logger.fine(() -> String.format("Successful authentication of user %s", userName));
+        getLogger().fine(() -> String.format("Successful authentication of user %s", userName));
         return Response
                 .noContent()
                 .cookie(new NewCookie(AUTH_COOKIE, jwToken, "/", "",

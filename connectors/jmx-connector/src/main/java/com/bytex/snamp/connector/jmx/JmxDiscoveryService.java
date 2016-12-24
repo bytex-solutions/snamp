@@ -10,7 +10,6 @@ import javax.management.*;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Logger;
 
 import static com.bytex.snamp.connector.jmx.JmxConnectorDescriptionProvider.OBJECT_NAME_PROPERTY;
 
@@ -65,11 +64,6 @@ final class JmxDiscoveryService extends AbstractDiscoveryService<JMXConnector>{
 
     private static <T extends FeatureConfiguration> Collection<T> discover(final ClassLoader context, final JMXConnector options, final Class<T> entityType) throws IOException, JMException {
         return discover(context, options.getMBeanServerConnection(), entityType);
-    }
-
-    @Override
-    public Logger getLogger() {
-        return JmxConnector.getLoggerImpl();
     }
 
     @Override

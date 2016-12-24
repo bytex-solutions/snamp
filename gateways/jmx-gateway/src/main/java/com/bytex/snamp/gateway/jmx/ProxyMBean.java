@@ -6,6 +6,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationListenerList;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.OpenMBeanServiceProvider;
@@ -147,9 +148,8 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     private final NotificationListenerList listeners;
     private final String resourceName;
     private ServiceRegistration<?> registration;
-    private final Logger logger;
 
-    ProxyMBean(final String resourceName, final Logger logger){
+    ProxyMBean(final String resourceName){
         super(MBeanResources.class);
         this.resourceName = resourceName;
         this.notifications = new ResourceNotificationList<>();
@@ -157,7 +157,6 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         this.operations = new ResourceOperationList<>();
         this.listeners = new NotificationListenerList();
         this.registration = null;
-        this.logger = Objects.requireNonNull(logger);
     }
 
     String getResourceName(){
@@ -331,6 +330,10 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         }
     }
 
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
+    }
+
     /**
      * Get the values of several attributes of the Dynamic MBean.
      *
@@ -345,7 +348,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
             try {
                 result.add(new Attribute(attributeName, getAttribute(attributeName)));
             } catch (final JMException e) {
-                logger.log(Level.WARNING, String.format("Unable to get value of %s attribute", attributeName), e);
+                getLogger().log(Level.WARNING, String.format("Unable to get value of %s attribute", attributeName), e);
             }
         return result;
     }
@@ -368,7 +371,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                         setAttribute((Attribute) entry);
                         result.add(entry);
                     } catch (final JMException e) {
-                        logger.log(Level.WARNING,
+                        getLogger().log(Level.WARNING,
                                 String.format("Unable to set attribute %s",
                                         entry),
                                 e);

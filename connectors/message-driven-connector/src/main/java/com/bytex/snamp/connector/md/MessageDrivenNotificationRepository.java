@@ -15,8 +15,6 @@ import javax.management.Notification;
 import javax.management.NotificationListener;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.parallelForEach;
 
@@ -40,18 +38,15 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
         }
     }
     private final MessageDrivenNotificationListenerInvoker threadPool;
-    private final WriteOnceRef<Logger> logger;
 
 
     public MessageDrivenNotificationRepository(final String resourceName) {
         super(resourceName, MessageDrivenNotification.class, false);
         threadPool = new MessageDrivenNotificationListenerInvoker();
-        logger = new WriteOnceRef<>();
     }
 
-    final void init(final ExecutorService threadPool, final Logger logger) {
+    final void init(final ExecutorService threadPool) {
         this.threadPool.set(threadPool);
-        this.logger.set(logger);
     }
 
     public void handleNotification(final Notification notification) {
@@ -88,10 +83,5 @@ public class MessageDrivenNotificationRepository extends AbstractNotificationRep
             default:
                 return new MessageDrivenNotification(notifType, metadata);
         }
-    }
-
-    @Override
-    protected final void failedToEnableNotifications(final String category, final Exception e) {
-        failedToEnableNotifications(logger.get(), Level.SEVERE, category, e);
     }
 }

@@ -14,8 +14,8 @@ import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationAddedEvent;
 import com.bytex.snamp.connector.operations.OperationRemovingEvent;
 import com.bytex.snamp.connector.operations.OperationSupport;
-import com.bytex.snamp.core.LogicalOperation;
-import com.bytex.snamp.core.RichLogicalOperation;
+import com.bytex.snamp.core.LoggerProvider;
+import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -47,20 +47,19 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 2.0
  */
 public abstract class AbstractGateway extends AbstractAggregator implements Gateway, ResourceEventListener{
-    private static final class GatewayLogicalOperation extends RichLogicalOperation {
-        private static final String GATEWAY_INSTANCE_NAME_PROPERTY = "gatewayInstance";
+    private static final class GatewayLoggingScope extends LoggingScope {
+        private final String gatewayInstance;
 
-        private GatewayLogicalOperation(final Logger logger,
-                                        final String operationName,
-                                        final String gatewayInstance){
-            super(logger,
-                    operationName,
-                    ImmutableMap.of(GATEWAY_INSTANCE_NAME_PROPERTY, gatewayInstance));
+        private GatewayLoggingScope(final AbstractGateway requester,
+                                    final String operationName,
+                                    final String gatewayInstance){
+            super(requester, operationName);
+            this.gatewayInstance = gatewayInstance;
         }
 
-        private static GatewayLogicalOperation connectorChangesDetected(final Logger logger,
-                                                                        final String instanceName){
-            return new GatewayLogicalOperation(logger, "processResourceConnectorChanges", instanceName);
+        private static GatewayLoggingScope connectorChangesDetected(final AbstractGateway requester,
+                                                                    final String instanceName) {
+            return new GatewayLoggingScope(requester, "processResourceConnectorChanges", instanceName);
         }
     }
 
@@ -322,13 +321,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         }
     }
 
-    /**
-     * Writes log that describes exception produced by {@link #addFeature(String, javax.management.MBeanFeatureInfo)}.
-     * @param resourceName The name of the resource.
-     * @param feature The resource feature.
-     * @param e The exception.
-     */
-    protected void failedToAddFeature(final String resourceName, final MBeanFeatureInfo feature, final Exception e) {
+    private void failedToAddFeature(final String resourceName, final MBeanFeatureInfo feature, final Exception e) {
         getLogger().log(Level.WARNING, String.format("Failed to add %s resource feature %s", resourceName, feature), e);
     }
 
@@ -344,13 +337,9 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         try {
             return removeAllFeatures(resourceName);
         } catch (final Exception e) {
-            failedToRemoveFeatures(resourceName, e);
+            getLogger().log(Level.SEVERE, String.format("Failed to remove %s resource features", resourceName), e);
             return Stream.empty();
         }
-    }
-
-    protected void failedToRemoveFeatures(final String resourceName, final Exception e) {
-        getLogger().log(Level.SEVERE, String.format("Failed to remove %s resource features", resourceName), e);
     }
 
     /**
@@ -370,15 +359,13 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         try {
             return removeFeature(resourceName, feature);
         } catch (final Exception e) {
-            failedToRemoveFeature(resourceName, feature, e);
+            getLogger().log(Level.SEVERE, String.format("Failed to remove %s resource feature %s", resourceName, feature), e);
             return null;
         }
     }
 
-    protected void failedToRemoveFeature(final String resourceName,
-                                         final MBeanFeatureInfo feature,
-                                         final Exception e) {
-        getLogger().log(Level.SEVERE, String.format("Failed to remove %s resource feature %s", resourceName, feature), e);
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForBundle(getBundleContext());
     }
 
     /**
@@ -563,7 +550,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     @Override
     public final void serviceChanged(final ServiceEvent event) {
         if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()))
-            try (final LogicalOperation logger = GatewayLogicalOperation.connectorChangesDetected(getLogger(), instanceName)) {
+            try (final LoggingScope logger = GatewayLoggingScope.connectorChangesDetected(this, instanceName)) {
                 @SuppressWarnings("unchecked")
                 final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>) event.getServiceReference();
                 final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(connectorRef);
@@ -582,28 +569,6 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                                         resourceName));
                 }
             }
-    }
-
-    /**
-     * Gets name of the logger associated with the specified gateway.
-     * @param gatewayType Type of gateway.
-     * @return The name of the logger.
-     */
-    public static String getLoggerName(final String gatewayType){
-        return String.format("com.bytex.snamp.gateway.%s", gatewayType);
-    }
-
-    /**
-     * Gets logger associated with the specified gateway.
-     * @param gatewayType Type of gateway.
-     * @return The logger of the gateway.
-     */
-    public static Logger getLogger(final String gatewayType){
-        return Logger.getLogger(getLoggerName(gatewayType));
-    }
-
-    public static Logger getLogger(final Class<? extends Gateway> gatewayType){
-        return getLogger(getGatewayType(gatewayType));
     }
 
     /**
@@ -634,17 +599,6 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
 
     private BundleContext getBundleContext(){
         return getBundleContextOfObject(this);
-    }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    @Aggregation
-    public Logger getLogger() {
-        return getLogger(getClass());
     }
 
     /**

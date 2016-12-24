@@ -1,9 +1,8 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
-import com.bytex.snamp.gateway.modeling.ReadAttributeLogicalOperation;
-import com.bytex.snamp.gateway.modeling.WriteAttributeLogicalOperation;
+import com.bytex.snamp.gateway.modeling.ReadAttributeLoggingScope;
+import com.bytex.snamp.gateway.modeling.WriteAttributeLoggingScope;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.DuplicateRegistrationException;
@@ -32,19 +31,26 @@ import static com.bytex.snamp.gateway.snmp.SnmpHelpers.getAccessRestrictions;
  * @param <T> Type of the ASN notation.
  */
 abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implements SnmpAttributeMapping {
-    private static final String OID_PARAMETER = "OID";
+    private static final class SnmpWriteAttributeLoggingScope extends WriteAttributeLoggingScope {
 
-    private static final class SnmpWriteAttributeLogicalOperation extends WriteAttributeLogicalOperation{
-        private SnmpWriteAttributeLogicalOperation(final AttributeAccessor accessor,
-                                                   final OID oid){
-            super(SnmpHelpers.getLogger(), accessor.getName(), accessor.toString(), OID_PARAMETER, oid);
+        private SnmpWriteAttributeLoggingScope(final AttributeAccessor accessor,
+                                               final OID oid){
+            super(accessor, accessor.getName(), oid.toString());
+        }
+
+        private void failedToWrite(final JMException e){
+            log(Level.WARNING, String.format("Writing operation failed for attribute %s", attributeID), e);
         }
     }
 
-    private static final class SnmpReadAttributeLogicalOperation extends ReadAttributeLogicalOperation{
-        private SnmpReadAttributeLogicalOperation(final AttributeAccessor accessor,
-                                                  final OID oid){
-            super(SnmpHelpers.getLogger(), accessor.getName(), accessor.toString(), OID_PARAMETER, oid);
+    private static final class SnmpReadAttributeLoggingScope extends ReadAttributeLoggingScope {
+        private SnmpReadAttributeLoggingScope(final AttributeAccessor accessor,
+                                              final OID oid){
+            super(accessor, accessor.getName(), oid.toString());
+        }
+
+        private void failedToRead(final JMException e){
+            log(Level.WARNING, String.format("Reading operation failed for attribute %s", attributeID), e);
         }
     }
 
@@ -97,11 +103,11 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     @Override
     public final T getValue() {
         Object result;
-        final LogicalOperation logger = new SnmpReadAttributeLogicalOperation(accessor, getOid());
+        final SnmpReadAttributeLoggingScope logger = new SnmpReadAttributeLoggingScope(accessor, getOid());
         try {
             result = accessor.getValue();
         } catch (final JMException e) {
-            logger.log(Level.WARNING, String.format("Read operation failed for %s attribute", accessor.getName()), e);
+            logger.failedToRead(e);
             result = getDefaultValue();
         } finally {
             logger.close();
@@ -118,13 +124,13 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     @Override
     public final int setValue(final T value) {
         int result;
-        final LogicalOperation logger =
-                new SnmpWriteAttributeLogicalOperation(accessor, getOid());
+        final SnmpWriteAttributeLoggingScope logger =
+                new SnmpWriteAttributeLoggingScope(accessor, getOid());
         try {
             accessor.setValue(convert(value));
             result = SnmpConstants.SNMP_ERROR_SUCCESS;
         } catch (final JMException e) {
-            logger.log(Level.WARNING, String.format("Writing operation failed for %s attribute", accessor), e);
+            logger.failedToWrite(e);
             result = SnmpConstants.SNMP_ERROR_RESOURCE_UNAVAILABLE;
         } finally {
             logger.close();

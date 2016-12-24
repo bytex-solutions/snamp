@@ -4,6 +4,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.IntBox;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataUtils;
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.gateway.snmp.SnmpGatewayDescriptionProvider.parseOID;
 import static com.bytex.snamp.gateway.snmp.SnmpHelpers.getAccessRestrictions;
@@ -340,7 +342,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
                 lastUpdateSource = connector.getValue(TabularData.class);
                 fill((TabularData) lastUpdateSource, table, connector.getMetadata());
             } else {
-                SnmpHelpers.log(Level.WARNING, "Source attribute table %s is not supported", table.getOID(), null);
+                LoggerProvider.getLoggerForObject(connector).warning(() -> String.format("Source attribute table %s is not supported", table.getOID()));
                 lastUpdateSource = null;
             }
         return lastUpdateSource;
@@ -454,13 +456,17 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         update((MOScope)updateScope);
     }
 
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
+    }
+
     @Override
     public void update(final MOScope updateScope){
         try {
             fillTableIfNecessary();
         }
         catch (final JMException e) {
-            SnmpHelpers.log(Level.SEVERE, "Unable to update SNMP table.", e);
+            getLogger().log(Level.SEVERE, "Unable to update SNMP table.", e);
         }
     }
 
@@ -471,7 +477,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         for (int i = 0; i < array.size(); i++) {
             final MOMutableTableRow row = model.getRow(makeRowID(i));
             if (row == null) { //cancels row sending
-                SnmpHelpers.log(Level.SEVERE, "Row %s is null. Sending array is cancelled", makeRowID(i), null);
+                getLogger().severe(String.format("Row %s is null. Sending array is cancelled", makeRowID(i)));
                 return Collections.emptySet();
             } else if (rowStatusIndex >= 0)
                 switch (TableRowStatus.parse(row.getValue(rowStatusIndex))) {
@@ -483,7 +489,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
                         rowsToDelete.add(row.getIndex());
                         continue;
                     default:
-                        SnmpHelpers.log(Level.WARNING, "Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(rowStatusIndex), row.getIndex(), getOID(), null);
+                        getLogger().warning(String.format("Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(rowStatusIndex), row.getIndex(), getOID()));
                         continue;
                 }
             array.add(getColumn(0).parseCellValue(row.getValue(0), getMetadata()));
@@ -524,7 +530,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
                             rowsToDelete.add(row.getIndex());
                             continue next_row;
                         default:
-                            SnmpHelpers.log(Level.WARNING, "Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(rowIndex), row.getIndex(), getOID(), null);
+                            getLogger().warning(String.format("Unsupported row status %s detected at row %s in table %s. Row is ignored.", row.getValue(rowIndex), row.getIndex(), getOID()));
                         continue next_row;
                     }
                 else  //data row
@@ -556,7 +562,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
             TransactionInfo.pendingState(request, TransactionState.PREPARE);
         }
         catch (final Exception e){
-            SnmpHelpers.log(Level.SEVERE, "Unable to prepare transaction for %s table", getOID(), e);
+            getLogger().log(Level.SEVERE, String.format("Unable to prepare transaction for %s table", getOID()), e);
         }
         finally {
             super.prepare(request);
@@ -569,7 +575,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
             TransactionInfo.pendingState(request, TransactionState.COMMIT);
         }
         catch (final Exception e){
-            SnmpHelpers.log(Level.SEVERE, "Unable to commit %s table", getOID(), e);
+            getLogger().log(Level.SEVERE, String.format("Unable to commit %s table", getOID()), e);
         }
         finally {
             super.commit(request);
@@ -582,7 +588,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
             TransactionInfo.pendingState(request, TransactionState.ROLLBACK);
         }
         catch (final Exception e){
-            SnmpHelpers.log(Level.SEVERE, "Unable to undo changes in %s table", getOID(), e);
+            getLogger().log(Level.SEVERE, String.format("Unable to undo changes in %s table", getOID()), e);
         }
         finally {
             super.undo(request);
@@ -598,12 +604,12 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
                         dumpTable();
                     break;
                 case ROLLED_BACK:
-                    SnmpHelpers.log(Level.WARNING, "Transaction for table %s aborted.", getOID(), null);
+                    getLogger().warning(String.format("Transaction for table %s aborted.", getOID()));
                     break;
             }
         }
         catch (final Exception e){
-            SnmpHelpers.log(Level.SEVERE, "Unable to clean table %s", getOID(), e);
+            getLogger().log(Level.SEVERE, String.format("Unable to clean table %s", getOID()), e);
             request.setErrorStatus(SnmpConstants.SNMP_ERROR_COMMIT_FAILED);
             request.completed();
         }

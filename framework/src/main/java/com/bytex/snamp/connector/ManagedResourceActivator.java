@@ -1,9 +1,6 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.*;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
@@ -14,8 +11,8 @@ import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationSupport;
-import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Maps;
@@ -139,11 +136,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             super(SingleResourceGroup.class);
             this.connector = factory.createConnector(resourceName, connectionString, parameters, dependencies);
             this.updater = (connector, cstr, params) -> factory.updateConnector(connector, resourceName, cstr, params, dependencies);
-        }
-
-        @Override
-        public Logger getLogger() {
-            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.getLogger());
         }
 
         @Override
@@ -447,7 +439,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
     }
 
-    private static class ManagedResourceConnectorFactoryServiceImpl<TConnector extends ManagedResourceConnector> extends AbstractFrameworkService implements ManagedResourceConnectorFactoryService {
+    private static class ManagedResourceConnectorFactoryServiceImpl<TConnector extends ManagedResourceConnector> extends AbstractAggregator implements ManagedResourceConnectorFactoryService {
         private final Logger logger;
         private final ManagedResourceConnectorFactory<TConnector> connectorFactory;
         private final DependencyManager dependencies;
@@ -461,15 +453,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         @Override
-        @Aggregation
-        public Logger getLogger() {
-            return logger;
-        }
-
-        @Override
         public ManagedResourceConnectorProxy<TConnector> createConnector(final Map<String, ?> parameters) throws Exception {
             final String connectionString = getIfPresent(parameters, CONNECTION_STRING, Objects::toString, InstantiationException::new);
             final String resourceName = getIfPresent(parameters, RESOURCE_NAME, Objects::toString, InstantiationException::new);
+            @SuppressWarnings("unchecked")
             final Map<String, String> connectionParams = getValue(parameters, CONNECTION_PARAMS, value -> (Map<String, String>) value, Collections::emptyMap);
             return new ManagedResourceConnectorProxy<>(connectorFactory, resourceName, connectionString, connectionParams, dependencies);
         }
@@ -635,13 +622,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         getLogger().info(String.format("Activating resource connector of type %s", getConnectorType()));
     }
 
-    /**
-     * Gets logger associated with this activator.
-     * @return The logger associated with this activator.
-     */
-    @Override
-    protected Logger getLogger(){
-        return AbstractManagedResourceConnector.getLogger(getConnectorType());
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     /**

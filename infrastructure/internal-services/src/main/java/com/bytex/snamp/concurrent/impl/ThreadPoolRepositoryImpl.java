@@ -1,12 +1,13 @@
 package com.bytex.snamp.concurrent.impl;
 
+import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import com.bytex.snamp.configuration.impl.CMThreadPoolParser;
-import com.bytex.snamp.core.AbstractFrameworkService;
+import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationException;
@@ -27,14 +28,13 @@ import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Acti
  * @since 1.0
  * @version 1.0
  */
-public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService implements ThreadPoolRepository, Closeable {
+public final class ThreadPoolRepositoryImpl extends AbstractAggregator implements ThreadPoolRepository, Closeable {
     public static final String PID = CMThreadPoolParser.PID;
 
     private final AbstractConcurrentResourceAccessor<Map<String, ConfiguredThreadPool>> threadPools =
             new ConcurrentResourceAccessor<>(new HashMap<>());
 
     private final ExecutorService defaultThreadPool = new ConfiguredThreadPool();
-    private final Logger logger = Logger.getLogger("SnampThreadPoolRepository");
 
     @Override
     public ExecutorService getThreadPool(final String name, final boolean useDefaultIfNotExists) {
@@ -51,12 +51,6 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
                         return null;
                 });
         }
-    }
-
-    @Override
-    @Aggregation(cached = true)
-    public Logger getLogger() {
-        return logger;
     }
 
     @Override
@@ -125,7 +119,11 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
         if (properties == null) //remove all
             threadPools.write(ThreadPoolRepositoryImpl::destroyThreadPools);
         else    //merge with runtime collection of thread pools
-            threadPools.write(createThreadPoolMerger(properties, logger));
+            threadPools.write(createThreadPoolMerger(properties, getLogger()));
+    }
+
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     @Override

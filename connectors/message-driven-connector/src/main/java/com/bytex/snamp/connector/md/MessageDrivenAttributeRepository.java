@@ -10,8 +10,6 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents repository with message-driven attributes.
@@ -21,20 +19,17 @@ import java.util.logging.Logger;
  */
 public class MessageDrivenAttributeRepository extends DistributedAttributeRepository<MessageDrivenAttribute> {
     private final WriteOnceRef<ExecutorService> threadPool;
-    private final WriteOnceRef<Logger> logger;
     private final WriteOnceRef<MessageDrivenConnectorConfigurationDescriptionProvider> configurationParser;
 
     public MessageDrivenAttributeRepository(final String resourceName,
                                      final Duration syncPeriod) {
         super(resourceName, MessageDrivenAttribute.class, false, syncPeriod);
         threadPool = new WriteOnceRef<>();
-        logger = new WriteOnceRef<>();
         configurationParser = new WriteOnceRef<>();
     }
 
-    final void init(final ExecutorService threadPool, final MessageDrivenConnectorConfigurationDescriptionProvider parser, final Logger logger) {
+    final void init(final ExecutorService threadPool, final MessageDrivenConnectorConfigurationDescriptionProvider parser) {
         this.threadPool.set(threadPool);
-        this.logger.set(logger);
         this.configurationParser.set(parser);
     }
 
@@ -46,11 +41,6 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
         if(factory == null)
             throw new UnrecognizedAttributeTypeException(gaugeType);
         return factory.createAttribute(attributeName, descriptor);
-    }
-
-    @Override
-    protected final void failedToConnectAttribute(final String attributeName, final Exception e) {
-        failedToConnectAttribute(logger.get(), Level.SEVERE, attributeName, e);
     }
 
     /**
@@ -104,18 +94,8 @@ public class MessageDrivenAttributeRepository extends DistributedAttributeReposi
     }
 
     @Override
-    protected final void failedToGetAttribute(final String attributeID, final Exception e) {
-        failedToConnectAttribute(logger.get(), Level.SEVERE, attributeID, e);
-    }
-
-    @Override
     protected final void setAttribute(final MessageDrivenAttribute attribute, final Object value) throws Exception {
         throw MessageDrivenAttribute.cannotBeModified(attribute);
-    }
-
-    @Override
-    protected final void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-        failedToSetAttribute(logger.get(), Level.SEVERE, attributeID, value, e);
     }
 
     public final void handleNotification(final Notification notification, final BiConsumer<? super MessageDrivenAttribute, ? super MessageDrivenAttribute.NotificationProcessingResult> callback) {

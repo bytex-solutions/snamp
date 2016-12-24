@@ -339,7 +339,7 @@ public abstract class AbstractAggregator implements Aggregator {
             }
 
             @Override
-            public <T> T queryObject(final Class<T> objectType) {
+            public <T> T queryObject(@Nonnull final Class<T> objectType) {
                 final T obj = AbstractAggregator.this.queryObject(objectType);
                 return obj == null ? other.queryObject(objectType) : obj;
             }
@@ -356,7 +356,7 @@ public abstract class AbstractAggregator implements Aggregator {
      * @return An instance of the requested object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(final Class<T> objectType) {
+    public <T> T queryObject(@Nonnull final Class<T> objectType) {
         return queryObject(objectType, EMPTY);
     }
 }

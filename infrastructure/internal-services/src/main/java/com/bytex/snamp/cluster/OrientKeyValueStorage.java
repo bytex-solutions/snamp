@@ -1,6 +1,7 @@
 package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.google.common.collect.Iterators;
 import com.orientechnologies.orient.core.db.ODatabase;
@@ -17,6 +18,7 @@ import com.orientechnologies.orient.core.tx.OTransactionOptimistic;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -34,7 +36,8 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         }
     }
 
-    private volatile OClass documentClass;
+    @SpecialUse
+    private final AtomicReference<OClass> documentClass;
     private final ODatabaseDocumentTx database;
     private final String indexName;
 
@@ -45,6 +48,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         indexName = collectionName + "Index";
         //init class
         final OSchema schema = database.getMetadata().getSchema();
+        final OClass documentClass;
         if (schema.existsClass(collectionName))
             documentClass = schema.getClass(collectionName);
         else if (forceCreate) {
@@ -53,16 +57,13 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
             PersistentFieldDefinition.createIndex(documentClass, indexName);
         } else
             documentClass = null;
+        this.documentClass = new AtomicReference<>(documentClass);
         ODatabaseRecordThreadLocal.INSTANCE.remove();
     }
 
-    @Override
-    boolean isDestroyed(){
-        return documentClass == null;
-    }
-
-    private OClass getDocumentClass(){
-        if(isDestroyed())
+    private OClass getDocumentClass() {
+        final OClass documentClass = this.documentClass.get();
+        if (documentClass == null)
             throw objectIsDestroyed();
         else
             return documentClass;
@@ -178,8 +179,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     }
 
     private void destroyImpl() {
-        final OClass documentClass = this.documentClass;
-        this.documentClass = null;
+        final OClass documentClass = this.documentClass.getAndSet(null);
         if (documentClass != null) {
             database.command(new OCommandSQL(String.format("drop class %s", documentClass.getName()))).execute(); //remove class
             database.command(new OCommandSQL(String.format("drop index %s", indexName))).execute();       //remove indexes

@@ -1,5 +1,6 @@
 package com.bytex.snamp.gateway.snmp;
 
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayUpdatedCallback;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
@@ -23,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
 
 import static com.bytex.snamp.gateway.snmp.OctetStringHelper.toOctetString;
 
@@ -273,7 +273,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Gat
                 coldStart = false;
             return true;
             default:
-                SnmpHelpers.log(Level.SEVERE, "SNMP agent already started (state %s).", agentState, null);
+                LoggerProvider.getLoggerForObject(this).severe(() -> String.format("SNMP agent already started (state %s).", agentState));
             return false;
         }
 	}

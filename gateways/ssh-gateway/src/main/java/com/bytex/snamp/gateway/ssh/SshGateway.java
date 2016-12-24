@@ -9,9 +9,12 @@ import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.server.Command;
@@ -35,7 +38,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
@@ -72,8 +74,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     private static final class ReadOnlyAttributeMapping extends SshAttributeAccessor {
-        private ReadOnlyAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata);
+        private ReadOnlyAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter){
+            super(metadata, formatter);
         }
 
         @Override
@@ -89,8 +91,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
 
     private static final class DefaultAttributeMapping extends SshAttributeAccessor {
 
-        private DefaultAttributeMapping(final MBeanAttributeInfo metadata) {
-            super(metadata);
+        private DefaultAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter) {
+            super(metadata, formatter);
         }
 
         @Override
@@ -104,8 +106,9 @@ final class SshGateway extends AbstractGateway implements GatewayController {
         private final Class<B> bufferType;
 
         private AbstractBufferAttributeMapping(final MBeanAttributeInfo metadata,
+                                               final Gson formatter,
                                                final Class<B> bufferType){
-            super(metadata);
+            super(metadata, formatter);
             this.bufferType = bufferType;
         }
 
@@ -118,8 +121,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     private static final class ByteBufferAttributeMapping extends AbstractBufferAttributeMapping<ByteBuffer> {
-        private ByteBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, ByteBuffer.class);
+        private ByteBufferAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter){
+            super(metadata, formatter, ByteBuffer.class);
         }
 
         @Override
@@ -130,8 +133,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     private static final class CharBufferAttributeMapping extends AbstractBufferAttributeMapping<CharBuffer> {
-        private CharBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, CharBuffer.class);
+        private CharBufferAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter){
+            super(metadata, formatter, CharBuffer.class);
         }
 
         @Override
@@ -142,8 +145,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     private static final class ShortBufferAttributeMapping extends AbstractBufferAttributeMapping<ShortBuffer> {
-        private ShortBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, ShortBuffer.class);
+        private ShortBufferAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter){
+            super(metadata, formatter, ShortBuffer.class);
         }
 
         @Override
@@ -154,8 +157,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     private static final class IntBufferAttributeMapping extends AbstractBufferAttributeMapping<IntBuffer> {
-        private IntBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, IntBuffer.class);
+        private IntBufferAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter){
+            super(metadata, formatter, IntBuffer.class);
         }
 
         @Override
@@ -166,8 +169,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     private static final class LongBufferAttributeMapping extends AbstractBufferAttributeMapping<LongBuffer> {
-        private LongBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, LongBuffer.class);
+        private LongBufferAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter){
+            super(metadata, formatter, LongBuffer.class);
         }
 
         @Override
@@ -178,8 +181,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     private static final class FloatBufferAttributeMapping extends AbstractBufferAttributeMapping<FloatBuffer> {
-        private FloatBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, FloatBuffer.class);
+        private FloatBufferAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter){
+            super(metadata, formatter, FloatBuffer.class);
         }
 
         @Override
@@ -190,8 +193,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     private static final class DoubleBufferAttributeMapping extends AbstractBufferAttributeMapping<DoubleBuffer> {
-        private DoubleBufferAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata, DoubleBuffer.class);
+        private DoubleBufferAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter){
+            super(metadata, formatter, DoubleBuffer.class);
         }
 
         @Override
@@ -202,8 +205,9 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     private static final class CompositeDataAttributeMapping extends SshAttributeAccessor {
-        private CompositeDataAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata);
+
+        private CompositeDataAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter){
+            super(metadata, formatter);
         }
 
         @Override
@@ -211,14 +215,15 @@ final class SshGateway extends AbstractGateway implements GatewayController {
             final CompositeData value = getValue(CompositeData.class);
             for(final String key: value.getCompositeType().keySet())
                 output
-                        .append(String.format("%s = %s", key, SshHelpers.FORMATTER.toJson(value.get(key))))
+                        .append(String.format("%s = %s", key, formatter.toJson(value.get(key))))
                         .append(System.lineSeparator());
         }
     }
 
     private static final class TabularDataAttributeMapping extends SshAttributeAccessor {
-        private TabularDataAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata);
+
+        private TabularDataAttributeMapping(final MBeanAttributeInfo metadata, final Gson formatter){
+            super(metadata, formatter);
         }
 
         private static String joinString(final Stream<String> values,
@@ -235,11 +240,16 @@ final class SshGateway extends AbstractGateway implements GatewayController {
             //print column first
             output.append(joinString(data.getTabularType().getRowType().keySet().stream(), ITEM_FORMAT, COLUMN_SEPARATOR));
             //print rows
-            TabularDataUtils.forEachRow(data, row -> output.append(joinString(row.values().stream().map(SshHelpers.FORMATTER::toJson), ITEM_FORMAT, COLUMN_SEPARATOR)));
+            TabularDataUtils.forEachRow(data, row -> output.append(joinString(row.values().stream().map(formatter::toJson), ITEM_FORMAT, COLUMN_SEPARATOR)));
         }
     }
 
     private static final class SshModelOfAttributes extends ModelOfAttributes<SshAttributeAccessor> {
+        private final Gson formatter;
+
+        private SshModelOfAttributes(final Gson formatter){
+            this.formatter = Objects.requireNonNull(formatter);
+        }
 
         @Override
         protected SshAttributeAccessor createAccessor(final String resourceName, final MBeanAttributeInfo metadata) {
@@ -247,27 +257,27 @@ final class SshGateway extends AbstractGateway implements GatewayController {
             if(attributeType != null)
                 switch (attributeType){
                     case BYTE_BUFFER:
-                        return new ByteBufferAttributeMapping(metadata);
+                        return new ByteBufferAttributeMapping(metadata, formatter);
                     case CHAR_BUFFER:
-                        return new CharBufferAttributeMapping(metadata);
+                        return new CharBufferAttributeMapping(metadata, formatter);
                     case SHORT_BUFFER:
-                        return new ShortBufferAttributeMapping(metadata);
+                        return new ShortBufferAttributeMapping(metadata, formatter);
                     case INT_BUFFER:
-                        return new IntBufferAttributeMapping(metadata);
+                        return new IntBufferAttributeMapping(metadata, formatter);
                     case LONG_BUFFER:
-                        return new LongBufferAttributeMapping(metadata);
+                        return new LongBufferAttributeMapping(metadata, formatter);
                     case FLOAT_BUFFER:
-                        return new FloatBufferAttributeMapping(metadata);
+                        return new FloatBufferAttributeMapping(metadata, formatter);
                     case DOUBLE_BUFFER:
-                        return new DoubleBufferAttributeMapping(metadata);
+                        return new DoubleBufferAttributeMapping(metadata, formatter);
                     case DICTIONARY:
-                        return new CompositeDataAttributeMapping(metadata);
+                        return new CompositeDataAttributeMapping(metadata, formatter);
                     case TABLE:
-                        return new TabularDataAttributeMapping(metadata);
+                        return new TabularDataAttributeMapping(metadata, formatter);
                     default:
-                        return new DefaultAttributeMapping(metadata);
+                        return new DefaultAttributeMapping(metadata, formatter);
                 }
-            return new ReadOnlyAttributeMapping(metadata);
+            return new ReadOnlyAttributeMapping(metadata, formatter);
         }
     }
 
@@ -292,11 +302,16 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     private SshServer server;
     private final SshModelOfAttributes attributes;
     private final SshModelOfNotifications notifications;
+    private final Gson formatter;
 
     SshGateway(final String gatewayInstance) {
         super(gatewayInstance);
-        attributes = new SshModelOfAttributes();
         notifications = new SshModelOfNotifications();
+        formatter  = JsonUtils.registerTypeAdapters(new GsonBuilder())
+                .serializeSpecialFloatingPointValues()
+                .serializeNulls()
+                .create();
+        attributes = new SshModelOfAttributes(formatter);
     }
 
     private static void setupSecurity(final SshServer server, final SshSecuritySettings security) throws InvalidKeyException {
@@ -367,15 +382,6 @@ final class SshGateway extends AbstractGateway implements GatewayController {
         }
     }
 
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    public Logger getLogger() {
-        return getLogger(SshHelpers.GATEWAY_TYPE);
-    }
-
     @Override
     public Set<String> getConnectedResources() {
         return attributes.getHostedResources();
@@ -434,7 +440,7 @@ final class SshGateway extends AbstractGateway implements GatewayController {
 
     @Override
     public void print(final Notification notif, final Writer output) {
-        SshHelpers.FORMATTER.toJson(notif, output);
+        formatter.toJson(notif, output);
     }
 
     private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final AttributeSet<SshAttributeAccessor> attributes){

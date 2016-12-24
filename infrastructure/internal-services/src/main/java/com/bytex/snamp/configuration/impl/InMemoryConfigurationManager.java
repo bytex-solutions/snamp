@@ -65,14 +65,4 @@ public final class InMemoryConfigurationManager extends AbstractAggregator imple
     public <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException {
         return currentConfiguration.read(handler::apply);
     }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return logger;
-    }
 }

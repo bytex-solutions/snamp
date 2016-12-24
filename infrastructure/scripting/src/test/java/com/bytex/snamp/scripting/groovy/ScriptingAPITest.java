@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Properties;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -27,7 +26,6 @@ public class ScriptingAPITest extends Assert {
         engine = new OSGiGroovyScriptEngine<Scriptlet>(getClass().getClassLoader(), new Properties(), Scriptlet.class, resource){
             @Override
             protected void interceptCreate(final Scriptlet script) {
-                script.setLogger(Logger.getLogger("TestLogger"));
                 script.setBundleContext(getBundleContext());
             }
         };

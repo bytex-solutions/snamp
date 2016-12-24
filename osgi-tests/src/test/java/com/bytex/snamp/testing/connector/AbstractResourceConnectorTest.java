@@ -10,10 +10,8 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.core.LogicalOperation;
-import com.bytex.snamp.core.RichLogicalOperation;
+import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.rules.TestName;
@@ -33,7 +31,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
 
 /**
  * Represents an abstract class for all integration tests that checks management connector.
@@ -42,25 +39,21 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegrationTest {
-    private static final String CONNECTOR_TYPE_PROPERTY = "connectorType";
 
-    private static final class ConnectorTestLogicalOperation extends RichLogicalOperation{
+    private static final class ConnectorTestLoggingScope extends LoggingScope {
 
 
-        private ConnectorTestLogicalOperation(final String operationName,
-                                     final String connectorType,
-                                     final TestName testName){
-            super(Logger.getLogger(testName.getMethodName()), operationName, ImmutableMap.of(CONNECTOR_TYPE_PROPERTY, connectorType));
+        private ConnectorTestLoggingScope(final AbstractSnampIntegrationTest requester,
+                                          final String operationName){
+            super(requester, operationName);
         }
 
-        private static ConnectorTestLogicalOperation startResourceConnector(final String connectorType,
-                                                                            final TestName name){
-            return new ConnectorTestLogicalOperation("startResourceConnector", connectorType, name);
+        private static ConnectorTestLoggingScope startResourceConnector(final AbstractSnampIntegrationTest test){
+            return new ConnectorTestLoggingScope(test, "startResourceConnector");
         }
 
-        private static ConnectorTestLogicalOperation stopResourceConnector(final String connectorType,
-                                                                           final TestName name){
-            return new ConnectorTestLogicalOperation("stopResourceConnector", connectorType, name);
+        private static ConnectorTestLoggingScope stopResourceConnector(final AbstractSnampIntegrationTest test){
+            return new ConnectorTestLoggingScope(test, "stopResourceConnector");
         }
     }
 
@@ -135,11 +128,12 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     }
 
-    public static void stopResourceConnector(final TestName testName,
+    public void stopResourceConnector(final TestName testName,
                                               final String connectorType,
                                              final String resourceName,
                                                final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
-        try(final LogicalOperation ignored = ConnectorTestLogicalOperation.stopResourceConnector(connectorType, testName)) {
+        try(final LoggingScope logger = ConnectorTestLoggingScope.stopResourceConnector(this)) {
+            logger.info("Stopping in test " + testName.getMethodName());
             assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.disableConnector(context, connectorType));
             waitForNoConnector(Duration.ofSeconds(10), resourceName, context);
         }
@@ -149,11 +143,12 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         stopResourceConnector(testName, connectorType, TEST_RESOURCE_NAME, context);
     }
 
-    public static void startResourceConnector(final TestName testName,
+    public void startResourceConnector(final TestName testName,
                                               final String connectorType,
                                               final String resourceName,
                                               final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
-        try (final LogicalOperation ignored = ConnectorTestLogicalOperation.startResourceConnector(connectorType, testName)) {
+        try (final LoggingScope logger = ConnectorTestLoggingScope.startResourceConnector(this)) {
+            logger.info("Starting in test " + testName.getMethodName());
             assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.enableConnector(context, connectorType));
             waitForConnector(Duration.ofSeconds(10), resourceName, context);
         }

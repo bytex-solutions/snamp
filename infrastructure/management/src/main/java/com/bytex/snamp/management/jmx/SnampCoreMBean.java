@@ -10,8 +10,6 @@ import org.osgi.service.log.LogService;
 
 import javax.management.openmbean.OpenDataException;
 import java.time.Duration;
-import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -23,7 +21,6 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
     public static final String OBJECT_NAME = "com.bytex.snamp.management:type=SnampCore";
     public static final Duration DEFAULT_RENEWAL_TIME = Duration.ofSeconds(5);
     private final StatisticCounters counter;
-    private final Logger logger;
 
     private SnampCoreMBean(final StatisticCounters counter, final AbstractSnampManager manager) throws OpenDataException{
         super(  new SummaryMetricsAttribute(),
@@ -45,7 +42,6 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
                 new DisableConnectorOperation(),
                 new DisableGatewayOperation());
         this.counter = counter;
-        this.logger = manager.getLogger();
     }
 
     public SnampCoreMBean() throws OpenDataException{
@@ -70,16 +66,6 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
     }
 
     /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return logger;
-    }
-
-    /**
      * Retrieves the aggregated object.
      *
      * @param objectType Type of the requested object.
@@ -87,12 +73,6 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
      */
     @Override
     public <T> T queryObject(final Class<T> objectType) {
-        if(objectType == null) return null;
-        else if(Objects.equals(objectType, Logger.class))
-            return objectType.cast(getLogger());
-        else if(objectType.isInstance(this))
-            return objectType.cast(this);
-        else return null;
+        return objectType.isInstance(this) ? objectType.cast(this) : null;
     }
-
 }

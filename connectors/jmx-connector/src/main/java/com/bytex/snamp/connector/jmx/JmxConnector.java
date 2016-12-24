@@ -15,6 +15,7 @@ import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptorRead;
+import com.bytex.snamp.core.LoggerProvider;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -235,12 +236,6 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                     callInfo.toArray());
         }
 
-        @Override
-        protected void failedToEnableOperation(final String operationName,
-                                               final Exception e) {
-            failedToEnableOperation(getLoggerImpl(), Level.WARNING, operationName, e);
-        }
-
         private List<JmxOperationInfo> expandOperations(final MBeanServerConnection connection) throws JMException, IOException {
             return Arrays.stream(connection.getMBeanInfo(globalObjectName).getOperations())
                     .map(operationInfo -> {
@@ -262,7 +257,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             else try {
                 return connectionManager.handleConnection(this::expandOperations);
             } catch (final Exception e) {
-                failedToExpand(getLoggerImpl(), Level.WARNING, e);
+                failedToExpand(Level.WARNING, e);
                 return Collections.emptyList();
             }
         }
@@ -308,43 +303,6 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             super(resourceName, JmxAttributeInfo.class, expandable);
             this.globalObjectName = globalName;
             this.connectionManager = connectionManager;
-        }
-
-        /**
-         * Reports an error when connecting attribute.
-         *
-         * @param attributeName The name of the attribute.
-         * @param e             Internal connector error.
-         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
-            failedToConnectAttribute(getLoggerImpl(), Level.WARNING, attributeName, e);
-        }
-
-        /**
-         * Reports an error when getting attribute.
-         *
-         * @param attributeID The attribute identifier.
-         * @param e           Internal connector error.
-         * @see #failedToGetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(getLoggerImpl(), Level.WARNING, attributeID, e);
-        }
-
-        /**
-         * Reports an error when updating attribute.
-         *
-         * @param attributeID The attribute identifier.
-         * @param value       The value of the attribute.
-         * @param e           Internal connector error.
-         * @see #failedToSetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Object, Exception)
-         */
-        @Override
-        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            failedToSetAttribute(getLoggerImpl(), Level.WARNING, attributeID, value, e);
         }
 
         private static JmxAttributeInfo createPlainAttribute(final JmxConnectionManager connectionManager,
@@ -420,7 +378,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             else try {
                 return connectionManager.handleConnection(this::expandAttributes);
             } catch (final Exception e) {
-                failedToExpand(getLoggerImpl(), Level.WARNING, e);
+                failedToExpand(Level.WARNING, e);
                 return Collections.emptyList();
             }
         }
@@ -465,11 +423,15 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             this.connectionManager = connectionManager;
             this.globalObjectName = globalName;
             this.connectionManager.addReconnectionHandler(this);
-            listenerInvoker = createListenerInvoker(threadPool);
+            listenerInvoker = createListenerInvoker(threadPool, getLogger());
         }
 
-        private static NotificationListenerInvoker createListenerInvoker(final Executor executor){
-            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, (e, source) -> getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification", e));
+        private static NotificationListenerInvoker createListenerInvoker(final Executor executor, final Logger logger){
+            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, (e, source) -> logger.log(Level.SEVERE, "Unable to process JMX notification", e));
+        }
+
+        private Logger getLogger(){
+            return LoggerProvider.getLoggerForObject(this);
         }
 
         /**
@@ -480,18 +442,6 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         @Override
         protected NotificationListenerInvoker getListenerInvoker() {
             return listenerInvoker;
-        }
-
-        /**
-         * Reports an error when enabling notifications.
-         *
-         * @param category An event category.
-         * @param e        Internal connector error.
-         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToEnableNotifications(final String category, final Exception e) {
-            failedToEnableNotifications(getLoggerImpl(), Level.WARNING, category, e);
         }
 
         private Set<ObjectName> getNotificationTargets() {
@@ -524,7 +474,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                 try {
                     disableListening(metadata.getOwner());
                 } catch (final Exception e) {
-                    getLoggerImpl().log(Level.WARNING, String.format("Unable to unsubscribe from %s", metadata.getOwner()), e);
+                    getLogger().log(Level.WARNING, String.format("Unable to unsubscribe from %s", metadata.getOwner()), e);
                 }
         }
 
@@ -586,7 +536,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             else try {
                 return connectionManager.handleConnection(this::expandNotifications);
             } catch (final Exception e) {
-                failedToExpand(getLoggerImpl(), Level.WARNING, e);
+                failedToExpand(Level.WARNING, e);
                 return Collections.emptyList();
             }
         }
@@ -605,7 +555,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
             try {
                 userData = UserDataExtractor.getUserData(notification);
             } catch (final OpenDataException | IllegalArgumentException e) {
-                getLoggerImpl().log(Level.SEVERE, String.format("Unable to process user data %s in notification %s",
+                getLogger().log(Level.SEVERE, String.format("Unable to process user data %s in notification %s",
                         notification.getUserData(),
                         notification.getType()), e);
             }
@@ -763,6 +713,10 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         this(resourceName, new JmxConnectionOptions(connectionString, connectionOptions));
     }
 
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
+    }
+
     @Override
     protected MetricsSupport createMetricsReader(){
         return assembleMetricsReader(attributes, notifications, operations);
@@ -788,25 +742,6 @@ final class JmxConnector extends AbstractManagedResourceConnector {
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes, notifications, operations);
-    }
-
-    /**
-     * Gets a logger associated with this platform service.
-     *
-     * @return A logger associated with this platform service.
-     */
-    @Override
-    @Aggregation(cached = true)
-    public Logger getLogger() {
-        return getLoggerImpl();
-    }
-
-    static Logger getLoggerImpl() {
-        return getLogger(getType());
-    }
-
-    private static String getType(){
-        return getConnectorType(JmxConnector.class);
     }
 
     /**

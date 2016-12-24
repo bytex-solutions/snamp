@@ -6,6 +6,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.NotificationMetric;
 import com.bytex.snamp.connector.metrics.NotificationMetricRecorder;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableSet;
@@ -252,7 +253,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         try {
             return writeLock.call(SingleResourceGroup.INSTANCE, () -> enableNotificationsImpl(category, descriptor), null);
         } catch (final Exception e) {
-            failedToEnableNotifications(category, e);
+            getLogger().log(Level.WARNING, String.format("Failed to enable notifications '%s'", category), e);
             return null;
         }
     }
@@ -272,7 +273,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final M remove(final String category) {
-        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, category, AbstractNotificationRepository::removeImpl);
+        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, category, AbstractNotificationRepository<M>::removeImpl);
         if (metadata != null)
             disconnectNotifications(metadata);
         return metadata;
@@ -381,28 +382,9 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         return readLock.apply(SingleResourceGroup.INSTANCE, notifications, category, Map::get);
     }
 
-    /**
-     * Reports an error when enabling notifications.
-     * @param logger The logger instance. Cannot be {@literal null}.
-     * @param logLevel Logging level.
-     * @param category An event category.
-     * @param e Internal connector error.
-     */
-    protected static void failedToEnableNotifications(final Logger logger,
-                                                      final Level logLevel,
-                                                      final String category,
-                                                      final Exception e){
-        logger.log(logLevel, String.format("Failed to enable notifications '%s'", category), e);
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
-
-    /**
-     * Reports an error when enabling notifications.
-     * @param category An event category.
-     * @param e Internal connector error.
-     * @see #failedToEnableNotifications(Logger, Level, String, Exception)
-     */
-    protected abstract void failedToEnableNotifications(final String category,
-                                                        final Exception e);
 
     private void removeAllImpl(final KeyedObjects<String, M> notifications){
         notifications.values().forEach(metadata -> {
@@ -467,8 +449,8 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         readLock.accept(SingleResourceGroup.INSTANCE, notifications.values(), action, Iterable::forEach);
     }
 
-    protected final void failedToExpand(final Logger logger, final Level level, final Exception e){
-        logger.log(level, String.format("Unable to expand events for resource %s", getResourceName()), e);
+    protected final void failedToExpand(final Level level, final Exception e){
+        getLogger().log(level, String.format("Unable to expand events for resource %s", getResourceName()), e);
     }
 
     /**

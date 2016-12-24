@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static com.bytex.snamp.gateway.snmp.SnmpGatewayDescriptionProvider.isValidNotification;
@@ -254,20 +253,5 @@ final class SnmpGateway extends AbstractGateway {
         else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
             return (Multimap<String, ? extends FeatureBindingInfo<M>>)getNotifications(notifications);
         else return super.getBindings(featureType);
-    }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return getLoggerImpl();
-    }
-
-
-    static Logger getLoggerImpl() {
-        return getLogger(SnmpGateway.class);
     }
 }

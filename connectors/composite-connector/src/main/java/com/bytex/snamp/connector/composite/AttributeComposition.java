@@ -14,8 +14,6 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -24,7 +22,6 @@ import java.util.logging.Logger;
  */
 final class AttributeComposition extends DistributedAttributeRepository<AbstractCompositeAttribute> implements NameResolver, NotificationListener {
     private final AttributeSupportProvider attributeSupportProvider;
-    private final Logger logger;
     private final ExecutorService threadPool;
     private final ScriptLoader scriptLoader;
 
@@ -32,11 +29,9 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
                          final AttributeSupportProvider provider,
                          final ExecutorService threadPool,
                          final Duration syncPeriod,
-                         final ScriptLoader loader,
-                         final Logger logger){
+                         final ScriptLoader loader){
         super(resourceName, AbstractCompositeAttribute.class, false, syncPeriod);
         attributeSupportProvider = Objects.requireNonNull(provider);
-        this.logger = Objects.requireNonNull(logger);
         this.threadPool = Objects.requireNonNull(threadPool);
         this.scriptLoader = Objects.requireNonNull(loader);
     }
@@ -134,11 +129,6 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     }
 
     @Override
-    protected void failedToConnectAttribute(final String attributeName, final Exception e) {
-        failedToConnectAttribute(logger, Level.WARNING, attributeName, e);
-    }
-
-    @Override
     protected Object getAttribute(final AbstractCompositeAttribute metadata) throws Exception {
         if(metadata instanceof AliasAttribute)
             return ((AliasAttribute) metadata).getValue(attributeSupportProvider);
@@ -151,20 +141,10 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     }
 
     @Override
-    protected void failedToGetAttribute(final String attributeID, final Exception e) {
-        failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-    }
-
-    @Override
     protected void setAttribute(final AbstractCompositeAttribute attribute, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
         if(attribute instanceof AliasAttribute)
             ((AliasAttribute) attribute).setValue(attributeSupportProvider, value);
         else
             throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-        failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
     }
 }

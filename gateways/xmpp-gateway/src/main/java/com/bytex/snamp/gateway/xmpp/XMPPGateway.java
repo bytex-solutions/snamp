@@ -40,7 +40,7 @@ final class XMPPGateway extends AbstractGateway {
     XMPPGateway(final String instanceName) {
         super(instanceName);
         connection = null;
-        chatBot = new Bot(getLogger());
+        chatBot = new Bot();
     }
 
     @SuppressWarnings("unchecked")

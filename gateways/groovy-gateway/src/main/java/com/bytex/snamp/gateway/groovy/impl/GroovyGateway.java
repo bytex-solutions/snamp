@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.groovy.impl;
 
 import com.bytex.snamp.gateway.AbstractGateway;
-import com.bytex.snamp.gateway.groovy.GatewayInfo;
 import com.bytex.snamp.gateway.groovy.GatewayScript;
 import com.bytex.snamp.gateway.groovy.GatewayScriptEngine;
 import com.bytex.snamp.gateway.modeling.*;
@@ -97,7 +96,6 @@ final class GroovyGateway extends AbstractGateway {
     @Override
     protected synchronized void start(final Map<String, String> parameters) throws GroovyAbsentParameterConfigurationException, IOException, ResourceException, ScriptException {
         final GatewayScriptEngine engine = new GatewayScriptEngine(getClass().getClassLoader(),
-                getLogger(),
                 toProperties(parameters),
                 GroovyGatewayConfigurationProvider.getScriptPath(parameters));
         engine.getGlobalVariables().setVariable(GATEWAY_INSTANCE_NAME, getInstanceName());
@@ -126,19 +124,4 @@ final class GroovyGateway extends AbstractGateway {
             return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings((NotificationSet<ScriptNotificationAccessor>)repository);
         else return super.getBindings(featureType);
     }
-
-    static Logger getLoggerImpl() {
-        return GatewayInfo.getLogger();
-    }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return getLoggerImpl();
-    }
-
 }

@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.snmp;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.FeatureConfiguration;
-import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
 import org.snmp4j.smi.GenericAddress;
 import org.snmp4j.smi.OctetString;
@@ -17,7 +16,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
@@ -64,11 +62,6 @@ final class SnmpDiscoveryService extends AbstractDiscoveryService<SnmpClient> {
         if (Objects.equals(entityType, AttributeConfiguration.class))
             return (Collection<T>) discoverAttributes(context, client, discoveryTimeout);
         else return Collections.emptyList();
-    }
-
-    @Override
-    public Logger getLogger() {
-        return AbstractManagedResourceConnector.getLogger(SnmpResourceConnector.class);
     }
 
     @Override

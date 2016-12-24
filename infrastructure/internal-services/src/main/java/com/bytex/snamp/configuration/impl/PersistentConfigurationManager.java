@@ -155,15 +155,4 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         readConfiguration(result.changeConsumingType(handler));
         return result.get();
     }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    @Aggregation
-    public Logger getLogger() {
-        return logger;
-    }
 }

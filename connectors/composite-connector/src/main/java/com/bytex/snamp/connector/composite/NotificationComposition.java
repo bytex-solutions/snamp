@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.notifications.*;
+import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -25,16 +26,13 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
         This state used to attach and remove listeners
      */
     private final Multimap<String, String> subscription;
-    private final Logger logger;
     private final NotificationListenerInvoker listenerInvoker;
 
     NotificationComposition(final String resourceName,
                             final NotificationSupportProvider provider,
-                            final ExecutorService threadPool,
-                            final Logger logger){
+                            final ExecutorService threadPool){
         super(resourceName, CompositeNotification.class, false);
         this.provider = Objects.requireNonNull(provider);
-        this.logger = Objects.requireNonNull(logger);
         this.subscription = HashMultimap.create();
         listenerInvoker = NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
     }
@@ -69,6 +67,10 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
         return new CompositeNotification(connectorType, underlyingNotif);
     }
 
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
+    }
+
     @Override
     protected void disconnectNotifications(final CompositeNotification metadata) {
         final NotificationSupport support = provider.getNotificationSupport(metadata.getConnectorType());
@@ -82,13 +84,8 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
             try {
                 support.removeNotificationListener(this);
             } catch (final ListenerNotFoundException e) {
-                logger.log(Level.SEVERE, String.format("Unable to unsubscribe normally from notifications provided by connector '%s'. Subscription state: %s", metadata.getConnectorType(), subscription));
+                getLogger().log(Level.SEVERE, String.format("Unable to unsubscribe normally from notifications provided by connector '%s'. Subscription state: %s", metadata.getConnectorType(), subscription));
             }
-    }
-
-    @Override
-    protected void failedToEnableNotifications(final String category, final Exception e) {
-        failedToEnableNotifications(logger, Level.WARNING, category, e);
     }
 
     /**

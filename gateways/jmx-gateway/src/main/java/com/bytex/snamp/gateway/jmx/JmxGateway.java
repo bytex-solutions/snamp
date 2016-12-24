@@ -80,7 +80,7 @@ final class JmxGateway extends AbstractGateway {
         if(exposedBeans.containsKey(resourceName))
             bean = exposedBeans.get(resourceName);
         else {
-            exposedBeans.put(bean = new ProxyMBean(resourceName, getLogger()));
+            exposedBeans.put(bean = new ProxyMBean(resourceName));
             if(rootObjectName != null) {
                 //register bean
                 if (usePlatformMBean)

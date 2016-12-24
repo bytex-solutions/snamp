@@ -15,8 +15,6 @@ import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
@@ -118,32 +116,13 @@ public abstract class JavaBeanAttributeRepository extends AbstractAttributeRepos
 
     public static JavaBeanAttributeRepository create(final String resourceName,
                                                      final ManagedResourceConnector connector,
-                                                     final BeanInfo connectorInfo){
+                                                     final BeanInfo connectorInfo) {
         final ImmutableList<PropertyDescriptor> properties = ImmutableList.copyOf(connectorInfo.getPropertyDescriptors());
 
         return new JavaBeanAttributeRepository(resourceName, connector) {
             @Override
             protected ImmutableList<PropertyDescriptor> getProperties() {
                 return properties;
-            }
-
-            private Logger getLogger() {
-                return ((ManagedResourceConnector) super.owner).getLogger();
-            }
-
-            @Override
-            protected void failedToConnectAttribute(final String attributeName, final Exception e) {
-                failedToConnectAttribute(getLogger(), Level.SEVERE, attributeName, e);
-            }
-
-            @Override
-            protected void failedToGetAttribute(final String attributeID, final Exception e) {
-                failedToGetAttribute(getLogger(), Level.SEVERE, attributeID, e);
-            }
-
-            @Override
-            protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-                failedToSetAttribute(getLogger(), Level.SEVERE, attributeID, value, e);
             }
         };
     }

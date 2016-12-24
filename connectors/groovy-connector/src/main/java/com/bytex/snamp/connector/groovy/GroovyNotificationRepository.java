@@ -59,18 +59,6 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
         return scriptlet.createEvent(notifType, metadata);
     }
 
-    /**
-     * Reports an error when enabling notifications.
-     *
-     * @param category An event category.
-     * @param e        Internal connector error.
-     * @see #failedToEnableNotifications(Logger, Level, String, Exception)
-     */
-    @Override
-    protected void failedToEnableNotifications(final String category, final Exception e) {
-        failedToEnableNotifications(scriptlet.getLogger(), Level.SEVERE, category, e);
-    }
-
     @Override
     public void close() {
         scriptlet.removeEventListener(this);

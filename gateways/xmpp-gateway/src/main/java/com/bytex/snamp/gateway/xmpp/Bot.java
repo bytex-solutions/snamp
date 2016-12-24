@@ -2,7 +2,7 @@ package com.bytex.snamp.gateway.xmpp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.core.LogicalOperation;
+import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
@@ -16,10 +16,12 @@ import org.jivesoftware.smack.packet.XMPPError;
 
 import java.io.Closeable;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,27 +35,26 @@ import java.util.regex.Pattern;
  */
 final class Bot implements ChatManagerListener, AutoCloseable {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
-    private static final class SayHelloLogicalOperation extends LogicalOperation {
-        private static final CorrelationIdentifierGenerator CORREL_ID_GEN =
-                new DefaultCorrelationIdentifierGenerator();
 
-        private SayHelloLogicalOperation(final Logger logger) {
-            super(logger, "sayHello", CORREL_ID_GEN);
+    private static final class MessageLoggingScope extends LoggingScope {
+        private MessageLoggingScope(final AutoCloseable requester, final String messageType) {
+            super(requester, messageType);
+        }
+
+        private void unableToSendMessage(final Exception e) {
+            log(Level.WARNING, "Unable to send XMPP message", e);
         }
     }
 
     private static final class ChatSession<A extends AttributeReader & AttributeWriter> extends WeakReference<Chat> implements ChatMessageListener, Closeable, SafeCloseable, NotificationListener{
-        private final Logger logger;
         private final A attributes;
         private volatile boolean closed;
         private final AtomicReference<ExpressionBasedDescriptorFilter> notificationFilter;
 
         private ChatSession(final Chat chat,
-                            final A attributes,
-                            final Logger logger){
+                            final A attributes){
             super(chat);
             chat.addMessageListener(this);
-            this.logger = logger;
             this.attributes = attributes;
             notificationFilter = new AtomicReference<>(null);
         }
@@ -66,14 +67,18 @@ final class Bot implements ChatManagerListener, AutoCloseable {
                 return;
             }
             final String[] arguments = splitArguments(message.getBody());
+            MessageLoggingScope loggingScope;
             if (arguments.length == 0) {
+                loggingScope = new MessageLoggingScope(this, "processEmptyMessage");
                 try {
                     message = new Message();
                     message.setSubject("Empty request");
                     message.setError(XMPPError.from(XMPPError.Condition.bad_request, "Oops! I can't recognize the message"));
                     chat.sendMessage(message);
                 } catch (final SmackException.NotConnectedException e) {
-                    unableToSendMessage(e);
+                    loggingScope.unableToSendMessage(e);
+                } finally {
+                    loggingScope.close();
                 }
                 return;
             }
@@ -106,6 +111,7 @@ final class Bot implements ChatManagerListener, AutoCloseable {
                     break;
             }
             //process command
+            loggingScope = new MessageLoggingScope(this, "doCommand");
             try {
                 message = cmd.doCommand(ArrayUtils.remove(arguments, 0));
             } catch (final InvalidCommandFormatException e) {
@@ -116,23 +122,26 @@ final class Bot implements ChatManagerListener, AutoCloseable {
                 message = new Message();
                 message.setSubject("Error in managed resource");
                 message.setError(XMPPError.from(XMPPError.Condition.service_unavailable, e.getMessage()));
+            } finally {
+                loggingScope.close();
             }
             //send message to participant
-            if (message != null)
+            if (message != null) {
+                loggingScope = new MessageLoggingScope(this, "sendResponse");
                 try {
                     chat.sendMessage(message);
                 } catch (final SmackException.NotConnectedException e) {
-                    unableToSendMessage(e);
+                    loggingScope.unableToSendMessage(e);
+                } finally {
+                    loggingScope.close();
                 }
+            }
         }
 
         private boolean isClosed(){
             return closed;
         }
 
-        private void unableToSendMessage(final Exception e) {
-            logger.log(Level.WARNING, "Unable to send XMPP message", e);
-        }
 
         @Override
         public void close() {
@@ -169,13 +178,11 @@ final class Bot implements ChatManagerListener, AutoCloseable {
     }
 
     private final LinkedList<ChatSession> sessions;
-    private final Logger logger;
     private final XMPPModelOfAttributes attributes;
     private final XMPPModelOfNotifications notifications;
 
-    Bot(final Logger logger){
+    Bot(){
         sessions = new LinkedList<>();
-        this.logger = Objects.requireNonNull(logger);
         this.attributes = new XMPPModelOfAttributes();
         this.notifications = new XMPPModelOfNotifications();
     }
@@ -186,7 +193,7 @@ final class Bot implements ChatManagerListener, AutoCloseable {
         while (it.hasNext())
             if (it.next().isClosed()) it.remove();
         //register a new session
-        final ChatSession session = new ChatSession<>(chat, attributes, logger);
+        final ChatSession session = new ChatSession<>(chat, attributes);
         sessions.add(session);
         return session;
     }
@@ -199,11 +206,11 @@ final class Bot implements ChatManagerListener, AutoCloseable {
     }
 
     private void sayHello(final Chat chat) {
-        final LogicalOperation logger = new SayHelloLogicalOperation(this.logger);
+        final MessageLoggingScope logger = new MessageLoggingScope(this, "sayHello");
         try {
             chat.sendMessage(String.format("Hi, %s!", chat.getParticipant()));
         } catch (final SmackException.NotConnectedException e) {
-            logger.log(Level.WARNING, "Unable to send Hello message", e);
+            logger.unableToSendMessage(e);
         } finally {
             logger.close();
         }
@@ -238,7 +245,7 @@ final class Bot implements ChatManagerListener, AutoCloseable {
     /**
      * Closes all chat sessions.
      */
-    synchronized void closeAllChats() {
+    private synchronized void closeAllChats() {
         final Iterator<ChatSession> sessions = this.sessions.iterator();
         while (sessions.hasNext()) {
             sessions.next().close();

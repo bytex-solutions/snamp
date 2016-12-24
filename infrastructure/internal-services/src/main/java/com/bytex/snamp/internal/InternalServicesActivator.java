@@ -107,7 +107,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
                 (publisher) ->
-                        publisher.registerServlet(SecurityServlet.CONTEXT, new SecurityServlet(getLogger()), new Hashtable<>(), null));
+                        publisher.registerServlet(SecurityServlet.CONTEXT, new SecurityServlet(), new Hashtable<>(), null));
         activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, httpService);
     }
 

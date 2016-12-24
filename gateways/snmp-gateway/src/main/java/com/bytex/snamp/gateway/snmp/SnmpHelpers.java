@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway.snmp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.primitives.Shorts;
@@ -23,7 +24,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,8 +46,6 @@ final class SnmpHelpers {
     private SnmpHelpers(){
 
     }
-
-
 
     static byte toByte(final long value){
         if(value > Byte.MAX_VALUE)
@@ -323,7 +321,7 @@ final class SnmpHelpers {
         return getAccessRestrictions(metadata, false);
     }
 
-    static <COLUMN extends MOColumn<?>> COLUMN findColumn(final MOTable<?, ? extends MOColumn<?>, ?> table, final Class<COLUMN> columnType){
+    private static <COLUMN extends MOColumn<?>> COLUMN findColumn(final MOTable<?, ? extends MOColumn<?>, ?> table, final Class<COLUMN> columnType){
         for(final MOColumn<? extends Variable> column: table.getColumns())
             if(columnType.isInstance(column)) return columnType.cast(column);
         return null;
@@ -342,43 +340,19 @@ final class SnmpHelpers {
         return result;
     }
 
-    static Logger getLogger(){
-        return SnmpGateway.getLoggerImpl();
-    }
-
-    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e) {
-        getLogger().log(lvl, String.format(message, args), e);
-    }
-
-    static void log(final Level lvl, final String message, final Throwable e){
-        log(lvl, message, emptyArray(String[].class), e);
-    }
-
-    static void log(final Level lvl, final String message, final Object arg0, final Throwable e){
-        log(lvl, message, new Object[]{arg0}, e);
-    }
-
-    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Throwable e){
-        log(lvl, message, new Object[]{arg0, arg1}, e);
-    }
-
-    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Object arg2, final Throwable e){
-        log(lvl, message, new Object[]{arg0, arg1, arg2}, e);
-    }
-
     private static OID generateOID(final OID prefix){
         return new OID(prefix).append(POSTFIX_COUNTER.getAndIncrement()).append(0);
     }
 
-    static Supplier<OID> getOidGenerator(final BundleContext context){
+    static Supplier<OID> getOidGenerator(final BundleContext context) {
         final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
         String prefix = "1.1";
-        if(manager != null)
-            try{
+        if (manager != null)
+            try {
                 prefix = manager.get().transformConfiguration(config -> config.getParameters().get(AUTO_PREFIX_PROPERTY));
-            } catch (final IOException e){
-                log(Level.SEVERE, "Unable to get SNAMP configuration manager", e);
-            }finally {
+            } catch (final IOException e) {
+                LoggerProvider.getLoggerForBundle(context).log(Level.SEVERE, "Unable to get SNAMP configuration manager", e);
+            } finally {
                 manager.release(context);
             }
 

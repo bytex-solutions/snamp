@@ -29,8 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.Convert.toTypeToken;
@@ -338,53 +336,13 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
     private static final class RShellAttributes extends AbstractAttributeRepository<RShellAttributeInfo> {
         private final CommandExecutionChannel executionChannel;
         private final ScriptEngineManager scriptEngineManager;
-        private final Logger logger;
 
         private RShellAttributes(final String resourceName,
                                  final CommandExecutionChannel channel,
-                                 final ScriptEngineManager engineManager,
-                                 final Logger logger) {
+                                 final ScriptEngineManager engineManager) {
             super(resourceName, RShellAttributeInfo.class, false);
             this.executionChannel = Objects.requireNonNull(channel);
             this.scriptEngineManager = engineManager;
-            this.logger = Objects.requireNonNull(logger);
-        }
-
-        /**
-         * Reports an error when connecting attribute.
-         *
-         * @param attributeName The name of the attribute.
-         * @param e             Internal connector error.
-         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.WARNING, attributeName, e);
-        }
-
-        /**
-         * Reports an error when getting attribute.
-         *
-         * @param attributeID The attribute identifier.
-         * @param e           Internal connector error.
-         * @see #failedToGetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-        }
-
-        /**
-         * Reports an error when updating attribute.
-         *
-         * @param attributeID The attribute identifier.
-         * @param value       The value of the attribute.
-         * @param e           Internal connector error.
-         * @see #failedToSetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Object, Exception)
-         */
-        @Override
-        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
         }
 
         /**
@@ -443,16 +401,13 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
     private static final class RShellOperations extends AbstractOperationRepository<RShellOperationInfo> {
             private final CommandExecutionChannel executionChannel;
             private final ScriptEngineManager scriptEngineManager;
-            private final Logger logger;
 
             private RShellOperations(final String resourceName,
                                      final CommandExecutionChannel channel,
-                                     final ScriptEngineManager engineManager,
-                                     final Logger logger) {
+                                     final ScriptEngineManager engineManager) {
                 super(resourceName, RShellOperationInfo.class, false);
                 this.executionChannel = Objects.requireNonNull(channel);
                 this.scriptEngineManager = engineManager;
-                this.logger = Objects.requireNonNull(logger);
             }
 
             @Override
@@ -471,11 +426,6 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
                     }
                 } else
                     throw new FileNotFoundException(commandProfileFilePath + " RShell command profile doesn't exist");
-            }
-
-            @Override
-            protected void failedToEnableOperation(String operationName, Exception e) {
-                failedToEnableOperation(logger, Level.WARNING, operationName, e);
             }
 
             @Override
@@ -498,10 +448,10 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
             throw new InstantiationException(String.format("Unknown channel: %s", connectionOptions));
         attributes = new RShellAttributes(resourceName,
                 executionChannel,
-                new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)), getLogger());
+                new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)));
         operations = new RShellOperations(resourceName,
                 executionChannel,
-                new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)), getLogger());
+                new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)));
     }
 
     RShellResourceConnector(final String resourceName,

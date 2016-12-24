@@ -4,6 +4,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.AttributeMetric;
 import com.bytex.snamp.connector.metrics.AttributeMetricRecorder;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.internal.Utils;
@@ -294,35 +295,10 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         try {
             return writeLock.call(SingleResourceGroup.INSTANCE, () -> addAttributeImpl(attributeName, descriptor), null);
         } catch (final Exception e) {
-            failedToConnectAttribute(attributeName, e);
+            getLogger().log(Level.SEVERE, String.format("Failed to connect attribute '%s'", attributeName), e);
             return null;
         }
     }
-
-    /**
-     * Reports an error when connecting attribute.
-     *
-     * @param logger        The logger instance. Cannot be {@literal null}.
-     * @param logLevel      Logging level.
-     * @param attributeName The name of the attribute.
-     * @param e             Internal connector error.
-     */
-    protected static void failedToConnectAttribute(final Logger logger,
-                                                   final Level logLevel,
-                                                   final String attributeName,
-                                                   final Exception e) {
-        logger.log(logLevel, String.format("Failed to connect attribute '%s'", attributeName), e);
-    }
-
-    /**
-     * Reports an error when connecting attribute.
-     *
-     * @param attributeName The name of the attribute.
-     * @param e             Internal connector error.
-     * @see #failedToConnectAttribute(Logger, Level, String, Exception)
-     */
-    protected abstract void failedToConnectAttribute(final String attributeName,
-                                                     final Exception e);
 
     /**
      * Obtains the value of a specific attribute of the managed resource.
@@ -367,30 +343,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         }
     }
 
-    /**
-     * Reports an error when getting attribute.
-     *
-     * @param logger      The logger instance. Cannot be {@literal null}.
-     * @param logLevel    Logging level.
-     * @param attributeName The attribute identifier.
-     * @param e           Internal connector error.
-     */
-    protected static void failedToGetAttribute(final Logger logger,
-                                               final Level logLevel,
-                                               final String attributeName,
-                                               final Exception e) {
-        logger.log(logLevel, String.format("Failed to get attribute '%s'", attributeName), e);
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
-    /**
-     * Reports an error when getting attribute.
-     *
-     * @param attributeID The attribute identifier.
-     * @param e           Internal connector error.
-     * @see #failedToGetAttribute(Logger, Level, String, Exception)
-     */
-    protected abstract void failedToGetAttribute(final String attributeID,
-                                                 final Exception e);
+    private void failedToGetAttribute(final String attributeName,
+                                                 final Exception e){
+        getLogger().log(Level.WARNING, String.format("Failed to get attribute '%s'", attributeName), e);
+    }
 
     /**
      * Sets the value of a specific attribute of the managed resource.
@@ -437,34 +397,9 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         }
     }
 
-    /**
-     * Reports an error when updating attribute.
-     *
-     * @param logger      The logger instance. Cannot be {@literal null}.
-     * @param logLevel    Logging level.
-     * @param attributeID The attribute identifier.
-     * @param value       The value of the attribute.
-     * @param e           Internal connector error.
-     */
-    protected static void failedToSetAttribute(final Logger logger,
-                                               final Level logLevel,
-                                               final String attributeID,
-                                               final Object value,
-                                               final Exception e) {
-        logger.log(logLevel, String.format("Failed to update attribute %s with %s value", attributeID, value), e);
+    private void failedToSetAttribute(final String attributeName, final Object attributeValue, final Exception e){
+        getLogger().log(Level.WARNING, String.format("Failed to update attribute %s with %s value", attributeName, attributeValue), e);
     }
-
-    /**
-     * Reports an error when updating attribute.
-     *
-     * @param attributeID The attribute identifier.
-     * @param value       The value of the attribute.
-     * @param e           Internal connector error.
-     * @see #failedToSetAttribute(Logger, Level, String, Object, Exception)
-     */
-    protected abstract void failedToSetAttribute(final String attributeID,
-                                                 final Object value,
-                                                 final Exception e);
 
     /**
      * Removes the attribute from the connector.
@@ -496,7 +431,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M remove(final String attributeID) {
-        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, attributeID, AbstractAttributeRepository::removeImpl);
+        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, attributeID, AbstractAttributeRepository<M>::removeImpl);
         if (metadata != null)
             disconnectAttribute(metadata);
         return metadata;
@@ -604,8 +539,8 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         return expandable;
     }
 
-    protected final void failedToExpand(final Logger logger, final Level level, final Exception e){
-        logger.log(level, String.format("Unable to expand attributes for resource %s", getResourceName()), e);
+    protected final void failedToExpand(final Level level, final Exception e){
+        getLogger().log(level, String.format("Unable to expand attributes for resource %s", getResourceName()), e);
     }
 
     /**

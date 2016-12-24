@@ -5,7 +5,6 @@ import com.bytex.snamp.connector.operations.OperationDescriptor;
 
 import javax.management.OperationsException;
 import java.util.Objects;
-import java.util.logging.Level;
 
 /**
  * Represents repository of Groovy-based operations.
@@ -24,11 +23,6 @@ final class GroovyOperationRepository extends AbstractOperationRepository<Groovy
     @Override
     protected GroovyOperation connectOperation(final String operationName, final OperationDescriptor descriptor) throws OperationsException {
         return scriptlet.createOperation(operationName, descriptor);
-    }
-
-    @Override
-    protected void failedToEnableOperation(final String operationName, final Exception e) {
-        failedToEnableOperation(scriptlet.getLogger(), Level.SEVERE, operationName, e);
     }
 
     @Override

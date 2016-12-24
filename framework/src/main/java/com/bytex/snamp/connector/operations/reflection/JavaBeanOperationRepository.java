@@ -12,8 +12,6 @@ import java.beans.BeanInfo;
 import java.beans.MethodDescriptor;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
@@ -84,18 +82,10 @@ public abstract class JavaBeanOperationRepository extends AbstractOperationRepos
         final ImmutableList<MethodDescriptor> properties = ImmutableList.copyOf(connectorInfo.getMethodDescriptors());
 
         return new JavaBeanOperationRepository(resourceName, connector) {
+
             @Override
             protected ImmutableList<MethodDescriptor> getMethods() {
                 return properties;
-            }
-
-            private Logger getLogger(){
-                return ((ManagedResourceConnector) super.owner).getLogger();
-            }
-
-            @Override
-            protected void failedToEnableOperation(final String operationName, final Exception e) {
-                failedToEnableOperation(getLogger(), Level.SEVERE, operationName, e);
             }
         };
     }

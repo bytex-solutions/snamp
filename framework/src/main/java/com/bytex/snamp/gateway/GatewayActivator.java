@@ -6,6 +6,7 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ObjectArrays;
@@ -304,13 +305,8 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         getLogger().info(String.format("Activating gateway of type %s", getGatewayType()));
     }
 
-    /**
-     * Gets logger associated with this activator.
-     * @return A logger associated with this activator.
-     */
-    @Override
-    protected Logger getLogger(){
-        return AbstractGateway.getLogger(getGatewayType());
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     /**

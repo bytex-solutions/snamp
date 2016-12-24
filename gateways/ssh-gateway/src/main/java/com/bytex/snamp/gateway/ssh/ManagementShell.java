@@ -4,6 +4,8 @@ import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.WriteOnceRef;
+import com.bytex.snamp.core.LoggerProvider;
+import com.sun.istack.internal.NotNull;
 import jline.console.ConsoleReader;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.Session;
@@ -54,7 +56,7 @@ final class ManagementShell implements Command, SessionAware {
         }
 
         @Override
-        public <T> T queryObject(final Class<T> objectType) {
+        public <T> T queryObject(@NotNull final Class<T> objectType) {
             return aggregator.queryObject(objectType);
         }
     }
@@ -111,7 +113,7 @@ final class ManagementShell implements Command, SessionAware {
                     }
                 if (callback != null) callback.onExit(0);
             } catch (final IOException e) {
-                SshHelpers.log(Level.SEVERE, "Network I/O problems detected.", e);
+                LoggerProvider.getLoggerForObject(this).log(Level.SEVERE, "Network I/O problems detected.", e);
                 if (callback != null) callback.onExit(-1, e.getMessage());
             }
         }

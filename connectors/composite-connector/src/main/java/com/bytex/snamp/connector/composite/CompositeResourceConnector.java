@@ -50,11 +50,11 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
                                final Duration syncPeriod,
                                final URL[] groovyPath) throws IOException {
         connectors = new Composition(resourceName);
-        final ScriptLoader scriptLoader = new ScriptLoader(getClass().getClassLoader(), getLogger(), groovyPath);
-        attributes = new AttributeComposition(resourceName, connectors, threadPool, syncPeriod, scriptLoader, getLogger());
-        notifications = new NotificationComposition(resourceName, connectors, threadPool, getLogger());
+        final ScriptLoader scriptLoader = new ScriptLoader(getClass().getClassLoader(), groovyPath);
+        attributes = new AttributeComposition(resourceName, connectors, threadPool, syncPeriod, scriptLoader);
+        notifications = new NotificationComposition(resourceName, connectors, threadPool);
         notifications.addNotificationListener(attributes, null, null);
-        operations = new OperationComposition(resourceName, connectors, getLogger());
+        operations = new OperationComposition(resourceName, connectors);
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.core.LoggingScope;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -17,6 +18,16 @@ import java.util.logging.Level;
  * @since 1.0
  */
 public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> extends AbstractAggregator implements DiscoveryService {
+    private static final class DiscoveryLoggingScope extends LoggingScope {
+        private DiscoveryLoggingScope(final DiscoveryService service) {
+            super(service, "discovery");
+        }
+
+        private void discovertFailed(final Exception e) {
+            log(Level.WARNING, "Discovery request failed.", e);
+        }
+    }
+
     /**
      * Initializes a new discovery service.
      */
@@ -48,10 +59,11 @@ public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> 
      */
     @Override
     public final <T extends FeatureConfiguration> Collection<T> discover(final String connectionString, final Map<String, String> connectionOptions, final Class<T> entityType) {
+        final DiscoveryLoggingScope discoveryLogging = new DiscoveryLoggingScope(this);
         try (final TProvider provider = createProvider(connectionString, connectionOptions)) {
             return getEntities(entityType, provider);
         } catch (final Exception e) {
-            discoveryFailed(e);
+            discoveryLogging.discovertFailed(e);
             return Collections.emptyList();
         }
     }
@@ -89,18 +101,17 @@ public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> 
     @SafeVarargs
     @Override
     public final DiscoveryResult discover(final String connectionString, final Map<String, String> connectionOptions, final Class<? extends FeatureConfiguration>... entityTypes) {
+        final DiscoveryLoggingScope discoveryLogging = new DiscoveryLoggingScope(this);
         try (final TProvider provider = createProvider(connectionString, connectionOptions)) {
             final DiscoveryResultBuilder builder = new DiscoveryResultBuilder();
             for (final Class<? extends FeatureConfiguration> t : entityTypes)
                 builder.addFeatures(t, getEntities(t, provider));
             return builder.get();
         } catch (final Exception e) {
-            discoveryFailed(e);
+            discoveryLogging.discovertFailed(e);
             return new EmptyDiscoveryResult(entityTypes);
+        } finally {
+            discoveryLogging.close();
         }
-    }
-
-    private void discoveryFailed(final Exception e) {
-        getLogger().log(Level.WARNING, "Discovery request failed.", e);
     }
 }

@@ -1,5 +1,6 @@
 package com.bytex.snamp.gateway.http;
 
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.ModelOfNotifications;
@@ -49,12 +50,12 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
 
         @Override
         public final void onWebSocketError(final Throwable cause) {
-            logger.log(Level.WARNING, "WebSocket error detected", cause);
+            getLogger().log(Level.WARNING, "WebSocket error detected", cause);
         }
 
         @Override
         public final void onWebSocketClose(final int statusCode, final String reason) {
-            logger.fine(() -> String.format("WebSocket is closed with status %s (%s)", statusCode, reason));
+            getLogger().fine(() -> String.format("WebSocket is closed with status %s (%s)", statusCode, reason));
             super.onWebSocketClose(statusCode, reason);
             webSocketListeners.remove(this);
         }
@@ -79,19 +80,21 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
             .serializeNulls()
             .create();
 
-    private final Logger logger;
     private final Set<NotificationListener> webSocketListeners;
 
-    HttpModelOfNotifications(final Logger logger) {
-        this.logger = Objects.requireNonNull(logger);
+    HttpModelOfNotifications() {
         webSocketListeners = new CopyOnWriteArraySet<>();
     }
 
-    private static WriteCallback createCallback(final Logger logger, final Notification notification){
+    private static WriteCallback createCallback(final Notification notification){
         return new WriteCallback() {
+            private Logger getLogger(){
+                return LoggerProvider.getLoggerForObject(this);
+            }
+
             @Override
             public void writeFailed(final Throwable e) {
-                logger.log(Level.WARNING, String.format("Failed to send notification %s", notification), e);
+                getLogger().log(Level.WARNING, String.format("Failed to send notification %s", notification), e);
             }
 
             @Override
@@ -101,8 +104,8 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
         };
     }
 
-    private WriteCallback createCallback(final Notification notification){
-        return createCallback(logger, notification);
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     @Override

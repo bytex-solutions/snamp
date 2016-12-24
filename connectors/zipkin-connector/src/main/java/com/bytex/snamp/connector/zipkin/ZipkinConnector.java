@@ -5,6 +5,7 @@ import com.bytex.snamp.connector.md.NotificationParser;
 import com.bytex.snamp.connector.md.groovy.GroovyNotificationParserLoader;
 import com.bytex.snamp.connector.md.notifications.NotificationSource;
 import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Binding;
 import zipkin.collector.CollectorComponent;
@@ -15,6 +16,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -50,6 +52,10 @@ final class ZipkinConnector extends MessageDrivenConnector implements AsyncSpanC
 
     ZipkinConnector(final String resourceName, final String connectionString, final Map<String, String> parameters) throws URISyntaxException {
         this(resourceName, connectionString, parameters, ZipkinConnectorConfigurationDescriptionProvider.getInstance());
+    }
+
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     private StorageComponent createStorage(){

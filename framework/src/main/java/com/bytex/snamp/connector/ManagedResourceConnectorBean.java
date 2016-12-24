@@ -25,8 +25,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
@@ -111,17 +109,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     private static final class JavaBeanNotificationRepository extends AbstractNotificationRepository<AbstractNotificationInfo> {
-        private final Logger logger;
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
         private final NotificationListenerInvoker listenerInvoker;
         private final SharedCounter sequenceNumberGenerator;
 
         private JavaBeanNotificationRepository(final String resourceName,
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
-                                               final BundleContext context,
-                                               final Logger logger) {
+                                               final BundleContext context) {
             super(resourceName, AbstractNotificationInfo.class, false);
-            this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
             this.sequenceNumberGenerator = context == null ?  //may be null when executing through unit tests
@@ -154,11 +149,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                 throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getName(category)));
         }
 
-        @Override
-        protected void failedToEnableNotifications(final String category, final Exception e) {
-            failedToEnableNotifications(logger, Level.WARNING, category, e);
-        }
-
         private boolean fire(final ManagementNotificationType<?> category, final String message, final Object userData) {
             return fire(category.getCategory(), message, sequenceNumberGenerator, userData);
         }
@@ -171,7 +161,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @since 1.0
      * @version 2.0
      */
-    public static abstract class BeanDiscoveryService extends AbstractAggregator implements DiscoveryService{
+    public static class BeanDiscoveryService extends AbstractAggregator implements DiscoveryService{
         private final Collection<? extends ManagementNotificationType<?>> notifications;
         private final BeanInfo beanMetadata;
 
@@ -269,8 +259,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         attributes = JavaBeanAttributeRepository.create(resourceName, this, beanInfo);
         notifications = new JavaBeanNotificationRepository(resourceName,
                 notifTypes,
-                getBundleContextOfObject(this),
-                getLogger());
+                getBundleContextOfObject(this));
         operations = JavaBeanOperationRepository.create(resourceName, this, beanInfo);
     }
 
@@ -348,14 +337,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     private static BeanDiscoveryService createDiscoveryService(final BeanInfo beanMetadata,
-                                                               final Set<? extends ManagementNotificationType<?>> notifTypes,
-                                                               final Logger logger){
-        return new BeanDiscoveryService(beanMetadata, notifTypes) {
-            @Override
-            public Logger getLogger() {
-                return logger;
-            }
-        };
+                                                               final Set<? extends ManagementNotificationType<?>> notifTypes){
+        return new BeanDiscoveryService(beanMetadata, notifTypes);
     }
 
     /**
@@ -366,7 +349,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     public DiscoveryService createDiscoveryService() throws IntrospectionException{
         final BeanInfo beanMetadata = getBeanInfo(getClass());
         final Set<? extends ManagementNotificationType<?>> notifTypes = notifications.notifTypes;
-        return createDiscoveryService(beanMetadata, notifTypes, getLogger());
+        return createDiscoveryService(beanMetadata, notifTypes);
     }
 
     /**

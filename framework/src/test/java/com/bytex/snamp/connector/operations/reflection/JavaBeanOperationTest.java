@@ -44,11 +44,6 @@ public final class JavaBeanOperationTest extends Assert {
             protected Collection<MethodDescriptor> getMethods() {
                 return info;
             }
-
-            @Override
-            protected void failedToEnableOperation(final String operationName, final Exception e) {
-                fail(e.getMessage());
-            }
         };
     }
 

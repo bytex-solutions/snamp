@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
+import com.google.gson.Gson;
 
 import javax.management.Descriptor;
 import javax.management.JMException;
@@ -9,6 +10,7 @@ import javax.management.MBeanAttributeInfo;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Objects;
 
 /**
  * Provides transformation between attribute of the connected resource and SSH protocol.
@@ -17,8 +19,11 @@ abstract class SshAttributeAccessor extends AttributeAccessor implements SshAttr
     static final String GET_COMMAND_PATTERN = "get -n %s -r %s";
     static final String SET_COMMAND_PATTERN = "set -n %s -r %s -v %s";
 
-    SshAttributeAccessor(final MBeanAttributeInfo metadata) {
+    final Gson formatter;
+
+    SshAttributeAccessor(final MBeanAttributeInfo metadata, final Gson formatter) {
         super(metadata);
+        this.formatter = Objects.requireNonNull(formatter);
     }
 
     @Override
@@ -27,7 +32,7 @@ abstract class SshAttributeAccessor extends AttributeAccessor implements SshAttr
     }
 
     private void printValueAsJson(final Writer output) throws IOException, JMException {
-        SshHelpers.FORMATTER.toJson(getValue(), output);
+        formatter.toJson(getValue(), output);
         output.flush();
     }
 
@@ -61,7 +66,7 @@ abstract class SshAttributeAccessor extends AttributeAccessor implements SshAttr
     @Override
     public final void setValue(final Reader input) throws JMException, IOException {
         if (getType() != null && canWrite())
-            setValue(SshHelpers.FORMATTER.fromJson(input, getType().getJavaType()));
+            setValue(formatter.fromJson(input, getType().getJavaType()));
         else throw new UnsupportedOperationException(String.format("Attribute %s is read-only", getName()));
     }
 

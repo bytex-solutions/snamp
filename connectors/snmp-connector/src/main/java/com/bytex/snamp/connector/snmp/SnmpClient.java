@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.snmp;
 import com.bytex.snamp.Aggregator;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
+import com.sun.istack.internal.NotNull;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -164,7 +165,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             }
 
             @Override
-            public <T> T queryObject(final Class<T> objectType) {
+            public <T> T queryObject(@NotNull final Class<T> objectType) {
                 return objectType.isInstance(threadPool) ? objectType.cast(threadPool) : null;
             }
         };
@@ -200,7 +201,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             }
 
             @Override
-            public <T> T queryObject(final Class<T> objectType) {
+            public <T> T queryObject(@NotNull final Class<T> objectType) {
                 return objectType.isInstance(threadPool) ? objectType.cast(threadPool) : null;
             }
         };

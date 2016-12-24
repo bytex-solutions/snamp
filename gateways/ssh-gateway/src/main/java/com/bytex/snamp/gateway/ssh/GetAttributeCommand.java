@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.ssh;
 
-import com.bytex.snamp.core.LogicalOperation;
+import com.bytex.snamp.core.LoggingScope;
+import com.bytex.snamp.gateway.modeling.ReadAttributeLoggingScope;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -44,7 +45,7 @@ final class GetAttributeCommand extends AbstractAttributeCommand {
             final String resourceName = input.getOptionValue(RESOURCE_OPTION.getOpt());
             final String attributeName = input.getOptionValue(NAME_OPTION.getOpt());
             if(!getGatewayController().processAttribute(resourceName, attributeName, attribute -> {
-                try(final LogicalOperation ignored = SshHelpers.readAttributeLogicalOperation(attribute.getOriginalName(), attributeName)) {
+                try(final LoggingScope ignored = new ReadAttributeLoggingScope(this, attribute.getOriginalName(), attributeName)) {
                     attribute.printValue(output, format);
                 }
                 catch (final IOException | JMException e){

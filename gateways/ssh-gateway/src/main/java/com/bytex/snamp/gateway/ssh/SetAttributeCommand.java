@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.ssh;
 
-import com.bytex.snamp.core.LogicalOperation;
+import com.bytex.snamp.core.LoggingScope;
+import com.bytex.snamp.gateway.modeling.WriteAttributeLoggingScope;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -43,7 +44,7 @@ final class SetAttributeCommand extends AbstractAttributeCommand {
             final String attributeName = input.getOptionValue(NAME_OPTION.getOpt());
             final String attributeValue = input.getOptionValue(VALUE_OPTION.getOpt());
             if(!getGatewayController().processAttribute(resourceName, attributeName, attribute -> {
-                try (final LogicalOperation ignored = SshHelpers.writeAttributeLogicalOperation(attribute.getOriginalName(), attributeName);
+                try (final LoggingScope ignored = new WriteAttributeLoggingScope(this, attribute.getOriginalName(), attributeName);
                      final StringReader reader = new StringReader(attributeValue)) {
                     attribute.setValue(reader);
                     output.println("OK");

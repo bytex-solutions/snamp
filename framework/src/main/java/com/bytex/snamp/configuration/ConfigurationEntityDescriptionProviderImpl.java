@@ -4,7 +4,6 @@ import com.bytex.snamp.AbstractAggregator;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Collection;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -37,15 +36,5 @@ public class ConfigurationEntityDescriptionProviderImpl extends AbstractAggregat
                 .filter(description -> configurationEntity.equals(description.getEntityType()))
                 .findFirst()
                 .orElseGet(() -> null);
-    }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return Logger.getLogger(getClass().getName());
     }
 }

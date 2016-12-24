@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector;
 
+import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Localizable;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.LazySoftReference;
@@ -11,7 +12,6 @@ import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
-import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import org.osgi.framework.FrameworkUtil;
 
@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 
@@ -37,7 +36,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @since 1.0
  * @version 2.0
  */
-public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Localizable {
+public abstract class AbstractManagedResourceConnector extends AbstractAggregator implements ManagedResourceConnector, Localizable {
     private final LazySoftReference<MetricsSupport> metrics;
 
     protected AbstractManagedResourceConnector() {
@@ -280,42 +279,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     }
 
     /**
-     * Returns logger name based on the management connector name.
-     * @param connectorName The name of the connector.
-     * @return The logger name.
-     */
-    public static String getLoggerName(final String connectorName){
-        return String.format("com.bytex.snamp.connector.%s", connectorName);
-    }
-
-    /**
-     * Returns a logger associated with the specified management connector.
-     * @param connectorName The name of the connector.
-     * @return An instance of the logger.
-     */
-    public static Logger getLogger(final String connectorName){
-        return Logger.getLogger(getLoggerName(connectorName));
-    }
-
-    public static Logger getLogger(final Class<? extends ManagedResourceConnector> connectorType){
-        return getLogger(getConnectorType(connectorType));
-    }
-    /**
      * Returns system name of the connector using its implementation class.
      * @param connectorImpl A class that represents implementation of resource connector.
      * @return System name of the connector.
      */
     public static String getConnectorType(final Class<? extends ManagedResourceConnector> connectorImpl){
         return ManagedResourceConnector.getResourceConnectorType(FrameworkUtil.getBundle(connectorImpl));
-    }
-
-    /**
-     * Gets logger associated with this connector.
-     * @return A logger associated with this connector.
-     */
-    @Override
-    @Aggregation
-    public Logger getLogger() {
-        return getLogger(getClass());
     }
 }

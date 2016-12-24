@@ -1,5 +1,6 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.connector.ManagedResourceActivator;
@@ -27,7 +28,7 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
  * @version 2.0
  * @since 1.0
  */
-public abstract class AbstractSnampManager extends AbstractFrameworkService implements SnampManager {
+public abstract class AbstractSnampManager extends AbstractAggregator implements SnampManager {
     private final class InternalSnampComponentDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
         private static final long serialVersionUID = 5684854305916946882L;
 

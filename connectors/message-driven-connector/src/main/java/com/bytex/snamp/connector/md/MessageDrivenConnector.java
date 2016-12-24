@@ -9,6 +9,7 @@ import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationReposito
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
 import com.bytex.snamp.connector.operations.reflection.OperationParameter;
 import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SharedCounter;
 
 import javax.management.AttributeChangeNotification;
@@ -21,6 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
@@ -70,11 +72,11 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         //init attributes
         attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
         assert attributes != null;
-        attributes.init(threadPool, descriptor, getLogger());
+        attributes.init(threadPool, descriptor);
         //init notifications
         notifications = createNotificationRepository(resourceName);
         assert notifications != null;
-        notifications.init(threadPool, getLogger());
+        notifications.init(threadPool);
 
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
@@ -119,6 +121,10 @@ public abstract class MessageDrivenConnector extends AbstractManagedResourceConn
         notification.setSequenceNumber(sequenceNumberProvider.getAsLong());
         attributes.handleNotification(notification, this::attributeProcessed);
         notifications.handleNotification(notification);
+    }
+
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     private void attributeProcessed(final MessageDrivenAttribute attribute, final MessageDrivenAttribute.NotificationProcessingResult result) {

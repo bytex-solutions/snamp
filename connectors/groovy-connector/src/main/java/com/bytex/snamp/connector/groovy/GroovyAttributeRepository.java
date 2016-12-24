@@ -8,7 +8,6 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.logging.Level;
 
 /**
  * Represents repository of Groovy-based attributes.
@@ -34,10 +33,6 @@ final class GroovyAttributeRepository extends AbstractAttributeRepository<Groovy
         return scriptlet.createAttribute(attributeName, descriptor);
     }
 
-    @Override
-    protected void failedToConnectAttribute(final String attributeName, final Exception e) {
-        failedToConnectAttribute(scriptlet.getLogger(), Level.SEVERE, attributeName, e);
-    }
 
     @Override
     protected Object getAttribute(final GroovyAttribute metadata) throws ReflectionException, InvalidAttributeValueException {
@@ -45,17 +40,7 @@ final class GroovyAttributeRepository extends AbstractAttributeRepository<Groovy
     }
 
     @Override
-    protected void failedToGetAttribute(final String attributeName, final Exception e) {
-        failedToGetAttribute(scriptlet.getLogger(), Level.SEVERE, attributeName, e);
-    }
-
-    @Override
     protected void setAttribute(final GroovyAttribute attribute, final Object value) throws ReflectionException, InvalidAttributeValueException {
         attribute.setValue(value);
-    }
-
-    @Override
-    protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-        failedToSetAttribute(scriptlet.getLogger(), Level.SEVERE, attributeID, value, e);
     }
 }

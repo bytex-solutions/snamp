@@ -29,7 +29,6 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
 
@@ -84,16 +83,6 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
 
         public TestManagementConnectorBean() throws IntrospectionException {
             super("TestResource", EnumSet.allOf(TestNotificationType.class));
-        }
-
-        /**
-         * Gets a logger associated with this platform service.
-         *
-         * @return A logger associated with this platform service.
-         */
-        @Override
-        public Logger getLogger() {
-            return Logger.getAnonymousLogger();
         }
 
         @SpecialUse

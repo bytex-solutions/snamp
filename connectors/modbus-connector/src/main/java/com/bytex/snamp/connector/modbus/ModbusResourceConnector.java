@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents Modbus connector.
@@ -25,12 +23,10 @@ import java.util.logging.Logger;
 final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     private static final class ModbusAttributeRepository extends AbstractAttributeRepository<ModbusAttributeInfo> {
         private final ModbusMaster client;
-        private final Logger logger;
 
-        private ModbusAttributeRepository(final String resourceName, final ModbusMaster client, final Logger logger) {
+        private ModbusAttributeRepository(final String resourceName, final ModbusMaster client) {
             super(resourceName, ModbusAttributeInfo.class, false);
             this.client = Objects.requireNonNull(client);
-            this.logger = logger;
         }
 
         @Override
@@ -76,21 +72,6 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
             else
                 throw new InvalidAttributeValueException("Invalid value: " + value);
         }
-
-        @Override
-        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.WARNING, attributeName, e);
-        }
-
-        @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(logger, Level.SEVERE, attributeID, e);
-        }
-
-        @Override
-        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            failedToSetAttribute(logger, Level.SEVERE, attributeID, value, e);
-        }
     }
     private final ModbusMaster client;
     @Aggregation
@@ -101,7 +82,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
                                     final String address,
                                     final int port) throws IOException {
         client = transportType.createMaster(address, port);
-        attributes = new ModbusAttributeRepository(resourceName, client, getLogger());
+        attributes = new ModbusAttributeRepository(resourceName, client);
     }
 
     private static ModbusTransportType getTransportType(final URI connectionString) throws MalformedURLException{

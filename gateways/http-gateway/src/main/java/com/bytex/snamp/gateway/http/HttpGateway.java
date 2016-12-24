@@ -33,7 +33,7 @@ final class HttpGateway extends AbstractGateway {
         super(instanceName);
         publisher = Objects.requireNonNull(servletPublisher, "servletPublisher is null.");
         attributes = new HttpModelOfAttributes();
-        notifications = new HttpModelOfNotifications(getLogger());
+        notifications = new HttpModelOfNotifications();
     }
 
     private String getServletContextForAttributes(){

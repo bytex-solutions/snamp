@@ -22,8 +22,8 @@ public final class SecurityServlet extends ServletContainer {
     private static final long serialVersionUID = 1107487431672546167L;
     public static final String CONTEXT = "/snamp/security";
 
-    public SecurityServlet(final Logger logger){
-        super(createAppConfig(logger));
+    public SecurityServlet(){
+        super(createAppConfig());
     }
 
     private static class InternalAuthFilter extends WebSecurityFilter {
@@ -33,9 +33,9 @@ public final class SecurityServlet extends ServletContainer {
         }
     }
 
-    private static Application createAppConfig(final Logger logger){
+    private static Application createAppConfig(){
         final DefaultResourceConfig result = new DefaultResourceConfig();
-        result.getSingletons().add(new WebAuthenticator(logger));
+        result.getSingletons().add(new WebAuthenticator());
         result.getContainerRequestFilters().add(new InternalAuthFilter());
         return result;
     }

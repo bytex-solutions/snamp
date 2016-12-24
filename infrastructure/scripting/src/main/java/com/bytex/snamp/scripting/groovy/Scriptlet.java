@@ -8,6 +8,7 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import groovy.lang.Closure;
@@ -182,11 +183,7 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
      */
     @Override
     public final Logger getLogger() {
-        return (Logger) getProperty(LOGGER_VAR);
-    }
-
-    public final void setLogger(final Logger logger){
-        setProperty(LOGGER_VAR, logger);
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     private BundleContext getBundleContext(){

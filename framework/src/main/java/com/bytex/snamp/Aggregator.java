@@ -1,6 +1,7 @@
 package com.bytex.snamp;
 
 
+import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -37,7 +38,7 @@ public interface Aggregator {
      */
     Aggregator EMPTY = new Aggregator() {
         @Override
-        public <T> T queryObject(final Class<T> objectType) {
+        public <T> T queryObject(@Nonnull final Class<T> objectType) {
             return null;
         }
 
@@ -54,7 +55,7 @@ public interface Aggregator {
      * @param <T>        Type of the aggregated object.
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
-    <T> T queryObject(final Class<T> objectType);
+    <T> T queryObject(@Nonnull final Class<T> objectType);
 
     default Aggregator compose(final Aggregator other) {
         final class AggregatorComposition implements Aggregator {
@@ -65,7 +66,7 @@ public interface Aggregator {
             }
 
             @Override
-            public <T> T queryObject(final Class<T> objectType) {
+            public <T> T queryObject(@Nonnull final Class<T> objectType) {
                 final T obj = Aggregator.this.queryObject(objectType);
                 return obj == null ? other.queryObject(objectType) : obj;
             }

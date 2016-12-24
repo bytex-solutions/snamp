@@ -3,6 +3,7 @@ package com.bytex.snamp.gateway;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
+import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.BundleContext;
@@ -70,22 +71,22 @@ final class GatewayEventBus {
     }
 
     static void notifyInstanceStopped(final String gatewayType, final Gateway gatewayInstance) {
-        gatewayInstance.getLogger().info(String.format("Gateway %s/%s is stopped", gatewayType, gatewayInstance.getInstanceName()));
+        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is stopped", gatewayType, gatewayInstance.getInstanceName()));
         fireEventListeners(gatewayType, new GatewayStoppedEvent(gatewayInstance));
     }
 
     static void notifyInstanceStarted(final String gatewayType, final Gateway gatewayInstance){
-        gatewayInstance.getLogger().info(String.format("Gateway %s/%s is started", gatewayType, gatewayInstance.getInstanceName()));
+        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is started", gatewayType, gatewayInstance.getInstanceName()));
         fireEventListeners(gatewayType, new GatewayStartedEvent(gatewayInstance));
     }
 
     static void notifyInstanceUpdating(final String gatewayType, final Gateway gatewayInstance){
-        gatewayInstance.getLogger().info(String.format("Gateway %s/%s is updating", gatewayType, gatewayInstance.getInstanceName()));
+        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is updating", gatewayType, gatewayInstance.getInstanceName()));
         fireEventListeners(gatewayType, new GatewayUpdatingEvent(gatewayInstance));
     }
 
     static void notifyInstanceUpdated(final String gatewayType, final Gateway gatewayInstance) {
-        gatewayInstance.getLogger().info(String.format("Gateway %s/%s is updated", gatewayType, gatewayInstance.getInstanceName()));
+        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is updated", gatewayType, gatewayInstance.getInstanceName()));
         fireEventListeners(gatewayType, new GatewayUpdatedEvent(gatewayInstance));
     }
 }

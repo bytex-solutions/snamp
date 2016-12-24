@@ -14,6 +14,7 @@ import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SharedCounter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Buffers;
@@ -80,37 +81,26 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
     private static final class SnmpNotificationRepository extends AccurateNotificationRepository<SnmpNotificationInfo> implements CommandResponder{
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final NotificationListenerInvoker listenerInvoker;
-        private final Logger logger;
         private final SharedCounter sequenceNumberGenerator;
 
         private SnmpNotificationRepository(final String resourceName,
                                            final AbstractConcurrentResourceAccessor<SnmpClient> client,
-                                           final BundleContext context,
-                                           final Logger logger){
+                                           final BundleContext context){
             super(resourceName,
                     SnmpNotificationInfo.class,
                     false);
-            this.logger = Objects.requireNonNull(logger);
             this.client = client;
             final Executor executor = client.read(cl -> cl.queryObject(Executor.class));
             sequenceNumberGenerator = DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
-            listenerInvoker = createListenerInvoker(executor, logger);
+            listenerInvoker = createListenerInvoker(executor, getLogger());
         }
 
         private static NotificationListenerInvoker createListenerInvoker(final Executor executor, final Logger logger) {
             return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, (e, source) -> logger.log(Level.SEVERE, "Unable to process SNMP notification", e));
         }
 
-        /**
-         * Reports an error when enabling notifications.
-         *
-         * @param category An event category.
-         * @param e        Internal connector error.
-         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToEnableNotifications(final String category, final Exception e) {
-            failedToEnableNotifications(logger, Level.WARNING, category, e);
+        private Logger getLogger(){
+            return LoggerProvider.getLoggerForObject(this);
         }
 
         @Override
@@ -135,7 +125,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                         return null;
                     });
                 } catch (final Exception e) {
-                    logger.log(Level.WARNING, String.format("Subscription to SNMP event %s failed",
+                    getLogger().log(Level.WARNING, String.format("Subscription to SNMP event %s failed",
                             metadata.getNotificationID()), e);
                 }
         }
@@ -512,56 +502,16 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final ExecutorService executor;
-        private final Logger logger;
         private final Duration discoveryTimeout;
 
         private SnmpAttributeRepository(final String resourceName,
                                         final AbstractConcurrentResourceAccessor<SnmpClient> client,
-                                        final Logger logger,
                                         final boolean expandable,
                                         final Duration discoveryTimeout){
             super(resourceName, SnmpAttributeInfo.class, expandable);
             this.client = client;
-            this.logger = Objects.requireNonNull(logger);
             this.discoveryTimeout = Objects.requireNonNull(discoveryTimeout);
             this.executor = client.read(cl -> cl.queryObject(ExecutorService.class));
-        }
-
-        /**
-         * Reports an error when connecting attribute.
-         *
-         * @param attributeName The name of the attribute.
-         * @param e             Internal connector error.
-         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.WARNING, attributeName, e);
-        }
-
-        /**
-         * Reports an error when getting attribute.
-         *
-         * @param attributeID The attribute identifier.
-         * @param e           Internal connector error.
-         * @see #failedToGetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-        }
-
-        /**
-         * Reports an error when updating attribute.
-         *
-         * @param attributeID The attribute identifier.
-         * @param value       The value of the attribute.
-         * @param e           Internal connector error.
-         * @see #failedToSetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Object, Exception)
-         */
-        @Override
-        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
         }
 
         private Address[] getClientAddresses(){
@@ -648,6 +598,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             });
         }
 
+        private Logger getLogger(){
+            return LoggerProvider.getLoggerForObject(this);
+        }
+
         /**
          * Get the values of several attributes of the managed resource.
          *
@@ -661,7 +615,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             try {
                 return getAttributesParallel(executor, attributes, BATCH_READ_WRITE_TIMEOUT);
             } catch (final InterruptedException | TimeoutException e) {
-                logger.log(Level.SEVERE, "Unable to read attributes", e);
+                getLogger().log(Level.SEVERE, "Unable to read attributes", e);
                 return new AttributeList();
             }
         }
@@ -680,7 +634,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             try {
                 return setAttributesParallel(executor, attributes, BATCH_READ_WRITE_TIMEOUT);
             } catch (final TimeoutException | InterruptedException e) {
-                logger.log(Level.SEVERE, "Unable to write attributes", e);
+                getLogger().log(Level.SEVERE, "Unable to write attributes", e);
                 return new AttributeList();
             }
         }
@@ -705,7 +659,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             try {
                 return client.read(this::expandImpl);
             } catch (final Exception e) {
-                failedToExpand(logger, Level.WARNING, e);
+                failedToExpand(Level.WARNING, e);
                 return Collections.emptyList();
             }
         }
@@ -733,11 +687,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                           final Duration discoveryTimeout) throws IOException {
         final boolean smartMode = SnmpConnectorDescriptionProvider.getInstance().isSmartModeEnabled(parameters);
         client = new ConcurrentResourceAccessor<>(SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(connectionString), parameters));
-        attributes = new SnmpAttributeRepository(resourceName, client, getLogger(), smartMode, discoveryTimeout);
+        attributes = new SnmpAttributeRepository(resourceName, client, smartMode, discoveryTimeout);
         notifications = new SnmpNotificationRepository(resourceName,
                 client,
-                Utils.getBundleContextOfObject(this),
-                getLogger());
+                Utils.getBundleContextOfObject(this));
 
     }
 

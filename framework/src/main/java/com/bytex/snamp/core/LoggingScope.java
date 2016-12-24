@@ -2,8 +2,10 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.SafeCloseable;
 import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
+import org.osgi.framework.BundleContext;
 
 import java.time.Duration;
 import java.util.Map;
@@ -19,8 +21,8 @@ import java.util.logging.*;
  * @version 2.0
  * @since 1.0
  */
-public class LogicalOperation extends Logger implements SafeCloseable {
-    static final CorrelationIdentifierGenerator CORREL_ID_GEN = new DefaultCorrelationIdentifierGenerator();
+public class LoggingScope extends Logger implements SafeCloseable {
+    private static final CorrelationIdentifierGenerator CORREL_ID_GEN = new DefaultCorrelationIdentifierGenerator();
     private static final Joiner.MapJoiner TO_STRING_JOINER = Joiner.on(',').withKeyValueSeparator("=");
 
     /**
@@ -66,50 +68,47 @@ public class LogicalOperation extends Logger implements SafeCloseable {
     private final long correlationID;
     private final Stopwatch timer;
     private final Logger logger;
+    private final String source;
 
-    private LogicalOperation(final Logger logger,
-                             final String operationName,
-                             final long correlationID){
+    private LoggingScope(final Logger logger,
+                         final String source,
+                         final String operationName,
+                         final long correlationID) {
         super(logger.getName(), logger.getResourceBundleName());
         this.operationName = Objects.requireNonNull(operationName);
         this.correlationID = correlationID;
         this.timer = Stopwatch.createStarted();
-        this.logger = logger;
-        logger.entering(null, operationName);
+        (this.logger = logger).entering(this.source = source, operationName);
     }
 
     /**
      * Initializes a new logical operation.
-     * @param logger The underlying logger. Cannot be {@literal null}.
+     * @param context The context of the caller bundle.
      * @param operationName The name of the logical operation.
      * @param correlationID The correlation identifier generator.
      */
-    public LogicalOperation(final Logger logger,
-                            final String operationName,
-                               final CorrelationIdentifierGenerator correlationID) {
-        this(logger, operationName, correlationID != null ? correlationID.generate() : -1L);
+    public LoggingScope(final BundleContext context,
+                        final String operationName,
+                        final CorrelationIdentifierGenerator correlationID) {
+        this(LoggerProvider.getLoggerForBundle(context), context != null ? context.getBundle().getSymbolicName() : null, operationName, getCorrelationID(correlationID));
     }
 
-    /**
-     * Initializes a new logical operation.
-     * @param loggerName Name of the underlying logger. Cannot be {@literal null}.
-     * @param operationName The name of the logical operation.
-     * @param correlationID The correlation identifier generator.
-     */
-    public LogicalOperation(final String loggerName,
-                            final String operationName,
-                            final CorrelationIdentifierGenerator correlationID){
-        this(Logger.getLogger(loggerName), operationName, correlationID);
+    public LoggingScope(final Object requester,
+                        final String operationName,
+                        final CorrelationIdentifierGenerator correlationID) {
+        this(LoggerProvider.getLoggerForObject(requester),
+                requester.getClass().getName(),
+                operationName,
+                getCorrelationID(correlationID));
     }
 
-    /**
-     * Initializes a new logical operation that is connected with the specified parent operation.
-     * @param operationName The name of the logical operation.
-     * @param parent The parent logical operation. Cannot be {@literal null}.
-     */
-    public LogicalOperation(final String operationName,
-                            final LogicalOperation parent) {
-        this(parent.logger, operationName, parent.getCorrelationID());
+    public LoggingScope(final Object requester,
+                        final String operationName){
+        this(requester, operationName, null);
+    }
+
+    private static long getCorrelationID(final CorrelationIdentifierGenerator generator) {
+        return MoreObjects.firstNonNull(generator, CORREL_ID_GEN).generate();
     }
 
     /**
@@ -330,6 +329,7 @@ public class LogicalOperation extends Logger implements SafeCloseable {
      */
     @Override
     public final void log(final LogRecord record) {
+        record.setSourceClassName(source);
         record.setSourceMethodName(operationName);
         record.setMessage(record.getMessage() + " Context: " + toString());
         logger.log(record);
@@ -420,7 +420,7 @@ public class LogicalOperation extends Logger implements SafeCloseable {
      */
     @Override
     public final void close() {
-        exiting(null, operationName);
+        exiting(source, operationName);
         timer.stop();
     }
 }
