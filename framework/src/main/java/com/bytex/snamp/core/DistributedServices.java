@@ -79,7 +79,7 @@ public final class DistributedServices {
         throw new InstantiationError();
     }
 
-    private static <S extends SharedObject> S getProcessLocalService(final String serviceName, final SharedObjectDefinition<S> serviceType) {
+    private static <S extends SharedObject> S getProcessLocalObject(final String serviceName, final SharedObjectDefinition<S> serviceType) {
         final LocalServiceKey<S> key = new LocalServiceKey<>(serviceName, serviceType);
         try {
             return serviceType.cast(LOCAL_SERVICES.get(key));
@@ -89,11 +89,11 @@ public final class DistributedServices {
     }
 
     public static Communicator getProcessLocalCommunicator(final String channelName){
-        return getProcessLocalService(channelName, ClusterMember.COMMUNICATOR);
+        return getProcessLocalObject(channelName, ClusterMember.COMMUNICATOR);
     }
 
     public static SharedBox getProcessLocalBox(final String boxName){
-        return getProcessLocalService(boxName, ClusterMember.SHARED_BOX);
+        return getProcessLocalObject(boxName, ClusterMember.SHARED_BOX);
     }
 
     /**
@@ -102,11 +102,11 @@ public final class DistributedServices {
      * @return ID generator instance.
      */
     public static SharedCounter getProcessLocalCounter(final String generatorName){
-        return getProcessLocalService(generatorName, ClusterMember.SHARED_COUNTER);
+        return getProcessLocalObject(generatorName, ClusterMember.SHARED_COUNTER);
     }
 
     public static KeyValueStorage getProcessLocalStorage(final String storageName){
-        return getProcessLocalService(storageName, ClusterMember.KV_STORAGE);
+        return getProcessLocalObject(storageName, ClusterMember.KV_STORAGE);
     }
 
     private static <S> S processClusterNode(final BundleContext context,
@@ -123,10 +123,10 @@ public final class DistributedServices {
         else return def.get();
     }
 
-    private static <S extends SharedObject> S getService(final BundleContext context,
-                                    final String serviceName,
-                                    final SharedObjectDefinition<S> serviceType) {
-        return processClusterNode(context, node -> node.getService(serviceName, serviceType), () -> getProcessLocalService(serviceName, serviceType));
+    public static <S extends SharedObject> S getDistributedObject(final BundleContext context,
+                                                                  final String serviceName,
+                                                                  final SharedObjectDefinition<S> serviceType) {
+        return processClusterNode(context, node -> node.getService(serviceName, serviceType), () -> getProcessLocalObject(serviceName, serviceType));
     }
 
     /**
@@ -136,7 +136,7 @@ public final class DistributedServices {
      * @return Distributed or process-local communicator.
      */
     public static Communicator getDistributedCommunicator(final BundleContext context, final String channelName){
-        return getService(context, channelName, ClusterMember.COMMUNICATOR);
+        return getDistributedObject(context, channelName, ClusterMember.COMMUNICATOR);
     }
 
     /**
@@ -146,8 +146,8 @@ public final class DistributedServices {
      * @return Distributed or process-local storage.
      */
     public static KeyValueStorage getDistributedStorage(final BundleContext context,
-                                                                            final String collectionName, final boolean persistent){
-        return getService(context, collectionName, persistent ? ClusterMember.PERSISTENT_KV_STORAGE : ClusterMember.KV_STORAGE);
+                                                                            final String collectionName){
+        return getDistributedObject(context, collectionName, ClusterMember.KV_STORAGE);
     }
 
     /**
@@ -158,7 +158,7 @@ public final class DistributedServices {
      */
     public static SharedCounter getDistributedCounter(final BundleContext context,
                                                       final String generatorName){
-        return getService(context, generatorName, ClusterMember.SHARED_COUNTER);
+        return getDistributedObject(context, generatorName, ClusterMember.SHARED_COUNTER);
     }
 
     /**
@@ -168,7 +168,7 @@ public final class DistributedServices {
      * @return Distributed or process-local generator.
      */
     public static SharedBox getDistributedBox(final BundleContext context, final String boxName){
-        return getService(context, boxName, ClusterMember.SHARED_BOX);
+        return getDistributedObject(context, boxName, ClusterMember.SHARED_BOX);
     }
 
     /**

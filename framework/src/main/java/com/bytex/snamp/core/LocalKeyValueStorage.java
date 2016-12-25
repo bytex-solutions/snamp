@@ -65,6 +65,24 @@ final class LocalKeyValueStorage extends ConcurrentHashMap<Comparable<?>, InMemo
         return recordView.cast(result);
     }
 
+    /**
+     * Updates or creates record associated with the specified key.
+     *
+     * @param key        The key of the record.
+     * @param recordView Type of the record representation.
+     * @param updater    Record updater.
+     * @throws E Unable to update record.
+     */
+    @Override
+    public <R extends Record, E extends Throwable> void updateOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> updater) throws E {
+        InMemoryRecord result = get(key);
+        if (result == null) {
+            final InMemoryRecord newRecord = new InMemoryRecord();
+            result = firstNonNull(putIfAbsent(key, newRecord), newRecord);
+        }
+        updater.accept(recordView.cast(result));
+    }
+
     @Override
     public boolean delete(final Comparable<?> key) {
         final InMemoryRecord record = remove(key);

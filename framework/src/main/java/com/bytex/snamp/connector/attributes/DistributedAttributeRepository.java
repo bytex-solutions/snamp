@@ -31,7 +31,7 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
 
         private SynchronizationJob(final Duration syncPeriod) {
             super(syncPeriod);
-            storage = getDistributedStorage(getBundleContext(), getResourceName().concat(STORAGE_NAME_POSTFIX), false);
+            storage = getDistributedStorage(getBundleContext(), getResourceName().concat(STORAGE_NAME_POSTFIX));
             assert storage.isViewSupported(KeyValueStorage.SerializableRecordView.class);
         }
 
@@ -64,7 +64,7 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
             if (isActiveNode(getBundleContext())) {   //save snapshot of the active node into cluster-wide storage
                 final Serializable snapshot = takeSnapshot(attribute);
                 if (snapshot != null)
-                    storage.getOrCreateRecord(storageKey, KeyValueStorage.SerializableRecordView.class, record -> record.setValue(snapshot)).setValue(snapshot);
+                    storage.updateOrCreateRecord(storageKey, KeyValueStorage.SerializableRecordView.class, record -> record.setValue(snapshot));
             } else     //passive node should reload its state from the storage
                 storage.getRecord(storageKey, KeyValueStorage.SerializableRecordView.class).ifPresent(record -> loadFromSnapshot(attribute, record.getValue()));
         }

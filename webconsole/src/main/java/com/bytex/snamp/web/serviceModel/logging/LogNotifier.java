@@ -4,9 +4,7 @@ import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import java.util.Objects;
+import javax.ws.rs.Path;
 
 /**
  * Provides notification about logs.
@@ -15,21 +13,9 @@ import java.util.Objects;
  * @since 2.0
  */
 @Path("/logging")
-public final class LogNotifier extends AbstractPrincipalBoundedService implements LogListener {
-    private volatile LogLevel level = LogLevel.ERROR;
-
-    @Path("/level")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public LogLevel getLevel(){
-        return level;
-    }
-
-    @Path("/level")
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void setLevel(final LogLevel value){
-        this.level = Objects.requireNonNull(value);
+public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSettings> implements LogListener {
+    public LogNotifier() {
+        super(LoggingSettings.class);
     }
 
     /**
@@ -44,7 +30,11 @@ public final class LogNotifier extends AbstractPrincipalBoundedService implement
      */
     @Override
     public void logged(final LogEntry entry) {
-        if (level.shouldBeLogged(entry))
-            fireWebEvent(new LogEvent(this, entry));
+
+    }
+
+    @Override
+    protected LoggingSettings createUserData() {
+        return new LoggingSettings();
     }
 }

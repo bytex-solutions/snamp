@@ -5,7 +5,6 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.core.LoggerProvider;
-import com.sun.istack.internal.NotNull;
 import jline.console.ConsoleReader;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.Session;
@@ -15,6 +14,7 @@ import org.apache.sshd.server.ExitCallback;
 import org.apache.sshd.server.SessionAware;
 import org.apache.sshd.server.session.ServerSession;
 
+import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
@@ -56,7 +56,7 @@ final class ManagementShell implements Command, SessionAware {
         }
 
         @Override
-        public <T> T queryObject(@NotNull final Class<T> objectType) {
+        public <T> T queryObject(@Nonnull final Class<T> objectType) {
             return aggregator.queryObject(objectType);
         }
     }

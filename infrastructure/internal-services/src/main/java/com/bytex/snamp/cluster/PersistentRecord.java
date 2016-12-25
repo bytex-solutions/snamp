@@ -9,9 +9,7 @@ import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.db.record.ORecordElement;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
+import java.io.*;
 import java.util.Map;
 import java.util.Objects;
 
@@ -137,6 +135,17 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
     @Override
     public void setAsJson(final Reader value) throws IOException {
         saveField(PersistentFieldDefinition.JSON_DOCUMENT_VALUE, value);
+    }
+
+    @Override
+    public StringWriter createJsonWriter() {
+        return new StringWriter(512) {
+            @Override
+            public void close() throws IOException {
+                saveField(PersistentFieldDefinition.JSON_DOCUMENT_VALUE, getBuffer());
+                super.close();
+            }
+        };
     }
 
     @Override

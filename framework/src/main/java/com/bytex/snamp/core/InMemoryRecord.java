@@ -6,10 +6,7 @@ import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
-import java.io.StringReader;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -135,5 +132,16 @@ final class InMemoryRecord extends AtomicReference<Serializable> implements Reco
     @Override
     public void setAsJson(final Reader value) throws IOException {
         setAsText(IOUtils.toString(value));
+    }
+
+    @Override
+    public StringWriter createJsonWriter() {
+        return new StringWriter(512){
+            @Override
+            public void close() throws IOException {
+                setAsText(getBuffer().toString());
+                super.close();
+            }
+        };
     }
 }

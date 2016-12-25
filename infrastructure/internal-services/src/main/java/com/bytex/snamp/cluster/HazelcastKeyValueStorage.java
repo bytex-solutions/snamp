@@ -8,10 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
-import java.io.StringReader;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -141,6 +138,17 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
         public void setAsJson(final Reader value) throws IOException {
             setAsText(IOUtils.toString(value));
         }
+
+        @Override
+        public StringWriter createJsonWriter() {
+            return new StringWriter(1024){
+                @Override
+                public void close() throws IOException {
+                    setAsText(getBuffer().toString());
+                    super.close();
+                }
+            };
+        }
     }
 
     HazelcastKeyValueStorage(final HazelcastInstance hazelcast, final String name) {
@@ -183,6 +191,19 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
             }
         }
         return recordView.cast(record);
+    }
+
+    /**
+     * Updates or creates record associated with the specified key.
+     *
+     * @param key        The key of the record.
+     * @param recordView Type of the record representation.
+     * @param updater    Record updater.
+     * @throws E Unable to update record.
+     */
+    @Override
+    public <R extends Record, E extends Throwable> void updateOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> updater) throws E {
+        updater.accept(recordView.cast(new HazelcastRecord(getDistributedObject(), key)));
     }
 
     /**

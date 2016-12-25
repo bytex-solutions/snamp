@@ -9,5 +9,6 @@ import java.util.function.Consumer;
  * @since 1.0
  */
 public interface WebEventListener extends EventListener, Consumer<WebEvent> {
+    @Override
     void accept(final WebEvent event);
 }

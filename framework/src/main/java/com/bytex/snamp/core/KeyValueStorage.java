@@ -6,16 +6,10 @@ import com.bytex.snamp.SafeCloseable;
 import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
-import java.io.StringReader;
+import java.io.*;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.DoubleConsumer;
-import java.util.function.DoubleSupplier;
-import java.util.function.LongConsumer;
-import java.util.function.LongSupplier;
+import java.util.function.*;
 import java.util.stream.Stream;
 
 /**
@@ -76,6 +70,7 @@ public interface KeyValueStorage extends SharedObject {
         Acceptor<JsonRecordView, IOException> INITIALIZER = record -> record.setAsJson(new StringReader("{}"));
         Reader getAsJson();
         void setAsJson(final Reader value) throws IOException;
+        Writer createJsonWriter();
     }
 
     /**
@@ -156,6 +151,17 @@ public interface KeyValueStorage extends SharedObject {
      * @return Existing or newly created record.
      */
     <R extends Record, E extends Throwable> R getOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> initializer) throws E;
+
+    /**
+     * Updates or creates record associated with the specified key.
+     * @param key The key of the record.
+     * @param recordView Type of the record representation.
+     * @param updater Record updater.
+     * @param <R> Type of record to get or create.
+     * @param <E> Type of exception that can be produced by updater.
+     * @throws E Unable to update record.
+     */
+    <R extends Record, E extends Throwable> void updateOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> updater) throws E;
 
     /**
      * Deletes the record associated with key.

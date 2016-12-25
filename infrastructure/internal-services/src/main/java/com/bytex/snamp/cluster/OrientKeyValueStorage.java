@@ -137,6 +137,29 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     }
 
     /**
+     * Updates or creates record associated with the specified key.
+     *
+     * @param key        The key of the record.
+     * @param recordView Type of the record representation.
+     * @param updater    Record updater.
+     * @throws E Unable to update record.
+     */
+    @Override
+    public <R extends Record, E extends Throwable> void updateOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> updater) throws E {
+        PersistentRecord record = getRecord(key, PersistentRecord::new);
+        final boolean isNew;
+        if (isNew = record == null) {
+            record = new PersistentRecord();
+            record.setKey(key);
+        }
+        record.setDatabase(database);
+        record.setClassName(getDocumentClass().getName());
+        if (!isNew)
+            database.reload(record);
+        updater.accept(recordView.cast(record));
+    }
+
+    /**
      * Deletes the record associated with key.
      *
      * @param key The key to remove.

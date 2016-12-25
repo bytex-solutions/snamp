@@ -2,8 +2,6 @@ package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
@@ -125,8 +123,6 @@ enum PersistentFieldDefinition {
         }
     },
     JSON_DOCUMENT_VALUE(OType.EMBEDDED, "jsonDocumentValue"){
-        private final Gson formatter = new Gson();
-
         @Override
         boolean setField(final Object fieldValue, final ODocument document) {
             final ODocument subDocument;
@@ -136,8 +132,8 @@ enum PersistentFieldDefinition {
                 } catch (final IOException e) {
                     throw new UncheckedIOException(e);
                 }
-            else if (fieldValue instanceof JsonElement) {
-                subDocument = new ODocument().fromJSON(formatter.toJson((JsonElement) fieldValue));
+            else if (fieldValue instanceof StringBuffer || fieldValue instanceof StringBuilder || fieldValue instanceof String) {
+                subDocument = new ODocument().fromJSON(fieldValue.toString());
             } else
                 return false;
             document.field(super.fieldName, subDocument);
