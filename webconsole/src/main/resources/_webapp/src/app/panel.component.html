@@ -1,7 +1,7 @@
 <div class="col-md-{{column}} col-sm-{{column}} col-xs-12">
   <div class="x_panel tile">
     <div class="x_title">
-      <h2>{{header}}</h2>
+      <h2><i *ngIf="icon != undefined" class="fa fa-{{icon}}"></i>{{header}}</h2>
       <ul class="nav navbar-right panel_toolbox">
         <li>
           <a class="collapse-link" (click)="collapseClicked($event)"><i class="fa fa-chevron-up"></i></a>

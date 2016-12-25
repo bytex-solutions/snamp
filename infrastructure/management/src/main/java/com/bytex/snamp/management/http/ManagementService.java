@@ -242,7 +242,7 @@ public final class ManagementService extends AbstractManagementService {
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
-            throw AbstractEntityConfigurationService.notFound();
+            return Collections.EMPTY_LIST;
         }
     }
 
@@ -266,7 +266,7 @@ public final class ManagementService extends AbstractManagementService {
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
-            throw AbstractEntityConfigurationService.notFound();
+            return Collections.EMPTY_LIST;
         }
     }
 
@@ -289,7 +289,7 @@ public final class ManagementService extends AbstractManagementService {
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
-            throw AbstractEntityConfigurationService.notFound();
+            return Collections.EMPTY_LIST;
         }
     }
 
@@ -312,7 +312,7 @@ public final class ManagementService extends AbstractManagementService {
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
-            throw AbstractEntityConfigurationService.notFound();
+            return Collections.EMPTY_LIST;
         }
     }
 
@@ -335,7 +335,7 @@ public final class ManagementService extends AbstractManagementService {
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
-            throw AbstractEntityConfigurationService.notFound();
+            return Collections.EMPTY_LIST;
         }
     }
 }

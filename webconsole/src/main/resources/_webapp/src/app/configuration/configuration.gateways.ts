@@ -64,7 +64,6 @@ export class GatewaysComponent implements OnInit {
        $(document).ready(function() {
           $("#gatewaySelection").select2();
           $("#gatewaySelection").on('change', (e) => {
-             console.log($(e.target).val());
             _this.selectCurrentlyActiveGateway($(e.target).val());
           });
         });

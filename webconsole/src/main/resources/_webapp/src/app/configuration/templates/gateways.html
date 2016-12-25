@@ -39,47 +39,37 @@
     </div>
     <div class="clearfix"></div>
 
-    <div class="row" *ngIf="gateways && gateways.length > 0">
-      <panel [header]="activeGateway.name" [column]="'12'">
+    <div class="row" style="margin-top: 30px" *ngIf="gateways && gateways.length > 0">
+        <!-- if we have binging - add next with col-md-5 -->
+        <div class="col-md-8 leftAlign">
+            <!-- combobox with type -->
+            <div class="row">
+              <panel [header]="'Gateway type'" [column]="'12'">
+                <select disabled
+                        id="entityType"
+                        [(ngModel)]="activeGateway.type"
+                        (change)="changeType($event)"
+                        style="height: auto;"
+                        class="form-control">
+                  <option
+                    *ngFor="let gateway of availableGateways"
+                    [value]="gateway.type">
+                    {{gateway.name}}
+                  </option>
+                </select>
+              </panel>
+            </div>
 
-        <div class="row" style="margin-top: 30px" *ngIf="gateways && gateways.length > 0">
-          <!-- right area -->
-          <div class="row contentRow">
-              <!-- if we have binging - add next with col-md-5 -->
-              <div class="col-md-8 leftAlign">
-                  <!-- combobox with type -->
-                  <div class="row">
-                      <div class="form-group">
-                          <label class="control-label col-sm-3" for="entityType">Gateway type:</label>
-                          <div class="col-sm-9">
-                              <select disabled
-                                      id="entityType"
-                                      [(ngModel)]="activeGateway.type"
-                                      (change)="changeType($event)"
-                                      style="height: auto;"
-                                      class="form-control">
-                                  <option
-                                          *ngFor="let gateway of availableGateways"
-                                          [value]="gateway.type">
-                                      {{gateway.name}}
-                                  </option>
-                              </select>
-                          </div>
-                      </div>
-                  </div>
-                  <div class="row paramRow">
-                          <h4>Parameters:</h4>
-                  </div>
-                  <div class="row">
-                      <parameters [entity]="activeGateway"></parameters>
-                  </div>
+            <div class="row">
+              <panel [header]="'Parameters'" [column]="'12'">
+                  <parameters [entity]="activeGateway"></parameters>
+              </panel>
+            </div>
 
-              </div>
-              <!-- binding here -->
-              <div class="col-md-4 bindingCol leftAlign">
-                  <div class="row">
-                      <h4>Binding information:</h4>
-                  </div>
+        </div>
+        <!-- binding here -->
+
+        <panel [header]="'Binding information'" [column]="'4'">
                   <div class="panel-group group-accordeon" id="accordionBindings" role="tablist" aria-multiselectable="true">
                       <div class="panel panel-default"  *ngIf="activeGateway.attributes.length > 0">
                           <div class="panel-heading" role="tab" id="headingOne">
@@ -124,11 +114,9 @@
                           </div>
                       </div>
                   </div>
-              </div>
-          </div>
-      </div>
-      </panel>
+              </panel>
     </div>
+
   </div>
 </div>
 
