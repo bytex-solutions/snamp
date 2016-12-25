@@ -75,12 +75,33 @@ export class ResourcesComponent implements OnInit {
             });
     }
 
-    setActiveResource(resource:Resource) {
-        this.activeResource = resource;
-        this.oldTypeValue = resource.type;
-        this.oldGroupValue = resource.groupName;
-        this.oldSmartMode = resource.smartMode;
+    initSelectionComponent() {
+      $("#resourceSelection").select2('destroy');
+      $("#resourceSelection").select2();
     }
+
+    ngAfterViewInit() {
+       var _this = this;
+       $(document).ready(function() {
+          $("#resourceSelection").select2();
+          $("#resourceSelection").on('change', (e) => {
+            _this.selectCurrentlyActiveResource($(e.target).val());
+          });
+        });
+    }
+
+    selectCurrentlyActiveResource(resourceName:string) {
+          let selection:Resource;
+          for (let i = 0; i < this.resources.length; i++) {
+            if (this.resources[i].name == resourceName) {
+              selection = this.resources[i];
+            }
+          }
+          this.activeResource = selection;
+          this.oldTypeValue = selection.type;
+          this.oldGroupValue = selection.groupName;
+          this.oldSmartMode = selection.smartMode;
+      }
 
     changeType(event:any) {
       this.modal.confirm()

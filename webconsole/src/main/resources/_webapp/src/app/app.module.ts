@@ -26,6 +26,8 @@ import { ApiClient } from './app.restClient'
 import { CookieService } from 'angular2-cookie/core';
 import { DropdownModule } from 'ng2-bootstrap';
 
+import { UiSwitchComponent } from './ui-switch.component'
+
 import { PanelComponent } from './panel.component'
 
 import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './configuration/configuration.pipes';
@@ -129,14 +131,17 @@ const EXPORTS:any = [
   ResourceEntitiesTable,
   RequiredParametersFilter,
   OptionalParametersFilter,
-  AddEntity
+  AddEntity,
+  UiSwitchComponent
 ];
 
 @NgModule({
-  imports: [    CommonModule,
-                TooltipModule,
-                FormsModule,
-                HttpModule ],
+  imports: [
+    CommonModule,
+    TooltipModule,
+    FormsModule,
+    HttpModule
+  ],
   declarations: EXPORTS,
   exports: EXPORTS
 })
