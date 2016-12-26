@@ -73,7 +73,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         return false;
     }
 
-    private <E extends Exception> void runTest(final Acceptor<? super Session, E> testBody) throws Exception {
+    private <E extends Exception> void runWebSocketTest(final Acceptor<? super Session, E> testBody) throws Exception {
         try(final Session session = client.connect(null, new URI(WS_ENDPOINT)).get(10, TimeUnit.SECONDS)){
 
         } finally {

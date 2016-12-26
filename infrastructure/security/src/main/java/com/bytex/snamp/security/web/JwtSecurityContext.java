@@ -12,7 +12,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -23,15 +22,13 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  */
 final class JwtSecurityContext implements SecurityContext {
-    private static final Pattern BEARER_REPLACER = Pattern.compile("Bearer ", Pattern.LITERAL);
+    private static final String BEARER_PREFIX = "Bearer ";
     private final JwtPrincipal principal;
     private final boolean secure;
 
     private JwtSecurityContext(String jwToken, final String secret, final boolean secure) throws NoSuchAlgorithmException, IOException, InvalidKeyException, SignatureException {
         this.secure = secure;
-        if(jwToken == null)
-            throw new SignatureException("Null token received");
-        jwToken = BEARER_REPLACER.matcher(jwToken).replaceFirst("");
+        jwToken = removeBearerPrefix(jwToken);
         if (isNullOrEmpty(jwToken) || jwToken.equalsIgnoreCase("undefined")) {
             getLogger().warning("Empty token received");
             throw new SignatureException("Empty token received");
@@ -49,6 +46,15 @@ final class JwtSecurityContext implements SecurityContext {
 
     JwtSecurityContext(final HttpServletRequest request, final String secret) throws NoSuchAlgorithmException, IOException, InvalidKeyException, SignatureException {
         this(request.getHeader(HttpHeaders.AUTHORIZATION), secret, request.isSecure());
+    }
+
+    private static String removeBearerPrefix(final String str) {
+        if (isNullOrEmpty(str))
+            return str;
+        else if (str.startsWith(BEARER_PREFIX))
+            return str.substring(BEARER_PREFIX.length());
+        else
+            return str;
     }
 
     private Logger getLogger(){
