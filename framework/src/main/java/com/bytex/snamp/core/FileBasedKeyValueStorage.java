@@ -41,7 +41,7 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
     });
 
     @ThreadSafe
-    private static final class FileRecord extends ThreadSafeObject implements Record, SerializableRecordView{
+    private static final class FileRecord extends ThreadSafeObject implements Record, SerializableRecordView, JsonRecordView{
         private static final TypeToken<Serializable> CONTENT_TYPE = TypeToken.of(Serializable.class);
         private Serializable content;
         private File contentHolder;
@@ -122,6 +122,27 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
             try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
                 writeContent(content = value);
             }
+        }
+
+        @Override
+        public Reader getAsJson() {
+            return new StringReader(getValue().toString());
+        }
+
+        @Override
+        public void setAsJson(final Reader value) throws IOException {
+            setValue(IOUtils.toString(value));
+        }
+
+        @Override
+        public Writer createJsonWriter() {
+            return new StringWriter(512) {
+                @Override
+                public void close() throws IOException {
+                    setValue(getBuffer().toString());
+                    super.close();
+                }
+            };
         }
     }
 
@@ -306,12 +327,9 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
      */
     @Override
     public void clear() {
-        writeLock.accept(SingleResourceGroup.INSTANCE, storagePath, dir -> {
-            final File[] files = storagePath.listFiles();
-            if (files != null)
-                for (final File f : files)
-                    f.delete();
-        });
+        try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+            records.values().forEach(FileRecord::delete);
+        }
     }
 
     /**

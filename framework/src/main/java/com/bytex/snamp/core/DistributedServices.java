@@ -71,6 +71,8 @@ public final class DistributedServices {
                         return new InMemoryBox(key.serviceName);
                     else if(key.represents(ClusterMember.KV_STORAGE))
                         return new InMemoryKeyValueStorage(key.serviceName);
+                    else if(key.represents(ClusterMember.PERSISTENT_KV_STORAGE))
+                        return new FileBasedKeyValueStorage(key.serviceName);
                     else throw new InvalidKeyException(String.format("Service %s is not supported", key));
                 }
             });
