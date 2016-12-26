@@ -32,7 +32,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 2.0
  */
 final class WebConsoleServlet extends WebSocketServlet implements WebConsoleEngine, AutoCloseable, Constants, WebSocketCreator {
-    static final String CONTEXT = "snamp/console/events";
+    static final String CONTEXT = "/snamp/console/events";
     private static final class WebConsoleServiceProcessingScope extends LoggingScope{
         private WebConsoleServiceProcessingScope(final WebConsoleEngine engine){
             super(engine, "processWebConsoleService");
