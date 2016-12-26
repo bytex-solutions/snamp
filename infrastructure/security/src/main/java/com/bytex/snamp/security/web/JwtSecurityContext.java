@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -28,12 +29,13 @@ final class JwtSecurityContext implements SecurityContext {
 
     private JwtSecurityContext(String jwToken, final String secret, final boolean secure) throws NoSuchAlgorithmException, IOException, InvalidKeyException, SignatureException {
         this.secure = secure;
+        if(jwToken == null)
+            throw new SignatureException("Null token received");
+        jwToken = BEARER_REPLACER.matcher(jwToken).replaceFirst("");
         if (isNullOrEmpty(jwToken) || jwToken.equalsIgnoreCase("undefined")) {
             getLogger().warning("Empty token received");
             throw new SignatureException("Empty token received");
-        } else if (jwToken.startsWith(jwToken))
-            jwToken = BEARER_REPLACER.matcher(jwToken).replaceFirst("");
-
+        }
         try {
             principal = new JwtPrincipal(jwToken, secret);
         } catch (final JWTVerifyException e) {
