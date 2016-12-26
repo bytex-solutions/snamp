@@ -26,9 +26,11 @@ import { ApiClient } from './app.restClient'
 import { CookieService } from 'angular2-cookie/core';
 import { DropdownModule } from 'ng2-bootstrap';
 
-import { UiSwitchComponent } from './ui-switch.component'
+import { UiSwitchComponent } from './ui-switch.component';
 
-import { PanelComponent } from './panel.component'
+import { WizardComponent, WizardStepComponent } from 'ng2-wizard';
+
+import { PanelComponent } from './panel.component';
 
 import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './configuration/configuration.pipes';
 import { InlineEditComponent } from './configuration/components/inline-edit.component';
@@ -132,7 +134,9 @@ const EXPORTS:any = [
   RequiredParametersFilter,
   OptionalParametersFilter,
   AddEntity,
-  UiSwitchComponent
+  UiSwitchComponent,
+  WizardStepComponent,
+  WizardComponent
 ];
 
 @NgModule({
