@@ -6,6 +6,9 @@ import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+
 /**
  * Represents notification listener that aggregates many notification listeners.
  * @author Roman Sakno
@@ -37,6 +40,12 @@ public class MulticastNotificationListener implements NotificationListener {
     }
 
     private final NotificationListenerList listeners = new NotificationListenerList();
+    private final ExecutorService threadPool;
+
+    public MulticastNotificationListener(final ExecutorService threadPool){
+        this.threadPool = Objects.requireNonNull(threadPool);
+    }
+
     /**
      * Adds a new notification listener to this collection.
      * @param listener A new notification listener to add. Cannot be {@literal null}.
@@ -64,6 +73,6 @@ public class MulticastNotificationListener implements NotificationListener {
     @Override
     @Internal
     public final void handleNotification(final NotificationEvent event) {
-        listeners.fireAsync(event);
+        listeners.fireAsync(event, threadPool);
     }
 }

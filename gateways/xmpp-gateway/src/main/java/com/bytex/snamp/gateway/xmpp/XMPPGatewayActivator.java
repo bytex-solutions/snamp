@@ -1,5 +1,6 @@
 package com.bytex.snamp.gateway.xmpp;
 
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.gateway.GatewayActivator;
 
 /**
@@ -9,10 +10,14 @@ import com.bytex.snamp.gateway.GatewayActivator;
  */
 public final class XMPPGatewayActivator extends GatewayActivator<XMPPGateway> {
     public XMPPGatewayActivator() {
-        super(XMPPGatewayActivator::newGateway, configurationDescriptor(XMPPGatewayConfigurationProvider::new));
+        super(XMPPGatewayActivator::newGateway,
+                simpleDependencies(ThreadPoolRepository.class),
+                new SupportGatewayServiceManager<?, ?>[]{configurationDescriptor(XMPPGatewayConfigurationProvider::new)});
     }
 
     private static XMPPGateway newGateway(final String instanceName, final DependencyManager dependencies) {
-        return new XMPPGateway(instanceName);
+        final ThreadPoolRepository threadPools = dependencies.getDependency(ThreadPoolRepository.class);
+        assert threadPools != null;
+        return new XMPPGateway(instanceName, threadPools.getThreadPool("XMPPThreadPool", true));
     }
 }

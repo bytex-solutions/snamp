@@ -30,7 +30,7 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
      */
     @Override
     public void logged(final LogEntry entry) {
-
+        fireWebEvent(new LogEvent(this, entry), (event, settings) -> settings.getLogLevel().shouldBeLogged(entry));
     }
 
     @Override

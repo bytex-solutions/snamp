@@ -6,13 +6,12 @@ import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.io.IOUtils;
-import com.bytex.snamp.security.web.JWTAuthenticator;
-import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
+import com.bytex.snamp.testing.web.TestAuthenticator;
 import com.google.gson.*;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -20,16 +19,16 @@ import org.osgi.framework.BundleContext;
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.StreamSupport;
@@ -61,11 +60,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     private static final String SNMP_HOST = "127.0.0.1";
     private static final String TEST_PARAMETER = "testParameter";
 
-    private static final String COOKIES_HEADER = "Set-Cookie";
-    private static final String USERNAME = "karaf";
-    private static final String PASSWORD = "karaf";
-    private static final String AUTH_COOKIE = WebSecurityFilter.DEFAULT_AUTH_COOKIE;
-    private final JWTAuthenticator authenticator;
+    private final TestAuthenticator authenticator;
 
     /**
      * Instantiates a new Snamp webconsole test.
@@ -74,53 +69,12 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
      */
     public HttpManagementTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
-        authenticator = new JWTAuthenticator();
+        authenticator = new TestAuthenticator();
     }
 
     @Override
     protected boolean enableRemoteDebugging() {
         return false;
-    }
-
-    private static HttpCookie authenticate(final String username, final String password) throws IOException, InterruptedException {
-        final URL query = new URL("http://localhost:8181/snamp/security/login");
-        // we should wait a while before it becomes reachable
-        Thread.sleep(5_000);
-        //write attribute
-        final HttpURLConnection connection = (HttpURLConnection) query.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setDoOutput(true);
-        connection.setRequestProperty("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-        connection.setRequestProperty("charset", "utf-8");
-        connection.setInstanceFollowRedirects(false);
-        IOUtils.writeString(String.format("username=%s&password=%s", username, password),
-                connection.getOutputStream(), Charset.defaultCharset());
-        connection.connect();
-        HttpCookie authCookie = null;
-        try {
-            if (HttpURLConnection.HTTP_NO_CONTENT != connection.getResponseCode()) {
-                throw new IllegalArgumentException(
-                        String.format("Wrong response code (%s) received on the authentication phase",
-                                connection.getResponseCode()));
-            }
-
-            final Map<String, List<String>> headerFields = connection.getHeaderFields();
-            final List<String> cookiesHeader = headerFields.get(COOKIES_HEADER);
-            assertFalse(cookiesHeader.isEmpty());
-
-            for (final String cookie : cookiesHeader) {
-                final HttpCookie current = HttpCookie.parse(cookie).get(0);
-                if (current.getName().equalsIgnoreCase(AUTH_COOKIE)) {
-                    authCookie = current;
-                    break;
-                }
-            }
-            assertNotNull(authCookie);
-        }
-        finally {
-            connection.disconnect();
-        }
-        return authCookie;
     }
 
     /**
@@ -134,9 +88,9 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
      */
     @Test
     public void testLoginValidCredentials() throws IOException, GeneralSecurityException, InterruptedException {
-        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
-        assertNotNull(cookie);
-        authenticator.verify(USERNAME, cookie.getValue());
+        final HttpCookie authCookie = authenticator.authenticateTestUser();
+        assertNotNull(authCookie);
+        authenticator.verifyTestUser(authCookie.getValue());
     }
 
     /**
@@ -150,7 +104,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
      */
     @Test(expected = IllegalArgumentException.class)
     public void testLoginInvalidCredentials() throws IOException, InterruptedException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        authenticate(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        authenticator.authenticateClient(UUID.randomUUID().toString(), UUID.randomUUID().toString());
     }
 
     /**
@@ -165,7 +119,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     @Test
     public void testCheckSimpleResourceWithAndWithoutToken() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
-        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+        final HttpCookie cookie = authenticator.authenticateTestUser();
         final URL query = new URL("http://localhost:8181/snamp/security/login/username");
         //with token
         HttpURLConnection connection = (HttpURLConnection) query.openConnection();
@@ -284,7 +238,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     @Test
     public void testGetResourceConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
-        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+        final HttpCookie cookie = authenticator.authenticateTestUser();
 
         // Get all resources
         URL query = new URL("http://localhost:8181/snamp/management/configuration/resource");
@@ -344,7 +298,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     @Test
     public void testModifyResourceConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
-        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+        final HttpCookie cookie = authenticator.authenticateTestUser();
         // Get resource by name
         URL query = new URL(String.format("http://localhost:8181/snamp/management/configuration/resource/%s", TEST_RESOURCE_NAME));
         HttpURLConnection connection = (HttpURLConnection) query.openConnection();
@@ -529,7 +483,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     @Test
     public void testModifyGatewayConfiguration() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
-        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+        final HttpCookie cookie = authenticator.authenticateTestUser();
         // Get resource by name
         URL query = new URL(String.format("http://localhost:8181/snamp/management/configuration/gateway/%s", ADAPTER_INSTANCE_NAME));
         HttpURLConnection connection = (HttpURLConnection) query.openConnection();
@@ -642,7 +596,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     @Test
     public void testManagementService() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
-        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+        final HttpCookie cookie = authenticator.authenticateTestUser();
 
         // Get all resources
         URL query = new URL("http://localhost:8181/snamp/management/components");
@@ -672,7 +626,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     @Test
     public void testDisableAndEnableComponents() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
-        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+        final HttpCookie cookie = authenticator.authenticateTestUser();
 
         // Get all resources
         URL query = new URL("http://localhost:8181/snamp/management/resource/list");
@@ -743,7 +697,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     @Test
     public void testAttributesBindings() throws IOException, InterruptedException, NoSuchAlgorithmException,
             InvalidKeyException, SignatureException {
-        final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
+        final HttpCookie cookie = authenticator.authenticateTestUser();
 
         // Get all resources
         URL query = new URL(String.format("http://localhost:8181/snamp/management/configuration/gateway/%s/attributes/bindings", ADAPTER_INSTANCE_NAME));

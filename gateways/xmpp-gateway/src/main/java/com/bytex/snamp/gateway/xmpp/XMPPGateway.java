@@ -21,6 +21,7 @@ import javax.management.MBeanNotificationInfo;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 /**
@@ -37,10 +38,10 @@ final class XMPPGateway extends AbstractGateway {
     private AbstractXMPPConnection connection;
     private final Bot chatBot;
 
-    XMPPGateway(final String instanceName) {
+    XMPPGateway(final String instanceName, final ExecutorService threadPool) {
         super(instanceName);
         connection = null;
-        chatBot = new Bot();
+        chatBot = new Bot(threadPool);
     }
 
     @SuppressWarnings("unchecked")

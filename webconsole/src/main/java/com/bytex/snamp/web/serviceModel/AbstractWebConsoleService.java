@@ -3,6 +3,7 @@ package com.bytex.snamp.web.serviceModel;
 import com.bytex.snamp.WeakEventListenerList;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 /**
  * @author Roman Sakno
@@ -24,6 +25,10 @@ public abstract class AbstractWebConsoleService implements WebConsoleService {
 
     protected final void fireWebEvent(final WebEvent event){
         listeners.fire(event);
+    }
+
+    final void fireWebEvent(final Consumer<? super WebEventListener> listenerInvoker){
+        listeners.forEach(listenerInvoker);
     }
 
     @Override

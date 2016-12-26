@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -181,10 +182,10 @@ final class Bot implements ChatManagerListener, AutoCloseable {
     private final XMPPModelOfAttributes attributes;
     private final XMPPModelOfNotifications notifications;
 
-    Bot(){
+    Bot(final ExecutorService threadPool){
         sessions = new LinkedList<>();
         this.attributes = new XMPPModelOfAttributes();
-        this.notifications = new XMPPModelOfNotifications();
+        this.notifications = new XMPPModelOfNotifications(threadPool);
     }
 
     private synchronized ChatSession chatCreatedImpl(final Chat chat){

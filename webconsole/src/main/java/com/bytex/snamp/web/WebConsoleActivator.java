@@ -3,11 +3,9 @@ package com.bytex.snamp.web;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -17,11 +15,9 @@ import java.util.Map;
  * The type Web console activator.
  */
 public final class WebConsoleActivator extends AbstractServiceLibrary {
-    private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
-
-    private static final class WebConsoleServletProvider extends ProvidedService<Servlet, WebConsoleServlet>{
+    private static final class WebConsoleServletProvider extends ProvidedService<WebConsoleEngine, WebConsoleServlet>{
         private WebConsoleServletProvider(){
-            super(Servlet.class, simpleDependencies(HttpService.class));
+            super(WebConsoleEngine.class, simpleDependencies(HttpService.class));
         }
 
         @Override
@@ -53,14 +49,10 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
     @Override
     protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
-        bundleLevelDependencies.add(new SimpleDependency<>(HttpService.class));
-        bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
     }
 
     @Override
     protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
-        final HttpService httpService = getDependencies().getDependency(HttpService.class);
-        activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, httpService);
     }
 
     @Override

@@ -16,13 +16,13 @@ final class TestUtils {
     private TestUtils(){
     }
 
-    static String join(final Object[] objects, final char delimeter)
+    static String join(final Object[] objects, final char delimiter)
     {
         final StringBuilder stringBuilder = new StringBuilder();
 
         for (int i = 0; i < objects.length; i++)
             stringBuilder.append(objects[i]).
-                    append(i == objects.length - 1 ? "" : delimeter);
+                    append(i == objects.length - 1 ? "" : delimiter);
         return stringBuilder.toString();
 
     }

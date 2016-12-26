@@ -1,11 +1,13 @@
 package com.bytex.snamp;
 
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ObjectArrays;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -289,9 +291,9 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      * @param event An event object.
      * @since 1.2
      */
-    public final void fireAsync(final E event) {
+    public final void fireAsync(final E event, final Executor executor) {
         final WeakEventListener<L, E>[] snapshot = this.listeners;
-        Arrays.stream(snapshot).parallel().forEach(listener -> listener.invoke(event));
+        Utils.parallelForEach(Arrays.spliterator(snapshot), listener -> listener.invoke(event), executor);
     }
 
     /**

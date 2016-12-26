@@ -11,6 +11,7 @@ import javax.management.MBeanNotificationInfo;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
@@ -27,7 +28,8 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
     private final Map<String, ResourceNotificationList<XMPPNotificationAccessor>> notifications;
     private final ReadWriteLock lock;
 
-    XMPPModelOfNotifications(){
+    XMPPModelOfNotifications(final ExecutorService threadPool){
+        super(threadPool);
         notifications = new HashMap<>(10);
         lock = new ReentrantReadWriteLock();
     }

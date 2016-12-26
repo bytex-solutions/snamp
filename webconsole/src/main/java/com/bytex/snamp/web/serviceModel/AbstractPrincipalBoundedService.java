@@ -3,6 +3,7 @@ package com.bytex.snamp.web.serviceModel;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.KeyValueStorage;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -15,6 +16,11 @@ import java.io.Reader;
 import java.io.Writer;
 import java.security.Principal;
 import java.util.Objects;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.core.KeyValueStorage.JsonRecordView;
 
@@ -50,6 +56,40 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
     @Consumes(MediaType.APPLICATION_JSON)
     public final void setUserData(@Context final SecurityContext context, final USERDATA value) throws IOException {
         setUserData(context.getUserPrincipal(), value);
+    }
+
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
+    }
+
+    protected final void fireWebEvent(final Predicate<? super Principal> filter, final Function<? super USERDATA, ? extends WebEvent> eventProvider) {
+        fireWebEvent(listener -> {
+            if (filter.test(listener.getPrincipal())) {
+                final WebEvent event;
+                try {
+                    final USERDATA userData = getUserData(listener.getPrincipal());
+                    event = eventProvider.apply(userData);
+                } catch (final IOException e) {
+                    getLogger().log(Level.SEVERE, String.format("Failed to deliver event for user %s", listener.getPrincipal()), e);
+                    return;
+                }
+                listener.accept(event);
+            }
+        });
+    }
+
+    protected final void fireWebEvent(final WebEvent event, final BiPredicate<? super Principal, ? super USERDATA> filter) {
+        fireWebEvent(listener -> {
+            final USERDATA userData;
+            try {
+                userData = getUserData(listener.getPrincipal());
+            } catch (final IOException e) {
+                getLogger().log(Level.SEVERE, String.format("Failed to deliver event %s for user %s", event, listener.getPrincipal()), e);
+                return;
+            }
+            if (filter.test(listener.getPrincipal(), userData))
+                listener.accept(event);
+        });
     }
 
     protected abstract USERDATA createUserData();

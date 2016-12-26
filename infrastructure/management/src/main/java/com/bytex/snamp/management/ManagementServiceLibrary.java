@@ -75,7 +75,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
 
     private static final class SnampClusterNodeMBeanServiceProvider extends OpenMBeanServiceProvider<SnampClusterNodeMBean> {
         private SnampClusterNodeMBeanServiceProvider(){
-            super(SnampClusterNodeMBean.OBJECT_NAME);
+            super(SnampClusterNodeMBean.OBJECT_NAME, new SimpleDependency<>(ClusterMember.class));
         }
 
         @Override
@@ -168,7 +168,6 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
         bundleLevelDependencies.add(new LogReaderServiceDependency(listener));
         bundleLevelDependencies.add(new SimpleDependency<>(HttpService.class));
-        bundleLevelDependencies.add(new SimpleDependency<>(ClusterMember.class));
     }
 
     /**
@@ -180,7 +179,6 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     @MethodStub
     protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
         activationProperties.publish(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
-        @SuppressWarnings("unchecked")
         final HttpService httpService = getDependencies().getDependency(HttpService.class);
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
