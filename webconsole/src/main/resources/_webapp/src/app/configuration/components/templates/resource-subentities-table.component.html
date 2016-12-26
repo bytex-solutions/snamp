@@ -8,42 +8,30 @@
             </div>
             <br/>
             <div class="modal-body">
-              <div id="smartwizard" class="form_wizard wizard_horizontal">
-                <ul class="wizard_steps">
+              <div id="smartwizard">
+                <ul>
                       <li>
                         <a [attr.href]="'#name'">
-                          <span class="step_no">1</span>
-                          <span class="step_descr">
-                                                  Name<br />
-                                                  <small>Name of {{activeEntity.getName()}}</small>
-                                              </span>
+                          Name<br />
+                          <small>Name of {{activeEntity.getName()}}</small>
                         </a>
                       </li>
                       <li>
                         <a [attr.href]="'#additional'">
-                          <span class="step_no">2</span>
-                          <span class="step_descr">
-                                                  Additional<br />
-                                                  <small>Additional {{activeEntity.getName()}}-related members</small>
-                                              </span>
+                          Additional<br />
+                          <small>Additional {{activeEntity.getName()}}-related members</small>
                         </a>
                       </li>
                       <li>
                         <a [attr.href]="'#parameters'">
-                          <span class="step_no">3</span>
-                          <span class="step_descr">
-                                                  Parameters<br />
-                                                  <small>Parameters for {{activeEntity.getName()}}</small>
-                                              </span>
+                          Parameters<br />
+                          <small>Parameters for {{activeEntity.getName()}}</small>
                         </a>
                       </li>
                       <li>
                         <a [attr.href]="'#save'">
-                          <span class="step_no">4</span>
-                          <span class="step_descr">
-                                                  Save<br />
-                                                  <small>Saving the {{activeEntity.getName()}}</small>
-                                              </span>
+                          Save<br />
+                          <small>Saving the {{activeEntity.getName()}}</small>
                         </a>
                       </li>
                 </ul>

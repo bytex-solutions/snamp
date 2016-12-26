@@ -94,13 +94,11 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-            <Export-Package>
-              com.bytex.snamp.web.serviceModel
-            </Export-Package>
+            <Export-Package>com.bytex.snamp.web.serviceModel</Export-Package>
             <Bundle-Activator>com.bytex.snamp.web.WebConsoleActivator</Bundle-Activator>
             <Web-ContextPath>snamp</Web-ContextPath>
             <Webapp-Context>snamp</Webapp-Context>
-            <_wab>src/main/resources/_webapp</_wab>
+            <_wab>src/main/resources/_webapp/dist</_wab>
           </instructions>
         </configuration>
       </plugin>

@@ -76,6 +76,7 @@ export class ResourceEntitiesTable implements OnInit {
        var _this = this;
        $(document).ready(function() {
           $("#smartwizard").smartWizard({
+              theme: 'arrows',
               useURLhash: false,
               showStepURLhash: false,
               transitionEffect: 'fade'
@@ -85,6 +86,13 @@ export class ResourceEntitiesTable implements OnInit {
 
     setEntity(entity:Entity) {
         this.activeEntity = entity;
+        // reset!!!
+         $("#smartwizard").smartWizard({
+            theme: 'arrows',
+            useURLhash: false,
+            showStepURLhash: false,
+            transitionEffect: 'fade'
+         });
     }
 
     remove(entity:Entity) {
