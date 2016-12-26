@@ -28,8 +28,6 @@ import { DropdownModule } from 'ng2-bootstrap';
 
 import { UiSwitchComponent } from './ui-switch.component';
 
-import { WizardComponent, WizardStepComponent } from 'ng2-wizard';
-
 import { PanelComponent } from './panel.component';
 
 import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './configuration/configuration.pipes';
@@ -134,9 +132,7 @@ const EXPORTS:any = [
   RequiredParametersFilter,
   OptionalParametersFilter,
   AddEntity,
-  UiSwitchComponent,
-  WizardStepComponent,
-  WizardComponent
+  UiSwitchComponent
 ];
 
 @NgModule({

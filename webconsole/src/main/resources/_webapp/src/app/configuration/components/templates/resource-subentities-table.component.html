@@ -8,62 +8,62 @@
             </div>
             <br/>
             <div class="modal-body">
-              <div id="wizard" class="swMain">
-                <ul>
-                  <li>
-                    <a href="#step-1">
-                      <label class="stepNumber">1</label>
-                      <span class="stepDesc">
-                         Step 1<br />
-                         <small>Step 1 description</small>
-                      </span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#step-2">
-                      <label class="stepNumber">2</label>
-                      <span class="stepDesc">
-                         Step 2<br />
-                         <small>Step 2 description</small>
-                      </span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#step-3">
-                      <label class="stepNumber">3</label>
-                      <span class="stepDesc">
-                         Step 3<br />
-                         <small>Step 3 description</small>
-                      </span>
-                   </a>
-                  </li>
-                  <li>
-                    <a href="#step-4">
-                      <label class="stepNumber">4</label>
-                      <span class="stepDesc">
-                         Step 4<br />
-                         <small>Step 4 description</small>
-                      </span>
-                   </a>
-                  </li>
+              <div id="smartwizard" class="form_wizard wizard_horizontal">
+                <ul class="wizard_steps">
+                      <li>
+                        <a [attr.href]="'#name'">
+                          <span class="step_no">1</span>
+                          <span class="step_descr">
+                                                  Name<br />
+                                                  <small>Name of {{activeEntity.getName()}}</small>
+                                              </span>
+                        </a>
+                      </li>
+                      <li>
+                        <a [attr.href]="'#additional'">
+                          <span class="step_no">2</span>
+                          <span class="step_descr">
+                                                  Additional<br />
+                                                  <small>Additional {{activeEntity.getName()}}-related members</small>
+                                              </span>
+                        </a>
+                      </li>
+                      <li>
+                        <a [attr.href]="'#parameters'">
+                          <span class="step_no">3</span>
+                          <span class="step_descr">
+                                                  Parameters<br />
+                                                  <small>Parameters for {{activeEntity.getName()}}</small>
+                                              </span>
+                        </a>
+                      </li>
+                      <li>
+                        <a [attr.href]="'#save'">
+                          <span class="step_no">4</span>
+                          <span class="step_descr">
+                                                  Save<br />
+                                                  <small>Saving the {{activeEntity.getName()}}</small>
+                                              </span>
+                        </a>
+                      </li>
                 </ul>
-                <div id="step-1">
-                  <h2 class="StepTitle">Step 1 Content</h2>
-                  <!-- step content -->
-                </div>
-                <div id="step-2">
-                  <h2 class="StepTitle">Step 2 Content</h2>
-                  <!-- step content -->
-                </div>
-                <div id="step-3">
-                  <h2 class="StepTitle">Step 3 Title</h2>
-                  <!-- step content -->
-                </div>
-                <div id="step-4">
-                  <h2 class="StepTitle">Step 4 Title</h2>
-                  <!-- step content -->
+
+                <div>
+                  <div id="name" class="">
+                    Step Content
+                  </div>
+                  <div id="additional" class="">
+                    Step Content
+                  </div>
+                  <div id="parameters" class="">
+                    Step Content
+                  </div>
+                  <div id="save" class="">
+                    Step Content
+                  </div>
                 </div>
               </div>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

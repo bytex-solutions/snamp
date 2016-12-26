@@ -14,6 +14,8 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
 
+import 'smartwizard';
+
 import { Overlay } from 'angular2-modal';
 import {
   VEXBuiltInThemes,
@@ -68,6 +70,17 @@ export class ResourceEntitiesTable implements OnInit {
             .subscribe(res => {
 
             });
+    }
+
+    ngAfterViewInit() {
+       var _this = this;
+       $(document).ready(function() {
+          $("#smartwizard").smartWizard({
+              useURLhash: false,
+              showStepURLhash: false,
+              transitionEffect: 'fade'
+           });
+        });
     }
 
     setEntity(entity:Entity) {
