@@ -61,7 +61,7 @@ class DatabaseNode extends OServer {
         super(true);
         databaseConfigFile = DatabaseConfigurationFile.EMBEDDED_CONFIG.toFile(true);
         updateConfig();
-        distributedManager = new OrientHazelcastBridge(hazelcast);
+        distributedManager = new OrientDistributedEnvironment(hazelcast);
     }
 
     final ODatabaseDocumentTx getSnampDatabase(){

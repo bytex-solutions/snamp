@@ -24,8 +24,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-final class OrientHazelcastBridge extends OHazelcastPlugin {
-    OrientHazelcastBridge(final HazelcastInstance instance) throws IOException {
+final class OrientDistributedEnvironment extends OHazelcastPlugin {
+    OrientDistributedEnvironment(final HazelcastInstance instance) throws IOException {
         hazelcastInstance = Objects.requireNonNull(instance);
         hazelcastConfig = instance.getConfig();
         //read OrientDB distributed configuration

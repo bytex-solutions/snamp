@@ -24,6 +24,7 @@
                     <instructions>
                         <Bundle-Activator>com.bytex.snamp.internal.InternalServicesActivator</Bundle-Activator>
                         <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
+                        <Import-Package>!com.orientechnologies.orient.server.distributed.impl,*</Import-Package>
                         <Export-Package/>
                     </instructions>
                 </configuration>
