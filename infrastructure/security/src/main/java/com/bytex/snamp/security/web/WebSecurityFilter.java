@@ -1,6 +1,5 @@
 package com.bytex.snamp.security.web;
 
-import com.auth0.jwt.JWTVerifyException;
 import com.bytex.snamp.core.LoggerProvider;
 import com.sun.jersey.api.core.HttpRequestContext;
 import com.sun.jersey.spi.container.ContainerRequest;
@@ -8,12 +7,10 @@ import com.sun.jersey.spi.container.ContainerRequestFilter;
 import com.sun.jersey.spi.container.ContainerResponse;
 import com.sun.jersey.spi.container.ContainerResponseFilter;
 
-import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
