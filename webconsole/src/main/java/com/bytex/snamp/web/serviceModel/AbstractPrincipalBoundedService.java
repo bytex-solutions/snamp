@@ -25,7 +25,6 @@ import static com.bytex.snamp.core.KeyValueStorage.JsonRecordView;
  * @since 2.0
  */
 public abstract class AbstractPrincipalBoundedService<USERDATA> extends AbstractWebConsoleService {
-    private static final String USER_DATA_POSTFIX = "UserData";
     private final KeyValueStorage userDataStorage;
     private final ObjectMapper mapper;
     private final Class<USERDATA> userDataType;
@@ -35,7 +34,7 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
         this.userDataType = Objects.requireNonNull(userDataType);
         this.userDataStorage = DistributedServices.getDistributedObject(
                 Utils.getBundleContextOfObject(this),
-                getName().concat(USER_DATA_POSTFIX),
+                userDataType.getName(),
                 ClusterMember.PERSISTENT_KV_STORAGE);
     }
 

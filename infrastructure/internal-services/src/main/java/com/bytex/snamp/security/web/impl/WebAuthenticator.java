@@ -1,7 +1,7 @@
 package com.bytex.snamp.security.web.impl;
 
 import com.bytex.snamp.core.LoggerProvider;
-import com.bytex.snamp.security.web.Authenticator;
+import com.bytex.snamp.security.web.JWTAuthenticator;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 
 import javax.security.auth.login.*;
@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 @Path(WebAuthenticator.PATH)
-public final class WebAuthenticator extends Authenticator {
+public final class WebAuthenticator extends JWTAuthenticator {
     /**
      * Represents URL path to this service.
      */

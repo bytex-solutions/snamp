@@ -6,20 +6,26 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 /**
- * @author Roman Sakno
- * @version 2.0
- * @since 2.0
+ * Represents trivial reference to the web console service without publishing it to Servlet Container.
  */
-final class WebConsoleServiceHolder extends ServiceHolder<WebConsoleService> {
-    WebConsoleServiceHolder(final BundleContext context, final ServiceReference<WebConsoleService> serviceRef) throws IllegalArgumentException {
+final class WebConsoleServiceHolder extends ServiceHolder<WebConsoleService> implements WebConsoleServiceReference {
+
+    WebConsoleServiceHolder(final BundleContext context, final ServiceReference<WebConsoleService> serviceRef){
         super(context, serviceRef);
     }
 
-    String getName() {
-        return getName(this);
+    @Override
+    public void close() {
+        release(getClass().getClassLoader());
     }
 
-    static String getName(final ServiceReference<WebConsoleService> serviceRef){
-        return (String) serviceRef.getProperty(WebConsoleService.NAME);
+    @Override
+    public String getName() {
+        return null;
+    }
+
+    @Override
+    public void activate() {
+
     }
 }

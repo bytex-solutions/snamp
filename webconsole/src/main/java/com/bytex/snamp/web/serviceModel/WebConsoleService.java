@@ -9,16 +9,9 @@ import java.io.Closeable;
  * @since 2.0
  */
 public interface WebConsoleService extends Closeable {
+    String URL_CONTEXT = "urlContext";
     String NAME = "name";
 
     void addWebEventListener(final WebEventListener listener);
     void removeWebEventListener(final WebEventListener listener);
-
-    /**
-     * Indicates that this service exposes resource model.
-     * @return {@literal true}, if this service exposes resource model; otherwise, {@literal false}.
-     */
-    boolean isResourceModel();
-
-    String getName();
 }

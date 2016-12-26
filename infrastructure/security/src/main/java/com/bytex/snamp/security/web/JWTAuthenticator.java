@@ -7,10 +7,7 @@ import javax.security.auth.login.AccountException;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.security.SignatureException;
+import java.security.*;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -20,7 +17,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 2.0
  * @since 2.0
  */
-public class Authenticator {
+public class JWTAuthenticator {
 
     /**
      * Issue auth token string.
@@ -37,12 +34,17 @@ public class Authenticator {
         return TokenSecretHolder.getInstance().getSecret(getBundleContextOfObject(this));
     }
 
-    public final Principal parsePrincipal(final String token) throws SignatureException, NoSuchAlgorithmException, InvalidKeyException, IOException {
+    public final Principal verify(final String userName, final String jwToken) throws GeneralSecurityException, IOException {
+        final JwtPrincipal principal;
         try {
-            return new JwtPrincipal(token, getTokenSecret());
+            principal = new JwtPrincipal(jwToken, getTokenSecret());
         } catch (final JWTVerifyException e) {
-            throw new SignatureException("JWT is not valid", e);
+            throw new LoginException(e.getMessage());
         }
+        if (!userName.equals(principal.getName()))
+            throw new LoginException(String.format("Expected user name %s doesn't match to actual user name %s", userName, principal.getName()));
+        else
+            return principal;
     }
 
     /**

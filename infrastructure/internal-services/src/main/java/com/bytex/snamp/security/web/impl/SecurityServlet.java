@@ -3,6 +3,7 @@ package com.bytex.snamp.security.web.impl;
 import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
+import com.sun.jersey.api.core.HttpRequestContext;
 import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitializer;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
@@ -28,7 +29,7 @@ public final class SecurityServlet extends ServletContainer {
 
     private static class InternalAuthFilter extends WebSecurityFilter {
         @Override
-        protected boolean authenticationRequired(ContainerRequest request) {
+        protected boolean authenticationRequired(final HttpRequestContext request) {
             return !request.getPath().equalsIgnoreCase(WebAuthenticator.PATH);
         }
     }

@@ -82,7 +82,10 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-            <Export-Package>com.bytex.snamp.security.web</Export-Package>
+            <Export-Package>
+              com.bytex.snamp.security,
+              com.bytex.snamp.security.web
+            </Export-Package>
             <Import-Package>com.bytex.snamp,
                             com.bytex.snamp.concurrent,
                             com.bytex.snamp.core,

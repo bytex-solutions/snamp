@@ -6,7 +6,7 @@ import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.io.IOUtils;
-import com.bytex.snamp.security.web.Authenticator;
+import com.bytex.snamp.security.web.JWTAuthenticator;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -26,10 +26,7 @@ import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.security.SignatureException;
+import java.security.*;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +65,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     private static final String USERNAME = "karaf";
     private static final String PASSWORD = "karaf";
     private static final String AUTH_COOKIE = WebSecurityFilter.DEFAULT_AUTH_COOKIE;
-    private final Authenticator authenticator;
+    private final JWTAuthenticator authenticator;
 
     /**
      * Instantiates a new Snamp webconsole test.
@@ -77,7 +74,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
      */
     public HttpManagementTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
-        authenticator = new Authenticator();
+        authenticator = new JWTAuthenticator();
     }
 
     @Override
@@ -136,12 +133,10 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
      * @throws SignatureException       the signature exception
      */
     @Test
-    public void testLoginValidCredentials() throws IOException, InterruptedException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    public void testLoginValidCredentials() throws IOException, GeneralSecurityException, InterruptedException {
         final HttpCookie cookie = authenticate(USERNAME, PASSWORD);
         assertNotNull(cookie);
-        final Principal p = authenticator.parsePrincipal(cookie.getValue());
-        assertNotNull(p);
-        assertEquals(p.getName(), USERNAME);
+        authenticator.verify(USERNAME, cookie.getValue());
     }
 
     /**

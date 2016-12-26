@@ -1,6 +1,7 @@
 package com.bytex.snamp.web;
 
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -13,7 +14,7 @@ import javax.ws.rs.core.MediaType;
  * @since 2.0
  */
 @Path("/version")
-public final class VersionResource {
+public final class VersionResource extends AbstractWebConsoleService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String getVersion(){
