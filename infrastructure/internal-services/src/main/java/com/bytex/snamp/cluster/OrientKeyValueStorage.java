@@ -1,27 +1,29 @@
 package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.KeyValueStorage;
-import com.google.common.collect.Iterators;
 import com.orientechnologies.orient.core.db.ODatabase;
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.id.ORID;
+import com.orientechnologies.orient.core.iterator.ORecordIteratorClass;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OSchema;
+import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.orientechnologies.orient.core.tx.OTransaction;
 import com.orientechnologies.orient.core.tx.OTransactionOptimistic;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.function.Predicate;
 
 /**
  * Represents key/value storage backed by OrientDB.
@@ -131,6 +133,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         if (isNew) {
             //new record detected
             initializer.accept(recordView.cast(record));
+            record.save();
         } else
             database.reload(record);
         return recordView.cast(record);
@@ -191,14 +194,13 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     @Override
     public void clear() {
         final OClass documentClass = this.getDocumentClass();
-        ODatabaseRecordThreadLocal.INSTANCE.set(database);
-        try {
-            documentClass.truncate();
-        } catch (final IOException e) {
-            throw new UncheckedIOException(e);
-        } finally {
-            ODatabaseRecordThreadLocal.INSTANCE.remove();
-        }
+        DBUtils.runWithDatabase(database, () -> {
+            try {
+                documentClass.truncate();
+            } catch (final IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
     }
 
     private void destroyImpl() {
@@ -225,16 +227,37 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     }
 
     /**
-     * Gets stream over all records in this storage.
+     * Iterates over records.
      *
-     * @param recordType Type of the record view.
-     * @return Stream of records.
+     * @param recordType Type of the record representation.
+     * @param filter     Query filter. Cannot be {@literal null}.
+     * @param reader     Record reader. Cannot be {@literal null}.
+     * @throws E Reading failed.
      */
     @Override
-    public <R extends Record> Stream<R> getRecords(final Class<R> recordType) {
-        final OClass documentClass = getDocumentClass();
-        final Iterator<R> records = Iterators.transform(database.browseClass(documentClass.getName()), proto -> recordType.cast(new PersistentRecord(proto)));
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(records, Spliterator.IMMUTABLE), false);
+    public <R extends Record, E extends Throwable> void forEachRecord(final Class<R> recordType, final Predicate<? super Comparable<?>> filter, final EntryReader<? super Comparable<?>, ? super R, E> reader) throws E {
+        if (!database.isActiveOnCurrentThread())
+            database.activateOnCurrentThread();
+        final ORecordIteratorClass<ODocument> records = database.browseClass(getDocumentClass().getName());
+        while (records.hasNext()){
+            final ODocument document = records.next();
+            final PersistentRecord record;
+            if(document instanceof PersistentRecord)
+                record = (PersistentRecord) document;
+            else {
+                record = new PersistentRecord(document);
+                database.reload(record);
+            }
+            record.lock(false);
+            try {
+                final Comparable<?> key;
+                if (filter.test(key = record.getKey()))
+                    if(!reader.accept(key, recordType.cast(record)))
+                        return;
+            } finally {
+                record.unlock();
+            }
+        }
     }
 
     /**

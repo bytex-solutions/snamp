@@ -49,7 +49,7 @@ public final class LocalServicesTest extends Assert {
     @Test
     public void communicatorTest() throws InterruptedException, ExecutionException, TimeoutException {
         final Communicator com = DistributedServices.getProcessLocalCommunicator("localCommunicator");
-        assertTrue(com instanceof LocalCommunicator);//test message box
+        assertTrue(com instanceof InMemoryCommunicator);//test message box
         try (final Communicator.MessageBox<String> box = com.createMessageBox(Communicator.ANY_MESSAGE, Communicator::getPayloadAsString)) {
             com.sendSignal("First");
             com.sendSignal("Second");
@@ -79,6 +79,6 @@ public final class LocalServicesTest extends Assert {
             final String response = com.sendRequest("Request", Communicator::getPayloadAsString, Duration.ofSeconds(1L));
             assertEquals(EXPECTED_RESPONSE, response);
         }
-        assertTrue(((LocalCommunicator) com).hasNoSubscribers());
+        assertTrue(((InMemoryCommunicator) com).hasNoSubscribers());
     }
 }

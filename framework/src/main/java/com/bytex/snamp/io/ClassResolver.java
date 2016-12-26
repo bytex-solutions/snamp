@@ -21,4 +21,8 @@ public interface ClassResolver {
      */
     Class<?> resolveClass(final ObjectStreamClass desc)
             throws IOException, ClassNotFoundException;
+
+    static ClassResolver forClassLoader(final ClassLoader loader) {
+        return desc -> Class.forName(desc.getName(), false, loader);
+    }
 }

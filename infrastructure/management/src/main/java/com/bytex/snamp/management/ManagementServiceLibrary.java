@@ -3,7 +3,6 @@ package com.bytex.snamp.management;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.AbstractServiceLibrary;
-import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.core.SnampManager;
 import com.bytex.snamp.jmx.FrameworkMBean;
@@ -75,7 +74,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
 
     private static final class SnampClusterNodeMBeanServiceProvider extends OpenMBeanServiceProvider<SnampClusterNodeMBean> {
         private SnampClusterNodeMBeanServiceProvider(){
-            super(SnampClusterNodeMBean.OBJECT_NAME, new SimpleDependency<>(ClusterMember.class));
+            super(SnampClusterNodeMBean.OBJECT_NAME);
         }
 
         @Override

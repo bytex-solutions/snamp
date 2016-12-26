@@ -1,9 +1,6 @@
 package com.bytex.snamp.gateway.influx;
 
-import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.gateway.GatewayActivator;
-
-import java.util.Collection;
 
 /**
  * @author Roman Sakno
@@ -19,10 +16,5 @@ public final class InfluxGatewayActivator extends GatewayActivator<InfluxGateway
     private static InfluxGateway newGateway(final String gatewayInstance,
                                       final DependencyManager dependencies) throws Exception{
         return new InfluxGateway(gatewayInstance);
-    }
-
-    @Override
-    protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
-        dependencies.add(new SimpleDependency<>(ClusterMember.class));
     }
 }

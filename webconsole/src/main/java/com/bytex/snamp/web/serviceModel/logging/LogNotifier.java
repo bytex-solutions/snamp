@@ -12,8 +12,13 @@ import javax.ws.rs.Path;
  * @version 2.0
  * @since 2.0
  */
-@Path("/logging")
+@Path("/")
 public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSettings> implements LogListener {
+    /**
+     * Represents name of this service.
+     */
+    public static final String NAME = "logNotifier";
+
     public LogNotifier() {
         super(LoggingSettings.class);
     }

@@ -1,7 +1,6 @@
 package com.bytex.snamp.cluster;
 
 import com.orientechnologies.orient.core.db.ODatabaseDocumentInternal;
-import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 
 import java.util.function.Supplier;
 
@@ -12,20 +11,14 @@ import java.util.function.Supplier;
  */
 final class DBUtils {
     static <V> V supplyWithDatabase(final ODatabaseDocumentInternal database, final Supplier<V> callable) {
-        ODatabaseRecordThreadLocal.INSTANCE.set(database);
-        try {
-            return callable.get();
-        } finally {
-            ODatabaseRecordThreadLocal.INSTANCE.remove();
-        }
+        if (!database.isActiveOnCurrentThread())
+            database.activateOnCurrentThread();
+        return callable.get();
     }
 
     static void runWithDatabase(final ODatabaseDocumentInternal database, final Runnable runnable) {
-        ODatabaseRecordThreadLocal.INSTANCE.set(database);
-        try {
-            runnable.run();
-        } finally {
-            ODatabaseRecordThreadLocal.INSTANCE.remove();
-        }
+        if (!database.isActiveOnCurrentThread())
+            database.activateOnCurrentThread();
+        runnable.run();
     }
 }

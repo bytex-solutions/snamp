@@ -22,7 +22,7 @@ import java.util.Objects;
 final class PersistentRecord extends ODocument implements KeyValueStorage.Record, KeyValueStorage.MapRecordView, KeyValueStorage.JsonRecordView, KeyValueStorage.TextRecordView, KeyValueStorage.LongRecordView, KeyValueStorage.DoubleRecordView, KeyValueStorage.SerializableRecordView {
     private static final long serialVersionUID = -7040180709722600847L;
 
-    private volatile boolean detached;
+    private volatile transient boolean detached;
     private transient ODatabaseDocumentInternal database;
 
     @SpecialUse
@@ -38,7 +38,9 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
         _recordFormat = value.getSerializer();
     }
 
-
+    Comparable<?> getKey(){
+        return PersistentFieldDefinition.getKey(this);
+    }
 
     @Override
     public ODatabaseDocumentInternal getDatabase() {

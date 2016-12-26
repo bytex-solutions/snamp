@@ -1,6 +1,7 @@
 package com.bytex.snamp.testing.web;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.io.IOUtils;
@@ -9,7 +10,11 @@ import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -26,6 +31,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.time.Duration;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
@@ -48,7 +54,6 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
         SnampFeature.COMPOSITE_CONNECTOR
 })
 public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-
     private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
     private static final String ADAPTER_NAME = "snmp";
@@ -56,6 +61,22 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     private static final String SNMP_HOST = "127.0.0.1";
     private static final String TEST_PARAMETER = "testParameter";
 
+    //must be public
+    @WebSocket
+    public static final class EventReceiver extends LinkedBlockingQueue<JsonElement> {
+        private static final long serialVersionUID = 2056675059549300951L;
+        private final Gson formatter;
+
+        private EventReceiver() {
+            this.formatter = new Gson();
+        }
+
+        @OnWebSocketMessage
+        @SpecialUse
+        public void onMessage(final String event) {
+            offer(formatter.toJsonTree(event));
+        }
+    }
 
     private WebSocketClient client;
 
@@ -70,14 +91,12 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
-    private <E extends Exception> void runWebSocketTest(final Acceptor<? super Session, E> testBody) throws Exception {
-        try(final Session session = client.connect(null, new URI(WS_ENDPOINT)).get(10, TimeUnit.SECONDS)){
-
-        } finally {
-            client.stop();
+    private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler, final Acceptor<? super W, E> testBody) throws Exception {
+        try (final Session session = client.connect(webSocketHandler, new URI(WS_ENDPOINT)).get(10, TimeUnit.SECONDS)) {
+            testBody.accept(webSocketHandler);
         }
     }
 
@@ -85,8 +104,10 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
      * Log notification test.
      */
     @Test
-    public void logNotificationTest(){
+    public void logNotificationTest() throws Exception {
+        runWebSocketTest(new EventReceiver(), events -> {
 
+        });
     }
 
     /**
@@ -195,15 +216,19 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
             GatewayActivator.enableGateway(context, ADAPTER_NAME);
             return null;
         }, Duration.ofSeconds(30));
-
-        client.stop();
-        client = null;
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
         GatewayActivator.disableGateway(context, ADAPTER_NAME);
         stopResourceConnector(context);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        super.afterCleanupTest(context);
+        client.stop();
+        client = null;
     }
 
     @Override

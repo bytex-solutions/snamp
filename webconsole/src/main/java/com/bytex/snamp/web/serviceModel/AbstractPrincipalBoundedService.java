@@ -6,6 +6,7 @@ import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.osgi.framework.BundleContext;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -38,9 +39,11 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
     protected AbstractPrincipalBoundedService(final Class<USERDATA> userDataType) {
         mapper = new ObjectMapper();
         this.userDataType = Objects.requireNonNull(userDataType);
-        this.userDataStorage = DistributedServices.getDistributedObject(
-                Utils.getBundleContextOfObject(this),
-                userDataType.getName(),
+        final BundleContext context = Utils.getBundleContextOfObject(this);
+        final String storageName = userDataType.getName();
+        userDataStorage = DistributedServices.getDistributedObject(
+                context,
+                storageName,
                 ClusterMember.PERSISTENT_KV_STORAGE);
     }
 

@@ -64,13 +64,13 @@ public final class DistributedServices {
                 @Override
                 public SharedObject load(@Nonnull final LocalServiceKey<?> key) throws InvalidKeyException {
                     if(key.represents(ClusterMember.SHARED_COUNTER))
-                        return new LocalCounter(key.serviceName);
+                        return new InMemoryCounter(key.serviceName);
                     else if(key.represents(ClusterMember.COMMUNICATOR))
-                        return new LocalCommunicator(key.serviceName);
+                        return new InMemoryCommunicator(key.serviceName);
                     else if(key.represents(ClusterMember.SHARED_BOX))
-                        return new LocalBox(key.serviceName);
+                        return new InMemoryBox(key.serviceName);
                     else if(key.represents(ClusterMember.KV_STORAGE))
-                        return new LocalKeyValueStorage(key.serviceName);
+                        return new InMemoryKeyValueStorage(key.serviceName);
                     else throw new InvalidKeyException(String.format("Service %s is not supported", key));
                 }
             });

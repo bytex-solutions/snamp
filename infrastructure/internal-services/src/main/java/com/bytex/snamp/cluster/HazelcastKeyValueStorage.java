@@ -2,6 +2,7 @@ package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Convert;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
@@ -13,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
 
 /**
  * Represents non-persistent high-performance key/value storage backed by Hazelcast.
@@ -229,14 +230,25 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
     }
 
     /**
-     * Gets stream over all records in this storage.
+     * Iterates over records.
      *
-     * @param recordType Type of the record view.
-     * @return Stream of records.
+     * @param recordType Type of the record representation.
+     * @param filter     Query filter. Cannot be {@literal null}.
+     * @param reader     Record reader. Cannot be {@literal null}.
+     * @throws E Reading failed.
      */
     @Override
-    public <R extends Record> Stream<R> getRecords(final Class<R> recordType) {
-        return getDistributedObject().keySet().stream().map(key -> new HazelcastRecord(getDistributedObject(), key)).map(recordType::cast);
+    public <R extends Record, E extends Throwable> void forEachRecord(final Class<R> recordType, final Predicate<? super Comparable<?>> filter, final EntryReader<? super Comparable<?>, ? super R, E> reader) throws E {
+        for (final Comparable<?> key : getDistributedObject().keySet())
+            if (filter.test(key)) {
+                getDistributedObject().lock(key);
+                try {
+                    if (!reader.accept(key, recordType.cast(new HazelcastRecord(getDistributedObject(), key))))
+                        return;
+                } finally {
+                    getDistributedObject().unlock(key);
+                }
+            }
     }
 
     /**

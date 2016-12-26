@@ -1,5 +1,7 @@
 package com.bytex.snamp;
 
+import java.util.function.BiConsumer;
+
 /**
  * Represents record reader.
  * @param <I> Type of the record index.
@@ -19,4 +21,11 @@ public interface EntryReader<I, R, E extends Throwable> {
      * @return {@literal true} to continue iteration; {@literal false} to abort iteration
      */
     boolean accept(final I index, final R value) throws E;
+
+    static <I, R> EntryReader<? super I, ? super R, ExceptionPlaceholder> fromConsumer(final BiConsumer<? super I, ? super R> consumer) {
+        return (index, record) -> {
+            consumer.accept(index, record);
+            return true;
+        };
+    }
 }

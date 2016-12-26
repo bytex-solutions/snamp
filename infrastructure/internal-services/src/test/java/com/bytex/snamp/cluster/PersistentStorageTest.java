@@ -5,7 +5,10 @@ import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.StringReader;
 import java.util.Map;
@@ -122,5 +125,23 @@ public final class PersistentStorageTest extends Assert {
             return null;
         });
         thread.get();
+    }
+
+    @Test
+    public void readAllRecordsTest() throws InterruptedException {
+        final KeyValueStorage storage1 = instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE);
+        assertNotNull(storage1);
+        storage1.updateOrCreateRecord("1", KeyValueStorage.TextRecordView.class, record -> record.setAsText("Frank Underwood"));
+        storage1.updateOrCreateRecord("2", KeyValueStorage.TextRecordView.class, record -> record.setAsText("Barry Burton"));
+        Thread.sleep(10_000);
+        storage1.forEachRecord(KeyValueStorage.TextRecordView.class, k -> k instanceof String, (key, record) -> {
+            if(key.equals("1"))
+                assertEquals("Frank Underwood", record.getAsText());
+            else if(key.equals("2"))
+                assertEquals("Barry Burton", record.getAsText());
+            else
+                fail("Unexpected key " + key);
+            return true;
+        });
     }
 }

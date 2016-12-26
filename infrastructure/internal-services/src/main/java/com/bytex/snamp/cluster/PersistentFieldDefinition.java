@@ -172,6 +172,13 @@ enum PersistentFieldDefinition {
         return INDEX_FIELDS.stream().map(index -> index.keyTransformer.apply(key).orElse(null)).collect(Collectors.toCollection(LinkedList::new));
     }
 
+    static Comparable<?> getKey(final ODocument document){
+        for(final PersistentFieldDefinition field: INDEX_FIELDS)
+            if(document.containsField(field.fieldName))
+                return field.getField(document);
+        throw new IllegalArgumentException(String.format("Document %s has no index field", document));
+    }
+
     static void setKey(final Comparable<?> key, final ODocument document) {
         for (final PersistentFieldDefinition index : INDEX_FIELDS)
             if (index.setField(key, document))
@@ -193,7 +200,7 @@ enum PersistentFieldDefinition {
         return false;
     }
 
-    Object getField(final ODocument document) {
+    <RET> RET getField(final ODocument document) {
         return document.field(fieldName, fieldType);
     }
 

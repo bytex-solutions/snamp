@@ -31,7 +31,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  * @since 2.0
  */
-final class WebConsoleServlet extends WebSocketServlet implements WebConsoleEngine, AutoCloseable, Constants, WebSocketCreator {
+final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleEngine, AutoCloseable, Constants, WebSocketCreator {
     static final String CONTEXT = "/snamp/console/events";
     private static final class WebConsoleServiceProcessingScope extends LoggingScope{
         private WebConsoleServiceProcessingScope(final WebConsoleEngine engine){
@@ -45,9 +45,14 @@ final class WebConsoleServlet extends WebSocketServlet implements WebConsoleEngi
     private transient final AbstractConcurrentResourceAccessor<KeyedObjects<String, WebConsoleServiceReference>> services;
     private transient final WebSecurityFilter securityFilter;
 
-    WebConsoleServlet() {
+    WebConsoleEngineImpl() {
         services = new ConcurrentResourceAccessor<>(AbstractKeyedObjects.create(WebConsoleServiceReference::getName));
         securityFilter = new WebSecurityFilter();
+        try {
+            getBundleContext().addServiceListener(this, String.format("(%s=%s)", OBJECTCLASS, WebConsoleService.class.getName()));
+        } catch (final InvalidSyntaxException e) {
+            getBundleContext().addServiceListener(this);
+        }
     }
 
     @Override

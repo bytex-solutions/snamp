@@ -71,12 +71,27 @@ public final class IOUtils {
         else output.write(value.getBytes(encoding));
     }
 
-    public static byte[] serialize(final Serializable obj) throws IOException {
-        try (final ByteArrayOutputStream os = new ByteArrayOutputStream(1024);
-             final ObjectOutputStream serializer = new ObjectOutputStream(os)) {
+    public static void serialize(final Serializable obj, final OutputStream output) throws IOException {
+        try (final ObjectOutputStream serializer = new ObjectOutputStream(output)) {
             serializer.writeObject(obj);
+        }
+    }
+
+    public static byte[] serialize(final Serializable obj) throws IOException {
+        try (final ByteArrayOutputStream os = new ByteArrayOutputStream(1024)) {
+            serialize(obj, os);
             return os.toByteArray();
         }
+    }
+
+    public static <T extends Serializable> T deserialize(final InputStream serializedForm,
+                                                         final TypeToken<T> expectedType,
+                                                         final ClassResolver resolver) throws IOException {
+        return callAndWrapException(() -> {
+                try (final ObjectInputStream deserializer = new CustomObjectInputStream(serializedForm, resolver)) {
+                    return Convert.toTypeToken(deserializer.readObject(), expectedType);
+                }
+            }, IOException::new);
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
@@ -85,18 +100,21 @@ public final class IOUtils {
         if (serializedForm == null || serializedForm.length == 0)
             return null;
         else
-            return callAndWrapException(() -> {
-                try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
-                     final ObjectInputStream deserializer = new CustomObjectInputStream(stream, resolver)) {
-                    return Convert.toTypeToken(deserializer.readObject(), expectedType);
-                }
-            }, IOException::new);
+            try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm)) {
+                return deserialize(stream, expectedType, resolver);
+            }
+    }
+
+    public static <T extends Serializable> T deserialize(final InputStream serializedForm,
+                                                         final TypeToken<T> expectedType,
+                                                         final ClassLoader customLoader) throws IOException {
+        return deserialize(serializedForm, expectedType, ClassResolver.forClassLoader(customLoader));
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
                                                          final TypeToken<T> expectedType,
                                                          final ClassLoader customLoader) throws IOException {
-        return deserialize(serializedForm, expectedType, desc -> Class.forName(desc.getName(), false, customLoader));
+        return deserialize(serializedForm, expectedType, ClassResolver.forClassLoader(customLoader));
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,

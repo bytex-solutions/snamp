@@ -24,7 +24,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
  * @since 2.0
  * @version 2.0
  */
-final class LocalCommunicator extends ThreadSafeObject implements Communicator {
+final class InMemoryCommunicator extends ThreadSafeObject implements Communicator {
     private static final class LocalIncomingMessage implements IncomingMessage{
         private final long messageID;
         private final Serializable payload;
@@ -374,9 +374,9 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     private final HeadMessageListenerNode firstNode;
     private final TailMessageListenerNode lastNode;
 
-    LocalCommunicator(final String name) {
+    InMemoryCommunicator(final String name) {
         super(SingleResourceGroup.class);
-        idGenerator = new LocalCounter(name);
+        idGenerator = new InMemoryCounter(name);
         firstNode = new HeadMessageListenerNode();
         lastNode = new TailMessageListenerNode();   //tail empty node
         firstNode.setNext(lastNode);
@@ -456,7 +456,7 @@ final class LocalCommunicator extends ThreadSafeObject implements Communicator {
     }
 
     private <N extends MessageListenerNode> N addMessageListener(final Function<? super LockManager, ? extends N> nodeFactory) {
-        return writeLock.apply(SingleResourceGroup.INSTANCE, this, nodeFactory, LocalCommunicator::addMessageListenerImpl);
+        return writeLock.apply(SingleResourceGroup.INSTANCE, this, nodeFactory, InMemoryCommunicator::addMessageListenerImpl);
     }
 
     @Override

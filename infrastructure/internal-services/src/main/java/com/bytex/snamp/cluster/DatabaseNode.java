@@ -34,20 +34,20 @@ class DatabaseNode extends OServer {
     private static final String SNAMP_DATABASE = "snamp_storage";
 
     public static final File ORIENTDB_HOME = interfaceStaticInitialize(() -> {
-        final File home;
-        {
-            final String rootDirectory = System.getProperty(Orient.ORIENTDB_HOME, System.getProperty("karaf.data"));
-            final String ORIENTDB_PREFIX = "orientdb";
-            home = isNullOrEmpty(rootDirectory) ?
-                    Files.createTempDirectory(ORIENTDB_PREFIX).toFile() :
-                    Paths.get(rootDirectory, ORIENTDB_PREFIX).toFile();
-        }
-        if (!home.exists()) {
-            final boolean created = home.mkdir();
+        final String KARAF_DATA_DIR = "karaf.data";
+        final File databaseHome;
+        if (System.getProperties().containsKey(Orient.ORIENTDB_HOME))
+            databaseHome = new File(System.getProperty(Orient.ORIENTDB_HOME));
+        else if (System.getProperties().containsKey(KARAF_DATA_DIR))
+            databaseHome = Paths.get(System.getProperty(KARAF_DATA_DIR), "snamp").toFile();
+        else
+            databaseHome = Files.createTempDirectory("orientdb").toFile();
+        if (!databaseHome.exists()) {
+            final boolean created = databaseHome.mkdir();
             assert created;
         }
-        System.setProperty(Orient.ORIENTDB_HOME, home.getAbsolutePath());
-        return home;
+        System.setProperty(Orient.ORIENTDB_HOME, databaseHome.getAbsolutePath());
+        return databaseHome;
     });
 
     static {

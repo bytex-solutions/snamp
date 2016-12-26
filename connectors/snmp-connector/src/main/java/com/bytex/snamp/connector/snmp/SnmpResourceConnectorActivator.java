@@ -5,12 +5,10 @@ import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connector.ManagedResourceActivator;
-import com.bytex.snamp.core.ClusterMember;
 import org.snmp4j.log.OSGiLogFactory;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Map;
 
 import static com.bytex.snamp.MapUtils.getValueAsLong;
@@ -66,10 +64,5 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class);
         assert configManager != null;
         return new SnmpDiscoveryService(configManager.transformConfiguration(SnmpResourceConnectorActivator::getDiscoveryTimeout));
-    }
-
-    @Override
-    protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
-        dependencies.add(new SimpleDependency<>(ClusterMember.class));
     }
 }

@@ -11,11 +11,11 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 2.0
  */
-final class LocalBox extends AtomicReference<Object> implements Box<Object>, SharedBox {
+final class InMemoryBox extends AtomicReference<Object> implements Box<Object>, SharedBox {
     private static final long serialVersionUID = -4201147737679412750L;
     private final String name;
 
-    LocalBox(final String name){
+    InMemoryBox(final String name){
         this.name = name;
     }
 

@@ -1,6 +1,7 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.SafeCloseable;
 import com.google.common.collect.ImmutableMap;
@@ -10,7 +11,6 @@ import java.io.*;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.*;
-import java.util.stream.Stream;
 
 /**
  * Represents persistent storage for documents.
@@ -178,12 +178,17 @@ public interface KeyValueStorage extends SharedObject {
     boolean exists(final Comparable<?> key);
 
     /**
-     * Gets stream over all records in this storage.
-     * @param recordType Type of the record view.
-     * @param <R> Type of the record view.
-     * @return Stream of records.
+     * Iterates over records.
+     * @param recordType Type of the record representation.
+     * @param filter Query filter. Cannot be {@literal null}.
+     * @param reader Record reader. Cannot be {@literal null}.
+     * @param <R> Record representation.
+     * @param <E> Exception that can be thrown by reader.
+     * @throws E Reading failed.
      */
-    <R extends Record> Stream<R> getRecords(final Class<R> recordType);
+    <R extends Record, E extends Throwable> void forEachRecord(final Class<R> recordType,
+                                                               final Predicate<? super Comparable<?>> filter,
+                                                               final EntryReader<? super Comparable<?>, ? super R, E> reader) throws E;
 
     /**
      * Removes all record.
