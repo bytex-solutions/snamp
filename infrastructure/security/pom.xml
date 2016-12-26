@@ -86,24 +86,7 @@
               com.bytex.snamp.security,
               com.bytex.snamp.security.web
             </Export-Package>
-            <Import-Package>com.bytex.snamp,
-                            com.bytex.snamp.concurrent,
-                            com.bytex.snamp.core,
-                            com.bytex.snamp.internal,
-                            com.google.common.base,
-                            com.google.common.collect,
-                            com.sun.jersey.api.core,
-                            com.sun.jersey.spi.container,
-                            javax.crypto,
-                            javax.crypto.spec,
-                            javax.security.auth,
-                            javax.security.auth.login,
-                            javax.servlet,
-                            javax.servlet.http,
-                            javax.ws.rs,
-                            javax.ws.rs.core,
-                            org.apache.karaf.jaas.boot.principal,
-                            org.osgi.framework</Import-Package>
+            <Import-Package>!com.auth0.jwt,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

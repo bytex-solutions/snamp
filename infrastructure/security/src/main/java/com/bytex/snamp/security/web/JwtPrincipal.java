@@ -4,6 +4,7 @@ import com.auth0.jwt.JWTSigner;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
 import com.bytex.snamp.Convert;
+import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.MapUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -12,6 +13,8 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.jaas.boot.principal.RolePrincipal;
 import org.apache.karaf.jaas.boot.principal.UserPrincipal;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.Subject;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
  * @version 2.0
  * @since 2.0
  */
+@ImportClass({Mac.class, SecretKeySpec.class})
 final class JwtPrincipal implements Principal {
     private static final String ROLE_SPLITTER_STR = ";";
     private static final Joiner ROLE_JOINER = Joiner.on(ROLE_SPLITTER_STR).skipNulls();
