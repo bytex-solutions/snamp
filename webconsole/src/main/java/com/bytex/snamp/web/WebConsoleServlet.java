@@ -1,10 +1,8 @@
 package com.bytex.snamp.web;
 
-import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.core.LoggingScope;
-import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.internal.Utils;
@@ -13,12 +11,9 @@ import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import org.eclipse.jetty.websocket.servlet.*;
 import org.osgi.framework.*;
-import org.osgi.service.http.HttpService;
 
 import javax.annotation.Nonnull;
-import javax.security.auth.login.LoginException;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -37,6 +32,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 2.0
  */
 final class WebConsoleServlet extends WebSocketServlet implements WebConsoleEngine, AutoCloseable, Constants, WebSocketCreator {
+    static final String CONTEXT = "snamp/console/events";
     private static final class WebConsoleServiceProcessingScope extends LoggingScope{
         private WebConsoleServiceProcessingScope(final WebConsoleEngine engine){
             super(engine, "processWebConsoleService");

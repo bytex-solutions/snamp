@@ -25,7 +25,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
             final HttpService httpService = getDependencies().getDependency(HttpService.class);
             assert httpService != null;
             final WebConsoleServlet registry = new WebConsoleServlet();
-            httpService.registerServlet(WebConsoleServiceServlet.ROOT_CONTEXT, registry, new Hashtable<>(), null);
+            httpService.registerServlet(WebConsoleServlet.CONTEXT, registry, new Hashtable<>(), null);
             return registry;
         }
 
@@ -38,7 +38,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         protected void cleanupService(final WebConsoleServlet serviceInstance, final boolean stopBundle) {
             final HttpService httpService = getDependencies().getDependency(HttpService.class);
             if (httpService != null)
-                httpService.unregister(WebConsoleServiceServlet.ROOT_CONTEXT);
+                httpService.unregister(WebConsoleServlet.CONTEXT);
         }
     }
 

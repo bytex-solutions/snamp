@@ -17,10 +17,13 @@ import java.util.Hashtable;
 import java.util.Objects;
 
 /**
- * Created by Роман on 26.12.2016.
+ * Represents web console service which must be hosted as REST service.
+ * @author Roman Sakno
+ * @since 2.0
+ * @version 2.0
  */
 public class WebConsoleServiceServlet extends ServletContainer implements WebConsoleServiceReference {
-    static final String ROOT_CONTEXT = "/snamp/console/api";
+    private static final String ROOT_CONTEXT = "/snamp/console/api";
     private static final long serialVersionUID = -5668618198214458448L;
     private final ServiceHolder<WebConsoleService> serviceHolder;
     private final String servletContext;

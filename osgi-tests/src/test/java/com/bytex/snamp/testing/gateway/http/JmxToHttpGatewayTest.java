@@ -208,6 +208,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
             testStringAttribute();
             //wait for notifications
             assertNotNull(receiver.poll(3, TimeUnit.HOURS));
+            session.close();
         } catch (final InterruptedException e) {
             fail(String.format("Invalid message count: %s", receiver.size()));
         } finally {
