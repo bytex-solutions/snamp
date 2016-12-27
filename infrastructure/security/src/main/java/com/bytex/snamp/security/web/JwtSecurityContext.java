@@ -4,6 +4,7 @@ import com.auth0.jwt.JWTVerifyException;
 import com.bytex.snamp.core.LoggerProvider;
 import com.sun.jersey.api.core.HttpRequestContext;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.SecurityContext;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -45,7 +48,22 @@ final class JwtSecurityContext implements SecurityContext {
     }
 
     JwtSecurityContext(final HttpServletRequest request, final String secret) throws NoSuchAlgorithmException, IOException, InvalidKeyException, SignatureException {
-        this(request.getHeader(HttpHeaders.AUTHORIZATION), secret, request.isSecure());
+        this(getNeedfulHeader(request), secret, request.isSecure());
+    }
+
+    private static String getNeedfulHeader(final HttpServletRequest request) {
+        String value = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (value ==  null || value.isEmpty() && request.getCookies() != null || request.getCookies().length > 0) {
+            final Optional<Cookie> found = Arrays.stream(request.getCookies()).filter(cookie ->
+                    cookie.getName().equalsIgnoreCase(WebSecurityFilter.DEFAULT_AUTH_COOKIE)
+                        && !cookie.getValue().isEmpty()
+                        && cookie.getValue().length() > BEARER_PREFIX.length() + 10
+            ).findFirst();
+            if (found.isPresent()) {
+                return found.get().getValue();
+            }
+        }
+        return value;
     }
 
     private static String removeBearerPrefix(final String str) {

@@ -1,6 +1,6 @@
-import {Injectable} from '@angular/core';
-import {Http, Headers, Response} from '@angular/http';
-import {CookieService} from 'angular2-cookie/core';
+import { Injectable } from '@angular/core';
+import { Http, Headers, Response } from '@angular/http';
+import { CookieService } from 'angular2-cookie/core';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/throw';
@@ -9,6 +9,7 @@ import 'rxjs/add/operator/catch';
 @Injectable()
 export class ApiClient {
 constructor(private http: Http, private _cookieService:CookieService) {}
+
   createAuthorizationHeader():Headers {
     let headers = new Headers();
     headers.append('Authorization', 'Bearer ' +
