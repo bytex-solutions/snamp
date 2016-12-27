@@ -86,13 +86,8 @@ export class ResourceEntitiesTable implements OnInit {
 
     setEntity(entity:Entity) {
         this.activeEntity = entity;
-        // reset!!!
-         $("#smartwizard").smartWizard({
-            theme: 'arrows',
-            useURLhash: false,
-            showStepURLhash: false,
-            transitionEffect: 'fade'
-         });
+        // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
+        $("#smartwizard").smartWizard("reset");
     }
 
     remove(entity:Entity) {
