@@ -6,7 +6,6 @@ import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.security.Anonymous;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import org.eclipse.jetty.websocket.servlet.*;
@@ -58,10 +57,8 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
     @Override
     public WebSocketChannel createWebSocket(final ServletUpgradeRequest req, final ServletUpgradeResponse resp) {
         final Principal principal = callUnchecked(() -> {
-            final Principal socketUser;
             try {
                 securityFilter.filter(req.getHttpServletRequest());
-                socketUser = WebSecurityFilter.getPrincipal(req.getHttpServletRequest());
             } catch (final NoSuchAlgorithmException | IOException e) {
                 resp.sendError(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.toString());
                 return null;
@@ -69,14 +66,19 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
                 resp.sendError(Response.Status.UNAUTHORIZED.getStatusCode(), e.getMessage());
                 return null;
             }
-            return socketUser == null ? Anonymous.INSTANCE : socketUser;
+            final Principal socketUser = WebSecurityFilter.getPrincipal(req.getHttpServletRequest());
+            if (socketUser == null)
+                resp.sendError(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization token required");
+            return socketUser;
         });
-        assert principal != null;
-        return services.read(services -> {
-            final WebSocketChannel channel = new WebSocketChannel(principal);
-            services.values().forEach(holder -> holder.get().addWebEventListener(channel));
-            return channel;
-        });
+        if (principal != null)
+            return services.read(services -> {
+                final WebSocketChannel channel = new WebSocketChannel(principal);
+                services.values().forEach(holder -> holder.get().addWebEventListener(channel));
+                return channel;
+            });
+        else
+            return null;
     }
 
     @Override
