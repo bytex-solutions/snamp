@@ -5,9 +5,9 @@
 
     <feature name="jersey-server" description="Jersey 1.x server-side libraries" version="${jersey.version}">
         <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
-        <bundle>mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
-        <bundle>mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
+        <bundle start="true">mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
+        <bundle start="true">mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
     </feature>
 
     <feature name="orientdb-server" description="OrientDB NoSQL Database" version="${orientdb.version}">

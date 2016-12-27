@@ -101,7 +101,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler, final Acceptor<? super W, E> testBody) throws Exception {
@@ -117,6 +117,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
      */
     @Test
     public void logNotificationTest() throws Exception {
+
         runWebSocketTest(new EventReceiver(), events -> {
             Thread.sleep(1000);
             LoggerProvider.getLoggerForBundle(getTestBundleContext()).severe("Test log");

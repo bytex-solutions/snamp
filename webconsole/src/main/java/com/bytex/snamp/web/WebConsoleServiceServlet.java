@@ -11,8 +11,9 @@ import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitia
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.http.HttpService;
+import org.osgi.framework.ServiceRegistration;
 
+import javax.servlet.Servlet;
 import javax.ws.rs.core.Application;
 import java.util.Hashtable;
 import java.util.Objects;
@@ -30,22 +31,19 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
     private final ServiceHolder<WebConsoleService> serviceHolder;
     private final String servletContext;
     private final String serviceName;
-    private final HttpService whiteboard;
+    private ServiceRegistration<Servlet> registration;
 
     private WebConsoleServiceServlet(final ServiceHolder<WebConsoleService> serviceReference,
-                                     final HttpService publisher,
                                      final WebSecurityFilter securityFilter) {
         super(createConfig(serviceReference.getService(), securityFilter));
         this.serviceHolder = serviceReference;
         servletContext = ROOT_CONTEXT + serviceReference.getProperty(WebConsoleService.URL_CONTEXT);
         serviceName = Objects.toString(serviceReference.getProperty(WebConsoleService.NAME));
-        this.whiteboard = Objects.requireNonNull(publisher);
     }
 
     WebConsoleServiceServlet(final BundleContext context, final ServiceReference<WebConsoleService> serviceReference,
-                             final HttpService publisher,
                              final WebSecurityFilter securityFilter) {
-        this(new ServiceHolder<>(context, serviceReference), publisher, securityFilter);
+        this(new ServiceHolder<>(context, serviceReference), securityFilter);
     }
 
     private BundleContext getBundleContext(){
@@ -54,7 +52,9 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
 
     @Override
     public void activate() throws Exception {
-        whiteboard.registerServlet(servletContext, this, new Hashtable<>(), null);
+        final Hashtable<String, String> identity = new Hashtable<>();
+        identity.put("alias", servletContext);
+        registration = getBundleContext().registerService(Servlet.class, this, identity);
     }
 
     @Override
@@ -78,7 +78,10 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
 
     @Override
     public void close() {
-        whiteboard.unregister(servletContext);
+        if (registration != null) {
+            registration.unregister();
+            registration = null;
+        }
         serviceHolder.release(getBundleContext());
         destroy();
     }

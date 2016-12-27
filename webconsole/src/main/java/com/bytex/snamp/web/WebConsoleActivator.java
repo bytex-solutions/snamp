@@ -7,12 +7,10 @@ import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifierConsoleService;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogListener;
 
-import javax.servlet.ServletException;
+import javax.servlet.Servlet;
 import java.util.Collection;
-import java.util.Hashtable;
 import java.util.Map;
 
 /**
@@ -21,28 +19,19 @@ import java.util.Map;
 public final class WebConsoleActivator extends AbstractServiceLibrary {
     private static final class WebConsoleServletProvider extends ProvidedService<WebConsoleEngine, WebConsoleEngineImpl>{
         private WebConsoleServletProvider(){
-            super(WebConsoleEngine.class, simpleDependencies(HttpService.class));
+            super(WebConsoleEngine.class, simpleDependencies(), Servlet.class);
         }
 
         @Override
-        protected WebConsoleEngineImpl activateService(final Map<String, Object> identity) throws InvalidSyntaxException, ServletException, NamespaceException {
-            final HttpService httpService = getDependencies().getDependency(HttpService.class);
-            assert httpService != null;
-            final WebConsoleEngineImpl registry = new WebConsoleEngineImpl(httpService);
-            httpService.registerServlet(WebConsoleEngineImpl.CONTEXT, registry, new Hashtable<>(), null);
+        protected WebConsoleEngineImpl activateService(final Map<String, Object> identity) throws InvalidSyntaxException {
+            final WebConsoleEngineImpl registry = new WebConsoleEngineImpl();
+            identity.put("alias", WebConsoleEngineImpl.CONTEXT);
             return registry;
         }
 
         @Override
-        protected void activated(final WebConsoleEngineImpl servlet) throws InvalidSyntaxException {
-            servlet.discoverServices();
-        }
-
-        @Override
-        protected void cleanupService(final WebConsoleEngineImpl serviceInstance, final boolean stopBundle) {
-            final HttpService httpService = getDependencies().getDependency(HttpService.class);
-            if (httpService != null)
-                httpService.unregister(WebConsoleEngineImpl.CONTEXT);
+        protected void cleanupService(final WebConsoleEngineImpl serviceInstance, final boolean stopBundle) throws Exception {
+            serviceInstance.close();
         }
     }
 
@@ -72,6 +61,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
     @Override
     protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
+        bundleLevelDependencies.add(new SimpleDependency<>(HttpService.class));
     }
 
     @Override
