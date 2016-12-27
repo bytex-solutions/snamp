@@ -72,14 +72,23 @@ export class ResourceEntitiesTable implements OnInit {
             });
     }
 
+    getSmartWizardIdentifier():string {
+      return "#smartwizard" + this.entityType;
+    }
+
     ngAfterViewInit() {
        var _this = this;
+       let _hiddenSteps:number[] = [];
+       if (this.entityType == "event") {
+          _hiddenSteps.push(1);
+       }
        $(document).ready(function() {
-          $("#smartwizard").smartWizard({
-              theme: 'arrows',
-              useURLhash: false,
-              showStepURLhash: false,
-              transitionEffect: 'fade'
+          $(_this.getSmartWizardIdentifier()).smartWizard({
+               theme: 'arrows',
+               hiddenSteps: _hiddenSteps,
+               useURLhash: false,
+               showStepURLhash: false,
+               transitionEffect: 'fade'
            });
         });
     }
@@ -87,7 +96,7 @@ export class ResourceEntitiesTable implements OnInit {
     setEntity(entity:Entity) {
         this.activeEntity = entity;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
-        $("#smartwizard").smartWizard("reset");
+        $(this.getSmartWizardIdentifier()).smartWizard("reset");
     }
 
     remove(entity:Entity) {
@@ -114,6 +123,6 @@ export class ResourceEntitiesTable implements OnInit {
     }
 
     saveEntity() {
-
+      alert("Save button now clicked!");
     }
 }

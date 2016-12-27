@@ -1,5 +1,5 @@
 <!-- Modal for entity appending -->
-<div class="modal fade" id="editEntity" tabindex="-1" role="dialog" aria-labelledby="editEntityLabel">
+<div class="modal fade" id="editEntity{{entityType}}" tabindex="-1" role="dialog" aria-labelledby="editEntityLabel">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -8,7 +8,7 @@
             </div>
             <br/>
             <div class="modal-body">
-              <div id="smartwizard">
+              <div id="smartwizard{{entityType}}">
                 <ul>
                       <li>
                         <a [attr.href]="'#name'">
@@ -37,8 +37,19 @@
                 </ul>
 
                 <div>
-                  <div id="name" class="">
-                    Step Content
+                  <div id="name" class="row" style=" margin-top: 100px;">
+                    <div class="item form-group">
+                      <label class="control-label col-md-3 col-sm-3 col-xs-12" for="name">Name <span class="required">*</span>
+                      </label>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <input
+                          id="nameInput"
+                          class="form-control col-md-7 col-xs-12"
+                          [tooltip]="'At least 4 symbols'"
+                          placeholder="input the name of {{activeEntity.getName()}}"
+                          ([ngModel])="activeEntity.name">
+                      </div>
+                    </div>
                   </div>
                   <div id="additional" class="">
                     Step Content
@@ -84,7 +95,7 @@
                         type="button"
                         data-toggle="modal"
                         (click)="setEntity(entity)"
-                        [attr.data-target]="'#editEntity'"
+                        [attr.data-target]="'#editEntity' + entityType"
                         class="btn btn-default btn-xs">
                     Edit
                 </button>

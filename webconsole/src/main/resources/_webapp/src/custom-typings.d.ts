@@ -124,4 +124,5 @@ interface Global extends GlobalEnvironment  {}
 
 interface JQuery {
   smartWizard(options?:any):JQuery;
+  modal(options?:any):JQuery;
 }
