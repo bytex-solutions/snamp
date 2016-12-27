@@ -2,7 +2,6 @@ package com.bytex.snamp.web.serviceModel.logging;
 
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import org.osgi.service.log.LogEntry;
-import org.osgi.service.log.LogListener;
 
 import javax.ws.rs.Path;
 
@@ -13,7 +12,7 @@ import javax.ws.rs.Path;
  * @since 2.0
  */
 @Path("/")
-public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSettings> implements LogListener {
+public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSettings> implements LogNotifierConsoleService {
     /**
      * Represents name of this service.
      */

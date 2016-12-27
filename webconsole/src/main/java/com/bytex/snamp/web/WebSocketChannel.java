@@ -1,12 +1,12 @@
 package com.bytex.snamp.web;
 
-import com.bytex.snamp.security.web.JWTAuthenticator;
+import com.bytex.snamp.security.Anonymous;
 import com.bytex.snamp.web.serviceModel.WebEvent;
 import com.bytex.snamp.web.serviceModel.WebEventListener;
+import com.google.common.base.MoreObjects;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
 
 import java.security.Principal;
-import java.util.Objects;
 
 /**
  * Represents duplex communication channel between WebConsole on browser and backend.
@@ -15,7 +15,7 @@ final class WebSocketChannel extends WebSocketAdapter implements WebEventListene
     private final Principal principal;
 
     WebSocketChannel(final Principal owner){
-        this.principal = Objects.requireNonNull(owner);
+        this.principal = MoreObjects.firstNonNull(Anonymous.INSTANCE, owner);
     }
 
     @Override

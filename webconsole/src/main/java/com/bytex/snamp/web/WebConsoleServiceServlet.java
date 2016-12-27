@@ -1,12 +1,13 @@
 package com.bytex.snamp.web;
 
-import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
+import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitializer;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -22,50 +23,38 @@ import java.util.Objects;
  * @since 2.0
  * @version 2.0
  */
-public class WebConsoleServiceServlet extends ServletContainer implements WebConsoleServiceReference {
+@ImportClass(JerseyServletContainerInitializer.class)
+final class WebConsoleServiceServlet extends ServletContainer implements WebConsoleServiceReference {
     private static final String ROOT_CONTEXT = "/snamp/console/api";
     private static final long serialVersionUID = -5668618198214458448L;
     private final ServiceHolder<WebConsoleService> serviceHolder;
     private final String servletContext;
     private final String serviceName;
+    private final HttpService whiteboard;
 
-    private WebConsoleServiceServlet(final ServiceHolder<WebConsoleService> serviceReference, final WebSecurityFilter securityFilter) {
+    private WebConsoleServiceServlet(final ServiceHolder<WebConsoleService> serviceReference,
+                                     final HttpService publisher,
+                                     final WebSecurityFilter securityFilter) {
         super(createConfig(serviceReference.getService(), securityFilter));
         this.serviceHolder = serviceReference;
         servletContext = ROOT_CONTEXT + serviceReference.getProperty(WebConsoleService.URL_CONTEXT);
-        serviceName = getName(serviceReference);
+        serviceName = Objects.toString(serviceReference.getProperty(WebConsoleService.NAME));
+        this.whiteboard = Objects.requireNonNull(publisher);
     }
 
-    WebConsoleServiceServlet(final BundleContext context, final ServiceReference<WebConsoleService> serviceReference, final WebSecurityFilter securityFilter) {
-        this(new ServiceHolder<>(context, serviceReference), securityFilter);
-    }
-
-    static boolean isResourceModel(final ServiceReference<WebConsoleService> serviceRef) {
-        return serviceRef.getProperty(WebConsoleService.URL_CONTEXT) instanceof String;
-    }
-
-    static String getName(final ServiceReference<WebConsoleService> serviceRef){
-        return Objects.toString(serviceRef.getProperty(WebConsoleService.NAME));
+    WebConsoleServiceServlet(final BundleContext context, final ServiceReference<WebConsoleService> serviceReference,
+                             final HttpService publisher,
+                             final WebSecurityFilter securityFilter) {
+        this(new ServiceHolder<>(context, serviceReference), publisher, securityFilter);
     }
 
     private BundleContext getBundleContext(){
         return Utils.getBundleContextOfObject(this);
     }
 
-    private <E extends Throwable> void withHttpService(final Acceptor<? super HttpService, E> handler) throws E {
-        final ServiceHolder<HttpService> httpService = ServiceHolder.tryCreate(getBundleContext(), HttpService.class);
-        if(httpService == null)
-            throw new IllegalStateException("Dependency on service HttpService could not be resolved");
-        try{
-            handler.accept(httpService.get());
-        } finally {
-            httpService.release(getBundleContext());
-        }
-    }
-
     @Override
     public void activate() throws Exception {
-        withHttpService(whiteboard -> whiteboard.registerServlet(servletContext, this, new Hashtable<>(), null));
+        whiteboard.registerServlet(servletContext, this, new Hashtable<>(), null);
     }
 
     @Override
@@ -89,7 +78,7 @@ public class WebConsoleServiceServlet extends ServletContainer implements WebCon
 
     @Override
     public void close() {
-        withHttpService(whiteboard -> whiteboard.unregister(servletContext));
+        whiteboard.unregister(servletContext);
         serviceHolder.release(getBundleContext());
         destroy();
     }

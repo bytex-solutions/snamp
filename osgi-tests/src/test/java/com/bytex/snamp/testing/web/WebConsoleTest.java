@@ -2,7 +2,11 @@ package com.bytex.snamp.testing.web;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.BundleExceptionCallable;
@@ -15,13 +19,17 @@ import com.google.gson.JsonElement;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogListener;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.ws.rs.core.HttpHeaders;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -79,6 +87,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     private WebSocketClient client;
+    private final TestAuthenticator authenticator;
 
     /**
      * Instantiates a new Web console test.
@@ -87,15 +96,18 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
      */
     public WebConsoleTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
+        authenticator = new TestAuthenticator();
     }
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler, final Acceptor<? super W, E> testBody) throws Exception {
-        try (final Session session = client.connect(webSocketHandler, new URI(WS_ENDPOINT)).get(10, TimeUnit.SECONDS)) {
+        final ClientUpgradeRequest upgradeRequest = new ClientUpgradeRequest();
+        upgradeRequest.setHeader(HttpHeaders.AUTHORIZATION, authenticator.authenticateTestUser().getValue());
+        try (final Session session = client.connect(webSocketHandler, new URI(WS_ENDPOINT), upgradeRequest).get(10, TimeUnit.SECONDS)) {
             testBody.accept(webSocketHandler);
         }
     }
@@ -106,7 +118,10 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     @Test
     public void logNotificationTest() throws Exception {
         runWebSocketTest(new EventReceiver(), events -> {
-
+            Thread.sleep(1000);
+            LoggerProvider.getLoggerForBundle(getTestBundleContext()).severe("Test log");
+            final ServiceReference<?>[] refs = getTestBundleContext().getAllServiceReferences(LogListener.class.getName(), null);
+            Thread.sleep(100_000);
         });
     }
 

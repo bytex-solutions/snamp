@@ -1,18 +1,22 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.io.IOUtils;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -40,8 +44,16 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
         return databaseHome;
     });
 
+    private static final class MapValue extends HashMap<String, Object> {
+        private static final long serialVersionUID = 8695790321685285451L;
+
+        private MapValue(final Map<String, ?> values) {
+            super(values);
+        }
+    }
+
     @ThreadSafe
-    private static final class FileRecord extends ThreadSafeObject implements Record, SerializableRecordView, JsonRecordView{
+    private static final class FileRecord extends ThreadSafeObject implements Record, SerializableRecordView, JsonRecordView, TextRecordView, LongRecordView, DoubleRecordView, MapRecordView{
         private static final TypeToken<Serializable> CONTENT_TYPE = TypeToken.of(Serializable.class);
         private Serializable content;
         private File contentHolder;
@@ -119,7 +131,7 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
 
         @Override
         public void setValue(final Serializable value) {
-            try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+            try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
                 writeContent(content = value);
             }
         }
@@ -144,6 +156,47 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
                 }
             };
         }
+
+        @Override
+        public String getAsText() {
+            return getValue().toString();
+        }
+
+        @Override
+        public void setAsText(final String value) {
+            setValue(value);
+        }
+
+        @Override
+        public long getAsLong() {
+            return Convert.toLong(getValue());
+        }
+
+        @Override
+        public void accept(final long value) {
+            setValue(value);
+        }
+
+        @Override
+        public double getAsDouble() {
+            return Convert.toDouble(getValue());
+        }
+
+        @Override
+        public void accept(final double value) {
+            setValue(value);
+        }
+
+        @Override
+        public Map<String, ?> getAsMap() {
+            final Serializable value = getValue();
+            return value instanceof MapValue ? (MapValue) value : ImmutableMap.of("value", value);
+        }
+
+        @Override
+        public void setAsMap(final Map<String, ?> values) {
+            setValue(new MapValue(values));
+        }
     }
 
     private final File storagePath;
@@ -158,7 +211,7 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
             if(files != null)
                 for (final File contentHolder: files)
                     records.put(new FileRecord(contentHolder));
-        } else if (!storagePath.mkdir())
+        } else if (!storagePath.mkdirs())
             throw new UncheckedIOException(new IOException(String.format("Unable to create directory %s of local key/value storage", storagePath)));
     }
 

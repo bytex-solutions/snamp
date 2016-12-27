@@ -4,9 +4,11 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
+import com.bytex.snamp.web.serviceModel.logging.LogNotifierConsoleService;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
+import org.osgi.service.log.LogListener;
 
 import javax.servlet.ServletException;
 import java.util.Collection;
@@ -26,7 +28,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         protected WebConsoleEngineImpl activateService(final Map<String, Object> identity) throws InvalidSyntaxException, ServletException, NamespaceException {
             final HttpService httpService = getDependencies().getDependency(HttpService.class);
             assert httpService != null;
-            final WebConsoleEngineImpl registry = new WebConsoleEngineImpl();
+            final WebConsoleEngineImpl registry = new WebConsoleEngineImpl(httpService);
             httpService.registerServlet(WebConsoleEngineImpl.CONTEXT, registry, new Hashtable<>(), null);
             return registry;
         }
@@ -45,9 +47,9 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     //=============Predefined services for WebConsole======
-    private static final class LogNotifierProvider extends ProvidedService<WebConsoleService, LogNotifier>{
+    private static final class LogNotifierProvider extends ProvidedService<LogNotifierConsoleService, LogNotifier>{
         private LogNotifierProvider(){
-            super(WebConsoleService.class, simpleDependencies(WebConsoleEngine.class));
+            super(LogNotifierConsoleService.class, simpleDependencies(WebConsoleEngine.class), LogListener.class, WebConsoleService.class);
         }
 
         @Override

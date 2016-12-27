@@ -11,6 +11,7 @@ import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import org.eclipse.jetty.websocket.servlet.*;
 import org.osgi.framework.*;
+import org.osgi.service.http.HttpService;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.core.Response;
@@ -20,6 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SignatureException;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -44,8 +46,10 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
     }
     private transient final AbstractConcurrentResourceAccessor<KeyedObjects<String, WebConsoleServiceReference>> services;
     private transient final WebSecurityFilter securityFilter;
+    private transient final HttpService whiteboard;
 
-    WebConsoleEngineImpl() {
+    WebConsoleEngineImpl(final HttpService whiteboard) {
+        this.whiteboard = Objects.requireNonNull(whiteboard);
         services = new ConcurrentResourceAccessor<>(AbstractKeyedObjects.create(WebConsoleServiceReference::getName));
         securityFilter = new WebSecurityFilter();
         try {
@@ -108,7 +112,7 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
                     break;
                 case ServiceEvent.REGISTERED:
                     final WebConsoleServiceReference reference = WebConsoleServiceReference.isResourceModel(serviceRef) ?
-                            new WebConsoleServiceServlet(getBundleContext(), serviceRef, securityFilter) :
+                            new WebConsoleServiceServlet(getBundleContext(), serviceRef, whiteboard, securityFilter) :
                             new WebConsoleServiceHolder(getBundleContext(), serviceRef);
                     reference.activate();
                     services.put(reference);

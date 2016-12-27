@@ -82,10 +82,8 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-            <Export-Package>
-              com.bytex.snamp.security,
-              com.bytex.snamp.security.web
-            </Export-Package>
+            <Export-Package>com.bytex.snamp.security,
+                            com.bytex.snamp.security.web</Export-Package>
             <Import-Package>!com.auth0.jwt,*</Import-Package>
           </instructions>
         </configuration>
