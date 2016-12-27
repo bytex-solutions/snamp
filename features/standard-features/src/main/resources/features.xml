@@ -11,6 +11,7 @@
     <feature name="snamp-web-console" description="SNAMP Web Console" version="${snamp.webconsole.version}" install="auto" start-level="100">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
+        <bundle>mvn:org.ops4j.pax.logging/pax-logging-api/1.8.5</bundle>
         <bundle start="true">mvn:com.bytex.snamp/webconsole/${snamp.webconsole.version}</bundle>
     </feature>
 </features>

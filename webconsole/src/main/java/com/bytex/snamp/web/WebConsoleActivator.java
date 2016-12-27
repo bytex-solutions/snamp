@@ -4,10 +4,11 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
-import com.bytex.snamp.web.serviceModel.logging.LogNotifierConsoleService;
+import com.bytex.snamp.web.serviceModel.logging.WebConsoleLogService;
+import org.ops4j.pax.logging.PaxLoggingService;
+import org.ops4j.pax.logging.spi.PaxAppender;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.http.HttpService;
-import org.osgi.service.log.LogListener;
 
 import javax.servlet.Servlet;
 import java.util.Collection;
@@ -36,15 +37,16 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     //=============Predefined services for WebConsole======
-    private static final class LogNotifierProvider extends ProvidedService<LogNotifierConsoleService, LogNotifier>{
-        private LogNotifierProvider(){
-            super(LogNotifierConsoleService.class, simpleDependencies(WebConsoleEngine.class), LogListener.class, WebConsoleService.class);
+    private static final class LogNotifierProvider extends ProvidedService<WebConsoleLogService, LogNotifier> {
+        private LogNotifierProvider() {
+            super(WebConsoleLogService.class, simpleDependencies(WebConsoleEngine.class), WebConsoleService.class, PaxAppender.class);
         }
 
         @Override
         protected LogNotifier activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, LogNotifier.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, "/logging");
+            identity.put(PaxLoggingService.APPENDER_NAME_PROPERTY, "SnampWebConsoleLogAppender");
             return new LogNotifier();
         }
 

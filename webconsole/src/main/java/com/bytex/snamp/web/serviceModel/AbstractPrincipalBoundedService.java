@@ -17,6 +17,8 @@ import java.io.Reader;
 import java.io.Writer;
 import java.security.Principal;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -65,7 +67,8 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
         return LoggerProvider.getLoggerForObject(this);
     }
 
-    protected final void fireWebEvent(final Predicate<? super Principal> filter, final Function<? super USERDATA, ? extends WebEvent> eventProvider) {
+    protected final void fireWebEvent(final Predicate<? super Principal> filter,
+                                      final Function<? super USERDATA, ? extends WebEvent> eventProvider) {
         fireWebEvent(listener -> {
             if (filter.test(listener.getPrincipal())) {
                 final WebEvent event;
@@ -81,18 +84,21 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
         });
     }
 
-    protected final void fireWebEvent(final WebEvent event, final BiPredicate<? super Principal, ? super USERDATA> filter) {
+    protected final <I> void fireWebEvent(final I input,
+                                      final BiPredicate<? super I, ? super USERDATA> filter,
+                                          final BiFunction<? super AbstractPrincipalBoundedService<USERDATA>, ? super I, ? extends WebEvent> eventFactory,
+                                      final Executor executor) {
         fireWebEvent(listener -> {
             final USERDATA userData;
             try {
                 userData = getUserData(listener.getPrincipal());
             } catch (final IOException e) {
-                getLogger().log(Level.SEVERE, String.format("Failed to deliver event %s for user %s", event, listener.getPrincipal()), e);
+                getLogger().log(Level.SEVERE, String.format("Failed to deliver event %s for user %s", input, listener.getPrincipal()), e);
                 return;
             }
-            if (filter.test(listener.getPrincipal(), userData))
-                listener.accept(event);
-        });
+            if (filter.test(input, userData))
+                listener.accept(eventFactory.apply(this, input));
+        }, executor);
     }
 
     protected abstract USERDATA createUserData();

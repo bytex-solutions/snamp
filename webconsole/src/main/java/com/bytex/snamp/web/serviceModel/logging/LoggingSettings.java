@@ -1,7 +1,11 @@
 package com.bytex.snamp.web.serviceModel.logging;
 
+import com.bytex.snamp.connector.notifications.Severity;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.ops4j.pax.logging.spi.PaxLevel;
 
 import java.util.Objects;
 
@@ -13,18 +17,24 @@ import java.util.Objects;
  */
 @JsonTypeName("loggingSettings")
 public final class LoggingSettings {
-    private LogLevel level;
+    private Severity level;
 
     public LoggingSettings(){
-        level = LogLevel.ERROR;
+        level = Severity.ERROR;
     }
 
     @JsonProperty("logLevel")
-    public LogLevel getLogLevel(){
+    @JsonSerialize(using = SeveritySerializer.class)
+    @JsonDeserialize(using = SeverityDeserializer.class)
+    public Severity getLogLevel(){
         return level;
     }
 
-    public void setLogLevel(final LogLevel value){
+    public void setLogLevel(final Severity value){
         level = Objects.requireNonNull(value);
+    }
+
+    boolean shouldBeLogged(final PaxLevel level) {
+        return level.getSyslogEquivalent() <= this.level.getLevel();
     }
 }

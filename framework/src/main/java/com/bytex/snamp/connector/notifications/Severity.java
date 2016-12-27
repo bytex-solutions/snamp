@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.notifications;
 
+import com.google.common.collect.ImmutableSortedSet;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -8,60 +10,62 @@ import java.util.Objects;
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
+ * @see <a href="https://en.wikipedia.org/wiki/Syslog">Syslog severity levels</a>
  */
 public enum Severity implements Serializable, Comparable<Severity> {
     /**
      * Severity is unknown.
      */
-    UNKNOWN(0, "unknown"),
+    UNKNOWN(-1, "unknown"),
 
     /**
      * A "panic" condition usually affecting multiple apps/servers/sites.
      * At this level it would usually notify all tech staff on call.
      */
-    PANIC(1, "panic"),
+    PANIC(0, "panic"),
 
     /**
      * Should be corrected immediately, therefore notify staff who can fix the problem.
      * An example would be the loss of a primary ISP connection.
      */
-    ALERT(2, "alert"),
+    ALERT(1, "alert"),
 
     /**
      * Should be corrected immediately, but indicates failure in a secondary system,
      * an example is a loss of a backup ISP connection.
      */
-    CRITICAL(3, "critical"),
+    CRITICAL(2, "critical"),
 
     /**
      * Non-urgent failures, these should be relayed to developers or admins;
      * each item must be resolved within a given time.
      */
-    ERROR(4, "error"),
+    ERROR(3, "error"),
 
     /**
      * Warning messages, not an error, but indication that an error will occur if action is not taken,
      * e.g. file system 85% full - each item must be resolved within a given time.
      */
-    WARNING(5, "warning"),
+    WARNING(4, "warning"),
 
     /**
      * Events that are unusual but not error conditions - might be summarized in an email to
      * developers or admins to spot potential problems - no immediate action required.
      */
-    NOTICE(6, "notice"),
+    NOTICE(5, "notice"),
 
     /**
      * Normal operational messages - may be harvested for reporting,
      * measuring throughput, etc. - no action required.
      */
-    INFO(7, "informational"),
+    INFO(6, "informational"),
 
     /**
      * Info useful to developers for debugging the application, not useful during operations.
      */
-    DEBUG(8, "debug");
+    DEBUG(7, "debug");
 
+    private static final ImmutableSortedSet<Severity> ALL_VALUES = ImmutableSortedSet.copyOf(values());
     private final int level;
     private final String strval;
 
@@ -85,40 +89,39 @@ public enum Severity implements Serializable, Comparable<Severity> {
      * is not valid.
      */
     public static Severity resolve(final int value){
-        for(final Severity sev: values())
+        for(final Severity sev: ALL_VALUES)
             if(sev.level == value)
                 return sev;
-        return null;
+        return UNKNOWN;
     }
 
     public static Severity resolve(String value) {
         value = value.toLowerCase();
-        for(final Severity severity: values())
+        for(final Severity severity: ALL_VALUES)
             if(Objects.equals(severity.toString(), value))
                 return severity;
         switch (value) {
-            case "1": //jmx severity level
+            case "0": //jmx severity level
+            case "emerg":
                 return Severity.PANIC;
-            case "2": //jmx severity level
+            case "1": //jmx severity level
                 return Severity.ALERT;
-            case "3": //jmx severity level
+            case "2": //jmx severity level
             case "crit":
                 return Severity.CRITICAL;
-            case "4": //jmx severity level
+            case "3": //jmx severity level
             case "err":
                 return Severity.ERROR;
-            case "5": //jmx severity level
-            case "warn":
+            case "4": //jmx severity level
                 return Severity.WARNING;
-            case "6": //jmx severity level
+            case "5": //jmx severity level
                 return Severity.NOTICE;
-            case "7": //jmx severity level
+            case "6": //jmx severity level
             case "info":
                 return Severity.INFO;
-            case "8": //jmx severity level
-            case "dbg":
+            case "7": //jmx severity level
                 return Severity.DEBUG;
-            case "0": //jmx severity level
+            case "": //jmx severity level
             default:
                 return Severity.UNKNOWN;
         }

@@ -67,7 +67,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
         @OnWebSocketMessage
         @SpecialUse
         public void onMessage(final String notification) {
-            offer(formatter.toJsonTree(notification));
+            offer(formatter.fromJson(notification, JsonElement.class));
         }
     }
 

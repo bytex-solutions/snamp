@@ -2,7 +2,7 @@ package com.bytex.snamp.web.serviceModel;
 
 import com.bytex.snamp.WeakEventListenerList;
 
-import java.io.IOException;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /**
@@ -31,8 +31,12 @@ public abstract class AbstractWebConsoleService implements WebConsoleService {
         listeners.forEach(listenerInvoker);
     }
 
+    final void fireWebEvent(final Consumer<? super WebEventListener> listenerInvoker, final Executor executor) {
+        listeners.forEach(listener -> executor.execute(() -> listenerInvoker.accept(listener)));
+    }
+
     @Override
-    public void close() throws IOException {
+    public void close() throws Exception {
         listeners.clear();
     }
 }

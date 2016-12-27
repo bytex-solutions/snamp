@@ -23,8 +23,6 @@ import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogListener;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
@@ -82,7 +80,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         @OnWebSocketMessage
         @SpecialUse
         public void onMessage(final String event) {
-            offer(formatter.toJsonTree(event));
+            offer(formatter.fromJson(event, JsonElement.class));
         }
     }
 
@@ -117,13 +115,15 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
      */
     @Test
     public void logNotificationTest() throws Exception {
-
-        runWebSocketTest(new EventReceiver(), events -> {
-            Thread.sleep(1000);
+        final EventReceiver receiver = new EventReceiver();
+        runWebSocketTest(receiver, events -> {
             LoggerProvider.getLoggerForBundle(getTestBundleContext()).severe("Test log");
-            final ServiceReference<?>[] refs = getTestBundleContext().getAllServiceReferences(LogListener.class.getName(), null);
-            Thread.sleep(100_000);
+            final JsonElement element = receiver.poll(5L, TimeUnit.SECONDS);
+            assertNotNull(element);
+            assertEquals("Test log", element.getAsJsonObject().get("message").getAsString());
+            assertEquals("error", element.getAsJsonObject().get("level").getAsString());
         });
+
     }
 
     /**
@@ -221,6 +221,8 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     protected void beforeStartTest(final BundleContext context) throws Exception {
         super.beforeStartTest(context);
         client = new WebSocketClient();
+        client.setConnectTimeout(4000);
+        client.setDaemon(true);
         client.start();
         beforeCleanupTest(context);
     }
