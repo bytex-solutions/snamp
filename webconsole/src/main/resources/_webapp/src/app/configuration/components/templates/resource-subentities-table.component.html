@@ -37,9 +37,13 @@
                 </ul>
 
                 <div>
-                  <div id="name" class="row" style=" margin-top: 100px;">
+                  <div id="name" class="row" style="margin-top: 100px;">
                     <div class="item form-group">
-                      <label class="control-label col-md-3 col-sm-3 col-xs-12" for="name">Name <span class="required">*</span>
+                      <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="nameInput"
+                        style="margin-top: 7px;">
+                          Name <span class="required">*</span>
                       </label>
                       <div class="col-md-6 col-sm-6 col-xs-12">
                         <input
@@ -51,29 +55,61 @@
                       </div>
                     </div>
                   </div>
-                  <div id="additional" class="">
+                  <div id="additional" class="row" style="margin-top: 100px;">
+                    <!-- input for operation -->
+                    <div class="item form-group" *ngIf="entityType == 'operation'">
+                      <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="invtoInput"
+                        style="margin-top: 7px;">
+                          Invocation timeout <span class="required">*</span>
+                      </label>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <input
+                          id="invtoInput"
+                          class="form-control col-md-7 col-xs-12"
+                          [tooltip]="'Input number (0 for infinite)'"
+                          placeholder="input the invocation timeout of {{activeEntity.getName()}}"
+                          ([ngModel])="activeEntity.invokto">
+                      </div>
+                    </div>
+
+                    <!-- input for attribute -->
+                    <div class="item form-group" *ngIf="entityType == 'attribute'">
+                      <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="rwtoInput"
+                        style="margin-top: 7px;">
+                          Read/write timeout <span class="required">*</span>
+                      </label>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <input
+                          id="rwtoInput"
+                          class="form-control col-md-7 col-xs-12"
+                          [tooltip]="'Input number (0 for infinite)'"
+                          placeholder="input the read/write timeout of {{activeEntity.getName()}}"
+                          ([ngModel])="activeEntity.rwto">
+                      </div>
+                    </div>
+                  </div>
+                  <div id="parameters" class="row" style="margin-top: 50px;">
                     Step Content
                   </div>
-                  <div id="parameters" class="">
-                    Step Content
-                  </div>
-                  <div id="save" class="">
-                    Step Content
+                  <div id="save" class="row" style="margin-top: 100px;">
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      [disabled]="readyForSave == false"
+                      (click)="saveEntity()">
+                      Save changes
+                    </button>
                   </div>
                 </div>
               </div>
-
             </div>
-            <div class="modal-footer">
+           <!-- <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button
-                        type="button"
-                        class="btn btn-primary"
-                        [disabled]="readyForSave == false"
-                        (click)="saveEntity()">
-                    Save changes
-                </button>
-            </div>
+            </div>-->
         </div>
     </div>
 </div>
