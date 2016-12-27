@@ -42,7 +42,7 @@ export class Resource extends TypedEntity {
                 if  (attrs[key]["readWriteTimeout"] != undefined) {
                     rwto = attrs[key]["readWriteTimeout"];
                 }
-                this.attributes.push(new Attribute(key, rwto, attrs[key]["parameters"]));
+                this.attributes.push(new Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
             }
         }
 
@@ -50,7 +50,7 @@ export class Resource extends TypedEntity {
         if (parameters["events"] != undefined) {
             let events = parameters["events"];
             for (let key in events) {
-                this.events.push(new Event(key, events[key]["parameters"]));
+                this.events.push(new Event(http, this.type, key, events[key]["parameters"]));
             }
         }
 
@@ -62,7 +62,7 @@ export class Resource extends TypedEntity {
                 if  (operations[key]["invocationTimeout"] != undefined) {
                     rwto = operations[key]["invocationTimeout"];
                 }
-                this.operations.push(new Operation(key, rwto, operations[key]["parameters"]));
+                this.operations.push(new Operation(http, this.type, key, rwto, operations[key]["parameters"]));
             }
         }
     }

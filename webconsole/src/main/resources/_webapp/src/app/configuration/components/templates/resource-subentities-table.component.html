@@ -1,6 +1,6 @@
 <!-- Modal for entity appending -->
 <div class="modal fade" id="editEntity{{entityType}}" tabindex="-1" role="dialog" aria-labelledby="editEntityLabel">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xlg modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -8,7 +8,7 @@
             </div>
             <br/>
             <div class="modal-body">
-              <div id="smartwizard{{entityType}}">
+              <div id="smartwizard{{entityType}}" style="height: 95%">
                 <ul>
                       <li>
                         <a [attr.href]="'#name'">
@@ -36,7 +36,7 @@
                       </li>
                 </ul>
 
-                <div>
+                <div style="height:100%">
                   <div id="name" class="row" style="margin-top: 100px;">
                     <div class="item form-group">
                       <label
@@ -92,9 +92,54 @@
                       </div>
                     </div>
                   </div>
+
+
+                  <!-- PARAMETERS -->
                   <div id="parameters" class="row" style="margin-top: 50px;">
-                    Step Content
+                    <table class="table">
+                      <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Key</th>
+                        <th>Value</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr *ngFor="let param of activeEntity.parameters">
+                        <td>
+                          <span
+                            class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
+                            (click)="checkAndRemoveParameter(param)"
+                            aria-hidden="true">
+                          </span>
+                        </td>
+                        <td>{{param.key}}</td>
+                        <td>
+                          <inline-edit [(ngModel)]="param.value"
+                                       [ngModelOptions]="{standalone: true}"
+                                       (onSave)="saveParameter(param)"
+                                       [uniqueKey]="param.key">
+                          </inline-edit>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td></td>
+                        <td></td>
+                        <td align="right">
+                          <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            (click)="clear()">
+                            Add new
+                          </button>
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
                   </div>
+                  <!-- PARAMETERS -->
+
+
                   <div id="save" class="row" style="margin-top: 100px;">
                     <button
                       type="button"

@@ -1,9 +1,10 @@
-import { Entity } from './model.entity';
+import { SubEntity } from './model.subEntity';
+import { ApiClient } from '../../app.restClient';
 
-export class Operation extends Entity {
+export class Operation extends SubEntity {
     public invokto:number = 0; // invocation timeout
-    constructor(name:string, invokto:number, jsonObject:any) {
-        super(name, jsonObject);
+    constructor(http:ApiClient, resourceType:string, name:string, invokto:number, jsonObject:any) {
+        super(http, name, resourceType, jsonObject);
         this.invokto = invokto;
     }
 }

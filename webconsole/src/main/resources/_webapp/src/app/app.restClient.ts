@@ -87,6 +87,10 @@ export class REST {
         return REST.ROOT_PATH + "/" + entityClass + "/" + entityType + "/configuration";
     }
 
+    public static SUBENTITY_PARAMETERS_DESCRIPTION(entityType:string, entityClass:string ):string {
+        return REST.ROOT_PATH + "/resource/" + entityType + "/" + entityClass + "/configuration";
+    }
+
     public static BINDINGS(gatewayName:string, bindingEntityType:string):string {
         return REST.GATEWAY_BY_NAME(gatewayName) + "/" + bindingEntityType + "/bindings";
     }

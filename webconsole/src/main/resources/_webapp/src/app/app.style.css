@@ -4637,3 +4637,14 @@ ul.notifications {
 .pointerElement {
   cursor: pointer;
 }
+
+.modal-xlg {
+  max-height: 90vh;
+}
+.modal-xlg  .modal-content {
+   max-height: 100%;
+ }
+
+.modal-xlg .modal-body {
+  max-height: calc(100% - 60px);
+}

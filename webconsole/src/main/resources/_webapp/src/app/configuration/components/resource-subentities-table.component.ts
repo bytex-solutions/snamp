@@ -3,6 +3,7 @@ import { Component, Input ,ViewChild, ElementRef, OnInit } from '@angular/core';
 import { ApiClient, REST } from '../../app.restClient';
 import { KeyValue, Entity } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
+import { SubEntity } from '../model/model.subEntity';
 import { Attribute } from '../model/model.attribute';
 import { Event } from '../model/model.event';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
@@ -41,18 +42,18 @@ export class ResourceEntitiesTable implements OnInit {
     @Input() entityType:string;
     readyForSave:boolean = false;
     paramDescriptors:ParamDescriptor[] = [];
-    @Input() entities: Entity[];
-    activeEntity:Entity;
+    @Input() entities: SubEntity[];
+    activeEntity:SubEntity;
 
     constructor(private http:ApiClient, private modal: Modal) {}
 
-    private makeEmptyEntity():Entity {
+    private makeEmptyEntity():SubEntity {
         if (this.entityType == "attribute") {
-            return new Attribute("", 0, {});
+            return new Attribute(this.http, this.resource.type, "", 0, {});
         } else if (this.entityType == "event") {
-            return new Event("", {});
+            return new Event(this.http, this.resource.type, "", {});
         } else if (this.entityType == "operation") {
-            return new Operation("", 0, {});
+            return new Operation(this.http, this.resource.type, "", 0, {});
         }
     }
 
@@ -64,12 +65,6 @@ export class ResourceEntitiesTable implements OnInit {
             // if we have no entities - we definitely are appending new one
             this.activeEntity = this.makeEmptyEntity();
         }
-
-        this.http.get(REST.RESOURCE_SUBENTITY(this.resource.type, this.entityType))
-            .map((res:Response) => res.json())
-            .subscribe(res => {
-
-            });
     }
 
     getSmartWizardIdentifier():string {
@@ -93,13 +88,13 @@ export class ResourceEntitiesTable implements OnInit {
         });
     }
 
-    setEntity(entity:Entity) {
+    setEntity(entity:SubEntity) {
         this.activeEntity = entity;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
     }
 
-    remove(entity:Entity) {
+    remove(entity:SubEntity) {
          this.modal.confirm()
             .isBlocking(true)
             .className(<VEXBuiltInThemes>'wireframe')
@@ -120,6 +115,37 @@ export class ResourceEntitiesTable implements OnInit {
                         });
                     })
             });
+    }
+
+    saveParameter(parameter:KeyValue) {
+       this.activeEntity.setParameter(parameter);
+    }
+
+    removeParameter(parameter:KeyValue) {
+       this.activeEntity.removeParameter(parameter.key);
+    }
+
+    checkAndRemoveParameter(parameter:KeyValue) {
+        this.activeEntity.isParamRequired(parameter.key).subscribe((res:boolean) => {
+             if (res) {
+                this.modal.confirm()
+                    .className(<VEXBuiltInThemes>'wireframe')
+                    .isBlocking(true)
+                    .keyboard(27)
+                    .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
+                    .open()
+                    .then((resultPromise) => {
+                        return (<Promise<boolean>>resultPromise.result)
+                          .then((response) => {
+                            this.removeParameter(parameter);
+                            return response;
+                          })
+                          .catch(() =>  false);
+                      });
+            } else {
+                this.removeParameter(parameter);
+            }
+        });
     }
 
     saveEntity() {
