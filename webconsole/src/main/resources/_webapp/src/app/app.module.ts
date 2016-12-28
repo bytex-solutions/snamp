@@ -37,6 +37,7 @@ import { ResourceEntitiesTable } from './configuration/components/resource-suben
 import { AddEntity } from './configuration/components/add-entity.component';
 
 import { TooltipModule } from 'ng2-tooltip';
+import { SimpleNotificationsModule } from 'angular2-notifications';
 
 // Application wide providers
 const APP_PROVIDERS = [
@@ -70,6 +71,7 @@ type StoreType = {
   ],
   imports: [ // import Angular's modules
     BrowserModule,
+    SimpleNotificationsModule,
     TooltipModule,
     FormsModule,
     HttpModule,
