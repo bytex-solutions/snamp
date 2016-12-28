@@ -44,11 +44,7 @@ export class App {
       position: ['right', 'bottom']
   };
 
-  public deleteId: string;
-
-  cleanSingle() {
-      this._service.remove(this.deleteId);
-  }
+  private html = `<p>Test</p><p>Another test</p>`;
 
   removeAll() { this._service.remove() }
 
