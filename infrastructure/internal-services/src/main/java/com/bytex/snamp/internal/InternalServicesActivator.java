@@ -17,13 +17,11 @@ import org.osgi.service.cm.ManagedService;
 import org.osgi.service.http.HttpService;
 
 import javax.management.JMException;
+import javax.servlet.Servlet;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Hashtable;
 import java.util.Map;
-
-import static com.bytex.snamp.internal.Utils.acceptWithContextClassLoader;
 
 /**
  * Represents activator of internal SNAMP services.
@@ -33,8 +31,6 @@ import static com.bytex.snamp.internal.Utils.acceptWithContextClassLoader;
  * @version 2.0.0
  */
 public final class InternalServicesActivator extends AbstractServiceLibrary {
-    private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
-
     private static final class ConfigurationServiceManager extends ProvidedService<ConfigurationManager, PersistentConfigurationManager>{
 
         private ConfigurationServiceManager() {
@@ -88,11 +84,29 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         }
     }
 
+    private static final class SecurityServletProvider extends ProvidedService<Servlet, SecurityServlet>{
+        private SecurityServletProvider(){
+            super(Servlet.class, simpleDependencies(HttpService.class));
+        }
+
+        @Override
+        protected SecurityServlet activateService(final Map<String, Object> identity) {
+            identity.put("alias", SecurityServlet.CONTEXT);
+            return new SecurityServlet();
+        }
+
+        @Override
+        protected void cleanupService(final SecurityServlet servlet, final boolean stopBundle) {
+            servlet.destroy();
+        }
+    }
+
     @SpecialUse
     public InternalServicesActivator(){
         super(new ClusterMemberProvider(),
                 new ThreadPoolRepositoryProvider(),
-                new ConfigurationServiceManager());
+                new ConfigurationServiceManager(),
+                new SecurityServletProvider());
     }
 
     @Override
@@ -102,18 +116,10 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
 
     @Override
     protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
-        @SuppressWarnings("unchecked")
-        final HttpService httpService = getDependencies().getDependency(HttpService.class);
-        acceptWithContextClassLoader(getClass().getClassLoader(),
-                httpService,
-                (publisher) ->
-                        publisher.registerServlet(SecurityServlet.CONTEXT, new SecurityServlet(), new Hashtable<>(), null));
-        activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, httpService);
     }
 
     @Override
     protected void deactivate(final ActivationPropertyReader activationProperties) {
-        activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY).unregister(SecurityServlet.CONTEXT);
     }
 
     /**
