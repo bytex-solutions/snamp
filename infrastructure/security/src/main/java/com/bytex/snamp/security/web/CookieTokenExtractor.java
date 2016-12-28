@@ -25,9 +25,11 @@ final class CookieTokenExtractor implements JWTokenExtractor {
 
     @Override
     public Optional<String> extract(final HttpServletRequest request) {
-        for (final javax.servlet.http.Cookie cookie : request.getCookies())
-            if (Objects.equals(cookieName, cookie.getName()))
-                return Optional.ofNullable(JWTokenExtractor.removeBearerPrefix(cookie.getValue()));
+        final javax.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies != null)
+            for (final javax.servlet.http.Cookie cookie : cookies)
+                if (Objects.equals(cookieName, cookie.getName()))
+                    return Optional.ofNullable(JWTokenExtractor.removeBearerPrefix(cookie.getValue()));
         return Optional.empty();
     }
 }
