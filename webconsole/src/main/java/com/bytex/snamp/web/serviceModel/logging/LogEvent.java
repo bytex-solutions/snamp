@@ -54,7 +54,11 @@ public final class LogEvent extends WebEvent {
         message = event.getMessage();
         timeStamp = Instant.ofEpochMilli(event.getTimeStamp());
         severity = Severity.resolve(event.getLevel().getSyslogEquivalent());
-        stackTrace = ArrayUtils.emptyArray(String[].class);
+        stackTrace = nullToEmpty(event.getThrowableStrRep());
+    }
+
+    private static String[] nullToEmpty(final String[] stackTrace){
+        return stackTrace == null ? ArrayUtils.emptyArray(String[].class) : stackTrace;
     }
 
     @JsonProperty("message")
