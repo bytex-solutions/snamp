@@ -3,8 +3,8 @@
     <repository>mvn:com.bytex.snamp/core-features/${snamp.version}/xml/features</repository>
 
     <feature name="snamp-management" description="SNAMP management tools" version="${snamp.management.version}" install="auto">
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-web-support</feature>
         <bundle start="true">mvn:com.bytex.snamp/management/${snamp.management.version}</bundle>
     </feature>
 
