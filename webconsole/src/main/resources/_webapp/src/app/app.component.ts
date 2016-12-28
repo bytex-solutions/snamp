@@ -25,20 +25,23 @@ export class App {
   ws: WebSocketClient;
 
   constructor(public appState: AppState, private _cookieService:CookieService) {
-     this.ws = new WebSocketClient("ws://localhost:8181/snamp/console/events");
+     //this.ws = new WebSocketClient("ws://localhost:8181/snamp/console/events");
   }
 
   ngOnInit() {
     console.log('Initial App State', this.appState.state);
-    console.log("trying to subscribe to ws");
-        this.ws = new WebSocketClient("ws://localhost:8181/snamp/console/events" );
-        this.ws.getDataStream().subscribe(
-          res => {
-            console.log('Got: ' + res);
-          },
-          function(e) { console.log('Error: ' + e.message); },
-          function() { console.log('Completed'); }
-        );
+    this.ws = new WebSocketClient("ws://localhost:8181/snamp/console/events" );
+    this.ws.getDataStream().subscribe(
+        (msg)=> {
+            console.log("next", msg.data);
+        },
+        (msg)=> {
+            console.log("error", msg);
+        },
+        ()=> {
+            console.log("complete");
+        }
+    );
   }
 
 }

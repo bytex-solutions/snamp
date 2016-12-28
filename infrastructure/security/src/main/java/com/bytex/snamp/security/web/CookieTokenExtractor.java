@@ -1,5 +1,6 @@
 package com.bytex.snamp.security.web;
 
+import com.google.common.base.Strings;
 import com.sun.jersey.api.core.HttpRequestContext;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +30,7 @@ final class CookieTokenExtractor implements JWTokenExtractor {
         final javax.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies != null)
             for (final javax.servlet.http.Cookie cookie : cookies)
-                if (Objects.equals(cookieName, cookie.getName()))
+                if (Objects.equals(cookieName, cookie.getName()) && !Strings.isNullOrEmpty(cookie.getValue()))
                     return Optional.ofNullable(cookie.getValue());
         return Optional.empty();
     }
