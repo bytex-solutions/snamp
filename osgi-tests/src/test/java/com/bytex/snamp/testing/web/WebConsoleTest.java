@@ -21,6 +21,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
+import org.glassfish.jersey.client.JerseyClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -29,6 +30,8 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.ws.rs.core.HttpHeaders;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -60,6 +63,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
         SnampFeature.COMPOSITE_CONNECTOR
 })
 public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final Gson FORMATTER = new Gson();
     private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
     private static final String ADAPTER_NAME = "snmp";
@@ -71,16 +75,11 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     @WebSocket
     public static final class EventReceiver extends LinkedBlockingQueue<JsonElement> {
         private static final long serialVersionUID = 2056675059549300951L;
-        private final Gson formatter;
-
-        private EventReceiver() {
-            this.formatter = new Gson();
-        }
 
         @OnWebSocketMessage
         @SpecialUse
         public void onMessage(final String event) {
-            offer(formatter.fromJson(event, JsonElement.class));
+            offer(FORMATTER.fromJson(event, JsonElement.class));
         }
     }
 
@@ -99,14 +98,47 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
-    private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler, final Acceptor<? super W, E> testBody) throws Exception {
+    private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler, final String authenticationToken, final Acceptor<? super W, E> testBody) throws Exception {
         final ClientUpgradeRequest upgradeRequest = new ClientUpgradeRequest();
-        upgradeRequest.setHeader(HttpHeaders.AUTHORIZATION, authenticator.authenticateTestUser().getValue());
+        upgradeRequest.setHeader(HttpHeaders.AUTHORIZATION, authenticationToken);
         try (final Session session = client.connect(webSocketHandler, new URI(WS_ENDPOINT), upgradeRequest).get(10, TimeUnit.SECONDS)) {
             testBody.accept(webSocketHandler);
+        }
+    }
+
+    private static void setServiceSettings(final String servicePostfix, final String authenticationToken, final JsonElement data) throws IOException {
+        final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
+        //write attribute
+        HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, "application/json");
+        connection.setRequestProperty(HttpHeaders.AUTHORIZATION, authenticationToken);
+        connection.setDoOutput(true);
+        IOUtils.writeString(FORMATTER.toJson(data), connection.getOutputStream(), Charset.defaultCharset());
+        connection.connect();
+        try {
+            assertEquals(204, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private static JsonElement getServiceSettings(final String servicePostfix, final String authenticationToken) throws IOException{
+        final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
+        //write attribute
+        HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty(HttpHeaders.AUTHORIZATION, authenticationToken);
+        connection.setDoInput(true);
+        connection.connect();
+        try(final Reader reader = new InputStreamReader(connection.getInputStream(), IOUtils.DEFAULT_CHARSET)){
+            assertEquals(200, connection.getResponseCode());
+            return FORMATTER.fromJson(reader, JsonElement.class);
+        } finally {
+            connection.disconnect();
         }
     }
 
@@ -115,15 +147,19 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
      */
     @Test
     public void logNotificationTest() throws Exception {
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        //read logging settings
+        final JsonElement settings = getServiceSettings("/logging/settings", authenticationToken);
+        assertTrue(settings.isJsonObject());
+        assertEquals("error", settings.getAsJsonObject().get("logLevel").getAsString());
         final EventReceiver receiver = new EventReceiver();
-        runWebSocketTest(receiver, events -> {
+        runWebSocketTest(receiver, authenticationToken, events -> {
             LoggerProvider.getLoggerForBundle(getTestBundleContext()).severe("Test log");
             final JsonElement element = receiver.poll(5L, TimeUnit.SECONDS);
             assertNotNull(element);
             assertEquals("Test log", element.getAsJsonObject().get("message").getAsString());
             assertEquals("error", element.getAsJsonObject().get("level").getAsString());
         });
-
     }
 
     /**

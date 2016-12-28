@@ -25,13 +25,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  */
 final class JwtSecurityContext implements SecurityContext {
-    private static final String BEARER_PREFIX = "Bearer ";
     private final JwtPrincipal principal;
     private final boolean secure;
 
-    private JwtSecurityContext(String jwToken, final String secret, final boolean secure) throws NoSuchAlgorithmException, IOException, InvalidKeyException, SignatureException {
+    private JwtSecurityContext(final String jwToken, final String secret, final boolean secure) throws NoSuchAlgorithmException, IOException, InvalidKeyException, SignatureException {
         this.secure = secure;
-        jwToken = removeBearerPrefix(jwToken);
         if (isNullOrEmpty(jwToken) || jwToken.equalsIgnoreCase("undefined")) {
             getLogger().warning("Empty token received");
             throw new SignatureException("Empty token received");
@@ -43,36 +41,30 @@ final class JwtSecurityContext implements SecurityContext {
         }
     }
 
-    JwtSecurityContext(final HttpRequestContext request, final String secret) throws NoSuchAlgorithmException, IOException, InvalidKeyException, SignatureException {
-        this(request.getHeaderValue(HttpHeaders.AUTHORIZATION), secret, request.isSecure());
+    JwtSecurityContext(final HttpRequestContext request, final Iterable<JWTokenExtractor> extractors, final String secret) throws NoSuchAlgorithmException, IOException, InvalidKeyException, SignatureException {
+        this(extractTokenFromRequest(request, extractors).orElse(""), secret, request.isSecure());
     }
 
-    JwtSecurityContext(final HttpServletRequest request, final String secret) throws NoSuchAlgorithmException, IOException, InvalidKeyException, SignatureException {
-        this(getNeedfulHeader(request), secret, request.isSecure());
+    JwtSecurityContext(final HttpServletRequest request, final Iterable<JWTokenExtractor> extractors, final String secret) throws NoSuchAlgorithmException, IOException, InvalidKeyException, SignatureException {
+        this(extractTokenFromRequest(request, extractors).orElse(""), secret, request.isSecure());
     }
 
-    private static String getNeedfulHeader(final HttpServletRequest request) {
-        String value = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (value ==  null || value.isEmpty() && request.getCookies() != null || request.getCookies().length > 0) {
-            final Optional<Cookie> found = Arrays.stream(request.getCookies()).filter(cookie ->
-                    cookie.getName().equalsIgnoreCase(WebSecurityFilter.DEFAULT_AUTH_COOKIE)
-                        && !cookie.getValue().isEmpty()
-                        && cookie.getValue().length() > BEARER_PREFIX.length() + 10
-            ).findFirst();
-            if (found.isPresent()) {
-                return found.get().getValue();
-            }
+    private static Optional<String> extractTokenFromRequest(final HttpRequestContext request, final Iterable<JWTokenExtractor> extractors){
+        for(final JWTokenExtractor extractor: extractors){
+            final Optional<String> token = extractor.extract(request);
+            if(token.isPresent())
+                return token;
         }
-        return value;
+        return Optional.empty();
     }
 
-    private static String removeBearerPrefix(final String str) {
-        if (isNullOrEmpty(str))
-            return str;
-        else if (str.startsWith(BEARER_PREFIX))
-            return str.substring(BEARER_PREFIX.length());
-        else
-            return str;
+    private static Optional<String> extractTokenFromRequest(final HttpServletRequest request, final Iterable<JWTokenExtractor> extractors) {
+        for (final JWTokenExtractor extractor : extractors) {
+            final Optional<String> token = extractor.extract(request);
+            if (token.isPresent())
+                return token;
+        }
+        return Optional.empty();
     }
 
     private Logger getLogger(){

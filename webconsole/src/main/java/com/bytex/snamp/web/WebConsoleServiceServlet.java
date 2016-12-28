@@ -26,7 +26,7 @@ import java.util.Objects;
  */
 @ImportClass(JerseyServletContainerInitializer.class)
 final class WebConsoleServiceServlet extends ServletContainer implements WebConsoleServiceReference {
-    private static final String ROOT_CONTEXT = "/snamp/console/api";
+    private static final String ROOT_CONTEXT = "/snamp/web/api";
     private static final long serialVersionUID = -5668618198214458448L;
     private final ServiceHolder<WebConsoleService> serviceHolder;
     private final String servletContext;

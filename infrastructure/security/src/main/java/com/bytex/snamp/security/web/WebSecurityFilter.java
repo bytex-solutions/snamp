@@ -1,6 +1,7 @@
 package com.bytex.snamp.security.web;
 
 import com.bytex.snamp.core.LoggerProvider;
+import com.google.common.collect.ImmutableList;
 import com.sun.jersey.api.core.HttpRequestContext;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
@@ -16,6 +17,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SignatureException;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -28,6 +32,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  */
 public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequestFilter {
+
     private static final String PRINCIPAL_ATTRIBUTE = "principal";
 
     /**
@@ -36,18 +41,33 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
     public static final String DEFAULT_AUTH_COOKIE = "snamp-auth-token";
     private final String authCookieName;
     private final String securedPath;
+    private final ImmutableList<JWTokenExtractor> extractors;
 
-    private WebSecurityFilter(final String authCookieName, final String securedPath){
+    private WebSecurityFilter(final String authCookieName, final String securedPath, final JWTokenLocation... tokenLocations) {
         this.authCookieName = Objects.requireNonNull(authCookieName);
         this.securedPath = Objects.requireNonNull(securedPath);
+        if (tokenLocations.length == 0)
+            extractors = ImmutableList.of(new AuthorizationTokenExtractor());
+        else {
+            final ImmutableList.Builder<JWTokenExtractor> builder = ImmutableList.builder();
+            for (final JWTokenLocation location : tokenLocations)
+                switch (location) {
+                    case AUTHORIZATION_HEADER:
+                        builder.add(new AuthorizationTokenExtractor());
+                        continue;
+                    case COOKIE:
+                        builder.add(new CookieTokenExtractor(authCookieName));
+                }
+            extractors = builder.build();
+        }
     }
 
-    public WebSecurityFilter(final String authCookieName){
-        this(authCookieName, "/");
+    public WebSecurityFilter(final String authCookieName, final JWTokenLocation... tokenLocations){
+        this(authCookieName, "/", tokenLocations);
     }
 
-    public WebSecurityFilter(){
-        this(DEFAULT_AUTH_COOKIE);
+    public WebSecurityFilter(final JWTokenLocation... tokenLocations) {
+        this(DEFAULT_AUTH_COOKIE, tokenLocations);
     }
 
     protected boolean authenticationRequired(final HttpRequestContext request){
@@ -64,7 +84,7 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
 
     private JwtSecurityContext createSecurityContext(final HttpRequestContext request) {
         try {
-            return new JwtSecurityContext(request, getTokenSecret());
+            return new JwtSecurityContext(request, extractors, getTokenSecret());
         } catch (final NoSuchAlgorithmException | IOException e) {
             throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         } catch (final InvalidKeyException | SignatureException e) {
@@ -74,7 +94,7 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
 
     public final void filter(final HttpServletRequest request) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException {
         if(authenticationRequired(request)) {
-            final JwtSecurityContext securityContext = new JwtSecurityContext(request, getTokenSecret());
+            final JwtSecurityContext securityContext = new JwtSecurityContext(request, extractors, getTokenSecret());
             request.setAttribute(PRINCIPAL_ATTRIBUTE, securityContext.getUserPrincipal());
         }
     }

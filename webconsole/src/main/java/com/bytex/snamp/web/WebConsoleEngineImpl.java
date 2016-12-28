@@ -6,6 +6,7 @@ import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.security.web.JWTokenLocation;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import org.eclipse.jetty.websocket.servlet.*;
@@ -46,7 +47,7 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
 
     WebConsoleEngineImpl() {
         services = new ConcurrentResourceAccessor<>(AbstractKeyedObjects.create(WebConsoleServiceReference::getName));
-        securityFilter = new WebSecurityFilter();
+        securityFilter = new WebSecurityFilter(JWTokenLocation.COOKIE, JWTokenLocation.AUTHORIZATION_HEADER);
         try {
             getBundleContext().addServiceListener(this, String.format("(%s=%s)", OBJECTCLASS, WebConsoleService.class.getName()));
         } catch (final InvalidSyntaxException e) {
