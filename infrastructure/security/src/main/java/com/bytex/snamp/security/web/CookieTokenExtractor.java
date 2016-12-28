@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Cookie;
 import java.util.Objects;
 import java.util.Optional;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Extracts token from Cookie.
@@ -20,7 +21,7 @@ final class CookieTokenExtractor implements JWTokenExtractor {
     @Override
     public Optional<String> extract(final HttpRequestContext request) {
         final Cookie cookie = request.getCookies().get(cookieName);
-        return cookie == null ? Optional.empty() : Optional.ofNullable(JWTokenExtractor.removeBearerPrefix(cookie.getValue()));
+        return cookie == null || isNullOrEmpty(cookie.getValue()) ? Optional.empty() : Optional.ofNullable(cookie.getValue());
     }
 
     @Override
@@ -29,7 +30,7 @@ final class CookieTokenExtractor implements JWTokenExtractor {
         if (cookies != null)
             for (final javax.servlet.http.Cookie cookie : cookies)
                 if (Objects.equals(cookieName, cookie.getName()))
-                    return Optional.ofNullable(JWTokenExtractor.removeBearerPrefix(cookie.getValue()));
+                    return Optional.ofNullable(cookie.getValue());
         return Optional.empty();
     }
 }

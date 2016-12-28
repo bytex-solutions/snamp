@@ -17,14 +17,4 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 interface JWTokenExtractor {
     Optional<String> extract(final HttpRequestContext request);
     Optional<String> extract(final HttpServletRequest request);
-
-    static String removeBearerPrefix(final String str) {
-        final String BEARER_PREFIX = "Bearer ";
-        if (isNullOrEmpty(str))
-            return str;
-        else if (str.startsWith(BEARER_PREFIX))
-            return emptyToNull(str.substring(BEARER_PREFIX.length()));
-        else
-            return str;
-    }
 }
