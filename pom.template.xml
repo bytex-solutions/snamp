@@ -11,7 +11,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <!--Global dependencies-->
-    <karaf.version>4.0.7</karaf.version>
+    <karaf.version>4.0.8</karaf.version>
     <karaf.maxVersion>5</karaf.maxVersion>
     <osgi.version>5.0.0</osgi.version>
     <junit.version>4.12</junit.version>
@@ -22,7 +22,7 @@
     <groovy.version>2.4.7</groovy.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
     <cellar.version>4.0.3</cellar.version>
-    <jline.version>2.14.2</jline.version>
+    <jline.version>2.14.1</jline.version>
     <bouncycastle.version>1.54</bouncycastle.version>
     <hazelcast.version>3.7.2</hazelcast.version>
     <sshd.version>0.14.0</sshd.version>
