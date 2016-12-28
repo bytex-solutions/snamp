@@ -1,5 +1,6 @@
 package com.bytex.snamp.web.serviceModel.logging;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.WebEvent;
@@ -23,6 +24,7 @@ public final class LogEvent extends WebEvent {
     private final String message;
     private final Severity severity;
     private final Instant timeStamp;
+    private String[] stackTrace;
 
     LogEvent(final WebConsoleService source, final LogEntry entry) {
         super(source);
@@ -44,6 +46,7 @@ public final class LogEvent extends WebEvent {
                 severity = Severity.UNKNOWN;
         }
         timeStamp = Instant.ofEpochMilli(entry.getTime());
+        stackTrace = ArrayUtils.emptyArray(String[].class);
     }
 
     LogEvent(final WebConsoleService source, final PaxLoggingEvent event){
@@ -51,6 +54,7 @@ public final class LogEvent extends WebEvent {
         message = event.getMessage();
         timeStamp = Instant.ofEpochMilli(event.getTimeStamp());
         severity = Severity.resolve(event.getLevel().getSyslogEquivalent());
+        stackTrace = ArrayUtils.emptyArray(String[].class);
     }
 
     @JsonProperty("message")
@@ -68,5 +72,10 @@ public final class LogEvent extends WebEvent {
     @JsonSerialize(using = InstantSerializer.class)
     public Instant getTimeStamp(){
         return timeStamp;
+    }
+
+    @JsonProperty("stackTrace")
+    public String[] getStackTrace(){
+        return stackTrace;
     }
 }

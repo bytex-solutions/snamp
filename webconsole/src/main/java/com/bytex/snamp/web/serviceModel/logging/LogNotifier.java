@@ -1,14 +1,11 @@
 package com.bytex.snamp.web.serviceModel.logging;
 
-import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import org.ops4j.pax.logging.spi.PaxLoggingEvent;
 
 import javax.ws.rs.Path;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Provides notification about logs.
@@ -24,11 +21,11 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
      * Represents name of this service.
      */
     public static final String NAME = "logNotifier";
+    public static final String URL_CONTEXT = "/logging";
 
-    public LogNotifier() {
+    public LogNotifier(final ExecutorService executor) {
         super(LoggingSettings.class);
-        final ThreadFactory factory = new GroupedThreadFactory("LogNotifierThreadGroup", Thread.NORM_PRIORITY - 1);
-        executor = Executors.newSingleThreadExecutor(factory);
+        this.executor = Objects.requireNonNull(executor);
     }
 
     /**
@@ -46,12 +43,5 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
     @Override
     protected LoggingSettings createUserData() {
         return new LoggingSettings();
-    }
-
-    @Override
-    public void close() throws Exception {
-        super.close();
-        executor.shutdown();
-        executor.awaitTermination(5, TimeUnit.SECONDS);
     }
 }

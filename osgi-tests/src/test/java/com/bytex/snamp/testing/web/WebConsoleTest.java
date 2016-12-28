@@ -21,7 +21,6 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
-import org.glassfish.jersey.client.JerseyClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -42,6 +41,7 @@ import java.security.SignatureException;
 import java.time.Duration;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
@@ -98,7 +98,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler, final String authenticationToken, final Acceptor<? super W, E> testBody) throws Exception {
@@ -154,7 +154,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         assertEquals("error", settings.getAsJsonObject().get("logLevel").getAsString());
         final EventReceiver receiver = new EventReceiver();
         runWebSocketTest(receiver, authenticationToken, events -> {
-            LoggerProvider.getLoggerForBundle(getTestBundleContext()).severe("Test log");
+            LoggerProvider.getLoggerForBundle(getTestBundleContext()).log(Level.SEVERE, "Test log", new Exception());
             final JsonElement element = receiver.poll(5L, TimeUnit.SECONDS);
             assertNotNull(element);
             assertEquals("Test log", element.getAsJsonObject().get("message").getAsString());
