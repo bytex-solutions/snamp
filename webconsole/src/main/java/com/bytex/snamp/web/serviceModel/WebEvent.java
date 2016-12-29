@@ -6,13 +6,15 @@ import java.security.Principal;
 import java.util.EventObject;
 
 /**
+ * Represents an event that can be thrown by web console services.
+ * <p>
+ *     These events will be propagated through WebSocket to the browser-based application.
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
 public abstract class WebEvent extends EventObject {
     private static final long serialVersionUID = 3426260188036037856L;
-    private Principal principal;
 
     /**
      * Constructs a prototypical Event.
@@ -22,16 +24,6 @@ public abstract class WebEvent extends EventObject {
      */
     public WebEvent(final WebConsoleService source) {
         super(source);
-    }
-
-    @JsonIgnore
-    public final Principal getPrincipal(){
-        return principal;
-    }
-
-    @JsonIgnore
-    public final void setPrincipal(final Principal value){
-        this.principal = value;
     }
 
     /**
