@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import static com.bytex.snamp.core.KeyValueStorage.JsonRecordView;
 
 /**
- * Represents
+ * Represents abstract service for SNAMP Web Console which is bounded to the user's profile data.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0

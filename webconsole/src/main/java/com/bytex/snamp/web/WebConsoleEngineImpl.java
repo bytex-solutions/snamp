@@ -75,7 +75,7 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
         if (principal != null)
             return services.read(services -> {
                 final WebSocketChannel channel = new WebSocketChannel(principal);
-                services.values().forEach(holder -> holder.get().addWebEventListener(channel));
+                services.values().forEach(holder -> holder.addWebEventListener(channel));
                 return channel;
             });
         else

@@ -5,6 +5,7 @@ import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
+import com.bytex.snamp.web.serviceModel.WebEventListener;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitializer;
@@ -28,10 +29,10 @@ import java.util.Objects;
 final class WebConsoleServiceServlet extends ServletContainer implements WebConsoleServiceReference {
     private static final String ROOT_CONTEXT = "/snamp/web/api";
     private static final long serialVersionUID = -5668618198214458448L;
-    private final ServiceHolder<WebConsoleService> serviceHolder;
+    private transient final ServiceHolder<WebConsoleService> serviceHolder;
     private final String servletContext;
     private final String serviceName;
-    private ServiceRegistration<Servlet> registration;
+    private transient ServiceRegistration<Servlet> registration;
 
     private WebConsoleServiceServlet(final ServiceHolder<WebConsoleService> serviceReference,
                                      final WebSecurityFilter securityFilter) {
@@ -51,7 +52,7 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
     }
 
     @Override
-    public void activate() throws Exception {
+    public void activate() {
         final Hashtable<String, String> identity = new Hashtable<>();
         identity.put("alias", servletContext);
         registration = getBundleContext().registerService(Servlet.class, this, identity);
@@ -74,6 +75,13 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
         result.getContainerResponseFilters().add(filter);
         result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
         return result;
+    }
+
+    @Override
+    public void addWebEventListener(final WebEventListener listener) {
+        final WebConsoleService service = serviceHolder.getService();
+        if (service != null)
+            service.addWebEventListener(listener);
     }
 
     @Override
