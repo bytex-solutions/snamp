@@ -9,6 +9,11 @@ import { WebSocketClient } from './app.websocket';
 
 import { NotificationsService, SimpleNotificationsComponent } from 'angular2-notifications';
 
+var PNotify = require("pnotify/src/pnotify.js");
+require("pnotify/src/pnotify.mobile.js");
+require("pnotify/src/pnotify.buttons.js");
+require("pnotify/src/pnotify.desktop.js");
+
 /*
  * App Component
  * Top Level Component
@@ -48,14 +53,22 @@ export class App {
 
   removeAll() { this._service.remove() }
 
-  ngOnInit() {
+  ngAfterViewInit() {
     console.log('Initial App State', this.appState.state);
+
     this.ws = new WebSocketClient("ws://localhost:8181/snamp/console/events" );
     this.ws.getDataStream().subscribe(
         (msg)=> {
             let _json = JSON.parse(msg.data);
             console.log("next", msg.data, _json);
-            this._service.create(_json.timeStamp, _json.message, _json.level, this.options);
+
+             new PNotify({
+                 title: _json.level,
+                 text: _json.message,
+                 type: _json.level,
+                 sound: false,
+                 addclass: "stack-bottomright"
+             })
         },
         (msg)=> {
             console.log("error", msg);

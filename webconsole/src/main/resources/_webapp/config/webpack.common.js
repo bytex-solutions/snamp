@@ -138,6 +138,11 @@ module.exports = function(options) {
           exclude: [/\.(spec|e2e)\.ts$/]
         },
 
+        {
+          test: /pnotify.*\.js$/,
+          loader: "imports?define=>false,global=>window"
+        },
+
         /*
          * Json loader support for *.json files.
          *
