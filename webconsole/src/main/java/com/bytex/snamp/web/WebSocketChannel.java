@@ -18,29 +18,13 @@ import java.util.logging.Logger;
 /**
  * Represents duplex communication channel between WebConsole on browser and backend.
  */
-final class WebSocketChannel extends WebSocketAdapter implements WebEventListener {
+final class WebSocketChannel extends WebSocketAdapter implements WebEventListener, WriteCallback {
     private final Principal principal;
     private final ObjectMapper jsonSerializer;
-    private final WriteCallback callback;
 
     WebSocketChannel(final Principal owner){
         this.principal = Objects.requireNonNull(owner);
         jsonSerializer = new ObjectMapper();
-        callback = createCallback(getLogger());
-    }
-
-    private static WriteCallback createCallback(final Logger logger){
-        return new WriteCallback() {
-            @Override
-            public void writeFailed(final Throwable e) {
-                logger.log(Level.WARNING, "Failed to write data into WebSocket", e);
-            }
-
-            @Override
-            public void writeSuccess() {
-
-            }
-        };
     }
 
     private Logger getLogger(){
@@ -59,7 +43,17 @@ final class WebSocketChannel extends WebSocketAdapter implements WebEventListene
 
     @Override
     public void onWebSocketConnect(final Session sess) {
-        getLogger().info(() -> String.format("WebSocket connection %s is established", sess.getRemoteAddress()));
+        getLogger().info(() -> String.format("Established WebSocket connection with %s", sess.getRemoteAddress()));
+    }
+
+    @Override
+    public void writeFailed(final Throwable e) {
+        getLogger().log(Level.WARNING, "Failed to write data into WebSocket", e);
+    }
+
+    @Override
+    public void writeSuccess() {
+
     }
 
     @Override
@@ -74,7 +68,7 @@ final class WebSocketChannel extends WebSocketAdapter implements WebEventListene
                 return;
             }
             if (isConnected())
-                getRemote().sendString(serializedEvent, callback);
+                getRemote().sendString(serializedEvent, this);
         }
     }
 
