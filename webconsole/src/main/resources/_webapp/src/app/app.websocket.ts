@@ -47,7 +47,7 @@ export class WebSocketClient {
         if (!match) {
             throw new Error('Invalid url provided');
         }
-        this.config = config || {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false};
+        this.config = config || {initialTimeout: 2500, maxTimeout: 300000, reconnectIfNotNormalClose: true};
         this.binaryType = binaryType || "blob";
         this.dataStream = new Subject();
         this.connect(true);

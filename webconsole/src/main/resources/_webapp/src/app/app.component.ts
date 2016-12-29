@@ -59,6 +59,7 @@ export class App {
     this.ws = new WebSocketClient("ws://localhost:8181/snamp/console/events" );
     this.ws.getDataStream().subscribe(
         (msg)=> {
+        console.log(msg);
             let _json = JSON.parse(msg.data);
             console.log("next", msg.data, _json);
 
