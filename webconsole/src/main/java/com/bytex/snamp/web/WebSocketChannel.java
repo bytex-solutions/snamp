@@ -39,11 +39,13 @@ final class WebSocketChannel extends WebSocketAdapter implements WebEventListene
     @Override
     public void onWebSocketClose(final int statusCode, final String reason) {
         getLogger().info(() -> String.format("WebSocket is closed with status %s(%s)", statusCode, reason));
+        super.onWebSocketClose(statusCode, reason);
     }
 
     @Override
     public void onWebSocketConnect(final Session sess) {
         getLogger().info(() -> String.format("Established WebSocket connection with %s", sess.getRemoteAddress()));
+        super.onWebSocketConnect(sess);
     }
 
     @Override
