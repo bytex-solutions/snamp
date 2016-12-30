@@ -8,6 +8,7 @@ import com.bytex.snamp.internal.Utils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.osgi.framework.BundleContext;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -101,6 +102,7 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
         }, executor);
     }
 
+    @Nonnull
     protected abstract USERDATA createUserData();
 
     private void setUserData(final USERDATA data, final JsonRecordView record) throws IOException {
@@ -110,10 +112,7 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
     }
 
     private void setDefaultUserData(final JsonRecordView record) throws IOException {
-        final USERDATA data = createUserData();
-        if(data == null)
-            throw new IOException("User data cannot be null");
-        setUserData(data, record);
+        setUserData(createUserData(), record);
     }
 
     private USERDATA getUserData(final JsonRecordView record) throws IOException {

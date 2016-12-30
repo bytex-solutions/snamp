@@ -77,7 +77,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
     @SpecialUse
     public WebConsoleActivator(){
-        super(new WebConsoleServletProvider(), new LogNotifierProvider());
+        super(new WebConsoleServletProvider(), new LogNotifierProvider(), new VersionResourceProvider());
     }
 
     @Override

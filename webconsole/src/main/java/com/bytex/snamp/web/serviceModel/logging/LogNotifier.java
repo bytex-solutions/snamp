@@ -1,15 +1,14 @@
 package com.bytex.snamp.web.serviceModel.logging;
 
-import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import org.ops4j.pax.logging.spi.PaxLoggingEvent;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.Path;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Supplier;
 
 /**
  * Provides notification about logs.
@@ -53,6 +52,7 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
     }
 
     @Override
+    @Nonnull
     protected LoggingSettings createUserData() {
         return new LoggingSettings();
     }

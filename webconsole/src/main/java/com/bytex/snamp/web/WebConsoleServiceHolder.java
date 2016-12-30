@@ -6,13 +6,17 @@ import com.bytex.snamp.web.serviceModel.WebEventListener;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
+import java.util.Objects;
+
 /**
  * Represents trivial reference to the web console service without publishing it to Servlet Container.
  */
 final class WebConsoleServiceHolder extends ServiceHolder<WebConsoleService> implements WebConsoleServiceReference {
+    private final String serviceName;
 
     WebConsoleServiceHolder(final BundleContext context, final ServiceReference<WebConsoleService> serviceRef){
         super(context, serviceRef);
+        serviceName = Objects.toString(serviceRef.getProperty(WebConsoleService.NAME));
     }
 
     @Override
@@ -22,7 +26,7 @@ final class WebConsoleServiceHolder extends ServiceHolder<WebConsoleService> imp
 
     @Override
     public String getName() {
-        return null;
+        return serviceName;
     }
 
     @Override
