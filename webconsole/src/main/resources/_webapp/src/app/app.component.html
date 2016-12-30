@@ -2,6 +2,34 @@
 <topnav-bar></topnav-bar>
 <router-outlet></router-outlet>
 <custom-footer></custom-footer>
-<simple-notifications [options]="options"></simple-notifications>
 
+<div class="modal fade" id="notify_details" tabindex="-1" role="dialog" aria-labelledby="notifLbl" *ngIf="notificationCount > 0">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="notifLbl">Binding of {{binding.name}}</h4>
+      </div>
+      <div class="modal-body">
+        <table class="table">
+          <thead>
+          <tr>
+            <th>Key</th>
+            <th>Value</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let param of binding.parameters">
+            <td>{{param.key}}</td>
+            <td style="word-break: break-word;">{{param.value}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
