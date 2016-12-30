@@ -1,7 +1,5 @@
 package com.bytex.snamp.core;
 
-import java.util.concurrent.ConcurrentMap;
-
 /**
  * Represents SNAMP service that represents single SNAMP member in the cluster.
  * You can discover this service via OSGi service registry.
@@ -9,7 +7,8 @@ import java.util.concurrent.ConcurrentMap;
  *     You can query the following cluster-wide services:
  *     <ul>
  *         <li>{@link SharedCounter} for generating unique identifiers</li>
- *         <li>{@link ConcurrentMap}&lt;{@link String}, {@link Object}&gt; for accessing data collections</li>
+ *         <li>{@link KeyValueStorage} for accessing data collections</li>
+ *         <li>{@link SharedObject} for accessing single object</li>
  *     </ul>
  * @author Roman Sakno
  * @version 2.0

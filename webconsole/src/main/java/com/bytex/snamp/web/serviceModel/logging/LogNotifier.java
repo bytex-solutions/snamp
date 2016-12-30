@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 @Path("/")
 public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSettings> implements WebConsoleLogService {
     private final ExecutorService executor;
-    private final Supplier<String> wcBundleName;
+    private final String wcBundleName;
 
     /**
      * Represents name of this service.
@@ -31,16 +31,12 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
     public LogNotifier(final ExecutorService executor) {
         super(LoggingSettings.class);
         this.executor = Objects.requireNonNull(executor);
-        final String bundleName = Utils.getBundleContextOfObject(this).getBundle().getSymbolicName();
-        wcBundleName = () -> bundleName;
+        wcBundleName = Utils.getBundleContextOfObject(this).getBundle().getSymbolicName();
     }
 
     private boolean logNotFromWebConsole(final PaxLoggingEvent event) {
         final Map logProperties = event.getProperties();
-        if (logProperties == null)
-            return false;
-        final String bundleName = MapUtils.getValue(logProperties, "bundle.name", String.class, wcBundleName);
-        return Objects.equals(bundleName, wcBundleName.get());
+        return logProperties == null || !Objects.equals(logProperties.get("bundle.name"), wcBundleName);
     }
 
     /**
