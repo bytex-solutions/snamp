@@ -98,7 +98,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler, final String authenticationToken, final Acceptor<? super W, E> testBody) throws Exception {

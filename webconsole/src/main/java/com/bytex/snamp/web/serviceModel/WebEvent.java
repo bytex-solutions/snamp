@@ -1,8 +1,8 @@
 package com.bytex.snamp.web.serviceModel;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 
-import java.security.Principal;
 import java.util.EventObject;
 
 /**
@@ -13,6 +13,7 @@ import java.util.EventObject;
  * @version 2.0
  * @since 2.0
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "$messageType")
 public abstract class WebEvent extends EventObject {
     private static final long serialVersionUID = 3426260188036037856L;
 
