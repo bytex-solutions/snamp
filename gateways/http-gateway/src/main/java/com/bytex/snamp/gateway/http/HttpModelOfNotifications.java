@@ -30,7 +30,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents collection of connected events.
  */
 final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificationAccessor> implements WebSocketCreator, NotificationListener {
-    private class NotificationChannel extends WebSocketAdapter implements NotificationListener{
+    private class NotificationChannel extends WebSocketAdapter implements NotificationListener, WriteCallback{
         @Override
         public final void onWebSocketConnect(final Session session) {
             super.onWebSocketConnect(session);
@@ -44,8 +44,18 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
         @Override
         public final void handleNotification(final NotificationEvent event) {
             if (isConnected() && isAllowed(event.getNotification())) {
-                getRemote().sendString(formatter.toJson(event.getNotification()), createCallback(event.getNotification()));
+                getRemote().sendString(formatter.toJson(event.getNotification()), this);
             }
+        }
+
+        @Override
+        public void writeFailed(final Throwable e) {
+            getLogger().log(Level.WARNING, "Failed to send notification", e);
+        }
+
+        @Override
+        public void writeSuccess() {
+
         }
 
         @Override
@@ -84,24 +94,6 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
 
     HttpModelOfNotifications() {
         webSocketListeners = new CopyOnWriteArraySet<>();
-    }
-
-    private static WriteCallback createCallback(final Notification notification){
-        return new WriteCallback() {
-            private Logger getLogger(){
-                return LoggerProvider.getLoggerForObject(this);
-            }
-
-            @Override
-            public void writeFailed(final Throwable e) {
-                getLogger().log(Level.WARNING, String.format("Failed to send notification %s", notification), e);
-            }
-
-            @Override
-            public void writeSuccess() {
-
-            }
-        };
     }
 
     private Logger getLogger(){
