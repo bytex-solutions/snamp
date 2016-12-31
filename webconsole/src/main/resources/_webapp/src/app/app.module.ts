@@ -66,7 +66,8 @@ type StoreType = {
     FlotCmp,
     NoContent,
     FontAwesomeDirective,
-    UsernameComponent
+    UsernameComponent,
+    KeysPipe
   ],
   imports: [ // import Angular's modules
     BrowserModule,
@@ -125,7 +126,6 @@ export class AppModule {
 // http://stackoverflow.com/questions/39927357/many-modules-using-the-same-component-causes-error-angular-2
 const EXPORTS:any = [
   PanelComponent,
-  KeysPipe,
   InlineEditComponent,
   ParametersTable,
   ResourceEntitiesTable,

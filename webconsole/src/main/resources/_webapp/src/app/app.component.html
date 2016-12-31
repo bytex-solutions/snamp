@@ -4,11 +4,11 @@
 <custom-footer></custom-footer>
 
 <div class="modal fade" id="notify_details" tabindex="-1" role="dialog" aria-labelledby="notifLbl" *ngIf="notificationCount > 0">
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="notifLbl">Binding of {{binding.name}}</h4>
+        <h4 class="modal-title" id="notifLbl">Details for event {{activeEvent.message}}</h4>
       </div>
       <div class="modal-body">
         <table class="table">
@@ -19,9 +19,33 @@
           </tr>
           </thead>
           <tbody>
-          <tr *ngFor="let param of binding.parameters">
-            <td>{{param.key}}</td>
-            <td style="word-break: break-word;">{{param.value}}</td>
+          <tr>
+            <td>
+              Timestamp
+            </td>
+            <td>
+              {{activeEvent.timestamp}}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Message
+            </td>
+            <td>
+              {{activeEvent.message}}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Level
+            </td>
+            <td>
+              {{activeEvent.level}}
+            </td>
+          </tr>
+          <tr *ngFor="let detail of activeEvent.details | keys">
+            <td>{{detail.key}}</td>
+            <td style="word-break: break-word;">{{detail.value}}</td>
           </tr>
           </tbody>
         </table>
