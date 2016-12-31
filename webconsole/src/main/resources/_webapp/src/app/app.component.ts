@@ -68,9 +68,4 @@ export class App {
     );
   }
 
-  setActiveEvent(activeEvent:any) {
-    this.activeEvent = activeEvent;
-    $("#notify_details").modal("show");
-  }
-
 }
