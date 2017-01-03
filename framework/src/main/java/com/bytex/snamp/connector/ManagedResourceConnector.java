@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleRevision;
 
@@ -94,15 +95,25 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      */
     void removeResourceEventListener(final ResourceEventListener listener);
 
-    static String getResourceConnectorType(final Bundle bnd){
+    static String getResourceConnectorType(final Bundle bnd) {
         final BundleRevision revision = bnd.adapt(BundleRevision.class);
         assert revision != null;
         return revision.getCapabilities(CAPABILITY_NAMESPACE)
                 .stream()
                 .map(capability -> capability.getAttributes().get(TYPE_CAPABILITY_ATTRIBUTE))
-                .map(name -> Objects.toString(name, ""))
+                .filter(Objects::nonNull)
+                .map(Object::toString)
                 .findFirst()
-                .orElseGet(() -> "");
+                .orElse("");
+    }
+
+    /**
+     * Returns system name of the connector using its implementation class.
+     * @param connectorImpl A class that represents implementation of resource connector.
+     * @return System name of the connector.
+     */
+    static String getConnectorType(final Class<? extends ManagedResourceConnector> connectorImpl){
+        return getResourceConnectorType(FrameworkUtil.getBundle(connectorImpl));
     }
 
     static boolean isResourceConnectorBundle(final Bundle bnd) {

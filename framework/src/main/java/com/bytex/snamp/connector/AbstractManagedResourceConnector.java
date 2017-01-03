@@ -13,7 +13,6 @@ import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.jmx.JMExceptionUtils;
-import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
 import java.util.Arrays;
@@ -276,14 +275,5 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
     @Override
     public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
         throw new UnsupportedUpdateOperationException("Update operation is not supported");
-    }
-
-    /**
-     * Returns system name of the connector using its implementation class.
-     * @param connectorImpl A class that represents implementation of resource connector.
-     * @return System name of the connector.
-     */
-    public static String getConnectorType(final Class<? extends ManagedResourceConnector> connectorImpl){
-        return ManagedResourceConnector.getResourceConnectorType(FrameworkUtil.getBundle(connectorImpl));
     }
 }

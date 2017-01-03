@@ -103,7 +103,7 @@ public class GatewayUpdateManager implements AutoCloseable {
      * @param callback The callback used to notify about ending of the updating process.
      * @return {@literal true}, if this manager switches from active state to suspended; otherwise, {@literal false}.
      */
-    public final synchronized boolean beginUpdate(final GatewayUpdatedCallback callback){
+    final synchronized boolean beginUpdate(final GatewayUpdatedCallback callback){
         if(isUpdating()){
             timer.reset();
             return false;
@@ -152,8 +152,8 @@ public class GatewayUpdateManager implements AutoCloseable {
      * @param callbacks An array of callbacks to combine with the first callback.
      * @return Combined callbacks.
      */
-    public static GatewayUpdatedCallback combineCallbacks(final GatewayUpdatedCallback callback,
-                                                          final GatewayUpdatedCallback... callbacks){
+    static GatewayUpdatedCallback combineCallbacks(final GatewayUpdatedCallback callback,
+                                                   final GatewayUpdatedCallback... callbacks){
         return () -> {
             callback.updated();
             Arrays.stream(callbacks).forEach(GatewayUpdatedCallback::updated);

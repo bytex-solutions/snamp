@@ -17,7 +17,6 @@ import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.gateway.modeling.*;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.*;
 import org.osgi.framework.BundleContext;
@@ -48,18 +47,14 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  */
 public abstract class AbstractGateway extends AbstractAggregator implements Gateway, ResourceEventListener{
     private static final class GatewayLoggingScope extends LoggingScope {
-        private final String gatewayInstance;
 
         private GatewayLoggingScope(final AbstractGateway requester,
-                                    final String operationName,
-                                    final String gatewayInstance){
+                                    final String operationName){
             super(requester, operationName);
-            this.gatewayInstance = gatewayInstance;
         }
 
-        private static GatewayLoggingScope connectorChangesDetected(final AbstractGateway requester,
-                                                                    final String instanceName) {
-            return new GatewayLoggingScope(requester, "processResourceConnectorChanges", instanceName);
+        private static GatewayLoggingScope connectorChangesDetected(final AbstractGateway requester) {
+            return new GatewayLoggingScope(requester, "processResourceConnectorChanges");
         }
     }
 
@@ -391,19 +386,11 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      * @throws Exception Unable to update this gateway.
      */
     protected void update(final Map<String, String> current,
-                          final Map<String, String> newParameters) throws Exception{
-        if(!current.equals(newParameters))
-            restart(newParameters);
-    }
-
-    /**
-     * Restarts this gateway instance.
-     * @param parameters A new parameters for gateway start.
-     * @throws Exception Unable to restart gateway. This is unrecoverable exception.
-     */
-    protected synchronized final void restart(final Map<String, String> parameters) throws Exception{
-        tryStop();
-        tryStart(parameters);
+                          final Map<String, String> newParameters) throws Exception {
+        if (!current.equals(newParameters)) {
+            tryStop();
+            tryStart(newParameters);
+        }
     }
 
     final synchronized boolean tryUpdate(final Map<String, String> newParameters) throws Exception{
@@ -423,12 +410,21 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         }
     }
 
-    private static GatewayUpdatedCallback gatewayUpdatedNotifier(final WeakReference<? extends AbstractGateway> gatewayInstanceRef){
-        return () -> {
-            final AbstractGateway gateway = gatewayInstanceRef.get();
-            if (gateway != null)
-                GatewayEventBus.notifyInstanceUpdated(gateway.getGatewayType(), gateway);
-        };
+    private static GatewayUpdatedCallback gatewayUpdatedNotifier(final AbstractGateway gatewayInstance) {
+        final class GatewayUpdatedCallbackImpl extends WeakReference<AbstractGateway> implements GatewayUpdatedCallback {
+            private GatewayUpdatedCallbackImpl() {
+                super(gatewayInstance);
+            }
+
+            @Override
+            public void updated() {
+                final AbstractGateway gateway = get();
+                if (gateway != null)
+                    GatewayEventBus.notifyInstanceUpdated(gateway.getGatewayType(), gateway);
+            }
+        }
+
+        return new GatewayUpdatedCallbackImpl();
     }
 
     /**
@@ -439,9 +435,9 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     protected final void beginUpdate(final GatewayUpdateManager manager,
                                      GatewayUpdatedCallback callback) {
         if (callback == null)
-            callback = gatewayUpdatedNotifier(new WeakReference<>(this));
+            callback = gatewayUpdatedNotifier(this);
         else
-            callback = GatewayUpdateManager.combineCallbacks(callback, gatewayUpdatedNotifier(new WeakReference<>(this)));
+            callback = GatewayUpdateManager.combineCallbacks(callback, gatewayUpdatedNotifier(this));
         if (manager.beginUpdate(callback))
             GatewayEventBus.notifyInstanceUpdating(getGatewayType(), this);
     }
@@ -550,7 +546,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     @Override
     public final void serviceChanged(final ServiceEvent event) {
         if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()))
-            try (final LoggingScope logger = GatewayLoggingScope.connectorChangesDetected(this, instanceName)) {
+            try (final LoggingScope logger = GatewayLoggingScope.connectorChangesDetected(this)) {
                 @SuppressWarnings("unchecked")
                 final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>) event.getServiceReference();
                 final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(connectorRef);
@@ -610,14 +606,8 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         return instanceName;
     }
 
-    public final String getGatewayType(){
-        return getGatewayType(getClass());
-    }
-
-    public static String getGatewayType(final Class<? extends Gateway> gatewayType) {
-        final BundleContext context = Utils.getBundleContext(gatewayType);
-        assert context != null;
-        return Gateway.getGatewayType(context.getBundle());
+    public final String getGatewayType() {
+        return Gateway.getGatewayType(getClass());
     }
 
     @Override

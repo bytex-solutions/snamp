@@ -1,8 +1,10 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.wiring.BundleRevision;
 
@@ -106,15 +108,22 @@ public interface Gateway extends FrameworkService, ServiceListener, Closeable {
      */
     <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType);
 
-    static String getGatewayType(final Bundle bnd){
+    static String getGatewayType(final Class<? extends Gateway> gatewayType) {
+        final BundleContext context = Utils.getBundleContext(gatewayType);
+        assert context != null;
+        return getGatewayType(context.getBundle());
+    }
+
+    static String getGatewayType(final Bundle bnd) {
         final BundleRevision revision = bnd.adapt(BundleRevision.class);
         assert revision != null;
         return revision.getCapabilities(CAPABILITY_NAMESPACE)
                 .stream()
                 .map(capability -> capability.getAttributes().get(TYPE_CAPABILITY_ATTRIBUTE))
-                .map(name -> Objects.toString(name, ""))
+                .filter(Objects::nonNull)
+                .map(Object::toString)
                 .findFirst()
-                .orElseGet(() -> "");
+                .orElse("");
     }
 
     static boolean isGatewayBundle(final Bundle bnd) {
