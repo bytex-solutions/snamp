@@ -32,11 +32,19 @@ export class AddEntity implements OnInit {
     containsRequiredParam:boolean = false;
     readyForSave:boolean = false;
     availableEntities:EntityDescriptor[] = [];
+    _innerType:string;
 
-    constructor(private http:ApiClient){};
+    constructor(private http:ApiClient){
+
+    };
 
     ngOnInit() {
-        this.http.get(REST.AVAILABLE_ENTITIES_BY_TYPE(this.type))
+         if (this.type == "resourceGroup") {
+            this._innerType = "resource";
+          } else {
+              this._innerType = this.type;
+          }
+        this.http.get(REST.AVAILABLE_ENTITIES_BY_TYPE(this._innerType))
             .map((res:Response) => res.json())
             .subscribe(data => {
                 for (let key in data) {
@@ -50,7 +58,7 @@ export class AddEntity implements OnInit {
 
     selectType(selected:EntityDescriptor) {
         this.selectedType = selected;
-         this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this.type, selected.type))
+         this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this._innerType, selected.type))
             .map((res: Response) => {
                 let data = res.json();
                 let returnValue:ParamDescriptor[] = [];

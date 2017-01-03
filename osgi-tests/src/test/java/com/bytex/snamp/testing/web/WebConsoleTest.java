@@ -241,7 +241,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     public void dummyTest() throws InterruptedException {
         while (1 > 0) {
             Thread.sleep(3000);
-            LoggerProvider.getLoggerForBundle(getTestBundleContext()).severe("Test log");
+            //LoggerProvider.getLoggerForBundle(getTestBundleContext()).severe("Test log");
         }
     }
 

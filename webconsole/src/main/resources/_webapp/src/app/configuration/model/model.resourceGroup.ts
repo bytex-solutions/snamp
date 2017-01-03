@@ -58,10 +58,9 @@ export class ResourceGroup extends TypedEntity {
         }
     }
 
-    public static stringify(type:string, cstring:string, params: KeyValue[]):any {
+    public static stringify(type:string, params: KeyValue[]):any {
         let returnValue:any = {};
         returnValue["type"] = type;
-        returnValue["connectionString"] = cstring;
         returnValue["parameters"] = KeyValue.stringifyParametersStatic(params);
         return returnValue;
     }

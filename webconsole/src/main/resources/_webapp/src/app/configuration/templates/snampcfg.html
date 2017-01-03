@@ -16,7 +16,7 @@
            class="grid-item-link pointerElement"
            (click)="selectComponent(component)"
            [class.active]="component == selectedComponent"
-           [tooltip]="component.description">
+          >
           <div [class.activeBundle]="component.state == 'ACTIVE'" class="grid-item">
             <h5 class="name">{{component.name}}</h5>
             <p class="symbol">{{component.type}}</p>
