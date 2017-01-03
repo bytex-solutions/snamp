@@ -35,6 +35,8 @@ import { InlineEditComponent } from './configuration/components/inline-edit.comp
 import { ParametersTable } from './configuration/components/parameters-table.component';
 import { ResourceEntitiesTable } from './configuration/components/resource-subentities-table.component';
 import { AddEntity } from './configuration/components/add-entity.component';
+import { ModalModule } from 'angular2-modal';
+import { BootstrapModalModule } from 'angular2-modal/plugins/bootstrap';
 
 import { TooltipModule } from 'ng2-tooltip';
 
@@ -71,6 +73,8 @@ type StoreType = {
   ],
   imports: [ // import Angular's modules
     BrowserModule,
+    BootstrapModalModule,
+    ModalModule.forRoot(),
     TooltipModule,
     FormsModule,
     HttpModule,

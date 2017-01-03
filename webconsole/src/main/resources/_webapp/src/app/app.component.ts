@@ -1,7 +1,7 @@
 /*
  * Angular 2 decorators and services
  */
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import 'style!css!less!font-awesome-webpack/font-awesome-styles.loader!font-awesome-webpack/font-awesome.config.js';
 import { AppState } from './app.service';
 
@@ -11,6 +11,14 @@ var PNotify = require("pnotify/src/pnotify.js");
 require("pnotify/src/pnotify.mobile.js");
 require("pnotify/src/pnotify.buttons.js");
 require("pnotify/src/pnotify.desktop.js");
+
+import { Overlay } from 'angular2-modal';
+import {
+  Modal,
+  OneButtonPresetBuilder,
+  TwoButtonPresetBuilder,
+  PromptPresetBuilder
+} from 'angular2-modal/plugins/bootstrap/index';
 
 /*
  * App Component
@@ -26,7 +34,12 @@ require("pnotify/src/pnotify.desktop.js");
 })
 export class App {
   ws: WebSocketClient;
-  constructor(public appState: AppState) {}
+  constructor(public appState: AppState,
+              overlay: Overlay,
+              vcRef: ViewContainerRef,
+              public modal: Modal) {
+       overlay.defaultViewContainer = vcRef;
+  }
 
   public notificationCount:number = 0;
   public activeEvent:any = undefined;
@@ -47,14 +60,39 @@ export class App {
               PNotify.removeAll();
               this.notificationCount = 0;
             }
-             new PNotify({
+            var notice = new PNotify({
                  title: _title,
-                 text: _json.message,
+                 text: _json.message  + "<a class='details'>Details</a>",
                  type: _json.level,
                  hide: false,
                  styling: 'bootstrap3',
                  addclass: "stack-bottomright",
                  stack: this.stack_bottomright
+             });
+
+             var _thisReference = this;
+             let _details:string = "";
+             _details += "<strong>Message: </strong>" + _json.message + "<br/>";
+             _details += "<strong>Timestamp: </strong>" + _json.timeStamp + "<br/>";
+             if (_json.stackTrace && _json.stackTrace.length > 5) {
+                _details += "<strong>Stacktrace: </strong>" + _json.stackTrace + "<br/>";
+             }
+             _details += "<strong>Level: </strong>" + _json.level + "<br/>";
+             if (_json.details) {
+                _details += "<strong>Details</strong></br/>";
+                for (let key in _json.details) {
+                   _details += "<strong>" + key + ": </strong>" + _json.details[key] + "<br/>"
+                }
+             }
+
+             notice.get().find('a.details').on('click', function() {
+                 _thisReference.modal.alert()
+                         .size('lg')
+                         .title("Details for notification")
+                         .body(_details)
+                         .isBlocking(false)
+                         .keyboard(27)
+                         .open()
              });
 
             this.notificationCount++;

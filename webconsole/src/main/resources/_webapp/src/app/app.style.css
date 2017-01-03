@@ -4648,3 +4648,11 @@ ul.notifications {
 .modal-xlg .modal-body {
   max-height: calc(100% - 60px);
 }
+
+a.details {
+  float: right;
+  display: block;
+  margin: 5px;
+  cursor: pointer;
+  color: blue;
+}
