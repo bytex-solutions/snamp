@@ -52,7 +52,7 @@ export class RGroupsComponent implements OnInit {
                 for (let key in data) {
                     this.resources.push(new ResourceGroup(this.http, key, data[key]))
                 }
-                if (this.resource.length > 0) {
+                if (this.resources.length > 0) {
                   this.activeResource = this.resources[0];
                   this.oldTypeValue = this.activeResource.type;
                   this.oldSmartMode = this.activeResource.smartMode;

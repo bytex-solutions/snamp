@@ -22,38 +22,39 @@ export class ResourceGroup extends TypedEntity {
             this.removeParameter("smartMode");
         }
 
-        if (this.type !=
+        if (this.type && this.type != "") {
 
-        // filling attributes
-        if (parameters["attributes"] != undefined) {
-            let attrs = parameters["attributes"];
-            for (let key in attrs) {
-                let rwto:number = 0;
-                if  (attrs[key]["readWriteTimeout"] != undefined) {
-                    rwto = attrs[key]["readWriteTimeout"];
-                }
-                this.attributes.push(new Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
-            }
-        }
+          // filling attributes
+          if (parameters["attributes"] != undefined) {
+              let attrs = parameters["attributes"];
+              for (let key in attrs) {
+                  let rwto:number = 0;
+                  if  (attrs[key]["readWriteTimeout"] != undefined) {
+                      rwto = attrs[key]["readWriteTimeout"];
+                  }
+                  this.attributes.push(new Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
+              }
+          }
 
-        // filling events
-        if (parameters["events"] != undefined) {
-            let events = parameters["events"];
-            for (let key in events) {
-                this.events.push(new Event(http, this.type, key, events[key]["parameters"]));
-            }
-        }
+          // filling events
+          if (parameters["events"] != undefined) {
+              let events = parameters["events"];
+              for (let key in events) {
+                  this.events.push(new Event(http, this.type, key, events[key]["parameters"]));
+              }
+          }
 
-        // filling operations
-        if (parameters["operations"] != undefined) {
-            let operations = parameters["operations"];
-            for (let key in operations) {
-                let rwto:number = 0;
-                if  (operations[key]["invocationTimeout"] != undefined) {
-                    rwto = operations[key]["invocationTimeout"];
-                }
-                this.operations.push(new Operation(http, this.type, key, rwto, operations[key]["parameters"]));
-            }
+          // filling operations
+          if (parameters["operations"] != undefined) {
+              let operations = parameters["operations"];
+              for (let key in operations) {
+                  let rwto:number = 0;
+                  if  (operations[key]["invocationTimeout"] != undefined) {
+                      rwto = operations[key]["invocationTimeout"];
+                  }
+                  this.operations.push(new Operation(http, this.type, key, rwto, operations[key]["parameters"]));
+              }
+          }
         }
     }
 
