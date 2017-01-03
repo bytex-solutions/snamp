@@ -1,9 +1,67 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { ApiClient, REST } from '../app.restClient';
+import { Response } from '@angular/http';
+import { Observable } from 'rxjs/Observable';
+
+import { Overlay } from 'angular2-modal';
+import { Modal } from 'angular2-modal/plugins/vex';
 
 @Component({
   moduleId: module.id,
-  templateUrl: './templates/snampcfg.html'
+  templateUrl: './templates/snampcfg.html',
+  styleUrls: ['./templates/css/snampcfg.css']
 })
-export class SnampCfgComponent {
+export class SnampCfgComponent implements OnInit {
 
+  private http:ApiClient;
+  public selectedComponent:SnampComponent;
+  public components:SnampComponent[] = [];
+
+  constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
+        this.http = apiClient;
+        overlay.defaultViewContainer = vcRef;
+   }
+
+   ngOnInit() {
+      this.http.get(REST.AVAILABLE_COMPONENT_LIST)
+        .map((res:Response) => res.json())
+        .subscribe(data => {
+            for (let i = 0; i < data.length; i++) {
+              this.components.push(new SnampComponent(data[i]));
+            }
+            if (this.components.length > 0) {
+              this.selectedComponent = this.components[0];
+            }
+        });
+   }
+
+   selectComponent(selected:SnampComponent) {
+      this.selectedComponent = selected;
+   }
+}
+
+
+class SnampComponent {
+  public name:string = "";
+  public description:string = "";
+  public state:string = "";
+  public version:string = "";
+  public type:string = "";
+  constructor(parameters:any) {
+    if (parameters["name"] != undefined) {
+        this.name = parameters["name"];
+    }
+    if (parameters["description"] != undefined) {
+        this.description = parameters["description"];
+    }
+    if (parameters["state"] != undefined) {
+        this.state = parameters["state"];
+    }
+    if (parameters["version"] != undefined) {
+        this.version = parameters["version"];
+    }
+    if (parameters["type"] != undefined) {
+        this.type = parameters["type"];
+    }
+  }
 }

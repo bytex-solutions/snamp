@@ -1,5 +1,77 @@
-<!-- main content here -->
-<div class="right_col" role="main">
-  <h5>Dummy snamp configuration</h5>
+<div class="right_col" role="main" style="min-height: 1400px;">
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>Component configuration</h3>
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="row" style="margin-top: 30px">
+
+      <panel [header]="'Installed components'" [column]="'5'">
+
+        <a *ngFor="let component of components"
+           class="grid-item-link pointerElement"
+           (click)="selectComponent(component)"
+           [class.active]="component == selectedComponent"
+           [tooltip]="component.description">
+          <div [class.activeBundle]="component.state == 'ACTIVE'" class="grid-item">
+            <h5 class="name">{{component.name}}</h5>
+            <p class="symbol">{{component.type}}</p>
+            <p class="weight">v.{{component.version}}</p>
+          </div>
+        </a>
+      </panel>
+
+      <panel
+          [header]="selectedComponent.name"
+          [column]="'6'"
+          *ngIf="selectedComponent != undefined">
+        <form class="form-horizontal form-label-left" action="javascript:void(0);">
+
+          <div class="form-group">
+            <label class="control-label col-md-3 col-sm-3 col-xs-12">Name</label>
+            <div class="col-md-9 col-sm-9 col-xs-12">
+              <input type="text" class="form-control" readonly="readonly" [attr.placeholder]="selectedComponent.name">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-md-3 col-sm-3 col-xs-12">Type</label>
+            <div class="col-md-9 col-sm-9 col-xs-12">
+              <input type="text" class="form-control" readonly="readonly" [attr.placeholder]="selectedComponent.type">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-md-3 col-sm-3 col-xs-12">Version</label>
+            <div class="col-md-9 col-sm-9 col-xs-12">
+              <input type="text" class="form-control" readonly="readonly" [attr.placeholder]="selectedComponent.version">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-md-3 col-sm-3 col-xs-12">State</label>
+            <div class="col-md-9 col-sm-9 col-xs-12">
+              <input type="text" class="form-control" readonly="readonly" [attr.placeholder]="selectedComponent.state">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-md-3 col-sm-3 col-xs-12">
+              Description
+            </label>
+            <div class="col-md-9 col-sm-9 col-xs-12">
+              <textarea class="form-control" rows="3" placeholder="No description is available">{{selectedComponent.description}}</textarea>
+            </div>
+          </div>
+
+        </form>
+
+      </panel>
+
+    </div>
+  </div>
 </div>
-<!-- main content here -->

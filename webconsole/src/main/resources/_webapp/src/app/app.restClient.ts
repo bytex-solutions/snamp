@@ -62,7 +62,7 @@ export class REST {
 
     public static AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/resource/list";
 
-    public static AVAILABLE_RGROUP_LIST = REST.ROOT_PATH + "/resourceGroup/list";
+    public static AVAILABLE_COMPONENT_LIST = REST.ROOT_PATH + "/components";
 
     public static AVAILABLE_ENTITIES_BY_TYPE(entityType:string):string {
         return REST.ROOT_PATH + "/" + entityType + "/list";

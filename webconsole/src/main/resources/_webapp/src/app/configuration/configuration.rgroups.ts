@@ -60,7 +60,7 @@ export class RGroupsComponent implements OnInit {
             });
 
         // Get all the available bundles that belong to Resources
-        this.http.get(REST.AVAILABLE_RGROUP_LIST)
+        this.http.get(REST.AVAILABLE_RESOURCE_LIST)
             .map((res: Response) => res.json())
             .subscribe(data => this.availableResources = data);
 
