@@ -6,6 +6,7 @@ import com.google.common.cache.LoadingCache;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 import javax.management.openmbean.InvalidKeyException;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -19,6 +20,7 @@ import java.util.function.Supplier;
  * @since 1.0
  */
 public final class DistributedServices {
+    @Immutable
     private static final class LocalServiceKey<S extends SharedObject> extends SharedObjectDefinition<S> {
         private final String serviceName;
 

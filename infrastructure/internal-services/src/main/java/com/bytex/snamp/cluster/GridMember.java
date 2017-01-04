@@ -13,6 +13,7 @@ import com.hazelcast.core.ILock;
 import com.hazelcast.core.Member;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 import javax.management.JMException;
 import javax.management.openmbean.InvalidKeyException;
 import javax.xml.bind.JAXBException;
@@ -73,6 +74,7 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
         }
     }
 
+    @Immutable
     private static final class GridServiceKey<S extends SharedObject> extends SharedObjectDefinition<S> {
         private final String serviceName;
 

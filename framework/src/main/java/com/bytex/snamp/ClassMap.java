@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -10,6 +11,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  * @since 2.0
  */
+@ThreadSafe
 public class ClassMap<V> extends ConcurrentHashMap<Class<?>, V> {
     private static final long serialVersionUID = 3041733574645762326L;
 

@@ -9,6 +9,7 @@ import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.*;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.io.Serializable;
@@ -29,6 +30,7 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @version 2.0
  * @since 1.0
  */
+@ThreadSafe
 public final class ArrayUtils {
     @FunctionalInterface
     private interface ToByteArrayConverter<T>{

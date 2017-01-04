@@ -23,6 +23,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
 
+import javax.annotation.concurrent.Immutable;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
@@ -58,6 +59,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         }
     }
 
+    @Immutable
     private static final class InternalState {
         private final ImmutableMap<String, String> parameters;
         private final GatewayState state;
@@ -80,7 +82,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         }
 
         private static InternalState finalState() {
-            return new InternalState(GatewayState.CLOSED, ImmutableMap.of());
+            return null;
         }
 
         private boolean parametersAreEqual(final Map<String, String> newParameters) {
