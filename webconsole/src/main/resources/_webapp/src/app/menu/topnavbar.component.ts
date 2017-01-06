@@ -1,19 +1,20 @@
 import { Component } from '@angular/core';
+import { CookieService } from 'angular2-cookie/core';
 
 @Component({
-  selector: 'topnav-bar',  // <home></home>
-  // We need to tell Angular's Dependency Injection which providers are in our app.
-  providers: [
-  ],
-  // Our list of styles in our component. We may add more to compose many styles together
+  selector: 'topnav-bar',
+  providers: [CookieService],
   styleUrls: [ '../app.style.css' ],
-  // Every Angular template is first compiled by the browser before Angular runs it's compiler
   templateUrl: './topnavbar.component.html'
 })
 export class TopNavBar {
     // TypeScript public modifier
-    constructor() {
+    constructor(private _cookieService:CookieService) {
 
+    }
+
+    public clearCookie() {
+      this._cookieService.removeAll();
     }
 
     toggleClicked(event: MouseEvent)
@@ -21,7 +22,7 @@ export class TopNavBar {
         var target = event.srcElement.id;
         var body = $('body');
         var menu = $('#sidebar-menu');
-        
+
         // toggle small or large menu
         if (body.hasClass('nav-md')) {
             menu.find('li.active ul').hide();
@@ -33,14 +34,14 @@ export class TopNavBar {
         body.toggleClass('nav-md nav-sm');
 
     }
-  
+
 
   ngOnInit() {
     console.log('hello `topnavbar` component');
   }
 
   ngAfterViewInit(){
-     
+
   }
- 
+
 }
