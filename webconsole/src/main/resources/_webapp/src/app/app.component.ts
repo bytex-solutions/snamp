@@ -1,10 +1,6 @@
-/*
- * Angular 2 decorators and services
- */
 import { Component, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import 'style!css!less!font-awesome-webpack/font-awesome-styles.loader!font-awesome-webpack/font-awesome.config.js';
-import { AppState } from './app.service';
-
+import { LocalStorageService } from 'angular-2-local-storage';
 import { WebSocketClient } from './app.websocket';
 
 var PNotify = require("pnotify/src/pnotify.js");
@@ -20,10 +16,7 @@ import {
   PromptPresetBuilder
 } from 'angular2-modal/plugins/bootstrap/index';
 
-/*
- * App Component
- * Top Level Component
- */
+
 @Component({
   selector: 'app',
   encapsulation: ViewEncapsulation.None,
@@ -34,10 +27,10 @@ import {
 })
 export class App {
   ws: WebSocketClient;
-  constructor(public appState: AppState,
-              overlay: Overlay,
+  constructor(overlay: Overlay,
               vcRef: ViewContainerRef,
-              public modal: Modal) {
+              public modal: Modal,
+              private localStorageService: LocalStorageService) {
        overlay.defaultViewContainer = vcRef;
   }
 
@@ -46,8 +39,6 @@ export class App {
   stack_bottomright:any = {"dir1": "up", "dir2": "left", "firstpos1": 25, "firstpos2": 25};
 
   ngAfterViewInit() {
-    console.log('Initial App State', this.appState.state);
-
     this.ws = new WebSocketClient("ws://localhost:8181/snamp/console/events" );
 
     this.ws.getDataStream().subscribe(

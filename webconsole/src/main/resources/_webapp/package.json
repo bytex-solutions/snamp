@@ -93,7 +93,8 @@
     "ng2-tooltip": "0.0.5",
     "select2": "4.0.3",
     "smartwizard": "4.1.1",
-    "pnotify": "3.0.0"
+    "pnotify": "3.0.0",
+    "angular-2-local-storage": "1.0.0"
   },
   "devDependencies": {
     "@types/hammerjs": "^2.0.33",
