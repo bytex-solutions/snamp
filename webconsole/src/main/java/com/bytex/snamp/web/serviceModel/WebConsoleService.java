@@ -10,6 +10,5 @@ public interface WebConsoleService extends AutoCloseable {
     String URL_CONTEXT = "com.bytex.snamp.web.console.service.urlContext";
     String NAME = "com.bytex.snamp.web.console.service.name";
 
-    void addWebEventListener(final WebEventListener listener);
-    void removeWebEventListener(final WebEventListener listener);
+    void attachSession(final WebConsoleSession session);
 }

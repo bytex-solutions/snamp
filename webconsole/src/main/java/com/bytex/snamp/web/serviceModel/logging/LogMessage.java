@@ -3,7 +3,7 @@ package com.bytex.snamp.web.serviceModel.logging;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
-import com.bytex.snamp.web.serviceModel.WebEvent;
+import com.bytex.snamp.web.serviceModel.WebMessage;
 import com.google.common.collect.ImmutableMap;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
@@ -21,7 +21,7 @@ import java.util.Map;
  * @since 1.0
  */
 @JsonTypeName("log")
-public final class LogEvent extends WebEvent {
+public final class LogMessage extends WebMessage {
     private static final long serialVersionUID = -9157337771308084521L;
     private final String message;
     private final Severity severity;
@@ -29,7 +29,7 @@ public final class LogEvent extends WebEvent {
     private final String[] stackTrace;
     private final ImmutableMap additionalInfo;
 
-    LogEvent(final WebConsoleService source, final LogEntry entry) {
+    LogMessage(final WebConsoleService source, final LogEntry entry) {
         super(source);
         message = entry.getMessage();
         switch (entry.getLevel()) {
@@ -53,7 +53,7 @@ public final class LogEvent extends WebEvent {
         additionalInfo = ImmutableMap.of();
     }
 
-    LogEvent(final WebConsoleService source, final PaxLoggingEvent event) {
+    LogMessage(final WebConsoleService source, final PaxLoggingEvent event) {
         super(source);
         message = event.getMessage();
         timeStamp = Instant.ofEpochMilli(event.getTimeStamp());

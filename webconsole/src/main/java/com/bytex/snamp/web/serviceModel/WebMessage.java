@@ -14,7 +14,7 @@ import java.util.EventObject;
  * @since 2.0
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "$messageType")
-public abstract class WebEvent extends EventObject {
+public abstract class WebMessage extends EventObject {
     private static final long serialVersionUID = 3426260188036037856L;
 
     /**
@@ -23,7 +23,7 @@ public abstract class WebEvent extends EventObject {
      * @param source The object on which the Event initially occurred.
      * @throws IllegalArgumentException if source is null.
      */
-    public WebEvent(final WebConsoleService source) {
+    public WebMessage(final WebConsoleService source) {
         super(source);
     }
 

@@ -5,7 +5,7 @@ import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
-import com.bytex.snamp.web.serviceModel.WebEventListener;
+import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitializer;
@@ -78,10 +78,10 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
     }
 
     @Override
-    public void addWebEventListener(final WebEventListener listener) {
+    public void addWebEventListener(final WebConsoleSession listener) {
         final WebConsoleService service = serviceHolder.getService();
         if (service != null)
-            service.addWebEventListener(listener);
+            service.attachSession(listener);
     }
 
     @Override

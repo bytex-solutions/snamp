@@ -2,7 +2,7 @@ package com.bytex.snamp.web;
 
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
-import com.bytex.snamp.web.serviceModel.WebEventListener;
+import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -35,9 +35,9 @@ final class WebConsoleServiceHolder extends ServiceHolder<WebConsoleService> imp
     }
 
     @Override
-    public void addWebEventListener(final WebEventListener listener) {
+    public void addWebEventListener(final WebConsoleSession listener) {
         final WebConsoleService service = getService();
         if (service != null)
-            service.addWebEventListener(listener);
+            service.attachSession(listener);
     }
 }

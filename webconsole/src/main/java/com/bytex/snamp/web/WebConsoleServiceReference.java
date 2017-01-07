@@ -1,7 +1,7 @@
 package com.bytex.snamp.web;
 
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
-import com.bytex.snamp.web.serviceModel.WebEventListener;
+import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import org.osgi.framework.ServiceReference;
 
 import java.util.Objects;
@@ -24,5 +24,5 @@ interface WebConsoleServiceReference extends AutoCloseable, Supplier<WebConsoleS
 
     void activate();
 
-    void addWebEventListener(final WebEventListener listener);
+    void addWebEventListener(final WebConsoleSession listener);
 }

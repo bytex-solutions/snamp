@@ -2,6 +2,7 @@ package com.bytex.snamp.web.serviceModel.logging;
 
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
+import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import org.ops4j.pax.logging.spi.PaxLoggingEvent;
 
 import javax.annotation.Nonnull;
@@ -38,6 +39,11 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
         return logProperties == null || !Objects.equals(logProperties.get("bundle.name"), wcBundleName);
     }
 
+    private void doAppend(final WebConsoleSession session, final PaxLoggingEvent event) {
+        if (getUserData(session).shouldBeLogged(event.getLevel()))
+            session.sendMessage(new LogMessage(this, event));
+    }
+
     /**
      * Log in <code>Appender</code> specific way. When appropriate,
      * Loggers will call the <code>doAppend</code> method of appender
@@ -48,7 +54,7 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
     @Override
     public void doAppend(final PaxLoggingEvent entry) {
         if (logNotFromWebConsole(entry))
-            fireWebEvent(entry, (event, settings) -> settings.shouldBeLogged(entry.getLevel()), LogEvent::new, executor);
+            forEachSession(entry, this::doAppend, executor);
     }
 
     @Override

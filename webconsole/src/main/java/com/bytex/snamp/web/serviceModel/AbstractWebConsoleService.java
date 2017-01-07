@@ -3,6 +3,7 @@ package com.bytex.snamp.web.serviceModel;
 import com.bytex.snamp.WeakEventListenerList;
 
 import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -11,28 +12,23 @@ import java.util.function.Consumer;
  * @since 2.0
  */
 public abstract class AbstractWebConsoleService implements WebConsoleService {
-    private final WeakEventListenerList<WebEventListener, WebEvent> listeners = WeakEventListenerList.create(WebEventListener::accept);
+    private final WeakEventListenerList<WebConsoleSession, WebMessage> listeners = WeakEventListenerList.create(WebConsoleSession::sendMessage);
 
     @Override
-    public final void addWebEventListener(final WebEventListener listener) {
+    public final void attachSession(final WebConsoleSession listener) {
         listeners.add(listener);
     }
 
-    @Override
-    public final void removeWebEventListener(final WebEventListener listener) {
-        listeners.remove(listener);
+    protected final void sendBroadcastMessage(final WebMessage message){
+        listeners.fire(message);
     }
 
-    protected final void fireWebEvent(final WebEvent event){
-        listeners.fire(event);
+    protected final void forEachSession(final Consumer<? super WebConsoleSession> sessionConsumer, final Executor executor) {
+        listeners.forEach(session -> executor.execute(() -> sessionConsumer.accept(session)));
     }
 
-    final void fireWebEvent(final Consumer<? super WebEventListener> listenerInvoker){
-        listeners.forEach(listenerInvoker);
-    }
-
-    final void fireWebEvent(final Consumer<? super WebEventListener> listenerInvoker, final Executor executor) {
-        listeners.forEach(listener -> executor.execute(() -> listenerInvoker.accept(listener)));
+    protected final <I> void forEachSession(final I input, final BiConsumer<? super WebConsoleSession, ? super I> sessionConsumer, final Executor executor) {
+        listeners.forEach(session -> executor.execute(() -> sessionConsumer.accept(session, input)));
     }
 
     @Override

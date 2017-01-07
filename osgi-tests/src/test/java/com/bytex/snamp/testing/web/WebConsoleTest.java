@@ -16,6 +16,7 @@ import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -101,10 +102,15 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         return false;
     }
 
-    private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler, final String authenticationToken, final Acceptor<? super W, E> testBody) throws Exception {
+    private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
+                                                           final String authenticationToken,
+                                                           final Acceptor<? super W, E> testBody,
+                                                           final JsonObject... cachedUserData) throws Exception {
         final ClientUpgradeRequest upgradeRequest = new ClientUpgradeRequest();
         upgradeRequest.setHeader(HttpHeaders.AUTHORIZATION, authenticationToken);
         try (final Session session = client.connect(webSocketHandler, new URI(WS_ENDPOINT), upgradeRequest).get(10, TimeUnit.SECONDS)) {
+            for (final JsonObject obj : cachedUserData)
+                session.getRemote().sendString(FORMATTER.toJson(obj));
             testBody.accept(webSocketHandler);
         }
     }
@@ -159,7 +165,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
             assertNotNull(element);
             assertEquals("Test log", element.getAsJsonObject().get("message").getAsString());
             assertEquals("error", element.getAsJsonObject().get("level").getAsString());
-        });
+        }, settings.getAsJsonObject());
     }
 
     /**
