@@ -54,7 +54,7 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
     @Override
     public void doAppend(final PaxLoggingEvent entry) {
         if (logNotFromWebConsole(entry))
-            forEachSession(entry, this::doAppend, executor);
+            forEachSession(session -> doAppend(session, entry), executor);
     }
 
     @Override

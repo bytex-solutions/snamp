@@ -120,7 +120,7 @@ final class WebSocketChannel extends WebSocketAdapter implements WebConsoleSessi
                 throw new UncheckedIOException(e);
             }
             else
-                return Optional.of(userDataType.cast(userData));
+                return Optional.of(userData).map(userDataType::cast);
         } else
             return Optional.empty();
     }

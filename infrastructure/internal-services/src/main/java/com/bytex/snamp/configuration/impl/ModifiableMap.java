@@ -41,7 +41,6 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
     }
 
     @Override
-    @Nonnull
     public final V put(@Nonnull final K key, @Nonnull final V value) {
         modified = true;
         return delegate().put(key, value);

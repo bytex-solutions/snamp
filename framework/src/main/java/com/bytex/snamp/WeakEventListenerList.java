@@ -60,6 +60,15 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
         }
     }
 
+    public final void parallelForEach(final Consumer<? super L> action, final Executor executor) {
+        final WeakEventListener<L, E>[] snapshot = listeners;
+        for (final WeakEventListener<L, E> listenerRef : snapshot) {
+            final L listener = listenerRef.get();
+            if (listener != null)
+                executor.execute(() -> action.accept(listener));
+        }
+    }
+
     /**
      * Removes all of the elements of this collection that satisfy the given
      * predicate.  Errors or runtime exceptions thrown during iteration or by

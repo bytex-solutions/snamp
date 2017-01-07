@@ -111,6 +111,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         try (final Session session = client.connect(webSocketHandler, new URI(WS_ENDPOINT), upgradeRequest).get(10, TimeUnit.SECONDS)) {
             for (final JsonObject obj : cachedUserData)
                 session.getRemote().sendString(FORMATTER.toJson(obj));
+            Thread.sleep(1000);
             testBody.accept(webSocketHandler);
         }
     }

@@ -3,7 +3,6 @@ package com.bytex.snamp.web.serviceModel;
 import com.bytex.snamp.WeakEventListenerList;
 
 import java.util.concurrent.Executor;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -24,11 +23,7 @@ public abstract class AbstractWebConsoleService implements WebConsoleService {
     }
 
     protected final void forEachSession(final Consumer<? super WebConsoleSession> sessionConsumer, final Executor executor) {
-        listeners.forEach(session -> executor.execute(() -> sessionConsumer.accept(session)));
-    }
-
-    protected final <I> void forEachSession(final I input, final BiConsumer<? super WebConsoleSession, ? super I> sessionConsumer, final Executor executor) {
-        listeners.forEach(session -> executor.execute(() -> sessionConsumer.accept(session, input)));
+        listeners.parallelForEach(sessionConsumer, executor);
     }
 
     @Override

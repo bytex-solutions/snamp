@@ -2,6 +2,7 @@ package com.bytex.snamp.web.serviceModel.logging;
 
 import com.bytex.snamp.connector.notifications.Severity;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -16,6 +17,7 @@ import java.util.Objects;
  * @since 2.0
  */
 @JsonTypeName("loggingSettings")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public final class LoggingSettings {
     private Severity level;
 

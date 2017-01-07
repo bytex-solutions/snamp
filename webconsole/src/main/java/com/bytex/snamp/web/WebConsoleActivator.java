@@ -50,7 +50,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         protected VersionResource activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, VersionResource.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, VersionResource.URL_CONTEXT);
-            return null;
+            return new VersionResource();
         }
     }
 
