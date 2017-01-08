@@ -95,7 +95,7 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      */
     void removeResourceEventListener(final ResourceEventListener listener);
 
-    static String getResourceConnectorType(final Bundle bnd) {
+    static String getConnectorType(final Bundle bnd) {
         final BundleRevision revision = bnd.adapt(BundleRevision.class);
         assert revision != null;
         return revision.getCapabilities(CAPABILITY_NAMESPACE)
@@ -113,11 +113,11 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      * @return System name of the connector.
      */
     static String getConnectorType(final Class<? extends ManagedResourceConnector> connectorImpl){
-        return getResourceConnectorType(FrameworkUtil.getBundle(connectorImpl));
+        return getConnectorType(FrameworkUtil.getBundle(connectorImpl));
     }
 
     static boolean isResourceConnectorBundle(final Bundle bnd) {
-        return bnd != null && !isNullOrEmpty(getResourceConnectorType(bnd));
+        return bnd != null && !isNullOrEmpty(getConnectorType(bnd));
     }
 
     static boolean isResourceConnector(final ServiceReference<?> ref){

@@ -8,6 +8,7 @@ import com.bytex.snamp.core.SupportService;
 import com.google.common.collect.Iterables;
 import org.osgi.framework.*;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import java.io.IOException;
 import java.time.Duration;
@@ -28,6 +29,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 1.0
  */
 public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements Aggregator, DynamicMBean {
+
     /**
      * Initializes a new client of the specified managed resource.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
@@ -36,13 +38,18 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     public ManagedResourceConnectorClient(final BundleContext context,
                                           final String resourceName) throws InstanceNotFoundException {
-        super(context, getResourceConnectorAndCheck(context, resourceName));
+        this(context, getResourceConnectorAndCheck(context, resourceName));
     }
 
     public ManagedResourceConnectorClient(final BundleContext context,
                                           final String resourceName,
                                           final Duration instanceTimeout) throws TimeoutException, InterruptedException {
-        super(context, spinUntilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, instanceTimeout));
+        this(context, spinUntilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, instanceTimeout));
+    }
+
+    public ManagedResourceConnectorClient(final BundleContext context,
+                                          final ServiceReference<ManagedResourceConnector> reference){
+        super(context, reference);
     }
 
     private static ServiceReference<ManagedResourceConnector> getResourceConnectorAndCheck(final BundleContext context,
@@ -245,7 +252,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     }
 
     public String getConnectorType(){
-        return ManagedResourceConnector.getResourceConnectorType(getBundle());
+        return ManagedResourceConnector.getConnectorType(getBundle());
     }
 
     /**
@@ -271,6 +278,10 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         return ManagedResourceActivator.getManagedResourceName(connectorRef);
     }
 
+    public String getManagedResourceName(){
+        return getManagedResourceName(this);
+    }
+
     /**
      * Gets a reference to the managed resource connector.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
@@ -287,14 +298,12 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * Exposes a new object that listen for the managed resource connector service.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @param listener The managed resource listener. Cannot be {@literal null}.
-     * @return {@literal true}, if listener is registered successfully; otherwise, {@literal false}.
      */
-    public static boolean addResourceListener(final BundleContext context, final ServiceListener listener){
+    public static void addResourceListener(final BundleContext context, final ServiceListener listener) {
         try {
             context.addServiceListener(listener, ManagedResourceActivator.createFilter("*", String.format("(%s=%s)", Constants.OBJECTCLASS, ManagedResourceConnector.class.getName())));
-            return true;
-        } catch (final InvalidSyntaxException ignored) {
-            return false;
+        } catch (final InvalidSyntaxException e) {
+            throw new AssertionError("Unable to add resource listener", e);
         }
     }
 
@@ -327,7 +336,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(final Class<T> objectType) {
+    public <T> T queryObject(@Nonnull final Class<T> objectType) {
         return getService().queryObject(objectType);
     }
 

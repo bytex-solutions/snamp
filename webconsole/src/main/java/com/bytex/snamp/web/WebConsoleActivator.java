@@ -4,6 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
+import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
 import com.bytex.snamp.web.serviceModel.logging.WebConsoleLogService;
@@ -41,6 +42,27 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     //=============Predefined services for WebConsole======
+    private static final class ManagedResourceInformationServiceProvider extends ProvidedService<WebConsoleService, ManagedResourceInformationService>{
+        private ManagedResourceInformationServiceProvider(){
+            super(WebConsoleService.class, simpleDependencies(WebConsoleEngine.class));
+        }
+
+        @Override
+        protected ManagedResourceInformationService activateService(final Map<String, Object> identity) throws Exception {
+            return new ManagedResourceInformationService();
+        }
+
+        @Override
+        protected void activated(final ManagedResourceInformationService service) {
+            service.init();
+        }
+
+        @Override
+        protected void cleanupService(final ManagedResourceInformationService serviceInstance, final boolean stopBundle) throws Exception {
+            serviceInstance.close();
+        }
+    }
+
     private static final class VersionResourceProvider extends ProvidedService<WebConsoleService, VersionResource>{
         private VersionResourceProvider(){
             super(WebConsoleService.class, simpleDependencies(WebConsoleEngine.class));
@@ -77,7 +99,10 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
     @SpecialUse
     public WebConsoleActivator(){
-        super(new WebConsoleServletProvider(), new LogNotifierProvider(), new VersionResourceProvider());
+        super(new WebConsoleServletProvider(),
+                new LogNotifierProvider(),
+                new VersionResourceProvider(),
+                new ManagedResourceInformationServiceProvider());
     }
 
     @Override

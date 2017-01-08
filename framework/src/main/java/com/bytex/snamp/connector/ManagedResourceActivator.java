@@ -23,6 +23,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import java.io.IOException;
 import java.util.*;
@@ -50,7 +51,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
 
-    private static final String MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY = "managedResource";
+    private static final String MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY = "resourceName";
     private static final String CONNECTOR_STRING_IDENTITY_PROPERTY = "connectionString";
     private static final String CONNECTION_TYPE_IDENTITY_PROPERTY = "connectionType";
 
@@ -139,7 +140,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         @Override
-        public <T> T queryObject(final Class<T> objectType) {
+        public <T> T queryObject(@Nonnull final Class<T> objectType) {
             return readLock.apply(SingleResourceGroup.INSTANCE, this, objectType, (t, o) -> t.connector.queryObject(o));
         }
 
@@ -232,7 +233,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private ManagedResourceConnectorRegistry(final ManagedResourceConnectorFactory<TConnector> controller,
                                                  final RequiredService<?>... dependencies){
-            this(ManagedResourceConnector.getResourceConnectorType(Utils.getBundleContextOfObject(controller).getBundle()), controller, dependencies);
+            this(ManagedResourceConnector.getConnectorType(Utils.getBundleContextOfObject(controller).getBundle()), controller, dependencies);
         }
 
         private CMManagedResourceParser getParser(){
@@ -440,15 +441,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     private static class ManagedResourceConnectorFactoryServiceImpl<TConnector extends ManagedResourceConnector> extends AbstractAggregator implements ManagedResourceConnectorFactoryService {
-        private final Logger logger;
         private final ManagedResourceConnectorFactory<TConnector> connectorFactory;
         private final DependencyManager dependencies;
 
         private ManagedResourceConnectorFactoryServiceImpl(final ManagedResourceConnectorFactory<TConnector> factory,
-                                                           final Logger logger,
                                                            final DependencyManager dependencies) {
             this.connectorFactory = Objects.requireNonNull(factory);
-            this.logger = Objects.requireNonNull(logger);
             this.dependencies = dependencies;
         }
 
@@ -554,7 +552,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return new SupportConnectorServiceManager<ManagedResourceConnectorFactoryService, ManagedResourceConnectorFactoryServiceImpl<TConnector>>(ManagedResourceConnectorFactoryService.class, dependencies) {
             @Override
             ManagedResourceConnectorFactoryServiceImpl<TConnector> activateService() {
-                return new ManagedResourceConnectorFactoryServiceImpl<>(factory, getLogger(), getDependencies());
+                return new ManagedResourceConnectorFactoryServiceImpl<>(factory, getDependencies());
             }
         };
     }
@@ -585,7 +583,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @return Type of the connector.
      */
     public final String getConnectorType(){
-        return ManagedResourceConnector.getResourceConnectorType(Utils.getBundleContextOfObject(this).getBundle());
+        return ManagedResourceConnector.getConnectorType(Utils.getBundleContextOfObject(this).getBundle());
     }
 
     /**
@@ -699,10 +697,16 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return getConnectorType().hashCode();
     }
 
-    static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef) {
+    private static String getReferencePropertyAsString(final ServiceReference<ManagedResourceConnector> connectorRef,
+                                                       final String propertyName,
+                                                       final String defaultValue){
         return connectorRef != null ?
-                Objects.toString(connectorRef.getProperty(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY), "") :
-                "";
+                Objects.toString(connectorRef.getProperty(propertyName), defaultValue) :
+                defaultValue;
+    }
+
+    static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef) {
+        return getReferencePropertyAsString(connectorRef, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, "");
     }
 
     static String getConnectionString(final ServiceReference<ManagedResourceConnector> identity){
@@ -721,7 +725,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     static List<Bundle> getResourceConnectorBundles(final BundleContext context, final String connectorName){
         return Arrays.stream(context.getBundles())
-                .filter(bnd -> ManagedResourceConnector.getResourceConnectorType(bnd).equals(connectorName))
+                .filter(bnd -> ManagedResourceConnector.getConnectorType(bnd).equals(connectorName))
                 .collect(Collectors.toList());
     }
 
@@ -803,7 +807,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         final Collection<Bundle> candidates = getResourceConnectorBundles(context);
         return candidates.stream()
                 .filter(ManagedResourceConnector::isResourceConnectorBundle)
-                .map(ManagedResourceConnector::getResourceConnectorType)
+                .map(ManagedResourceConnector::getConnectorType)
                 .collect(Collectors.toList());
     }
 

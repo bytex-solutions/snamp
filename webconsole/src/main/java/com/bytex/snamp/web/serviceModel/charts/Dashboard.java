@@ -1,6 +1,12 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
-import java.util.HashMap;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeName;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Represents data model of dashboard with charts.
@@ -8,6 +14,26 @@ import java.util.HashMap;
  * @version 2.0
  * @since 2.0
  */
-public final class Dashboard extends HashMap<String, Chart> {
-    private static final long serialVersionUID = 7951544125205968039L;
+@JsonTypeName("dashboardOfCharts")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+public final class Dashboard {
+    private final List<Chart> charts;
+
+    public Dashboard(){
+        charts = new LinkedList<>();
+    }
+
+    @JsonProperty("charts")
+    public List<Chart> getCharts(){
+        return charts;
+    }
+
+    public void setCharts(final Collection<Chart> value) {
+        charts.clear();
+        charts.addAll(value);
+    }
+
+    public void addChart(final Chart value){
+        charts.add(value);
+    }
 }
