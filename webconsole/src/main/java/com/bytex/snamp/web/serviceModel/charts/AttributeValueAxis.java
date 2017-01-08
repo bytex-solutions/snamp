@@ -1,6 +1,6 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
-import com.bytex.snamp.web.serviceModel.commons.AttributeInformation;
+import com.bytex.snamp.web.serviceModel.managedResources.AttributeInformation;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;

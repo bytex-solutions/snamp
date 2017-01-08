@@ -4,7 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
-import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
+import com.bytex.snamp.web.serviceModel.managedResources.ManagedResourceInformationService;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
 import com.bytex.snamp.web.serviceModel.logging.WebConsoleLogService;

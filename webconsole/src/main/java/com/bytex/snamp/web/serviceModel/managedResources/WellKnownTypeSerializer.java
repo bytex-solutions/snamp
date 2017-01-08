@@ -1,4 +1,4 @@
-package com.bytex.snamp.web.serviceModel.commons;
+package com.bytex.snamp.web.serviceModel.managedResources;
 
 import com.bytex.snamp.jmx.WellKnownType;
 import org.codehaus.jackson.JsonGenerator;
