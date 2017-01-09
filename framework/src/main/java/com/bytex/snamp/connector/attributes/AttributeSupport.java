@@ -118,6 +118,12 @@ public interface AttributeSupport {
     AttributeList getAttributes(final String[] attributes);
 
     /**
+     * Gets the values of all attributes.
+     * @return The values of all attributes
+     */
+    AttributeList getAttributes() throws MBeanException, ReflectionException;
+
+    /**
      * Sets the values of several attributes of the managed resource.
      *
      * @param attributes A list of attributes: The identification of the

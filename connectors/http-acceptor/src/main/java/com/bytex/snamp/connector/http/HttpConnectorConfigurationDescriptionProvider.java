@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
-import com.bytex.snamp.connector.dsp.MessageDrivenConnectorConfigurationDescriptionProvider;
+import com.bytex.snamp.connector.dsp.DataStreamDrivenConnectorConfigurationDescriptionProvider;
 import com.google.common.base.Splitter;
 
 import java.net.URL;
@@ -17,7 +17,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  * @since 2.0
  */
-final class HttpConnectorConfigurationDescriptionProvider extends MessageDrivenConnectorConfigurationDescriptionProvider {
+final class HttpConnectorConfigurationDescriptionProvider extends DataStreamDrivenConnectorConfigurationDescriptionProvider {
     private static final Supplier<String> EMPTY_STRING = () -> "";
     private static final Splitter PATH_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
     private static final String PARSER_SCRIPT_PATH_PARAM = "parserScriptPath";

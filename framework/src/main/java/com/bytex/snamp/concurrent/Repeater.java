@@ -5,6 +5,7 @@ import com.bytex.snamp.MethodStub;
 import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -163,10 +164,6 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      */
     protected abstract void doAction() throws Exception;
 
-    private interface RepeaterWorker extends Runnable, Thread.UncaughtExceptionHandler{
-
-    }
-
     private interface RepeaterThread extends Runnable{
         void start();
         void interrupt();
@@ -175,31 +172,40 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         boolean isAlive();
     }
 
-    private final static class RepeaterThreadImpl extends Thread implements RepeaterThread{
+    private final class RepeaterThreadImpl extends Thread implements RepeaterThread, Thread.UncaughtExceptionHandler, Callable<Void> {
         private final Supplier<Duration> period;
 
-        private RepeaterThreadImpl(final RepeaterWorker worker,
-                                   final String threadName,
+        private RepeaterThreadImpl(final String threadName,
                                    final int priority,
-                                   final Supplier<Duration> period){
-            super(worker, threadName);
+                                   final Supplier<Duration> period) {
+            super(threadName);
             this.period = period;
             setDaemon(true);
             setPriority(priority);
-            setUncaughtExceptionHandler(worker);
+            setUncaughtExceptionHandler(this);
+        }
+
+        @Override
+        public void uncaughtException(final Thread t, final Throwable e) {
+            fault(e);
+        }
+
+        @Override
+        public Void call() throws Exception {
+            doAction();
+            return null;
         }
 
         @Override
         public void run() {
-            while (!isInterrupted()){
+            while (!isInterrupted()) {
                 //sleep for a specified time
-                try{
+                try {
                     Thread.sleep(period.get().toMillis());
-                }
-                catch (final InterruptedException e){
+                } catch (final InterruptedException e) {
                     return;
                 }
-                super.run();
+                callUnchecked(this);
             }
         }
 
@@ -214,22 +220,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
             case STOPPED:
             case FAILED:
                 exception = null;
-                //create thread worker
-                final RepeaterWorker worker = new RepeaterWorker() {
-                    @Override
-                    public void run() {
-                        callUnchecked(() -> {
-                            doAction();
-                            return null;
-                        });
-                    }
-
-                    @Override
-                    public void uncaughtException(final Thread t, final Throwable e) {
-                        fault(e);
-                    }
-                };
-                repeatThread = new RepeaterThreadImpl(worker, generateThreadName(), getPriority(), this::getPeriod);
+                repeatThread = new RepeaterThreadImpl(generateThreadName(), getPriority(), this::getPeriod);
                 //execute periodic thread
                 repeatThread.start();
                 stateChanged(state = RepeaterState.STARTED);

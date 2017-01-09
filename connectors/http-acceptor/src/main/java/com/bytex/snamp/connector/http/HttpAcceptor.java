@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.ImportClass;
-import com.bytex.snamp.connector.dsp.MessageDrivenConnector;
+import com.bytex.snamp.connector.dsp.DataStreamConnector;
 import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParser;
 import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParserLoader;
 import com.bytex.snamp.connector.dsp.notifications.NotificationSource;
@@ -21,7 +21,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  */
 @ImportClass(GrabAnnotationTransformation.class)
-final class HttpAcceptor extends MessageDrivenConnector {
+final class HttpAcceptor extends DataStreamConnector {
 
     HttpAcceptor(final String resourceName, final Map<String, String> parameters) {
         super(resourceName, parameters, HttpConnectorConfigurationDescriptionProvider.getInstance());

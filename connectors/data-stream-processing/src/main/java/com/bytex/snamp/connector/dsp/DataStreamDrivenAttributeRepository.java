@@ -4,12 +4,17 @@ import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
+import com.bytex.snamp.core.LoggerProvider;
 
+import javax.management.AttributeList;
 import javax.management.Notification;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents repository with message-driven attributes.
@@ -18,6 +23,8 @@ import java.util.function.BiConsumer;
  * @since 2.0
  */
 public class DataStreamDrivenAttributeRepository extends DistributedAttributeRepository<DataStreamDrivenAttribute> {
+    private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
+
     private final WriteOnceRef<ExecutorService> threadPool;
     private final WriteOnceRef<DataStreamDrivenConnectorConfigurationDescriptionProvider> configurationParser;
 
@@ -33,6 +40,31 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
         this.configurationParser.set(parser);
     }
 
+    @Override
+    public AttributeList getAttributes(final String[] attributes) {
+        try {
+            return getAttributesParallel(threadPool.get(), attributes, BATCH_READ_WRITE_TIMEOUT);
+        } catch (final InterruptedException | TimeoutException e) {
+            getLogger().log(Level.SEVERE, "Unable to read attributes", e);
+            return new AttributeList();
+        }
+    }
+
+
+
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
+    }
+
+    @Override
+    public AttributeList setAttributes(final AttributeList attributes) {
+        try {
+            return setAttributesParallel(threadPool.get(), attributes, BATCH_READ_WRITE_TIMEOUT);
+        } catch (final InterruptedException | TimeoutException e) {
+            getLogger().log(Level.SEVERE, "Unable to write attributes", e);
+            return new AttributeList();
+        }
+    }
 
     @Override
     protected DataStreamDrivenAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
@@ -107,5 +139,12 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
             if(attribute instanceof MetricHolderAttribute<?, ?>)
                 ((MetricHolderAttribute<?, ?>) attribute).reset();
         }, threadPool.get());
+    }
+
+    @Override
+    public void close() {
+        threadPool.clear();
+        configurationParser.clear();
+        super.close();
     }
 }

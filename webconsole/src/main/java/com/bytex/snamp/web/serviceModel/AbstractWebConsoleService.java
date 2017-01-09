@@ -22,6 +22,10 @@ public abstract class AbstractWebConsoleService implements WebConsoleService {
         listeners.fire(message);
     }
 
+    protected final void forEachSession(final Consumer<? super WebConsoleSession> sessionConsumer) {
+        listeners.forEach(sessionConsumer);
+    }
+
     protected final void forEachSession(final Consumer<? super WebConsoleSession> sessionConsumer, final Executor executor) {
         listeners.parallelForEach(sessionConsumer, executor);
     }

@@ -6,6 +6,7 @@ import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.NameResolver;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.jmx.WellKnownType;
 
 import javax.management.*;
@@ -14,6 +15,9 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -21,6 +25,7 @@ import java.util.concurrent.ExecutorService;
  * @since 2.0
  */
 final class AttributeComposition extends DistributedAttributeRepository<AbstractCompositeAttribute> implements NameResolver, NotificationListener {
+    private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
     private final AttributeSupportProvider attributeSupportProvider;
     private final ExecutorService threadPool;
     private final ScriptLoader scriptLoader;
@@ -48,6 +53,30 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     private Object resolveAs(final String operand, final WellKnownType expectedType) throws Exception{
         return expectedType.convert(getAttribute(operand));
+    }
+
+    @Override
+    public AttributeList getAttributes(final String[] attributes) {
+        try {
+            return getAttributesParallel(threadPool, attributes, BATCH_READ_WRITE_TIMEOUT);
+        } catch (final InterruptedException | TimeoutException e) {
+            getLogger().log(Level.SEVERE, "Unable to read attributes", e);
+            return new AttributeList();
+        }
+    }
+
+    @Override
+    public AttributeList setAttributes(final AttributeList attributes) {
+        try {
+            return setAttributesParallel(threadPool, attributes, BATCH_READ_WRITE_TIMEOUT);
+        } catch (final InterruptedException | TimeoutException e) {
+            getLogger().log(Level.SEVERE, "Unable to write attributes", e);
+            return new AttributeList();
+        }
+    }
+
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     /**

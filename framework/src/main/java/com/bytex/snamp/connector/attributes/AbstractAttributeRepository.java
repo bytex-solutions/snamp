@@ -14,6 +14,8 @@ import com.google.common.collect.Lists;
 
 import javax.management.*;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +35,6 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  */
 public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport, SafeCloseable {
-
     private final KeyedObjects<String, M> attributes;
     private final AttributeMetricRecorder metrics;
     private final boolean expandable;
@@ -95,6 +96,67 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         return readLock.apply(SingleResourceGroup.INSTANCE, attributes, attributeName, Map::get);
     }
 
+    private AttributeList getAttributesSequentialImpl() throws MBeanException, ReflectionException {
+        final AttributeList attributes = new AttributeList();
+        for (final M metadata : this.attributes.values())
+            try {
+                attributes.add(getAttribute(metadata));
+            } catch (final Exception e) {
+                throw new ReflectionException(e);
+            }
+        return attributes;
+    }
+
+    private AttributeList getAttributesParallelImpl(final ExecutorService executor, final Duration timeout) throws ReflectionException {
+        final List<Attribute> result = new Vector<>();
+        final CountDownLatch synchronizer = new CountDownLatch(attributes.size());
+        for (final String attributeName : attributes.keySet())
+            executor.submit(() -> {
+                try {
+                    return result.add(new Attribute(attributeName, getAttribute(attributeName)));
+                } catch (final JMException e) {
+                    failedToGetAttribute(attributeName, e);
+                    return null;
+                } finally {
+                    synchronizer.countDown();
+                }
+            });
+        try {
+            if (timeout == null)
+                synchronizer.await();
+            else if (!synchronizer.await(timeout.toNanos(), TimeUnit.NANOSECONDS))
+                throw new TimeoutException();
+        } catch (final TimeoutException | InterruptedException e) {
+            throw new ReflectionException(e);
+        }
+        return new AttributeList(result);
+    }
+
+    protected final AttributeList getAttributesSequential() throws MBeanException, ReflectionException{
+        try {
+            return readLock.call(SingleResourceGroup.INSTANCE, this::getAttributesSequentialImpl, null);
+        } catch (final MBeanException | ReflectionException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new ReflectionException(e);
+        }
+    }
+
+    protected final AttributeList getAttributesParallel(final ExecutorService executor, final Duration timeout) throws ReflectionException {
+        try {
+            return readLock.call(SingleResourceGroup.INSTANCE, () -> getAttributesParallel(executor, timeout), timeout == null ? null : timeout.plus(1, ChronoUnit.SECONDS));
+        } catch (final ReflectionException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new ReflectionException(e);
+        }
+    }
+
+    @Override
+    public AttributeList getAttributes() throws MBeanException, ReflectionException {
+        return getAttributesSequential();
+    }
+
     /**
      * Gets a set of attributes in sequential manner.
      *
@@ -125,8 +187,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     protected final AttributeList getAttributesParallel(final ExecutorService executor,
                                                         final String[] attributes,
                                                         final Duration timeout) throws InterruptedException, TimeoutException {
-        final List<Attribute> result = Collections.
-                synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.length));
+        final List<Attribute> result = new Vector<>(attributes.length);
         final CountDownLatch synchronizer = new CountDownLatch(attributes.length);
         for (final String attributeName : attributes)
             executor.submit(() -> {
@@ -158,6 +219,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     public AttributeList getAttributes(final String[] attributes) {
         return getAttributesSequential(attributes);
     }
+
 
     /**
      * Sets the values of several attributes of the managed resource in sequential manner.
@@ -194,8 +256,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                                                         final AttributeList attributes,
                                                         final Duration timeout) throws TimeoutException, InterruptedException {
         if (attributes.isEmpty()) return attributes;
-        final List<Attribute> result =
-                Collections.synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.size()));
+        final List<Attribute> result = new Vector<>(attributes.size());
         final CountDownLatch synchronizer = new CountDownLatch(attributes.size());
         for (final Attribute attr : attributes.asList())
             executor.submit(() -> {

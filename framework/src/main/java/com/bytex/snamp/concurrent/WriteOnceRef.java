@@ -52,6 +52,14 @@ public class WriteOnceRef<T> implements Supplier<T> {
     }
 
     /**
+     * Clears this reference.
+     */
+    public final void clear(){
+        LOCKED_UPDATER.set(this, 1);
+        this.value = null;
+    }
+
+    /**
      * Determines whether the container is locked and value inside of it cannot be changed.
      * @return {@literal true}, if this container is locked; otherwise, {@literal false}.
      */
