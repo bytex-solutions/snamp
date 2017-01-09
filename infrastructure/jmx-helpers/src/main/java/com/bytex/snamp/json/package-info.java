@@ -5,4 +5,4 @@
  * @since 1.0
  * @version 2.0
  */
-package com.bytex.snamp.jmx.json;
+package com.bytex.snamp.json;

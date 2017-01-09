@@ -4,7 +4,7 @@ import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.ModelOfNotifications;
-import com.bytex.snamp.jmx.json.JsonUtils;
+import com.bytex.snamp.json.JsonUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.eclipse.jetty.websocket.api.Session;

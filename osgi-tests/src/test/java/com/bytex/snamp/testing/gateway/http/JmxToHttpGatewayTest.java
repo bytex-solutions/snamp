@@ -7,7 +7,7 @@ import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
-import com.bytex.snamp.jmx.json.JsonUtils;
+import com.bytex.snamp.json.JsonUtils;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
-import static com.bytex.snamp.jmx.json.JsonUtils.toJsonArray;
+import static com.bytex.snamp.json.JsonUtils.toJsonArray;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**

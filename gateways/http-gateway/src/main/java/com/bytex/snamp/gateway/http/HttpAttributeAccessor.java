@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.http;
 
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
-import com.bytex.snamp.jmx.json.JsonUtils;
+import com.bytex.snamp.json.JsonUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 

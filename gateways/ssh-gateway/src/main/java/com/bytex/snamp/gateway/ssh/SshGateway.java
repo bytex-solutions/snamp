@@ -9,7 +9,7 @@ import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.bytex.snamp.jmx.json.JsonUtils;
+import com.bytex.snamp.json.JsonUtils;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;

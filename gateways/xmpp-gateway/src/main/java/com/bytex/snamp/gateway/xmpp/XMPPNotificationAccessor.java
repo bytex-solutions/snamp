@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway.xmpp;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.bytex.snamp.jmx.DescriptorUtils;
-import com.bytex.snamp.jmx.json.JsonUtils;
+import com.bytex.snamp.json.JsonUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.jivesoftware.smack.packet.ExtensionElement;
