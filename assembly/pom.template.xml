@@ -55,7 +55,6 @@
                         <feature>snamp-security</feature>
                         <feature>snamp-web-support</feature>
                         <feature>snamp-scripting-support</feature>
-                        <feature>snamp-jmx-support</feature>
                         <feature>snamp-ssh-support</feature>
                         <feature>snamp-snmp-support</feature>
                     </installedFeatures>

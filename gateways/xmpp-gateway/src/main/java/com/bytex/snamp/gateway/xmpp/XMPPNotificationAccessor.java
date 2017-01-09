@@ -4,13 +4,14 @@ import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.json.JsonUtils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -24,10 +25,12 @@ import java.util.Map;
 final class XMPPNotificationAccessor extends NotificationRouter {
     static final String LISTEN_COMMAND_PATTERN = "notifs %s";
     final String resourceName;
-    private static final Gson FORMATTER = JsonUtils.registerTypeAdapters(new GsonBuilder())
-            .serializeSpecialFloatingPointValues()
-            .serializeNulls()
-            .create();
+    private static final ObjectMapper FORMATTER;
+
+    static {
+        FORMATTER = new ObjectMapper();
+        FORMATTER.registerModule(new JsonUtils());
+    }
 
     XMPPNotificationAccessor(final MBeanNotificationInfo metadata,
                              final NotificationListener listener,
@@ -51,8 +54,12 @@ final class XMPPNotificationAccessor extends NotificationRouter {
         }
     }
 
-    static String toString(final Notification notif){
-        return FORMATTER.toJson(notif);
+    static String toString(final Notification notif) {
+        try {
+            return FORMATTER.writeValueAsString(notif);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     String getListenCommand(){

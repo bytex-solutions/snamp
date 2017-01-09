@@ -16,7 +16,6 @@
     <osgi.version>5.0.0</osgi.version>
     <junit.version>4.12</junit.version>
     <jetty.version>9.2.19.v20160908</jetty.version>
-    <gson.version>2.7</gson.version>
     <guava.version>19.0</guava.version>
     <jersey.version>1.19.3</jersey.version>
     <groovy.version>2.4.7</groovy.version>
@@ -52,7 +51,7 @@
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
     <snamp.gateway.influx.version>2.0.0</snamp.gateway.influx.version>
 
-    <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
+    <snamp.json.version>2.0.0</snamp.json.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <snamp.services.version>2.0.0</snamp.services.version>
     <snamp.scripting.version>2.0.0</snamp.scripting.version>
@@ -167,12 +166,6 @@
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <scope>provided</scope>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -410,7 +403,7 @@
     <module>gateways</module>
     <module>third-party-libs/bundlized/snmp4j</module>
     <module>third-party-libs/bundlized/sshj</module>
-    <module>infrastructure/jmx-helpers</module>
+    <module>infrastructure/json-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
     <module>infrastructure/security</module>

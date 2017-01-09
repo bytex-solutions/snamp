@@ -10,6 +10,12 @@
         <bundle start="true">mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
     </feature>
 
+    <feature name="snamp-json-support" description="Various JMX helpers and JMX-to-JSON serialization" version="${project.version}">
+        <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${jackson.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/${jackson.version}</bundle>
+        <bundle>mvn:com.bytex.snamp/json-helpers/${snamp.json.version}</bundle>
+    </feature>
+
     <feature name="orientdb-server" description="OrientDB NoSQL Database" version="${orientdb.version}">
         <bundle>mvn:com.orientechnologies/orientdb-core/${orientdb.version}</bundle>
         <bundle>mvn:com.orientechnologies/orientdb-tools/${orientdb.version}</bundle>
@@ -21,7 +27,6 @@
     <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
         <details>${project.description}</details>
         <!-- Third-party bundles -->
-        <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle>mvn:com.google.code.findbugs/jsr305/${jsr305.version}</bundle>
         <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
@@ -33,6 +38,7 @@
         <feature version="${jersey.version}">jersey-server</feature>
         <feature version="${orientdb.version}">orientdb-server</feature>
         <!--SNAMP dependencies-->
+        <feature version="${project.version}">snamp-json-support</feature>
         <bundle>mvn:com.bytex.snamp/framework/${snamp.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/security/${snamp.security.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/internal-services/${snamp.services.version}</bundle>
@@ -46,10 +52,9 @@
 
     <feature name="snamp-web-support" description="SNAMP support bundles for Web" version="${project.version}">
         <details>SNAMP support bundles for Web</details>
+        <feature version="${project.version}">snamp-json-support</feature>
         <bundle>mvn:io.netty/netty/${netty.version}</bundle>
         <bundle>mvn:org.codehaus.jettison/jettison/${jettison.version}</bundle>
-        <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${jackson.version}</bundle>
-        <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/${jackson.version}</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-jaxrs/${jackson.version}</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-xc/${jackson.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-json/${jersey.version}</bundle>
@@ -64,11 +69,6 @@
         <bundle>mvn:org.apache.ivy/ivy/${apache.ivy.version}</bundle>
         <bundle>mvn:com.bytex.snamp/scripting/${snamp.scripting.version}</bundle>
         <bundle>mvn:com.bytex.snamp/groovy-xml-bridge/${snamp.scripting.version}</bundle>
-    </feature>
-
-    <feature name="snamp-jmx-support" description="Various JMX helpers and JMX-to-JSON serialization" version="${project.version}">
-        <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
-        <bundle>mvn:com.bytex.snamp/jmx-helpers/${snamp.jmxhelper.version}</bundle>
     </feature>
 
     <feature name="snamp-ssh-support" description="Set of Java libraries for SSH" version="${project.version}">

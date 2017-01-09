@@ -10,8 +10,11 @@ import org.jivesoftware.smack.packet.ExtensionElement;
 
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
+import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.*;
 import java.util.Collection;
 import java.util.Objects;
@@ -240,15 +243,19 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
             final CompositeData value = getValue(CompositeData.class);
             final StringBuilder result = new StringBuilder(64);
             for (final String key : value.getCompositeType().keySet())
-                result
-                        .append(String.format("%s = %s", key, FORMATTER.toJson(value.get(key))))
-                        .append(System.lineSeparator());
+                try {
+                    result
+                            .append(String.format("%s = %s", key, FORMATTER.writeValueAsString(value.get(key))))
+                            .append(System.lineSeparator());
+                } catch (final IOException e) {
+                    throw new ReflectionException(e);
+                }
             return result.toString();
         }
     }
 
     private static final class TabularDataAttribute extends XMPPAttributeAccessor {
-        private TabularDataAttribute(final MBeanAttributeInfo metadata){
+        private TabularDataAttribute(final MBeanAttributeInfo metadata) {
             super(metadata);
         }
 
@@ -267,7 +274,13 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
             //print column first
             result.append(joinString(data.getTabularType().getRowType().keySet().stream(), ITEM_FORMAT, COLUMN_SEPARATOR));
             //print rows
-            TabularDataUtils.forEachRow(data, row -> result.append(joinString(row.values().stream().map(FORMATTER::toJson), ITEM_FORMAT, COLUMN_SEPARATOR)));
+            TabularDataUtils.forEachRow(data, row -> result.append(joinString(row.values().stream().map(obj -> {
+                try {
+                    return FORMATTER.writeValueAsString(obj);
+                } catch (final IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }), ITEM_FORMAT, COLUMN_SEPARATOR)));
             return result.toString();
         }
     }

@@ -4,14 +4,15 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.json.JsonUtils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 
 import javax.management.Descriptor;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
+import javax.management.ReflectionException;
+import java.io.IOException;
 import java.util.Collection;
 
 /**
@@ -22,10 +23,12 @@ import java.util.Collection;
 abstract class XMPPAttributeAccessor extends AttributeAccessor {
     static final String GET_COMMAND_PATTERN = "get -n %s -r %s";
     static final String SET_COMMAND_PATTERN = "set -n %s -r %s -v %s";
-    protected static final Gson FORMATTER = JsonUtils.registerTypeAdapters(new GsonBuilder())
-                        .serializeSpecialFloatingPointValues()
-                        .serializeNulls()
-            .create();
+    static final ObjectMapper FORMATTER;
+
+    static {
+        FORMATTER = new ObjectMapper();
+        FORMATTER.registerModule(new JsonUtils());
+    }
 
     XMPPAttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
@@ -40,14 +43,23 @@ abstract class XMPPAttributeAccessor extends AttributeAccessor {
 
     final void setValue(final String input) throws JMException {
         if (getType() != null && canWrite())
-            setValue(FORMATTER.fromJson(input, getType().getJavaType()));
-        else throw new UnsupportedOperationException(String.format("Attribute %s is read-only", getName()));
+            try {
+                setValue(FORMATTER.readValue(input, getType().getJavaType()));
+            } catch (final IOException e) {
+                throw new ReflectionException(e);
+            }
+        else
+            throw new UnsupportedOperationException(String.format("Attribute %s is read-only", getName()));
     }
 
     protected abstract String getValueAsText() throws JMException;
 
     private String getValueAsJson() throws JMException{
-        return FORMATTER.toJson(getValue());
+        try {
+            return FORMATTER.writeValueAsString(getValue());
+        } catch (IOException e) {
+            throw new ReflectionException(e);
+        }
     }
 
     final void printOptions(final StringBuilder output) {

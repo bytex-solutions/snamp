@@ -117,13 +117,13 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>jmx-helpers</artifactId>
-            <version>${snamp.jmxhelper.version}</version>
+            <artifactId>json-helpers</artifactId>
+            <version>${snamp.json.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
         </dependency>
     </dependencies>
 </project>

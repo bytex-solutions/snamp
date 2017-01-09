@@ -68,10 +68,6 @@
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
@@ -85,8 +81,8 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>jmx-helpers</artifactId>
-            <version>${snamp.jmxhelper.version}</version>
+            <artifactId>json-helpers</artifactId>
+            <version>${snamp.json.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

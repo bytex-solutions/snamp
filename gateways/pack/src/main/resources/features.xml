@@ -12,7 +12,6 @@
     <feature name="snamp-http-gateway" description="SNAMP HTTP Gateway" version="${snamp.gateway.http.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-jmx-support</feature>
         <bundle start="true">mvn:com.bytex.snamp/http-gateway/${snamp.gateway.http.version}</bundle>
     </feature>
 
@@ -55,7 +54,7 @@
     <feature name="snamp-ssh-gateway" description="SNAMP SSH Gateway" version="${snamp.gateway.ssh.version}" install="auto">
         <details>Exposes monitoring and management information provided by connectors via SSH</details>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-jmx-support</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-json-support</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-ssh-support</feature>
         <bundle start="true">mvn:com.bytex.snamp/ssh-gateway/${snamp.gateway.ssh.version}</bundle>
     </feature>
@@ -68,7 +67,7 @@
     <feature name="snamp-xmpp-gateway" description="SNAMP XMPP Gateway" version="${snamp.gateway.xmpp.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-security</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-jmx-support</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-json-support</feature>
         <bundle>mvn:com.bytex.snamp/xmpp-gateway/${snamp.gateway.xmpp.version}</bundle>
     </feature>
 </features>

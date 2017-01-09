@@ -9,11 +9,11 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>JMX Support Library</name>
-    <description>A small library for converting JMX data types into JSON/XML and vice versa</description>
-    <artifactId>jmx-helpers</artifactId>
+    <name>JSON Support Library</name>
+    <description>A small library for converting various data types into JSON and vice versa</description>
+    <artifactId>json-helpers</artifactId>
     <packaging>bundle</packaging>
-    <version>${snamp.jmxhelper.version}</version>
+    <version>${snamp.json.version}</version>
     <build>
         <plugins>
             <plugin>

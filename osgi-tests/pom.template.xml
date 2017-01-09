@@ -312,12 +312,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <scope>test</scope>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>rshell-connector</artifactId>
             <version>${snamp.connector.rshell.version}</version>
@@ -345,8 +339,8 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>jmx-helpers</artifactId>
-            <version>${snamp.jmxhelper.version}</version>
+            <artifactId>json-helpers</artifactId>
+            <version>${snamp.json.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
