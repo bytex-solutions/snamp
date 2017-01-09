@@ -39,6 +39,11 @@ export class App {
   stack_bottomright:any = {"dir1": "up", "dir2": "left", "firstpos1": 25, "firstpos2": 25};
 
   ngAfterViewInit() {
+
+    $(document).ready(function(){
+        $('#overlay').fadeOut();
+     });
+
     this.ws = new WebSocketClient("ws://localhost:8181/snamp/console/events" );
 
     this.ws.getDataStream().subscribe(

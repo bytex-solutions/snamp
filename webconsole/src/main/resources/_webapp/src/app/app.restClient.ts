@@ -19,6 +19,7 @@ constructor(private http: Http, private _cookieService:CookieService) {}
   }
 
     private handleError (error: Response | any) {
+      $('#overlay').fadeOut();
       // In a real world app, we might use a remote logging infrastructure
       let errMsg: string;
       if (error instanceof Response && error.status == 401) {
@@ -37,6 +38,12 @@ constructor(private http: Http, private _cookieService:CookieService) {}
 
   put(url, data) {
     return this.http.put(url, data, {
+      headers: this.createAuthorizationHeader()
+    }).catch(this.handleError);
+  }
+
+  post(url, data) {
+    return this.http.post(url, data, {
       headers: this.createAuthorizationHeader()
     }).catch(this.handleError);
   }
@@ -66,6 +73,14 @@ export class REST {
 
     public static AVAILABLE_ENTITIES_BY_TYPE(entityType:string):string {
         return REST.ROOT_PATH + "/" + entityType + "/list";
+    }
+
+    public static ENABLE_COMPONENT(componentClass:string, componentType:string):string {
+        return REST.ROOT_PATH + "/" + componentClass + "/" + componentType + "/enable";
+    }
+
+    public static DISABLE_COMPONENT(componentClass:string, componentType:string):string {
+        return REST.ROOT_PATH + "/" + componentClass + "/" + componentType + "/disable";
     }
 
     public static GATEWAY_BY_NAME(name:string):string {

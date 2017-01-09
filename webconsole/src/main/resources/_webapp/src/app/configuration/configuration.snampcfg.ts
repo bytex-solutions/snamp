@@ -38,6 +38,48 @@ export class SnampCfgComponent implements OnInit {
    selectComponent(selected:SnampComponent) {
       this.selectedComponent = selected;
    }
+
+   startComponent(selected:SnampComponent) {
+      $('#overlay').fadeIn();
+      this.http.post(REST.ENABLE_COMPONENT(selected.class, selected.type), "")
+       .map((res:Response) => res.text())
+       .subscribe(data => {
+          console.log("started " + selected.type + " component. result from server is " + data);
+          if (data == "true") {
+              selected.state = "ACTIVE";
+              for (let i = 0; i < this.components.length; i++) {
+                if (this.components[i].type == selected.type) {
+                  this.components[i] = selected;
+                  break;
+                }
+              }
+          } else {
+            console.log("Could not start component " + selected.type + " - server responded false");
+          }
+          $('#overlay').fadeOut();
+       })
+   }
+
+   stopComponent(selected:SnampComponent) {
+      $('#overlay').fadeIn();
+      this.http.post(REST.DISABLE_COMPONENT(selected.class, selected.type), "")
+       .map((res:Response) => res.text())
+       .subscribe(data => {
+          console.log("stopped " + selected.type + " component. result from server is " + data);
+          if (data == "true") {
+               selected.state = "RESOLVED";
+               for (let i = 0; i < this.components.length; i++) {
+                 if (this.components[i].type == selected.type) {
+                   this.components[i] = selected;
+                   break;
+                 }
+               }
+          } else {
+            console.log("Could not stop component " + selected.type + " - server responded false");
+          }
+          $('#overlay').fadeOut();
+       })
+   }
 }
 
 
@@ -47,6 +89,7 @@ class SnampComponent {
   public state:string = "";
   public version:string = "";
   public type:string = "";
+  public class:string = "";
   constructor(parameters:any) {
     if (parameters["name"] != undefined) {
         this.name = parameters["name"];
@@ -62,6 +105,9 @@ class SnampComponent {
     }
     if (parameters["type"] != undefined) {
         this.type = parameters["type"];
+    }
+    if (parameters["class"] != undefined) {
+        this.class = parameters["class"];
     }
   }
 }

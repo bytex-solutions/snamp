@@ -26,14 +26,33 @@
   <link href="assets/css/pnotify.css" rel="stylesheet">
   <link href="assets/css/pnotify.buttons.css" rel="stylesheet">
   <link href="assets/css/pnotify.brighttheme.css" rel="stylesheet">
+  <style>
+    #overlay {
+        background: #5e72a0;
+        opacity: 0.9;
+        color: #000000;
+        position: fixed;
+        height: 100%;
+        width: 100%;
+        z-index: 5000;
+        top: 0;
+        left: 0;
+        float: left;
+        text-align: center;
+        padding-top: 20%;
+    }
+  </style>
 </head>
 
 <body class="nav-md">
+
+  <div id="overlay">
+    <img src="assets/img/gears.svg" onerror="this.onerror=null; this.src='assets/img/gears.gif'" alt="Loading">
+  </div>
+
   <div class="container body">
     <div class="main_container">
-    <app>
-      Loading...
-    </app>
+    <app></app>
 
     <% if (webpackConfig.metadata.isDevServer && webpackConfig.metadata.HMR !== true) { %>
     <!-- Webpack Dev Server reload -->

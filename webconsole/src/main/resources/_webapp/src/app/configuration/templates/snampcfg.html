@@ -10,7 +10,7 @@
 
     <div class="row" style="margin-top: 30px">
 
-      <panel [header]="'Installed components'" [column]="'5'">
+      <panel [header]="'Installed components'" [column]="'5'" *ngIf="components && components.length > 0">
 
         <a *ngFor="let component of components"
            class="grid-item-link pointerElement"
@@ -70,12 +70,16 @@
 
           <div class="ln_solid"></div>
 
-          <div class="form-group">
+          <div class="form-group" *ngIf="selectedComponent.type != 'Internal component'">
             <div class="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-              <a class="btn btn-app">
+              <a class="btn btn-app"
+                 [class.disabled]="selectedComponent.state == 'ACTIVE'"
+                 (click)="startComponent(selectedComponent)">
                 <i class="fa fa-play"></i> Start
               </a>
-              <a class="btn btn-app">
+              <a class="btn btn-app"
+                 [class.disabled]="selectedComponent.state != 'ACTIVE'"
+                 (click)="stopComponent(selectedComponent)">
                 <i class="fa fa-pause"></i> Pause
               </a>
             </div>
