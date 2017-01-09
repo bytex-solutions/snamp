@@ -18,7 +18,7 @@
 
     <feature name="snamp-influx-gateway" description="SNAMP Gateway for InfluxDB" version="${snamp.gateway.influx.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-message-processing</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-stream-processing</feature>
         <bundle start="true">mvn:com.bytex.snamp/influx-gateway/${snamp.gateway.influx.version}</bundle>
     </feature>
 

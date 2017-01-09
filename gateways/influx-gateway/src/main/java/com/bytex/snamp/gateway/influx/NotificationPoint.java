@@ -1,6 +1,6 @@
 package com.bytex.snamp.gateway.influx;
 
-import com.bytex.snamp.connector.md.notifications.MeasurementNotification;
+import com.bytex.snamp.connector.dsp.notifications.MeasurementNotification;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.modeling.AttributeSet;

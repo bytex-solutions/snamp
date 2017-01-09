@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
+ * Represents source of charts data.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0

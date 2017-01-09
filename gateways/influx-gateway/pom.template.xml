@@ -48,7 +48,7 @@
                             com.bytex.snamp.concurrent,
                             com.bytex.snamp.configuration,
                             com.bytex.snamp.connector,
-                            com.bytex.snamp.connector.md.notifications,
+                            com.bytex.snamp.connector.dsp.notifications,
                             com.bytex.snamp.connector.notifications,
                             com.bytex.snamp.core,
                             com.bytex.snamp.gateway,
@@ -82,8 +82,8 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>message-driven-connector</artifactId>
-            <version>${snamp.connector.md.version}</version>
+            <artifactId>data-stream-processing</artifactId>
+            <version>${snamp.stream.processing.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

@@ -1,10 +1,10 @@
 package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.ImportClass;
-import com.bytex.snamp.connector.md.MessageDrivenConnector;
-import com.bytex.snamp.connector.md.groovy.GroovyNotificationParser;
-import com.bytex.snamp.connector.md.groovy.GroovyNotificationParserLoader;
-import com.bytex.snamp.connector.md.notifications.NotificationSource;
+import com.bytex.snamp.connector.dsp.MessageDrivenConnector;
+import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParser;
+import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParserLoader;
+import com.bytex.snamp.connector.dsp.notifications.NotificationSource;
 import groovy.grape.GrabAnnotationTransformation;
 import groovy.lang.Binding;
 

@@ -1,9 +1,9 @@
 package com.bytex.snamp.connector.zipkin;
 
-import com.bytex.snamp.connector.md.MessageDrivenConnector;
-import com.bytex.snamp.connector.md.NotificationParser;
-import com.bytex.snamp.connector.md.groovy.GroovyNotificationParserLoader;
-import com.bytex.snamp.connector.md.notifications.NotificationSource;
+import com.bytex.snamp.connector.dsp.DataStreamConnector;
+import com.bytex.snamp.connector.dsp.NotificationParser;
+import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParserLoader;
+import com.bytex.snamp.connector.dsp.notifications.NotificationSource;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableMap;
@@ -24,7 +24,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 /**
  * Represents Zipkin connector.
  */
-final class ZipkinConnector extends MessageDrivenConnector implements AsyncSpanConsumer {
+final class ZipkinConnector extends DataStreamConnector implements AsyncSpanConsumer {
 
     //ephemeral exception indicating that the connector is closed
     private static final class ZipkinConnectorClosedException extends Exception{

@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.http;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.FixedKeysMap;
 import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.md.notifications.NotificationSource;
+import com.bytex.snamp.connector.dsp.notifications.NotificationSource;
 import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.instrumentation.measurements.Measurement;

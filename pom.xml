@@ -69,7 +69,7 @@
     <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
     <cellar.version>4.0.3</cellar.version>
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
-    <snamp.connector.md.version>2.0.0</snamp.connector.md.version>
+    <snamp.stream.processing.version>2.0.0</snamp.stream.processing.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
     <osgi.version>5.0.0</osgi.version>
     <hazelcast.version>3.7.2</hazelcast.version>

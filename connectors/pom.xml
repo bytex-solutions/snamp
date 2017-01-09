@@ -19,7 +19,7 @@
     <module>composite-connector</module>
     <module>groovy-connector</module>
     <module>modbus-connector</module>
-    <module>message-driven-connector</module>
+    <module>data-stream-processing</module>
     <module>http-acceptor</module>
     <module>zipkin-connector</module>
     <module>pack</module>

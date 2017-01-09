@@ -44,8 +44,8 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>message-driven-connector</artifactId>
-            <version>${snamp.connector.md.version}</version>
+            <artifactId>data-stream-processing</artifactId>
+            <version>${snamp.stream.processing.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -151,9 +151,9 @@
                             com.bytex.snamp,
                             com.bytex.snamp.io,
                             com.bytex.snamp.connector,
-                            com.bytex.snamp.connector.md,
-                            com.bytex.snamp.connector.md.groovy,
-                            com.bytex.snamp.connector.md.notifications,
+                            com.bytex.snamp.connector.dsp,
+                            com.bytex.snamp.connector.dsp.groovy,
+                            com.bytex.snamp.connector.dsp.notifications,
                             com.bytex.snamp.core,
                             com.bytex.snamp.internal,
                             com.google.common.base,

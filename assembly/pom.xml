@@ -104,7 +104,6 @@
             <feature>snamp-jmx-support</feature>
             <feature>snamp-ssh-support</feature>
             <feature>snamp-snmp-support</feature>
-            <feature>snamp-message-processing</feature>
           </installedFeatures>
         </configuration>
       </plugin>
