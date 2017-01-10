@@ -3,6 +3,7 @@ import 'style!css!less!font-awesome-webpack/font-awesome-styles.loader!font-awes
 import { LocalStorageService } from 'angular-2-local-storage';
 import { WebSocketClient } from './app.websocket';
 import { SnampLog, SnampLogService } from './app.logService';
+import { Title }  from '@angular/platform-browser';
 
 var PNotify = require("pnotify/src/pnotify.js");
 require("pnotify/src/pnotify.mobile.js");
@@ -22,15 +23,17 @@ import {
   selector: 'app',
   encapsulation: ViewEncapsulation.None,
   styleUrls: ['./app.style.css'],
-  providers: [ SnampLogService ],
-  templateUrl: './app.component.html'
+  templateUrl: './app.component.html',
+  providers: [ Title ]
 })
 export class App {
   ws: WebSocketClient;
   constructor(overlay: Overlay,
+              title:Title,
               vcRef: ViewContainerRef,
               private modal: Modal,
               private _snampLogService: SnampLogService) {
+       title.setTitle("SNAMP web console");
        overlay.defaultViewContainer = vcRef;
   }
 

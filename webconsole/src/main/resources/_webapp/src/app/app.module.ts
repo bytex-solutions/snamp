@@ -38,6 +38,9 @@ import { LocalStorageModule } from 'angular-2-local-storage';
 
 import { TooltipModule } from 'ng2-tooltip';
 
+import { MomentModule } from 'angular2-moment';
+
+
 // Application wide providers
 const APP_PROVIDERS = [
   ApiClient,
@@ -69,6 +72,7 @@ const APP_PROVIDERS = [
     TooltipModule,
     FormsModule,
     HttpModule,
+    MomentModule,
     LocalStorageModule.withConfig({
       prefix: 'snamp-app',
       storageType: 'localStorage'

@@ -13,19 +13,21 @@ import { Overlay } from 'angular2-modal';
 
 @Component({
   selector: 'topnav-bar',
-  providers: [ CookieService, SnampLogService],
+  providers: [ CookieService ],
   styleUrls: [ '../app.style.css' ],
-  templateUrl: './topnavbar.component.html'
+  templateUrl: './topnavbar.component.html',
+  encapsulation: ViewEncapsulation.None
 })
 export class TopNavBar {
 
     public logs:SnampLog[] = [];
+
     constructor(overlay: Overlay,
                 vcRef: ViewContainerRef,
                 private _cookieService:CookieService,
                 private _snampLogService:SnampLogService,
                 private cd: ChangeDetectorRef,
-                private modal: Modal) {
+                public modal: Modal) {
       overlay.defaultViewContainer = vcRef;
     }
 
@@ -57,24 +59,17 @@ export class TopNavBar {
        this.modal.alert()
            .size('lg')
            .title("Details for notification")
-           .body(logEntry.htmlDetails())
+           .body(SnampLog.htmlDetails(logEntry))
            .isBlocking(false)
            .keyboard(27)
-           .open()
+           .open();
     }
 
-  ngOnInit() {
-      this.logs = this._snampLogService.getLastLogs(10);
-
-  }
-
-  ngAfterViewInit() {
-      this._snampLogService.getLogObs()
-          .subscribe((newLog:SnampLog) => {
-            console.log("New log received: ", newLog);
-            this.logs.push(newLog);
-            this.cd.markForCheck();
+    ngAfterViewInit() {
+       this._snampLogService.getLogObs()
+            .subscribe((newLog:SnampLog) => {
+              this.logs.unshift(newLog);
+              this.cd.detectChanges();
           });
-  }
-
+    }
 }

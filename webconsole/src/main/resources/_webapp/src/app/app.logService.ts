@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { LocalStorageService } from 'angular-2-local-storage';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Subject } from 'rxjs/Subject';
 
 @Injectable()
 export class SnampLogService {
@@ -9,16 +9,16 @@ export class SnampLogService {
     private SPLICE_COUNT:number = 30; // how many elements will we delete from the end of the array
     private RECENT_COUNT:number = 15; // default count of the recent message
     private KEY:string = "snampLogs";
-    private logObs:BehaviorSubject<SnampLog>;
+    private logObs:Subject<SnampLog>;
 
     constructor(private localStorageService: LocalStorageService) {
           let welcomeMessage:SnampLog = new SnampLog();
           welcomeMessage.message = "SNAMP WEB UI has started successfully";
-          this.logObs = new BehaviorSubject<SnampLog>(welcomeMessage);
+          this.logObs = new Subject<SnampLog>();
     }
 
-    public getLogObs():BehaviorSubject<SnampLog> {
-        return this.logObs;
+    public getLogObs():Observable<SnampLog> {
+        return this.logObs.asObservable().share();
     }
 
     private getArray():SnampLog[] {
@@ -42,9 +42,8 @@ export class SnampLogService {
 
     public pushLog(log:SnampLog) {
         let logArray:SnampLog[] = this.getArray();
-        logArray.push(log);
+        logArray.unshift(log);
         this.localStorageService.set(this.KEY, logArray);
-        console.log("Pushing: ", log);
         this.logObs.next(log);
     }
 
@@ -92,18 +91,22 @@ export class SnampLog {
      return _instance;
   }
 
-  public htmlDetails():string {
+  public htmlDetails():string { // cannot be used in case we restore these objects from localstorage
+    return SnampLog.htmlDetails(this);
+  }
+
+  public static htmlDetails(_object:SnampLog):string {
     let _details:string = "";
-     _details += "<strong>Message: </strong>" + this.message + "<br/>";
-     _details += "<strong>Timestamp: </strong>" + this.timestamp + "<br/>";
-     if (this.stacktrace != "No stacktrace is available") {
-        _details += "<strong>Stacktrace: </strong>" + this.stacktrace + "<br/>";
+     _details += "<strong>Message: </strong>" + _object.message + "<br/>";
+     _details += "<strong>Timestamp: </strong>" + _object.timestamp + "<br/>";
+     if (_object.stacktrace != "No stacktrace is available") {
+        _details += "<strong>Stacktrace: </strong>" + _object.stacktrace + "<br/>";
      }
-     _details += "<strong>Level: </strong>" + this.level + "<br/>";
-     if (this.details) {
+     _details += "<strong>Level: </strong>" + _object.level + "<br/>";
+     if (_object.details && !$.isEmptyObject(_object.details)) {
         _details += "<strong>Details</strong></br/>";
-        for (let key in this.details) {
-           _details += "<strong>" + key + ": </strong>" + this.details[key] + "<br/>"
+        for (let key in _object.details) {
+           _details += "<strong>" + key + ": </strong>" + _object.details[key] + "<br/>"
         }
      }
      return _details;
