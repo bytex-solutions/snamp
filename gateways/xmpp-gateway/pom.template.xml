@@ -51,7 +51,7 @@
                             com.bytex.snamp.gateway.modeling,
                             com.bytex.snamp.internal,
                             com.bytex.snamp.jmx,
-                            com.bytex.snamp.jmx.json,
+                            com.bytex.snamp.json,
                             com.google.common.base,
                             com.google.common.collect,
                             com.google.gson,

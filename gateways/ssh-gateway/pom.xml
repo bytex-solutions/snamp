@@ -119,7 +119,7 @@
                             com.bytex.snamp.internal,
                             com.bytex.snamp.io,
                             com.bytex.snamp.jmx,
-                            com.bytex.snamp.jmx.json,
+                            com.bytex.snamp.json,
                             com.google.common.base,
                             com.google.common.collect,
                             com.google.gson,
