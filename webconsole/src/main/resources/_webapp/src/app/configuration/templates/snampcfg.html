@@ -90,5 +90,21 @@
       </panel>
 
     </div>
+
+    <div class="row" style="margin-top: 30px">
+        <panel [header]="'Log table'" [column]="'12'">
+          <ngx-datatable
+            class="material"
+            [rows]="rows"
+            [columns]="[{name:'level'},{name:'message'},{name:'timestamp'}, {name: 'localDate'}]"
+            [columnMode]="'force'"
+            [headerHeight]="50"
+            [footerHeight]="50"
+            [rowHeight]="'auto'"
+            [limit]="10">
+          </ngx-datatable>
+        </panel>
+    </div>
+
   </div>
 </div>

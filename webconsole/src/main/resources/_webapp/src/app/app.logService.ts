@@ -57,6 +57,10 @@ export class SnampLogService {
         }
     }
 
+    public getAllLogsJSON():any[] {
+        return this.getArray().reverse();
+    }
+
     public clear() {
         this.localStorageService.clearAll();
     }

@@ -2,6 +2,7 @@ import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular
 import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
+import { SnampLog, SnampLogService } from '../app.logService';
 
 import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
@@ -17,7 +18,9 @@ export class SnampCfgComponent implements OnInit {
   public selectedComponent:SnampComponent;
   public components:SnampComponent[] = [];
 
-  constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
+  public rows:any[] = [];
+
+  constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal, private _snampLogService:SnampLogService,) {
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
    }
@@ -33,6 +36,8 @@ export class SnampCfgComponent implements OnInit {
               this.selectedComponent = this.components[0];
             }
         });
+
+        this.rows = _snampLogService.getAllLogsJSON();
    }
 
    selectComponent(selected:SnampComponent) {
