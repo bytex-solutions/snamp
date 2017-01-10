@@ -75,6 +75,11 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
         }
     }
 
+    @Override
+    public AttributeList getAttributes() throws MBeanException, ReflectionException {
+        return getAttributesParallel(threadPool, BATCH_READ_WRITE_TIMEOUT);
+    }
+
     private Logger getLogger(){
         return LoggerProvider.getLoggerForObject(this);
     }

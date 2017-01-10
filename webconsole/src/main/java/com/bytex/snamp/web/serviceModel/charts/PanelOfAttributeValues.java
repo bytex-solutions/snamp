@@ -3,6 +3,9 @@ package com.bytex.snamp.web.serviceModel.charts;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
 import javax.annotation.Nonnull;
+import javax.management.Attribute;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a panel with scalar values of attributes.
@@ -13,6 +16,25 @@ import javax.annotation.Nonnull;
  */
 @JsonTypeName("panelOfAttributeValues")
 public final class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues<InstanceNameAxis, AttributeValueAxis> {
+    public static final class ChartData extends AttributeChartData {
+
+        private ChartData(final String instanceName, final Attribute attribute) {
+            super(instanceName, attribute, PanelOfAttributeValues.class);
+        }
+
+        @Override
+        public Object getData(final int dimension) {
+            switch (dimension) {
+                case 0:
+                    return getInstanceName();
+                case 1:
+                    return getAttribute().getValue();
+                default:
+                    throw new IndexOutOfBoundsException();
+            }
+        }
+    }
+
     @Override
     @Nonnull
     protected InstanceNameAxis createDefaultAxisX() {
@@ -23,5 +45,11 @@ public final class PanelOfAttributeValues extends TwoDimensionalChartOfAttribute
     @Nonnull
     protected AttributeValueAxis createDefaultAxisY() {
         return new AttributeValueAxis();
+    }
+
+    public Optional<ChartData> createChartData(final String instanceName, final Attribute attribute) {
+        return hasInstance(instanceName) && Objects.equals(attribute.getName(), getAxisY().getAttributeInfo().getName()) ?
+                Optional.of(new ChartData(instanceName, attribute)) :
+                Optional.empty();
     }
 }

@@ -3,6 +3,8 @@ package com.bytex.snamp.web.serviceModel.charts;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
 import javax.annotation.Nonnull;
+import javax.management.Attribute;
+import java.util.Optional;
 
 /**
  * @author Roman Sakno
@@ -21,5 +23,10 @@ public final class PieChartOfAttributeValues extends TwoDimensionalChartOfAttrib
     @Override
     protected AttributeValueAxis createDefaultAxisY() {
         return new AttributeValueAxis();
+    }
+
+    @Override
+    Optional<? extends AttributeChartData> createChartData(final String instanceName, final Attribute attribute) {
+        return null;
     }
 }

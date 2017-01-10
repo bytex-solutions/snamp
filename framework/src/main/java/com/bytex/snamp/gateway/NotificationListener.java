@@ -9,6 +9,7 @@ import java.util.EventListener;
  * @since 1.0
  */
 public interface NotificationListener extends EventListener {
+    NotificationListener EMPTY = event -> {};
     /**
      * Handles notifications.
      * @param event Notification event.

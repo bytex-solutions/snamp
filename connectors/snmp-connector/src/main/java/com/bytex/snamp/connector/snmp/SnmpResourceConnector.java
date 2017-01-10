@@ -27,9 +27,7 @@ import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.*;
 
-import javax.management.AttributeList;
-import javax.management.AttributeNotFoundException;
-import javax.management.InvalidAttributeValueException;
+import javax.management.*;
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
@@ -637,6 +635,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                 getLogger().log(Level.SEVERE, "Unable to write attributes", e);
                 return new AttributeList();
             }
+        }
+
+        @Override
+        public AttributeList getAttributes() throws MBeanException, ReflectionException {
+            return getAttributesParallel(executor, BATCH_READ_WRITE_TIMEOUT);
         }
 
         private List<SnmpAttributeInfo> expandImpl(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {

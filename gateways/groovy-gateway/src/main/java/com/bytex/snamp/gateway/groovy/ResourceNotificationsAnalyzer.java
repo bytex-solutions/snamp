@@ -29,7 +29,7 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
 
         protected FilterAndProcessNotificationStatement(final Predicate<Notification> condition){
             this.condition = Objects.requireNonNull(condition);
-            this.handler = new WriteOnceRef<>(null);
+            this.handler = new WriteOnceRef<>(NotificationListener.EMPTY);
         }
 
         @Override

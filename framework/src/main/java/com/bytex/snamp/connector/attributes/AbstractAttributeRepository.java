@@ -10,17 +10,11 @@ import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 
 import javax.management.*;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +29,32 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  */
 public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport, SafeCloseable {
+    private final static class AttributeListCollector extends CountDownLatch {
+        private final List<Attribute> attributes;
+
+        private AttributeListCollector(final int size) {
+            super(size);
+            attributes = new LinkedList<>();
+        }
+
+        private void add(final Attribute attribute) {
+            synchronized (attributes) {
+                attributes.add(attribute);
+            }
+            countDown();
+        }
+
+        private AttributeList await(final Duration timeout) throws InterruptedException, TimeoutException {
+            if (timeout == null)
+                await();
+            else if (!await(timeout.toNanos(), TimeUnit.NANOSECONDS))
+                throw new TimeoutException();
+            final AttributeList result = new AttributeList(attributes);
+            attributes.clear(); //help GC
+            return result;
+        }
+    }
+
     private final KeyedObjects<String, M> attributes;
     private final AttributeMetricRecorder metrics;
     private final boolean expandable;
@@ -96,45 +116,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         return readLock.apply(SingleResourceGroup.INSTANCE, attributes, attributeName, Map::get);
     }
 
-    private AttributeList getAttributesSequentialImpl() throws MBeanException, ReflectionException {
-        final AttributeList attributes = new AttributeList();
-        for (final M metadata : this.attributes.values())
-            try {
-                attributes.add(getAttribute(metadata));
-            } catch (final Exception e) {
-                throw new ReflectionException(e);
-            }
-        return attributes;
-    }
-
-    private AttributeList getAttributesParallelImpl(final ExecutorService executor, final Duration timeout) throws ReflectionException {
-        final List<Attribute> result = new Vector<>();
-        final CountDownLatch synchronizer = new CountDownLatch(attributes.size());
-        for (final String attributeName : attributes.keySet())
-            executor.submit(() -> {
-                try {
-                    return result.add(new Attribute(attributeName, getAttribute(attributeName)));
-                } catch (final JMException e) {
-                    failedToGetAttribute(attributeName, e);
-                    return null;
-                } finally {
-                    synchronizer.countDown();
-                }
-            });
+    protected final AttributeList getAttributesSequential() throws MBeanException, ReflectionException {
         try {
-            if (timeout == null)
-                synchronizer.await();
-            else if (!synchronizer.await(timeout.toNanos(), TimeUnit.NANOSECONDS))
-                throw new TimeoutException();
-        } catch (final TimeoutException | InterruptedException e) {
-            throw new ReflectionException(e);
-        }
-        return new AttributeList(result);
-    }
-
-    protected final AttributeList getAttributesSequential() throws MBeanException, ReflectionException{
-        try {
-            return readLock.call(SingleResourceGroup.INSTANCE, this::getAttributesSequentialImpl, null);
+            return readLock.call(SingleResourceGroup.INSTANCE, () -> {
+                final AttributeList result = new AttributeList();
+                for (final Map.Entry<String, M> attribute : attributes.entrySet())
+                    result.add(new Attribute(attribute.getKey(), getAttribute(attribute.getValue())));
+                return result;
+            }, null);
         } catch (final MBeanException | ReflectionException e) {
             throw e;
         } catch (final Exception e) {
@@ -144,9 +133,18 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     protected final AttributeList getAttributesParallel(final ExecutorService executor, final Duration timeout) throws ReflectionException {
         try {
-            return readLock.call(SingleResourceGroup.INSTANCE, () -> getAttributesParallel(executor, timeout), timeout == null ? null : timeout.plus(1, ChronoUnit.SECONDS));
-        } catch (final ReflectionException e) {
-            throw e;
+            return readLock.supply(SingleResourceGroup.INSTANCE, () -> {
+                final AttributeListCollector result = new AttributeListCollector(attributes.size());
+                for (final Map.Entry<String, M> attribute : attributes.entrySet()) {
+                    final Callable<Void> task = () -> {
+                        result.add(new Attribute(attribute.getKey(), getAttribute(attribute.getValue())));
+                        return null;
+                    };
+                    executor.submit(readLock.callable(SingleResourceGroup.INSTANCE, task, timeout));
+                }
+                return result;
+            }, timeout)
+                    .await(timeout);
         } catch (final Exception e) {
             throw new ReflectionException(e);
         }
@@ -164,14 +162,15 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @return output A list of obtained attributes.
      */
     protected final AttributeList getAttributesSequential(final String[] attributes) {
-        final List<Attribute> result = Lists.newArrayListWithExpectedSize(attributes.length);
-        for (final String attributeName : attributes)
-            try {
-                result.add(new Attribute(attributeName, getAttribute(attributeName)));
-            } catch (final JMException e) {
-                failedToGetAttribute(attributeName, e);
+        return readLock.callUnchecked(SingleResourceGroup.INSTANCE, () -> {
+            final AttributeList result = new AttributeList();
+            for (final String attributeName : attributes) {
+                final M metadata = this.attributes.get(attributeName);
+                if (metadata != null)
+                    result.add(new Attribute(attributeName, getAttribute(metadata)));
             }
-        return new AttributeList(result);
+            return result;
+        });
     }
 
     /**
@@ -187,24 +186,17 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     protected final AttributeList getAttributesParallel(final ExecutorService executor,
                                                         final String[] attributes,
                                                         final Duration timeout) throws InterruptedException, TimeoutException {
-        final List<Attribute> result = new Vector<>(attributes.length);
-        final CountDownLatch synchronizer = new CountDownLatch(attributes.length);
-        for (final String attributeName : attributes)
-            executor.submit(() -> {
-                try {
-                    return result.add(new Attribute(attributeName, getAttribute(attributeName)));
-                } catch (final JMException e) {
-                    failedToGetAttribute(attributeName, e);
-                    return null;
-                } finally {
-                    synchronizer.countDown();
-                }
-            });
-        if (timeout == null)
-            synchronizer.await();
-        else if (!synchronizer.await(timeout.toNanos(), TimeUnit.NANOSECONDS))
-            throw new TimeoutException();
-        return new AttributeList(result);
+        final AttributeListCollector result = new AttributeListCollector(attributes.length);
+        for (final String attributeName : attributes) {
+            final Callable<Void> task = () -> {
+                final M metadata = this.attributes.get(attributeName);
+                if (metadata != null)
+                    result.add(new Attribute(attributeName, getAttribute(metadata)));
+                return null;
+            };
+            executor.submit(readLock.callable(SingleResourceGroup.INSTANCE, task, timeout));
+        }
+        return result.await(timeout);
     }
 
     /**
@@ -229,15 +221,12 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @return The list of attributes that were set, with their new values.
      */
     protected final AttributeList setAttributesSequential(final AttributeList attributes) {
-        final List<Attribute> result = Lists.newArrayListWithExpectedSize(attributes.size());
-        for (final Attribute attr : attributes.asList()) {
-            try {
+        final List<Attribute> result = new LinkedList<>();
+        for (final Attribute attr : attributes.asList())
+            result.add(callUnchecked(() -> {
                 setAttribute(attr);
-                result.add(attr);
-            } catch (final JMException e) {
-                failedToSetAttribute(attr.getName(), attr.getValue(), e);
-            }
-        }
+                return attr;
+            }));
         return new AttributeList(result);
     }
 
@@ -256,25 +245,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                                                         final AttributeList attributes,
                                                         final Duration timeout) throws TimeoutException, InterruptedException {
         if (attributes.isEmpty()) return attributes;
-        final List<Attribute> result = new Vector<>(attributes.size());
-        final CountDownLatch synchronizer = new CountDownLatch(attributes.size());
+        final AttributeListCollector result = new AttributeListCollector(attributes.size());
         for (final Attribute attr : attributes.asList())
             executor.submit(() -> {
-                try {
-                    setAttribute(attr);
-                    return result.add(new Attribute(attr.getName(), attr.getValue()));
-                } catch (final JMException e) {
-                    failedToSetAttribute(attr.getName(), attr.getValue(), e);
-                    return null;
-                } finally {
-                    synchronizer.countDown();
-                }
+                setAttribute(attr);
+                result.add(new Attribute(attr.getName(), attr.getValue()));
+                return null;
             });
-        if (timeout == null)
-            synchronizer.await();
-        else if (!synchronizer.await(timeout.toNanos(), TimeUnit.NANOSECONDS))
-            throw new TimeoutException();
-        return new AttributeList(result);
+        return result.await(timeout);
     }
 
     /**

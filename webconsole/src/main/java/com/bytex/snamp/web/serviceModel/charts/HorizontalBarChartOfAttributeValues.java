@@ -3,6 +3,8 @@ package com.bytex.snamp.web.serviceModel.charts;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
 import javax.annotation.Nonnull;
+import javax.management.Attribute;
+import java.util.Optional;
 
 /**
  * Represents bar chart with horizontal bars where X-axis contains attribute value and Y-axis contains instance names.
@@ -22,5 +24,10 @@ public final class HorizontalBarChartOfAttributeValues extends TwoDimensionalCha
     @Override
     protected AttributeValueAxis createDefaultAxisX() {
         return new AttributeValueAxis();
+    }
+
+    @Override
+    Optional<? extends AttributeChartData> createChartData(final String instanceName, final Attribute attribute) {
+        return null;
     }
 }

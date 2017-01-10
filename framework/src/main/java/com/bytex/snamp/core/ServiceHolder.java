@@ -38,10 +38,6 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
         else serviceImpl = context.getService(this.serviceRef = serviceRef);
     }
 
-    public final boolean isValid(){
-        return serviceImpl != null;
-    }
-
     /**
      * Attempts to create a reference to OSGi service without throwing exception if service was not registered.
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.

@@ -12,4 +12,9 @@ public interface AttributeValueHandler<I, E extends Throwable> {
     void handle(final String resourceName,
                 final MBeanAttributeInfo metadata,
                 final I attributeValue) throws E;
+
+    static <I, E extends Throwable> AttributeValueHandler<I, E> empty() {
+        return (resourceName, metadata, attributeValue) -> {
+        };
+    }
 }

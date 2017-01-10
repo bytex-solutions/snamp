@@ -7,7 +7,9 @@ import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.core.LoggerProvider;
 
 import javax.management.AttributeList;
+import javax.management.MBeanException;
 import javax.management.Notification;
+import javax.management.ReflectionException;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
@@ -64,6 +66,11 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
             getLogger().log(Level.SEVERE, "Unable to write attributes", e);
             return new AttributeList();
         }
+    }
+
+    @Override
+    public AttributeList getAttributes() throws MBeanException, ReflectionException {
+        return getAttributesParallel(threadPool.get(), BATCH_READ_WRITE_TIMEOUT);
     }
 
     @Override

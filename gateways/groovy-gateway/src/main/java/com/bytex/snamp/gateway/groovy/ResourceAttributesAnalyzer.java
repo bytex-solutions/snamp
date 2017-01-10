@@ -40,10 +40,8 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
 
         protected FilterAndProcessAttributeStatement(final Predicate checker) {
             this.checker = Objects.requireNonNull(checker);
-            this.successHandler = new WriteOnceRef<>((resourceName, metadata, attributeValue) -> {
-            });
-            this.errorHandler = new WriteOnceRef<>((resourceName, metadata, attributeValue) -> {
-            });
+            this.successHandler = new WriteOnceRef<>(AttributeValueHandler.empty());
+            this.errorHandler = new WriteOnceRef<>(AttributeValueHandler.empty());
         }
 
         /**

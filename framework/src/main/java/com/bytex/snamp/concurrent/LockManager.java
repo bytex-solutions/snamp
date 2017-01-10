@@ -2,6 +2,7 @@ package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.internal.Utils;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -149,6 +150,30 @@ public abstract class LockManager {
         }
     }
 
+    public final void run(final Enum<?> resourceGroup, final Runnable action, final Duration timeout) throws TimeoutException, InterruptedException {
+        try(final SafeCloseable ignored = acquireLock(resourceGroup, timeout)){
+            action.run();
+        }
+    }
+
+    public final void run(final Enum<?> resourceGroup, final Runnable action){
+        try(final SafeCloseable ignored = acquireLock(resourceGroup)){
+            action.run();
+        }
+    }
+
+    public final Runnable runnable(final Enum<?> resourceGroup, final Runnable action) {
+        return () -> run(resourceGroup, action);
+    }
+
+    public final <V> Callable<? extends V> callable(final Enum<?> resourceGroup, final Callable<? extends V> action) {
+        return () -> call(resourceGroup, action);
+    }
+
+    public final <V> Callable<? extends V> callable(final Enum<?> resourceGroup, final Callable<? extends V> action, final Duration timeout) {
+        return () -> call(resourceGroup, action, timeout);
+    }
+
     public final <V> V call(final Enum<?> resourceGroup, final Callable<? extends V> action) throws Exception {
         try(final SafeCloseable ignored = acquireLock(resourceGroup)){
             return action.call();
@@ -158,6 +183,18 @@ public abstract class LockManager {
     public final <V> V call(final Enum<?> resourceGroup, final Callable<? extends V> action, final Duration timeout) throws Exception {
         try(final SafeCloseable ignored = acquireLock(resourceGroup, timeout)){
             return action.call();
+        }
+    }
+
+    public final <V> V callUnchecked(final Enum<?> resourceGroup, final Callable<? extends V> action) {
+        try (final SafeCloseable ignored = acquireLock(resourceGroup)) {
+            return Utils.callUnchecked(action);
+        }
+    }
+
+    public final <V> V callUnchecked(final Enum<?> resourceGroup, final Callable<? extends V> action, final Duration timeout) throws TimeoutException, InterruptedException {
+        try(final SafeCloseable ignored = acquireLock(resourceGroup, timeout)){
+            return Utils.callUnchecked(action);
         }
     }
 

@@ -337,7 +337,8 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public <T> T queryObject(@Nonnull final Class<T> objectType) {
-        return getService().queryObject(objectType);
+        final ManagedResourceConnector connector = getService();
+        return connector != null ? connector.queryObject(objectType) : null;
     }
 
     /**
