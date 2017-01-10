@@ -1,12 +1,14 @@
 package com.bytex.snamp.gateway.http;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import com.sun.jersey.spi.resource.Singleton;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Set;
 
@@ -14,11 +16,11 @@ import java.util.Set;
 @Path("/")
 public final class AttributeAccessService {
     private final AttributeSupport attributes;
-    private final Gson formatter;
+    private final ObjectMapper formatter;
 
     AttributeAccessService(final AttributeSupport registeredAttributes){
         this.attributes = Objects.requireNonNull(registeredAttributes);
-        this.formatter = new Gson();
+        this.formatter = new ObjectMapper();
     }
 
     @GET
@@ -37,16 +39,15 @@ public final class AttributeAccessService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/attributes")
-    public String getAttributes(@QueryParam("resource") final String resourceName){
-        if(resourceName == null || resourceName.isEmpty()){   //all resources with attributes
-            final JsonObject result = new JsonObject();
-            for(final String resource: attributes.getHostedResources())
-                result.add(resource, formatter.toJsonTree(attributes.getResourceAttributes(resource).stream().toArray(String[]::new)));
-            return formatter.toJson(result);
-        }
-        else {
+    public String getAttributes(@QueryParam("resource") final String resourceName) throws IOException {
+        if (resourceName == null || resourceName.isEmpty()) {   //all resources with attributes
+            final ObjectNode result = formatter.getNodeFactory().objectNode();
+            for (final String resource : attributes.getHostedResources())
+                result.put(resource, formatter.valueToTree(attributes.getResourceAttributes(resource).stream().toArray(String[]::new)));
+            return formatter.writeValueAsString(result);
+        } else {
             final Set<String> result = attributes.getResourceAttributes(resourceName);
-            return formatter.toJson(result.stream().toArray(String[]::new));
+            return formatter.writeValueAsString(result.stream().toArray(String[]::new));
         }
     }
 
@@ -63,7 +64,7 @@ public final class AttributeAccessService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/resources")
-    public String getResources() {
-        return formatter.toJson(attributes.getHostedResources().stream().toArray(String[]::new));
+    public String getResources() throws IOException {
+        return formatter.writeValueAsString(attributes.getHostedResources().stream().toArray(String[]::new));
     }
 }

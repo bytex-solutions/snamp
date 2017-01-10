@@ -2,7 +2,7 @@ package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
-import com.google.gson.Gson;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.management.Descriptor;
 import javax.management.JMException;
@@ -19,9 +19,9 @@ abstract class SshAttributeAccessor extends AttributeAccessor implements SshAttr
     static final String GET_COMMAND_PATTERN = "get -n %s -r %s";
     static final String SET_COMMAND_PATTERN = "set -n %s -r %s -v %s";
 
-    final Gson formatter;
+    final ObjectMapper formatter;
 
-    SshAttributeAccessor(final MBeanAttributeInfo metadata, final Gson formatter) {
+    SshAttributeAccessor(final MBeanAttributeInfo metadata, final ObjectMapper formatter) {
         super(metadata);
         this.formatter = Objects.requireNonNull(formatter);
     }
@@ -32,7 +32,7 @@ abstract class SshAttributeAccessor extends AttributeAccessor implements SshAttr
     }
 
     private void printValueAsJson(final Writer output) throws IOException, JMException {
-        formatter.toJson(getValue(), output);
+        formatter.writeValue(output, getValue());
         output.flush();
     }
 
@@ -66,7 +66,7 @@ abstract class SshAttributeAccessor extends AttributeAccessor implements SshAttr
     @Override
     public final void setValue(final Reader input) throws JMException, IOException {
         if (getType() != null && canWrite())
-            setValue(formatter.fromJson(input, getType().getJavaType()));
+            setValue(formatter.readValue(input, getType().getJavaType()));
         else throw new UnsupportedOperationException(String.format("Attribute %s is read-only", getName()));
     }
 

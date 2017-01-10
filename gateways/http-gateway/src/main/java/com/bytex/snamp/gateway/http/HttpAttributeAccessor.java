@@ -2,10 +2,13 @@ package com.bytex.snamp.gateway.http;
 
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.json.JsonUtils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.management.MBeanAttributeInfo;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 /**
  * @author Roman Sakno
@@ -15,19 +18,14 @@ import javax.management.MBeanAttributeInfo;
 final class HttpAttributeAccessor extends AttributeAccessor implements HttpAccessor {
     static final String ATTRIBUTE_URL_PARAM = "attributeName";
     static final String ATTRIBUTE_ACCESS_PATH = "/attributes/{" + RESOURCE_URL_PARAM + "}/{" + ATTRIBUTE_URL_PARAM + "}";
-    private final Gson formatter;
+    private final ObjectMapper formatter;
 
     HttpAttributeAccessor(final MBeanAttributeInfo attributeInfo) {
         super(attributeInfo);
         final String dateFormat = HttpGatewayConfigurationDescriptor.parseDateFormatParam(getMetadata().getDescriptor());
-        GsonBuilder builder = new GsonBuilder();
-        if (dateFormat != null && dateFormat.length() > 0)
-            builder = builder.setDateFormat(dateFormat);
-        builder = JsonUtils.registerBufferAdapters(builder);
-        builder = JsonUtils.registerOpenTypeAdapters(builder);
-        formatter = builder
-                .serializeSpecialFloatingPointValues()
-                .serializeNulls().create();
+        formatter = new ObjectMapper();
+        formatter.setDateFormat(new SimpleDateFormat(dateFormat));
+        formatter.registerModule(new JsonUtils());
     }
 
     String getJsonType(){
@@ -35,14 +33,22 @@ final class HttpAttributeAccessor extends AttributeAccessor implements HttpAcces
     }
 
     @Override
-    protected String interceptGet(final Object value) {
-        return formatter.toJson(value);
+    protected String interceptGet(final Object value) throws InterceptionException {
+        try {
+            return formatter.writeValueAsString(value);
+        } catch (final IOException e) {
+            throw new InterceptionException(e);
+        }
     }
 
     @Override
     protected Object interceptSet(final Object value) throws InterceptionException {
         if (getType() != null && value instanceof String)
-            return formatter.fromJson((String) value, getType().getJavaType());
+            try {
+                return formatter.readValue((String) value, getType().getJavaType());
+            } catch (IOException e) {
+                throw new InterceptionException(e);
+            }
         else throw new InterceptionException(new IllegalArgumentException("String expected"));
     }
 

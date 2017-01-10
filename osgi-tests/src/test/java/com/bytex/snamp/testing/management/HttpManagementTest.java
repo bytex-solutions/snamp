@@ -6,13 +6,18 @@ import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.io.IOUtils;
+import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import com.bytex.snamp.testing.web.TestAuthenticator;
-import com.google.gson.*;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ContainerNode;
+import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.node.TextNode;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -48,7 +53,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
         SnampFeature.STANDARD_TOOLS
 })
 public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-
+    private final ObjectMapper mapper;
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
@@ -65,6 +70,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     public HttpManagementTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
         authenticator = new TestAuthenticator();
+        mapper = new ObjectMapper();
     }
 
     @Override
@@ -253,10 +259,8 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         try {
             assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
             final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
-            JsonParser parser = new JsonParser();
-            JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
-            JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
-
+            JsonNode oldResponseJSON = mapper.readTree(responseValue);
+            JsonNode newResponseJSON = mapper.readTree(newConfiguration);
             assertEquals(oldResponseJSON, newResponseJSON);
         } finally {
             connection.disconnect();
@@ -284,10 +288,9 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         try {
             assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
             final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
-            JsonParser parser = new JsonParser();
-            JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
-            JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
-            oldResponseJSON.getAsJsonObject("parameters").addProperty("dummyParam", "dummyValue");
+            JsonNode oldResponseJSON = mapper.readTree(responseValue);
+            JsonNode newResponseJSON = mapper.readTree(newConfiguration);
+            ((ObjectNode)oldResponseJSON.get("parameters")).put("dummyParam", "dummyValue");
 
             assertEquals(oldResponseJSON, newResponseJSON);
         } finally {
@@ -314,9 +317,8 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         try {
             assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
             final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
-            JsonParser parser = new JsonParser();
-            JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
-            JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
+            JsonNode oldResponseJSON = mapper.readTree(responseValue);
+            JsonNode newResponseJSON = mapper.readTree(newConfiguration);
             assertEquals(oldResponseJSON, newResponseJSON);
         } finally {
             connection.disconnect();
@@ -331,34 +333,34 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         connection.setRequestProperty("charset", "utf-8");
         connection.setDoOutput(true);
 
-        final JsonObject attributeMap = new JsonObject();
-        final JsonObject newAttribute1 = new JsonObject();
-        final JsonObject newAttribute1Params = new JsonObject();
-        newAttribute1Params.add("name", new JsonPrimitive("string"));
-        newAttribute1Params.add("objectName", new JsonPrimitive(BEAN_NAME));
-        newAttribute1Params.add("oid", new JsonPrimitive("1.1.123.0"));
-        newAttribute1.add("parameters", newAttribute1Params);
-        newAttribute1.add("readWriteTimeout", null);
+        final ObjectNode attributeMap = ThreadLocalJsonFactory.getFactory().objectNode();
+        final ObjectNode newAttribute1 = ThreadLocalJsonFactory.getFactory().objectNode();
+        final ObjectNode newAttribute1Params = ThreadLocalJsonFactory.getFactory().objectNode();
+        newAttribute1Params.put("name", new TextNode("string"));
+        newAttribute1Params.put("objectName", new TextNode(BEAN_NAME));
+        newAttribute1Params.put("oid", new TextNode("1.1.123.0"));
+        newAttribute1.put("parameters", newAttribute1Params);
+        newAttribute1.put("readWriteTimeout", ThreadLocalJsonFactory.getFactory().nullNode());
 
-        final JsonObject newAttribute2 = new JsonObject();
-        final JsonObject newAttribute2Params = new JsonObject();
-        newAttribute2Params.add("name", new JsonPrimitive("string"));
-        newAttribute2Params.add("objectName", new JsonPrimitive(BEAN_NAME));
-        newAttribute2Params.add("oid", new JsonPrimitive("1.1.124.0"));
-        newAttribute2.add("parameters", newAttribute2Params);
-        newAttribute2.add("readWriteTimeout", null);
+        final ObjectNode newAttribute2 = ThreadLocalJsonFactory.getFactory().objectNode();
+        final ObjectNode newAttribute2Params = ThreadLocalJsonFactory.getFactory().objectNode();
+        newAttribute2Params.put("name", new TextNode("string"));
+        newAttribute2Params.put("objectName", new TextNode(BEAN_NAME));
+        newAttribute2Params.put("oid", new TextNode("1.1.124.0"));
+        newAttribute2.put("parameters", newAttribute2Params);
+        newAttribute2.put("readWriteTimeout", ThreadLocalJsonFactory.getFactory().nullNode());
 
-        final JsonObject newAttribute3 = new JsonObject();
-        final JsonObject newAttribute3Params = new JsonObject();
-        newAttribute3Params.add("name", new JsonPrimitive("string"));
-        newAttribute3Params.add("objectName", new JsonPrimitive(BEAN_NAME));
-        newAttribute3Params.add("oid", new JsonPrimitive("1.1.125.0"));
-        newAttribute3.add("parameters", newAttribute3Params);
-        newAttribute3.add("readWriteTimeout", null);
+        final ObjectNode newAttribute3 = ThreadLocalJsonFactory.getFactory().objectNode();
+        final ObjectNode newAttribute3Params = ThreadLocalJsonFactory.getFactory().objectNode();
+        newAttribute3Params.put("name", new TextNode("string"));
+        newAttribute3Params.put("objectName", new TextNode(BEAN_NAME));
+        newAttribute3Params.put("oid", new TextNode("1.1.125.0"));
+        newAttribute3.put("parameters", newAttribute3Params);
+        newAttribute3.put("readWriteTimeout", ThreadLocalJsonFactory.getFactory().nullNode());
 
-        attributeMap.add("123.0", newAttribute1);
-        attributeMap.add("124.0", newAttribute2);
-        attributeMap.add("125.0", newAttribute3);
+        attributeMap.put("123.0", newAttribute1);
+        attributeMap.put("124.0", newAttribute2);
+        attributeMap.put("125.0", newAttribute3);
 
         IOUtils.writeString(attributeMap.toString(), connection.getOutputStream(), Charset.defaultCharset());
         connection.connect();
@@ -376,11 +378,9 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         try {
             assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
             final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
-            JsonParser parser = new JsonParser();
-            JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
-            JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
-            oldResponseJSON.remove("attributes");
-            oldResponseJSON.add("attributes", attributeMap);
+            ObjectNode oldResponseJSON = (ObjectNode) mapper.readTree(responseValue);
+            JsonNode newResponseJSON = mapper.readTree(newConfiguration);
+            oldResponseJSON.put("attributes", attributeMap);
             assertEquals(newResponseJSON, oldResponseJSON);
         } finally {
             connection.disconnect();
@@ -438,9 +438,8 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         try {
             assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
             final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
-            JsonParser parser = new JsonParser();
-            JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
-            JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
+            JsonNode oldResponseJSON = mapper.readTree(responseValue);
+            JsonNode newResponseJSON = mapper.readTree(newConfiguration);
 
             assertEquals(oldResponseJSON, newResponseJSON);
         } finally {
@@ -466,10 +465,9 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         try {
             assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
             final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
-            JsonParser parser = new JsonParser();
-            JsonObject oldResponseJSON = (JsonObject) parser.parse(responseValue);
-            oldResponseJSON.getAsJsonObject("parameters").remove(TEST_PARAMETER);
-            JsonObject newResponseJSON = (JsonObject) parser.parse(newConfiguration);
+            JsonNode oldResponseJSON = mapper.readTree(responseValue);
+            ((ObjectNode)oldResponseJSON.get("parameters")).remove(TEST_PARAMETER);
+            JsonNode newResponseJSON = mapper.readTree(newConfiguration);
             assertEquals(oldResponseJSON, newResponseJSON);
         } finally {
             connection.disconnect();
@@ -554,13 +552,13 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         try {
             final String responseValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             assertNotNull(responseValue);
-            final JsonArray resources = (JsonArray) new JsonParser().parse(responseValue);
+            final JsonNode resources = mapper.readTree(responseValue);
 
-            final Optional<JsonElement> element = StreamSupport.stream(resources.spliterator(), false)
-                    .filter(entry -> entry.getAsJsonObject().get("name").getAsString().equalsIgnoreCase("JMX Connector"))
+            final Optional<JsonNode> element = StreamSupport.stream(resources.spliterator(), false)
+                    .filter(entry -> entry.get("name").asText().equalsIgnoreCase("JMX Connector"))
                     .findFirst();
             assertTrue(element.isPresent());
-            assertEquals("ACTIVE", element.get().getAsJsonObject().get("state").getAsString());
+            assertEquals("ACTIVE", element.get().get("state").asText());
 
         } finally {
             connection.disconnect();
@@ -586,13 +584,13 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         try {
             final String responseValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             assertNotNull(responseValue);
-            final JsonArray resources = (JsonArray) new JsonParser().parse(responseValue);
+            final JsonNode resources = mapper.readTree(responseValue);
 
-            final Optional<JsonElement> element = StreamSupport.stream(resources.spliterator(), false)
-                    .filter(entry -> entry.getAsJsonObject().get("name").getAsString().equalsIgnoreCase("JMX Connector"))
+            final Optional<JsonNode> element = StreamSupport.stream(resources.spliterator(), false)
+                    .filter(entry -> entry.get("name").asText().equalsIgnoreCase("JMX Connector"))
                     .findFirst();
             assertTrue(element.isPresent());
-            assertEquals("RESOLVED", element.get().getAsJsonObject().get("state").getAsString());
+            assertEquals("RESOLVED", element.get().get("state").asText());
 
         } finally {
             connection.disconnect();

@@ -14,9 +14,9 @@ import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -64,7 +64,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
         SnampFeature.COMPOSITE_CONNECTOR
 })
 public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final Gson FORMATTER = new Gson();
+    private static final ObjectMapper FORMATTER = new ObjectMapper();
     private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
     private static final String ADAPTER_NAME = "snmp";
@@ -74,13 +74,13 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     //must be public
     @WebSocket
-    public static final class EventReceiver extends LinkedBlockingQueue<JsonElement> {
+    public static final class EventReceiver extends LinkedBlockingQueue<JsonNode> {
         private static final long serialVersionUID = 2056675059549300951L;
 
         @OnWebSocketMessage
         @SpecialUse
-        public void onMessage(final String event) {
-            offer(FORMATTER.fromJson(event, JsonElement.class));
+        public void onMessage(final String event) throws IOException {
+            offer(FORMATTER.readTree(event));
         }
     }
 
@@ -105,18 +105,18 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
                                                            final String authenticationToken,
                                                            final Acceptor<? super W, E> testBody,
-                                                           final JsonObject... cachedUserData) throws Exception {
+                                                           final JsonNode... cachedUserData) throws Exception {
         final ClientUpgradeRequest upgradeRequest = new ClientUpgradeRequest();
         upgradeRequest.setHeader(HttpHeaders.AUTHORIZATION, authenticationToken);
         try (final Session session = client.connect(webSocketHandler, new URI(WS_ENDPOINT), upgradeRequest).get(10, TimeUnit.SECONDS)) {
-            for (final JsonObject obj : cachedUserData)
-                session.getRemote().sendString(FORMATTER.toJson(obj));
+            for (final JsonNode obj : cachedUserData)
+                session.getRemote().sendString(FORMATTER.writeValueAsString(obj));
             Thread.sleep(1000);
             testBody.accept(webSocketHandler);
         }
     }
 
-    private static void setServiceSettings(final String servicePostfix, final String authenticationToken, final JsonElement data) throws IOException {
+    private static void setServiceSettings(final String servicePostfix, final String authenticationToken, final JsonNode data) throws IOException {
         final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
@@ -124,7 +124,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, "application/json");
         connection.setRequestProperty(HttpHeaders.AUTHORIZATION, authenticationToken);
         connection.setDoOutput(true);
-        IOUtils.writeString(FORMATTER.toJson(data), connection.getOutputStream(), Charset.defaultCharset());
+        IOUtils.writeString(FORMATTER.writeValueAsString(data), connection.getOutputStream(), Charset.defaultCharset());
         connection.connect();
         try {
             assertEquals(204, connection.getResponseCode());
@@ -133,7 +133,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         }
     }
 
-    private static JsonElement getServiceSettings(final String servicePostfix, final String authenticationToken) throws IOException{
+    private static JsonNode getServiceSettings(final String servicePostfix, final String authenticationToken) throws IOException{
         final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
@@ -143,7 +143,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         connection.connect();
         try(final Reader reader = new InputStreamReader(connection.getInputStream(), IOUtils.DEFAULT_CHARSET)){
             assertEquals(200, connection.getResponseCode());
-            return FORMATTER.fromJson(reader, JsonElement.class);
+            return FORMATTER.readTree(reader);
         } finally {
             connection.disconnect();
         }
@@ -156,17 +156,17 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     public void logNotificationTest() throws Exception {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         //read logging settings
-        final JsonElement settings = getServiceSettings("/logging/settings", authenticationToken);
-        assertTrue(settings.isJsonObject());
-        assertEquals("error", settings.getAsJsonObject().get("logLevel").getAsString());
+        final JsonNode settings = getServiceSettings("/logging/settings", authenticationToken);
+        assertTrue(settings.isObject());
+        assertEquals("error", settings.get("logLevel").asText());
         final EventReceiver receiver = new EventReceiver();
         runWebSocketTest(receiver, authenticationToken, events -> {
             LoggerProvider.getLoggerForBundle(getTestBundleContext()).log(Level.SEVERE, "Test log", new Exception());
-            final JsonElement element = receiver.poll(5L, TimeUnit.SECONDS);
+            final JsonNode element = receiver.poll(5L, TimeUnit.SECONDS);
             assertNotNull(element);
-            assertEquals("Test log", element.getAsJsonObject().get("message").getAsString());
-            assertEquals("error", element.getAsJsonObject().get("level").getAsString());
-        }, settings.getAsJsonObject());
+            assertEquals("Test log", element.get("message").asText());
+            assertEquals("error", element.get("level").asText());
+        }, settings);
     }
 
     /**

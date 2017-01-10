@@ -13,10 +13,12 @@ import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.BigIntegerNode;
+import org.codehaus.jackson.node.BooleanNode;
+import org.codehaus.jackson.node.IntNode;
+import org.codehaus.jackson.node.TextNode;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -56,28 +58,28 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     //must be public
     @WebSocket
-    public static final class NotificationReceiver extends LinkedBlockingQueue<JsonElement>{
+    public static final class NotificationReceiver extends LinkedBlockingQueue<JsonNode>{
         private static final long serialVersionUID = 2056675059549300951L;
-        private final Gson formatter;
+        private final ObjectMapper formatter;
 
-        private NotificationReceiver(final Gson formatter) {
+        private NotificationReceiver(final ObjectMapper formatter) {
             this.formatter = formatter;
         }
 
         @OnWebSocketMessage
         @SpecialUse
-        public void onMessage(final String notification) {
-            offer(formatter.fromJson(notification, JsonElement.class));
+        public void onMessage(final String notification) throws IOException {
+            offer(formatter.readTree(notification));
         }
     }
 
     private static final String GATEWAY_NAME = "http";
     private static final String INSTANCE_NAME = "test-http";
-    private final Gson formatter;
+    private final ObjectMapper formatter;
 
     public JmxToHttpGatewayTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
-        formatter = new Gson();
+        formatter = new ObjectMapper();
     }
 
     @Override
@@ -87,14 +89,14 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
     }
 
     private void testAttribute(final String attributeID,
-                               final JsonElement value) throws IOException {
+                               final JsonNode value) throws IOException {
         final URL attributeQuery = new URL(String.format("http://localhost:8181/snamp/gateway/http/%s/attributes/%s/%s", INSTANCE_NAME, TEST_RESOURCE_NAME, attributeID));
         //write attribute
         HttpURLConnection connection = (HttpURLConnection)attributeQuery.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setDoOutput(true);
-        IOUtils.writeString(formatter.toJson(value), connection.getOutputStream(), Charset.defaultCharset());
+        IOUtils.writeString(formatter.writeValueAsString(value), connection.getOutputStream(), Charset.defaultCharset());
         connection.connect();
         try{
             assertEquals(204, connection.getResponseCode());
@@ -111,7 +113,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
             final String attributeValue = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             assertNotNull(attributeValue);
             assertFalse(attributeValue.isEmpty());
-            assertEquals(value, formatter.fromJson(attributeValue, JsonElement.class));
+            assertEquals(value, formatter.readTree(attributeValue));
         }
         finally {
             connection.disconnect();
@@ -145,22 +147,22 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
 
     @Test
     public void testStringAttribute() throws IOException {
-        testAttribute("1.0", new JsonPrimitive("Hello, world!"));
+        testAttribute("1.0", new TextNode("Hello, world!"));
     }
 
     @Test
     public void testBooleanAttribute() throws IOException{
-        testAttribute("2.0", new JsonPrimitive(true));
+        testAttribute("2.0", BooleanNode.valueOf(true));
     }
 
     @Test
     public void testInt32Attribute() throws IOException{
-        testAttribute("3.0", new JsonPrimitive(42));
+        testAttribute("3.0", IntNode.valueOf(42));
     }
 
     @Test
-    public void testBigIntAttribute() throws IOException{
-        testAttribute("bigint", new JsonPrimitive(new BigInteger("100500")));
+    public void testBigIntAttribute() throws IOException {
+        testAttribute("bigint", BigIntegerNode.valueOf(new BigInteger("100500")));
     }
 
     @Test
@@ -175,13 +177,14 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
                 .setTypeName("SimpleTable", true)
                 .setTypeDescription("descr", true)
                 .declareColumns(columns -> columns
-                    .addColumn("col1", "desc", SimpleType.BOOLEAN, false)
-                    .addColumn("col2", "desc", SimpleType.INTEGER, false)
-                    .addColumn("col3", "desc", SimpleType.STRING, true))
+                        .addColumn("col1", "desc", SimpleType.BOOLEAN, false)
+                        .addColumn("col2", "desc", SimpleType.INTEGER, false)
+                        .addColumn("col3", "desc", SimpleType.STRING, true))
                 .add(false, 2, "pp")
                 .build();
-        final Gson formatter = JsonUtils.registerOpenTypeAdapters(new GsonBuilder()).create();
-        testAttribute("7.1", formatter.toJsonTree(data));
+        final ObjectMapper formatter = new ObjectMapper();
+        formatter.registerModule(new JsonUtils());
+        testAttribute("7.1", formatter.valueToTree(data));
     }
 
     @Test
@@ -192,9 +195,9 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
             .put("col2", "desc", 42)
             .put("col3", "desc", "Hello, world!")
             .build();
-        final Gson formatter = JsonUtils.registerOpenTypeAdapters(new GsonBuilder()).create();
-        testAttribute("6.1", formatter.toJsonTree(data));
-
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JsonUtils());
+        testAttribute("6.1", formatter.valueToTree(data));
     }
 
     @Test

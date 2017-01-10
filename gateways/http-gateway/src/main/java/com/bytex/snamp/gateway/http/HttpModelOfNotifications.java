@@ -5,8 +5,7 @@ import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.ModelOfNotifications;
 import com.bytex.snamp.json.JsonUtils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
@@ -17,6 +16,8 @@ import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -43,9 +44,12 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
 
         @Override
         public final void handleNotification(final NotificationEvent event) {
-            if (isConnected() && isAllowed(event.getNotification())) {
-                getRemote().sendString(formatter.toJson(event.getNotification()), this);
-            }
+            if (isConnected() && isAllowed(event.getNotification()))
+                try {
+                    getRemote().sendString(formatter.writeValueAsString(event.getNotification()), this);
+                } catch (final IOException e) {
+                    throw new UncheckedIOException(e);
+                }
         }
 
         @Override
@@ -84,16 +88,16 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
         }
     }
 
-    private final Pattern slashReplace = Pattern.compile("/", Pattern.LITERAL);
-    private final Gson formatter = JsonUtils.registerTypeAdapters(new GsonBuilder())
-            .serializeSpecialFloatingPointValues()
-            .serializeNulls()
-            .create();
+    private final Pattern slashReplace;
+    private final ObjectMapper formatter;
 
     private final Set<NotificationListener> webSocketListeners;
 
     HttpModelOfNotifications() {
         webSocketListeners = new CopyOnWriteArraySet<>();
+        slashReplace = Pattern.compile("/", Pattern.LITERAL);
+        formatter = new ObjectMapper();
+        formatter.registerModule(new JsonUtils());
     }
 
     private Logger getLogger(){
