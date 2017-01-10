@@ -13,7 +13,7 @@
                   </a>
                   <ul class="dropdown-menu dropdown-usermenu pull-right" dropdownMenu aria-labelledby="userProfileDropdown">
                     <li><a href="javascript:;">Profile</a></li>
-                    <li><a href="javascript:;">Help</a></li>
+                    <li><a href="https://snamp.bytex.solutions/docs/latest/main.md.html" target="_blank">Help</a></li>
                     <li><a href="login.html" (click)="clearCookie()"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
                   </ul>
                 </li>
@@ -21,60 +21,32 @@
                 <li role="presentation" class="dropdown">
                   <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
                     <i class="fa fa-envelope-o"></i>
-                    <span class="badge bg-green">6</span>
+                    <span class="badge bg-green">{{logs.length}}</span>
                   </a>
                   <ul id="menu1" class="dropdown-menu list-unstyled msg_list" role="menu">
-                    <li>
-                      <a>
-                        <span class="image"><img src="assets/img/img.jpg" alt="Profile Image" /></span>
-                        <span>
-                          <span>John Smith</span>
-                          <span class="time">3 mins ago</span>
-                        </span>
-                        <span class="message">
-                          Film festivals used to be do-or-die moments for movie makers. They were where...
-                        </span>
-                      </a>
+                    <li *ngIf="logs && logs.length > 0">
+                      <div class="text-center">
+                        <a (click)="clearAlerts()">
+                          <strong>Clear alerts</strong>
+                          <i class="fa fa-remove"></i>
+                        </a>
+                      </div>
                     </li>
-                    <li>
-                      <a>
-                        <span class="image"><img src="assets/img/img.jpg" alt="Profile Image" /></span>
+                    <li *ngFor="let log of logs">
+                      <a (click)="clickDetails(log)">
+                        <span class="image"><i class="fa fa-info fa-3" aria-hidden="true"></i></span>
                         <span>
-                          <span>John Smith</span>
-                          <span class="time">3 mins ago</span>
+                          <span>{{log.level}}</span>
+                          <span class="time">{{log.localtime}}</span>
                         </span>
                         <span class="message">
-                          Film festivals used to be do-or-die moments for movie makers. They were where...
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a>
-                        <span class="image"><img src="assets/img/img.jpg" alt="Profile Image" /></span>
-                        <span>
-                          <span>John Smith</span>
-                          <span class="time">3 mins ago</span>
-                        </span>
-                        <span class="message">
-                          Film festivals used to be do-or-die moments for movie makers. They were where...
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a>
-                        <span class="image"><img src="assets/img/img.jpg" alt="Profile Image" /></span>
-                        <span>
-                          <span>John Smith</span>
-                          <span class="time">3 mins ago</span>
-                        </span>
-                        <span class="message">
-                          Film festivals used to be do-or-die moments for movie makers. They were where...
+                          {{log.message}}
                         </span>
                       </a>
                     </li>
                     <li>
                       <div class="text-center">
-                        <a>
+                        <a href="/snamp/#/snampcfg?messages">
                           <strong>See All Alerts</strong>
                           <i class="fa fa-angle-right"></i>
                         </a>

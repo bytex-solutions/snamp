@@ -1372,7 +1372,9 @@ ul.msg_list li a .message {
 }
 
 .navbar-nav .open .dropdown-menu.msg_list {
-  width: 300px;
+  width: 322px;
+  max-height: 400px;
+  overflow-y: scroll;
 }
 .info-number .badge {
   font-size: 10px;

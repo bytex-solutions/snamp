@@ -6,18 +6,16 @@ import { HttpModule } from '@angular/http';
 import { RouterModule } from '@angular/router';
 import { removeNgStyles, createNewHosts, createInputTransfer } from '@angularclass/hmr';
 
-/*
- * Platform and Environment providers/directives/pipes
- */
+
 import { ENV_PROVIDERS } from './environment';
 import { ROUTES } from './app.routes';
-// App is our top level component
 import { App } from './app.component';
 import { Footer } from './controls/footer.component';
 import { Sidebar } from './menu/sidebar.component';
 import { TopNavBar } from './menu/topnavbar.component';
-import { FlotCmp } from './controls/network-activities.component'
-import { UsernameComponent } from './app.username'
+import { FlotCmp } from './controls/network-activities.component';
+import { UsernameComponent } from './app.username';
+import { SnampLogService } from './app.logService';
 import { NoContent } from './no-content';
 import { FontAwesomeDirective } from 'ng2-fontawesome';
 import { ApiClient } from './app.restClient'
@@ -43,6 +41,7 @@ import { TooltipModule } from 'ng2-tooltip';
 // Application wide providers
 const APP_PROVIDERS = [
   ApiClient,
+  SnampLogService,
   CookieService
 ];
 

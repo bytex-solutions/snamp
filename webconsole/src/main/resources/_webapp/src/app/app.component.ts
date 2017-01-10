@@ -2,6 +2,7 @@ import { Component, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import 'style!css!less!font-awesome-webpack/font-awesome-styles.loader!font-awesome-webpack/font-awesome.config.js';
 import { LocalStorageService } from 'angular-2-local-storage';
 import { WebSocketClient } from './app.websocket';
+import { SnampLog, SnampLogService } from './app.logService';
 
 var PNotify = require("pnotify/src/pnotify.js");
 require("pnotify/src/pnotify.mobile.js");
@@ -20,17 +21,16 @@ import {
 @Component({
   selector: 'app',
   encapsulation: ViewEncapsulation.None,
-  styleUrls: [
-    './app.style.css'
-  ],
+  styleUrls: ['./app.style.css'],
+  providers: [ SnampLogService ],
   templateUrl: './app.component.html'
 })
 export class App {
   ws: WebSocketClient;
   constructor(overlay: Overlay,
               vcRef: ViewContainerRef,
-              public modal: Modal,
-              private localStorageService: LocalStorageService) {
+              private modal: Modal,
+              private _snampLogService: SnampLogService) {
        overlay.defaultViewContainer = vcRef;
   }
 
@@ -48,18 +48,18 @@ export class App {
 
     this.ws.getDataStream().subscribe(
         (msg)=> {
-            let _json = JSON.parse(msg.data);
-            let _title: string = _json.level;
+            let _log:SnampLog = SnampLog.makeFromJson(JSON.parse(msg.data));
+            this._snampLogService.pushLog(_log);
 
             // limit the notifications maximum count
-            if (this.notificationCount > 5) {
+            if (this.notificationCount > 3) {
               PNotify.removeAll();
               this.notificationCount = 0;
             }
             var notice = new PNotify({
-                 title: _title,
-                 text: _json.message  + "<a class='details'>Details</a>",
-                 type: _json.level,
+                 title: _log.level,
+                 text: _log.message  + "<a class='details'>Details</a>",
+                 type: _log.level,
                  hide: false,
                  styling: 'bootstrap3',
                  addclass: "stack-bottomright",
@@ -67,25 +67,11 @@ export class App {
              });
 
              var _thisReference = this;
-             let _details:string = "";
-             _details += "<strong>Message: </strong>" + _json.message + "<br/>";
-             _details += "<strong>Timestamp: </strong>" + _json.timeStamp + "<br/>";
-             if (_json.stackTrace && _json.stackTrace.length > 5) {
-                _details += "<strong>Stacktrace: </strong>" + _json.stackTrace + "<br/>";
-             }
-             _details += "<strong>Level: </strong>" + _json.level + "<br/>";
-             if (_json.details) {
-                _details += "<strong>Details</strong></br/>";
-                for (let key in _json.details) {
-                   _details += "<strong>" + key + ": </strong>" + _json.details[key] + "<br/>"
-                }
-             }
-
              notice.get().find('a.details').on('click', function() {
                  _thisReference.modal.alert()
                          .size('lg')
                          .title("Details for notification")
-                         .body(_details)
+                         .body(_log.htmlDetails())
                          .isBlocking(false)
                          .keyboard(27)
                          .open()

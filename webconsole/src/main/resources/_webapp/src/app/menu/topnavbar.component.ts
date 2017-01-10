@@ -1,29 +1,43 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import { CookieService } from 'angular2-cookie/core';
+import { SnampLog, SnampLogService } from '..//app.logService';
+
+import {
+  Modal,
+  OneButtonPresetBuilder,
+  TwoButtonPresetBuilder,
+  PromptPresetBuilder
+} from 'angular2-modal/plugins/bootstrap/index';
+
+import { Overlay } from 'angular2-modal';
 
 @Component({
   selector: 'topnav-bar',
-  providers: [CookieService],
+  providers: [ CookieService, SnampLogService],
   styleUrls: [ '../app.style.css' ],
   templateUrl: './topnavbar.component.html'
 })
 export class TopNavBar {
-    // TypeScript public modifier
-    constructor(private _cookieService:CookieService) {
 
+    public logs:SnampLog[] = [];
+    constructor(overlay: Overlay,
+                vcRef: ViewContainerRef,
+                private _cookieService:CookieService,
+                private _snampLogService:SnampLogService,
+                private cd: ChangeDetectorRef,
+                private modal: Modal) {
+      overlay.defaultViewContainer = vcRef;
     }
 
     public clearCookie() {
       this._cookieService.removeAll();
+      this._snampLogService.clear();
     }
 
-    toggleClicked(event: MouseEvent)
-    {
+    toggleClicked(event: MouseEvent) {
         var target = event.srcElement.id;
         var body = $('body');
         var menu = $('#sidebar-menu');
-
-        // toggle small or large menu
         if (body.hasClass('nav-md')) {
             menu.find('li.active ul').hide();
             menu.find('li.active').addClass('active-sm').removeClass('active');
@@ -35,13 +49,32 @@ export class TopNavBar {
 
     }
 
+    clearAlerts() {
+      this.logs = [];
+    }
+
+    clickDetails(logEntry:SnampLog) {
+       this.modal.alert()
+           .size('lg')
+           .title("Details for notification")
+           .body(logEntry.htmlDetails())
+           .isBlocking(false)
+           .keyboard(27)
+           .open()
+    }
 
   ngOnInit() {
-    console.log('hello `topnavbar` component');
+      this.logs = this._snampLogService.getLastLogs(10);
+
   }
 
-  ngAfterViewInit(){
-
+  ngAfterViewInit() {
+      this._snampLogService.getLogObs()
+          .subscribe((newLog:SnampLog) => {
+            console.log("New log received: ", newLog);
+            this.logs.push(newLog);
+            this.cd.markForCheck();
+          });
   }
 
 }
