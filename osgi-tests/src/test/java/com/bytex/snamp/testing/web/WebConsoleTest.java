@@ -6,8 +6,10 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -154,7 +156,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         final JsonNode node = getServiceSettings("/version", authenticationToken);
         assertNotNull(node);
-        assertEquals(new TextNode("2.0.0"), node);
+        assertEquals(new TextNode(Utils.getBundleContext(FrameworkService.class).getBundle().getVersion().toString()), node);
     }
 
     /**
