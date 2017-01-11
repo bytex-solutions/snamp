@@ -16,7 +16,7 @@ import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.node.TextNode;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -149,6 +149,14 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         }
     }
 
+    @Test
+    public void versionEndpointTest() throws IOException {
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode node = getServiceSettings("/version", authenticationToken);
+        assertNotNull(node);
+        assertEquals(new TextNode("2.0.0"), node);
+    }
+
     /**
      * Log notification test.
      */
@@ -246,7 +254,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
      */
     @Test
     public void dummyTest() throws InterruptedException {
-        while (1 > 0) {
+        while (true) {
             Thread.sleep(3000);
             //LoggerProvider.getLoggerForBundle(getTestBundleContext()).severe("Test log");
         }
