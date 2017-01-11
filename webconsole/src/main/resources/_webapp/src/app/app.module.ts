@@ -108,8 +108,7 @@ const EXPORTS:any = [
     HttpModule
   ],
   declarations: EXPORTS,
-  exports: EXPORTS,
-  providers: [ SnampLogService ]
+  exports: EXPORTS
 })
 export class SharedConfigurationModule {}
 

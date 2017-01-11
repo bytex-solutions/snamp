@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewContainerRef, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -6,6 +6,8 @@ import { SnampLog, SnampLogService } from '../app.logService';
 
 import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
+
+import { Ng2SmartTableModule, LocalDataSource } from 'ng2-smart-table';
 
 @Component({
   moduleId: module.id,
@@ -17,6 +19,7 @@ export class SnampCfgComponent implements OnInit {
   private http:ApiClient;
   public selectedComponent:SnampComponent;
   public components:SnampComponent[] = [];
+  source: LocalDataSource;
 
   public rows = [];
 
@@ -44,7 +47,7 @@ export class SnampCfgComponent implements OnInit {
         delete: false
      },
      pager: {
-        perPage: 20
+        perPage: 8
      }
   };
 
@@ -52,8 +55,7 @@ export class SnampCfgComponent implements OnInit {
               overlay: Overlay,
               vcRef: ViewContainerRef,
               private modal: Modal,
-              private _snampLogService:SnampLogService,
-              private cd: ChangeDetectorRef) {
+              private _snampLogService:SnampLogService) {
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
    }
@@ -70,17 +72,21 @@ export class SnampCfgComponent implements OnInit {
             }
         });
 
-        this.rows = this._snampLogService.getAllLogsJSON();
+        this.source = new LocalDataSource(this._snampLogService.getAllLogsJSON());
         this._snampLogService.getLogObs()
-                .subscribe((newLog:SnampLog) => {
-                  this.rows.unshift(newLog);
-                  this.cd.detectChanges();
-              });
+             .subscribe((newLog:SnampLog) => {
+                  console.log("Appending the recent message", newLog);
+                  this.source.add(newLog);
+                  this.source.refresh();
+           });
    }
 
    clearAllLogs() {
+      $('#overlay').fadeIn();
       this._snampLogService.clear();
-      this.cd.detectChanges();
+      this.source.empty();
+      this.source.refresh();
+      $('#overlay').fadeOut();
    }
 
    selectComponent(selected:SnampComponent) {
