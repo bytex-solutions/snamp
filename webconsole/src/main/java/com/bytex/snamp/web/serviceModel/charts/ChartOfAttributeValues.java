@@ -49,8 +49,9 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
     abstract Optional<? extends AttributeChartData> createChartData(final String instanceName, final Attribute attribute);
 
     final void fillCharData(final String instanceName, final AttributeList attributes, final Map<String, ChartData> output) {
+        final String chartName = getName();
         for (final Attribute attribute : attributes.asList())
             createChartData(instanceName, attribute)
-                    .ifPresent(chartData -> output.put(getName(), chartData));
+                    .ifPresent(chartData -> output.put(chartName, chartData));
     }
 }
