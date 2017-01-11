@@ -17,12 +17,12 @@
           </ul>
         </li>
 
-        <li role="presentation" class="dropdown">
-          <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
+        <li class="dropdown unclosable">
+          <a href="javascript:;" class="dropdown-toggle info-number">
             <i class="fa fa-envelope-o"></i>
             <span class="badge bg-green">{{logs.length}}</span>
           </a>
-          <ul id="menu1" class="dropdown-menu list-unstyled msg_list" role="menu">
+          <ul id="menu1" class="dropdown-menu list-unstyled msg_list" role="menu" >
             <li *ngIf="logs && logs.length > 0">
               <div class="text-center">
                 <a (click)="clearAlerts()">
@@ -31,11 +31,13 @@
                 </a>
               </div>
             </li>
-            <li *ngFor="let log of logs">
+            <li *ngFor="let log of logs" [attr.id]="log.id">
+              <a class="exitIcon" (click)="removeMessage(log)"><i class="fa fa-close"></i></a>
               <a (click)="clickDetails(log)">
                 <span class="image"><i class="fa fa-info fa-3" aria-hidden="true"></i></span>
                 <span>
                   <span style="text-transform: uppercase;">{{log.level}}</span>
+
                   <span class="time">{{log.localTime | amTimeAgo}}</span>
                 </span>
                 <span class="message">

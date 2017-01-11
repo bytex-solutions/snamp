@@ -65,11 +65,41 @@ export class TopNavBar {
            .open();
     }
 
+    removeMessage(log:SnampLog) {
+        var liElement = $("#" + log.id);
+        liElement.slideUp("slow");
+        for (let i = 0; i < this.logs.length; i++) {
+            if (this.logs[i].id == log.id) {
+                this.logs.splice(i, 1);
+                break;
+            }
+        }
+        liElement.closest("li.dropdown.unclosable").addClass("open");
+    }
+
     ngAfterViewInit() {
        this._snampLogService.getLogObs()
-            .subscribe((newLog:SnampLog) => {
-              this.logs.unshift(newLog);
-              this.cd.detectChanges();
-          });
+          .subscribe((newLog:SnampLog) => {
+            this.logs.unshift(newLog);
+            this.cd.detectChanges();
+        });
+
+        // http://stackoverflow.com/questions/25089297/twitter-bootstrap-avoid-dropdown-menu-close-on-click-inside
+        $(document).ready(function(){
+            $('li.dropdown.unclosable a.dropdown-toggle').off();
+            $('li.dropdown.unclosable a.dropdown-toggle').on('click', function (event) {
+                $(this).parent().toggleClass('open');
+            });
+
+            $('body').on('click', function (e) {
+                if (!$('li.dropdown.unclosable').is(e.target)
+                    && $('li.dropdown.unclosable').has(e.target).length === 0
+                    && $('.open').has(e.target).length === 0
+                ) {
+                    $('li.dropdown.unclosable').removeClass('open');
+                }
+            });
+
+        });
     }
 }

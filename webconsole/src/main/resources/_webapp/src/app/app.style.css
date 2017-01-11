@@ -1359,6 +1359,13 @@ ul.msg_list li a .time {
   position: absolute;
   right: 35px;
 }
+
+a.exitIcon {
+  float: right;
+  display: block !important;
+  width: 25px !important;
+}
+
 ul.msg_list li a .message {
   display: block !important;
   font-size: 11px;
