@@ -2,6 +2,7 @@ package com.bytex.snamp.connector;
 
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
@@ -18,6 +19,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.ArrayUtils.find;
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
@@ -327,6 +329,11 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     public ManagedResourceConfiguration getResourceConfiguration(final BundleContext context) throws IOException {
         return getResourceConfiguration(context, this);
+    }
+
+    public AttributeList getAttributes() throws ReflectionException, MBeanException {
+        final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
+        return attributeSupport == null ? new AttributeList() : attributeSupport.getAttributes();
     }
 
     /**

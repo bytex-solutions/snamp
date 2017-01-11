@@ -51,8 +51,20 @@ public abstract class AttributeChartData implements ChartData, JsonSerializableW
         return instanceName;
     }
 
+    @Override
+    public Object getData(final int dimension) {
+        switch (dimension) {
+            case 0:
+                return getInstanceName();
+            case 1:
+                return getAttribute().getValue();
+            default:
+                throw new IndexOutOfBoundsException();
+        }
+    }
+
     @Nonnull
-    protected BaseJsonNode toJsonNode() throws JsonProcessingException {
+    protected ObjectNode toJsonNode() throws JsonProcessingException {
         final ObjectNode result = ThreadLocalJsonFactory.getFactory().objectNode();
         final JsonTypeName typeName = chartType.getAnnotation(JsonTypeName.class);
         assert typeName != null;    //checked in constructor

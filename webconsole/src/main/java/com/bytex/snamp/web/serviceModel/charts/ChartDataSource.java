@@ -1,6 +1,8 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
+import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.concurrent.Repeater;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -13,6 +15,7 @@ import javax.annotation.Nonnull;
 import javax.management.AttributeList;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +30,6 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  */
 public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashboard> {
-    private static final String RENEW_TIME = "com.bytex.snamp.web.console.chartDataSource.dataRefreshTime";
 
     private final class AttributeSupplierThread extends Repeater {
         private AttributeSupplierThread(final Duration period) {
@@ -37,9 +39,10 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         private void processAttributes(final WebConsoleSession session, final String resourceName, final AttributeList attributes) throws ReflectionException, MBeanException {
             final Dashboard dashboard = getUserData(session);
             final ChartDataMessage message = new ChartDataMessage(ChartDataSource.this);
-            for (final Chart chart : dashboard.getCharts())
-                if (chart instanceof ChartOfAttributeValues)
-                    ((ChartOfAttributeValues) chart).fillCharData(resourceName, attributes, message.getChartData());
+            dashboard.getCharts().stream()
+                    .filter(chart -> chart instanceof ChartOfAttributeValues)
+                    .forEach(chart -> ((ChartOfAttributeValues) chart).fillCharData(resourceName, attributes, message.getChartData()));
+            session.sendMessage(message);
         }
 
         private void doActionImpl(final WebConsoleSession session, final Thread actionThread) {
@@ -50,14 +53,19 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
                     threadPool.submit(() -> {
                         if (actionThread.isInterrupted())
                             return null;    //if submitter is interrupted then exit
+                        /*
+                            A reference to managed resource connector used only for obtaining attribute values.
+                         */
                         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connector.getValue());
-                        final AttributeSupport attributes = client.queryObject(AttributeSupport.class);
-                        if (attributes != null)
-                            try {
-                                processAttributes(session, client.getManagedResourceName(), attributes.getAttributes());
-                            } finally {
-                                client.release(getBundleContext());
-                            }
+                        final AttributeList attributes;
+                        final String resourceName = client.getManagedResourceName();
+                        try {
+                            attributes = client.getAttributes();
+                        } finally {
+                            client.release(getBundleContext()); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
+                        }
+                        if (!actionThread.isInterrupted())
+                            processAttributes(session, resourceName, attributes);
                         return null;
                     });
             }
@@ -73,9 +81,19 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
     private final ExecutorService threadPool;
     private AttributeSupplierThread attributeSupplier;
 
-    public ChartDataSource(final ExecutorService threadPool) {
+    public ChartDataSource(final ConfigurationManager manager, final ExecutorService threadPool) throws IOException {
         super(Dashboard.class);
         this.threadPool = Objects.requireNonNull(threadPool);
+        final Duration refreshTime = manager.transformConfiguration(config -> {
+            final String RENEW_TIME = "chartDataRefreshTime";
+            final long renewTime = MapUtils.getValue(config.getParameters(), RENEW_TIME, Long::parseLong, () -> 900L);
+            return Duration.ofMillis(renewTime);
+        });
+        attributeSupplier = new AttributeSupplierThread(refreshTime);
+    }
+
+    public void init(){
+        attributeSupplier.run();
     }
 
     private BundleContext getBundleContext(){

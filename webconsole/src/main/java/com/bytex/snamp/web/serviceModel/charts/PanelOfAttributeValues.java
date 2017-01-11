@@ -17,21 +17,8 @@ import java.util.Optional;
 @JsonTypeName("panelOfAttributeValues")
 public final class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues<InstanceNameAxis, AttributeValueAxis> {
     public static final class ChartData extends AttributeChartData {
-
         private ChartData(final String instanceName, final Attribute attribute) {
             super(instanceName, attribute, PanelOfAttributeValues.class);
-        }
-
-        @Override
-        public Object getData(final int dimension) {
-            switch (dimension) {
-                case 0:
-                    return getInstanceName();
-                case 1:
-                    return getAttribute().getValue();
-                default:
-                    throw new IndexOutOfBoundsException();
-            }
         }
     }
 
