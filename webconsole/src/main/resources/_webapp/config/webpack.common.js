@@ -153,6 +153,11 @@ module.exports = function(options) {
           loader: 'json-loader'
         },
 
+        {
+          test: /\.scss$/,
+          loaders: ['raw-loader', 'sass-loader'] // sass-loader not scss-loader
+        },
+
         /*
          * to string and css loader support for *.css files
          * Returns file content as string

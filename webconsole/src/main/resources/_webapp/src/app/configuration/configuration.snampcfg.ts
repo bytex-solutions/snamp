@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewContainerRef, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
 import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -10,7 +10,7 @@ import { Modal } from 'angular2-modal/plugins/vex';
 @Component({
   moduleId: module.id,
   templateUrl: './templates/snampcfg.html',
-  styleUrls: ['./templates/css/snampcfg.css', './templates/css/datatables.css']
+  styleUrls: ['./templates/css/snampcfg.css']
 })
 export class SnampCfgComponent implements OnInit {
 
@@ -18,28 +18,44 @@ export class SnampCfgComponent implements OnInit {
   public selectedComponent:SnampComponent;
   public components:SnampComponent[] = [];
 
-  public rows1:any;
-  public columns1:any = [
-    { prop: 'level' },
-    { prop: 'message' },
-    { prop: 'timestamp' },
-    { prop: 'localDate' }
-  ];
+  public rows = [];
 
-  public rows = [
-      { name: 'Austin', gender: 'Male', company: 'Swimlane' },
-      { name: 'Dany', gender: 'Male', company: 'KFC' },
-      { name: 'Molly', gender: 'Female', company: 'Burger King' },
-    ];
-   public columns = [
-      { prop: 'name' },
-      { name: 'Gender' },
-      { name: 'Company' }
-    ];
+  public settings = {
+     columns: {
+       level: {
+         title: 'Level'
+       },
+       message: {
+         title: 'Message'
+       },
+       localTime: {
+         title: 'Timestamp',
+         filter: false,
+         sortDirection: 'desc '
+       },
+       shortDetailsHtml: {
+          title: 'Details',
+          type: 'html'
+       }
+     },
+     actions: {
+        add: false,
+        edit: false,
+        delete: false
+     },
+     pager: {
+        perPage: 20
+     }
+  };
 
-  constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal, private _snampLogService:SnampLogService,) {
+  constructor(apiClient: ApiClient,
+              overlay: Overlay,
+              vcRef: ViewContainerRef,
+              private modal: Modal,
+              private _snampLogService:SnampLogService,
+              private cd: ChangeDetectorRef) {
         this.http = apiClient;
-        // overlay.defaultViewContainer = vcRef;
+        overlay.defaultViewContainer = vcRef;
    }
 
    ngOnInit() {
@@ -54,8 +70,17 @@ export class SnampCfgComponent implements OnInit {
             }
         });
 
-        //this.rows = this._snampLogService.getAllLogsJSON();
-        // console.log("ROWS: ", this.rows);
+        this.rows = this._snampLogService.getAllLogsJSON();
+        this._snampLogService.getLogObs()
+                .subscribe((newLog:SnampLog) => {
+                  this.rows.unshift(newLog);
+                  this.cd.detectChanges();
+              });
+   }
+
+   clearAllLogs() {
+      this._snampLogService.clear();
+      this.cd.detectChanges();
    }
 
    selectComponent(selected:SnampComponent) {

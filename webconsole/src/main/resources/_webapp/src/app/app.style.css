@@ -4658,3 +4658,9 @@ a.details {
   cursor: pointer;
   color: blue;
 }
+
+.ng2-smart-table td, .ng2-smart-table th {
+    font-family: inherit !important;
+    font-size: 1.25rem !important;
+    cursor: pointer;
+}

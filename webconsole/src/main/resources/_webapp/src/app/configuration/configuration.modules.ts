@@ -18,14 +18,14 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { SharedConfigurationModule } from '../app.module';
 
-import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+import { Ng2SmartTableModule } from 'ng2-smart-table';
 
 
 // must read http://blog.angular-university.io/angular2-ngmodule/
 
 const IMPORTS:any = [
   CommonModule,
-  NgxDatatableModule,
+  Ng2SmartTableModule,
   HttpModule,
   FormsModule,
   ModalModule.forRoot(),

@@ -93,31 +93,12 @@
 
     <div class="row" style="margin-top: 30px">
         <panel [header]="'Log table'" [column]="'12'">
-          <ngx-datatable
-            class="material striped"
-            [rows]="rows"
-            [columns]="columns"
-            [columnMode]="'force'"
-            [headerHeight]="50"
-            [footerHeight]="50"
-            [rowHeight]="50"
-            [limit]="50">
-                <ngx-datatable-column name="Name" [width]="100">
-                  <template let-value="value" ngx-datatable-cell-template>
-                    {{value}}
-                  </template>
-                </ngx-datatable-column>
-                <ngx-datatable-column name="Gender" [width]="100">
-                  <template let-row="row" let-value="value" ngx-datatable-cell-template>
-                    {{value}}
-                  </template>
-                </ngx-datatable-column>
-                <ngx-datatable-column name="Age" [width]="300">
-                  <template let-value="value" ngx-datatable-cell-template>
-                    {{value}}
-                  </template>
-                </ngx-datatable-column>
-          </ngx-datatable>
+          <a class="btn btn-app" (click)="clearAllLogs()" style="float: right;">
+            <i class="fa fa-trash"></i> Clear
+          </a>
+          <div style="margin-top: 15px">
+              <ng2-smart-table [settings]="settings" [source]="rows"></ng2-smart-table>
+          </div>
         </panel>
     </div>
 

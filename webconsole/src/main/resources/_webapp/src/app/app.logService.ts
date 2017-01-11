@@ -74,6 +74,7 @@ export class SnampLog {
   public details:any = {};
   public stacktrace:string = "No stacktrace is available";
   public id:string = SnampLog.newGuid();
+  public shortDetailsHtml:string;
 
   public static makeFromJson(_json:any):SnampLog {
      let _instance:SnampLog = new SnampLog();
@@ -89,8 +90,14 @@ export class SnampLog {
      if (_json["stacktrace"] != undefined) {
         _instance.stacktrace = _json["stacktrace"];
      }
-     if (_json["details"] != undefined) {
+     if (_json["details"] != undefined && !$.isEmptyObject(_json["details"])) {
         _instance.details = _json["details"];
+
+         let _details:string = "";
+          for (let key in _json.details) {
+             _details += "<strong>" + key + ": </strong>" + _json.details[key] + "<br/>"
+          }
+          _instance.shortDetailsHtml = _details;
      }
      return _instance;
   }
@@ -109,9 +116,7 @@ export class SnampLog {
      _details += "<strong>Level: </strong>" + _object.level + "<br/>";
      if (_object.details && !$.isEmptyObject(_object.details)) {
         _details += "<strong>Details</strong></br/>";
-        for (let key in _object.details) {
-           _details += "<strong>" + key + ": </strong>" + _object.details[key] + "<br/>"
-        }
+        _details += _object.shortDetailsHtml;
      }
      return _details;
   }

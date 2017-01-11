@@ -5,6 +5,8 @@ import { WebSocketClient } from './app.websocket';
 import { SnampLog, SnampLogService } from './app.logService';
 import { Title }  from '@angular/platform-browser';
 
+import {$WebSocket} from 'angular2-websocket/angular2-websocket'
+
 var PNotify = require("pnotify/src/pnotify.js");
 require("pnotify/src/pnotify.mobile.js");
 require("pnotify/src/pnotify.buttons.js");
@@ -51,6 +53,7 @@ export class App {
 
     this.ws.getDataStream().subscribe(
         (msg)=> {
+            console.log(msg);
             let _log:SnampLog = SnampLog.makeFromJson(JSON.parse(msg.data));
             this._snampLogService.pushLog(_log);
 
