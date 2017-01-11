@@ -74,7 +74,6 @@ export class TopNavBar {
                 break;
             }
         }
-        liElement.closest("li.dropdown.unclosable").addClass("open");
     }
 
     ngAfterViewInit() {
@@ -82,24 +81,6 @@ export class TopNavBar {
           .subscribe((newLog:SnampLog) => {
             this.logs.unshift(newLog);
             this.cd.detectChanges();
-        });
-
-        // http://stackoverflow.com/questions/25089297/twitter-bootstrap-avoid-dropdown-menu-close-on-click-inside
-        $(document).ready(function(){
-            $('li.dropdown.unclosable a.dropdown-toggle').off();
-            $('li.dropdown.unclosable a.dropdown-toggle').on('click', function (event) {
-                $(this).parent().toggleClass('open');
-            });
-
-            $('body').on('click', function (e) {
-                if (!$('li.dropdown.unclosable').is(e.target)
-                    && $('li.dropdown.unclosable').has(e.target).length === 0
-                    && $('.open').has(e.target).length === 0
-                ) {
-                    $('li.dropdown.unclosable').removeClass('open');
-                }
-            });
-
         });
     }
 }

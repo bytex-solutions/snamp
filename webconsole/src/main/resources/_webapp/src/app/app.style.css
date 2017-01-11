@@ -1361,8 +1361,8 @@ ul.msg_list li a .time {
 }
 
 a.exitIcon {
-  float: right;
-  display: block !important;
+  position: absolute;
+  right: 0;
   width: 25px !important;
 }
 

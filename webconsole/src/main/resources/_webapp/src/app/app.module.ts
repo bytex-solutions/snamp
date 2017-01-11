@@ -20,7 +20,7 @@ import { NoContent } from './no-content';
 import { FontAwesomeDirective } from 'ng2-fontawesome';
 import { ApiClient } from './app.restClient'
 import { CookieService } from 'angular2-cookie/core';
-import { DropdownModule } from 'ng2-bootstrap';
+import { DropdownModule } from "ng2-dropdown";
 
 import { UiSwitchComponent } from './ui-switch.component';
 
@@ -76,7 +76,7 @@ const APP_PROVIDERS = [
       prefix: 'snamp-app',
       storageType: 'localStorage'
     }),
-    DropdownModule.forRoot(),
+    DropdownModule,
     RouterModule.forRoot(ROUTES, { useHash: true })
   ],
   providers: [ // expose our Services and Providers into Angular's dependency injection
