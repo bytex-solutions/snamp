@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * Represents registry of all metrics.
- * <p>
+ * <p />
  *     This class represents an entry point to work with SNAMP instrumentation and measurement reporting.
  *     In OSGi environment it is highly recommended to use {@link OSGiMetricRegistry} class.
  * @author Roman Sakno

@@ -48,13 +48,10 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
-        protected ManagedResourceInformationService activateService(final Map<String, Object> identity) throws Exception {
+        protected ManagedResourceInformationService activateService(final Map<String, Object> identity) {
+            identity.put(WebConsoleService.NAME, ManagedResourceInformationService.NAME);
+            identity.put(WebConsoleService.URL_CONTEXT, ManagedResourceInformationService.URL_CONTEXT);
             return new ManagedResourceInformationService();
-        }
-
-        @Override
-        protected void activated(final ManagedResourceInformationService service) {
-            service.init();
         }
 
         @Override

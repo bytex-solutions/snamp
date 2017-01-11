@@ -31,7 +31,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents abstract class for stream-driven resource connector.
- * <p>
+ * <p />
  *     The structure of attributes:
  *     1. Metric-based attribute which holds a whole gauge, rate or timer.
  *     2. Scalar-based attribute which extracts a counter from metric attribute

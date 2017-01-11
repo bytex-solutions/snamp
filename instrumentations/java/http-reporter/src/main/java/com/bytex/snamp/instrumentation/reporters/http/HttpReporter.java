@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 
 /**
  * Represents asynchronous HTTP reporter.
- * <p>
+ * <p />
  *     This report can be used in conjunction with HTTP Connector.
  * @author Roman Sakno
  * @version 1.0

@@ -1,6 +1,6 @@
 /**
  * Provides a necessary classes for instrumenting application/service/component and makes in measurable for SNAMP.
- * <p>
+ * <p />
  * Starting guide about instrumenting application code:
  * <ul>
  *     <li>

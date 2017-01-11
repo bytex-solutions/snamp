@@ -8,7 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Represents measurement buffer that can save as many measurements as possible (limited by memory).
- * <p>
+ * <p />
  *     This class provides may cause a full GC when memory is occupied by buffered measurements.
  *     In this case all buffered measurement will be GCed in respect to program's fault-tolerance.
  *     This happen because the buffer stores soft reference to the list of saved measurements.

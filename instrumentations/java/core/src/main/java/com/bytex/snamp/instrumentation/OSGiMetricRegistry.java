@@ -12,7 +12,7 @@ import java.util.Iterator;
 
 /**
  * Represents registry of all metrics.
- * <p>
+ * <p />
  *     This class represents an entry point to work with SNAMP instrumentation and measurement reporting in OSGi environment.
  * @author Roman Sakno
  * @version 1.0

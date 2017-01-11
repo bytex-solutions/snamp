@@ -34,6 +34,10 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
         wcBundleName = Utils.getBundleContextOfObject(this).getBundle().getSymbolicName();
     }
 
+    @Override
+    protected void initialize() {
+    }
+
     private boolean logNotFromWebConsole(final PaxLoggingEvent event) {
         final Map logProperties = event.getProperties();
         return logProperties == null || !Objects.equals(logProperties.get("bundle.name"), wcBundleName);
@@ -53,7 +57,7 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
      */
     @Override
     public void doAppend(final PaxLoggingEvent entry) {
-        if (logNotFromWebConsole(entry))
+        if (isInitialized() && logNotFromWebConsole(entry))
             forEachSession(session -> doAppend(session, entry), executor);
     }
 

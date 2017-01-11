@@ -23,4 +23,9 @@ public final class VersionResource extends AbstractWebConsoleService {
     public String getVersion(){
         return Utils.getBundleContextOfObject(this).getBundle().getVersion().toString();
     }
+
+    @Override
+    protected void initialize() {
+
+    }
 }

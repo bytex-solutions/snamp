@@ -24,7 +24,7 @@ public class BoundedMeasurementBuffer extends ArrayBlockingQueue<Measurement> im
 
     /**
      * Saves measurement into buffer.
-     * <p>
+     * <p/>
      *     The default implementation always drops the old measurements and never
      *     returns {@link PlacementResult#NOT_ENOUGH_SPACE}
      *

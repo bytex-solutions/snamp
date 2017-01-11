@@ -252,18 +252,15 @@ public abstract class Repeater implements AutoCloseable, Runnable {
             throw new TimeoutException(String.format("Thread %s is alive", th));
     }
 
-    private boolean tryStop(final long timeoutMillis) throws TimeoutException, InterruptedException{
+    private boolean tryStop(final long timeoutMillis) throws TimeoutException, InterruptedException {
         switch (state) {
-            case STOPPING:
-                join(repeatThread, timeoutMillis);
-                break;
+            default:
+                return false;
             case STARTED:
                 repeatThread.interrupt();
                 stateChanged(state = RepeaterState.STOPPING);
+            case STOPPING:
                 join(repeatThread, timeoutMillis);
-                break;
-            default:
-                return false;
         }
         stateChanged(state = RepeaterState.STOPPED);
         repeatThread = null;
@@ -295,10 +292,8 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         stop(timeout.toMillis());
     }
 
-    private void closeImpl(){
-        if(repeatThread != null) repeatThread.interrupt();
+    private void closeImpl() {
         stateChanged(state = RepeaterState.CLOSED);
-        repeatThread = null;
         exception = null;
     }
 
@@ -327,13 +322,15 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * action completion.
      */
     @Override
-    public final void close() throws InterruptedException{
+    public final void close() throws InterruptedException {
         monitor.lockInterruptibly();
-        try{
+        try {
+            if (repeatThread != null)
+                repeatThread.interrupt();
             closeImpl();
-        }
-        finally {
+        } finally {
             monitor.unlock();
+            repeatThread = null;
         }
     }
 }

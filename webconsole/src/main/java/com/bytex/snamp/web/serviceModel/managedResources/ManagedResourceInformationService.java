@@ -29,8 +29,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 @Path("/")
 public final class ManagedResourceInformationService extends AbstractWebConsoleService implements ServiceListener, Constants {
-    public static final String NAME = "componentInfo";
-    public static final String CONTEXT = "/components";
+    public static final String NAME = "managedComponents";
+    public static final String URL_CONTEXT = "/managedComponents";
 
     //(componentType, resourceName)
     private final AbstractConcurrentResourceAccessor<Multimap<String, String>> resources;
@@ -41,9 +41,10 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     }
 
     /**
-     * Initializes this service.
+     * {@inheritDoc}
      */
-    public void init() {
+    @Override
+    protected void initialize() {
         for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(getBundleContext()).values()) {
             final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connectorRef);
             try {
@@ -119,7 +120,8 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
 
     @Override
     public void close() throws Exception {
-        getBundleContext().removeServiceListener(this);
+        if (isInitialized())
+            getBundleContext().removeServiceListener(this);
         super.close();
     }
 }

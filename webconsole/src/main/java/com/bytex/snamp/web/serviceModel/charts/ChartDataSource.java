@@ -5,7 +5,6 @@ import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import org.osgi.framework.BundleContext;
@@ -92,7 +91,11 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         attributeSupplier = new AttributeSupplierThread(refreshTime);
     }
 
-    public void init(){
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void initialize() {
         attributeSupplier.run();
     }
 
