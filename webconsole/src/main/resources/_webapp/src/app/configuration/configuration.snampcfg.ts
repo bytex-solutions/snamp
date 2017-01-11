@@ -37,7 +37,7 @@ export class SnampCfgComponent implements OnInit {
             }
         });
 
-        this.rows = _snampLogService.getAllLogsJSON();
+        this.rows = this._snampLogService.getAllLogsJSON();
    }
 
    selectComponent(selected:SnampComponent) {
