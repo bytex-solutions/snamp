@@ -40,9 +40,6 @@ import { TooltipModule } from 'ng2-tooltip';
 
 import { MomentModule } from 'angular2-moment';
 
-import { NgxDatatableModule } from '@swimlane/ngx-datatable';
-
-
 // Application wide providers
 const APP_PROVIDERS = [
   ApiClient,
@@ -107,7 +104,6 @@ const EXPORTS:any = [
   imports: [
     CommonModule,
     TooltipModule,
-    NgxDatatableModule,
     FormsModule,
     HttpModule
   ],

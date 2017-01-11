@@ -94,14 +94,29 @@
     <div class="row" style="margin-top: 30px">
         <panel [header]="'Log table'" [column]="'12'">
           <ngx-datatable
-            class="material"
+            class="material striped"
             [rows]="rows"
-            [columns]="[{name:'level'},{name:'message'},{name:'timestamp'}, {name: 'localDate'}]"
+            [columns]="columns"
             [columnMode]="'force'"
             [headerHeight]="50"
             [footerHeight]="50"
-            [rowHeight]="'auto'"
-            [limit]="10">
+            [rowHeight]="50"
+            [limit]="50">
+                <ngx-datatable-column name="Name" [width]="100">
+                  <template let-value="value" ngx-datatable-cell-template>
+                    {{value}}
+                  </template>
+                </ngx-datatable-column>
+                <ngx-datatable-column name="Gender" [width]="100">
+                  <template let-row="row" let-value="value" ngx-datatable-cell-template>
+                    {{value}}
+                  </template>
+                </ngx-datatable-column>
+                <ngx-datatable-column name="Age" [width]="300">
+                  <template let-value="value" ngx-datatable-cell-template>
+                    {{value}}
+                  </template>
+                </ngx-datatable-column>
           </ngx-datatable>
         </panel>
     </div>

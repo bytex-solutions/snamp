@@ -10,7 +10,7 @@ import { Modal } from 'angular2-modal/plugins/vex';
 @Component({
   moduleId: module.id,
   templateUrl: './templates/snampcfg.html',
-  styleUrls: ['./templates/css/snampcfg.css']
+  styleUrls: ['./templates/css/snampcfg.css', './templates/css/datatables.css']
 })
 export class SnampCfgComponent implements OnInit {
 
@@ -18,11 +18,28 @@ export class SnampCfgComponent implements OnInit {
   public selectedComponent:SnampComponent;
   public components:SnampComponent[] = [];
 
-  public rows:any[] = [];
+  public rows1:any;
+  public columns1:any = [
+    { prop: 'level' },
+    { prop: 'message' },
+    { prop: 'timestamp' },
+    { prop: 'localDate' }
+  ];
+
+  public rows = [
+      { name: 'Austin', gender: 'Male', company: 'Swimlane' },
+      { name: 'Dany', gender: 'Male', company: 'KFC' },
+      { name: 'Molly', gender: 'Female', company: 'Burger King' },
+    ];
+   public columns = [
+      { prop: 'name' },
+      { name: 'Gender' },
+      { name: 'Company' }
+    ];
 
   constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal, private _snampLogService:SnampLogService,) {
         this.http = apiClient;
-        overlay.defaultViewContainer = vcRef;
+        // overlay.defaultViewContainer = vcRef;
    }
 
    ngOnInit() {
@@ -37,7 +54,8 @@ export class SnampCfgComponent implements OnInit {
             }
         });
 
-        this.rows = this._snampLogService.getAllLogsJSON();
+        //this.rows = this._snampLogService.getAllLogsJSON();
+        // console.log("ROWS: ", this.rows);
    }
 
    selectComponent(selected:SnampComponent) {

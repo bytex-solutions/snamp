@@ -57,7 +57,7 @@ export class SnampLogService {
         }
     }
 
-    public getAllLogsJSON():any[] {
+    public getAllLogsJSON():any {
         return this.getArray().reverse();
     }
 

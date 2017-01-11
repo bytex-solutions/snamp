@@ -16,12 +16,16 @@ import { ModalModule } from 'angular2-modal';
 import { TooltipModule } from 'ng2-tooltip';
 import { Routes, RouterModule } from '@angular/router';
 
-import { SharedConfigurationModule } from '../app.module'
+import { SharedConfigurationModule } from '../app.module';
+
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+
 
 // must read http://blog.angular-university.io/angular2-ngmodule/
 
 const IMPORTS:any = [
   CommonModule,
+  NgxDatatableModule,
   HttpModule,
   FormsModule,
   ModalModule.forRoot(),
