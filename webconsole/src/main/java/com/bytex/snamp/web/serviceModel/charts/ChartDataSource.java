@@ -29,6 +29,8 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  */
 public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashboard> {
+    public static final String NAME = "charts";
+    public static final String URL_CONTEXT = "/charts";
 
     private final class AttributeSupplierThread extends Repeater {
         private AttributeSupplierThread(final Duration period) {

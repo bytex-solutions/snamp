@@ -2,8 +2,10 @@ package com.bytex.snamp.web;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
+import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
 import com.bytex.snamp.web.serviceModel.managedResources.ManagedResourceInformationService;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
@@ -14,8 +16,10 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.http.HttpService;
 
 import javax.servlet.Servlet;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 /**
  * The type Web console activator.
@@ -42,6 +46,26 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     //=============Predefined services for WebConsole======
+    private static final class ChartDataSourceProvider extends ProvidedService<WebConsoleService, ChartDataSource>{
+        private ChartDataSourceProvider(){
+            super(WebConsoleService.class, (RequiredService<?>[]) simpleDependencies(ConfigurationManager.class, ThreadPoolRepository.class));
+        }
+
+        @Override
+        protected ChartDataSource activateService(final Map<String, Object> identity) throws IOException {
+            identity.put(WebConsoleService.NAME, ChartDataSource.NAME);
+            identity.put(WebConsoleService.URL_CONTEXT, ChartDataSource.URL_CONTEXT);
+            final ThreadPoolRepository repository = getDependencies().getDependency(ThreadPoolRepository.class);
+            assert repository != null;
+            return new ChartDataSource(getDependencies().getDependency(ConfigurationManager.class), repository.getThreadPool(THREAD_POOL_NAME, true));
+        }
+
+        @Override
+        protected void cleanupService(final ChartDataSource serviceInstance, final boolean stopBundle) throws Exception {
+            serviceInstance.close();
+        }
+    }
+
     private static final class ManagedResourceInformationServiceProvider extends ProvidedService<WebConsoleService, ManagedResourceInformationService>{
         private ManagedResourceInformationServiceProvider(){
             super(WebConsoleService.class, simpleDependencies(WebConsoleEngine.class));
@@ -95,11 +119,12 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     @SpecialUse
-    public WebConsoleActivator(){
+    public WebConsoleActivator() {
         super(new WebConsoleServletProvider(),
                 new LogNotifierProvider(),
                 new VersionResourceProvider(),
-                new ManagedResourceInformationServiceProvider());
+                new ManagedResourceInformationServiceProvider(),
+                new ChartDataSourceProvider());
     }
 
     @Override
@@ -108,11 +133,11 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
+    protected void activate(final ActivationPropertyPublisher activationProperties) {
     }
 
     @Override
-    protected void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
+    protected void deactivate(final ActivationPropertyReader activationProperties) {
 
     }
 
