@@ -51,7 +51,7 @@
                           class="form-control col-md-7 col-xs-12"
                           [tooltip]="'At least 4 symbols'"
                           placeholder="input the name of {{activeEntity.getName()}}"
-                          ([ngModel])="activeEntity.name">
+                          [(ngModel)]="activeEntity.name">
                       </div>
                     </div>
                   </div>
@@ -70,7 +70,7 @@
                           class="form-control col-md-7 col-xs-12"
                           [tooltip]="'Input number (0 for infinite)'"
                           placeholder="input the invocation timeout of {{activeEntity.getName()}}"
-                          ([ngModel])="activeEntity.invokto">
+                          [(ngModel)]="activeEntity.invokto">
                       </div>
                     </div>
 
@@ -88,14 +88,14 @@
                           class="form-control col-md-7 col-xs-12"
                           [tooltip]="'Input number (0 for infinite)'"
                           placeholder="input the read/write timeout of {{activeEntity.getName()}}"
-                          ([ngModel])="activeEntity.rwto">
+                          [(ngModel)]="activeEntity.rwto">
                       </div>
                     </div>
                   </div>
 
 
                   <!-- PARAMETERS -->
-                  <div id="parameters" class="row" style="margin-top: 50px;">
+                  <div id="parameters" class="row" style="margin-top: 10px;">
                     <table class="table">
                       <thead>
                       <tr>
@@ -129,13 +129,16 @@
                           <button
                             type="button"
                             class="btn btn-primary btn-sm"
-                            (click)="clear()">
-                            Add new
+                            (click)="addNewParameter()">
+                            Add new <i class="fa fa-caret-down" aria-hidden="true"></i>
                           </button>
                         </td>
                       </tr>
                       </tbody>
                     </table>
+                    <div class="row" style="display: none;">
+
+                    </div>
                   </div>
                   <!-- PARAMETERS -->
 
@@ -183,6 +186,19 @@
                 <button type="button" class="btn btn-default btn-xs" (click)="remove(entity)">Remove</button>
             </div>
         </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>
+        <button
+          type="button"
+          data-toggle="modal"
+          (click)="addNewEntity()"
+          [attr.data-target]="'#editEntity' + entityType"
+          class="btn btn-default btn-xs">
+          Add new
+        </button>
+      </td>
     </tr>
     </tbody>
 </table>

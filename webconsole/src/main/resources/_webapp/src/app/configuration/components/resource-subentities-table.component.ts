@@ -44,6 +44,7 @@ export class ResourceEntitiesTable implements OnInit {
     paramDescriptors:ParamDescriptor[] = [];
     @Input() entities: SubEntity[];
     activeEntity:SubEntity;
+    savedCopy:SubEntity;
 
     constructor(private http:ApiClient, private modal: Modal) {}
 
@@ -91,6 +92,11 @@ export class ResourceEntitiesTable implements OnInit {
     setEntity(entity:SubEntity) {
         this.activeEntity = entity;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
+        $(this.getSmartWizardIdentifier()).smartWizard("reset");
+    }
+
+    addNewEntity() {
+        this.activeEntity = this.makeEmptyEntity();
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
     }
 

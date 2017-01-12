@@ -75,7 +75,6 @@ export class SnampCfgComponent implements OnInit {
         this.source = new LocalDataSource(this._snampLogService.getAllLogsJSON());
         this._snampLogService.getLogObs()
              .subscribe((newLog:SnampLog) => {
-                  console.log("Appending the recent message", newLog);
                   this.source.add(newLog);
                   this.source.refresh();
            });

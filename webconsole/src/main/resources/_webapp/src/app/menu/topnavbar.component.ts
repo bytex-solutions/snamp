@@ -67,13 +67,15 @@ export class TopNavBar {
 
     removeMessage(log:SnampLog) {
         var liElement = $("#" + log.id);
-        liElement.slideUp("slow");
-        for (let i = 0; i < this.logs.length; i++) {
-            if (this.logs[i].id == log.id) {
-                this.logs.splice(i, 1);
-                break;
-            }
-        }
+        let _thisReference = this;
+        liElement.slideUp("slow", function() {
+          for (let i = 0; i < _thisReference.logs.length; i++) {
+              if (_thisReference.logs[i].id == log.id) {
+                  _thisReference.logs.splice(i, 1);
+                  break;
+              }
+          }
+        });
     }
 
     ngAfterViewInit() {
