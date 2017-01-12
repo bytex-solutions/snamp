@@ -1,5 +1,6 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.annotation.Nonnull;
@@ -33,6 +34,15 @@ public abstract class TwoDimensionalChartOfAttributeValues<X extends Axis, Y ext
         if(axisX == null)
             axisX = createDefaultAxisX();
         return axisX;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    @JsonIgnore
+    public final int getDimensions() {
+        return 2;
     }
 
     public final void setAxisX(@Nonnull final X value){

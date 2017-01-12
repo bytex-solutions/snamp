@@ -41,6 +41,10 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
         Collections.addAll(instances, value);
     }
 
+    public final void addInstance(final String instance) {
+        instances.add(instance);
+    }
+
     @JsonIgnore
     final boolean hasInstance(final String instanceName){
         return instances.isEmpty() || instances.contains(instanceName);

@@ -13,7 +13,7 @@ import java.util.EventObject;
  * @version 2.0
  * @since 2.0
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "$messageType")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@messageType")
 public abstract class WebMessage extends EventObject {
     private static final long serialVersionUID = 3426260188036037856L;
 

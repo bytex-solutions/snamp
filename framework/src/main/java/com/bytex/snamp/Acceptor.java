@@ -13,6 +13,7 @@ import java.util.function.Function;
  */
 @FunctionalInterface
 public interface Acceptor<T, E extends Throwable> {
+
     /**
      * Performs this operation on the given argument.
      * @param value The value to process.
@@ -27,5 +28,9 @@ public interface Acceptor<T, E extends Throwable> {
     static <T, E extends Throwable> void forEachAccept(final Collection<T> c, final Acceptor<T, E> acceptor) throws E{
         for(final T item: c)
             acceptor.accept(item);
+    }
+
+    static <T, E extends Throwable> Acceptor<T, E> nop(){
+        return value -> { };
     }
 }

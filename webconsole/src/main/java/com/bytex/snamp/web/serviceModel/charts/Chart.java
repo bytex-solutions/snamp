@@ -3,6 +3,8 @@ package com.bytex.snamp.web.serviceModel.charts;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
+import java.util.Map;
+
 /**
  * Represents a root interface for all charts.
  * @author Roman Sakno
@@ -18,6 +20,10 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
         @JsonSubTypes.Type(VerticalBarChartOfAttributeValues.class)
 })
 public interface Chart {
+    Map<String, Object> getPreferences();
+
+    void setPreferences(final Map<String, Object> settings);
+
     /**
      * Gets name of this chart.
      * @return Chart name.

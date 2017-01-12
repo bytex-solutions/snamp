@@ -33,6 +33,12 @@ public final class AttributeInformation {
         type = WellKnownType.STRING;
     }
 
+    public AttributeInformation(final String name, final WellKnownType type, final String uom){
+        this.name = Objects.requireNonNull(name);
+        this.unitOfMeasurement = Objects.requireNonNull(uom);
+        this.type = Objects.requireNonNull(type);
+    }
+
     @JsonProperty("name")
     public String getName(){
         return name;

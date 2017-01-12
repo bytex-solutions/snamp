@@ -3,7 +3,6 @@ package com.bytex.snamp.web.serviceModel.charts;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonTypeName;
-import org.codehaus.jackson.node.BaseJsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 
 import javax.annotation.Nonnull;
@@ -24,7 +23,7 @@ public final class LineChartOfAttributeValues extends TwoDimensionalChartOfAttri
         private final Date timeStamp;
 
         private ChartData(final String instanceName, final Attribute attribute) {
-            super(instanceName, attribute, PanelOfAttributeValues.class);
+            super(instanceName, attribute, LineChartOfAttributeValues.class);
             timeStamp = new Date();
         }
 

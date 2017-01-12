@@ -1,5 +1,7 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
+import com.bytex.snamp.jmx.WellKnownType;
+import com.bytex.snamp.web.serviceModel.managedResources.AttributeInformation;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -17,14 +19,25 @@ public final class JsonSerializationTest extends Assert {
     @Test
     public void dashboardSerializationTest() throws IOException {
         Dashboard charts = new Dashboard();
-        final LineChartOfAttributeValues chart = new LineChartOfAttributeValues();
-        chart.setName("attributes");
-        chart.setComponentType("API Gateway");
-        charts.addChart(chart);
-        final String json = jsonSerializer.writeValueAsString(charts);
+        final LineChartOfAttributeValues chart1 = new LineChartOfAttributeValues();
+        chart1.setName("attributes");
+        chart1.getPreferences().put("size", "4");
+        chart1.setComponentType("api-gateway");
+        chart1.getAxisY().setAttributeInfo(new AttributeInformation("memory", WellKnownType.LONG, "bytes"));
+        chart1.addInstance("192.168.0.1");
+        charts.addChart(chart1);
+
+        final PanelOfAttributeValues chart2 = new PanelOfAttributeValues();
+        chart2.setName("myPanel");
+        chart2.setComponentType("trip-manager");
+        chart2.getAxisY().setAttributeInfo(new AttributeInformation("cpu", WellKnownType.DOUBLE, "percents"));
+        chart2.addInstance("192.168.0.2");
+        charts.addChart(chart2);
+
+        final String json = jsonSerializer.writerWithDefaultPrettyPrinter().writeValueAsString(charts);
         assertNotNull(json);
         charts = jsonSerializer.readValue(json, Dashboard.class);
         assertNotNull(charts);
-        assertEquals(1, charts.getCharts().size());
+        assertEquals(2, charts.getCharts().size());
     }
 }

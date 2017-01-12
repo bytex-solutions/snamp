@@ -14,6 +14,7 @@ import javax.annotation.Nonnull;
 import javax.management.AttributeList;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
+import javax.ws.rs.Path;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
@@ -28,6 +29,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 2.0
  * @since 2.0
  */
+@Path("/")
 public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashboard> {
     public static final String NAME = "charts";
     public static final String URL_CONTEXT = "/charts";
