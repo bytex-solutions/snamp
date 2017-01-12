@@ -172,6 +172,10 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     }
 
+    protected String getGroupName(){
+        return "";
+    }
+
     /**
      * Creates a new configuration for running this test.
      *
@@ -185,6 +189,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         fillGateways(config.getEntities(GatewayConfiguration.class));
         targetConfig.setConnectionString(connectionString);
         targetConfig.setType(connectorType);
+        targetConfig.setGroupName(getGroupName());
         fillAttributes(targetConfig.getFeatures(AttributeConfiguration.class));
         fillEvents(targetConfig.getFeatures(EventConfiguration.class));
         fillOperations(targetConfig.getFeatures(OperationConfiguration.class));

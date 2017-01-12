@@ -11,6 +11,7 @@ import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
+import com.bytex.snamp.json.JsonUtils;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -67,6 +68,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 })
 public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final ObjectMapper FORMATTER = new ObjectMapper();
+    private static final String GROUP_NAME = "myGroup";
     private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
     private static final String ADAPTER_NAME = "snmp";
@@ -118,11 +120,11 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         }
     }
 
-    private static void setServiceSettings(final String servicePostfix, final String authenticationToken, final JsonNode data) throws IOException {
+    private static void httpPut(final String servicePostfix, final String authenticationToken, final JsonNode data) throws IOException {
         final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
-        connection.setRequestMethod("POST");
+        connection.setRequestMethod("PUT");
         connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, "application/json");
         connection.setRequestProperty(HttpHeaders.AUTHORIZATION, authenticationToken);
         connection.setDoOutput(true);
@@ -135,7 +137,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         }
     }
 
-    private static JsonNode getServiceSettings(final String servicePostfix, final String authenticationToken) throws IOException{
+    private static JsonNode httpGet(final String servicePostfix, final String authenticationToken) throws IOException{
         final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
@@ -154,9 +156,25 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     @Test
     public void versionEndpointTest() throws IOException {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = getServiceSettings("/version", authenticationToken);
+        final JsonNode node = httpGet("/version", authenticationToken);
         assertNotNull(node);
         assertEquals(new TextNode(Utils.getBundleContext(FrameworkService.class).getBundle().getVersion().toString()), node);
+    }
+
+    @Test
+    public void listOfComponentsTest() throws IOException{
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode node = httpGet("/managedResources/components", authenticationToken);
+        assertNotNull(node);
+        assertEquals(JsonUtils.toJsonArray(GROUP_NAME), node);
+    }
+
+    @Test
+    public void listOfInstancesTest() throws IOException{
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode node = httpGet("/managedResources", authenticationToken);
+        assertNotNull(node);
+        assertEquals(JsonUtils.toJsonArray(TEST_RESOURCE_NAME), node);
     }
 
     /**
@@ -166,7 +184,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     public void logNotificationTest() throws Exception {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         //read logging settings
-        final JsonNode settings = getServiceSettings("/logging/settings", authenticationToken);
+        final JsonNode settings = httpGet("/logging/settings", authenticationToken);
         assertTrue(settings.isObject());
         assertEquals("error", settings.get("logLevel").asText());
         final EventReceiver receiver = new EventReceiver();
@@ -303,6 +321,11 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         super.afterCleanupTest(context);
         client.stop();
         client = null;
+    }
+
+    @Override
+    protected String getGroupName() {
+        return GROUP_NAME;
     }
 
     @Override

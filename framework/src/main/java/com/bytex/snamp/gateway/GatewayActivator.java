@@ -117,7 +117,9 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         private G createService(final Map<String, Object> identity,
                                 final String instanceName,
                                 final GatewayConfiguration configuration) throws Exception{
-            createIdentity(gatewayType, instanceName, identity);
+            identity.putAll(configuration.getParameters());
+            identity.put(GATEWAY_TYPE_IDENTITY_PROPERTY, gatewayType);
+            identity.put(GATEWAY_INSTANCE_IDENTITY_PROPERTY, instanceName);
             final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, getDependencies());
             if (gatewayInstance != null)
                 if (gatewayInstance.tryStart(configuration.getParameters())) {
@@ -165,13 +167,6 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
             logger.log(Level.SEVERE, String.format("Unable to release gateway. Type: %s, instance: %s", gatewayType, servicePID),
                     e);
         }
-    }
-
-    private static void createIdentity(final String gatewayType,
-                                       final String instanceName,
-                                       final Map<String, Object> identity){
-        identity.put(GATEWAY_TYPE_IDENTITY_PROPERTY, gatewayType);
-        identity.put(GATEWAY_INSTANCE_IDENTITY_PROPERTY, instanceName);
     }
 
     /**

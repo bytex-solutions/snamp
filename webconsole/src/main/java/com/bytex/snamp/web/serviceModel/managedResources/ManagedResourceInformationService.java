@@ -7,6 +7,7 @@ import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
+import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.*;
@@ -29,8 +30,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 @Path("/")
 public final class ManagedResourceInformationService extends AbstractWebConsoleService implements ServiceListener, Constants {
-    public static final String NAME = "managedComponents";
-    public static final String URL_CONTEXT = "/managedComponents";
+    public static final String NAME = "managedResources";
+    public static final String URL_CONTEXT = "/managedResources";
 
     //(componentType, resourceName)
     private final AbstractConcurrentResourceAccessor<Multimap<String, String>> resources;
@@ -57,8 +58,8 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/attributes")
-    public AttributeInformation[] getAttributes(@QueryParam("instanceName") final String instanceName) {
+    @Path("/{instanceName}/attributes")
+    public AttributeInformation[] getAttributes(@PathParam("instanceName") final String instanceName) {
         ManagedResourceConnectorClient client = null;
         try {
             client = new ManagedResourceConnectorClient(getBundleContext(), instanceName);
@@ -73,14 +74,17 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Path("/components")
     public String[] getComponents() {
         return resources.read(resources -> resources.keySet().stream().toArray(String[]::new));
     }
 
     @GET
-    @Path("/instances")
-    public String[] getInstances(@QueryParam("componentName") final String componentName) {
-        return resources.read(resources -> resources.get(componentName).stream().toArray(String[]::new));
+    @Produces(MediaType.APPLICATION_JSON)
+    public String[] getInstances(@QueryParam("component") @DefaultValue("") final String componentName) {
+        return Strings.isNullOrEmpty(componentName) ?
+                resources.read(resources -> resources.values().stream().toArray(String[]::new)) :
+                resources.read(resources -> resources.get(componentName).stream().toArray(String[]::new));
     }
 
     private static String getComponentName(final ManagedResourceConnectorClient client){

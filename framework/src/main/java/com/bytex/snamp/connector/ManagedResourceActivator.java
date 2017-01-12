@@ -393,10 +393,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                          final String resourceName,
                                          final ManagedResourceConfiguration configuration) throws Exception {
             loadedConfigurations.put(resourceName, configuration::equals);
-            createIdentity(resourceName,
-                    connectorType,
-                    configuration.getConnectionString(),
-                    identity);
+            identity.putAll(configuration.getParameters());
+            identity.put(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
+            identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, connectorType);
+            identity.put(CONNECTOR_STRING_IDENTITY_PROPERTY, configuration.getConnectionString());
             final TConnector result = controller.createConnector(resourceName, configuration.getConnectionString(), configuration.getParameters(), getDependencies());
             updateFeatures(result, configuration);
             return result;
@@ -567,15 +567,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                        final RequiredService<?>[] connectorDependencies,
                                        final SupportConnectorServiceManager<?, ?>[] optionalServices){
         super(ObjectArrays.concat(optionalServices, new ProvidedService<?, ?>[]{ new ManagedResourceConnectorRegistry<>(controller, connectorDependencies), factoryService(controller, connectorDependencies)}, ProvidedService.class));
-    }
-
-    private static void createIdentity(final String resourceName,
-                                       final String connectorType,
-                                       final String connectionString,
-                                       final Map<String, Object> identity){
-        identity.put(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
-        identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, connectorType);
-        identity.put(CONNECTOR_STRING_IDENTITY_PROPERTY, connectionString);
     }
 
     /**
