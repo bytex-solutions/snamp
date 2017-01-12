@@ -7,7 +7,6 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.json.ThreadLocalJsonFactory;
-import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
@@ -15,7 +14,6 @@ import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import com.bytex.snamp.testing.web.TestAuthenticator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ContainerNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.TextNode;
 import org.junit.Test;
@@ -649,7 +647,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+        syncWithGatewayStartedEvent(ADAPTER_NAME, () -> {
             GatewayActivator.enableGateway(context, ADAPTER_NAME);
             return null;
         }, Duration.ofSeconds(30));

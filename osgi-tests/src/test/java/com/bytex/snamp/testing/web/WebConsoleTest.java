@@ -12,13 +12,13 @@ import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.json.JsonUtils;
-import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.TextNode;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -177,6 +177,20 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         assertEquals(JsonUtils.toJsonArray(TEST_RESOURCE_NAME), node);
     }
 
+    @Test
+    public void listOfAttributesTest() throws IOException{
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode node = httpGet("/managedResources/" + TEST_RESOURCE_NAME + "/attributes", authenticationToken);
+        assertTrue(node instanceof ArrayNode);
+        assertTrue("Unexpected JSON " + node, node.size() > 0);
+        for(int i = 0; i < node.size(); i++){
+            final JsonNode name = node.get(i).get("name");
+            final JsonNode type = node.get(i).get("type");
+            assertTrue(name instanceof TextNode);
+            assertTrue(type instanceof TextNode);
+        }
+    }
+
     /**
      * Log notification test.
      */
@@ -304,7 +318,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+        syncWithGatewayStartedEvent(ADAPTER_NAME, () -> {
             GatewayActivator.enableGateway(context, ADAPTER_NAME);
             return null;
         }, Duration.ofSeconds(30));

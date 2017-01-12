@@ -8,7 +8,6 @@ import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.json.JsonUtils;
-import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
@@ -127,7 +126,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
         GatewayActivator.disableGateway(getTestBundleContext(), GATEWAY_NAME);
         stopResourceConnector(getTestBundleContext());
         //start empty gateway
-        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+        syncWithGatewayStartedEvent(GATEWAY_NAME, () -> {
                 GatewayActivator.enableGateway(getTestBundleContext(), GATEWAY_NAME);
                 return null;
         }, TIMEOUT);
@@ -239,7 +238,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable)() -> {
+        syncWithGatewayStartedEvent(GATEWAY_NAME, () -> {
                 GatewayActivator.enableGateway(getTestBundleContext(), GATEWAY_NAME);
                 return null;
         }, Duration.ofSeconds(15));

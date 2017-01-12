@@ -11,7 +11,6 @@ import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.instrumentation.measurements.IntegerMeasurement;
 import com.bytex.snamp.instrumentation.measurements.StandardMeasurements;
-import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.http.AbstractHttpConnectorTest;
@@ -71,7 +70,7 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable)() -> {
+        syncWithGatewayStartedEvent(GATEWAY_NAME, () -> {
             GatewayActivator.enableGateway(getTestBundleContext(), GATEWAY_NAME);
             return null;
         }, Duration.ofSeconds(15));

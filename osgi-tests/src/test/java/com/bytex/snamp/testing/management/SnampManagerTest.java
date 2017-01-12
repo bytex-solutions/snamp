@@ -7,7 +7,6 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.gateway.GatewayActivator;
-import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
@@ -272,7 +271,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+        syncWithGatewayStartedEvent(ADAPTER_NAME, () -> {
                 GatewayActivator.enableGateway(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(4));
