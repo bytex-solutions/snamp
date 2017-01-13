@@ -55,6 +55,7 @@ export class App {
 
     this.ws.getDataStream().subscribe(
         (msg)=> {
+            console.log(msg);
             let _log:SnampLog = SnampLog.makeFromJson(JSON.parse(msg.data));
             this._snampLogService.pushLog(_log);
 

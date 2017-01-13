@@ -34,7 +34,8 @@ import {
   templateUrl: './templates/resource-subentities-table.component.html',
   styleUrls: [
       './templates/css/vex.css',
-      './templates/css/vex-theme-wireframe.css'
+      './templates/css/vex-theme-wireframe.css',
+      './templates/css/params.css'
     ]
 })
 export class ResourceEntitiesTable implements OnInit {
@@ -44,7 +45,7 @@ export class ResourceEntitiesTable implements OnInit {
     paramDescriptors:ParamDescriptor[] = [];
     @Input() entities: SubEntity[];
     activeEntity:SubEntity;
-    savedCopy:SubEntity;
+    currentNewParam:KeyValue = new KeyValue("", "");
 
     constructor(private http:ApiClient, private modal: Modal) {}
 
@@ -89,15 +90,70 @@ export class ResourceEntitiesTable implements OnInit {
         });
     }
 
+    private PARAM_SELECT_ID():string {
+        return "#newParamSelect" + this.entityType;
+    }
+
+    private PARAM_APPEND_DIV():string {
+        return "#newParamRow" + this.entityType;
+    }
+
+    private PARAM_TABLE_DIV():string {
+        return "#tableParamsRow" + this.entityType;
+    }
+
     setEntity(entity:SubEntity) {
         this.activeEntity = entity;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
+
+        $(this.PARAM_SELECT_ID()).select2({
+             templateResult: function(param){
+                    var markup = "<div class='select2-result-repository clearfix'>" +
+                      "<div class='select2-result-repository__meta'>" +
+                        "<div class='select2-result-repository__title'>" + param.element.value.toLowerCase() + "</div>";
+
+                    markup += "<div class='select2-result-repository__statistics'>";
+                    if (param.element.hasAttribute("required")) {
+                      markup += "<div class='select2-result-repository__forks'><i class='fa fa-flash'></i> " + param.element.getAttribute("required") + " Required</div>";
+                    }
+                    if (param.element.hasAttribute("defaultValue")) {
+                      markup += "<div class='select2-result-repository__stargazers'><i class='fa fa-star'></i> " + param.element.getAttribute("defaultValue") + " Default value</div>";
+                    }
+                    if (param.element.hasAttribute("pattern")) {
+                      markup += "<div class='select2-result-repository__watchers'><i class='fa fa-eye'></i> " + param.element.getAttribute("pattern") + " Pattern</div>";
+                    }
+                    markup += "</div></div></div>";
+                    return markup;
+             }
+        });
+    }
+
+    addNewParameter() {
+        let _thisReference = this;
+        $(_thisReference.PARAM_TABLE_DIV()).slideToggle("slow", function(){
+            $(_thisReference.PARAM_APPEND_DIV()).slideToggle("slow");
+        });
+
+        this.currentNewParam = new KeyValue("", "");
     }
 
     addNewEntity() {
         this.activeEntity = this.makeEmptyEntity();
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
+    }
+
+    cancelAppendingParam() {
+        let _thisReference = this;
+        this.currentNewParam = undefined;
+         $(_thisReference.PARAM_TABLE_DIV()).slideToggle("slow", function(){
+              $(_thisReference.PARAM_APPEND_DIV()).slideToggle("slow");
+          });
+    }
+
+    appendParameter() {
+        this.activeEntity.parameters.push(this.currentNewParam);
+        this.cancelAppendingParam();
     }
 
     remove(entity:SubEntity) {

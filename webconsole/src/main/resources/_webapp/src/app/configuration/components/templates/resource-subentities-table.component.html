@@ -96,49 +96,83 @@
 
                   <!-- PARAMETERS -->
                   <div id="parameters" class="row" style="margin-top: 10px;">
-                    <table class="table">
-                      <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Key</th>
-                        <th>Value</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      <tr *ngFor="let param of activeEntity.parameters">
-                        <td>
-                          <span
-                            class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
-                            (click)="checkAndRemoveParameter(param)"
-                            aria-hidden="true">
-                          </span>
-                        </td>
-                        <td>{{param.key}}</td>
-                        <td>
-                          <inline-edit [(ngModel)]="param.value"
-                                       [ngModelOptions]="{standalone: true}"
-                                       (onSave)="saveParameter(param)"
-                                       [uniqueKey]="param.key">
-                          </inline-edit>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td></td>
-                        <td></td>
-                        <td align="right">
-                          <button
-                            type="button"
-                            class="btn btn-primary btn-sm"
-                            (click)="addNewParameter()">
-                            Add new <i class="fa fa-caret-down" aria-hidden="true"></i>
-                          </button>
-                        </td>
-                      </tr>
-                      </tbody>
-                    </table>
-                    <div class="row" style="display: none;">
-
+                    <div class="col-md-12" id="tableParamsRow{{entityType}}">
+                       <table class="table">
+                          <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Key</th>
+                            <th>Value</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                          <tr *ngFor="let param of activeEntity.parameters">
+                            <td>
+                              <span
+                                class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
+                                (click)="checkAndRemoveParameter(param)"
+                                aria-hidden="true">
+                              </span>
+                            </td>
+                            <td>{{param.key}}</td>
+                            <td>
+                              <inline-edit [(ngModel)]="param.value"
+                                           [ngModelOptions]="{standalone: true}"
+                                           (onSave)="saveParameter(param)"
+                                           [uniqueKey]="param.key">
+                              </inline-edit>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td></td>
+                            <td></td>
+                            <td align="right">
+                              <button
+                                type="button"
+                                class="btn btn-primary btn-sm"
+                                (click)="addNewParameter()">
+                                Add new <i class="fa fa-caret-down" aria-hidden="true"></i>
+                              </button>
+                            </td>
+                          </tr>
+                          </tbody>
+                      </table>
                     </div>
+
+                    <div class="col-md-12" style="display: none;" id="newParamRow{{entityType}}">
+                      <div class="row">
+                        <select
+                                id="newParamSelect{{entityType}}"
+                                [(ngModel)]="currentNewParam.key"
+                                style="height: auto;"
+                                class="select2_group form-control col-md-4">
+                          <optgroup label="Custom parameter">
+                            <option value="custom">Append your own param</option>
+                          </optgroup>
+                          <optgroup label="Suggested parameter" *ngIf="activeEntity.paramDescriptors && activeEntity.paramDescriptors.length > 0">
+                            <option
+                              *ngFor="let descriptor of activeEntity.paramDescriptors"
+                              [attr.required]="descriptor.required"
+                              [attr.pattern]="descriptor.pattern"
+                              [attr.defaultValue]="descriptor.defaultValue"
+                              [value]="descriptor.name">
+                              {{descriptor.name}}
+                            </option>
+                          </optgroup>
+                        </select>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-2 col-offset-md-8">
+                          <button class="btn btn-primary" (click)="cancelAppendingParam()">
+                             Cancel
+                          </button>
+                          <button class="btn" (click)="appendParameter()">
+                            Append parameter
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                   <!-- PARAMETERS -->
 
