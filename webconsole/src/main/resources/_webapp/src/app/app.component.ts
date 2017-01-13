@@ -53,51 +53,54 @@ export class App {
     this.ws = new $WebSocket("ws://localhost:8181/snamp/console/events", [],
         {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true});
 
-    this.ws.getDataStream().subscribe(
-        (msg)=> {
-            console.log(msg);
-            let _log:SnampLog = SnampLog.makeFromJson(JSON.parse(msg.data));
-            this._snampLogService.pushLog(_log);
+    this.ws.getDataStream()
+        .map((msg) => JSON.parse(msg.data))
+        .filter((msg) => msg['@messageType'] == 'log')
+        .subscribe(
+          (msg)=> {
+              console.log(msg);
+              let _log:SnampLog = SnampLog.makeFromJson(msg);
+              this._snampLogService.pushLog(_log);
 
-            // do not show notifications in case we are inside of snamp configuration (there is a table with notifications)
-            if (this._router.url.indexOf('/snampcfg') < 0) {
+              // do not show notifications in case we are inside of snamp configuration (there is a table with notifications)
+              if (this._router.url.indexOf('/snampcfg') < 0) {
 
-                // limit the notifications maximum count
-                if (this.notificationCount > 3) {
-                  PNotify.removeAll();
-                  this.notificationCount = 0;
-                }
-                var notice = new PNotify({
-                     title: _log.level,
-                     text: _log.message  + "<a class='details'>Details</a>",
-                     type: _log.level,
-                     hide: false,
-                     styling: 'bootstrap3',
-                     addclass: "stack-bottomright",
-                     stack: this.stack_bottomright
-                 });
+                  // limit the notifications maximum count
+                  if (this.notificationCount > 3) {
+                    PNotify.removeAll();
+                    this.notificationCount = 0;
+                  }
+                  var notice = new PNotify({
+                       title: _log.level,
+                       text: _log.message  + "<a class='details'>Details</a>",
+                       type: _log.level,
+                       hide: false,
+                       styling: 'bootstrap3',
+                       addclass: "stack-bottomright",
+                       stack: this.stack_bottomright
+                   });
 
-                 var _thisReference = this;
-                 notice.get().find('a.details').on('click', function() {
-                     _thisReference.modal.alert()
-                             .size('lg')
-                             .title("Details for notification")
-                             .body(_log.htmlDetails())
-                             .isBlocking(false)
-                             .keyboard(27)
-                             .open()
-                 });
+                   var _thisReference = this;
+                   notice.get().find('a.details').on('click', function() {
+                       _thisReference.modal.alert()
+                               .size('lg')
+                               .title("Details for notification")
+                               .body(_log.htmlDetails())
+                               .isBlocking(false)
+                               .keyboard(27)
+                               .open()
+                   });
 
-                this.notificationCount++;
-            }
-        },
-        (msg)=> {
-            console.log("error", msg);
-        },
-        ()=> {
-            console.log("complete");
-        }
-    );
-  }
+                  this.notificationCount++;
+              }
+          },
+          (msg)=> {
+              console.log("error", msg);
+          },
+          ()=> {
+              console.log("complete");
+          }
+       );
+    }
 
 }
