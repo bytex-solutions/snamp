@@ -17,6 +17,8 @@ import 'rxjs/add/operator/toPromise';
 
 import 'smartwizard';
 
+import 'select2';
+
 import { Overlay } from 'angular2-modal';
 import {
   VEXBuiltInThemes,
@@ -106,12 +108,24 @@ export class ResourceEntitiesTable implements OnInit {
         this.activeEntity = entity;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
+    }
 
-        $(this.PARAM_SELECT_ID()).select2({
+    addNewParameter() {
+        let _thisReference = this;
+        $(_thisReference.PARAM_TABLE_DIV()).slideToggle("slow", function(){
+            $(_thisReference.PARAM_APPEND_DIV()).slideToggle("slow");
+        });
+
+        this.currentNewParam = new KeyValue("", "");
+         $(this.PARAM_SELECT_ID()).select2({
              templateResult: function(param){
+                    if (param.loading) return param.text;
+                    if (param.element.nodeName == "OPTGROUP") return param.text;
+                    if (param.id == "custom") return param.text;
+                    console.log("param: ", param);
                     var markup = "<div class='select2-result-repository clearfix'>" +
                       "<div class='select2-result-repository__meta'>" +
-                        "<div class='select2-result-repository__title'>" + param.element.value.toLowerCase() + "</div>";
+                        "<div class='select2-result-repository__title'>" + param.element.value + "</div>";
 
                     markup += "<div class='select2-result-repository__statistics'>";
                     if (param.element.hasAttribute("required")) {
@@ -127,15 +141,6 @@ export class ResourceEntitiesTable implements OnInit {
                     return markup;
              }
         });
-    }
-
-    addNewParameter() {
-        let _thisReference = this;
-        $(_thisReference.PARAM_TABLE_DIV()).slideToggle("slow", function(){
-            $(_thisReference.PARAM_APPEND_DIV()).slideToggle("slow");
-        });
-
-        this.currentNewParam = new KeyValue("", "");
     }
 
     addNewEntity() {

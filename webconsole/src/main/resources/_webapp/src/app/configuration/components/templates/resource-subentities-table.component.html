@@ -1,5 +1,5 @@
 <!-- Modal for entity appending -->
-<div class="modal fade" id="editEntity{{entityType}}" tabindex="-1" role="dialog" aria-labelledby="editEntityLabel">
+<div class="modal fade" id="editEntity{{entityType}}" role="dialog" aria-labelledby="editEntityLabel">
     <div class="modal-dialog modal-xlg modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -139,34 +139,35 @@
                       </table>
                     </div>
 
-                    <div class="col-md-12" style="display: none;" id="newParamRow{{entityType}}">
+                    <div class="col-md-12" style="display: none; margin-top:100px" id="newParamRow{{entityType}}">
                       <div class="row">
-                        <select
-                                id="newParamSelect{{entityType}}"
-                                [(ngModel)]="currentNewParam.key"
-                                style="height: auto;"
-                                class="select2_group form-control col-md-4">
-                          <optgroup label="Custom parameter">
-                            <option value="custom">Append your own param</option>
-                          </optgroup>
-                          <optgroup label="Suggested parameter" *ngIf="activeEntity.paramDescriptors && activeEntity.paramDescriptors.length > 0">
-                            <option
-                              *ngFor="let descriptor of activeEntity.paramDescriptors"
-                              [attr.required]="descriptor.required"
-                              [attr.pattern]="descriptor.pattern"
-                              [attr.defaultValue]="descriptor.defaultValue"
-                              [value]="descriptor.name">
-                              {{descriptor.name}}
-                            </option>
-                          </optgroup>
-                        </select>
+                        <div class="col-md-6" *ngIf="currentNewParam">
+                          <select
+                                  id="newParamSelect{{entityType}}"
+                                  [(ngModel)]="currentNewParam.key"
+                                  class="select2_group form-control">
+                            <optgroup label="Custom parameter">
+                              <option value="custom">Append your own param</option>
+                            </optgroup>
+                            <optgroup label="Suggested parameter" *ngIf="activeEntity.paramDescriptors && activeEntity.paramDescriptors.length > 0">
+                              <option
+                                *ngFor="let descriptor of activeEntity.paramDescriptors"
+                                [attr.required]="descriptor.required"
+                                [attr.pattern]="descriptor.pattern"
+                                [attr.defaultValue]="descriptor.defaultValue"
+                                [value]="descriptor.name">
+                                {{descriptor.name}}
+                              </option>
+                            </optgroup>
+                          </select>
+                        </div>
                       </div>
-                      <div class="row">
-                        <div class="col-md-2 col-offset-md-8">
+                      <div class="row" style="margin-top:15px;">
+                        <div class="col-md-4 col-md-offset-4">
                           <button class="btn btn-primary" (click)="cancelAppendingParam()">
                              Cancel
                           </button>
-                          <button class="btn" (click)="appendParameter()">
+                          <button class="btn" (click)="appendParameter()" style="margin-left:10px">
                             Append parameter
                           </button>
                         </div>
