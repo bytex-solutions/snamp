@@ -25,13 +25,12 @@ export abstract class TypedEntity extends Entity {
                 for (let obj in data) {
                    let newDescriptor:ParamDescriptor = new ParamDescriptor(data[obj]);
                    // remove group and smart mode descriptors because they are processed another way
-                   if (!((this.getName() == "resource" && this.getName() == "resourceGroup")
-                        && (newDescriptor.name == TypedEntity.SMART_MODE
-                        || newDescriptor.name == TypedEntity.GROUP))) {
-                           returnValue.push(newDescriptor);
+                   if ((this.getName() == "resource" || this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
+                      let k:boolean = false;
+                   } else
+                       returnValue.push(newDescriptor);
                    }
-                }
-                return returnValue;
+                 return returnValue;
             });
     }
 

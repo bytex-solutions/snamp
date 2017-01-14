@@ -141,17 +141,18 @@
 
                     <div class="col-md-12" style="display: none; margin-top:100px" id="newParamRow{{entityType}}">
                       <div class="row">
-                        <div class="col-md-6" *ngIf="currentNewParam">
+                        <div class="col-md-5 col-md-offset-3" *ngIf="currentNewParam">
                           <select
+                                  style="width: 350px"
                                   id="newParamSelect{{entityType}}"
                                   [(ngModel)]="currentNewParam.key"
                                   class="select2_group form-control">
                             <optgroup label="Custom parameter">
                               <option value="custom">Append your own param</option>
                             </optgroup>
-                            <optgroup label="Suggested parameter" *ngIf="activeEntity.paramDescriptors && activeEntity.paramDescriptors.length > 0">
+                            <optgroup label="Suggested parameter" *ngIf="activeEntity.paramDescriptors | async">
                               <option
-                                *ngFor="let descriptor of activeEntity.paramDescriptors"
+                                *ngFor="let descriptor of activeEntity.paramDescriptors | async"
                                 [attr.required]="descriptor.required"
                                 [attr.pattern]="descriptor.pattern"
                                 [attr.defaultValue]="descriptor.defaultValue"
@@ -164,10 +165,10 @@
                       </div>
                       <div class="row" style="margin-top:15px;">
                         <div class="col-md-4 col-md-offset-4">
-                          <button class="btn btn-primary" (click)="cancelAppendingParam()">
+                          <button class="btn" (click)="cancelAppendingParam()">
                              Cancel
                           </button>
-                          <button class="btn" (click)="appendParameter()" style="margin-left:10px">
+                          <button class="btn btn-primary"  (click)="appendParameter()" style="margin-left:10px">
                             Append parameter
                           </button>
                         </div>

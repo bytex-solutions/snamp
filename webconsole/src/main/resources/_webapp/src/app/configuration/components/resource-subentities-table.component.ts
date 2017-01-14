@@ -36,8 +36,7 @@ import {
   templateUrl: './templates/resource-subentities-table.component.html',
   styleUrls: [
       './templates/css/vex.css',
-      './templates/css/vex-theme-wireframe.css',
-      './templates/css/params.css'
+      './templates/css/vex-theme-wireframe.css'
     ]
 })
 export class ResourceEntitiesTable implements OnInit {
@@ -111,36 +110,54 @@ export class ResourceEntitiesTable implements OnInit {
     }
 
     addNewParameter() {
-        let _thisReference = this;
-        $(_thisReference.PARAM_TABLE_DIV()).slideToggle("slow", function(){
-            $(_thisReference.PARAM_APPEND_DIV()).slideToggle("slow");
-        });
+         let _thisReference = this;
+         $(_thisReference.PARAM_TABLE_DIV()).slideToggle("slow", function(){
+             $(_thisReference.PARAM_APPEND_DIV()).slideToggle("slow");
+         });
 
-        this.currentNewParam = new KeyValue("", "");
+         this.currentNewParam = new KeyValue("", "");
          $(this.PARAM_SELECT_ID()).select2({
+             escapeMarkup: function (markup) { return markup; },
+             width: 'resolve',
+             templateSelection:   function(param) {
+               return param.text;
+             },
              templateResult: function(param){
                     if (param.loading) return param.text;
                     if (param.element.nodeName == "OPTGROUP") return param.text;
                     if (param.id == "custom") return param.text;
-                    console.log("param: ", param);
                     var markup = "<div class='select2-result-repository clearfix'>" +
                       "<div class='select2-result-repository__meta'>" +
                         "<div class='select2-result-repository__title'>" + param.element.value + "</div>";
 
                     markup += "<div class='select2-result-repository__statistics'>";
-                    if (param.element.hasAttribute("required")) {
-                      markup += "<div class='select2-result-repository__forks'><i class='fa fa-flash'></i> " + param.element.getAttribute("required") + " Required</div>";
+                    if (param.element.hasAttribute("required") && param.element.getAttribute("required") == "true") {
+                      markup += "<div class='select2-result-repository__forks' style='color: red !important;'>Required</div>";
                     }
-                    if (param.element.hasAttribute("defaultValue")) {
-                      markup += "<div class='select2-result-repository__stargazers'><i class='fa fa-star'></i> " + param.element.getAttribute("defaultValue") + " Default value</div>";
+                    if (_thisReference.isParamPresent(param.element.value)) {
+                      markup += "<div class='select2-result-repository__forks' style='color: green !important;'>Already filled</div>";
                     }
-                    if (param.element.hasAttribute("pattern")) {
-                      markup += "<div class='select2-result-repository__watchers'><i class='fa fa-eye'></i> " + param.element.getAttribute("pattern") + " Pattern</div>";
+                    if (param.element.hasAttribute("defaultValue") && param.element.getAttribute("defaultValue").length > 0) {
+                      markup += "<div class='select2-result-repository__stargazers'>Default value: " + param.element.getAttribute("defaultValue") + "</div>";
+                    }
+                    if (param.element.hasAttribute("pattern") && param.element.getAttribute("pattern").length > 0) {
+                      markup += "<div class='select2-result-repository__watchers'>Pattern: " + param.element.getAttribute("pattern") + "</div>";
                     }
                     markup += "</div></div></div>";
                     return markup;
              }
         });
+    }
+
+    private isParamPresent(paramName:string):boolean {
+        let result:boolean = false;
+        for (let i = 0; i < this.activeEntity.parameters.length; i++) {
+            if (this.activeEntity.parameters[i].key == paramName) {
+                result = true;
+                break;
+            }
+        }
+        return result;
     }
 
     addNewEntity() {
@@ -150,14 +167,14 @@ export class ResourceEntitiesTable implements OnInit {
 
     cancelAppendingParam() {
         let _thisReference = this;
-        this.currentNewParam = undefined;
          $(_thisReference.PARAM_TABLE_DIV()).slideToggle("slow", function(){
               $(_thisReference.PARAM_APPEND_DIV()).slideToggle("slow");
           });
+         $(this.PARAM_SELECT_ID()).select2("destroy");
     }
 
     appendParameter() {
-        this.activeEntity.parameters.push(this.currentNewParam);
+        this.saveParameter(this.currentNewParam);
         this.cancelAppendingParam();
     }
 
