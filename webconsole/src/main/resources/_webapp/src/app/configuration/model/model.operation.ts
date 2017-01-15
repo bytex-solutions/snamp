@@ -7,4 +7,11 @@ export class Operation extends SubEntity {
         super(http, name, resourceType, jsonObject);
         this.invokto = invokto;
     }
+
+    public stringifyFullObject():string {
+        let resultValue:{ [key:string]:string; } = {};
+        resultValue["invocationTimeout"] = String(this.invokto);
+        resultValue["parameters"] = this.stringifyParameters();
+        return JSON.stringify(resultValue);
+    }
 }

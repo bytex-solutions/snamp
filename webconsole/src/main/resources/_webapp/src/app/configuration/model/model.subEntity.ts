@@ -47,4 +47,6 @@ export abstract class SubEntity extends Entity {
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue);
     }
+
+    public abstract stringifyFullObject():string;
 }

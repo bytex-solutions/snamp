@@ -101,7 +101,8 @@
     "raw-loader": "^0.5.1",
     "sass-loader": "4.1.1",
     "angular2-websocket": "0.9.0",
-    "ng2-dropdown": "0.0.21"
+    "ng2-dropdown": "0.0.21",
+    "prismjs": "1.6.0"
 
   },
   "devDependencies": {
