@@ -29,13 +29,13 @@ export abstract class Entity {
 
     public setParameter(parameter:KeyValue) {
         let found:boolean = false;
-        this.parameters.forEach(function(obj:KeyValue) {
-            if (obj.key === parameter.key) {
-                obj.value = parameter.value;
-                found = true;
-                return;
-            }
-        });
+        for (let i = 0; i < this.parameters.length; i++) {
+          if (this.parameters[i].key == parameter.key) {
+            this.parameters[i].value = parameter.value;
+            found = true;
+            break;
+          }
+        }
         // if nothing is found - just push it into the array
         if (!found) {
             this.parameters.push(parameter);

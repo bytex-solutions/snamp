@@ -4709,3 +4709,7 @@ a.details {
     display: inline-block;
     margin-right: 3px;
 }
+
+.sw-container {
+    height: auto !important;
+}

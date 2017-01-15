@@ -47,6 +47,7 @@ export class ResourceEntitiesTable implements OnInit {
     @Input() entities: SubEntity[];
     activeEntity:SubEntity;
     currentNewParam:KeyValue = new KeyValue("", "");
+    customKey:string = "";
 
     constructor(private http:ApiClient, private modal: Modal) {}
 
@@ -111,8 +112,8 @@ export class ResourceEntitiesTable implements OnInit {
 
     addNewParameter() {
          let _thisReference = this;
-         $(_thisReference.PARAM_TABLE_DIV()).slideToggle("slow", function(){
-             $(_thisReference.PARAM_APPEND_DIV()).slideToggle("slow");
+         $(_thisReference.PARAM_TABLE_DIV()).slideToggle("fast", function(){
+             $(_thisReference.PARAM_APPEND_DIV()).slideToggle("fast");
          });
 
          this.currentNewParam = new KeyValue("", "");
@@ -147,6 +148,10 @@ export class ResourceEntitiesTable implements OnInit {
                     return markup;
              }
         });
+
+        $(this.PARAM_SELECT_ID()).on('change', (e) => {
+          _thisReference.currentNewParam.key =  $(e.target).val();
+        });
     }
 
     private isParamPresent(paramName:string):boolean {
@@ -167,14 +172,22 @@ export class ResourceEntitiesTable implements OnInit {
 
     cancelAppendingParam() {
         let _thisReference = this;
-         $(_thisReference.PARAM_TABLE_DIV()).slideToggle("slow", function(){
-              $(_thisReference.PARAM_APPEND_DIV()).slideToggle("slow");
+         $(_thisReference.PARAM_TABLE_DIV()).slideToggle("fast", function(){
+              $(_thisReference.PARAM_APPEND_DIV()).slideToggle("fast");
           });
          $(this.PARAM_SELECT_ID()).select2("destroy");
     }
 
     appendParameter() {
-        this.saveParameter(this.currentNewParam);
+        let key:string = "";
+        let value:string = this.currentNewParam.value;
+        if (this.currentNewParam.key == "custom") {
+          key = this.customKey;
+        } else {
+          key = this.currentNewParam.key;
+        }
+        let finalValue:KeyValue = new KeyValue(key, value);
+        this.saveParameter(finalValue);
         this.cancelAppendingParam();
     }
 
