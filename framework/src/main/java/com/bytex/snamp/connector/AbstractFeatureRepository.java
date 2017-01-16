@@ -51,7 +51,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     /**
      * Metadata of the resource feature stored in repository.
      */
-    final Class<F> metadataType;
+    private final Class<F> metadataType;
     private final ResourceEventListenerList resourceEventListeners;
     private final String resourceName;
 

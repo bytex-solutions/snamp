@@ -78,8 +78,10 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      * @throws UnsupportedUpdateOperationException This operation is not supported
      *  by this resource connector.
      */
-    void update(final String connectionString,
-                final Map<String, String> connectionParameters) throws Exception;
+    default void update(final String connectionString,
+                final Map<String, String> connectionParameters) throws Exception{
+        throw new UnsupportedUpdateOperationException("Update operation is not supported");
+    }
 
     /**
      * Adds a new listener for the connector-related events.
@@ -124,41 +126,40 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
         return Utils.isInstanceOf(ref, ManagedResourceConnector.class) && isResourceConnectorBundle(ref.getBundle());
     }
 
-    static boolean canExpandWith(final ManagedResourceConnector connector,
-                                 final Class<? extends MBeanFeatureInfo> featureType) {
-        final Supplier<Boolean> FALLBACK = () -> Boolean.FALSE;
-        if (featureType.equals(MBeanAttributeInfo.class))
-            return Aggregator.queryAndApply(connector, AttributeSupport.class, AttributeSupport::canExpandAttributes, FALLBACK);
-        else if (featureType.equals(MBeanNotificationInfo.class))
-            return Aggregator.queryAndApply(connector, NotificationSupport.class, NotificationSupport::canExpandNotifications, FALLBACK);
-        else if (featureType.equals(MBeanOperationInfo.class))
-            return Aggregator.queryAndApply(connector, OperationSupport.class, OperationSupport::canExpandOperations, FALLBACK);
-        else
-            return FALLBACK.get();
-    }
-
     /**
      * Determines whether the Smart-mode is supported by the specified connector.
      * @param connector An instance of the connector. Cannot be {@literal null}.
      * @return {@literal true}, if Smart-mode is supported; otherwise, {@literal false}.
      */
     static boolean isSmartModeSupported(final ManagedResourceConnector connector) {
-        return canExpandWith(connector, MBeanAttributeInfo.class) ||
-                canExpandWith(connector, MBeanNotificationInfo.class) ||
-                canExpandWith(connector, MBeanOperationInfo.class);
+        return connector.canExpand(MBeanAttributeInfo.class) ||
+                connector.canExpand(MBeanNotificationInfo.class) ||
+                connector.canExpand(MBeanOperationInfo.class);
     }
 
-    static Collection<? extends MBeanFeatureInfo> expandAll(final ManagedResourceConnector connector) {
+    default boolean canExpand(final Class<? extends MBeanFeatureInfo> featureType) {
+        final Supplier<Boolean> FALLBACK = () -> Boolean.FALSE;
+        if (featureType.equals(MBeanAttributeInfo.class))
+            return Aggregator.queryAndApply(this, AttributeSupport.class, AttributeSupport::canExpandAttributes, FALLBACK);
+        else if (featureType.equals(MBeanNotificationInfo.class))
+            return Aggregator.queryAndApply(this, NotificationSupport.class, NotificationSupport::canExpandNotifications, FALLBACK);
+        else if (featureType.equals(MBeanOperationInfo.class))
+            return Aggregator.queryAndApply(this, OperationSupport.class, OperationSupport::canExpandOperations, FALLBACK);
+        else
+            return FALLBACK.get();
+    }
+
+    default Collection<? extends MBeanFeatureInfo> expandAll() {
         final List<MBeanFeatureInfo> result = new LinkedList<>();
-        result.addAll(Aggregator.queryAndApply(connector,
+        result.addAll(Aggregator.queryAndApply(this,
                 AttributeSupport.class,
                 attributeSupport -> attributeSupport.canExpandAttributes() ? attributeSupport.expandAttributes() : Collections.emptyList(),
                 Collections::emptyList));
-        result.addAll(Aggregator.queryAndApply(connector,
+        result.addAll(Aggregator.queryAndApply(this,
                 NotificationSupport.class,
                 notificationSupport -> notificationSupport.canExpandNotifications() ? notificationSupport.expandNotifications() : Collections.emptyList(),
                 Collections::emptyList));
-        result.addAll(Aggregator.queryAndApply(connector,
+        result.addAll(Aggregator.queryAndApply(this,
                 OperationSupport.class,
                 operationSupport -> operationSupport.canExpandOperations() ? operationSupport.expandOperations() : Collections.emptyList(),
                 Collections::emptyList));
