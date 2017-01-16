@@ -18,7 +18,6 @@ import 'rxjs/add/operator/toPromise';
 import 'smartwizard';
 import 'select2';
 const Prism = require('prismjs');
-require('prismjs/plugins/line-numbers/prism-line-numbers.js');
 
 import { Overlay } from 'angular2-modal';
 import {
@@ -37,7 +36,8 @@ import {
   templateUrl: './templates/resource-subentities-table.component.html',
   styleUrls: [
       './templates/css/vex.css',
-      './templates/css/vex-theme-wireframe.css'
+      './templates/css/vex-theme-wireframe.css',
+      './templates/css/prism.css'
     ]
 })
 export class ResourceEntitiesTable implements OnInit {
