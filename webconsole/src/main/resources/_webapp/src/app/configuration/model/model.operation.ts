@@ -12,6 +12,6 @@ export class Operation extends SubEntity {
         let resultValue:{ [key:string]:string; } = {};
         resultValue["invocationTimeout"] = String(this.invokto);
         resultValue["parameters"] = this.stringifyParameters();
-        return JSON.stringify(resultValue);
+        return JSON.stringify(resultValue, null, 4);
     }
 }

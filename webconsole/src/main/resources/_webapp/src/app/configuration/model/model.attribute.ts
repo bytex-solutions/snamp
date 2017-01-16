@@ -12,6 +12,6 @@ export class Attribute extends SubEntity {
         let resultValue:{ [key:string]:string; } = {};
         resultValue["readWriteTimeout"] = String(this.rwto);
         resultValue["parameters"] = this.stringifyParameters();
-        return JSON.stringify(resultValue);
+        return JSON.stringify(resultValue, null, 4);
     }
 }

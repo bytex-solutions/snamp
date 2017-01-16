@@ -9,6 +9,6 @@ export class Event extends SubEntity {
     public stringifyFullObject():string {
         let resultValue:{ [key:string]:string; } = {};
         resultValue["parameters"] = this.stringifyParameters();
-        return JSON.stringify(resultValue);
+        return JSON.stringify(resultValue, null, 4);
     }
 }

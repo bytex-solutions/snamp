@@ -16,13 +16,9 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
 
 import 'smartwizard';
-
 import 'select2';
-
-export const Prism = require('prismjs');
-import 'prismjs/themes/prism-okaidia.css';
-import 'prismjs/components/prism-handlebars.min.js';
-import 'prismjs/components/prism-javascript.min.js';
+const Prism = require('prismjs');
+require('prismjs/plugins/line-numbers/prism-line-numbers.js');
 
 import { Overlay } from 'angular2-modal';
 import {
@@ -41,8 +37,7 @@ import {
   templateUrl: './templates/resource-subentities-table.component.html',
   styleUrls: [
       './templates/css/vex.css',
-      './templates/css/vex-theme-wireframe.css',
-      './templates/css/prism.css'
+      './templates/css/vex-theme-wireframe.css'
     ]
 })
 export class ResourceEntitiesTable implements OnInit {
