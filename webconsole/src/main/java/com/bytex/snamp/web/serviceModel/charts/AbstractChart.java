@@ -12,12 +12,12 @@ import java.util.Map;
  * @since 2.0
  */
 public abstract class AbstractChart implements Chart {
-    private final Map<String, Object> settings;
+    private final Map<String, Object> preferences;
     private String chartName;
 
     AbstractChart(){
         chartName = "";
-        settings = new HashMap<>();
+        preferences = new HashMap<>();
     }
 
     @Override
@@ -29,13 +29,13 @@ public abstract class AbstractChart implements Chart {
     @Override
     @JsonProperty("preferences")
     public final Map<String, Object> getPreferences() {
-        return settings;
+        return preferences;
     }
 
     @Override
     public final void setPreferences(final Map<String, Object> value) {
-        settings.clear();
-        settings.putAll(value);
+        preferences.clear();
+        preferences.putAll(value);
     }
 
     /**
@@ -48,20 +48,8 @@ public abstract class AbstractChart implements Chart {
         return 0;
     }
 
-    /**
-     * Gets configuration of the axis associated with the dimension.
-     *
-     * @param dimensionIndex Zero-based index of the dimension.
-     * @return Axis configuration.
-     * @throws IndexOutOfBoundsException Invalid dimension index.
-     */
     @Override
-    public Axis getAxis(final int dimensionIndex) {
-        return null;
-    }
-
-    @Override
-    public void setName(final String value) {
+    public final void setName(final String value) {
         chartName = value;
     }
 }
