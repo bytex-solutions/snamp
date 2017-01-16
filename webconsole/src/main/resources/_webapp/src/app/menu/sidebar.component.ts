@@ -1,13 +1,8 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'side-bar',  // <home></home>
-  // We need to tell Angular's Dependency Injection which providers are in our app.
-  providers: [
-  ],
-  // Our list of styles in our component. We may add more to compose many styles together
+  selector: 'side-bar',
   styleUrls: [ '../app.style.css' ],
-  // Every Angular template is first compiled by the browser before Angular runs it's compiler
   templateUrl: './sidebar.component.html'
 })
 
@@ -27,20 +22,20 @@ export class Sidebar {
     }
 
     ngAfterViewInit(): void {
-       // this.plot();
+        this.plot();
     }
 
-    anchorClicked(event: MouseEvent)
-    {
-        
-        var target = event.srcElement.id;
+    anchorClicked(event: MouseEvent) {
 
-        var $li = $('#' + target.replace("chevron","li")).parent(); 
+        var target = event.srcElement.id;
+        var _thisReference = this;
+
+        var $li = $('#' + target.replace("chevron","li")).parent();
 
         if ($li.is('.active')) {
             $li.removeClass('active active-sm');
                 $('ul:first', $li).slideUp(function() {
-                    //this.setContentHeight();
+                    _thisReference.setContentHeight();
                 });
             } else {
                 // prevent closing menu if we are on child menu
@@ -48,17 +43,16 @@ export class Sidebar {
                     $('#sidebar-menu').find('li').removeClass('active active-sm');
                     $('#sidebar-menu').find('li ul').slideUp();
                 }
-                
+
                 $li.addClass('active');
 
                 $('ul:first', $li).slideDown(function() {
-                    //this.setContentHeight();
+                    _thisReference.setContentHeight();
                 });
             }
     }
 
-    plot()
-    {     
+    plot() {
         console.log('in sidebar');
 
         this.$BODY = $('body');
@@ -70,6 +64,8 @@ export class Sidebar {
         this.$NAV_MENU = $('.nav_menu');
         this.$FOOTER = $('footer');
 
+        var _thisReference = this;
+
         var $a = this.$SIDEBAR_MENU.find('a');
         this.$SIDEBAR_MENU.find('a').on('click', function(ev) {
             var $li = $(this).parent();
@@ -77,42 +73,41 @@ export class Sidebar {
             if ($li.is('.active')) {
                 $li.removeClass('active active-sm');
                 $('ul:first', $li).slideUp(function() {
-                    this.setContentHeight();
+                    _thisReference.setContentHeight();
                 });
             } else {
                 // prevent closing menu if we are on child menu
                 if (!$li.parent().is('.child_menu')) {
-                    this.$SIDEBAR_MENU.find('li').removeClass('active active-sm');
-                    this.$SIDEBAR_MENU.find('li ul').slideUp();
+                    _thisReference.$SIDEBAR_MENU.find('li').removeClass('active active-sm');
+                    _thisReference.$SIDEBAR_MENU.find('li ul').slideUp();
                 }
-                
+
                 $li.addClass('active');
 
                 $('ul:first', $li).slideDown(function() {
-                    this.setContentHeight();
+                    _thisReference.setContentHeight();
                 });
             }
         });
 
         // toggle small or large menu
         this.$MENU_TOGGLE.on('click', function() {
-            if (this.$BODY.hasClass('nav-md')) {
-                this.$SIDEBAR_MENU.find('li.active ul').hide();
-                this.$SIDEBAR_MENU.find('li.active').addClass('active-sm').removeClass('active');
+            if (_thisReference.$BODY.hasClass('nav-md')) {
+                _thisReference.$SIDEBAR_MENU.find('li.active ul').hide();
+                _thisReference.$SIDEBAR_MENU.find('li.active').addClass('active-sm').removeClass('active');
             } else {
-                this.$SIDEBAR_MENU.find('li.active-sm ul').show();
-                this.$SIDEBAR_MENU.find('li.active-sm').addClass('active').removeClass('active-sm');
+                _thisReference.$SIDEBAR_MENU.find('li.active-sm ul').show();
+                _thisReference.$SIDEBAR_MENU.find('li.active-sm').addClass('active').removeClass('active-sm');
             }
 
-            this.$BODY.toggleClass('nav-md nav-sm');
+            _thisReference.$BODY.toggleClass('nav-md nav-sm');
 
-            this.setContentHeight();
+            _thisReference.setContentHeight();
         });
 
-    }   
+    }
 
     ngOnInit() {
-        console.log('hello `sidebar` component');
     }
 
     setContentHeight() {
@@ -129,5 +124,5 @@ export class Sidebar {
 
         this.$RIGHT_COL.css('min-height', contentHeight);
     };
- 
+
 }
