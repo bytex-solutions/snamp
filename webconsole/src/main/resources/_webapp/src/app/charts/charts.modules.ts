@@ -8,6 +8,8 @@ import { UiSwitchComponent } from '../ui-switch.component';
 import { PanelComponent } from '../panel.component';
 import { CookieService } from 'angular2-cookie/core';
 import { Routes, RouterModule } from '@angular/router';
+import { ModalModule } from 'angular2-modal';
+import { VexModalModule } from 'angular2-modal/plugins/vex';
 
 import { Dashboard } from './charts.dashboard';
 
@@ -23,6 +25,8 @@ const PROVIDERS:any =  [
       CommonModule,
       TooltipModule,
       FormsModule,
+      ModalModule.forRoot(),
+      VexModalModule,
       HttpModule,
       CommonSnampUtilsModule,
       RouterModule.forChild([{ path: '', component: Dashboard }])

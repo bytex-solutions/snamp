@@ -4,8 +4,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { RouterModule } from '@angular/router';
-import { removeNgStyles, createNewHosts, createInputTransfer } from '@angularclass/hmr';
-
 
 import { ENV_PROVIDERS } from './environment';
 import { ROUTES } from './app.routes';
@@ -13,7 +11,6 @@ import { App } from './app.component';
 import { Footer } from './controls/footer.component';
 import { Sidebar } from './menu/sidebar.component';
 import { TopNavBar } from './menu/topnavbar.component';
-import { FlotCmp } from './controls/network-activities.component';
 import { UsernameComponent } from './app.username';
 import { SnampLogService } from './app.logService';
 import { NoContent } from './no-content';
@@ -27,7 +24,7 @@ import { UiSwitchComponent } from './ui-switch.component';
 import { PanelComponent } from './panel.component';
 
 import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './configuration/configuration.pipes';
-import { InlineEditComponent } from './configuration/components/inline-edit.component';
+import { InlineEditComponent } from './controls/inline-edit.component';
 import { ParametersTable } from './configuration/components/parameters-table.component';
 import { ResourceEntitiesTable } from './configuration/components/resource-subentities-table.component';
 import { AddEntity } from './configuration/components/add-entity.component';
@@ -55,7 +52,6 @@ const APP_PROVIDERS = [
     Footer,
     Sidebar,
     TopNavBar,
-    FlotCmp,
     NoContent,
     FontAwesomeDirective,
     UsernameComponent,
@@ -84,29 +80,6 @@ const APP_PROVIDERS = [
 export class AppModule {
 }
 
-
-// http://stackoverflow.com/questions/39927357/many-modules-using-the-same-component-causes-error-angular-2
-const EXPORTS_CONFIG:any = [
-  ParametersTable,
-  ResourceEntitiesTable,
-  RequiredParametersFilter,
-  OptionalParametersFilter,
-  AddEntity
-];
-
-@NgModule({
-  imports: [
-    CommonModule,
-    TooltipModule,
-    FormsModule,
-    HttpModule
-  ],
-  declarations: EXPORTS_CONFIG,
-  exports: EXPORTS_CONFIG
-})
-export class SharedConfigurationModule {}
-
-
 const EXPORTS_UTILS:any = [
   PanelComponent,
   InlineEditComponent,
@@ -123,3 +96,26 @@ const EXPORTS_UTILS:any = [
   exports: EXPORTS_UTILS
 })
 export class CommonSnampUtilsModule {}
+
+
+// http://stackoverflow.com/questions/39927357/many-modules-using-the-same-component-causes-error-angular-2
+const EXPORTS_CONFIG:any = [
+  ParametersTable,
+  ResourceEntitiesTable,
+  RequiredParametersFilter,
+  OptionalParametersFilter,
+  AddEntity
+];
+
+@NgModule({
+  imports: [
+    CommonModule,
+    CommonSnampUtilsModule,
+    TooltipModule,
+    FormsModule,
+    HttpModule
+  ],
+  declarations: EXPORTS_CONFIG,
+  exports: EXPORTS_CONFIG
+})
+export class SharedConfigurationModule {}

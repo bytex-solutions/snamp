@@ -5,7 +5,7 @@ import { TypedEntity } from '../model/model.typedEntity';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { InlineEditComponent } from './inline-edit.component';
+import { InlineEditComponent } from '../../controls/inline-edit.component';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
