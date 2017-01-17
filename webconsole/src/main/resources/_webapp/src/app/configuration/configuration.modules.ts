@@ -16,7 +16,7 @@ import { ModalModule } from 'angular2-modal';
 import { TooltipModule } from 'ng2-tooltip';
 import { Routes, RouterModule } from '@angular/router';
 
-import { SharedConfigurationModule } from '../app.module';
+import { SharedConfigurationModule, CommonSnampUtilsModule } from '../app.module';
 
 import { Ng2SmartTableModule } from 'ng2-smart-table';
 
@@ -24,6 +24,7 @@ import { Ng2SmartTableModule } from 'ng2-smart-table';
 // must read http://blog.angular-university.io/angular2-ngmodule/
 
 const IMPORTS:any = [
+  CommonSnampUtilsModule,
   CommonModule,
   Ng2SmartTableModule,
   HttpModule,

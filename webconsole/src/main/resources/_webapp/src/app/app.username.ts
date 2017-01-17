@@ -16,6 +16,17 @@ export class UsernameComponent  {
    constructor(private apiClient: ApiClient) {
         apiClient.get('/snamp/security/login/username')
             .map((res: Response) => res.text())
-            .subscribe(res => this.username = res, err => {if (err.status == 500) {window.location.href = "login.html?tokenExpired=true";}})
+            .subscribe(res => {
+                this.username = res;
+                // until we got the very first authenticated response from the service -
+                // all the layout will be hided with overlay
+                $('#overlay').fadeOut();
+              },
+              err => {
+                if (err.status == 500) {
+                  window.location.href = "login.html?tokenExpired=true";
+                }
+              }
+            );
    }
 }

@@ -48,9 +48,6 @@ const APP_PROVIDERS = [
 ];
 
 
-/**
- * `AppModule` is the main entry point into Angular2's bootstraping process
- */
 @NgModule({
   bootstrap: [ App ],
   declarations:[
@@ -64,7 +61,7 @@ const APP_PROVIDERS = [
     UsernameComponent,
     KeysPipe
   ],
-  imports: [ // import Angular's modules
+  imports: [
     BrowserModule,
     BootstrapModalModule,
     ModalModule.forRoot(),
@@ -79,7 +76,7 @@ const APP_PROVIDERS = [
     DropdownModule,
     RouterModule.forRoot(ROUTES, { useHash: true })
   ],
-  providers: [ // expose our Services and Providers into Angular's dependency injection
+  providers: [
     ENV_PROVIDERS,
     APP_PROVIDERS
   ]
@@ -89,15 +86,12 @@ export class AppModule {
 
 
 // http://stackoverflow.com/questions/39927357/many-modules-using-the-same-component-causes-error-angular-2
-const EXPORTS:any = [
-  PanelComponent,
-  InlineEditComponent,
+const EXPORTS_CONFIG:any = [
   ParametersTable,
   ResourceEntitiesTable,
   RequiredParametersFilter,
   OptionalParametersFilter,
-  AddEntity,
-  UiSwitchComponent
+  AddEntity
 ];
 
 @NgModule({
@@ -107,8 +101,25 @@ const EXPORTS:any = [
     FormsModule,
     HttpModule
   ],
-  declarations: EXPORTS,
-  exports: EXPORTS
+  declarations: EXPORTS_CONFIG,
+  exports: EXPORTS_CONFIG
 })
 export class SharedConfigurationModule {}
 
+
+const EXPORTS_UTILS:any = [
+  PanelComponent,
+  InlineEditComponent,
+  UiSwitchComponent
+];
+
+@NgModule({
+  imports: [
+    CommonModule,
+    TooltipModule,
+    FormsModule
+  ],
+  declarations: EXPORTS_UTILS,
+  exports: EXPORTS_UTILS
+})
+export class CommonSnampUtilsModule {}

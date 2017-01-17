@@ -47,12 +47,9 @@ export class App {
   ngAfterViewInit() {
 
     $(document).ready(function(){
-        $('#overlay').fadeOut();
         setTimeout(function() {
           $('li.activeLi').parents('li').addClass('active');
-          $('li.activeLi').parents("ul").slideDown("slow", function(){
-              console.log("We should see them rolling now...");
-          });
+          $('li.activeLi').parents("ul").slideDown("slow");
          }, 500)
      });
 

@@ -8,5 +8,6 @@ export const ROUTES: Routes = [
   { path: 'gateways', loadChildren: () => System.import('./configuration/configuration.modules').then(m => m.GatewaysModule) },
   { path: 'resources', loadChildren: () => System.import('./configuration/configuration.modules').then(m => m.ResourcesModule) },
   { path: 'rgroups', loadChildren: () => System.import('./configuration/configuration.modules').then(m => m.RGroupsModule) },
-  { path: 'snampcfg', loadChildren: () => System.import('./configuration/configuration.modules').then(m => m.SnampCFGModule) }
+  { path: 'snampcfg', loadChildren: () => System.import('./configuration/configuration.modules').then(m => m.SnampCFGModule) },
+  { path: 'charts', loadChildren: () => System.import('./charts/charts.modules').then(m => m.DashboardModule) },
 ];

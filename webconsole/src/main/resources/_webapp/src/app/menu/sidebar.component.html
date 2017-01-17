@@ -32,6 +32,11 @@
               <li routerLinkActive="activeLi"><a routerLink="snampcfg" routerLinkActive="active">Snamp configuration</a></li>
             </ul>
           </li>
+          <li><a id="chartli" (click)="anchorClicked($event)"><i class="fa fa-area-chart"></i> Charts<span id="chartchevron" class="fa fa-chevron-down"></span></a>
+            <ul class="nav child_menu">
+              <li routerLinkActive="activeLi"><a routerLink="charts" routerLinkActive="active">Dashboard</a></li>
+            </ul>
+          </li>
         </ul>
       </div>
       <div class="menu_section">
