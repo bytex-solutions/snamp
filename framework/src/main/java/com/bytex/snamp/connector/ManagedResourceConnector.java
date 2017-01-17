@@ -11,6 +11,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleRevision;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import java.util.*;
 import java.util.function.Supplier;
@@ -49,6 +50,16 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      * @see #CAPABILITY_NAMESPACE
      */
     String TYPE_CAPABILITY_ATTRIBUTE = "type";
+
+    /**
+     * Represents property that contains unique name of the managed resource instance.
+     */
+    String NAME_PROPERTY = "resourceName";
+
+    /**
+     * Represents property that contains connection string associated with the managed resource instance.
+     */
+    String CONNECTION_STRING_PROPERTY = "connectionString";
 
     /**
      * Represents an exception indicating that the resource connector cannot be updated
@@ -96,6 +107,14 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      * @param listener The listener to remove.
      */
     void removeResourceEventListener(final ResourceEventListener listener);
+
+    /**
+     * Gets mutable set of characteristics of this managed resource connector.
+     * @return Characteristics of this managed resource connector.
+     */
+    @Override
+    @Nonnull
+    Map<String, Object> getCharacteristics();
 
     static String getConnectorType(final Bundle bnd) {
         final BundleRevision revision = bnd.adapt(BundleRevision.class);

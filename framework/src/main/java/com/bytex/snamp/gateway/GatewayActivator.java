@@ -39,8 +39,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 public class GatewayActivator<G extends AbstractGateway> extends AbstractServiceLibrary {
-    private static final String GATEWAY_INSTANCE_IDENTITY_PROPERTY = "instanceName";
-    private static final String GATEWAY_TYPE_IDENTITY_PROPERTY = "gatewayType";
+    private static final String CATEGORY = "gateway";
     private static final ActivationProperty<String> GATEWAY_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
 
@@ -118,16 +117,19 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
                                 final String instanceName,
                                 final GatewayConfiguration configuration) throws Exception{
             identity.putAll(configuration.getParameters());
-            identity.put(GATEWAY_TYPE_IDENTITY_PROPERTY, gatewayType);
-            identity.put(GATEWAY_INSTANCE_IDENTITY_PROPERTY, instanceName);
+            identity.put(Gateway.TYPE_CAPABILITY_ATTRIBUTE, gatewayType);
+            identity.put(Gateway.NAME_PROPERTY, instanceName);
+            identity.put(Gateway.CATEGORY_PROPERTY, CATEGORY);
             final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, getDependencies());
-            if (gatewayInstance != null)
+            if (gatewayInstance != null) {
+                gatewayInstance.getCharacteristics().putAll(identity);
                 if (gatewayInstance.tryStart(configuration.getParameters())) {
                     return gatewayInstance;
                 } else {
                     gatewayInstance.close();
                     throw new IllegalStateException(String.format("Unable to start '%s' instance", instanceName));
                 }
+            }
             else throw new InstantiationException(String.format("Unable to instantiate '%s' instance", instanceName));
         }
 
@@ -201,7 +203,8 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
         @Override
         protected T activateService(final Map<String, Object> identity) throws Exception {
-            identity.put(GATEWAY_TYPE_IDENTITY_PROPERTY, getGatewayType());
+            identity.put(Gateway.TYPE_CAPABILITY_ATTRIBUTE, getGatewayType());
+            identity.put(Gateway.CATEGORY_PROPERTY, CATEGORY);
             return activator.activateService(getDependencies());
         }
 
@@ -439,16 +442,16 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
     static String createFilter(final String gatewayType, final String filter){
         return filter == null || filter.isEmpty() ?
-                String.format("(%s=%s)", GATEWAY_TYPE_IDENTITY_PROPERTY, gatewayType):
-                String.format("(&(%s=%s)%s)", GATEWAY_TYPE_IDENTITY_PROPERTY, gatewayType, filter);
+                String.format("(&(%s=%s)(%s=%s))", Gateway.CATEGORY_PROPERTY, CATEGORY, Gateway.TYPE_CAPABILITY_ATTRIBUTE, gatewayType):
+                String.format("(&(%s=%s)(%s=%s)%s)", Gateway.CATEGORY_PROPERTY, CATEGORY, Gateway.TYPE_CAPABILITY_ATTRIBUTE, gatewayType, filter);
     }
 
     static String createFilter(final String gatewayInstance){
-        return String.format("(%s=%s)", GATEWAY_INSTANCE_IDENTITY_PROPERTY, gatewayInstance);
+        return String.format("(&(%s=%s)(%s=%s))", Gateway.CATEGORY_PROPERTY, CATEGORY, Gateway.NAME_PROPERTY, gatewayInstance);
     }
 
     private static String getGatewayInstance(final Dictionary<String, ?> identity){
-        return Objects.toString(identity.get(GATEWAY_INSTANCE_IDENTITY_PROPERTY), "");
+        return Objects.toString(identity.get(Gateway.NAME_PROPERTY), "");
     }
 
     static String getGatewayInstance(final ServiceReference<Gateway> gatewayInstance) {

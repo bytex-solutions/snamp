@@ -23,6 +23,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
@@ -211,6 +212,12 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     protected AbstractGateway(final String instanceName) {
         this.instanceName = instanceName;
         mutableState = InternalState.initialState();
+    }
+
+    @Nonnull
+    @Override
+    public final Map<String, Object> getCharacteristics() {
+        return ImmutableMap.of();
     }
 
     /**

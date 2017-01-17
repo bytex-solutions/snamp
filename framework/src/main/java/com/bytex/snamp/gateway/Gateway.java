@@ -8,8 +8,10 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.wiring.BundleRevision;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanFeatureInfo;
 import java.io.Closeable;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -35,6 +37,8 @@ public interface Gateway extends FrameworkService, ServiceListener, Closeable {
      * @see #CAPABILITY_NAMESPACE
      */
     String TYPE_CAPABILITY_ATTRIBUTE = "type";
+
+    String NAME_PROPERTY = "instanceName";
 
     /**
      * Represents binding of the feature from the connected resource.
@@ -86,6 +90,10 @@ public interface Gateway extends FrameworkService, ServiceListener, Closeable {
          */
         boolean setProperty(final String propertyName, final Object value);
     }
+
+    @Nonnull
+    @Override
+    Map<String, Object> getCharacteristics();
 
     /**
      * Gets name of this instance.

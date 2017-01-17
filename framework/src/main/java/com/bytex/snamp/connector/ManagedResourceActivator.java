@@ -50,11 +50,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  */
 public class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
-
-    private static final String MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY = "resourceName";
-    private static final String CONNECTOR_STRING_IDENTITY_PROPERTY = "connectionString";
-    private static final String CONNECTION_TYPE_IDENTITY_PROPERTY = "connectionType";
-
+    private static final String CATEGORY = "resourceConnector";
     private static final ActivationProperty<String> CONNECTOR_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
 
@@ -159,6 +155,22 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         @Override
         public void removeResourceEventListener(final ResourceEventListener listener) {
             readLock.accept(SingleResourceGroup.INSTANCE, this, listener, (t, l) -> t.connector.removeResourceEventListener(l));
+        }
+
+        @Nonnull
+        @Override
+        public Map<String, Object> getCharacteristics() {
+            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.getCharacteristics());
+        }
+
+        @Override
+        public boolean canExpand(final Class<? extends MBeanFeatureInfo> featureType) {
+            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.canExpand(featureType));
+        }
+
+        @Override
+        public Collection<? extends MBeanFeatureInfo> expandAll() {
+            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.expandAll());
         }
 
         @Override
@@ -394,10 +406,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                          final ManagedResourceConfiguration configuration) throws Exception {
             loadedConfigurations.put(resourceName, configuration::equals);
             identity.putAll(configuration.getParameters());
-            identity.put(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
-            identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, connectorType);
-            identity.put(CONNECTOR_STRING_IDENTITY_PROPERTY, configuration.getConnectionString());
+            identity.put(ManagedResourceConnector.NAME_PROPERTY, resourceName);
+            identity.put(ManagedResourceConnector.TYPE_CAPABILITY_ATTRIBUTE, connectorType);
+            identity.put(ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY);
+            identity.put(ManagedResourceConnector.CONNECTION_STRING_PROPERTY, configuration.getConnectionString());
             final TConnector result = controller.createConnector(resourceName, configuration.getConnectionString(), configuration.getParameters(), getDependencies());
+            result.getCharacteristics().putAll(identity);
             updateFeatures(result, configuration);
             return result;
         }
@@ -492,7 +506,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         @Override
         protected final T activateService(final Map<String, Object> identity) throws Exception {
-            identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, getConnectorName());
+            identity.put(ManagedResourceConnector.TYPE_CAPABILITY_ATTRIBUTE, getConnectorType());
+            identity.put(ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY);
             return activateService();
         }
 
@@ -505,7 +520,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @return The name of the underlying resource connector.
          * @see #getState()
          */
-        private String getConnectorName() {
+        private String getConnectorType() {
             return getActivationPropertyValue(CONNECTOR_TYPE_HOLDER);
         }
 
@@ -697,15 +712,15 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef) {
-        return getReferencePropertyAsString(connectorRef, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, "");
+        return getReferencePropertyAsString(connectorRef, ManagedResourceConnector.NAME_PROPERTY, "");
     }
 
     static String getConnectionString(final ServiceReference<ManagedResourceConnector> identity){
-        return getValue(getProperties(identity), CONNECTOR_STRING_IDENTITY_PROPERTY, Objects::toString, () -> "");
+        return getValue(getProperties(identity), ManagedResourceConnector.CONNECTION_STRING_PROPERTY, Objects::toString, () -> "");
     }
 
     private static String getManagedResourceName(final Map<String, ?> identity){
-        return getValue(identity, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, String.class, () -> "");
+        return getValue(identity, ManagedResourceConnector.NAME_PROPERTY, String.class, () -> "");
     }
 
     private static List<Bundle> getResourceConnectorBundles(final BundleContext context) {
@@ -802,13 +817,13 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 .collect(Collectors.toList());
     }
 
-    static String createFilter(final String connectorType, final String filter){
+    static String createFilter(final String connectorType, final String filter) {
         return isNullOrEmpty(filter) ?
-                String.format("(%s=%s)", CONNECTION_TYPE_IDENTITY_PROPERTY, connectorType):
-                String.format("(&(%s=%s)%s)", CONNECTION_TYPE_IDENTITY_PROPERTY, connectorType, filter);
+                String.format("(&(%s=%s)(%s=%s))", ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY, ManagedResourceConnector.TYPE_CAPABILITY_ATTRIBUTE, connectorType) :
+                String.format("(&(%s=%s)(%s=%s)%s)", ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY, ManagedResourceConnector.TYPE_CAPABILITY_ATTRIBUTE, connectorType, filter);
     }
 
-    static String createFilter(final String resourceName){
-        return String.format("(%s=%s)", MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
+    static String createFilter(final String resourceName) {
+        return String.format("(&(%s=%s)(%s=%s))", ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY, ManagedResourceConnector.NAME_PROPERTY, resourceName);
     }
 }

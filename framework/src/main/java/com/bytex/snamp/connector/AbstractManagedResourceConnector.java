@@ -14,8 +14,10 @@ import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -37,9 +39,17 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  */
 public abstract class AbstractManagedResourceConnector extends AbstractAggregator implements ManagedResourceConnector, Localizable {
     private final LazySoftReference<MetricsSupport> metrics;
+    private final Map<String, Object> characteristics;
 
     protected AbstractManagedResourceConnector() {
         metrics = new LazySoftReference<>();
+        characteristics = new HashMap<>();
+    }
+
+    @Nonnull
+    @Override
+    public final Map<String, Object> getCharacteristics() {
+        return characteristics;
     }
 
     /**
@@ -65,6 +75,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
     public void close() throws Exception {
         //change state of the connector
         metrics.reset();
+        characteristics.clear();
         clearCache();
     }
 
