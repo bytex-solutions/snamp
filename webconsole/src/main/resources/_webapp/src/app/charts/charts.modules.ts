@@ -11,6 +11,8 @@ import { Routes, RouterModule } from '@angular/router';
 import { ModalModule } from 'angular2-modal';
 import { VexModalModule } from 'angular2-modal/plugins/vex';
 
+import { DragulaModule } from 'ng2-dragula';
+
 import { Dashboard } from './charts.dashboard';
 
 import { CommonSnampUtilsModule } from '../app.module';
@@ -25,6 +27,7 @@ const PROVIDERS:any =  [
       CommonModule,
       TooltipModule,
       FormsModule,
+      DragulaModule,
       ModalModule.forRoot(),
       VexModalModule,
       HttpModule,

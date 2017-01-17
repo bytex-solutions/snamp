@@ -10,7 +10,7 @@ import { Modal } from 'angular2-modal/plugins/vex';
 @Component({
   moduleId: module.id,
   templateUrl: './templates/dashboard.html',
-  styleUrls: ['./templates/css/dashboard.css']
+  styleUrls: ['./templates/css/dashboard.css', './templates/css/dragula.css']
 })
 export class Dashboard {
 

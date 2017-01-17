@@ -24,17 +24,17 @@
       <div class="menu_section">
         <h3>General</h3>
         <ul class="nav side-menu">
+          <li><a id="chartli" (click)="anchorClicked($event)"><i class="fa fa-newspaper-o"></i> Dashboards<span id="chartchevron" class="fa fa-chevron-down"></span></a>
+            <ul class="nav child_menu">
+              <li routerLinkActive="activeLi"><a routerLink="charts" routerLinkActive="active">Charts</a></li>
+            </ul>
+          </li>
           <li><a id="homeli" (click)="anchorClicked($event)"><i class="fa fa-home"></i> Configure<span id="homechevron" class="fa fa-chevron-down"></span></a>
             <ul class="nav child_menu">
               <li routerLinkActive="activeLi"><a routerLink="gateways" routerLinkActive="active">Gateways</a></li>
               <li routerLinkActive="activeLi"><a routerLink="resources" routerLinkActive="active">Resources</a></li>
               <li routerLinkActive="activeLi"><a routerLink="rgroups" routerLinkActive="active">Resource groups</a></li>
               <li routerLinkActive="activeLi"><a routerLink="snampcfg" routerLinkActive="active">Snamp configuration</a></li>
-            </ul>
-          </li>
-          <li><a id="chartli" (click)="anchorClicked($event)"><i class="fa fa-area-chart"></i> Charts<span id="chartchevron" class="fa fa-chevron-down"></span></a>
-            <ul class="nav child_menu">
-              <li routerLinkActive="activeLi"><a routerLink="charts" routerLinkActive="active">Dashboard</a></li>
             </ul>
           </li>
         </ul>
