@@ -48,6 +48,12 @@ export class App {
 
     $(document).ready(function(){
         $('#overlay').fadeOut();
+        setTimeout(function() {
+          $('li.activeLi').parents('li').addClass('active');
+          $('li.activeLi').parents("ul").slideDown("slow", function(){
+              console.log("We should see them rolling now...");
+          });
+         }, 500)
      });
 
     this.ws = new $WebSocket("ws://localhost:8181/snamp/console/events", [],

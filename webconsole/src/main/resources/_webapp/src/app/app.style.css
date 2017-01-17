@@ -523,6 +523,11 @@ a:hover, a:focus {
 .nav.child_menu li {
   padding-left: 36px;
 }
+
+.nav-md ul.nav.child_menu li.activeLi:before {
+  background: #009c38;
+}
+
 .nav-md ul.nav.child_menu li:before {
   background: #425668;
   bottom: auto;
