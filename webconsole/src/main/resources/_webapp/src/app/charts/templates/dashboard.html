@@ -12,10 +12,8 @@
 
       <panel [header]="'Charts'" [column]="'10'">
         <div class='wrapper'>
-          <div class='container' [dragula]='"first-bag"'>
-            <div>You can move these elements between these two containers</div>
-            <div>Moving them anywhere else isn't quite possible</div>
-            <div>There's also the possibility of moving elements around in the same container, changing their position</div>
+          <div class='container row' [dragula]='"first-bag"' style="min-height: 400px;">
+
           </div>
         </div>
       </panel>
@@ -23,9 +21,32 @@
       <panel [header]="'Instruments'" [column]="'2'">
         <div class='wrapper'>
           <div class='container' [dragula]='"first-bag"'>
-            <div>This is the default use case. You only need to specify the containers you want to use</div>
-            <div>More interactive use cases lie ahead</div>
-            <div>Make sure to check out the <a href='https://github.com/bevacqua/dragula#readme'>documentation on GitHub!</a></div>
+
+            <div class="thumbnail with-caption" data-chart-type="doughnut">
+              <img src="/snamp/assets/img/piechart.png" width="320">
+              <p>Pie chart</p>
+            </div>
+
+            <div class="thumbnail with-caption" data-chart-type="horizontalBar">
+              <img src="/snamp/assets/img/hbarchart.png" width="320">
+              <p>Horizontal bar chart</p>
+            </div>
+
+            <div class="thumbnail with-caption" data-chart-type="bar">
+              <img src="/snamp/assets/img/vbarchart.png" width="320">
+              <p>Vertical bar chart</p>
+            </div>
+
+            <div class="thumbnail with-caption" data-chart-type="line">
+              <img src="/snamp/assets/img/linechart.png" width="320">
+              <p>Line chart</p>
+            </div>
+
+
+            <div class="thumbnail with-caption" data-chart-type="value" style="display: none;">
+              <img src="/snamp/assets/img/justvalue.png" width="320">
+              <p>Value representation</p>
+            </div>
           </div>
         </div>
       </panel>

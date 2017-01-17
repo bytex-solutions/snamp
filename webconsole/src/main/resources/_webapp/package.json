@@ -104,7 +104,8 @@
     "ng2-dropdown": "0.0.21",
     "prismjs": "1.6.0",
     "ng2-dragula": "1.2.0",
-    "dragula": "3.7.2"
+    "dragula": "3.7.2",
+    "chart.js": "2.4.0"
 
   },
   "devDependencies": {
