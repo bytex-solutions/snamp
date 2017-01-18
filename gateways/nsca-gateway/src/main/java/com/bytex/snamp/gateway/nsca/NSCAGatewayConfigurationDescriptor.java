@@ -86,8 +86,10 @@ final class NSCAGatewayConfigurationDescriptor extends ConfigurationEntityDescri
 
     NagiosSettings parseSettings(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {
         final NagiosSettings result = new NagiosSettings();
-        result.setNagiosHost(getIfPresent(parameters, NAGIOS_HOST_PARAM, Function.identity(), AbsentNSCAConfigurationParameterException::new));
-        result.setPort(getIfPresent(parameters, NAGIOS_PORT_PARAM, Integer::parseInt, AbsentNSCAConfigurationParameterException::new));
+        if(!acceptIfPresent(parameters, NAGIOS_HOST_PARAM, Function.identity(), result::setNagiosHost))
+            throw new AbsentNSCAConfigurationParameterException(NAGIOS_HOST_PARAM);
+        if(!acceptIntIfPresent(parameters, NAGIOS_PORT_PARAM, Integer::parseInt, result::setPort))
+            throw  new AbsentNSCAConfigurationParameterException(NAGIOS_PORT_PARAM);
         acceptIntIfPresent(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt, result::setConnectTimeout);
         acceptIfPresent(parameters, PASSWORD_PARAM, Function.identity(), result::setPassword);
         result.setEncryptionMethod(Encryption.NO_ENCRYPTION);
@@ -103,11 +105,11 @@ final class NSCAGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     static String getServiceName(final Descriptor descriptor, final String defaultService){
-        return getField(descriptor, SERVICE_NAME_PARAM, Objects::toString, () -> defaultService);
+        return getField(descriptor, SERVICE_NAME_PARAM, Objects::toString).orElse(defaultService);
     }
 
     Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
-        final long period = getValueAsLong(parameters, PASSIVE_CHECK_SEND_PERIOD_PARAM, Long::parseLong, () -> 1000L);
+        final long period = getValueAsLong(parameters, PASSIVE_CHECK_SEND_PERIOD_PARAM, Long::parseLong).orElse(1000L);
         return Duration.ofMillis(period);
     }
 

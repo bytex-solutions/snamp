@@ -71,7 +71,7 @@ enum OctetStringConversionFormat implements SnmpObjectConverter<OctetString> {
     }
 
     static OctetStringConversionFormat getFormat(final OctetString value, final Descriptor options) {
-        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat::getFormat, () -> value.isPrintable() ? TEXT : BYTE_ARRAY);
+        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat::getFormat).orElseGet(() -> value.isPrintable() ? TEXT : BYTE_ARRAY);
     }
 
     static OctetStringConversionFormat getFormat(final String formatName){

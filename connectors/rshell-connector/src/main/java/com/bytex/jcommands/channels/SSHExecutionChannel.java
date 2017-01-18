@@ -100,23 +100,23 @@ public final class SSHExecutionChannel extends SSHClient implements CommandExecu
         session = null;
         if (params.containsKey(KNOWN_HOSTS_PROPERTY))
             loadKnownHosts(this, params.get(KNOWN_HOSTS_PROPERTY));
-        remoteHost = getValue(params, HOST_NAME_PROPERTY, Function.identity(), () -> DEFAULT_HOST_NAME);
-        remotePort = getValueAsInt(params, PORT_NAME_PROPERTY, Integer::parseInt, () -> DEFAULT_PORT);
+        remoteHost = getValue(params, HOST_NAME_PROPERTY, Function.identity()).orElse(DEFAULT_HOST_NAME);
+        remotePort = getValueAsInt(params, PORT_NAME_PROPERTY, Integer::parseInt).orElse(DEFAULT_PORT);
         if (params.containsKey(LOCAL_HOST_NAME_PROPERTY)) {
-            localHost = InetAddress.getByName(getValue(params, LOCAL_HOST_NAME_PROPERTY, Function.identity(), () -> "localhost"));
-            localPort = getValueAsInt(params, LOCAL_PORT_NAME_PROPERTY, Integer::parseInt, () -> 30000);
+            localHost = InetAddress.getByName(getValue(params, LOCAL_HOST_NAME_PROPERTY, Function.identity()).orElse("localhost"));
+            localPort = getValueAsInt(params, LOCAL_PORT_NAME_PROPERTY, Integer::parseInt).orElse(30000);
         } else {
             localHost = null;
             localPort = -1;
         }
         if (params.containsKey(SOCKET_TIMEOUT_PROPERTY)) {
-            final int timeoutMillis = getValueAsInt(params, SOCKET_TIMEOUT_PROPERTY, Integer::parseInt, () -> 0);
+            final int timeoutMillis = getValueAsInt(params, SOCKET_TIMEOUT_PROPERTY, Integer::parseInt).orElse(0);
             setTimeout(timeoutMillis);
             setConnectTimeout(timeoutMillis);
         }
         if(params.containsKey(FINGERPRINT_PROPERTY))
             addHostKeyVerifier(params.get(FINGERPRINT_PROPERTY));
-        encoding = getValue(params, ENCODING_PROPERTY, Function.identity(), Charset.defaultCharset()::name);
+        encoding = getValue(params, ENCODING_PROPERTY, Function.identity()).orElseGet(() -> Charset.defaultCharset().name());
         if (params.containsKey(USER_NAME_PROPERTY))
             if (params.containsKey(PASSWORD_PROPERTY))
                 auth = fromCredentials(params.get(USER_NAME_PROPERTY), params.get(PASSWORD_PROPERTY));

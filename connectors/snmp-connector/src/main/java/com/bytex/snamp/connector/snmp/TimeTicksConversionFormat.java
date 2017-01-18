@@ -41,7 +41,7 @@ enum TimeTicksConversionFormat implements SnmpObjectConverter<TimeTicks> {
 
 
     static TimeTicksConversionFormat getFormat(final Descriptor options){
-        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, TimeTicksConversionFormat::getFormat, () -> LONG);
+        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, TimeTicksConversionFormat::getFormat).orElse(LONG);
     }
 
     static TimeTicksConversionFormat getFormat(final String formatName){

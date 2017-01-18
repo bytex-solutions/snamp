@@ -30,7 +30,7 @@ public interface GatewayDescriptionProvider extends ConfigurationEntityDescripti
      * @return Thread pool specified in configuration parameters; or {@literal null} if {@link ThreadPoolRepository} service was not registered.
      */
     default ExecutorService getThreadPool(final Map<String, String> parameters) {
-        final String poolName = getValue(parameters, THREAD_POOL_KEY, Function.identity(), () -> DEFAULT_THREAD_POOL_VALUE);
+        final String poolName = getValue(parameters, THREAD_POOL_KEY, Function.identity()).orElse(DEFAULT_THREAD_POOL_VALUE);
         return ThreadPoolRepository.getThreadPool(Utils.getBundleContextOfObject(this), poolName, true);
     }
 }

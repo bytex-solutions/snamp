@@ -139,7 +139,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public String getDescription(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString, () -> null);
+        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(null);
     }
 
     public String getDescription(final MBeanAttributeInfo metadata) {
@@ -147,7 +147,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public static OpenType<?> getOpenType(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, OPEN_TYPE, value -> (OpenType<?>)value, () -> null);
+        return DescriptorUtils.getField(metadata, OPEN_TYPE, value -> (OpenType<?>)value).orElse(null);
     }
 
     public static OpenType<?> getOpenType(final MBeanAttributeInfo metadata) {
@@ -198,7 +198,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public final String getName(final String defName){
-        return DescriptorUtils.getField(this, AttributeConfiguration.NAME_KEY, Objects::toString, () -> defName);
+        return DescriptorUtils.getField(this, AttributeConfiguration.NAME_KEY, Objects::toString).orElse(defName);
     }
 
 
@@ -212,13 +212,13 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * @return UOM.
      */
     public final String getUnit(){
-        return DescriptorUtils.getField(this, DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, Objects::toString, () -> null);
+        return DescriptorUtils.getField(this, DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, Objects::toString).orElse(null);
     }
 
     public static String getName(final MBeanAttributeInfo metadata) {
         return DescriptorUtils.getField(metadata.getDescriptor(),
                 AttributeConfiguration.NAME_KEY,
-                Objects::toString,
-                metadata::getName);
+                Objects::toString)
+                .orElseGet(metadata::getName);
     }
 }

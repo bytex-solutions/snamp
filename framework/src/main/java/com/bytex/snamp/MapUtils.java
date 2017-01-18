@@ -1,8 +1,8 @@
 package com.bytex.snamp;
 
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Properties;
+import com.google.common.collect.ImmutableSet;
+
+import java.util.*;
 import java.util.function.*;
 
 /**
@@ -16,53 +16,45 @@ public final class MapUtils {
         throw new InstantiationError();
     }
 
-    public static <K, V> int getValueAsInt(final Map<K, V> map, final K key, final ToIntFunction<? super V> transform, final IntSupplier defaultValue) {
-        return map.containsKey(key) ? transform.applyAsInt(map.get(key)) : defaultValue.getAsInt();
+    public static <K, V> OptionalInt getValueAsInt(final Map<K, V> map, final K key, final ToIntFunction<? super V> transform) {
+        return map.containsKey(key) ? OptionalInt.of(transform.applyAsInt(map.get(key))) : OptionalInt.empty();
     }
 
-    public static <K, V> long getValueAsLong(final Map<K, V> map, final K key, final ToLongFunction<? super V> transform, final LongSupplier defaultValue){
-        return map.containsKey(key) ? transform.applyAsLong(map.get(key)) : defaultValue.getAsLong();
+    public static <K, V> OptionalLong getValueAsLong(final Map<K, V> map, final K key, final ToLongFunction<? super V> transform) {
+        return map.containsKey(key) ? OptionalLong.of(transform.applyAsLong(map.get(key))) : OptionalLong.empty();
     }
 
-    public static <K, V> double getValueAsDouble(final Map<K, V> map, final K key, final ToDoubleFunction<? super V> transform, final DoubleSupplier defaultValue){
-        return map.containsKey(key) ? transform.applyAsDouble(map.get(key)) : defaultValue.getAsDouble();
+    public static <K, V> OptionalDouble getValueAsDouble(final Map<K, V> map, final K key, final ToDoubleFunction<? super V> transform) {
+        return map.containsKey(key) ? OptionalDouble.of(transform.applyAsDouble(map.get(key))) : OptionalDouble.empty();
     }
 
-    private static <K, V, O> O getValueConditionally(final Predicate<? super K> keyExistence,
+    private static <K, V, O> Optional<O> getValueConditionally(final Predicate<? super K> keyExistence,
                                         final Function<? super K, ? extends V> keyResolver,
                                         final K key,
                                         final Predicate<? super V> valueCondition,
-                                        final Function<? super V, ? extends O> transform,
-                                        final Supplier<? extends O> defaultValue) {
+                                        final Function<? super V, ? extends O> transform) {
         if(keyExistence.test(key)){
             final V value = keyResolver.apply(key);
             if(valueCondition.test(value))
-                return transform.apply(value);
+                return Optional.of(value).map(transform);
         }
-        return defaultValue.get();
+        return Optional.empty();
     }
 
-    public static <K, V, O> O getValue(final Map<K, V> map, final K key, final Function<? super V, ? extends O> transform, final Supplier<? extends O> defaultValue) {
-        return getValueConditionally(map::containsKey, map::get, key, value -> true, transform, defaultValue);
+    public static <K, V, O> Optional<O> getValue(final Map<K, V> map, final K key, final Function<? super V, ? extends O> transform) {
+        return getValueConditionally(map::containsKey, map::get, key, value -> true, transform);
     }
 
-    public static <K, V, O> O getValue(final Map<K, V> map, final K key, final Class<O> expectedType, final Supplier<? extends O> defaultValue){
-        return getValueConditionally(map::containsKey, map::get, key, expectedType::isInstance, expectedType::cast, defaultValue);
+    public static <K, V, O> Optional<O> getValue(final Map<K, V> map, final K key, final Class<O> expectedType) {
+        return getValue(map, key, expectedType::cast);
     }
 
-    public static <K, V, O> O getValue(final Dictionary<K, V> map, final K key, final Class<O> expectedType, final Supplier<? extends O> defaultValue) {
-        return getValueConditionally(k -> map.get(k) != null, map::get, key, expectedType::isInstance, expectedType::cast, defaultValue);
+    public static <K, V, O> Optional<O> getValue(final Dictionary<K, V> map, final K key, final Function<? super V, O> transform) {
+        return getValueConditionally(k -> map.get(k) != null, map::get, key, value -> true, transform);
     }
 
-    public static <K, V, O> O getValue(final Dictionary<K, V> map, final K key, final Function<? super V, ? extends O> transform, final Supplier<? extends O> defaultValue) {
-        return getValueConditionally(k -> map.get(k) != null, map::get, key, value -> true, transform, defaultValue);
-    }
-
-    public static <K, V, O, E extends Throwable> O getIfPresent(final Map<K, V> map, final K key, final Function<? super V, ? extends O> transform, final Function<? super K, ? extends E> exceptionFactory) throws E{
-        if(map.containsKey(key))
-            return transform.apply(map.get(key));
-        else
-            throw exceptionFactory.apply(key);
+    public static <K, V, O> Optional<O> getValue(final Dictionary<K, V> map, final K key, final Class<O> expectedType) {
+        return getValue(map, key, expectedType::cast);
     }
 
     public static <K, V, O> boolean acceptIfPresent(final Map<K, V> map, final K key, final Function<? super V, ? extends O> transform, final Consumer<? super O> acceptor) {
@@ -102,5 +94,27 @@ public final class MapUtils {
         final Properties props = new Properties();
         props.putAll(params);
         return props;
+    }
+
+    public static <K, V> Map<K, V> readOnlyMap(final Function<? super K, ? extends V> keyGetter,
+                                                        final K... keys){
+        return new FixedKeysMap<>(keyGetter, null, ImmutableSet.copyOf(keys));
+    }
+
+    public static <K, V> Map<K, V> readOnlyMap(final Function<? super K, ? extends V> keyGetter,
+                                                        final Collection<? extends K> keys){
+        return new FixedKeysMap<>(keyGetter, null, ImmutableSet.copyOf(keys));
+    }
+
+    public static <K, V> Map<K, V> readWriteMap(final Function<? super K, ? extends V> keyGetter,
+                                                         final BiFunction<? super K, ? super V, ? extends V> keySetter,
+                                                         final K... keys){
+        return new FixedKeysMap<>(keyGetter, Objects.requireNonNull(keySetter), ImmutableSet.copyOf(keys));
+    }
+
+    public static <K, V> Map<K, V> readWriteMap(final Function<? super K, ? extends V> keyGetter,
+                                                         final BiFunction<? super K, ? super V, ? extends V> keySetter,
+                                                         final Collection<? extends K> keys){
+        return new FixedKeysMap<>(keyGetter, Objects.requireNonNull(keySetter), ImmutableSet.copyOf(keys));
     }
 }

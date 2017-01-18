@@ -34,7 +34,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
-import static com.bytex.snamp.MapUtils.getIfPresent;
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -159,8 +158,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         @Nonnull
         @Override
-        public Map<String, Object> getCharacteristics() {
-            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.getCharacteristics());
+        public Map<String, String> getRuntimeConfiguration() {
+            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.getRuntimeConfiguration());
         }
 
         @Override
@@ -465,10 +464,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         @Override
         public ManagedResourceConnectorProxy<TConnector> createConnector(final Map<String, ?> parameters) throws Exception {
-            final String connectionString = getIfPresent(parameters, CONNECTION_STRING, Objects::toString, InstantiationException::new);
-            final String resourceName = getIfPresent(parameters, RESOURCE_NAME, Objects::toString, InstantiationException::new);
-            @SuppressWarnings("unchecked")
-            final Map<String, String> connectionParams = getValue(parameters, CONNECTION_PARAMS, value -> (Map<String, String>) value, Collections::emptyMap);
+            final String connectionString = getValue(parameters, CONNECTION_STRING, Objects::toString).orElseThrow(InstantiationException::new);
+            final String resourceName = getValue(parameters, RESOURCE_NAME, Objects::toString).orElseThrow(InstantiationException::new);
+            final Map<String, String> connectionParams = getValue(parameters, CONNECTION_PARAMS, value -> (Map<String, String>) value).orElseGet(Collections::emptyMap);
             return new ManagedResourceConnectorProxy<>(connectorFactory, resourceName, connectionString, connectionParams, dependencies);
         }
     }
@@ -715,11 +713,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     static String getConnectionString(final ServiceReference<ManagedResourceConnector> identity){
-        return getValue(getProperties(identity), ManagedResourceConnector.CONNECTION_STRING_PROPERTY, Objects::toString, () -> "");
+        return getValue(getProperties(identity), ManagedResourceConnector.CONNECTION_STRING_PROPERTY, Objects::toString).orElse("");
     }
 
     private static String getManagedResourceName(final Map<String, ?> identity){
-        return getValue(identity, ManagedResourceConnector.NAME_PROPERTY, String.class, () -> "");
+        return getValue(identity, ManagedResourceConnector.NAME_PROPERTY, String.class).orElse("");
     }
 
     private static List<Bundle> getResourceConnectorBundles(final BundleContext context) {

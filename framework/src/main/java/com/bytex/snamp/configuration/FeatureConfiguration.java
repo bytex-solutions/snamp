@@ -29,7 +29,7 @@ public interface FeatureConfiguration extends EntityConfiguration {
     }
 
     default boolean isAutomaticallyAdded() {
-        return getValue(getParameters(), AUTOMATICALLY_ADDED_KEY, Boolean::parseBoolean, () -> false);
+        return getValue(getParameters(), AUTOMATICALLY_ADDED_KEY, Boolean::parseBoolean).orElse(false);
     }
 
     default void setAutomaticallyAdded(final boolean value){

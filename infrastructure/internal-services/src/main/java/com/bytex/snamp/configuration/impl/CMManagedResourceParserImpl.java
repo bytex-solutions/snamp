@@ -73,12 +73,12 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
 
 
     private String getConnectionString(final Dictionary<String, ?> resourceConfig) {
-        return getValue(resourceConfig, CONNECTION_STRING_PROPERTY, Objects::toString, () -> "");
+        return getValue(resourceConfig, CONNECTION_STRING_PROPERTY, Objects::toString).orElse("");
     }
 
     @Override
     public String getResourceName(final Dictionary<String, ?> resourceConfig) {
-        return getValue(resourceConfig, RESOURCE_NAME_PROPERTY, String.class, () -> "");
+        return getValue(resourceConfig, RESOURCE_NAME_PROPERTY, Objects::toString).orElse("");
     }
 
     private static void fillConnectionOptions(final Dictionary<String, ?> resourceConfig,
@@ -106,7 +106,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
     private <F extends FeatureConfiguration> Map<String, F> getFeatures(final Dictionary<String, ?> resourceConfig,
                                                                         final String featureHolder,
                                                                         final TypeToken<SerializableMap<String, F>> featureType) throws IOException {
-        final byte[] serializedForm = getValue(resourceConfig, featureHolder, byte[].class, ArrayUtils::emptyByteArray);
+        final byte[] serializedForm = getValue(resourceConfig, featureHolder, byte[].class).orElseGet(ArrayUtils::emptyByteArray);
         return ArrayUtils.isNullOrEmpty(serializedForm) ?
                 ImmutableMap.of() :
                 IOUtils.deserialize(serializedForm, featureType, getClass().getClassLoader());

@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.bytex.snamp.MapUtils.getIfPresent;
+import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 /**
@@ -44,19 +44,18 @@ final class InfluxGatewayConfigurationDescriptionProvider extends ConfigurationE
     }
 
     Duration getUploadPeriod(final Map<String, String> parameters) {
-        final long period = getValueAsLong(parameters, PERIOD_PARAM, Long::parseLong, () -> 1000L);
+        final long period = getValueAsLong(parameters, PERIOD_PARAM, Long::parseLong).orElse(1000L);
         return Duration.ofMillis(period);
     }
 
     String getDatabaseName(final Map<String, String> parameters) throws InfluxGatewayAbsentConfigurationParameterException {
-        return getIfPresent(parameters, DB_NAME_PARAM, Function.identity(), InfluxGatewayAbsentConfigurationParameterException::new);
+        return getValue(parameters, DB_NAME_PARAM, Function.identity()).orElseThrow(() -> new InfluxGatewayAbsentConfigurationParameterException(DB_NAME_PARAM));
     }
 
     InfluxDB createDB(final Map<String, String> parameters) throws InfluxGatewayAbsentConfigurationParameterException {
-        final String location = getIfPresent(parameters, DB_URL_PARAM, Function.identity(), InfluxGatewayAbsentConfigurationParameterException::new);
-        final String login = getIfPresent(parameters, DB_USER_NAME_PARAM, Function.identity(), InfluxGatewayAbsentConfigurationParameterException::new);
-        final String password = getIfPresent(parameters, DB_PASSWORD_PARAM, Function.identity(), InfluxGatewayAbsentConfigurationParameterException::new);
-        final InfluxDB db = InfluxDBFactory.connect(location, login, password);
-        return db;
+        final String location = getValue(parameters, DB_URL_PARAM, Function.identity()).orElseThrow(() -> new InfluxGatewayAbsentConfigurationParameterException(DB_URL_PARAM));
+        final String login = getValue(parameters, DB_USER_NAME_PARAM, Function.identity()).orElseThrow(() -> new InfluxGatewayAbsentConfigurationParameterException(DB_USER_NAME_PARAM));
+        final String password = getValue(parameters, DB_PASSWORD_PARAM, Function.identity()).orElseThrow(() -> new InfluxGatewayAbsentConfigurationParameterException(DB_PASSWORD_PARAM));
+        return InfluxDBFactory.connect(location, login, password);
     }
 }

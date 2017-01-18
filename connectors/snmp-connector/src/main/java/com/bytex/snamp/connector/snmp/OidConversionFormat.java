@@ -46,7 +46,7 @@ enum OidConversionFormat implements SnmpObjectConverter<OID> {
     }
 
     static OidConversionFormat getFormat(final Descriptor options){
-        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, OidConversionFormat::getFormat, () -> INT_ARRAY);
+        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, OidConversionFormat::getFormat).orElse(INT_ARRAY);
     }
 
     static OidConversionFormat getFormat(final String formatName){

@@ -97,16 +97,16 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
     }
 
     String getHost(final Map<String, String> parameters){
-        return getValue(parameters, HOST_PARAM, Function.identity(), () -> DEFAULT_HOST);
+        return getValue(parameters, HOST_PARAM, Function.identity()).orElse(DEFAULT_HOST);
     }
 
     int getPort(final Map<String, String> parameters) {
-        return getValueAsInt(parameters, PORT_PARAM, Integer::parseInt, () -> DEFAULT_PORT);
+        return getValueAsInt(parameters, PORT_PARAM, Integer::parseInt).orElse(DEFAULT_PORT);
     }
 
     KeyPairProvider getKeyPairProvider(final Map<String, String> parameters) throws AbsentConfigurationParameterException {
-        final KeyPairProviderFactory factory = getValue(parameters, HOST_KEY_FORMAT_PARAM, KeyPairProviderFactory::parse, () -> KeyPairProviderFactory.JAVA_KEY);
-        final String hostKeyFile = getIfPresent(parameters, HOST_KEY_FILE_PARAM, Function.identity(), AbsentConfigurationParameterException::new);
+        final KeyPairProviderFactory factory = getValue(parameters, HOST_KEY_FORMAT_PARAM, KeyPairProviderFactory::parse).orElse(KeyPairProviderFactory.JAVA_KEY);
+        final String hostKeyFile = getValue(parameters, HOST_KEY_FILE_PARAM, Function.identity()).orElseThrow(() -> new AbsentConfigurationParameterException(HOST_KEY_FILE_PARAM));
         return factory.loadPair(hostKeyFile);
     }
 
@@ -182,7 +182,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
                         default:
                             return KeyFormat.Unknown;
                     }
-                }, () -> KeyFormat.Unknown);
+                }).orElse(KeyFormat.Unknown);
             }
         };
     }

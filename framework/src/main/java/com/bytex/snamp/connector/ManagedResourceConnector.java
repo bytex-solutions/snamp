@@ -114,7 +114,7 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      */
     @Override
     @Nonnull
-    Map<String, Object> getCharacteristics();
+    Map<String, String> getRuntimeConfiguration();
 
     static String getConnectorType(final Bundle bnd) {
         final BundleRevision revision = bnd.adapt(BundleRevision.class);

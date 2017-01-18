@@ -41,7 +41,7 @@ public abstract class AbstractFeatureDataObject<F extends FeatureConfiguration> 
     @Override
     @JsonIgnore
     public final boolean isAutomaticallyAdded() {
-        return getValue(parameters, AUTOMATICALLY_ADDED_KEY, Boolean::parseBoolean, () -> false);
+        return getValue(parameters, AUTOMATICALLY_ADDED_KEY, Boolean::parseBoolean).orElse(false);
     }
 
     @Override

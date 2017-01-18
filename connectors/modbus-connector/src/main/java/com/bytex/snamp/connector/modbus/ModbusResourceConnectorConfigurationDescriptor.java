@@ -58,15 +58,15 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseUnitID(final Descriptor descriptor){
-        return getField(descriptor, UNIT_ID_PARAM, Convert::toInt, () -> Modbus.DEFAULT_UNIT_ID);
+        return getField(descriptor, UNIT_ID_PARAM, Convert::toInt).orElse(Modbus.DEFAULT_UNIT_ID);
     }
 
     static int parseConnectionTimeout(final Map<String, String> parameters){
-        return getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt, () -> 2000);
+        return getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt).orElse(2000);
     }
 
     static int parseRetryCount(final Map<String, String> parameters){
-        return getValueAsInt(parameters, RETRY_COUNT_PARAM, Integer::parseInt, () -> 3);
+        return getValueAsInt(parameters, RETRY_COUNT_PARAM, Integer::parseInt).orElse(3);
     }
 
     static int parseRecordSize(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException {

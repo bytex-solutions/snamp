@@ -147,11 +147,11 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public final String getName(final String defName){
-        return DescriptorUtils.getField(this, OperationConfiguration.NAME_KEY, Objects::toString, () -> defName);
+        return DescriptorUtils.getField(this, OperationConfiguration.NAME_KEY, Objects::toString).orElse(defName);
     }
 
     public static String getName(final MBeanOperationInfo metadata){
-        return DescriptorUtils.getField(metadata.getDescriptor(), OperationConfiguration.NAME_KEY, Objects::toString, metadata::getName);
+        return DescriptorUtils.getField(metadata.getDescriptor(), OperationConfiguration.NAME_KEY, Objects::toString).orElseGet(metadata::getName);
     }
 
     public static WellKnownType getReturnType(final MBeanOperationInfo operationInfo) {
@@ -161,7 +161,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public String getDescription(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString, () -> null);
+        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(null);
     }
 
     public String getDescription(){

@@ -36,7 +36,7 @@ final class CMAgentParserImpl {
         final Configuration conf = getConfig(admin);
         if (conf.getProperties() != null) {
             final Iterator<String> keys = Iterators.forEnumeration(conf.getProperties().keys());
-            final Map<String, String> params = Maps.toMap(keys, key -> getValue(conf.getProperties(), key, Objects::toString, () -> ""));
+            final Map<String, String> params = Maps.toMap(keys, key -> getValue(conf.getProperties(), key, Objects::toString).orElse(""));
             agentConfig.setParameters(params);
         }
     }

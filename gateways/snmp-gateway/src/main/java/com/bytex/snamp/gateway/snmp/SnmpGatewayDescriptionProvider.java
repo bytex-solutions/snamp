@@ -138,31 +138,31 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     }
 
     OID parseContext(final Map<String, String> parameters) throws SnmpGatewayAbsentParameterException {
-        return getIfPresent(parameters, CONTEXT_PARAM_NAME, OID::new, SnmpGatewayAbsentParameterException::new);
+        return getValue(parameters, CONTEXT_PARAM_NAME, OID::new).orElseThrow(() -> new SnmpGatewayAbsentParameterException(CONTEXT_PARAM_NAME));
     }
 
     static OID parseOID(final DescriptorRead info, final Supplier<OID> oidGenerator) throws ParseException {
-        return parseStringField(info.getDescriptor(), OID_PARAM_NAME, OID::new, oidGenerator);
+        return parseStringField(info.getDescriptor(), OID_PARAM_NAME, OID::new).orElseGet(oidGenerator);
     }
 
     static String parseDateTimeDisplayFormat(final DescriptorRead info){
-        return getField(info.getDescriptor(), DATE_TIME_DISPLAY_FORMAT_PARAM, Objects::toString, () -> null);
+        return getField(info.getDescriptor(), DATE_TIME_DISPLAY_FORMAT_PARAM, Objects::toString).orElse(null);
     }
 
     OctetString parseEngineID(final Map<String, String> parameters){
-        return getValue(parameters, ENGINE_ID_PARAM, OctetString::fromHexString, () -> new OctetString(MPv3.createLocalEngineID()));
+        return getValue(parameters, ENGINE_ID_PARAM, OctetString::fromHexString).orElseGet(() -> new OctetString(MPv3.createLocalEngineID()));
     }
 
     int parsePort(final Map<String, String> parameters) {
-        return getValueAsInt(parameters, PORT_PARAM_NAME, Integer::parseInt, () -> 161);
+        return getValueAsInt(parameters, PORT_PARAM_NAME, Integer::parseInt).orElse(161);
     }
 
     String parseAddress(final Map<String, String> parameters){
-        return getValue(parameters, HOST_PARAM_NAME, Function.identity(), () -> "127.0.0.1");
+        return getValue(parameters, HOST_PARAM_NAME, Function.identity()).orElse("127.0.0.1");
     }
 
     int parseSocketTimeout(final Map<String, String> parameters) {
-        return getValueAsInt(parameters, SOCKET_TIMEOUT_PARAM, Integer::parseInt, () -> 5000);
+        return getValueAsInt(parameters, SOCKET_TIMEOUT_PARAM, Integer::parseInt).orElse(5000);
     }
 
     SecurityConfiguration parseSecurityConfiguration(final Map<String, String> parameters,
@@ -183,22 +183,22 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     }
 
     static String parseTargetAddress(final DescriptorRead metadata){
-        return getField(metadata.getDescriptor(), TARGET_ADDRESS_PARAM, Objects::toString, () -> null);
+        return getField(metadata.getDescriptor(), TARGET_ADDRESS_PARAM, Objects::toString).orElse(null);
     }
 
     static String parseTargetName(final DescriptorRead metadata){
-        return getField(metadata.getDescriptor(), TARGET_NAME_PARAM, Objects::toString, () -> null);
+        return getField(metadata.getDescriptor(), TARGET_NAME_PARAM, Objects::toString).orElse(null);
     }
 
     static int parseNotificationTimeout(final DescriptorRead metadata){
-        return parseStringField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM, Integer::parseInt, () -> 2000);
+        return parseStringField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM, Integer::parseInt).orElse(2000);
     }
 
     static int parseRetryCount(final DescriptorRead metadata){
-        return parseStringField(metadata.getDescriptor(), TARGET_RETRY_COUNT_PARAM, Integer::parseInt, () -> 3);
+        return parseStringField(metadata.getDescriptor(), TARGET_RETRY_COUNT_PARAM, Integer::parseInt).orElse(3);
     }
 
     long parseRestartTimeout(final Map<String, String> parameters){
-        return getValueAsLong(parameters, RESTART_TIMEOUT_PARAM, Long::parseLong, () -> 10000L);
+        return getValueAsLong(parameters, RESTART_TIMEOUT_PARAM, Long::parseLong).orElse(10000L);
     }
 }

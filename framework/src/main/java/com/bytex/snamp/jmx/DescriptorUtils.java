@@ -34,39 +34,36 @@ public final class DescriptorUtils {
         throw new InstantiationError();
     }
 
-    private static <T> T getField(final Descriptor descr,
+    private static <T> Optional<T> getField(final Descriptor descr,
                                  final String fieldName,
                                  final Predicate<Object> valueFilter,
-                                 final Function<Object, ? extends T> transform,
-                                 final Supplier<? extends T> defval) {
+                                 final Function<Object, ? extends T> transform) {
         if (descr == null)
-            return defval.get();
+            return Optional.empty();
         final Object fieldValue = descr.getFieldValue(fieldName);
         if (fieldValue == null)
-            return defval.get();
+            return Optional.empty();
         else if (valueFilter.test(fieldValue))
-            return transform.apply(fieldValue);
+            return Optional.of(fieldValue).map(transform);
         else if (fieldValue.getClass().isArray())
             if (Array.getLength(fieldValue) > 0) {
                 final Object item = Array.get(fieldValue, 0);
                 if (valueFilter.test(item))
-                    return transform.apply(item);
+                    return Optional.of(item).map(transform);
             }
-        return defval.get();
+        return Optional.empty();
     }
 
-    public static <T> T getField(final Descriptor descr,
+    public static <T> Optional<T> getField(final Descriptor descr,
                                   final String fieldName,
-                                  final Function<Object, ? extends T> transform,
-                                  final Supplier<? extends T> defval) {
-        return getField(descr, fieldName, value -> true, transform, defval);
+                                  final Function<Object, ? extends T> transform) {
+        return getField(descr, fieldName, value -> true, transform);
     }
 
-    public static <T> T parseStringField(final Descriptor descr,
+    public static <T> Optional<T> parseStringField(final Descriptor descr,
                                          final String fieldName,
-                                         final Function<String, ? extends T> transform,
-                                         final Supplier<? extends T> defval) {
-        return getField(descr, fieldName, value -> value instanceof String, value -> transform.apply((String) value), defval);
+                                         final Function<String, ? extends T> transform) {
+        return getField(descr, fieldName, value -> value instanceof String, value -> transform.apply((String) value));
     }
 
     public static <T, E extends Throwable> T getFieldIfPresent(final Descriptor descr,
@@ -180,6 +177,6 @@ public final class DescriptorUtils {
     }
 
     public static String getUOM(final Descriptor descr){
-        return getField(descr, UNIT_OF_MEASUREMENT_FIELD, Objects::toString, () -> "");
+        return getField(descr, UNIT_OF_MEASUREMENT_FIELD, Objects::toString).orElse("");
     }
 }

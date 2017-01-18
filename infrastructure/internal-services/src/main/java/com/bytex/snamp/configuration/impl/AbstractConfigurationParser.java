@@ -30,7 +30,7 @@ abstract class AbstractConfigurationParser<E extends EntityConfiguration> implem
                                                                         final Class<E> entityType,
                                                                         final Dictionary<String, ?> properties,
                                                                         final ClassLoader caller) throws IOException {
-        final byte[] serializedConfig = getValue(properties, itemName, byte[].class, ArrayUtils::emptyByteArray);
+        final byte[] serializedConfig = getValue(properties, itemName, byte[].class).orElseGet(ArrayUtils::emptyByteArray);
         return IOUtils.deserialize(serializedConfig, entityType, caller);
     }
 

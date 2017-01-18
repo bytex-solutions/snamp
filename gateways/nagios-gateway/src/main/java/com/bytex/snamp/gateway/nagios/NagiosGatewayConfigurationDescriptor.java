@@ -44,7 +44,7 @@ final class NagiosGatewayConfigurationDescriptor extends ConfigurationEntityDesc
     }
 
     static String getServiceName(final Descriptor descriptor, final String defaultService) {
-        return getField(descriptor, SERVICE_NAME_PARAM, Objects::toString, () -> defaultService);
+        return getField(descriptor, SERVICE_NAME_PARAM, Objects::toString).orElse(defaultService);
     }
 
     static String getUnitOfMeasurement(final Descriptor descr){
@@ -52,7 +52,7 @@ final class NagiosGatewayConfigurationDescriptor extends ConfigurationEntityDesc
     }
 
     static String getLabel(final Descriptor descr, final String defaultLabel){
-        return getField(descr, LABEL_PARAM, Objects::toString, () -> defaultLabel);
+        return getField(descr, LABEL_PARAM, Objects::toString).orElse(defaultLabel);
     }
 
     static String getMaxValue(final Descriptor descr){

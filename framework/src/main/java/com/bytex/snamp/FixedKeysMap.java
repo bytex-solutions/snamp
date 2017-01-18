@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * @since 2.0
  */
 @Immutable
-public final class FixedKeysMap<K, V> implements Map<K, V> {
+final class FixedKeysMap<K, V> implements Map<K, V> {
     private static final class DynamicEntry<K, V> implements Entry<K, V>{
         private final K key;
         private final Function<? super K, ? extends V> keyGetter;
@@ -74,7 +74,7 @@ public final class FixedKeysMap<K, V> implements Map<K, V> {
     private final ImmutableSet<K> keys;
     private final ImmutableSet<Entry<K, V>> entries;
 
-    private FixedKeysMap(final Function<? super K, ? extends V> keyGetter,
+    FixedKeysMap(final Function<? super K, ? extends V> keyGetter,
                          final BiFunction<? super K, ? super V, ? extends V> keySetter,
                          final ImmutableSet<K> keys) {
         this.keyGetter = Objects.requireNonNull(keyGetter);
@@ -83,28 +83,6 @@ public final class FixedKeysMap<K, V> implements Map<K, V> {
         final ImmutableSet.Builder<Entry<K, V>> builder = ImmutableSet.builder();
         keys.forEach(k -> builder.add(new DynamicEntry<>(k, keyGetter, keySetter)));
         entries = builder.build();
-    }
-
-    public static <K, V> FixedKeysMap<K, V> readOnlyMap(final Function<? super K, ? extends V> keyGetter,
-                                                        final K... keys){
-        return new FixedKeysMap<>(keyGetter, null, ImmutableSet.copyOf(keys));
-    }
-
-    public static <K, V> FixedKeysMap<K, V> readOnlyMap(final Function<? super K, ? extends V> keyGetter,
-                                                        final Collection<? extends K> keys){
-        return new FixedKeysMap<>(keyGetter, null, ImmutableSet.copyOf(keys));
-    }
-
-    public static <K, V> FixedKeysMap<K, V> readWriteMap(final Function<? super K, ? extends V> keyGetter,
-                                                         final BiFunction<? super K, ? super V, ? extends V> keySetter,
-                                                        final K... keys){
-        return new FixedKeysMap<>(keyGetter, Objects.requireNonNull(keySetter), ImmutableSet.copyOf(keys));
-    }
-
-    public static <K, V> FixedKeysMap<K, V> readWriteMap(final Function<? super K, ? extends V> keyGetter,
-                                                         final BiFunction<? super K, ? super V, ? extends V> keySetter,
-                                                        final Collection<? extends K> keys){
-        return new FixedKeysMap<>(keyGetter, Objects.requireNonNull(keySetter), ImmutableSet.copyOf(keys));
     }
 
     /**
