@@ -21,21 +21,21 @@ public interface FeatureConfiguration extends EntityConfiguration {
     String AUTOMATICALLY_ADDED_KEY = "automaticallyAdded";
 
     default void setAlternativeName(final String value){
-        getParameters().put(NAME_KEY, value);
+        put(NAME_KEY, value);
     }
 
     default String getAlternativeName(){
-        return getParameters().get(NAME_KEY);
+        return get(NAME_KEY);
     }
 
     default boolean isAutomaticallyAdded() {
-        return getValue(getParameters(), AUTOMATICALLY_ADDED_KEY, Boolean::parseBoolean).orElse(false);
+        return getValue(this, AUTOMATICALLY_ADDED_KEY, Boolean::parseBoolean).orElse(false);
     }
 
-    default void setAutomaticallyAdded(final boolean value){
-        if(value)
-            putValue(getParameters(), AUTOMATICALLY_ADDED_KEY, Boolean.TRUE, Object::toString);
+    default void setAutomaticallyAdded(final boolean value) {
+        if (value)
+            putValue(this, AUTOMATICALLY_ADDED_KEY, Boolean.TRUE, Object::toString);
         else
-            getParameters().remove(AUTOMATICALLY_ADDED_KEY);
+            remove(AUTOMATICALLY_ADDED_KEY);
     }
 }

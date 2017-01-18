@@ -29,7 +29,7 @@ final class CMAgentParserImpl {
 
     static void saveParameters(final ConfigurationAdmin admin, final EntityConfiguration agentConfig) throws IOException {
         final Configuration conf = getConfig(admin);
-        conf.update(new Hashtable<>(agentConfig.getParameters()));
+        conf.update(new Hashtable<>(agentConfig));
     }
 
     static void loadParameters(final ConfigurationAdmin admin, final EntityConfiguration agentConfig) throws IOException {
@@ -37,7 +37,7 @@ final class CMAgentParserImpl {
         if (conf.getProperties() != null) {
             final Iterator<String> keys = Iterators.forEnumeration(conf.getProperties().keys());
             final Map<String, String> params = Maps.toMap(keys, key -> getValue(conf.getProperties(), key, Objects::toString).orElse(""));
-            agentConfig.setParameters(params);
+            agentConfig.load(params);
         }
     }
 }

@@ -107,7 +107,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
         final SerializableGatewayConfiguration result = new SerializableGatewayConfiguration();
         result.setType(getGatewayType(config.getFactoryPid()));
         //deserialize parameters
-        fillGatewayInstanceParameters(config.getProperties(), result.getParameters());
+        fillGatewayInstanceParameters(config.getProperties(), result);
         result.reset();
         return result;
     }
@@ -123,7 +123,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     private static Dictionary<String, String> serialize(final SerializableGatewayConfiguration gatewayInstance) {
         final Dictionary<String, String> result = new Hashtable<>(4);
 
-        for(final Map.Entry<String, String> entry: gatewayInstance.getParameters().entrySet())
+        for(final Map.Entry<String, String> entry: gatewayInstance.entrySet())
             switch (entry.getKey()) {
                 default: result.put(entry.getKey(), entry.getValue());
                 case Constants.SERVICE_PID:

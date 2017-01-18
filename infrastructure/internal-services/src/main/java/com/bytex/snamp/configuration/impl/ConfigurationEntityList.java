@@ -8,7 +8,6 @@ import com.bytex.snamp.configuration.EntityMap;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -16,10 +15,8 @@ import java.util.function.Consumer;
 
 abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiable & Stateful> extends ModifiableMap<String, E> implements EntityMap<E> {
     private static final long serialVersionUID = -3859844548619883398L;
-    private final HashMap<String, E> entities;
 
     ConfigurationEntityList() {
-        entities = new HashMap<>(10);
     }
 
     final <ERROR extends Exception> void modifiedEntries(final EntryReader<String, ? super E, ERROR> reader) throws ERROR {
@@ -33,17 +30,17 @@ abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiabl
 
     @Override
     public final Optional<E> getIfPresent(final String entityID) {
-        return Optional.ofNullable(entities.get(entityID));
+        return Optional.ofNullable(get(entityID));
     }
 
     @Override
     public final boolean addAndConsume(final String entityID, final Consumer<? super E> handler) {
-        if (entities.containsKey(entityID)) {
-            handler.accept(entities.get(entityID));
+        if (containsKey(entityID)) {
+            handler.accept(get(entityID));
             return false;
         } else {
             final E entity = createEntity();
-            entities.put(entityID, entity);
+            put(entityID, entity);
             handler.accept(entity);
             return true;
         }
@@ -75,11 +72,6 @@ abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiabl
     @Override
     protected E readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
         return (E) out.readObject();
-    }
-
-    @Override
-    protected final HashMap<String, E> delegate() {
-        return entities;
     }
 
     @Override

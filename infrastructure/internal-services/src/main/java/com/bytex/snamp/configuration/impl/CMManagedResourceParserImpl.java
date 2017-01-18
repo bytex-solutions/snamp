@@ -166,7 +166,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         //deserialize operations
         result.setOperations(getOperations(config.getProperties()));
         //deserialize parameters
-        fillConnectionOptions(config.getProperties(), result.getParameters());
+        fillConnectionOptions(config.getProperties(), result);
         result.reset();
         return result;
     }
@@ -186,7 +186,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         result.put(EVENTS_PROPERTY, IOUtils.serialize(resource.getEvents()));
         result.put(OPERATIONS_PROPERTY, IOUtils.serialize(resource.getOperations()));
         //serialize properties
-        resource.getParameters().forEach((name, value) -> {
+        resource.forEach((name, value) -> {
             switch (name) {
                 default:
                     result.put(name, value);

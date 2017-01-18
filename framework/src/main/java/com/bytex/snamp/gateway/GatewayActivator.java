@@ -93,7 +93,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
         private G update(final G gatewayInstance,
                          final GatewayConfiguration configuration) throws Exception {
-            gatewayInstance.tryUpdate(configuration.getParameters());
+            gatewayInstance.tryUpdate(configuration);
             return gatewayInstance;
         }
 
@@ -116,13 +116,13 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         private G createService(final Map<String, Object> identity,
                                 final String instanceName,
                                 final GatewayConfiguration configuration) throws Exception{
-            identity.putAll(configuration.getParameters());
+            identity.putAll(configuration);
             identity.put(Gateway.TYPE_CAPABILITY_ATTRIBUTE, gatewayType);
             identity.put(Gateway.NAME_PROPERTY, instanceName);
             identity.put(Gateway.CATEGORY_PROPERTY, CATEGORY);
             final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, getDependencies());
             if (gatewayInstance != null) {
-                if (gatewayInstance.tryStart(configuration.getParameters())) {
+                if (gatewayInstance.tryStart(configuration)) {
                     return gatewayInstance;
                 } else {
                     gatewayInstance.close();

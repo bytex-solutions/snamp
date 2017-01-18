@@ -38,7 +38,7 @@ final class SerializableThreadPoolConfiguration extends AbstractEntityConfigurat
         out.writeInt(threadPriority);
         out.writeInt(queueSize);
         out.writeObject(keepAliveTime);
-        writeParameters(out);
+        super.writeExternal(out);
     }
 
     @Override
@@ -48,7 +48,7 @@ final class SerializableThreadPoolConfiguration extends AbstractEntityConfigurat
         threadPriority = in.readInt();
         queueSize = in.readInt();
         keepAliveTime = (Duration) in.readObject();
-        readParameters(in);
+        super.readExternal(in);
     }
 
     @Override
@@ -108,7 +108,7 @@ final class SerializableThreadPoolConfiguration extends AbstractEntityConfigurat
 
     @Override
     public int hashCode() {
-        return Objects.hash(getParameters(), keepAliveTime, minPoolSize, maxPoolSize, threadPriority, queueSize);
+        return super.hashCode() ^ Objects.hash(keepAliveTime, minPoolSize, maxPoolSize, threadPriority, queueSize);
     }
 
     private boolean equals(final ThreadPoolConfiguration other){
@@ -117,7 +117,7 @@ final class SerializableThreadPoolConfiguration extends AbstractEntityConfigurat
                 threadPriority == other.getThreadPriority() &&
                 keepAliveTime.equals(other.getKeepAliveTime()) &&
                 queueSize == other.getQueueSize() &&
-                getParameters().equals(other.getParameters());
+                super.equals(other);
     }
 
     @Override

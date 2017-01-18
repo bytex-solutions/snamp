@@ -117,9 +117,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private static void setFeatureNameIfNecessary(final FeatureConfiguration feature,
                                                          final String name) {
-            final Map<String, String> params = feature.getParameters();
-            if (!params.containsKey(FeatureConfiguration.NAME_KEY))
-                params.put(FeatureConfiguration.NAME_KEY, name);
+            if (!feature.containsKey(FeatureConfiguration.NAME_KEY))
+                feature.put(FeatureConfiguration.NAME_KEY, name);
         }
 
         private static <I extends FeatureConfiguration, O extends MBeanFeatureInfo> void updateFeatures(final BiFunction<String, I, O> featureAdder,
@@ -196,13 +195,13 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 loadedConfigurations.put(resourceName, newConfig::equals);
                 //trying to update resource connector on-the-fly
                 try {
-                    connector.update(newConfig.getConnectionString(), newConfig.getParameters());
+                    connector.update(newConfig.getConnectionString(), newConfig);
                 } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored) {
                     //Update operation is not supported -> force recreation
                     connector.close();
                     connector = controller.createConnector(resourceName,
                             newConfig.getConnectionString(),
-                            newConfig.getParameters(),
+                            newConfig,
                             getDependencies());
                 }
             }
@@ -264,12 +263,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                          final String resourceName,
                                          final ManagedResourceConfiguration configuration) throws Exception {
             loadedConfigurations.put(resourceName, configuration::equals);
-            identity.putAll(configuration.getParameters());
+            identity.putAll(configuration);
             identity.put(ManagedResourceConnector.NAME_PROPERTY, resourceName);
             identity.put(ManagedResourceConnector.TYPE_CAPABILITY_ATTRIBUTE, connectorType);
             identity.put(ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY);
             identity.put(ManagedResourceConnector.CONNECTION_STRING_PROPERTY, configuration.getConnectionString());
-            final TConnector result = controller.createConnector(resourceName, configuration.getConnectionString(), configuration.getParameters(), getDependencies());
+            final TConnector result = controller.createConnector(resourceName, configuration.getConnectionString(), configuration, getDependencies());
             updateFeatures(result, configuration);
             return result;
         }

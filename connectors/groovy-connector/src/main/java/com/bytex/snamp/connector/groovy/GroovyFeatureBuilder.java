@@ -35,7 +35,7 @@ public abstract class GroovyFeatureBuilder<F extends FeatureConfiguration> {
     final F createConfiguration(final Class<F> featureType){
         final F result = ConfigurationManager.createEntityConfiguration(getClass().getClassLoader(), featureType);
         assert result != null;
-        result.setParameters(parameters);
+        result.load(parameters);
         result.setAutomaticallyAdded(true);
         if(!isNullOrEmpty(description))
             result.setDescription(description);

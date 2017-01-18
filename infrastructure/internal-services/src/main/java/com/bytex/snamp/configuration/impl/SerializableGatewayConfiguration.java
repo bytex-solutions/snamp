@@ -50,7 +50,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     }
 
     private boolean equals(final GatewayConfiguration other){
-        return getParameters().equals(other.getParameters());
+        return super.equals(other) && Objects.equals(getType(), other.getType());
     }
 
     @Override
@@ -61,7 +61,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
 
     @Override
     public int hashCode() {
-        return Objects.hash(getParameters(), gatewayType);
+        return super.hashCode() ^ Objects.hashCode(gatewayType);
     }
 
     /**
@@ -81,7 +81,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeUTF(gatewayType != null ? gatewayType : "");
-        writeParameters(out);
+        super.writeExternal(out);
     }
 
     /**
@@ -99,6 +99,6 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         gatewayType = in.readUTF();
-        readParameters(in);
+        super.readExternal(in);
     }
 }

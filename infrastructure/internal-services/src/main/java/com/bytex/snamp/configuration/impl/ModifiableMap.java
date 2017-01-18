@@ -2,18 +2,17 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Stateful;
 import com.bytex.snamp.io.SerializableMap;
-import com.google.common.collect.ForwardingMap;
 
 import javax.annotation.Nonnull;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 
-abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Externalizable, Modifiable, Stateful, SerializableMap<K, V> {
+abstract class ModifiableMap<K, V> extends HashMap<K, V> implements Externalizable, Modifiable, Stateful, SerializableMap<K, V> {
     private static final long serialVersionUID = -8689048750446731607L;
     private transient boolean modified = false;
 
@@ -24,32 +23,37 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
 
     @Override
     public final V remove(@Nonnull final Object key) {
-        modified = containsKey(key);
-        return delegate().remove(key);
+        final V removedValue = super.remove(key);
+        modified = removedValue != null;
+        return removedValue;
     }
 
-    final void importFrom(final Map<? extends K, ? extends V> values){
-        delegate().clear();
-        delegate().putAll(values);
+    final void markAsModified(){
         modified = true;
+    }
+
+    public void load(final Map<K, V> values){
+        super.clear();
+        super.putAll(values);
+        markAsModified();
     }
 
     @Override
-    public final void clear() {
-        modified = true;
-        delegate().clear();
+    public void clear() {
+        markAsModified();
+        super.clear();
     }
 
     @Override
     public final V put(@Nonnull final K key, @Nonnull final V value) {
-        modified = true;
-        return delegate().put(key, value);
+        markAsModified();
+        return super.put(key, value);
     }
 
     @Override
     public final void putAll(@Nonnull final Map<? extends K, ? extends V> map) {
-        modified = true;
-        delegate().putAll(map);
+        if (modified = map.size() > 0)
+            super.putAll(map);
     }
 
     @Override
@@ -66,7 +70,7 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
     protected abstract V readValue(final ObjectInput out) throws IOException, ClassNotFoundException;
 
     @Override
-    public final void writeExternal(final ObjectOutput out) throws IOException {
+    public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeInt(size());
         for (final Entry<K, V> entry : entrySet()) {
             writeKey(entry.getKey(), out);
@@ -75,7 +79,7 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
     }
 
     @Override
-    public final void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+    public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         final int size = in.readInt();
         for (int i = 0; i < size; i++) {
             final K key = readKey(in);
@@ -83,24 +87,5 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
             if (key != null && value != null)
                 put(key, value);
         }
-    }
-
-    private boolean equals(final Map<?, ?> other) {
-        if (this == other) return true;
-        else if (size() == other.size()) {
-            for (final Map.Entry<K, ?> entry1 : entrySet())
-                if (!Objects.equals(entry1.getValue(), other.get(entry1.getKey()))) return false;
-            return true;
-        } else return false;
-    }
-
-    @Override
-    public final boolean equals(final Object other) {
-        return other instanceof Map<?, ?> && equals((Map<?, ?>)other);
-    }
-
-    @Override
-    public final int hashCode() {
-        return delegate().hashCode();
     }
 }

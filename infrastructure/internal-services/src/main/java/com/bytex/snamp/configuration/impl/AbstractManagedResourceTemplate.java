@@ -80,7 +80,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
      */
     static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration {
         private static final long serialVersionUID = 8267389949041604889L;
-        private Duration timeout;
+        private Duration invocationTimeout;
 
         @SpecialUse
         public SerializableOperationConfiguration(){
@@ -103,8 +103,8 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
          */
         @Override
         public void writeExternal(final ObjectOutput out) throws IOException {
-            out.writeObject(timeout);
-            writeParameters(out);
+            out.writeObject(invocationTimeout);
+            super.writeExternal(out);
         }
 
         /**
@@ -121,24 +121,24 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
          */
         @Override
         public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-            timeout = (Duration) in.readObject();
-            readParameters(in);
+            invocationTimeout = (Duration) in.readObject();
+            super.readExternal(in);
         }
 
         @Override
         public Duration getInvocationTimeout() {
-            return timeout;
+            return invocationTimeout;
         }
 
         @Override
         public void setInvocationTimeout(final Duration value) {
             markAsModified();
-            this.timeout = value;
+            this.invocationTimeout = value;
         }
 
         private boolean equals(final OperationConfiguration other){
-            return getParameters().equals(other.getParameters()) &&
-                    Objects.equals(timeout, other.getInvocationTimeout());
+            return super.equals(other) &&
+                    Objects.equals(invocationTimeout, other.getInvocationTimeout());
         }
 
         @Override
@@ -148,7 +148,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
 
         @Override
         public int hashCode() {
-            return timeout != null ? Objects.hash(timeout, getParameters()) : getParameters().hashCode();
+            return super.hashCode() ^ Objects.hashCode(invocationTimeout);
         }
     }
 
@@ -164,61 +164,6 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         @SpecialUse
         public SerializableEventConfiguration(){
 
-        }
-
-        /**
-         * The object implements the writeExternal method to save its contents
-         * by calling the methods of DataOutput for its primitive values or
-         * calling the writeObject method of ObjectOutput for objects, strings,
-         * and arrays.
-         *
-         * @param out the stream to write the object to
-         * @throws IOException Includes any I/O exceptions that may occur
-         * @serialData Overriding methods should use this tag to describe
-         * the data layout of this Externalizable object.
-         * List the sequence of element types and, if possible,
-         * relate the element to a public/protected field and/or
-         * method of this Externalizable class.
-         */
-        @Override
-        public void writeExternal(final ObjectOutput out) throws IOException {
-            writeParameters(out);
-        }
-
-        /**
-         * The object implements the readExternal method to restore its
-         * contents by calling the methods of DataInput for primitive
-         * types and readObject for objects, strings and arrays.  The
-         * readExternal method must read the values in the same sequence
-         * and with the same types as were written by writeExternal.
-         *
-         * @param in the stream to read data from in order to restore the object
-         * @throws IOException    if I/O errors occur
-         * @throws ClassNotFoundException If the class for an object being
-         *                                restored cannot be found.
-         */
-        @Override
-        public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-            readParameters(in);
-        }
-
-        private boolean equals(final EventConfiguration other) {
-            return getParameters().equals(other.getParameters());
-        }
-
-        @Override
-        public boolean equals(final Object other) {
-            return other instanceof EventConfiguration && equals((EventConfiguration) other);
-        }
-
-        /**
-         * Computes hash code for this object.
-         *
-         * @return The hash code of this object.
-         */
-        @Override
-        public int hashCode() {
-            return getParameters().hashCode();
         }
     }
 
@@ -252,7 +197,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         @Override
         public void writeExternal(final ObjectOutput out) throws IOException {
             out.writeObject(readWriteTimeout);
-            writeParameters(out);
+            super.writeExternal(out);
         }
 
         /**
@@ -270,7 +215,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         @Override
         public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
             readWriteTimeout = (Duration)in.readObject();
-            readParameters(in);
+            super.readExternal(in);
         }
 
         /**
@@ -295,7 +240,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
 
         private boolean equals(final AttributeConfiguration other){
             return Objects.equals(readWriteTimeout, other.getReadWriteTimeout()) &&
-                    getParameters().equals(other.getParameters());
+                    super.equals(other);
         }
 
         @Override
@@ -306,7 +251,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
 
         @Override
         public int hashCode() {
-            return readWriteTimeout != null ? Objects.hash(readWriteTimeout, getParameters()) : getParameters().hashCode();
+            return super.hashCode() ^ Objects.hashCode(readWriteTimeout);
         }
     }
 
@@ -375,7 +320,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         attributes.writeExternal(out);
         events.writeExternal(out);
         operations.writeExternal(out);
-        writeParameters(out);
+        super.writeExternal(out);
     }
 
     @Override
@@ -384,7 +329,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         attributes.readExternal(in);
         events.readExternal(in);
         operations.readExternal(in);
-        readParameters(in);
+        super.readExternal(in);
     }
 
     @Override
@@ -421,10 +366,4 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         this.events.clear();
         this.events.putAll(events);
     }
-
-    @Override
-    public abstract int hashCode();
-
-    @Override
-    public abstract boolean equals(final Object other);
 }

@@ -27,7 +27,7 @@ final class SerializableManagedResourceGroupConfiguration extends AbstractManage
                 getEvents().equals(other.getFeatures(EventConfiguration.class)) &&
                 getOperations().equals(other.getFeatures(OperationConfiguration.class)) &&
                 getType().equals(other.getType()) &&
-                getParameters().equals(other.getParameters());
+                super.equals(other);
     }
 
     @Override
@@ -37,6 +37,6 @@ final class SerializableManagedResourceGroupConfiguration extends AbstractManage
 
     @Override
     public int hashCode() {
-        return Objects.hash(getType(), getAttributes(), getEvents(), getOperations(), getParameters());
+        return super.hashCode() ^ Objects.hash(getType(), getAttributes(), getEvents(), getOperations());
     }
 }

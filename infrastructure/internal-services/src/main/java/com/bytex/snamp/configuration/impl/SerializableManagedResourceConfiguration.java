@@ -98,7 +98,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
      */
     @Override
     public void setGroupName(final String value) {
-        getParameters().put(GROUP_NAME_PROPERTY, firstNonNull(value, ""));
+        put(GROUP_NAME_PROPERTY, firstNonNull(value, ""));
     }
 
     /**
@@ -108,7 +108,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
      */
     @Override
     public String getGroupName() {
-        return firstNonNull(getParameters().get(GROUP_NAME_PROPERTY), "");
+        return firstNonNull(get(GROUP_NAME_PROPERTY), "");
     }
 
     private boolean equals(final ManagedResourceConfiguration other){
@@ -117,7 +117,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
                 getAttributes().equals(other.getFeatures(AttributeConfiguration.class)) &&
                 getEvents().equals(other.getFeatures(EventConfiguration.class)) &&
                 getOperations().equals(other.getFeatures(OperationConfiguration.class)) &&
-                getParameters().equals(other.getParameters());
+                super.equals(other);
     }
 
     @Override
@@ -128,6 +128,6 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
 
     @Override
     public int hashCode() {
-        return Objects.hash(connectionString, getType(), getAttributes(), getEvents(), getOperations());
+        return super.hashCode() ^ Objects.hash(connectionString, getType(), getAttributes(), getEvents(), getOperations());
     }
 }

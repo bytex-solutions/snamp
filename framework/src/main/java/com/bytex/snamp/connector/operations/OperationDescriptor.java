@@ -35,7 +35,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public OperationDescriptor(final OperationConfiguration config){
-        this(config.getInvocationTimeout(), config.getParameters());
+        this(config.getInvocationTimeout(), config);
     }
 
     public OperationDescriptor(final Duration invocationTimeout,
@@ -70,7 +70,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
         for (final String fieldName : getFieldNames())
             switch (fieldName) {
                 default:
-                    entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
+                    entity.put(fieldName, Objects.toString(getFieldValue(fieldName)));
                 case OPERATION_NAME_FIELD:
             }
     }

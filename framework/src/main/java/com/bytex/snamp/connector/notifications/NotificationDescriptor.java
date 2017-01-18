@@ -36,8 +36,8 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         super(fields);
     }
 
-    public NotificationDescriptor(final EventConfiguration eventConfig){
-        this(eventConfig.getParameters());
+    public NotificationDescriptor(final EventConfiguration eventConfig) {
+        this((Map<String, String>) eventConfig);
     }
 
     public NotificationDescriptor(final Map<String, String> options){
@@ -85,7 +85,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     @Override
     public final void fill(final EventConfiguration entity) {
         for (final String fieldName : getFieldNames())
-            entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
+            entity.put(fieldName, Objects.toString(getFieldValue(fieldName)));
     }
 
     public final String getDescription(){

@@ -8,7 +8,6 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.Map;
 import java.util.Objects;
 
 import static com.bytex.snamp.configuration.impl.AbstractManagedResourceTemplate.*;
@@ -19,15 +18,13 @@ import static com.bytex.snamp.configuration.impl.AbstractManagedResourceTemplate
  * @since 1.2
  * @version 2.0
  */
-public final class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable, Modifiable, Stateful {
-    private final static byte FORMAT_VERSION = 3;
+public final class SerializableAgentConfiguration extends AbstractEntityConfiguration implements Externalizable, Modifiable, Stateful, AgentConfiguration {
     private static final long serialVersionUID = 8461144056430141155L;
 
     private final ConfigurationEntityList<SerializableGatewayConfiguration> gateways;
     private final ConfigurationEntityList<SerializableThreadPoolConfiguration> threadPools;
     private final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups;
     private final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources;
-    private final ModifiableParameters parameters;
 
     /**
      * Initializes a new empty agent configuration.
@@ -38,22 +35,18 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         threadPools = new ThreadPoolList();
         groups = new ResourceGroupList();
         resources = new ManagedResourceList();
-        parameters = new ModifiableParameters();
     }
 
     /**
-     * Gets SNAMP configuration parameters.
-     *
-     * @return SNAMP configuration parameters.
+     * Clears this configuration.
      */
     @Override
-    public Map<String, String> getParameters() {
-        return parameters;
-    }
-
-    @Override
-    public void setParameters(final Map<String, String> value) {
-        parameters.importFrom(value);
+    public void clear() {
+        super.clear();
+        gateways.clear();
+        threadPools.clear();
+        groups.clear();
+        resources.clear();
     }
 
     /**
@@ -71,16 +64,16 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
     @Override
     public boolean isModified() {
-        return gateways.isModified() || threadPools.isModified() || groups.isModified() || resources.isModified() || parameters.isModified();
+        return gateways.isModified() || threadPools.isModified() || groups.isModified() || resources.isModified() || super.isModified();
     }
 
     @Override
     public void reset() {
+        super.reset();
         gateways.reset();
         threadPools.reset();
         groups.reset();
         resources.reset();
-        parameters.reset();
     }
 
     /**
@@ -99,7 +92,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      */
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
-        out.writeByte(FORMAT_VERSION);
+        super.writeExternal(out);
         //write gateway
         gateways.writeExternal(out);
         //write connectors and groups
@@ -123,10 +116,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      */
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-        final byte version = in.readByte();
-        //check version
-        if(version != FORMAT_VERSION)
-            throw new IOException(String.format("Unknown version of configuration format. Expected %s but actual %s", FORMAT_VERSION, version));
+        super.readExternal(in);
         //read gateway
         gateways.readExternal(in);
         //read connectors and groups
@@ -141,7 +131,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * @return {@literal true}, if this configuration is empty; otherwise, {@literal false}.
      */
     boolean hasNoInnerItems(){
-        return gateways.isEmpty() && resources.isEmpty() && groups.isEmpty() && threadPools.isEmpty() && parameters.isEmpty();
+        return gateways.isEmpty() && resources.isEmpty() && groups.isEmpty() && threadPools.isEmpty() && super.isEmpty();
     }
 
     @SuppressWarnings("unchecked")
@@ -222,7 +212,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         return gateways.equals(other.getEntities(GatewayConfiguration.class)) &&
                 resources.equals(other.getEntities(ManagedResourceConfiguration.class)) &&
                 threadPools.equals(other.getEntities(ThreadPoolConfiguration.class)) &&
-                groups.equals(other.getEntities(ManagedResourceGroupConfiguration.class));
+                groups.equals(other.getEntities(ManagedResourceGroupConfiguration.class)) &&
+                super.equals(other);
     }
 
     @Override
@@ -232,6 +223,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
     @Override
     public int hashCode() {
-        return Objects.hash(gateways, groups, resources, threadPools);
+        return super.hashCode() ^ Objects.hash(gateways, groups, resources, threadPools);
     }
 }

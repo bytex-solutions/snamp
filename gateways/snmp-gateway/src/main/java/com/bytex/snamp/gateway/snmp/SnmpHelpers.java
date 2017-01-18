@@ -349,7 +349,7 @@ final class SnmpHelpers {
         String prefix = "1.1";
         if (manager != null)
             try {
-                prefix = manager.get().transformConfiguration(config -> config.getParameters().get(AUTO_PREFIX_PROPERTY));
+                prefix = manager.get().transformConfiguration(config -> config.get(AUTO_PREFIX_PROPERTY));
             } catch (final IOException e) {
                 LoggerProvider.getLoggerForBundle(context).log(Level.SEVERE, "Unable to get SNAMP configuration manager", e);
             } finally {

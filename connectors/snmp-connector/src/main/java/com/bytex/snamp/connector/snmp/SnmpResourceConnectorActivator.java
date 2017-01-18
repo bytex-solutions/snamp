@@ -36,7 +36,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     }
 
     private static Duration getDiscoveryTimeout(final AgentConfiguration configuration) {
-        final long timeout = getValueAsLong(configuration.getParameters(),
+        final long timeout = getValueAsLong(configuration,
                 AgentConfiguration.DISCOVERY_TIMEOUT_PROPERTY,
                 Long::parseLong).orElse(5000L);
         return Duration.ofMillis(timeout);

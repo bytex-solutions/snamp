@@ -39,7 +39,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * @param attributeConfig The attribute configuration used to create descriptor. Cannot be {@literal null}.
      */
     public AttributeDescriptor(final AttributeConfiguration attributeConfig){
-        this(attributeConfig.getReadWriteTimeout(), attributeConfig.getParameters());
+        this(attributeConfig.getReadWriteTimeout(), attributeConfig);
     }
 
     /**
@@ -110,7 +110,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         entity.setReadWriteTimeout(getReadWriteTimeout());
         for (final String fieldName : getFieldNames())
             switch (fieldName) {
-                default: entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
+                default: entity.put(fieldName, Objects.toString(getFieldValue(fieldName)));
                 case ATTRIBUTE_NAME_FIELD:
                 case READ_WRITE_TIMEOUT_FIELD:
             }

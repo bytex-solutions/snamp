@@ -61,7 +61,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                     .filter(resource -> resource.getGroupName().equals(groupName))
                     .forEach(resource -> {
                         //overwrite all properties in resource but hold user-defined properties
-                        resource.getParameters().putAll(groupConfig.getParameters());
+                        resource.putAll(groupConfig);
                         //overwrite all attributes
                         resource.getAttributes().putAll(groupConfig.getAttributes());
                         //overwrite all events

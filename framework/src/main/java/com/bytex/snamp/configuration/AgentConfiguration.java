@@ -1,7 +1,5 @@
 package com.bytex.snamp.configuration;
 
-import java.util.Map;
-
 /**
  * Represents in-memory representation of the agent configuration.
  * <p>The agent configuration consists of the following parts:
@@ -62,7 +60,9 @@ public interface AgentConfiguration extends Cloneable, EntityConfiguration {
      * Imports the state of specified object into this object.
      * @param input The import source.
      */
-    void load(final AgentConfiguration input);
+    default void load(final AgentConfiguration input) {
+        copy(input, this);
+    }
 
     /**
      * Clears this configuration.
@@ -70,8 +70,29 @@ public interface AgentConfiguration extends Cloneable, EntityConfiguration {
     void clear();
 
     /**
-     * Gets SNAMP configuration parameters.
-     * @return SNAMP configuration parameters.
+     * Copies configuration from one object to another object.
+     * @param input The configuration import source.
+     * @param output The configuration import destination.
      */
-    Map<String, String> getParameters();
+    static void copy(final AgentConfiguration input, final AgentConfiguration output) {
+        if (input == null || output == null) return;
+        //import parameters
+        output.load(input);
+        //import hosting configuration
+        ConfigurationEntityCopier.copy(input.getEntities(GatewayConfiguration.class),
+                output.getEntities(GatewayConfiguration.class),
+                GatewayConfiguration::copy);
+        //import management targets
+        ConfigurationEntityCopier.copy(input.getEntities(ManagedResourceConfiguration.class),
+                output.getEntities(ManagedResourceConfiguration.class),
+                (ConfigurationEntityCopier<ManagedResourceConfiguration>) ManagedResourceConfiguration::copy);
+        //import thread pools
+        ConfigurationEntityCopier.copy(input.getEntities(ThreadPoolConfiguration.class),
+                output.getEntities(ThreadPoolConfiguration.class),
+                ThreadPoolConfiguration::copy);
+        //import groups
+        ConfigurationEntityCopier.copy(input.getEntities(ManagedResourceGroupConfiguration.class),
+                output.getEntities(ManagedResourceGroupConfiguration.class),
+                (ConfigurationEntityCopier<ManagedResourceGroupConfiguration>) ManagedResourceGroupConfiguration::copy);
+    }
 }

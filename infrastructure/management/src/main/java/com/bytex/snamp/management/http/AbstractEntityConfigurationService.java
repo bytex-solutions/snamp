@@ -2,7 +2,6 @@ package com.bytex.snamp.management.http;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.configuration.TypedEntityConfiguration;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.management.http.model.AbstractTypedDataObject;
@@ -166,7 +165,6 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
         return readOnlyActions(getBundleContext(), currentConfig -> currentConfig
                 .getEntities(entityType)
                 .getIfPresent(name)
-                .map(EntityConfiguration::getParameters)
                 .<WebApplicationException>orElseThrow(AbstractManagementService::notFound));
     }
 
@@ -187,7 +185,7 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
                     .getEntities(entityType)
                     .getIfPresent(name)
                     .orElseThrow(AbstractManagementService::notFound)
-                    .setParameters(parameters);
+                    .load(parameters);
             return true;
         });
     }
@@ -208,7 +206,7 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
                     .getEntities(entityType)
                     .getIfPresent(name)
                     .orElseThrow(AbstractManagementService::notFound)
-                    .setParameters(Collections.emptyMap());
+                    .load(Collections.emptyMap());
             return true;
         });
     }
@@ -229,8 +227,7 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
         return readOnlyActions(getBundleContext(), currentConfig -> currentConfig
                 .getEntities(entityType)
                 .getIfPresent(name)
-                .filter(entity -> entity.getParameters().containsKey(paramName))
-                .map(EntityConfiguration::getParameters)
+                .filter(entity -> entity.containsKey(paramName))
                 .orElseThrow(AbstractManagementService::notFound)
                 .get(paramName));
     }
@@ -255,7 +252,6 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
                     .getEntities(entityType)
                     .getIfPresent(name)
                     .orElseThrow(AbstractManagementService::notFound)
-                    .getParameters()
                     .put(paramName, value);
             return true;
         });
@@ -276,7 +272,7 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
                                           @PathParam("paramName") final String paramName) {
         return changingActions(getBundleContext(), config -> {
             final TypedEntityConfiguration mrc = config.getEntities(entityType).get(name);
-            if (mrc == null || mrc.getParameters().remove(paramName) == null) {
+            if (mrc == null || mrc.remove(paramName) == null) {
                 throw notFound();
             } else
                 return true;

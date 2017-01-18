@@ -40,7 +40,7 @@ public abstract class AbstractDataObject<E extends EntityConfiguration> implemen
      * @param entity The configurable entity to wrap.
      */
     AbstractDataObject(final E entity) {
-        this.parameters = new HashMap<>(entity.getParameters());
+        this.parameters = new HashMap<>(entity);
     }
 
     @Override
@@ -50,7 +50,7 @@ public abstract class AbstractDataObject<E extends EntityConfiguration> implemen
     }
 
     @Override
-    public final void setParameters(final Map<String, String> value) {
+    public final void load(final Map<String, String> value) {
         parameters.clear();
         parameters.putAll(value);
     }
@@ -60,7 +60,7 @@ public abstract class AbstractDataObject<E extends EntityConfiguration> implemen
      * @param entity Entity to modify.
      */
     public void exportTo(final E entity){
-        entity.setParameters(parameters);
+        entity.load(parameters);
     }
 
     @Override

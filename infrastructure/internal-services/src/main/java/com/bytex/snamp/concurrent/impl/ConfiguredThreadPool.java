@@ -6,8 +6,7 @@ import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.*;
 
@@ -76,7 +75,9 @@ final class ConfiguredThreadPool extends ThreadPoolExecutor implements ExecutorS
 
     private static @Nonnull ThreadPoolConfiguration createDefaultThreadPoolConfig() {
         @Immutable
-        final class DefaultThreadPoolConfiguration implements ThreadPoolConfiguration {
+        final class DefaultThreadPoolConfiguration extends HashMap<String, String> implements ThreadPoolConfiguration {
+            private static final long serialVersionUID = -5001645853852294018L;
+
             @Override
             public int getMinPoolSize() {
                 return DEFAULT_MIN_POOL_SIZE;
@@ -125,11 +126,6 @@ final class ConfiguredThreadPool extends ThreadPoolExecutor implements ExecutorS
             @Override
             public void setThreadPriority(final int value) {
                 throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public Map<String, String> getParameters() {
-                return Collections.emptyMap();
             }
         }
 

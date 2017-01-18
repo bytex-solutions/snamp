@@ -1,5 +1,7 @@
 package com.bytex.snamp.configuration;
 
+import java.util.Map;
+
 /**
  * Represents template of managed resource.
  * @author Roman Sakno
@@ -31,4 +33,32 @@ public interface ManagedResourceTemplate extends TypedEntityConfiguration {
      */
     <T extends FeatureConfiguration> EntityMap<? extends T> getFeatures(final Class<T> featureType);
 
+    static void copyAttributes(final Map<String, ? extends AttributeConfiguration> input,
+                                       final EntityMap<? extends AttributeConfiguration> output){
+        ConfigurationEntityCopier.copy(input, output, AttributeConfiguration::copy);
+    }
+
+    static void copyEvents(final Map<String, ? extends EventConfiguration> input,
+                                   final EntityMap<? extends EventConfiguration> output) {
+        ConfigurationEntityCopier.copy(input, output, EventConfiguration::copy);
+    }
+
+    static void copyOperations(final Map<String, ? extends OperationConfiguration> input,
+                                       final EntityMap<? extends OperationConfiguration> output) {
+        ConfigurationEntityCopier.copy(input, output, OperationConfiguration::copy);
+    }
+
+    static void copy(final ManagedResourceTemplate input, final ManagedResourceTemplate output){
+        output.setType(input.getType());
+        output.load(input);
+        copyAttributes(input.getFeatures(AttributeConfiguration.class),
+                output.getFeatures(AttributeConfiguration.class)
+        );
+        copyEvents(input.getFeatures(EventConfiguration.class),
+                output.getFeatures(EventConfiguration.class)
+        );
+        copyOperations(input.getFeatures(OperationConfiguration.class),
+                output.getFeatures(OperationConfiguration.class)
+        );
+    }
 }

@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration;
 
 import java.time.Duration;
-import java.time.temporal.TemporalUnit;
 
 /**
  * Represents attribute configuration.
@@ -21,17 +20,19 @@ public interface AttributeConfiguration extends FeatureConfiguration {
      */
     Duration getReadWriteTimeout();
 
-    default long getReadWriteTimeout(final TemporalUnit unit){
-        return getReadWriteTimeout().get(unit);
-    }
-
     /**
      * Sets attribute value invoke/write operation timeout.
      * @param value A new value of the timeout.
      */
     void setReadWriteTimeout(final Duration value);
 
-    default void setReadWriteTimeout(final long amount, final TemporalUnit unit){
-        setReadWriteTimeout(Duration.of(amount, unit));
+    /**
+     * Copies management attributes.
+     * @param source The attribute to copy.
+     * @param dest The attribute to fill.
+     */
+    static void copy(final AttributeConfiguration source, final AttributeConfiguration dest){
+        dest.setReadWriteTimeout(source.getReadWriteTimeout());
+        dest.load(source);
     }
 }

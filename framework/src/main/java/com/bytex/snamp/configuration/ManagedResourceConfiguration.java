@@ -14,7 +14,7 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate {
      * @param value The name of the resource group. Cannot be {@literal null}.
      */
     default void setGroupName(final String value){
-        getParameters().put(GROUP_NAME_PROPERTY, value);
+        put(GROUP_NAME_PROPERTY, value);
     }
 
     /**
@@ -22,7 +22,7 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate {
      * @return Name of resource group; or empty string, if group is not assigned.
      */
     default String getGroupName(){
-        return getParameters().get(GROUP_NAME_PROPERTY);
+        return get(GROUP_NAME_PROPERTY);
     }
 
     /**
@@ -36,4 +36,9 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate {
      * @param connectionString The connection string that is used to connect to the management server.
      */
     void setConnectionString(final String connectionString);
+
+    static void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
+        ManagedResourceTemplate.copy(input, output);
+        output.setConnectionString(input.getConnectionString());
+    }
 }

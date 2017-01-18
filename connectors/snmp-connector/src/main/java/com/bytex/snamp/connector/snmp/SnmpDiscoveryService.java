@@ -46,7 +46,7 @@ final class SnmpDiscoveryService extends AbstractDiscoveryService<SnmpClient> {
                     final AttributeConfiguration config = ConfigurationManager.createEntityConfiguration(context, AttributeConfiguration.class);
                     if(config != null) {
                         config.setAlternativeName(input.getOid().toDottedString());
-                        setupAttributeOptions(input.getVariable(), config.getParameters());
+                        setupAttributeOptions(input.getVariable(), config);
                     }
                     return config;
                 })

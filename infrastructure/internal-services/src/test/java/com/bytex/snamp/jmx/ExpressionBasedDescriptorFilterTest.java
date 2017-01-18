@@ -21,9 +21,9 @@ public final class ExpressionBasedDescriptorFilterTest extends Assert {
         final EventConfiguration config = newEntityConfiguration(EventConfiguration.class);
         assertNotNull(config);
         config.setAlternativeName("cat");
-        config.getParameters().put(NotificationDescriptor.SEVERITY_PARAM, Severity.CRITICAL.toString());
-        config.getParameters().put("param", "1");
-        config.getParameters().put("param2", "2");
+        config.put(NotificationDescriptor.SEVERITY_PARAM, Severity.CRITICAL.toString());
+        config.put("param", "1");
+        config.put("param2", "2");
         final NotificationDescriptor descriptor = new NotificationDescriptor(config);
         final ExpressionBasedDescriptorFilter filter = new ExpressionBasedDescriptorFilter("(&(severity=critical)(param=1))");
         assertTrue(filter.match(() -> descriptor));

@@ -27,6 +27,7 @@ import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.*;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
@@ -648,7 +649,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                         final AttributeConfiguration config = createEntityConfiguration(getClass().getClassLoader(), AttributeConfiguration.class);
                         assert config != null;
                         if (binding.getVariable() instanceof OctetString)
-                            config.getParameters().put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
+                            config.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
                         config.setReadWriteTimeout(TIMEOUT_FOR_SMART_MODE);
                         config.setAutomaticallyAdded(true);
                         return addAttribute(binding.getOid().toDottedString(), new AttributeDescriptor(config));
@@ -668,12 +669,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        public <T> T queryObject(final Class<T> objectType) {
-            if(objectType == null)
-                return null;
-            else if(objectType.isAssignableFrom(Address[].class))
-                return objectType.cast(getClientAddresses());
-            else return null;
+        public <T> T queryObject(@Nonnull final Class<T> objectType) {
+            return objectType.isAssignableFrom(Address[].class) ? objectType.cast(getClientAddresses()) : null;
         }
     }
 

@@ -276,18 +276,4 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
                                                       final AbstractFeatureRepository<?>... modelers){
         Arrays.stream(modelers).forEach(modeler -> modeler.removeModelEventListener(listener));
     }
-
-    /**
-     * Updates resource connector with a new connection options.
-     * <p>
-     *     In the default implementation this method always throws
-     *     {@link UnsupportedUpdateOperationException}.
-     * @param connectionParameters A new connection parameters.
-     * @throws Exception Unable to update managed resource connector.
-     * @throws UnsupportedUpdateOperationException This operation is not supported by this resource connector.
-     */
-    @Override
-    public void setConfiguration(final Map<String, ?> connectionParameters) throws Exception {
-        throw new UnsupportedUpdateOperationException("Update operation is not supported");
-    }
 }
