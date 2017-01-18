@@ -3,12 +3,19 @@ package com.bytex.snamp.configuration.impl;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Map;
 
 /**
  * Represents abstract class for all serializable configuration entities.
  */
 abstract class AbstractEntityConfiguration extends ModifiableMap<String, String> implements SerializableEntityConfiguration {
     private static final long serialVersionUID = -8455277079119895844L;
+
+    @Override
+    public final void load(final Map<String, String> parameters) {
+        clear();
+        putAll(parameters);
+    }
 
     @Override
     protected final void writeKey(final String key, final ObjectOutput out) throws IOException {
