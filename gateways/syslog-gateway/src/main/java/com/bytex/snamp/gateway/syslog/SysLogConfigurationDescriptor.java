@@ -86,7 +86,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
     }
 
     static String getApplicationName(final Descriptor descr, final String defaultValue){
-        return getField(descr, APPLICATION_NAME_PARAM, Objects::toString, () -> defaultValue);
+        return getField(descr, APPLICATION_NAME_PARAM, Objects::toString).orElse(defaultValue);
     }
 
     static Facility getFacility(final Descriptor descr, final Facility defaultValue){
@@ -99,9 +99,9 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
     }
 
     SyslogMessageSender createSender(final Map<String, String> parameters) throws AbsentSysLogConfigurationParameterException {
-        final int port = getIfPresent(parameters, PORT_PARAM, Integer::parseInt, AbsentSysLogConfigurationParameterException::new);
-        final String address = getIfPresent(parameters, ADDRESS_PARAM, Function.identity(), AbsentSysLogConfigurationParameterException::new);
-        final int connectionTimeout = getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt, () -> 2000);
+        final int port = getValue(parameters, PORT_PARAM, Integer::parseInt).orElseThrow(() -> new AbsentSysLogConfigurationParameterException(PORT_PARAM));
+        final String address = getValue(parameters, ADDRESS_PARAM, Function.identity()).orElseThrow(() -> new AbsentSysLogConfigurationParameterException(PORT_PARAM));
+        final int connectionTimeout = getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt).orElse(2000);
         final boolean ssl = getValue(parameters, USE_SSL_PARAM, useSSL -> {
             switch (useSSL) {
                 case "yes":
@@ -112,7 +112,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
                 default:
                     return false;
             }
-        }, () -> false);
+        }).orElse(false);
         final MessageFormat format = getValue(parameters, MESSAGE_FORMAT_PARAM, formatName -> {
             switch (formatName) {
                 case "RFC-3164":
@@ -123,8 +123,8 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
                 default:
                     return MessageFormat.RFC_5424;
             }
-        }, () -> MessageFormat.RFC_5424);
-        final SyslogMessageSenderFactory factory = getIfPresent(parameters, PROTOCOL_PARAM, protocol -> {
+        }).orElse(MessageFormat.RFC_5424);
+        final SyslogMessageSenderFactory factory = getValue(parameters, PROTOCOL_PARAM, protocol -> {
             switch (protocol) {
                 case "tcp":
                 case "TCP":
@@ -132,12 +132,12 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
                 default:
                     return SyslogMessageSenderFactory.UDP;
             }
-        }, AbsentSysLogConfigurationParameterException::new);
+        }).orElseThrow(() -> new AbsentSysLogConfigurationParameterException(PROTOCOL_PARAM));
         return factory.create(address, port, format, ssl, connectionTimeout);
     }
 
     Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
-        final long period = getValueAsLong(parameters, PASSIVE_CHECK_SEND_PERIOD_PARAM, Long::parseLong, () -> 1000L);
+        final long period = getValueAsLong(parameters, PASSIVE_CHECK_SEND_PERIOD_PARAM, Long::parseLong).orElse(1000L);
         return Duration.ofMillis(period);
     }
 }

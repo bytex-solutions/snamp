@@ -36,10 +36,6 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  */
 public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
-    /**
-     * Supplier of empty string.
-     */
-    protected static final Supplier<String> EMPTY_STRING = () -> "";
     public static final String COMPONENT_INSTANCE_PARAM = "instanceName";
     private static final String COMPONENT_NAME_PARAM = "componentName";
     private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
@@ -151,15 +147,15 @@ public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider 
     }
 
     protected String parseComponentInstance(final Map<String, String> parameters){
-        return getValue(parameters, COMPONENT_INSTANCE_PARAM, Function.identity(), EMPTY_STRING);
+        return getValue(parameters, COMPONENT_INSTANCE_PARAM, Function.identity()).orElse("");
     }
 
     protected String parseComponentName(final Map<String, String> parameters) {
-        return getValue(parameters, COMPONENT_NAME_PARAM, Function.identity(), () -> firstNonNull(parameters.get(GROUP_NAME_PROPERTY), "DEFAULT"));
+        return getValue(parameters, COMPONENT_NAME_PARAM, Function.identity()).orElseGet(() -> firstNonNull(parameters.get(GROUP_NAME_PROPERTY), "DEFAULT"));
     }
 
     protected Duration parseSyncPeriod(final Map<String, String> parameters) {
-        final long period = getValueAsLong(parameters, SYNC_PERIOD_PARAM, Long::parseLong, () -> 5000L);
+        final long period = getValueAsLong(parameters, SYNC_PERIOD_PARAM, Long::parseLong).orElse(5000L);
         return Duration.ofMillis(period);
     }
 
@@ -196,7 +192,7 @@ public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider 
     }
 
     static long parseChannels(final AttributeDescriptor descriptor){
-        return getField(descriptor, CHANNELS_PARAM, Convert::toLong, () -> 1L);
+        return getField(descriptor, CHANNELS_PARAM, Convert::toLong).orElse(1L);
     }
 
     public String parseGaugeType(final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException {
@@ -204,7 +200,7 @@ public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider 
     }
 
     static NotificationFilter parseNotificationFilter(final Descriptor descriptor) throws InvalidSyntaxException {
-        final String filter = getField(descriptor, FILTER_PARAM, String::valueOf, EMPTY_STRING);
+        final String filter = getField(descriptor, FILTER_PARAM, String::valueOf).orElse("");
         if (filter.isEmpty()) {
             return notification -> true;
         } else {

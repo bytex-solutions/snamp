@@ -51,7 +51,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
 
     @Override
     public String getInstanceName(final Dictionary<String, ?> gatewayInstanceConfig) {
-        return getValue(gatewayInstanceConfig, GATEWAY_INSTANCE_NAME_PROPERTY, Objects::toString, () -> "");
+        return getValue(gatewayInstanceConfig, GATEWAY_INSTANCE_NAME_PROPERTY, Objects::toString).orElse("");
     }
 
     private static void fillGatewayInstanceParameters(final Dictionary<String, ?> instanceConfig,

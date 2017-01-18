@@ -78,11 +78,11 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     }
 
     String parseSeparator(final Map<String, String> parameters){
-        return getValue(parameters, SEPARATOR_PARAM, Function.identity(), () -> ";");
+        return getValue(parameters, SEPARATOR_PARAM, Function.identity()).orElse(";");
     }
 
     Duration parseSyncPeriod(final Map<String, String> parameters){
-        final long period = getValueAsInt(parameters, SYNC_PERIOD_PARAM, Integer::parseInt, () -> 5000);
+        final long period = getValueAsInt(parameters, SYNC_PERIOD_PARAM, Integer::parseInt).orElse(5000);
         return Duration.ofMillis(period);
     }
 
@@ -91,20 +91,20 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     }
 
     URL[] parseGroovyPath(final Map<String, String> parameters) {
-        final String path = getValue(parameters, GROOVY_PATH_PARAM, Function.identity(), EMPTY_STRING);
+        final String path = getValue(parameters, GROOVY_PATH_PARAM, Function.identity()).orElse("");
         return PATH_SPLITTER.splitToList(path).stream().map(p -> callUnchecked(() -> new URL(p))).toArray(URL[]::new);
     }
 
     static boolean isRateFormula(final AttributeDescriptor descriptor){
-        return getField(descriptor, FORMULA_PARAM, RATE_FORMULA_PARAM::equals, () -> false);
+        return getField(descriptor, FORMULA_PARAM, RATE_FORMULA_PARAM::equals).orElse(false);
     }
 
     static boolean isGroovyFormula(final AttributeDescriptor descriptor){
-        return getField(descriptor, FORMULA_PARAM, GROOVY_FORMULA_PARAM::equals, () -> false);
+        return getField(descriptor, FORMULA_PARAM, GROOVY_FORMULA_PARAM::equals).orElse(false);
     }
 
     static AggregationFunction<?> parseFormula(final AttributeDescriptor descriptor) throws ParseException {
-        final String formula = getField(descriptor, FORMULA_PARAM, Objects::toString, EMPTY_STRING);
+        final String formula = getField(descriptor, FORMULA_PARAM, Objects::toString).orElse("");
         if(isNullOrEmpty(formula))
             return null;
         return FunctionParser.parse(formula);

@@ -43,7 +43,7 @@ public final class LocalProcessExecutionChannel extends HashMap<String, String> 
     }
 
     int getNormalExitCode() {
-        return getValueAsInt(this, NORMAL_EXIT_CODE_PARAM, Integer::parseInt, () -> 0);
+        return getValueAsInt(this, NORMAL_EXIT_CODE_PARAM, Integer::parseInt).orElse(0);
     }
 
     void setNormalExitCode(final int value) {

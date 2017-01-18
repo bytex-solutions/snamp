@@ -85,11 +85,11 @@ final class ZipkinConnectorConfigurationDescriptionProvider extends DataStreamDr
     }
 
     URL[] parseScriptPath(final Map<String, String> parameters){
-        final String path = getValue(parameters, PARSER_SCRIPT_PATH_PARAM, Function.identity(), EMPTY_STRING);
+        final String path = getValue(parameters, PARSER_SCRIPT_PATH_PARAM, Function.identity()).orElse("");
         return SCRIPT_PATH_SPLITTER.splitToList(path).stream().map(p -> callUnchecked((() -> new URL(p)))).toArray(URL[]::new);
     }
 
     String parseScriptFile(final Map<String, String> parameters){
-        return getValue(parameters, PARSER_SCRIPT_NAME_PARAM, Function.identity(), () -> "ZipkinSpanParser.groovy");
+        return getValue(parameters, PARSER_SCRIPT_NAME_PARAM, Function.identity()).orElse("ZipkinSpanParser.groovy");
     }
 }

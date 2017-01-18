@@ -21,11 +21,21 @@ public interface FrameworkService extends Aggregator {
     String CATEGORY_PROPERTY = "category";
 
     /**
-     * Gets characteristics of this service.
-     * @return Characteristics of this service.
+     * Gets runtime configuration of this service.
+     * @return Runtime configuration of this service.
+     * @implSpec Returning map is always immutable.
      */
     @Nonnull
-    default Map<String, ?> getCharacteristics(){
+    default Map<String, ?> getRuntimeConfiguration(){
         return ImmutableMap.of();
+    }
+
+    /**
+     * Updates runtime configuration of this service.
+     * @param configuration A new runtime configuration of this service.
+     * @throws Exception Unable to update configuration.
+     */
+    default void updateConfiguration(final Map<String, ?> configuration) throws Exception{
+
     }
 }

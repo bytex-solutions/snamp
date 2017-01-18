@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.FixedKeysMap;
+import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.dsp.notifications.NotificationSource;
 import com.bytex.snamp.core.ExposedServiceHandler;
@@ -123,7 +123,7 @@ public final class AcceptorService {
 
     private static Map<String, ?> wrapHeaders(final HttpHeaders headers) {
         final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
-        return FixedKeysMap.readOnlyMap(requestHeaders::get, requestHeaders.keySet());
+        return MapUtils.readOnlyMap(requestHeaders::get, requestHeaders.keySet());
     }
 
     @GET

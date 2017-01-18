@@ -86,7 +86,7 @@ public final class RExecExecutionChannel extends HashMap<String, String> impleme
     @Override
     public <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command, final I input) throws IOException, E {
         final RExecClient client = new RExecClient();
-        client.connect(get(REMOTE_HOST_PROPERTY), getValueAsInt(this, REMOTE_PORT_PROPERTY, Integer::parseInt, () -> DEFAULT_PORT));
+        client.connect(get(REMOTE_HOST_PROPERTY), getValueAsInt(this, REMOTE_PORT_PROPERTY, Integer::parseInt).orElse(DEFAULT_PORT));
         try {
             client.rexec(get(LOCAL_USER_PROPERTY), get(PASSWORD_PROPERTY), command.renderCommand(input, this), true);
             final String result = IOUtils.readFully(client.getInputStream()).toString("UTF-8");

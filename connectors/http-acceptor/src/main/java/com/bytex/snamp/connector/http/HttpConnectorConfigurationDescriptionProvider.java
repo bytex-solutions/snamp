@@ -18,7 +18,6 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 2.0
  */
 final class HttpConnectorConfigurationDescriptionProvider extends DataStreamDrivenConnectorConfigurationDescriptionProvider {
-    private static final Supplier<String> EMPTY_STRING = () -> "";
     private static final Splitter PATH_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
     private static final String PARSER_SCRIPT_PATH_PARAM = "parserScriptPath";
     private static final String PARSER_SCRIPT_NAME_PARAM = "parserScript";
@@ -40,11 +39,11 @@ final class HttpConnectorConfigurationDescriptionProvider extends DataStreamDriv
     }
 
     URL[] parseScriptPath(final Map<String, String> parameters){
-        final String path = getValue(parameters, PARSER_SCRIPT_PATH_PARAM, Function.identity(), EMPTY_STRING);
+        final String path = getValue(parameters, PARSER_SCRIPT_PATH_PARAM, Function.identity()).orElse("");
         return PATH_SPLITTER.splitToList(path).stream().map(p -> callUnchecked((() -> new URL(p)))).toArray(URL[]::new);
     }
 
     String parseScriptFile(final Map<String, String> parameters){
-        return getValue(parameters, PARSER_SCRIPT_NAME_PARAM, Function.identity(), EMPTY_STRING);
+        return getValue(parameters, PARSER_SCRIPT_NAME_PARAM, Function.identity()).orElse("");
     }
 }

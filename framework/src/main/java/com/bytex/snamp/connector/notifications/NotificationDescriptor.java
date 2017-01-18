@@ -46,7 +46,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
 
     private static Map<String, ?> getFields(final Map<String, String> options){
         final Map<String, Object> fields = new HashMap<>(options);
-        fields.put(SEVERITY_FIELD, getValue(options, SEVERITY_PARAM, Severity::resolve, () -> Severity.UNKNOWN));
+        fields.put(SEVERITY_FIELD, getValue(options, SEVERITY_PARAM, Severity::resolve).orElse(Severity.UNKNOWN));
         return fields;
     }
 
@@ -93,11 +93,11 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public final String getDescription(final String defval){
-        return DescriptorUtils.getField(this, DESCRIPTION_FIELD, Objects::toString, () -> defval);
+        return DescriptorUtils.getField(this, DESCRIPTION_FIELD, Objects::toString).orElse(defval);
     }
 
     public static String getDescription(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString, () -> null);
+        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(null);
     }
 
     public static String getDescription(final MBeanNotificationInfo metadata){
@@ -124,7 +124,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public static OpenType<?> getUserDataType(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, USER_DATA_TYPE, value -> (OpenType<?>)value, () -> null);
+        return DescriptorUtils.getField(metadata, USER_DATA_TYPE, value -> (OpenType<?>)value).orElse(null);
     }
 
     public static OpenType<?> getUserDataType(final MBeanNotificationInfo metadata){
@@ -150,14 +150,13 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public final String getName(final String defName){
-        return DescriptorUtils.getField(this, EventConfiguration.NAME_KEY, Objects::toString, () -> defName);
+        return DescriptorUtils.getField(this, EventConfiguration.NAME_KEY, Objects::toString).orElse(defName);
     }
 
     public static String getName(final MBeanNotificationInfo metadata) {
         return DescriptorUtils.getField(metadata.getDescriptor(),
                 EventConfiguration.NAME_KEY,
-                Objects::toString,
-                () -> ArrayUtils.getFirst(metadata.getNotifTypes()));
+                Objects::toString).orElseGet(() -> ArrayUtils.getFirst(metadata.getNotifTypes()));
     }
 
     /**

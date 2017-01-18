@@ -128,13 +128,13 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
     }
 
     static boolean useRegexpOption(final Descriptor options) {
-        return getField(options, USE_REGEXP_PARAM, Convert::toBoolean, () -> false);
+        return getField(options, USE_REGEXP_PARAM, Convert::toBoolean).orElse(false);
     }
 
     static boolean checkSignature(final Descriptor options,
                                   final MBeanParameterInfo[] parameters){
         if(hasField(options, SIGNATURE_PARAM)){
-            final List<String> expectedSignature = SIGNATURE_SPLITTER.splitToList(getField(options, SIGNATURE_PARAM, Objects::toString, () -> ""));
+            final List<String> expectedSignature = SIGNATURE_SPLITTER.splitToList(getField(options, SIGNATURE_PARAM, Objects::toString).orElse(""));
             if(parameters.length == expectedSignature.size()){
                 for(int i =0; i < parameters.length; i++)
                     if(!Objects.equals(expectedSignature.get(i), parameters[i].getType()))
@@ -152,7 +152,7 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
     }
 
     int parseWatchDogPeriod(final Map<String, String> parameters){
-        return getValueAsInt(parameters, CONNECTION_CHECK_PERIOD, Integer::parseInt, () -> 3000);
+        return getValueAsInt(parameters, CONNECTION_CHECK_PERIOD, Integer::parseInt).orElse(3000);
     }
 
     ObjectName parseRootObjectName(final Map<String, String> parameters) throws MalformedObjectNameException{

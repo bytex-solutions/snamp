@@ -287,7 +287,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     private static boolean shouldUseRowStatus(final Descriptor options){
-        return parseStringField(options, USE_ROW_STATUS_PARAM, Boolean::parseBoolean, () -> false);
+        return parseStringField(options, USE_ROW_STATUS_PARAM, Boolean::parseBoolean).orElse(false);
     }
 
     private SnmpTableObject(final OID oid,
@@ -302,7 +302,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         this.setModel(tableModel);
         //save additional fields
         _connector = connector;
-        final long tableCacheTime = parseStringField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, Long::parseLong, () -> 5000L);
+        final long tableCacheTime = parseStringField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, Long::parseLong).orElse(5000L);
         cacheManager = new UpdateManager(Duration.ofMillis(tableCacheTime));
     }
 

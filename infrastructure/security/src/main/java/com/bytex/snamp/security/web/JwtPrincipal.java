@@ -126,14 +126,12 @@ final class JwtPrincipal implements Principal {
 
         //extract set of roles from JWT
         if(claims.containsKey(ROLES_FIELD))
-            roles = ImmutableSet.copyOf(ROLE_SPLITTER.split(MapUtils.getValue(claims, ROLES_FIELD, Objects::toString, () -> "")));
+            roles = ImmutableSet.copyOf(ROLE_SPLITTER.split(MapUtils.getValue(claims, ROLES_FIELD, Objects::toString).orElse("")));
         else
             throw new JWTVerifyException("Roles are not specified");
 
-        final LongSupplier ZERO = () -> 0L;
-
-        createdAt = MapUtils.getValueAsLong(claims, ISSUED_AT_FIELD, Convert::toLong, ZERO);
-        expiredAt = MapUtils.getValueAsLong(claims, EXPIRATION_FIELD, Convert::toLong, ZERO);
+        createdAt = MapUtils.getValueAsLong(claims, ISSUED_AT_FIELD, Convert::toLong).orElse(0L);
+        expiredAt = MapUtils.getValueAsLong(claims, EXPIRATION_FIELD, Convert::toLong).orElse(0L);
     }
 
     @Override

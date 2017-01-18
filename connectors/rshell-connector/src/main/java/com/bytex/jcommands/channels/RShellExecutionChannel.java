@@ -87,7 +87,7 @@ public final class RShellExecutionChannel extends HashMap<String, String> implem
     public <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command,
                                               final I input) throws IOException, E {
         final RCommandClient client = new RCommandClient();
-        client.connect(get(REMOTE_HOST_PROPERTY), getValueAsInt(this, REMOTE_PORT_PROPERTY, Integer::parseInt, () -> DEFAULT_PORT));
+        client.connect(get(REMOTE_HOST_PROPERTY), getValueAsInt(this, REMOTE_PORT_PROPERTY, Integer::parseInt).orElse(DEFAULT_PORT));
         try {
             client.rcommand(get(LOCAL_USER_PROPERTY), get(REMOTE_USER_PROPERTY), command.renderCommand(input, this), true);
             final String result = IOUtils.readFully(client.getInputStream()).toString("UTF-8");

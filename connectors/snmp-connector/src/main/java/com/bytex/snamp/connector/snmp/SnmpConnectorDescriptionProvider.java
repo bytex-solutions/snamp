@@ -103,16 +103,16 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
     }
 
     static Duration getResponseTimeout(final AttributeDescriptor attributeParams){
-        final long timeout = parseStringField(attributeParams, RESPONSE_TIMEOUT_PARAM, Long::parseLong, () -> DEFAULT_RESPONSE_TIMEOUT);
+        final long timeout = parseStringField(attributeParams, RESPONSE_TIMEOUT_PARAM, Long::parseLong).orElse(DEFAULT_RESPONSE_TIMEOUT);
         return Duration.ofMillis(timeout);
     }
 
     private static OctetString parseEngineID(final Map<String, String> parameters) {
-        return getValue(parameters, ENGINE_ID_PARAM, OctetString::fromHexString, () -> new OctetString(MPv3.createLocalEngineID()));
+        return getValue(parameters, ENGINE_ID_PARAM, OctetString::fromHexString).orElseGet(() -> new OctetString(MPv3.createLocalEngineID()));
     }
 
     private static OctetString parseCommunity(final Map<String, String> parameters){
-        return getValue(parameters, COMMUNITY_PARAM, OctetString::new, () -> new OctetString("public"));
+        return getValue(parameters, COMMUNITY_PARAM, OctetString::new).orElseGet(() -> new OctetString("public"));
     }
 
     private static OID getAuthenticationProtocol(final String authProtocol){
@@ -149,14 +149,14 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
         final OctetString engineID = parseEngineID(parameters);
         final OctetString community = parseCommunity(parameters);
         final ExecutorService threadPool = parseThreadPool(parameters);
-        final OctetString userName = getValue(parameters, USER_NAME_PARAM, OctetString::new, () -> null);
-        final OID authProtocol = getValue(parameters, AUTH_PROTOCOL_PARAM, SnmpConnectorDescriptionProvider::getAuthenticationProtocol, () -> null);
-        final OctetString password = getValue(parameters, PASSWORD_PARAM, OctetString::new, () -> null);
-        final OID encryptionProtocol = getValue(parameters, ENCRYPTION_PROTOCOL_PARAM, SnmpConnectorDescriptionProvider::getEncryptionProtocol, () -> null);
-        final OctetString encryptionKey = getValue(parameters, ENCRYPTION_KEY_PARAM, OctetString::new, () -> null);
-        final Address localAddress = getValue(parameters, LOCAL_ADDRESS_PARAM, GenericAddress::parse, () -> null);
-        final OctetString securityContext = getValue(parameters, SECURITY_CONTEXT_PARAM, OctetString::new, () -> null);
-        final int socketTimeout = getValueAsInt(parameters, SOCKET_TIMEOUT_PARAM, Integer::parseInt, () -> DEFAULT_SOCKET_TIMEOUT);
+        final OctetString userName = getValue(parameters, USER_NAME_PARAM, OctetString::new).orElse(null);
+        final OID authProtocol = getValue(parameters, AUTH_PROTOCOL_PARAM, SnmpConnectorDescriptionProvider::getAuthenticationProtocol).orElse(null);
+        final OctetString password = getValue(parameters, PASSWORD_PARAM, OctetString::new).orElse(null);
+        final OID encryptionProtocol = getValue(parameters, ENCRYPTION_PROTOCOL_PARAM, SnmpConnectorDescriptionProvider::getEncryptionProtocol).orElse(null);
+        final OctetString encryptionKey = getValue(parameters, ENCRYPTION_KEY_PARAM, OctetString::new).orElse(null);
+        final Address localAddress = getValue(parameters, LOCAL_ADDRESS_PARAM, GenericAddress::parse).orElse(null);
+        final OctetString securityContext = getValue(parameters, SECURITY_CONTEXT_PARAM, OctetString::new).orElse(null);
+        final int socketTimeout = getValueAsInt(parameters, SOCKET_TIMEOUT_PARAM, Integer::parseInt).orElse(DEFAULT_SOCKET_TIMEOUT);
 
         return userName == null ?
                 SnmpClient.create(connectionAddress, community, localAddress, socketTimeout, threadPool):

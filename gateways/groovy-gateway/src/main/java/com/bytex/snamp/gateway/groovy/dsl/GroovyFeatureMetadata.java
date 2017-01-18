@@ -25,7 +25,7 @@ class GroovyFeatureMetadata<F extends MBeanFeatureInfo> extends GroovyObjectSupp
 
     @Override
     public final Object getProperty(final String property) {
-        return getField(metadata.getDescriptor(), property, Function.identity(), () -> InvokerHelper.getProperty(metadata, property));
+        return getField(metadata.getDescriptor(), property, Function.identity()).orElseGet(() -> InvokerHelper.getProperty(metadata, property));
     }
 
     @Override

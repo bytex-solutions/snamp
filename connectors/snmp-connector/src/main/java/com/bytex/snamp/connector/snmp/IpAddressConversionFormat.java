@@ -52,7 +52,7 @@ enum IpAddressConversionFormat implements SnmpObjectConverter<IpAddress> {
     }
 
     static IpAddressConversionFormat getFormat(final Descriptor options){
-        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, IpAddressConversionFormat::getFormat, () -> BYTE_ARRAY);
+        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, IpAddressConversionFormat::getFormat).orElse(BYTE_ARRAY);
     }
 
     static IpAddressConversionFormat getFormat(final String formatName){

@@ -13,6 +13,7 @@ import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.jmx.JMExceptionUtils;
+import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
 import javax.management.*;
@@ -39,17 +40,26 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  */
 public abstract class AbstractManagedResourceConnector extends AbstractAggregator implements ManagedResourceConnector, Localizable {
     private final LazySoftReference<MetricsSupport> metrics;
-    private final Map<String, Object> characteristics;
+    private ImmutableMap<String, String> configuration;
 
     protected AbstractManagedResourceConnector() {
         metrics = new LazySoftReference<>();
-        characteristics = new HashMap<>();
+        configuration = ImmutableMap.of();
+    }
+
+    protected AbstractManagedResourceConnector(final Map<String, String> configuration) {
+        metrics = new LazySoftReference<>();
+        setConfiguration(configuration);
+    }
+
+    protected final void setConfiguration(final Map<String, String> configuration){
+        this.configuration = ImmutableMap.copyOf(configuration);
     }
 
     @Nonnull
     @Override
-    public final Map<String, Object> getCharacteristics() {
-        return characteristics;
+    public final ImmutableMap<String, String> getRuntimeConfiguration() {
+        return configuration;
     }
 
     /**
@@ -75,7 +85,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
     public void close() throws Exception {
         //change state of the connector
         metrics.reset();
-        characteristics.clear();
+        configuration.clear();
         clearCache();
     }
 
@@ -277,14 +287,12 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      * <p>
      *     In the default implementation this method always throws
      *     {@link UnsupportedUpdateOperationException}.
-     * @param connectionString     A new connection string.
      * @param connectionParameters A new connection parameters.
-     * @throws Exception Internal connector non-recoverable error.                                                                                 Unable to update managed resource connector.
-     * @throws UnsupportedUpdateOperationException This operation is not supported
-     *                                                                                                   by this resource connector.
+     * @throws Exception Unable to update managed resource connector.
+     * @throws UnsupportedUpdateOperationException This operation is not supported by this resource connector.
      */
     @Override
-    public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
+    public void updateConfiguration(final Map<String, ?> connectionParameters) throws Exception {
         throw new UnsupportedUpdateOperationException("Update operation is not supported");
     }
 }

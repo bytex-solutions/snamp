@@ -83,18 +83,18 @@ final class NRDPGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     NRDPServerConnectionSettings parseSettings(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {
-        final String serverURL = getIfPresent(parameters, NRDP_SERVER_URL_PARAM, Function.identity(), AbsentNRDPConfigurationParameterException::new);
-        final int connectionTimeout = getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt, () -> 4000);
-        final String token = getIfPresent(parameters, TOKEN_PARAM, Function.identity(), AbsentNRDPConfigurationParameterException::new);
+        final String serverURL = getValue(parameters, NRDP_SERVER_URL_PARAM, Function.identity()).orElseThrow(() -> new AbsentNRDPConfigurationParameterException(NRDP_SERVER_URL_PARAM));
+        final int connectionTimeout = getValueAsInt(parameters, CONNECTION_TIMEOUT_PARAM, Integer::parseInt).orElse(4000);
+        final String token = getValue(parameters, TOKEN_PARAM, Function.identity()).orElseThrow(() -> new AbsentNRDPConfigurationParameterException(TOKEN_PARAM));
         return new NRDPServerConnectionSettings(serverURL, token, connectionTimeout);
     }
 
     static String getServiceName(final Descriptor descriptor, final String defaultService){
-        return getField(descriptor, SERVICE_NAME_PARAM, Objects::toString, () -> defaultService);
+        return getField(descriptor, SERVICE_NAME_PARAM, Objects::toString).orElse(defaultService);
     }
 
     Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
-        final long period = getValueAsLong(parameters, PASSIVE_CHECK_SEND_PERIOD_PARAM, Long::parseLong, () -> 1000L);
+        final long period = getValueAsLong(parameters, PASSIVE_CHECK_SEND_PERIOD_PARAM, Long::parseLong).orElse(1000L);
         return Duration.ofMillis(period);
     }
 

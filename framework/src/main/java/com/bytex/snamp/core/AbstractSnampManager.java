@@ -38,7 +38,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
 
         private long getBundleID(){
-            return getValueAsLong(this, BUNDLE_ID_PROPERTY, Long::parseLong, () -> 0L);
+            return getValueAsLong(this, BUNDLE_ID_PROPERTY, Long::parseLong).orElse(0L);
         }
 
         private BundleContext getItselfContext() {

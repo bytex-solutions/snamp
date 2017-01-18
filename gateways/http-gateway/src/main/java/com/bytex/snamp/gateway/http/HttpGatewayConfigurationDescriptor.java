@@ -35,6 +35,6 @@ final class HttpGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     static String parseDateFormatParam(final Descriptor descr){
-        return getField(descr, DATE_FORMAT_PARAM, Objects::toString, () -> null);
+        return getField(descr, DATE_FORMAT_PARAM, Objects::toString).orElse(null);
     }
 }

@@ -41,7 +41,7 @@ public interface ManagedResourceDescriptionProvider extends ConfigurationEntityD
      * @see #DEFAULT_SMART_MODE_VALUE
      */
     default boolean isSmartModeEnabled(final Map<String, String> parameters) {
-        return getValue(parameters, SMART_MODE_KEY, Boolean::parseBoolean, () -> DEFAULT_SMART_MODE_VALUE);
+        return getValue(parameters, SMART_MODE_KEY, Boolean::parseBoolean).orElse(DEFAULT_SMART_MODE_VALUE);
     }
 
     /**
@@ -50,7 +50,7 @@ public interface ManagedResourceDescriptionProvider extends ConfigurationEntityD
      * @return Thread pool specified in configuration parameters; or {@literal null} if {@link ThreadPoolRepository} service was not registered.
      */
     default ExecutorService parseThreadPool(final Map<String, String> parameters) {
-        final String poolName = getValue(parameters, THREAD_POOL_KEY, Function.identity(), () -> DEFAULT_THREAD_POOL_VALUE);
+        final String poolName = getValue(parameters, THREAD_POOL_KEY, Function.identity()).orElse(DEFAULT_THREAD_POOL_VALUE);
         return ThreadPoolRepository.getThreadPool(Utils.getBundleContextOfObject(this), poolName, true);
     }
 }
