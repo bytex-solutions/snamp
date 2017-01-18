@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableMap;
 import javax.annotation.Nonnull;
 import javax.management.*;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -85,7 +84,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
     public void close() throws Exception {
         //change state of the connector
         metrics.reset();
-        configuration.clear();
+        configuration = null;
         clearCache();
     }
 

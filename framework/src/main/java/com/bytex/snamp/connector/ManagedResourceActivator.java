@@ -1,7 +1,9 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.*;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -23,11 +25,11 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 
-import javax.annotation.Nonnull;
-import javax.management.*;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 import java.util.function.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,154 +76,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                    final String connectionString,
                                    final Map<String, String> connectionParameters,
                                    final DependencyManager dependencies) throws Exception;
-
-        /**
-         * Updates the resource connector with a new configuration.
-         * @param connector The instance of the connector to update.
-         * @param resourceName The name of the managed resource.
-         * @param connectionString A new managed resource connection string.
-         * @param connectionParameters A new connection parameters.
-         * @param dependencies A collection of connector dependencies.
-         * @return An updated resource connector.
-         * @throws Exception Unable to update managed resource connector.
-         */
-        default TConnector updateConnector(TConnector connector,
-                                   final String resourceName,
-                                   final String connectionString,
-                                   final Map<String, String> connectionParameters,
-                                   final DependencyManager dependencies) throws Exception{
-            //trying to update resource connector on-the-fly
-            try {
-                connector.update(connectionString, connectionParameters);
-            }
-            catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored){
-                //Update operation is not supported -> force recreation
-                connector.close();
-                connector = createConnector(resourceName,
-                        connectionString,
-                        connectionParameters,
-                        dependencies);
-            }
-            return connector;
-        }
-    }
-
-    /**
-     * Represents proxy for {@link ManagedResourceConnector} used in composition of connectors.
-     * This class cannot be inherited.
-     * @author Roman Sakno
-     * @version 2.0
-     * @since 2.0
-     */
-    private static final class ManagedResourceConnectorProxy<TConnector extends ManagedResourceConnector> extends ThreadSafeObject implements ManagedResourceConnector {
-        @FunctionalInterface
-        private interface ManagedResourceConnectorUpdater<TConnector extends ManagedResourceConnector>{
-            TConnector update(final TConnector connector,
-                              final String connectionString,
-                              final Map<String, String> parameters) throws Exception;
-        }
-
-        private TConnector connector;
-        private final ManagedResourceConnectorUpdater<TConnector> updater;
-
-        ManagedResourceConnectorProxy(final ManagedResourceConnectorFactory<TConnector> factory,
-                                      final String resourceName,
-                                      final String connectionString,
-                                      final Map<String, String> parameters,
-                                      final DependencyManager dependencies) throws Exception {
-            super(SingleResourceGroup.class);
-            this.connector = factory.createConnector(resourceName, connectionString, parameters, dependencies);
-            this.updater = (connector, cstr, params) -> factory.updateConnector(connector, resourceName, cstr, params, dependencies);
-        }
-
-        @Override
-        public <T> T queryObject(@Nonnull final Class<T> objectType) {
-            return readLock.apply(SingleResourceGroup.INSTANCE, this, objectType, (t, o) -> t.connector.queryObject(o));
-        }
-
-        @Override
-        public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
-            try(final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
-                connector = updater.update(connector, connectionString, connectionParameters);
-            }
-        }
-
-        @Override
-        public void addResourceEventListener(final ResourceEventListener listener) {
-            readLock.accept(SingleResourceGroup.INSTANCE, this, listener, (t, l) -> t.connector.addResourceEventListener(l));
-        }
-
-        @Override
-        public void removeResourceEventListener(final ResourceEventListener listener) {
-            readLock.accept(SingleResourceGroup.INSTANCE, this, listener, (t, l) -> t.connector.removeResourceEventListener(l));
-        }
-
-        @Nonnull
-        @Override
-        public Map<String, String> getRuntimeConfiguration() {
-            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.getRuntimeConfiguration());
-        }
-
-        @Override
-        public boolean canExpand(final Class<? extends MBeanFeatureInfo> featureType) {
-            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.canExpand(featureType));
-        }
-
-        @Override
-        public Collection<? extends MBeanFeatureInfo> expandAll() {
-            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.expandAll());
-        }
-
-        @Override
-        public void close() throws Exception {
-            try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
-                connector.close();
-            } finally {
-                connector = null;
-            }
-        }
-
-        @Override
-        public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
-            try(final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
-                return connector.getAttribute(attribute);
-            } catch (final InterruptedException | TimeoutException e) {
-                throw new ReflectionException(e);
-            }
-        }
-
-        @Override
-        public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-            try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
-                connector.setAttribute(attribute);
-            } catch (final InterruptedException | TimeoutException e) {
-                throw new ReflectionException(e);
-            }
-        }
-
-        @Override
-        public AttributeList getAttributes(final String[] attributes) {
-            return readLock.apply(SingleResourceGroup.INSTANCE, this, attributes, (t, a) -> t.connector.getAttributes(a));
-        }
-
-        @Override
-        public AttributeList setAttributes(final AttributeList attributes) {
-            return readLock.apply(SingleResourceGroup.INSTANCE, this, attributes, (t, a) -> t.connector.setAttributes(a));
-        }
-
-        @Override
-        public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
-            try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
-                return connector.invoke(actionName, params, signature);
-            } catch (final InterruptedException | TimeoutException e) {
-                throw new ReflectionException(e);
-            }
-        }
-
-        @Override
-        public MBeanInfo getMBeanInfo() {
-            return readLock.apply(SingleResourceGroup.INSTANCE, this, t -> t.connector.getMBeanInfo());
-        }
     }
 
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
@@ -335,16 +189,22 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private TConnector update(TConnector connector,
                                   final String resourceName,
-                                  final ManagedResourceConfiguration newConfig) throws Exception{
+                                  final ManagedResourceConfiguration newConfig) throws Exception {
             final Predicate<? super ManagedResourceConfiguration> oldConfig = loadedConfigurations.get(resourceName);
             //we should not update resource connector if connection parameters was not changed
-            if(!oldConfig.test(newConfig)){
+            if (!oldConfig.test(newConfig)) {
                 loadedConfigurations.put(resourceName, newConfig::equals);
-                connector = controller.updateConnector(connector,
-                        resourceName,
-                        newConfig.getConnectionString(),
-                        newConfig.getParameters(),
-                        getDependencies());
+                //trying to update resource connector on-the-fly
+                try {
+                    connector.update(newConfig.getConnectionString(), newConfig.getParameters());
+                } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored) {
+                    //Update operation is not supported -> force recreation
+                    connector.close();
+                    connector = controller.createConnector(resourceName,
+                            newConfig.getConnectionString(),
+                            newConfig.getParameters(),
+                            getDependencies());
+                }
             }
             //but we should always update resource features
             updateFeatures(connector, newConfig);
@@ -463,11 +323,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         @Override
-        public ManagedResourceConnectorProxy<TConnector> createConnector(final Map<String, ?> parameters) throws Exception {
+        public TConnector createConnector(final Map<String, ?> parameters) throws Exception {
             final String connectionString = getValue(parameters, CONNECTION_STRING, Objects::toString).orElseThrow(InstantiationException::new);
             final String resourceName = getValue(parameters, RESOURCE_NAME, Objects::toString).orElseThrow(InstantiationException::new);
+            @SuppressWarnings("unchecked")
             final Map<String, String> connectionParams = getValue(parameters, CONNECTION_PARAMS, value -> (Map<String, String>) value).orElseGet(Collections::emptyMap);
-            return new ManagedResourceConnectorProxy<>(connectorFactory, resourceName, connectionString, connectionParams, dependencies);
+            return connectorFactory.createConnector(resourceName, connectionString, connectionParams, dependencies);
         }
     }
 
