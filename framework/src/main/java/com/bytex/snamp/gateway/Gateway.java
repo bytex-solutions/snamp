@@ -93,7 +93,7 @@ public interface Gateway extends FrameworkService, ServiceListener, Closeable {
 
     @Nonnull
     @Override
-    Map<String, Object> getRuntimeConfiguration();
+    Map<String, Object> getConfiguration();
 
     /**
      * Gets name of this instance.

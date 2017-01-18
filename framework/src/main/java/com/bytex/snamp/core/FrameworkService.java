@@ -26,7 +26,7 @@ public interface FrameworkService extends Aggregator {
      * @implSpec Returning map is always immutable.
      */
     @Nonnull
-    default Map<String, ?> getRuntimeConfiguration(){
+    default Map<String, ?> getConfiguration(){
         return ImmutableMap.of();
     }
 
@@ -35,7 +35,7 @@ public interface FrameworkService extends Aggregator {
      * @param configuration A new runtime configuration of this service.
      * @throws Exception Unable to update configuration.
      */
-    default void updateConfiguration(final Map<String, ?> configuration) throws Exception{
+    default void setConfiguration(final Map<String, ?> configuration) throws Exception{
 
     }
 }

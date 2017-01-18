@@ -48,16 +48,12 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
 
     protected AbstractManagedResourceConnector(final Map<String, String> configuration) {
         metrics = new LazySoftReference<>();
-        setConfiguration(configuration);
-    }
-
-    protected final void setConfiguration(final Map<String, String> configuration){
         this.configuration = ImmutableMap.copyOf(configuration);
     }
 
     @Nonnull
     @Override
-    public final ImmutableMap<String, String> getRuntimeConfiguration() {
+    public final ImmutableMap<String, String> getConfiguration() {
         return configuration;
     }
 
@@ -291,7 +287,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      * @throws UnsupportedUpdateOperationException This operation is not supported by this resource connector.
      */
     @Override
-    public void updateConfiguration(final Map<String, ?> connectionParameters) throws Exception {
+    public void setConfiguration(final Map<String, ?> connectionParameters) throws Exception {
         throw new UnsupportedUpdateOperationException("Update operation is not supported");
     }
 }

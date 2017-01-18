@@ -18,7 +18,6 @@ import javax.management.JMException;
 import javax.management.openmbean.InvalidKeyException;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
@@ -32,7 +31,7 @@ import java.util.logging.Logger;
  * @version 2.0.0
  * @since 1.0
  */
-public final class GridMember extends DatabaseNode implements ClusterMember, AutoCloseable {
+public final class GridMember implements ClusterMember, AutoCloseable {
 
     private static final class LeaderElectionThread extends Thread implements AutoCloseable {
         private final ILock masterLock;
@@ -119,12 +118,13 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
     }
 
     private final HazelcastInstance hazelcast;
+    private final DatabaseNode databaseHost;
     private volatile LeaderElectionThread electionThread;
     private final boolean shutdownHazelcast;
     private final LoadingCache<GridServiceKey<?>, GridSharedObject> sharedObjects;
 
     private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdownHazelcast) throws ReflectiveOperationException, JAXBException, IOException, JMException {
-        super(hazelcastInstance);
+        databaseHost = new DatabaseNode(hazelcastInstance);
         this.electionThread = new LeaderElectionThread(hazelcastInstance);
         this.hazelcast = hazelcastInstance;
         this.shutdownHazelcast = shutdownHazelcast;
@@ -144,11 +144,9 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
         return LoggerProvider.getLoggerForObject(this);
     }
 
-    @Override
-    public GridMember startupFromConfiguration() throws InvocationTargetException, NoSuchMethodException, IOException {
-        super.startupFromConfiguration();
+    public void start() throws ReflectiveOperationException, IOException {
+        databaseHost.startupFromConfiguration().activate();
         electionThread.start();
-        return this;
     }
 
     /**
@@ -211,7 +209,7 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
         else if (key.represents(KV_STORAGE))
             return new HazelcastKeyValueStorage(hazelcast, key.serviceName);
         else if (key.represents(PERSISTENT_KV_STORAGE))
-            return new OrientKeyValueStorage(getSnampDatabase(), key.serviceName, forceCreate);
+            return new OrientKeyValueStorage(databaseHost.getSnampDatabase(), key.serviceName, forceCreate);
         else {
             getLogger().warning(() -> String.format("Requested service %s is not supported", key));
             throw new InvalidKeyException(String.format("Service %s is not supported", key));
@@ -297,7 +295,7 @@ public final class GridMember extends DatabaseNode implements ClusterMember, Aut
     public void close() throws InterruptedException {
         final String instanceName = getName();
         getLogger().info(() -> String.format("GridMember service %s is closing. Shutdown Hazelcast? %s", instanceName, shutdownHazelcast ? "yes" : "no"));
-        shutdown();
+        databaseHost.shutdown();
         try {
             electionThread.close();
         } finally {

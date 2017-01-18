@@ -216,7 +216,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
 
     @Nonnull
     @Override
-    public final Map<String, Object> getRuntimeConfiguration() {
+    public final Map<String, Object> getConfiguration() {
         return ImmutableMap.of();
     }
 

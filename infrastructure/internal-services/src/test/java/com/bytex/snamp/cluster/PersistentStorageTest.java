@@ -32,7 +32,7 @@ public final class PersistentStorageTest extends Assert {
     @Before
     public void setupHazelcastNodes() throws Exception {
         instance1 = new GridMember();
-        instance1.startupFromConfiguration().activate();
+        instance1.start();
     }
 
     @After

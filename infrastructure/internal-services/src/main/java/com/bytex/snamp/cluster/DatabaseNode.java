@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -30,10 +29,13 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-class DatabaseNode extends OServer {
+final class DatabaseNode extends OServer {
     private static final String SNAMP_DATABASE = "snamp_storage";
 
-    public static final File ORIENTDB_HOME = interfaceStaticInitialize(() -> {
+    static {
+        //fix performance issues with default hash security provider
+        OGlobalConfiguration.SECURITY_USER_PASSWORD_SALT_ITERATIONS.setValue(1024);
+        //setup database home directory
         final String KARAF_DATA_DIR = "karaf.data";
         final File databaseHome;
         if (System.getProperties().containsKey(Orient.ORIENTDB_HOME))
@@ -41,17 +43,16 @@ class DatabaseNode extends OServer {
         else if (System.getProperties().containsKey(KARAF_DATA_DIR))
             databaseHome = Paths.get(System.getProperty(KARAF_DATA_DIR), "snamp").toFile();
         else
-            databaseHome = Files.createTempDirectory("orientdb").toFile();
+            try {
+                databaseHome = Files.createTempDirectory("orientdb").toFile();
+            } catch (final IOException e) {
+                throw new ExceptionInInitializerError(e);
+            }
         if (!databaseHome.exists()) {
             final boolean created = databaseHome.mkdir();
             assert created;
         }
         System.setProperty(Orient.ORIENTDB_HOME, databaseHome.getAbsolutePath());
-        return databaseHome;
-    });
-
-    static {
-        OGlobalConfiguration.SECURITY_USER_PASSWORD_SALT_ITERATIONS.setValue(1024); //fix performance issues with default hash security provider
     }
 
     private final File databaseConfigFile;
@@ -64,7 +65,7 @@ class DatabaseNode extends OServer {
         distributedManager = new OrientDistributedEnvironment(hazelcast);
     }
 
-    final ODatabaseDocumentTx getSnampDatabase(){
+    ODatabaseDocumentTx getSnampDatabase(){
         return snampDatabase;
     }
 

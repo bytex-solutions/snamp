@@ -10,7 +10,6 @@ import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.security.web.impl.SecurityServlet;
 import com.hazelcast.core.HazelcastInstance;
-import com.orientechnologies.orient.core.Orient;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ManagedService;
@@ -53,9 +52,8 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         @Override
         protected GridMember activateService(final Map<String, Object> identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
             final HazelcastInstance hazelcast = getDependencies().getDependency(HazelcastInstance.class);
-            identity.put(Orient.ORIENTDB_HOME, GridMember.ORIENTDB_HOME.getAbsolutePath());
             final GridMember member = new GridMember(hazelcast);
-            member.startupFromConfiguration().activate();
+            member.start();
             return member;
         }
 
