@@ -27,9 +27,9 @@ final class JmxDiscoveryService extends AbstractDiscoveryService<JMXConnector>{
             for (final MBeanAttributeInfo attr : connection.getMBeanInfo(objectName).getAttributes()) {
                 final AttributeConfiguration config = ConfigurationManager.createEntityConfiguration(context, AttributeConfiguration.class);
                 if(config != null) {
-                    config.getParameters().put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName());
+                    config.put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName());
                     config.setAlternativeName(attr.getName());
-                    config.getParameters().put("description", attr.getDescription());
+                    config.setDescription(attr.getDescription());
                     result.add(config);
                 }
             }
@@ -44,8 +44,8 @@ final class JmxDiscoveryService extends AbstractDiscoveryService<JMXConnector>{
                     final EventConfiguration config = ConfigurationManager.createEntityConfiguration(context, EventConfiguration.class);
                     if(config != null) {
                         config.setAlternativeName(category);
-                        config.getParameters().put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName());
-                        config.getParameters().put("description", notif.getDescription());
+                        config.put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName());
+                        config.setDescription(notif.getDescription());
                         result.add(config);
                     }
                 }

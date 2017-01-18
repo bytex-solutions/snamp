@@ -324,28 +324,28 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         gateways.addAndConsume("test-snmp", snmpGateway -> {
             snmpGateway.setType(GATEWAY_NAME);
-            snmpGateway.getParameters().put("port", SNMP_PORT);
-            snmpGateway.getParameters().put("host", SNMP_HOST);
-            snmpGateway.getParameters().put("socketTimeout", "5000");
-            snmpGateway.getParameters().put("engineID", ENGINE_ID);
-            snmpGateway.getParameters().put("context", "1.1");
-            snmpGateway.getParameters().put("snmpv3-groups", "group1; group2");
+            snmpGateway.put("port", SNMP_PORT);
+            snmpGateway.put("host", SNMP_HOST);
+            snmpGateway.put("socketTimeout", "5000");
+            snmpGateway.put("engineID", ENGINE_ID);
+            snmpGateway.put("context", "1.1");
+            snmpGateway.put("snmpv3-groups", "group1; group2");
             //group1 setup
-            snmpGateway.getParameters().put("group1-security-level", "authPriv");
-            snmpGateway.getParameters().put("group1-access-rights", "read; write; notify");
-            snmpGateway.getParameters().put("group1-users", USER_NAME);
-            snmpGateway.getParameters().put(USER_NAME + "-password", PASSWORD);
-            snmpGateway.getParameters().put(USER_NAME + "-auth-protocol", "sha");
-            snmpGateway.getParameters().put(USER_NAME + "-privacy-key", PRIVACY_KEY);
+            snmpGateway.put("group1-security-level", "authPriv");
+            snmpGateway.put("group1-access-rights", "read; write; notify");
+            snmpGateway.put("group1-users", USER_NAME);
+            snmpGateway.put(USER_NAME + "-password", PASSWORD);
+            snmpGateway.put(USER_NAME + "-auth-protocol", "sha");
+            snmpGateway.put(USER_NAME + "-privacy-key", PRIVACY_KEY);
             // Oracle JRE does not support 256 by default, so for test compatibility the key in use has been changed to 128.
             // FYI: it DOES work with any other JRE, and either works with necessary Oracle JRE modules
-            snmpGateway.getParameters().put(USER_NAME + "-privacy-protocol", "AES128");
+            snmpGateway.put(USER_NAME + "-privacy-protocol", "AES128");
             //group2 setup
-            snmpGateway.getParameters().put("group2-security-level", "authNoPriv");
-            snmpGateway.getParameters().put("group2-access-rights", "read");
-            snmpGateway.getParameters().put("group2-users", "testuser2");
-            snmpGateway.getParameters().put("testuser2-password", PASSWORD);
-            snmpGateway.getParameters().put("testuser2-auth-protocol", "sha");
+            snmpGateway.put("group2-security-level", "authNoPriv");
+            snmpGateway.put("group2-access-rights", "read");
+            snmpGateway.put("group2-users", "testuser2");
+            snmpGateway.put("testuser2-password", PASSWORD);
+            snmpGateway.put("testuser2-auth-protocol", "sha");
         });
     }
 
@@ -353,79 +353,79 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("19.1");
         event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
-        event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", BEAN_NAME);
-        event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
-        event.getParameters().put("receiverName", "test-receiver-1");
-        event.getParameters().put("oid", "1.1.19.1");
+        event.put("severity", "notice");
+        event.put("objectName", BEAN_NAME);
+        event.put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
+        event.put("receiverName", "test-receiver-1");
+        event.put("oid", "1.1.19.1");
 
         event = events.getOrAdd("20.1");
         event.setAlternativeName("com.bytex.snamp.connector.tests.impl.testnotif");
-        event.getParameters().put("severity", "panic");
-        event.getParameters().put("objectName", BEAN_NAME);
-        event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
-        event.getParameters().put("receiverName", "test-receiver-2");
-        event.getParameters().put("oid", "1.1.20.1");
+        event.put("severity", "panic");
+        event.put("objectName", BEAN_NAME);
+        event.put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
+        event.put("receiverName", "test-receiver-2");
+        event.put("oid", "1.1.20.1");
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAlternativeName("string");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.1.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.1.0");
 
         attribute = attributes.getOrAdd("2.0");
         attribute.setAlternativeName("boolean");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.2.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.2.0");
 
         attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.3.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.3.0");
 
         attribute = attributes.getOrAdd("4.0");
         attribute.setAlternativeName("bigint");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.4.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.4.0");
 
         attribute = attributes.getOrAdd("5.1");
         attribute.setAlternativeName("array");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.5.1");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.5.1");
 
         attribute = attributes.getOrAdd("6.1");
         attribute.setAlternativeName("dictionary");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.6.1");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.6.1");
 
         attribute = attributes.getOrAdd("7.1");
         attribute.setAlternativeName("table");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.7.1");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.7.1");
 
         attribute = attributes.getOrAdd("8.0");
         attribute.setAlternativeName("float");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.8.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.8.0");
 
         attribute = attributes.getOrAdd("9.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        attribute.getParameters().put("oid", "1.1.9.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        attribute.put("oid", "1.1.9.0");
 
         attribute = attributes.getOrAdd("10.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
-        attribute.getParameters().put("oid", "1.1.10.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("displayFormat", "rfc1903-human-readable");
+        attribute.put("oid", "1.1.10.0");
 
         attribute = attributes.getOrAdd("11.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("displayFormat", "rfc1903");
-        attribute.getParameters().put("oid", "1.1.11.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("displayFormat", "rfc1903");
+        attribute.put("oid", "1.1.11.0");
     }
 }

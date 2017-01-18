@@ -14,7 +14,7 @@ import java.time.Duration;
  * @since 2.0
  */
 @JsonTypeName("operation")
-public final class OperationDataObject extends AbstractFeatureDataObject<OperationConfiguration> implements OperationConfiguration {
+public final class OperationDataObject extends AbstractFeatureDataObject<OperationConfiguration> {
     private Duration duration;
 
     @SpecialUse
@@ -31,13 +31,11 @@ public final class OperationDataObject extends AbstractFeatureDataObject<Operati
         entity.setInvocationTimeout(duration);
     }
 
-    @Override
     public Duration getInvocationTimeout() {
         return duration;
     }
 
-    @Override
-    public void setInvocationTimeout(Duration value) {
+    public void setInvocationTimeout(final Duration value) {
         duration = value;
     }
 }

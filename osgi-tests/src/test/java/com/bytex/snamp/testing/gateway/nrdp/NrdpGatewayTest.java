@@ -111,9 +111,9 @@ public final class NrdpGatewayTest extends AbstractJmxConnectorTest<TestOpenMBea
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         final GatewayConfiguration nrdpGateway = gateways.getOrAdd(INSTANCE_NAME);
         nrdpGateway.setType(GATEWAY_NAME);
-        nrdpGateway.getParameters().put("serverURL", "http://localhost:" + PORT + "/context");
-        nrdpGateway.getParameters().put("token", "ri2yu2tfkfkhewfh");
-        nrdpGateway.getParameters().put("passiveCheckSendPeriod", "1000");
+        nrdpGateway.put("serverURL", "http://localhost:" + PORT + "/context");
+        nrdpGateway.put("token", "ri2yu2tfkfkhewfh");
+        nrdpGateway.put("passiveCheckSendPeriod", "1000");
     }
 
     @Override
@@ -154,10 +154,10 @@ public final class NrdpGatewayTest extends AbstractJmxConnectorTest<TestOpenMBea
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("serviceName", "memory");
-        attribute.getParameters().put(DescriptorUtils.MAX_VALUE_FIELD, "100");
-        attribute.getParameters().put(DescriptorUtils.MIN_VALUE_FIELD, "0");
-        attribute.getParameters().put(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, "MB");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("serviceName", "memory");
+        attribute.put(DescriptorUtils.MAX_VALUE_FIELD, "100");
+        attribute.put(DescriptorUtils.MIN_VALUE_FIELD, "0");
+        attribute.put(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, "MB");
     }
 }

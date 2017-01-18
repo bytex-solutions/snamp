@@ -10,7 +10,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * @version 2.0
  * @since 2.0
  */
-public abstract class AbstractTypedDataObject<E extends TypedEntityConfiguration> extends AbstractDataObject<E> implements TypedEntityConfiguration {
+public abstract class AbstractTypedDataObject<E extends TypedEntityConfiguration> extends AbstractDataObject<E> {
     private String type;
 
     AbstractTypedDataObject() {}
@@ -31,7 +31,6 @@ public abstract class AbstractTypedDataObject<E extends TypedEntityConfiguration
      * @return Type of the entity.
      */
     @JsonProperty
-    @Override
     public final String getType() {
         return type;
     }

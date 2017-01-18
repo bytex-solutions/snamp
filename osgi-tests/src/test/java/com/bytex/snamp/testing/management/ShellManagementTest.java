@@ -109,14 +109,14 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
         processConfiguration(config -> {
             assertTrue(config.getEntities(GatewayConfiguration.class).containsKey("instance2"));
             assertEquals("dummy", config.getEntities(GatewayConfiguration.class).get("instance2").getType());
-            assertEquals("v", config.getEntities(GatewayConfiguration.class).get("instance2").getParameters().get("k"));
+            assertEquals("v", config.getEntities(GatewayConfiguration.class).get("instance2").get("k"));
             return false;
         });
         runCommand("snamp:delete-gateway-param instance2 k");
         Thread.sleep(500);
         processConfiguration(config -> {
             assertTrue(config.getEntities(GatewayConfiguration.class).containsKey("instance2"));
-            assertFalse(config.getEntities(GatewayConfiguration.class).get("instance2").getParameters().containsKey("k"));
+            assertFalse(config.getEntities(GatewayConfiguration.class).get("instance2").containsKey("k"));
             return false;
         });
         runCommand("snamp:delete-gateway instance2");
@@ -154,7 +154,7 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
             assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
             assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getType());
             assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
-            assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
+            assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").get("k"));
             return false;
         });
 
@@ -163,7 +163,7 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
         Thread.sleep(500);
         processConfiguration(config -> {
             assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
-            assertFalse(config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().containsKey("k"));
+            assertFalse(config.getEntities(ManagedResourceConfiguration.class).get("resource2").containsKey("k"));
             return false;
         });
         //remove resource
@@ -184,7 +184,7 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
             assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
             assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getType());
             assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
-            assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
+            assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").get("k"));
             return false;
         });
         //register attribute
@@ -197,8 +197,8 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
                     .getFeatures(AttributeConfiguration.class)
                     .get("attr");
             assertNotNull(attribute);
-            assertEquals(12, attribute.getReadWriteTimeout(ChronoUnit.SECONDS));
-            assertEquals("val", attribute.getParameters().get("par"));
+            assertEquals(12, attribute.getReadWriteTimeout().get(ChronoUnit.SECONDS));
+            assertEquals("val", attribute.get("par"));
             return false;
         });
         //remove configuration parameter
@@ -210,7 +210,7 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
                     .getFeatures(AttributeConfiguration.class)
                     .get("attr");
             assertNotNull(attribute);
-            assertFalse(attribute.getParameters().containsKey("par"));
+            assertFalse(attribute.containsKey("par"));
             return false;
         });
         //remove resource
@@ -231,7 +231,7 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
             assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
             assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getType());
             assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
-            assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
+            assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").get("k"));
             return false;
         });
         //register event
@@ -244,7 +244,7 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
                     .getFeatures(EventConfiguration.class)
                     .get("ev1");
             assertNotNull(attribute);
-            assertEquals("val", attribute.getParameters().get("par"));
+            assertEquals("val", attribute.get("par"));
             return false;
         });
         //remove configuration parameter
@@ -256,7 +256,7 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
                     .getFeatures(EventConfiguration.class)
                     .get("ev1");
             assertNotNull(attribute);
-            assertFalse(attribute.getParameters().containsKey("par"));
+            assertFalse(attribute.containsKey("par"));
             return false;
         });
         //remove resource
@@ -286,7 +286,7 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
                     .getFeatures(EventConfiguration.class)
                     .get("ev1");
             assertNotNull(attribute);
-            assertEquals("val", attribute.getParameters().get("par"));
+            assertEquals("val", attribute.get("par"));
             return false;
         });
         Thread.sleep(500);
@@ -300,8 +300,8 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
                     .getFeatures(AttributeConfiguration.class)
                     .get("attr");
             assertNotNull(attribute);
-            assertEquals(12, attribute.getReadWriteTimeout(ChronoUnit.SECONDS));
-            assertEquals("val", attribute.getParameters().get("par"));
+            assertEquals(12, attribute.getReadWriteTimeout().get(ChronoUnit.SECONDS));
+            assertEquals("val", attribute.get("par"));
             return false;
         });
         Thread.sleep(500);

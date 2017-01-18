@@ -132,10 +132,10 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         gateways.addAndConsume("test-gateway", gateway -> {
             gateway.setType(GATEWAY_NAME);
-            gateway.getParameters().put("databaseLocation", "http://localhost:8181/");
-            gateway.getParameters().put("databaseLogin", "dummy");
-            gateway.getParameters().put("databasePassword", "qwerty");
-            gateway.getParameters().put("databaseName", "snamp");
+            gateway.put("databaseLocation", "http://localhost:8181/");
+            gateway.put("databaseLogin", "dummy");
+            gateway.put("databasePassword", "qwerty");
+            gateway.put("databaseName", "snamp");
         });
     }
 

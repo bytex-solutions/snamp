@@ -33,7 +33,7 @@ public final class DeleteResourceParameterCommand extends ConfigurationCommand<M
     @Override
     boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
         if(configuration.containsKey(resourceName)){
-            configuration.get(resourceName).getParameters().remove(paramName);
+            configuration.get(resourceName).remove(paramName);
             output.append("Resource modified successfully");
             return true;
         }

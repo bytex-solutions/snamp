@@ -42,7 +42,7 @@ public final class DeleteOperationParameterCommand extends ConfigurationCommand<
                         .get(resourceName)
                         .getFeatures(OperationConfiguration.class)
                         .get(userDefinedName)
-                        .getParameters().remove(paramName);
+                        .remove(paramName);
                 output.append("Operation modified successfully");
                 return true;
             }

@@ -33,7 +33,7 @@ public final class DeleteGatewayParameterCommand extends ConfigurationCommand<Ga
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
         if(configuration.containsKey(instanceName)){
-            configuration.get(instanceName).getParameters().remove(paramName);
+            configuration.get(instanceName).remove(paramName);
             output.append("Instance modified successfully");
             return true;
         }

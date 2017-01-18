@@ -260,7 +260,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("snmp-notif");
         event.setAlternativeName("1.7.1");
-        event.getParameters().put("messageTemplate", "{1.0} - {2.0}");
+        event.put("messageTemplate", "{1.0} - {2.0}");
     }
 
     @Override
@@ -273,14 +273,14 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
 
         attribute = attributes.getOrAdd("ipAddressAsString");
         attribute.setAlternativeName("1.6.9.0");
-        attribute.getParameters().put("snmpConversionFormat", "text");
+        attribute.put("snmpConversionFormat", "text");
 
         attribute = attributes.getOrAdd("oidAsIntArray");
         attribute.setAlternativeName("1.6.8.0");
 
         attribute = attributes.getOrAdd("oidAsString");
         attribute.setAlternativeName("1.6.8.0");
-        attribute.getParameters().put("snmpConversionFormat", "text");
+        attribute.put("snmpConversionFormat", "text");
 
         attribute = attributes.getOrAdd("gauge");
         attribute.setAlternativeName("1.6.7.0");
@@ -296,7 +296,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
 
         attribute = attributes.getOrAdd("timeTicksAsString");
         attribute.setAlternativeName("1.6.4.0");
-        attribute.getParameters().put("snmpConversionFormat", "text");
+        attribute.put("snmpConversionFormat", "text");
 
         attribute = attributes.getOrAdd("uint32");
         attribute.setAlternativeName("1.6.3.0");
@@ -306,15 +306,15 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
 
         attribute = attributes.getOrAdd("octetstring");
         attribute.setAlternativeName("1.6.1.0");
-        attribute.getParameters().put("snmpConversionFormat", "text");
+        attribute.put("snmpConversionFormat", "text");
 
         attribute = attributes.getOrAdd("hexstring");
         attribute.setAlternativeName("1.6.1.0");
-        attribute.getParameters().put("snmpConversionFormat", "hex");
+        attribute.put("snmpConversionFormat", "hex");
 
         attribute = attributes.getOrAdd("octetstringAsByteArray");
         attribute.setAlternativeName("1.6.1.0");
-        attribute.getParameters().put("snmpConversionFormat", "raw");
+        attribute.put("snmpConversionFormat", "raw");
     }
 
     @Test

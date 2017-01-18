@@ -42,10 +42,10 @@ public class ZipkinCustomParserTest extends AbstractZipkinConnectorTest {
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         attributes.addAndConsume("ts", attribute -> {
-            attribute.getParameters().put("gauge", "gauge64");
+            attribute.put("gauge", "gauge64");
         });
         attributes.addAndConsume("lastId", attribute -> {
-            attribute.getParameters().put("gauge", "get lastValue from gauge64 ts");
+            attribute.put("gauge", "get lastValue from gauge64 ts");
         });
     }
 }

@@ -2,6 +2,7 @@ package com.bytex.snamp.management.http.model;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
 /**
@@ -37,6 +38,7 @@ public final class ManagedResourceDataObject extends TemplateDataObject<ManagedR
         entity.setGroupName(groupName);
     }
 
+    @JsonProperty
     public String getGroupName(){
         return groupName;
     }
@@ -50,6 +52,7 @@ public final class ManagedResourceDataObject extends TemplateDataObject<ManagedR
      *
      * @return the connection string
      */
+    @JsonProperty
     public String getConnectionString() {
         return connectionString;
     }

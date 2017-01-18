@@ -242,7 +242,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                         final OperationConfiguration config = createEntityConfiguration(getClass().getClassLoader(), OperationConfiguration.class);
                         assert config != null;
                         config.setAutomaticallyAdded(true);
-                        config.getParameters().put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
+                        config.put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
                         config.setInvocationTimeout(OperationConfiguration.TIMEOUT_FOR_SMART_MODE);
                         return enableOperation(operationInfo.getName(), new OperationDescriptor(config));
                     })
@@ -364,7 +364,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                         assert config != null;
                         config.setAutomaticallyAdded(true);
                         config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
-                        config.getParameters().put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
+                        config.put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
                         return addAttribute(attributeInfo.getName(), new AttributeDescriptor(config));
                     })
                     .filter(Objects::nonNull)
@@ -522,7 +522,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                         final EventConfiguration config = createEntityConfiguration(getClass().getClassLoader(), EventConfiguration.class);
                         assert config != null;
                         config.setAutomaticallyAdded(true);
-                        config.getParameters().put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
+                        config.put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
                         return enableNotifications(ArrayUtils.getFirst(notificationInfo.getNotifTypes()), new NotificationDescriptor(config));
                     })
                     .filter(Objects::nonNull)

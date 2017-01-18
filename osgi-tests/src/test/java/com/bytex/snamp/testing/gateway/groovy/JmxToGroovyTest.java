@@ -122,57 +122,57 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         final GatewayConfiguration groovyGateway = gateways.getOrAdd(INSTANCE_NAME);
         groovyGateway.setType(GATEWAY_NAME);
-        groovyGateway.getParameters().put("scriptPath", getGroovyScriptPath());
-        groovyGateway.getParameters().put("scriptFile", "Gateway.groovy");
-        groovyGateway.getParameters().put("communicationChannel", COMMUNICATION_CHANNEL);
-        groovyGateway.getParameters().put("resourceName", TEST_RESOURCE_NAME);
+        groovyGateway.put("scriptPath", getGroovyScriptPath());
+        groovyGateway.put("scriptFile", "Gateway.groovy");
+        groovyGateway.put("communicationChannel", COMMUNICATION_CHANNEL);
+        groovyGateway.put("resourceName", TEST_RESOURCE_NAME);
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("string");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("boolean");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("int32");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("bigint");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("array");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("dictionary");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("typeName", "dict");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("typeName", "dict");
 
         attribute = attributes.getOrAdd("table");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("typeName", "table");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("typeName", "table");
 
         attribute = attributes.getOrAdd("float");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd(AttributeChangeNotification.ATTRIBUTE_CHANGE);
-        event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.put("severity", "notice");
+        event.put("objectName", BEAN_NAME);
 
         event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.testnotif");
-        event.getParameters().put("severity", "panic");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.put("severity", "panic");
+        event.put("objectName", BEAN_NAME);
 
         event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.plainnotif");
-        event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.put("severity", "notice");
+        event.put("objectName", BEAN_NAME);
     }
 
     @Override

@@ -7,8 +7,6 @@ import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import java.util.Map;
-
 import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
@@ -37,8 +35,7 @@ public final class GatewayInstanceInfoCommand extends ConfigurationCommand<Gatew
             appendln(output, "Instance Name: %s", instanceName);
             appendln(output, "System Name: %s", gatewayInstanceConfig.getType());
             appendln(output, "Configuration parameters:");
-            for (final Map.Entry<String, String> pair : gatewayInstanceConfig.getParameters().entrySet())
-                appendln(output, "%s = %s", pair.getKey(), pair.getValue());
+            gatewayInstanceConfig.forEach((key, value) -> appendln(output, "%s = %s", key, value));
         } else
             output.append("Gateway instance doesn't exist");
         return false;

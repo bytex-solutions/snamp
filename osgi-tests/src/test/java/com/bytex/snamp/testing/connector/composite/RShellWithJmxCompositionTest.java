@@ -264,7 +264,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
         operations.addAndConsume("rev", operation -> {
             operation.setAlternativeName("reverse");
-            operation.getParameters().put("source", "jmx");
+            operation.put("source", "jmx");
         });
     }
 
@@ -272,9 +272,9 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         events.addAndConsume("attributeChange", event -> {
             event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
-            event.getParameters().put("severity", "notice");
-            event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-            event.getParameters().put("source", "jmx");
+            event.put("severity", "notice");
+            event.put("objectName", TestOpenMBean.BEAN_NAME);
+            event.put("source", "jmx");
         });
     }
 
@@ -282,76 +282,76 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         attributes.addAndConsume("str", attribute -> {
             attribute.setAlternativeName("string");
-            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-            attribute.getParameters().put("source", "jmx");
+            attribute.put("objectName", TestOpenMBean.BEAN_NAME);
+            attribute.put("source", "jmx");
         });
 
         attributes.addAndConsume("bool", attribute -> {
             attribute.setAlternativeName("boolean");
-            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-            attribute.getParameters().put("source", "jmx");
+            attribute.put("objectName", TestOpenMBean.BEAN_NAME);
+            attribute.put("source", "jmx");
         });
 
         attributes.addAndConsume("ms", attribute -> {
             attribute.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
-            attribute.getParameters().put("format", "-m");
-            attribute.getParameters().put("source", "rshell");
+            attribute.put("format", "-m");
+            attribute.put("source", "rshell");
         });
 
         attributes.addAndConsume("integer", attribute -> {
             attribute.setAlternativeName("int32");
-            attribute.getParameters().put("source", "jmx");
-            attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+            attribute.put("source", "jmx");
+            attribute.put("objectName", TestOpenMBean.BEAN_NAME);
         });
 
         attributes.addAndConsume("maxInt", attribute -> {
             attribute.setAlternativeName("integer");
-            attribute.getParameters().put("formula", "max()");
+            attribute.put("formula", "max()");
         });
 
         attributes.addAndConsume("avgInt", attribute -> {
             attribute.setAlternativeName("integer");
-            attribute.getParameters().put("formula", "avg(10s)");
+            attribute.put("formula", "avg(10s)");
         });
 
         attributes.addAndConsume("gauge_fp", attribute -> {
             attribute.setAlternativeName("integer");
-            attribute.getParameters().put("formula", "gauge_fp()");
+            attribute.put("formula", "gauge_fp()");
         });
 
         attributes.addAndConsume("gauge_int", attribute -> {
             attribute.setAlternativeName("integer");
-            attribute.getParameters().put("formula", "gauge_int()");
+            attribute.put("formula", "gauge_int()");
         });
 
         attributes.addAndConsume("extr", attribute -> {
             attribute.setAlternativeName("ms");
-            attribute.getParameters().put("formula", "extract(string, total)");
+            attribute.put("formula", "extract(string, total)");
         });
 
         attributes.addAndConsume("extr_int", attribute -> {
             attribute.setAlternativeName("ms");
-            attribute.getParameters().put("formula", "extract(int64, total)");
+            attribute.put("formula", "extract(int64, total)");
         });
 
         attributes.addAndConsume("extr_fp", attribute -> {
             attribute.setAlternativeName("ms");
-            attribute.getParameters().put("formula", "extract(float64, total)");
+            attribute.put("formula", "extract(float64, total)");
         });
 
         attributes.addAndConsume("ranged", attribute -> {
             attribute.setAlternativeName("integer");
-            attribute.getParameters().put("formula", "ranged_fp(10, 20)");
+            attribute.put("formula", "ranged_fp(10, 20)");
         });
 
         attributes.addAndConsume("notifRate", attribute -> {
             attribute.setAlternativeName("attributeChange");
-            attribute.getParameters().put("formula", "rate()");
+            attribute.put("formula", "rate()");
         });
 
         attributes.addAndConsume("groovy", attribute -> {
             attribute.setAlternativeName("Composition.groovy");
-            attribute.getParameters().put("formula", "groovy()");
+            attribute.put("formula", "groovy()");
         });
     }
 }

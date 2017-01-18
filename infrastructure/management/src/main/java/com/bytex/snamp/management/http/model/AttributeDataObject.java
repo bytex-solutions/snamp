@@ -14,7 +14,7 @@ import java.time.Duration;
  * @since 2.0
  */
 @JsonTypeName("attribute")
-public final class AttributeDataObject extends AbstractFeatureDataObject<AttributeConfiguration> implements AttributeConfiguration {
+public final class AttributeDataObject extends AbstractFeatureDataObject<AttributeConfiguration> {
     private Duration duration;
 
     @SpecialUse
@@ -31,12 +31,10 @@ public final class AttributeDataObject extends AbstractFeatureDataObject<Attribu
         entity.setReadWriteTimeout(duration);
     }
 
-    @Override
     public Duration getReadWriteTimeout() {
         return duration;
     }
 
-    @Override
     public void setReadWriteTimeout(final Duration value) {
         duration = value;
     }

@@ -56,7 +56,7 @@ public final class ConfigOperationCommand extends ConfigurationCommand<ManagedRe
                 for(final String param: parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);
                     if (pair != null)
-                        operation.getParameters().put(pair.getKey(), pair.getValue());
+                        operation.put(pair.getKey(), pair.getValue());
                 }
             output.append("Operation configured successfully");
             return true;

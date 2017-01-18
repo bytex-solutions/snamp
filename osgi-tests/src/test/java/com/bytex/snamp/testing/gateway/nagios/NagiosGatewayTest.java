@@ -166,21 +166,21 @@ public final class NagiosGatewayTest extends AbstractJmxConnectorTest<TestOpenMB
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAlternativeName("string");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("serviceName", "stringService");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("serviceName", "stringService");
 
         attribute = attributes.getOrAdd("2.0");
         attribute.setAlternativeName("boolean");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("serviceName", "memory");
-        attribute.getParameters().put(DescriptorUtils.MAX_VALUE_FIELD, "100");
-        attribute.getParameters().put(DescriptorUtils.MIN_VALUE_FIELD, "0");
-        attribute.getParameters().put("criticalThreshold", "80");
-        attribute.getParameters().put("warningThreshold", "60");
-        attribute.getParameters().put(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, "MB");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("serviceName", "memory");
+        attribute.put(DescriptorUtils.MAX_VALUE_FIELD, "100");
+        attribute.put(DescriptorUtils.MIN_VALUE_FIELD, "0");
+        attribute.put("criticalThreshold", "80");
+        attribute.put("warningThreshold", "60");
+        attribute.put(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, "MB");
     }
 }

@@ -148,11 +148,11 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         gateways.addAndConsume(INSTANCE_NAME, sshGateway -> {
             sshGateway.setType(GATEWAY_NAME);
-            sshGateway.getParameters().put("host", "0.0.0.0");
-            sshGateway.getParameters().put("port", Integer.toString(PORT));
-            sshGateway.getParameters().put("userName", USER_NAME);
-            sshGateway.getParameters().put("password", PASSWORD);
-            sshGateway.getParameters().put("hostKeyFile", getPathToFileInProjectRoot("hostkey.ser"));
+            sshGateway.put("host", "0.0.0.0");
+            sshGateway.put("port", Integer.toString(PORT));
+            sshGateway.put("userName", USER_NAME);
+            sshGateway.put("password", PASSWORD);
+            sshGateway.put("hostKeyFile", getPathToFileInProjectRoot("hostkey.ser"));
         });
     }
 
@@ -160,39 +160,39 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAlternativeName("string");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("2.0");
         attribute.setAlternativeName("boolean");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("4.0");
         attribute.setAlternativeName("bigint");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("5.1");
         attribute.setAlternativeName("array");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("8.0");
         attribute.setAlternativeName("float");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("19.1");
         event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
-        event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.put("severity", "notice");
+        event.put("objectName", BEAN_NAME);
 
         event = events.getOrAdd("20.1");
         event.setAlternativeName("com.bytex.snamp.connector.tests.impl.testnotif");
-        event.getParameters().put("severity", "panic");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.put("severity", "panic");
+        event.put("objectName", BEAN_NAME);
     }
 }

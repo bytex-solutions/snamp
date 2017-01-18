@@ -10,7 +10,7 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import java.time.temporal.ChronoUnit;
+import java.time.Duration;
 
 /**
  * Configures attribute of the managed resource.
@@ -51,12 +51,12 @@ public final class ConfigAttributeCommand extends ConfigurationCommand<ManagedRe
             final ManagedResourceConfiguration resource = configuration.get(resourceName);
             final AttributeConfiguration attribute = resource.getFeatures(AttributeConfiguration.class).getOrAdd(name);
             if (readWriteTimeout > INFINITE_TIMEOUT)
-                attribute.setReadWriteTimeout(readWriteTimeout, ChronoUnit.MILLIS);
+                attribute.setReadWriteTimeout(Duration.ofMillis(readWriteTimeout));
             if (!ArrayUtils.isNullOrEmpty(parameters))
                 for (final String param : parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);
                     if(pair != null)
-                        attribute.getParameters().put(pair.getKey(), pair.getValue());
+                        attribute.put(pair.getKey(), pair.getValue());
                 }
             output.append("Attribute configured successfully");
             return true;

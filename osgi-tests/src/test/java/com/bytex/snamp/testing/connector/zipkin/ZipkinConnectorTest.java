@@ -120,10 +120,10 @@ public class ZipkinConnectorTest extends AbstractZipkinConnectorTest {
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         attributes.addAndConsume("spans", attribute -> {
             attribute.setAlternativeName("customspan"); //Zipkin uses lower-cased span name
-            attribute.getParameters().put("gauge", "timer");
+            attribute.put("gauge", "timer");
         });
         attributes.addAndConsume("summaryDuration", attribute -> {
-            attribute.getParameters().put("gauge", "get summaryValue from timer spans");
+            attribute.put("gauge", "get summaryValue from timer spans");
         });
     }
 }

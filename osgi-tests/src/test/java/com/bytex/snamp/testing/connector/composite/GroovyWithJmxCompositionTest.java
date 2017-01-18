@@ -59,7 +59,7 @@ public final class GroovyWithJmxCompositionTest extends AbstractCompositeConnect
     @Override
     protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
         operations.addAndConsume("groovyOp", operation -> {
-            operation.getParameters().put("source", "groovy");
+            operation.put("source", "groovy");
             operation.setAlternativeName("CustomOperation");
         });
     }

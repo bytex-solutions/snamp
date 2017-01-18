@@ -230,9 +230,9 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         final GatewayConfiguration httpGateway = gateways.getOrAdd(INSTANCE_NAME);
         httpGateway.setType(GATEWAY_NAME);
-        httpGateway.getParameters().put("objectName", ROOT_OBJECT_NAME);
-        httpGateway.getParameters().put("usePlatformMBean", Boolean.toString(isInTestContainer()));
-        httpGateway.getParameters().put("dbgUsePureSerialization", "true");
+        httpGateway.put("objectName", ROOT_OBJECT_NAME);
+        httpGateway.put("usePlatformMBean", Boolean.toString(isInTestContainer()));
+        httpGateway.put("dbgUsePureSerialization", "true");
     }
 
     @Override
@@ -260,67 +260,67 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("19.1");
         event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
-        event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.put("severity", "notice");
+        event.put("objectName", BEAN_NAME);
 
         event = events.getOrAdd("20.1");
         event.setAlternativeName("com.bytex.snamp.connector.tests.impl.testnotif");
-        event.getParameters().put("severity", "panic");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.put("severity", "panic");
+        event.put("objectName", BEAN_NAME);
 
         event = events.getOrAdd("21.1");
         event.setAlternativeName("com.bytex.snamp.connector.tests.impl.plainnotif");
-        event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.put("severity", "notice");
+        event.put("objectName", BEAN_NAME);
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAlternativeName("string");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("2.0");
         attribute.setAlternativeName("boolean");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("4.0");
         attribute.setAlternativeName("bigint");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("5.1");
         attribute.setAlternativeName("array");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("6.1");
         attribute.setAlternativeName("dictionary");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("typeName", "dict");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("typeName", "dict");
 
         attribute = attributes.getOrAdd("7.1");
         attribute.setAlternativeName("table");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("typeName", "table");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("typeName", "table");
 
         attribute = attributes.getOrAdd("8.0");
         attribute.setAlternativeName("float");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("9.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
     }
 
     @Override
     protected void fillOperations(final  EntityMap<? extends OperationConfiguration> operations) {
         operations.addAndConsume("rev", operation -> {
             operation.setAlternativeName("reverse");
-            operation.getParameters().put("source", "jmx");
-            operation.getParameters().put("objectName", BEAN_NAME);
+            operation.put("source", "jmx");
+            operation.put("objectName", BEAN_NAME);
         });
     }
 }

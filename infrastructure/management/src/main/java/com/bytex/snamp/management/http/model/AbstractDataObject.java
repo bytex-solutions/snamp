@@ -23,7 +23,7 @@ import java.util.Map;
         @JsonSubTypes.Type(GatewayDataObject.class),
         @JsonSubTypes.Type(ResourceGroupDataObject.class)
 })
-public abstract class AbstractDataObject<E extends EntityConfiguration> implements EntityConfiguration {
+public abstract class AbstractDataObject<E extends EntityConfiguration> {
     @JsonIgnore
     protected final Map<String, String> parameters;
 
@@ -43,16 +43,9 @@ public abstract class AbstractDataObject<E extends EntityConfiguration> implemen
         this.parameters = new HashMap<>(entity);
     }
 
-    @Override
     @JsonProperty
     public final Map<String, String> getParameters() {
         return parameters;
-    }
-
-    @Override
-    public final void load(final Map<String, String> value) {
-        parameters.clear();
-        parameters.putAll(value);
     }
 
     /**
@@ -61,17 +54,5 @@ public abstract class AbstractDataObject<E extends EntityConfiguration> implemen
      */
     public void exportTo(final E entity){
         entity.load(parameters);
-    }
-
-    @Override
-    @JsonIgnore
-    public final void setDescription(final String value) {
-        this.parameters.put(DESCRIPTION_KEY, value);
-    }
-
-    @Override
-    @JsonIgnore
-    public final String getDescription() {
-        return this.parameters.get(DESCRIPTION_KEY);
     }
 }

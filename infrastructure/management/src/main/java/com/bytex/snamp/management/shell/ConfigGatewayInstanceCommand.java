@@ -50,7 +50,7 @@ public final class ConfigGatewayInstanceCommand extends ConfigurationCommand<Gat
             for (final String pair : parameters) {
                 final StringKeyValue keyValue = StringKeyValue.parse(pair);
                 if (keyValue != null)
-                    gatewayInstanceConfig.getParameters().put(keyValue.getKey(), keyValue.getValue());
+                    gatewayInstanceConfig.put(keyValue.getKey(), keyValue.getValue());
             }
         output.append("Updated");
         return true;

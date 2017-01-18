@@ -98,16 +98,16 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         attributes.addAndConsume("attribute1", attribute -> {
-            attribute.getParameters().put("gauge", "gauge64");
+            attribute.put("gauge", "gauge64");
             attribute.setAlternativeName(StandardMeasurements.FREE_RAM);
         });
         attributes.addAndConsume("attribute2", attribute -> {
-            attribute.getParameters().put("gauge", "stringGauge");
+            attribute.put("gauge", "stringGauge");
             attribute.setAlternativeName("customStrings");
         });
-        attributes.addAndConsume("longValue", attribute -> attribute.getParameters().put("gauge", "get lastValue from gauge64 attribute1"));
-        attributes.addAndConsume("strValue", attribute -> attribute.getParameters().put("gauge", "get lastValue from stringGauge attribute2"));
-        attributes.addAndConsume("min", attribute -> attribute.getParameters().put("gauge", "get minValue from gauge64 attribute1"));
-        attributes.addAndConsume("max", attribute -> attribute.getParameters().put("gauge", "get maxValue from gauge64 attribute1"));
+        attributes.addAndConsume("longValue", attribute -> attribute.put("gauge", "get lastValue from gauge64 attribute1"));
+        attributes.addAndConsume("strValue", attribute -> attribute.put("gauge", "get lastValue from stringGauge attribute2"));
+        attributes.addAndConsume("min", attribute -> attribute.put("gauge", "get minValue from gauge64 attribute1"));
+        attributes.addAndConsume("max", attribute -> attribute.put("gauge", "get maxValue from gauge64 attribute1"));
     }
 }

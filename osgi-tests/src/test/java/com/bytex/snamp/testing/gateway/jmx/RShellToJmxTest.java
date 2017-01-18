@@ -95,16 +95,16 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         final GatewayConfiguration httpGateway = gateways.getOrAdd("test-jmx");
         httpGateway.setType(GATEWAY_NAME);
-        httpGateway.getParameters().put("objectName", ROOT_OBJECT_NAME);
-        httpGateway.getParameters().put("usePlatformMBean", Boolean.toString(isInTestContainer()));
-        httpGateway.getParameters().put("dbgUsePureSerialization", "true");
+        httpGateway.put("objectName", ROOT_OBJECT_NAME);
+        httpGateway.put("usePlatformMBean", Boolean.toString(isInTestContainer()));
+        httpGateway.put("dbgUsePureSerialization", "true");
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         final AttributeConfiguration attr = attributes.getOrAdd("ms");
         attr.setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
-        attr.getParameters().put("format", "-m");
+        attr.put("format", "-m");
     }
 
     private Object readAttribute(final String attributeName) throws IOException, JMException {

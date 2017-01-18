@@ -95,9 +95,9 @@ public final class SyslogGatewayTest extends AbstractJmxConnectorTest<TestOpenMB
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         gateways.addAndConsume(INSTANCE_NAME, syslogGateway -> {
             syslogGateway.setType(GATEWAY_NAME);
-            syslogGateway.getParameters().put("port", Integer.toString(PORT));
-            syslogGateway.getParameters().put("address", "127.0.0.1");
-            syslogGateway.getParameters().put("protocol", "tcp");
+            syslogGateway.put("port", Integer.toString(PORT));
+            syslogGateway.put("address", "127.0.0.1");
+            syslogGateway.put("protocol", "tcp");
         });
     }
 
@@ -105,15 +105,15 @@ public final class SyslogGatewayTest extends AbstractJmxConnectorTest<TestOpenMB
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.put("objectName", BEAN_NAME);
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("19.1");
         event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
-        event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.put("severity", "notice");
+        event.put("objectName", BEAN_NAME);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.http.model;
 
 import com.bytex.snamp.configuration.*;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +43,7 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
      *
      * @return the attributes
      */
+    @JsonProperty
     public final Map<String, AttributeDataObject> getAttributes() {
         return attributes;
     }
@@ -61,6 +63,7 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
      *
      * @return the events
      */
+    @JsonProperty
     public final Map<String, EventDataObject> getEvents() {
         return events;
     }
@@ -80,6 +83,7 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
      *
      * @return the operations
      */
+    @JsonProperty
     public final Map<String, OperationDataObject> getOperations() {
         return operations;
     }

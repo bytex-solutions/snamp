@@ -177,51 +177,51 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAlternativeName("string");
-        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        attribute.put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("2.0");
         attribute.setAlternativeName("boolean");
-        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        attribute.put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        attribute.put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("4.0");
         attribute.setAlternativeName("bigint");
-        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        attribute.put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("5.1");
         attribute.setAlternativeName("array");
-        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        attribute.put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("6.1");
         attribute.setAlternativeName("dictionary");
-        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        attribute.put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("7.1");
         attribute.setAlternativeName("table");
-        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        attribute.put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("8.0");
         attribute.setAlternativeName("float");
-        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        attribute.put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("9.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        attribute.put("objectName", TestOpenMBean.BEAN_NAME);
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("19.1");
         event.setAlternativeName(AttributeChangeNotification.ATTRIBUTE_CHANGE);
-        event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        event.put("severity", "notice");
+        event.put("objectName", TestOpenMBean.BEAN_NAME);
 
         event = events.getOrAdd("20.1");
         event.setAlternativeName("com.bytex.snamp.connector.tests.impl.testnotif");
-        event.getParameters().put("severity", "panic");
-        event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        event.put("severity", "panic");
+        event.put("objectName", TestOpenMBean.BEAN_NAME);
     }
 }

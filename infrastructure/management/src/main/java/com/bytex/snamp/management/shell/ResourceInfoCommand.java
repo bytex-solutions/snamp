@@ -44,8 +44,7 @@ public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResou
     }
 
     private static void printParameters(final FeatureConfiguration feature, final StringBuilder output){
-        for(final Map.Entry<String, String> param: feature.getParameters().entrySet())
-            appendln(output, "%s=%s", param.getKey(), param.getValue());
+        feature.forEach((key, value) -> appendln(output, "%s=%s", key, value));
     }
 
     private static void printAttribute(final String userDefinedName, final AttributeConfiguration attr, final StringBuilder output){
@@ -73,8 +72,7 @@ public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResou
             appendln(output, "Connection Type: %s", resource.getType());
             appendln(output, "Connection String: %s", resource.getConnectionString());
             appendln(output, "Configuration parameters:");
-            for (final Map.Entry<String, String> pair : resource.getParameters().entrySet())
-                appendln(output, "%s = %s", pair.getKey(), pair.getValue());
+            resource.forEach((key, value) -> appendln(output, "%s = %s", key, value));
             checkInterrupted();
             if(showAttributes) {
                 appendln(output, "==ATTRIBUTES==");

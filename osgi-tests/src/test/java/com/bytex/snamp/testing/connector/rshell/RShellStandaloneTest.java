@@ -52,7 +52,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         // Linux operation
         attributes.getOrAdd("ms").setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
-        attributes.getOrAdd("ms").getParameters().put("format", "-m");
+        attributes.getOrAdd("ms").put("format", "-m");
         // Windows operation
         attributes.getOrAdd("ms_win").setAlternativeName(getPathToFileInProjectRoot("virtual-mem-windows.xml"));
     }

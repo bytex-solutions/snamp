@@ -58,7 +58,7 @@ public final class ConfigResourceCommand extends ConfigurationCommand<ManagedRes
             for(final String pair: parameters) {
                 final StringKeyValue keyValue = StringKeyValue.parse(pair);
                 if (keyValue != null)
-                    resource.getParameters().put(keyValue.getKey(), keyValue.getValue());
+                    resource.put(keyValue.getKey(), keyValue.getValue());
             }
         appendln(output, "Updated");
         return true;

@@ -287,70 +287,70 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         final GatewayConfiguration snmpAdapter = gateways.getOrAdd(ADAPTER_INSTANCE_NAME);
         snmpAdapter.setType(ADAPTER_NAME);
-        snmpAdapter.getParameters().put("port", SNMP_PORT);
-        snmpAdapter.getParameters().put("host", SNMP_HOST);
-        snmpAdapter.getParameters().put("socketTimeout", "5000");
-        snmpAdapter.getParameters().put("context", "1.1");
+        snmpAdapter.put("port", SNMP_PORT);
+        snmpAdapter.put("host", SNMP_HOST);
+        snmpAdapter.put("socketTimeout", "5000");
+        snmpAdapter.put("context", "1.1");
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAlternativeName("string");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.1.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.1.0");
 
         attribute = attributes.getOrAdd("2.0");
         attribute.setAlternativeName("boolean");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.2.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.2.0");
 
         attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.3.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.3.0");
 
         attribute = attributes.getOrAdd("4.0");
         attribute.setAlternativeName("bigint");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.4.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.4.0");
 
         attribute = attributes.getOrAdd("5.1");
         attribute.setAlternativeName("array");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.5.1");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.5.1");
 
         attribute = attributes.getOrAdd("6.1");
         attribute.setAlternativeName("dictionary");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.6.1");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.6.1");
 
         attribute = attributes.getOrAdd("7.1");
         attribute.setAlternativeName("table");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.7.1");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.7.1");
 
         attribute = attributes.getOrAdd("8.0");
         attribute.setAlternativeName("float");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.8.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("oid", "1.1.8.0");
 
         attribute = attributes.getOrAdd("9.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        attribute.getParameters().put("oid", "1.1.9.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        attribute.put("oid", "1.1.9.0");
 
         attribute = attributes.getOrAdd("10.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
-        attribute.getParameters().put("oid", "1.1.10.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("displayFormat", "rfc1903-human-readable");
+        attribute.put("oid", "1.1.10.0");
 
         attribute = attributes.getOrAdd("11.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("displayFormat", "rfc1903");
-        attribute.getParameters().put("oid", "1.1.11.0");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("displayFormat", "rfc1903");
+        attribute.put("oid", "1.1.11.0");
     }
 }

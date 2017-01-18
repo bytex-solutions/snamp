@@ -43,7 +43,7 @@ public final class DeleteAttributeParameterCommand extends ConfigurationCommand<
                         .get(resourceName)
                         .getFeatures(AttributeConfiguration.class)
                         .get(userDefinedName)
-                        .getParameters().remove(paramName);
+                        .remove(paramName);
                 output.append("Attribute modified successfully");
                 return true;
             }

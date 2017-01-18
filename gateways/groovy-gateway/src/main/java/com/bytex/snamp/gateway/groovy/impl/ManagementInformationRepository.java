@@ -149,7 +149,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     public Map<String, ?> getResourceParameters(final String resourceName) {
         try {
             final ManagedResourceConfiguration config = ManagedResourceConnectorClient.getResourceConfiguration(context, resourceName);
-            return config != null ? ImmutableMap.copyOf(config.getParameters()) : ImmutableMap.<String, String>of();
+            return config != null ? ImmutableMap.copyOf(config) : ImmutableMap.<String, String>of();
         } catch (final IOException ignored) {
             return ImmutableMap.of();
         }

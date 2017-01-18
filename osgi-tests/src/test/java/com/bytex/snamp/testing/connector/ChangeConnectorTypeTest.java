@@ -38,7 +38,7 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
             ManagedResourceConfiguration connector = config.getEntities(ManagedResourceConfiguration.class).getOrAdd(RESOURCE_NAME);
             connector.setType(AbstractGroovyConnectorTest.CONNECTOR_TYPE);
             connector.setConnectionString(AbstractGroovyConnectorTest.getConnectionString());
-            connector.getFeatures(AttributeConfiguration.class).getOrAdd("DummyAttribute").getParameters().put("configParam", "value");
+            connector.getFeatures(AttributeConfiguration.class).getOrAdd("DummyAttribute").put("configParam", "value");
             return true;
         });
         ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2));
@@ -56,13 +56,13 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
             assertEquals(AbstractGroovyConnectorTest.CONNECTOR_TYPE, connector.getType());
             connector.setType(AbstractHttpConnectorTest.CONNECTOR_TYPE);
             connector.setConnectionString(INSTANCE_NAME);
-            connector.getParameters().put("componentName", COMPONENT_NAME);
+            connector.put("componentName", COMPONENT_NAME);
             connector.getFeatures(AttributeConfiguration.class).clear();
             connector.getFeatures(AttributeConfiguration.class)
-                    .addAndConsume("longValue", attribute -> attribute.getParameters().put("gauge", "get lastValue from gauge64 attribute1"));
+                    .addAndConsume("longValue", attribute -> attribute.put("gauge", "get lastValue from gauge64 attribute1"));
             connector.getFeatures(AttributeConfiguration.class)
                     .addAndConsume("attribute1", attribute -> {
-                        attribute.getParameters().put("gauge", "gauge64");
+                        attribute.put("gauge", "gauge64");
                         attribute.setAlternativeName(StandardMeasurements.FREE_RAM);
                     });
             return true;

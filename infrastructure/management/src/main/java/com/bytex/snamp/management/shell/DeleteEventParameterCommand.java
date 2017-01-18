@@ -43,7 +43,7 @@ public final class DeleteEventParameterCommand extends ConfigurationCommand<Mana
                         .get(resourceName)
                         .getFeatures(EventConfiguration.class)
                         .get(userDefinedName)
-                        .getParameters().remove(paramName);
+                        .remove(paramName);
                 output.append("Event modified successfully");
                 return true;
             }

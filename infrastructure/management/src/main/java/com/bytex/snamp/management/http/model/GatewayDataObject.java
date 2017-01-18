@@ -9,7 +9,7 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  * @since 2.0
  */
 @JsonTypeName("gateway")
-public final class GatewayDataObject extends AbstractTypedDataObject<GatewayConfiguration> implements GatewayConfiguration {
+public final class GatewayDataObject extends AbstractTypedDataObject<GatewayConfiguration> {
     public GatewayDataObject(){
 
     }

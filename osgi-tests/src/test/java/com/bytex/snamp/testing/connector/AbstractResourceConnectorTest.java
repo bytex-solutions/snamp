@@ -185,7 +185,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     protected final void setupTestConfiguration(final AgentConfiguration config) {
         final ManagedResourceConfiguration targetConfig =
                 config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME);
-        targetConfig.getParameters().putAll(connectorParameters);
+        targetConfig.putAll(connectorParameters);
         fillGateways(config.getEntities(GatewayConfiguration.class));
         targetConfig.setConnectionString(connectionString);
         targetConfig.setType(connectorType);

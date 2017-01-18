@@ -39,7 +39,7 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
-        attributes.getOrAdd("DummyAttribute").getParameters().put("configParam", "value");
+        attributes.getOrAdd("DummyAttribute").put("configParam", "value");
 
         attributes.getOrAdd("JsonAttribute");
 

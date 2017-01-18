@@ -46,7 +46,7 @@ public final class ConfigEventCommand extends ConfigurationCommand<ManagedResour
                 for(final String param: parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);
                     if (pair != null)
-                        event.getParameters().put(pair.getKey(), pair.getValue());
+                        event.put(pair.getKey(), pair.getValue());
                 }
             output.append("Attribute configured successfully");
             return true;

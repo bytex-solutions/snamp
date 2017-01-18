@@ -68,12 +68,12 @@ public class HttpReporterTest extends AbstractHttpConnectorTest {
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         attributes.addAndConsume("attribute1", attribute -> {
-            attribute.getParameters().put("gauge", "gauge64");
+            attribute.put("gauge", "gauge64");
             attribute.setAlternativeName(StandardMeasurements.FREE_RAM);
         });
-        attributes.addAndConsume("longValue", attribute -> attribute.getParameters().put("gauge", "get lastValue from gauge64 attribute1"));
-        attributes.addAndConsume("min", attribute -> attribute.getParameters().put("gauge", "get minValue from gauge64 attribute1"));
-        attributes.addAndConsume("max", attribute -> attribute.getParameters().put("gauge", "get maxValue from gauge64 attribute1"));
+        attributes.addAndConsume("longValue", attribute -> attribute.put("gauge", "get lastValue from gauge64 attribute1"));
+        attributes.addAndConsume("min", attribute -> attribute.put("gauge", "get minValue from gauge64 attribute1"));
+        attributes.addAndConsume("max", attribute -> attribute.put("gauge", "get maxValue from gauge64 attribute1"));
     }
 
 }

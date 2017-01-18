@@ -95,8 +95,8 @@ public final class NscaGatewayTest extends AbstractJmxConnectorTest<TestOpenMBea
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         gateways.addAndConsume(INSTANCE_NAME, nscaGateway -> {
             nscaGateway.setType(GATEWAY_NAME);
-            nscaGateway.getParameters().put("nagiosPort", Integer.toString(PORT));
-            nscaGateway.getParameters().put("nagiosHost", "localhost");
+            nscaGateway.put("nagiosPort", Integer.toString(PORT));
+            nscaGateway.put("nagiosHost", "localhost");
         });
     }
 
@@ -137,10 +137,10 @@ public final class NscaGatewayTest extends AbstractJmxConnectorTest<TestOpenMBea
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("serviceName", "memory");
-        attribute.getParameters().put(DescriptorUtils.MAX_VALUE_FIELD, "100");
-        attribute.getParameters().put(DescriptorUtils.MIN_VALUE_FIELD, "0");
-        attribute.getParameters().put(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, "MB");
+        attribute.put("objectName", BEAN_NAME);
+        attribute.put("serviceName", "memory");
+        attribute.put(DescriptorUtils.MAX_VALUE_FIELD, "100");
+        attribute.put(DescriptorUtils.MIN_VALUE_FIELD, "0");
+        attribute.put(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, "MB");
     }
 }
