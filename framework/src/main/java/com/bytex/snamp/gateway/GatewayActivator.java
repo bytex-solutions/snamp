@@ -122,7 +122,6 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
             identity.put(Gateway.CATEGORY_PROPERTY, CATEGORY);
             final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, getDependencies());
             if (gatewayInstance != null) {
-                gatewayInstance.getCharacteristics().putAll(identity);
                 if (gatewayInstance.tryStart(configuration.getParameters())) {
                     return gatewayInstance;
                 } else {

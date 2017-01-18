@@ -411,7 +411,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             identity.put(ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY);
             identity.put(ManagedResourceConnector.CONNECTION_STRING_PROPERTY, configuration.getConnectionString());
             final TConnector result = controller.createConnector(resourceName, configuration.getConnectionString(), configuration.getParameters(), getDependencies());
-            result.getCharacteristics().putAll(identity);
             updateFeatures(result, configuration);
             return result;
         }
