@@ -37,6 +37,11 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         resources = new ManagedResourceList();
     }
 
+    @Override
+    public SerializableAgentConfiguration asReadOnly() {
+        return this;    //TODO: replace with really immutable configuration similar to ImmutableEntityConfiguration
+    }
+
     /**
      * Clears this configuration.
      */

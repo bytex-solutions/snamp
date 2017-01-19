@@ -38,4 +38,7 @@ public interface FeatureConfiguration extends EntityConfiguration {
         else
             remove(AUTOMATICALLY_ADDED_KEY);
     }
+
+    @Override
+    FeatureConfiguration asReadOnly();
 }

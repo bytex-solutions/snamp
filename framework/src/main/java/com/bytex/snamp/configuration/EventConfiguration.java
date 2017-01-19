@@ -15,4 +15,9 @@ public interface EventConfiguration extends FeatureConfiguration {
     static void copy(final EventConfiguration source, final EventConfiguration dest){
         dest.load(source);
     }
+
+    @Override
+    default EventConfiguration asReadOnly() {
+        return new ImmutableEventConfiguration(this);
+    }
 }

@@ -26,4 +26,10 @@ public interface EntityConfiguration extends Map<String, String> {
         clear();
         putAll(parameters);
     }
+
+    /**
+     * Creates read-only copy of this configuration.
+     * @return Read-only copy of this configuration.
+     */
+    EntityConfiguration asReadOnly();
 }

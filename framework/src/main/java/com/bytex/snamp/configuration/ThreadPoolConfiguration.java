@@ -36,6 +36,12 @@ public interface ThreadPoolConfiguration extends EntityConfiguration {
 
     int DEFAULT_THREAD_PRIORITY = Thread.NORM_PRIORITY;
 
+    ThreadPoolConfiguration DEFAULT_CONFIG = new ImmutableThreadPoolConfiguration();
+
+    @Override
+    default ThreadPoolConfiguration asReadOnly(){
+        return new ImmutableThreadPoolConfiguration(this);
+    }
 
     int getMinPoolSize();
 

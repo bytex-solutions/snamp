@@ -7,6 +7,11 @@ package com.bytex.snamp.configuration;
  * @since 2.0
  */
 public interface ManagedResourceGroupConfiguration extends ManagedResourceTemplate {
+    @Override
+    default ManagedResourceGroupConfiguration asReadOnly(){
+        return new ImmutableManagedResourceGroupConfiguration(this);
+    }
+
     static void copy(final ManagedResourceGroupConfiguration input, final ManagedResourceGroupConfiguration output){
         ManagedResourceTemplate.copy(input, output);
     }

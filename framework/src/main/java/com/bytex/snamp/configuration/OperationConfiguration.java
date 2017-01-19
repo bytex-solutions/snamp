@@ -26,6 +26,10 @@ public interface OperationConfiguration extends FeatureConfiguration {
      */
     void setInvocationTimeout(final Duration value);
 
+    default OperationConfiguration asReadOnly(){
+        return new ImmutableOperationConfiguration(this);
+    }
+
     static void copy(final OperationConfiguration source, final OperationConfiguration dest){
         dest.setInvocationTimeout(source.getInvocationTimeout());
         dest.load(source);

@@ -31,6 +31,11 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate {
      */
     String getConnectionString();
 
+    @Override
+    default ManagedResourceConfiguration asReadOnly(){
+        return new ImmutableManagedResourceConfiguration(this);
+    }
+
     /**
      * Sets the management target connection string.
      * @param connectionString The connection string that is used to connect to the management server.
