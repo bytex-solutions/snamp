@@ -1,3 +1,117 @@
+<!-- Modal for entity appending -->
+<div class="modal fade" id="addChartModal" role="dialog" aria-labelledby="addChartLabel">
+  <div class="modal-dialog modal-xlg modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title leftAlign" id="addChartLabel">Visualization wizard</h4>
+      </div>
+      <br/>
+      <div class="modal-body">
+        <div id="smartwizardForChart" style="height: 95%">
+          <ul>
+            <li>
+              <a [attr.href]="'#component'">
+                Component<br />
+                <small>Select component</small>
+              </a>
+            </li>
+            <li>
+              <a [attr.href]="'#metric'">
+                Metric<br />
+                <small>Choose metric</small>
+              </a>
+            </li>
+            <li>
+              <a [attr.href]="'#instances'">
+                Instances<br />
+                <small>Mark instances</small>
+              </a>
+            </li>
+            <li>
+              <a [attr.href]="'#save'">
+                Save<br />
+                <small>Add to dashboard</small>
+              </a>
+            </li>
+          </ul>
+
+          <div style="height:100%">
+            <div id="component" class="row" style="margin-top: 100px;">
+              <div class="item form-group">
+                <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="componentSelect"
+                        style="margin-top: 7px;">
+                  Component <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <select [(ngModel)]="selectedComponent" id="componentSelect">
+                    <option *ngFor="let component of components" [ngValue]="component">{{component.name}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="metric" class="row" style="margin-top: 100px;">
+              <div class="item form-group">
+                <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="metricSelect"
+                        style="margin-top: 7px;">
+                  Metric <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <select [(ngModel)]="selectedMetric" id="metricSelect">
+                    <option *ngFor="let metric of metrics" [ngValue]="metric">{{metric.name}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="instances" class="row" style="margin-top: 100px;">
+              <div class="item form-group">
+                <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="instancesSelect"
+                        style="margin-top: 7px;">
+                  Instances <span class="required">*</span> <small>(you may choose several of all)</small>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  Select all
+                  <ui-switch
+                          [(ngModel)]="showInstancesSelect"
+                          [size]="'small'">
+                  </ui-switch>
+                  <select id="instancesSelect" *ngIf="showInstancesSelect" multiple="multiple">
+                    <option *ngFor="let instance of instances">{{instance.name}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="save" class="row" style="margin-top: 20px;">
+              Preview:
+              <canvas id="chartPreview" width="300" height="250"></canvas>
+              <button
+                      type="button"
+                      class="btn btn-primary"
+                      [disabled]="readyForSave == false"
+                      (click)="saveEntity()">
+                Append to dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- <div class="modal-footer">
+           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+       </div>-->
+    </div>
+  </div>
+</div>
+
+
 <div class="right_col" role="main" style="min-height: 949px;">
   <div class="">
     <div class="page-title">

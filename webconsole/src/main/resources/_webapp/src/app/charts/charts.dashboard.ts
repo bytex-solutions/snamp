@@ -27,6 +27,8 @@ export class Dashboard {
               private dragulaService: DragulaService) {
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
+
+        // do not remove when dropping
         dragulaService.setOptions('first-bag', {
           copy: true
         });
