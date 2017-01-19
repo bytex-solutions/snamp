@@ -22,3 +22,8 @@
     display: inline-block;
     color: #999;
 }
+
+select.form-control:not([size]):not([multiple]) {
+    height: auto;
+    cursor: pointer;
+}

@@ -9,6 +9,8 @@ import { Modal } from 'angular2-modal/plugins/vex';
 import { DragulaService } from 'ng2-dragula/ng2-dragula';
 
 const Chart = require('chart.js')
+import 'smartwizard';
+import 'select2';
 
 
 @Component({
@@ -18,9 +20,21 @@ const Chart = require('chart.js')
 })
 export class Dashboard {
 
-  private http:ApiClient;
+        private http:ApiClient;
 
-  constructor(apiClient: ApiClient,
+        components:Observable<string[]>;
+        selectedComponent:string = "";
+
+        metrics:Observable<AttributeInformation[]>;
+        selectedMetric:string = "";
+
+        instances:Observable<string[]>;
+        selectedAllInstances:boolean = true;
+
+        selectedChartType:string = "bar";
+
+
+        constructor(apiClient: ApiClient,
               overlay: Overlay,
               vcRef: ViewContainerRef,
               private modal: Modal,
@@ -58,7 +72,7 @@ export class Dashboard {
            }]
         };
 
-       let _options:any = {
+        let _options:any = {
           scales: {
               yAxes: [{
                   ticks: {
@@ -66,12 +80,14 @@ export class Dashboard {
                   }
               }]
           }
-       };
+        };
 
          dragulaService.drop.subscribe((value) => {
            console.log("drop: ", value);
            console.log("Type to be created: ", $(value[1]).attr("data-chart-type"));
            var _type = $(value[1]).attr("data-chart-type");
+           this.selectedChartType = _type;
+           /*
            var _divHolder = $("<div></div>").addClass("col-md-4");
            var _canvas = $("<canvas id='" + _type +"'></canvas>");
            _divHolder.append(_canvas);
@@ -81,8 +97,60 @@ export class Dashboard {
                 data: _data,
                 options: _options
            });
+
+           */
            $(value[2]).find('div.thumbnail').remove();
+           $("#addChartModal").modal("show");
         });
    }
+
+   ngOnInit():void {
+        this.components = this.http.get(REST.CHART_COMPONENTS)
+            .map((res:Response) => { return <string[]>res.json()});
+   }
+
+   ngAfterViewInit():void {
+        var _thisReference = this;
+        $(document).ready(function(){
+             _thisReference.initWizard();
+        });
+   }
+
+   private initWizard():void {
+        $(this.getSmartWizardIdentifier()).smartWizard({
+            theme: 'arrows',
+            useURLhash: false,
+            showStepURLhash: false,
+            transitionEffect: 'fade'
+        });
+   }
+
+   onComponentSelect(event:any):void {
+        this.instances =  this.http.get(REST.CHART_INSTANCES(event))
+            .map((res:Response) => { return <string[]>res.json()});
+   }
+
+
+    private getSmartWizardIdentifier():string {
+      return "#smartwizardForChart";
+    }
+
+   addChartToDashboard():void {
+        $(this.getSmartWizardIdentifier()).smartWizard("reset");
+        $("#addChartModal").modal("hide");
+        this.initWizard();
+   }
+}
+
+class AttributeInformation {
+    public name:string = "";
+    public unitOfMeasurement:string = "undefined";
+    public type:string = "undefined";
+
+    constructor(name, uom:string, type:string) {
+        this.name = name;
+        this.unitOfMeasurement = uom;
+        this.type = type;
+    }
 }
 

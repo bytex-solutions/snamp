@@ -17,15 +17,15 @@
               </a>
             </li>
             <li>
-              <a [attr.href]="'#metric'">
-                Metric<br />
-                <small>Choose metric</small>
-              </a>
-            </li>
-            <li>
               <a [attr.href]="'#instances'">
                 Instances<br />
                 <small>Mark instances</small>
+              </a>
+            </li>
+            <li>
+              <a [attr.href]="'#metric'">
+                Metric<br />
+                <small>Choose metric</small>
               </a>
             </li>
             <li>
@@ -46,24 +46,8 @@
                   Component <span class="required">*</span>
                 </label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
-                  <select [(ngModel)]="selectedComponent" id="componentSelect">
-                    <option *ngFor="let component of components" [ngValue]="component">{{component.name}}</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div id="metric" class="row" style="margin-top: 100px;">
-              <div class="item form-group">
-                <label
-                        class="control-label col-md-3 col-sm-3 col-xs-12"
-                        for="metricSelect"
-                        style="margin-top: 7px;">
-                  Metric <span class="required">*</span>
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                  <select [(ngModel)]="selectedMetric" id="metricSelect">
-                    <option *ngFor="let metric of metrics" [ngValue]="metric">{{metric.name}}</option>
+                  <select class="form-control" [(ngModel)]="selectedComponent" (ngModelChange)="onComponentSelect($event)" id="componentSelect">
+                    <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
                   </select>
                 </div>
               </div>
@@ -80,11 +64,27 @@
                 <div class="col-md-6 col-sm-6 col-xs-12">
                   Select all
                   <ui-switch
-                          [(ngModel)]="showInstancesSelect"
+                          [(ngModel)]="selectedAllInstances"
                           [size]="'small'">
                   </ui-switch>
-                  <select id="instancesSelect" *ngIf="showInstancesSelect" multiple="multiple">
-                    <option *ngFor="let instance of instances">{{instance.name}}</option>
+                  <select class="form-control" id="instancesSelect" *ngIf="!selectedAllInstances" multiple="multiple">
+                    <option *ngFor="let instance of instances | async">{{instance.name}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="metric" class="row" style="margin-top: 100px;">
+              <div class="item form-group">
+                <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="metricSelect"
+                        style="margin-top: 7px;">
+                  Metric <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <select class="form-control" [(ngModel)]="selectedMetric" id="metricSelect">
+                    <option *ngFor="let metric of metrics | async" [ngValue]="metric">{{metric}}</option>
                   </select>
                 </div>
               </div>
@@ -96,17 +96,13 @@
               <button
                       type="button"
                       class="btn btn-primary"
-                      [disabled]="readyForSave == false"
-                      (click)="saveEntity()">
+                      (click)="addChartToDashboard()">
                 Append to dashboard
               </button>
             </div>
           </div>
         </div>
       </div>
-      <!-- <div class="modal-footer">
-           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-       </div>-->
     </div>
   </div>
 </div>
