@@ -54,21 +54,28 @@
             </div>
 
             <div id="instances" class="row" style="margin-top: 100px;">
-              <div class="item form-group">
+              <div class="col-md-12 col-sm-12 col-xs-12 text-center" *ngIf="(instances | async) == undefined">
+                <strong>No instances are found - cannot proceed</strong>
+              </div>
+
+              <div class="item form-group" *ngIf="instances | async">
                 <label
                         class="control-label col-md-3 col-sm-3 col-xs-12"
                         for="instancesSelect"
                         style="margin-top: 7px;">
-                  Instances <span class="required">*</span> <small>(you may choose several of all)</small>
+                  Instances <span class="required">*</span>
                 </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
+
+                <div class="col-md-6 col-sm-6 col-xs-12" >
                   Select all
                   <ui-switch
                           [(ngModel)]="selectedAllInstances"
+                          (change)="triggerShowInstances($event)"
                           [size]="'small'">
                   </ui-switch>
-                  <select class="form-control" id="instancesSelect" *ngIf="!selectedAllInstances" multiple="multiple">
-                    <option *ngFor="let instance of instances | async">{{instance.name}}</option>
+                  <br/>
+                  <select class="select2_multiple form-control" id="instancesSelect" style="display: none;" multiple="multiple">
+                    <option *ngFor="let instance of instances | async">{{instance}}</option>
                   </select>
                 </div>
               </div>
@@ -84,7 +91,7 @@
                 </label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
                   <select class="form-control" [(ngModel)]="selectedMetric" id="metricSelect">
-                    <option *ngFor="let metric of metrics | async" [ngValue]="metric">{{metric}}</option>
+                    <option *ngFor="let metric of metrics | async" [ngValue]="metric">{{metric.name}}</option>
                   </select>
                 </div>
               </div>

@@ -179,6 +179,20 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         assertEquals(JsonUtils.toJsonArray(TEST_RESOURCE_NAME), node);
     }
 
+    /**
+     * This test should pass as well as the following one. But it does not =(
+     * @throws IOException
+     */
+    @Test
+    public void listOfInstancesWithGroupNameTest() throws IOException{
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode groupName = httpGet("/managedResources/components", authenticationToken);
+        assertEquals(JsonUtils.toJsonArray(GROUP_NAME), groupName);
+        final JsonNode node = httpGet(String.format("/managedResources/%s", groupName.get(0).asText()), authenticationToken);
+        assertNotNull(node);
+        assertEquals(JsonUtils.toJsonArray(TEST_RESOURCE_NAME), node);
+    }
+
     @Test
     public void listOfAttributesTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();

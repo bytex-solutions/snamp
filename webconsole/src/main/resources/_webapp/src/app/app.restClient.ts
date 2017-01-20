@@ -139,7 +139,7 @@ export class REST {
     public static CHART_COMPONENTS:string = "/snamp/web/api/managedResources/components";
 
     public static CHART_INSTANCES(componentName:string):string {
-        return "/snamp/web/api/managedResources/" + componentName;
+        return "/snamp/web/api/managedResources"; // should be uncommented further // + componentName;
     }
 
     public static CHART_METRICS(instanceName:string):string {

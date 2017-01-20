@@ -8,6 +8,8 @@ import { Modal } from 'angular2-modal/plugins/vex';
 
 import { DragulaService } from 'ng2-dragula/ng2-dragula';
 
+import 'rxjs/add/operator/publishLast';
+
 const Chart = require('chart.js')
 import 'smartwizard';
 import 'select2';
@@ -106,7 +108,16 @@ export class Dashboard {
 
    ngOnInit():void {
         this.components = this.http.get(REST.CHART_COMPONENTS)
-            .map((res:Response) => { return <string[]>res.json()});
+            .map((res:Response) => { return <string[]>res.json()})
+            .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
+        this.components.subscribe((data:string[]) => {
+            if (data && data.length > 0) {
+                this.selectedComponent = data[0];
+                // load instances as well - if we autoselect a component
+                this.instances = this.http.get(REST.CHART_INSTANCES(this.selectedComponent))
+                            .map((res:Response) => { return <string[]>res.json()});
+            }
+        });
    }
 
    ngAfterViewInit():void {
@@ -126,8 +137,41 @@ export class Dashboard {
    }
 
    onComponentSelect(event:any):void {
-        this.instances =  this.http.get(REST.CHART_INSTANCES(event))
+        this.instances = this.http.get(REST.CHART_INSTANCES(event))
             .map((res:Response) => { return <string[]>res.json()});
+   }
+
+   onInstanceSelect(event:any):void {
+        $('#overlay').fadeIn();
+        this.metrics = this.http.get(REST.CHART_METRICS(event))
+            .map((res:Response) => {
+                let _data:any = res.json();
+                let _values:AttributeInformation[] = [];
+                for (let i in _data) {
+                    _values.push(new AttributeInformation(_data[i]));
+                }
+                return _values;
+            });
+         $('#overlay').fadeOut();
+   }
+
+   triggerShowInstances(event:any):void {
+        var _select = $("#instancesSelect");
+        var _thisReference = this;
+        if (event == false) {
+            _select.select2({
+                placeholder: "Select instances from the dropdown",
+                allowClear: true
+            });
+            _select.on('change', (e) => {
+                _thisReference.onInstanceSelect($(e.target).val());
+             });
+            _select.fadeIn("fast");
+        } else {
+            _select.fadeOut("fast", function(){
+                _select.select2("destroy");
+            });
+        }
    }
 
 
@@ -143,14 +187,20 @@ export class Dashboard {
 }
 
 class AttributeInformation {
-    public name:string = "";
+    public name:string = "undefined";
     public unitOfMeasurement:string = "undefined";
     public type:string = "undefined";
 
-    constructor(name, uom:string, type:string) {
-        this.name = name;
-        this.unitOfMeasurement = uom;
-        this.type = type;
+    constructor(_json:any) {
+        if (_json["name"] != undefined) {
+            this.name = _json["name"];
+        }
+        if (_json["unitOfMeasurement"] != undefined) {
+            this.unitOfMeasurement = _json["unitOfMeasurement"];
+        }
+        if (_json["type"] != undefined) {
+            this.type = _json["type"];
+        }
     }
 }
 
