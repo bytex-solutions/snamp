@@ -31,6 +31,8 @@ export class Dashboard {
         selectedMetric:AttributeInformation;
 
         instances:Observable<string[]>;
+        selectedInstances:string[] = [];
+        allInstances:string[] = [];
         selectedAllInstances:boolean = true;
 
         selectedChartType:string = "bar";
@@ -122,7 +124,8 @@ export class Dashboard {
                 this.selectedComponent = data[0];
                 // load instances as well - if we autoselect a component
                 this.instances = this.http.get(REST.CHART_INSTANCES(this.selectedComponent))
-                            .map((res:Response) => { return <string[]>res.json()});
+                            .map((res:Response) => { return <string[]>res.json()}).publishLast().refCount();
+                this.instances.subscribe((data:string[]) => { this.allInstances = data});
             }
         });
    }
@@ -147,18 +150,29 @@ export class Dashboard {
         $(this.getSmartWizardIdentifier()).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
             if (stepNumber == 3) {
                 _thisReference.updateChartName();
+            } else if (stepNumber == 2) {
+                _thisReference.loadMetricsOnInstancesSelected();
             }
         });
    }
 
    onComponentSelect(event:any):void {
         this.instances = this.http.get(REST.CHART_INSTANCES(event))
-            .map((res:Response) => { return <string[]>res.json()});
+            .map((res:Response) => { return <string[]>res.json()})
+            .publishLast()
+            .refCount();
+        this.instances.subscribe((data:string[]) => { this.allInstances = data});
    }
 
-   onInstanceSelect(event:any):void {
+    onInstanceSelect(event):void {
+        this.selectedInstances = event;
+    }
+
+   private loadMetricsOnInstancesSelected():void {
         $('#overlay').fadeIn();
-        this.metrics = this.http.get(REST.CHART_METRICS(event))
+        console.log("all instances are ", this.allInstances);
+        let _instanceForSearchMetrics:string = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
+        this.metrics = this.http.get(REST.CHART_METRICS(_instanceForSearchMetrics))
             .map((res:Response) => {
                 let _data:any = res.json();
                 let _values:AttributeInformation[] = [];
