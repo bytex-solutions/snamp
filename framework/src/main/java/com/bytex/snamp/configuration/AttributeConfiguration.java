@@ -26,11 +26,6 @@ public interface AttributeConfiguration extends FeatureConfiguration {
      */
     void setReadWriteTimeout(final Duration value);
 
-    @Override
-    default AttributeConfiguration asReadOnly(){
-        return new ImmutableAttributeConfiguration(this);
-    }
-
     /**
      * Copies management attributes.
      * @param source The attribute to copy.

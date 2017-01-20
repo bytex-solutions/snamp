@@ -33,9 +33,6 @@ public interface ManagedResourceTemplate extends TypedEntityConfiguration {
      */
     <T extends FeatureConfiguration> EntityMap<? extends T> getFeatures(final Class<T> featureType);
 
-    @Override
-    ManagedResourceTemplate asReadOnly();
-
     static void copyAttributes(final Map<String, ? extends AttributeConfiguration> input,
                                final EntityMap<? extends AttributeConfiguration> output){
         ConfigurationEntityCopier.copy(input, output, AttributeConfiguration::copy);

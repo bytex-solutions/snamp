@@ -17,7 +17,4 @@ public interface TypedEntityConfiguration extends EntityConfiguration {
      * @param value Type of the entity.
      */
     void setType(final String value);
-
-    @Override
-    TypedEntityConfiguration asReadOnly();
 }

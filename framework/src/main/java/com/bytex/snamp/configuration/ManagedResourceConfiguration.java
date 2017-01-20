@@ -6,7 +6,7 @@ package com.bytex.snamp.configuration;
  * @since 1.0
  * @version 2.0
  */
-public interface ManagedResourceConfiguration extends ManagedResourceTemplate {
+public interface ManagedResourceConfiguration extends ManagedResourceTemplate, ManagedResourceInfo {
     String GROUP_NAME_PROPERTY = "group";
 
     /**
@@ -21,6 +21,7 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate {
      * Gets name of resource group.
      * @return Name of resource group; or empty string, if group is not assigned.
      */
+    @Override
     default String getGroupName(){
         return get(GROUP_NAME_PROPERTY);
     }
@@ -29,12 +30,8 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate {
      * Gets the management target connection string.
      * @return The connection string that is used to connect to the management server.
      */
-    String getConnectionString();
-
     @Override
-    default ManagedResourceConfiguration asReadOnly(){
-        return new ImmutableManagedResourceConfiguration(this);
-    }
+    String getConnectionString();
 
     /**
      * Sets the management target connection string.

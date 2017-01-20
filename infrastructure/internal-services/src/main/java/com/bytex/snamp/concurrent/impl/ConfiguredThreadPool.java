@@ -66,7 +66,7 @@ final class ConfiguredThreadPool extends ThreadPoolExecutor implements ExecutorS
     }
 
     ConfiguredThreadPool() {
-        this(ThreadPoolConfiguration.DEFAULT_CONFIG, "SnampThread");
+        this(new DefaultThreadPoolConfiguration(), "SnampThread");
     }
 
     boolean hasConfiguration(final ThreadPoolConfiguration configuration) {

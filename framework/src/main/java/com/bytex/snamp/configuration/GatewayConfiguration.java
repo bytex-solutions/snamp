@@ -14,11 +14,6 @@ public interface GatewayConfiguration extends TypedEntityConfiguration {
      */
     String THREAD_POOL_KEY = "threadPool";
 
-    @Override
-    default GatewayConfiguration asReadOnly(){
-        return new ImmutableGatewayConfiguration(this);
-    }
-
     static void copy(final GatewayConfiguration input, final GatewayConfiguration output){
         output.setType(input.getType());
         output.load(input);
