@@ -1,11 +1,13 @@
 package com.bytex.snamp.web.serviceModel.managedResources;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 import javax.management.MBeanAttributeInfo;
 import java.util.Objects;
@@ -21,15 +23,24 @@ public final class AttributeInformation {
     private String name;
     private String unitOfMeasurement;
     private WellKnownType type;
+    private String description;
 
     public AttributeInformation(final MBeanAttributeInfo attributeInfo){
         name = attributeInfo.getName();
         type = AttributeDescriptor.getType(attributeInfo);
         unitOfMeasurement = DescriptorUtils.getUOM(attributeInfo.getDescriptor());
+        description = firstNonNull(attributeInfo.getDescription(), "");
+    }
+
+    public AttributeInformation(final String name, final AttributeConfiguration attributeInfo) {
+        this.name = name;
+        type = WellKnownType.BIG_DECIMAL;
+        unitOfMeasurement = firstNonNull(attributeInfo.getUnitOfMeasurement(), "");
+        description = firstNonNull(attributeInfo.getDescription(), "");
     }
 
     public AttributeInformation(){
-        name = unitOfMeasurement = "";
+        name = unitOfMeasurement = description = "";
         type = WellKnownType.STRING;
     }
 
@@ -55,6 +66,15 @@ public final class AttributeInformation {
 
     public void setUOM(final String value){
         unitOfMeasurement = Objects.requireNonNull(value);
+    }
+
+    @JsonProperty
+    public String getDescription(){
+        return description;
+    }
+
+    public void setDescription(final String value){
+        description = Objects.requireNonNull(value);
     }
 
     @JsonProperty("type")

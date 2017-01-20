@@ -1,6 +1,7 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
@@ -23,10 +24,9 @@ import java.util.function.Supplier;
  */
 public final class DescriptorUtils {
     public static final String DEFAULT_VALUE_FIELD  = JMX.DEFAULT_VALUE_FIELD;
-    public static final String LEGAL_VALUES_FIELD = JMX.LEGAL_VALUES_FIELD;
     public static final String MIN_VALUE_FIELD = JMX.MIN_VALUE_FIELD;
     public static final String MAX_VALUE_FIELD = JMX.MAX_VALUE_FIELD;
-    public static final String UNIT_OF_MEASUREMENT_FIELD = "units";
+    public static final String UNIT_OF_MEASUREMENT_FIELD = AttributeConfiguration.UNIT_OF_MEASUREMENT_KEY;
 
     public static final DescriptorRead EMPTY_DESCRIPTOR = () -> ImmutableDescriptor.EMPTY_DESCRIPTOR;
 

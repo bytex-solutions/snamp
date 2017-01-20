@@ -3,9 +3,13 @@ package com.bytex.snamp.web.serviceModel.managedResources;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
@@ -16,7 +20,9 @@ import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
@@ -59,7 +65,7 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{instanceName}/attributes")
-    public AttributeInformation[] getAttributes(@PathParam("instanceName") final String instanceName) {
+    public AttributeInformation[] getInstanceAttributes(@PathParam("instanceName") final String instanceName) {
         ManagedResourceConnectorClient client = null;
         try {
             client = new ManagedResourceConnectorClient(getBundleContext(), instanceName);
@@ -70,6 +76,32 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
             if (client != null)
                 client.release(getBundleContext());
         }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/components/{componentName}/attributes")
+    public AttributeInformation[] getComponentAttributes(@PathParam("componentName") final String componentName) {
+        final ServiceHolder<ConfigurationManager> configurationManager = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+        if (configurationManager != null)
+            try {
+                final Optional<? extends ManagedResourceGroupConfiguration> group = configurationManager.get().transformConfiguration(config -> config.getEntities(ManagedResourceGroupConfiguration.class).getIfPresent(componentName));
+                if(group.isPresent())
+                    return group.get().getFeatures(AttributeConfiguration.class)
+                            .entrySet()
+                            .stream()
+                            .map(entry -> new AttributeInformation(entry.getKey(), entry.getValue()))
+                            .toArray(AttributeInformation[]::new);
+                else
+                    throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity(String.format("Component/group %s not found", componentName)).build());
+            } catch (final IOException e) {
+                throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+            }
+            finally {
+                configurationManager.release(getBundleContext());
+            }
+        else
+            throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ConfigurationManager is not available").build());
     }
 
     @GET
