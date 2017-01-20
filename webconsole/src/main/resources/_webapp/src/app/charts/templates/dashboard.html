@@ -87,19 +87,32 @@
                         class="control-label col-md-3 col-sm-3 col-xs-12"
                         for="metricSelect"
                         style="margin-top: 7px;">
-                  Metric <span class="required">*</span>
+                  Select metric <span class="required">*</span>
                 </label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
                   <select class="form-control" [(ngModel)]="selectedMetric" id="metricSelect">
-                    <option *ngFor="let metric of metrics | async" [ngValue]="metric">{{metric.name}}</option>
+                    <option [tooltip]="metric.type" *ngFor="let metric of metrics | async" [ngValue]="metric">{{metric.name}}</option>
                   </select>
                 </div>
               </div>
             </div>
 
             <div id="save" class="row" style="margin-top: 20px;">
+              <div class="item form-group">
+                <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        style="margin-top: 7px;">
+                  Chart name <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <inline-edit [(ngModel)]="chartName"
+                               [ngModelOptions]="{standalone: true}">
+                  </inline-edit>
+                </div>
+              </div>
+              <br/>
               Preview:
-              <canvas id="chartPreview" width="300" height="250"></canvas>
+              <canvas id="chartPreview" width="150" height="50"></canvas>
               <button
                       type="button"
                       class="btn btn-primary"

@@ -28,12 +28,14 @@ export class Dashboard {
         selectedComponent:string = "";
 
         metrics:Observable<AttributeInformation[]>;
-        selectedMetric:string = "";
+        selectedMetric:AttributeInformation;
 
         instances:Observable<string[]>;
         selectedAllInstances:boolean = true;
 
         selectedChartType:string = "bar";
+
+        chartName:string = "newChart";
 
 
         constructor(apiClient: ApiClient,
@@ -106,6 +108,11 @@ export class Dashboard {
         });
    }
 
+   private updateChartName():void {
+        this.chartName = this.selectedChartType + "." +
+            this.selectedComponent + "." + ((this.selectedMetric != undefined) ? this.selectedMetric.name : "");
+   }
+
    ngOnInit():void {
         this.components = this.http.get(REST.CHART_COMPONENTS)
             .map((res:Response) => { return <string[]>res.json()})
@@ -134,6 +141,14 @@ export class Dashboard {
             showStepURLhash: false,
             transitionEffect: 'fade'
         });
+
+        var _thisReference = this;
+
+        $(this.getSmartWizardIdentifier()).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
+            if (stepNumber == 3) {
+                _thisReference.updateChartName();
+            }
+        });
    }
 
    onComponentSelect(event:any):void {
@@ -151,7 +166,15 @@ export class Dashboard {
                     _values.push(new AttributeInformation(_data[i]));
                 }
                 return _values;
-            });
+            })
+            .publishLast()
+            .refCount();
+            // set auto selected first metric if the array is not empty
+            this.metrics.subscribe((data:AttributeInformation[]) => {
+                if (data && data.length > 0) {
+                    this.selectedMetric = data[0];
+                }
+            })
          $('#overlay').fadeOut();
    }
 
