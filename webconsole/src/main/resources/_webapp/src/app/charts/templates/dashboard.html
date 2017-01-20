@@ -76,8 +76,6 @@
                   <br/>
                   <select class="select2_multiple form-control" id="instancesSelect" style="display: none;" multiple="multiple">
                     <option *ngFor="let instance of instances | async">{{instance}}</option>
-                    <option>Instance 2</option>
-                    <option>Instance 3</option>
                   </select>
                 </div>
               </div>
@@ -99,28 +97,31 @@
               </div>
             </div>
 
-            <div id="save" class="row" style="margin-top: 20px;">
-              <div class="item form-group">
-                <label
-                        class="control-label col-md-3 col-sm-3 col-xs-12"
-                        style="margin-top: 7px;">
-                  Chart name <span class="required">*</span>
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                  <inline-edit [(ngModel)]="chartName"
-                               [ngModelOptions]="{standalone: true}">
-                  </inline-edit>
+            <div id="save" style="margin-top: 100px;">
+
+              <div class="row">
+                <div class="item form-group col-md-offset-4">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          style="margin-top: 7px;">
+                    Chart name <span class="required">*</span>
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <inline-edit [(ngModel)]="chartName"
+                                 [ngModelOptions]="{standalone: true}">
+                    </inline-edit>
+                  </div>
                 </div>
               </div>
-              <br/>
-              Preview:
-              <canvas id="chartPreview" width="150" height="50"></canvas>
-              <button
-                      type="button"
-                      class="btn btn-primary"
-                      (click)="addChartToDashboard()">
-                Append to dashboard
-              </button>
+
+              <div class="row" style="margin-top: 15px">
+                <button
+                        type="button"
+                        class="btn btn-primary col-md-4 col-md-offset-4"
+                        (click)="addChartToDashboard()">
+                  Append to dashboard
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -39,6 +39,8 @@ export class Dashboard {
 
         chartName:string = "newChart";
 
+        initialized = false;
+
 
         constructor(apiClient: ApiClient,
               overlay: Overlay,
@@ -106,8 +108,36 @@ export class Dashboard {
 
            */
            $(value[2]).find('div.thumbnail').remove();
-           $("#addChartModal").modal("show");
+           this.initModal();
         });
+   }
+
+   private initModal():void {
+        // clean the data if the component was already initialized
+        if (this.initialized) {
+            // set all elements to the initial state
+            this.selectedAllInstances = true;
+            this.allInstances = [];
+            this.selectedInstances = [];
+            this.selectedMetric = undefined;
+            this.selectedComponent = "";
+
+            // fill components and selected component
+            this.ngOnInit();
+
+            // reset wizard
+            $(this.getSmartWizardIdentifier()).off("showStep");
+            $(this.getSmartWizardIdentifier()).smartWizard("reset");
+            this.initWizard();
+
+            if ($("#instancesSelect").data('select2')) {
+                $("#instancesSelect").select2("destroy");
+            }
+        }
+        // open the modal
+        $("#addChartModal").modal("show");
+        // and next time user adds the chart - we will reinit all the dialog
+        this.initialized = true;
    }
 
    private updateChartName():void {
@@ -170,7 +200,6 @@ export class Dashboard {
 
    private loadMetricsOnInstancesSelected():void {
         $('#overlay').fadeIn();
-        console.log("all instances are ", this.allInstances);
         let _instanceForSearchMetrics:string = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
         this.metrics = this.http.get(REST.CHART_METRICS(_instanceForSearchMetrics))
             .map((res:Response) => {
@@ -217,9 +246,7 @@ export class Dashboard {
     }
 
    addChartToDashboard():void {
-        $(this.getSmartWizardIdentifier()).smartWizard("reset");
         $("#addChartModal").modal("hide");
-        this.initWizard();
    }
 }
 
