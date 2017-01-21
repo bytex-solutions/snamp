@@ -494,8 +494,8 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
      */
     @Override
     public void close() throws Exception {
-        attributes.removeAll(true);
-        operations.removeAll(true);
+        attributes.close();
+        operations.close();
         super.close();
         executionChannel.close();
     }

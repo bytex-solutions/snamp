@@ -52,16 +52,6 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
     String TYPE_CAPABILITY_ATTRIBUTE = "type";
 
     /**
-     * Represents property that contains unique name of the managed resource instance.
-     */
-    String NAME_PROPERTY = "resourceName";
-
-    /**
-     * Represents property that contains connection string associated with the managed resource instance.
-     */
-    String CONNECTION_STRING_PROPERTY = "connectionString";
-
-    /**
      * Represents an exception indicating that the resource connector cannot be updated
      * without it recreation. This class cannot be inherited.
      * @author Roman Sakno

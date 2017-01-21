@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
@@ -24,7 +25,7 @@ import static com.bytex.snamp.ArrayUtils.arrayConstructor;
  * @version 2.0
  */
 @ThreadSafe
-public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F> {
+public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F>, SafeCloseable {
     private static final class WeakResourceEventListener extends WeakEventListener<ResourceEventListener, ResourceEvent> implements ResourceEventListener{
         private WeakResourceEventListener(final ResourceEventListener listener) {
             super(listener);
@@ -97,12 +98,8 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
         return resourceEventListeners.remove(listener);
     }
 
-    protected final void fireResourceEvent(final FeatureModifiedEvent<?> event) {
+    protected final void fireResourceEvent(final FeatureModifiedEvent<? super F> event) {
         resourceEventListeners.fire(event);
-    }
-
-    protected final void removeAllResourceEventListeners() {
-        resourceEventListeners.clear();
     }
 
     /**
@@ -154,5 +151,22 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
 
     protected final F[] toArray(final Collection<F> features){
         return features.stream().toArray(arrayConstructor(metadataType));
+    }
+
+    /**
+     * Removes all features from this repository.
+     * @since 2.0
+     */
+    public abstract void clear();
+
+    /**
+     * Releases all resources associated with this repository.
+     * @implSpec Always call {@code super.close()} when overriding this method in the derived class.
+     * @implNote This method calls {@link #clear()}.
+     */
+    @Override
+    public void close() {
+        clear();
+        resourceEventListeners.clear();
     }
 }

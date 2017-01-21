@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * @since 1.0
  * @version 2.0
  */
-public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport, SafeCloseable {
+public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport {
     /**
      * Represents batch notification sender.
      * This class cannot be inherited or instantiated directly from your code.
@@ -386,12 +386,22 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         return LoggerProvider.getLoggerForObject(this);
     }
 
-    private void removeAllImpl(final KeyedObjects<String, M> notifications){
+    private void clearImpl() {
         notifications.values().forEach(metadata -> {
             notificationRemoved(metadata);
             disconnectNotifications(metadata);
         });
         notifications.clear();
+    }
+
+    /**
+     * Removes all features from this repository.
+     *
+     * @since 2.0
+     */
+    @Override
+    public final void clear() {
+        writeLock.run(SingleResourceGroup.INSTANCE, this::clearImpl);
     }
 
     /**
@@ -413,20 +423,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     @Override
     public final boolean canExpandNotifications() {
         return expandable;
-    }
-
-    /**
-     * Disables all notifications registered in this manager.
-     * @param removeNotificationListeners {@literal true} to remove all notification listeners.
-     * @param removeResourceEventListeners {@literal true} to remove all notification model listeners.
-     */
-    public final void removeAll(final boolean removeNotificationListeners,
-                                final boolean removeResourceEventListeners) {
-        writeLock.accept(SingleResourceGroup.INSTANCE, this, notifications, AbstractNotificationRepository<M>::removeAllImpl);
-        if (removeNotificationListeners)
-            listeners.clear();
-        if (removeResourceEventListeners)
-            super.removeAllResourceEventListeners();
     }
 
     @Override
@@ -458,7 +454,8 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public void close() {
-        removeAll(true, true);
+        listeners.clear();
+        super.close();
     }
 
 }

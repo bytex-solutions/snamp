@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.operations;
 
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.OperationMetric;
 import com.bytex.snamp.connector.metrics.OperationMetricRecorder;
@@ -32,7 +31,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @version 2.0
  * @since 1.0
  */
-public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> extends AbstractFeatureRepository<M> implements OperationSupport, SafeCloseable {
+public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> extends AbstractFeatureRepository<M> implements OperationSupport {
     /**
      * Represents information about operation invocation. This class cannot be inherited or instantiated directly
      * from your code.
@@ -398,7 +397,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
         }
     }
 
-    private void removeAllImpl(final KeyedObjects<String, M> operations) {
+    private void clearImpl() {
         operations.values().forEach(metadata -> {
             operationRemoved(metadata);
             disconnectOperation(metadata);
@@ -407,13 +406,13 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     }
 
     /**
-     * Disables all operation registered in this collection.
-     * @param removeResourceListeners {@literal true} to remove all resource listeners; otherwise, {@literal false}.
+     * Removes all features from this repository.
+     *
+     * @since 2.0
      */
-    public final void removeAll(final boolean removeResourceListeners) {
-        writeLock.accept(SingleResourceGroup.INSTANCE, this, operations, AbstractOperationRepository<M>::removeAllImpl);
-        if (removeResourceListeners)
-            removeAllResourceEventListeners();
+    @Override
+    public final void clear() {
+        writeLock.run(SingleResourceGroup.INSTANCE, this::clearImpl);
     }
 
     /**
@@ -469,13 +468,5 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     @Override
     public final boolean canExpandOperations() {
         return expandable;
-    }
-
-    /**
-     * Removes all operations from this repository.
-     */
-    @Override
-    public void close() {
-        removeAll(true);
     }
 }

@@ -28,7 +28,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 1.0
  * @version 2.0
  */
-public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport, SafeCloseable {
+public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport {
     private final static class AttributeListCollector extends CountDownLatch {
         private final List<Attribute> attributes;
 
@@ -499,7 +499,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         retainAll(attributes);
     }
 
-    private void removeAllImpl(final Map<String, M> attributes){
+    private void clearImpl(){
         attributes.values().forEach(metadata -> {
             attributeRemoved(metadata);
             disconnectAttribute(metadata);
@@ -508,14 +508,11 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     }
 
     /**
-     * Removes all attributes.
-     *
-     * @param removeAttributeEventListeners {@literal true} to remove all attribute listeners; otherwise, {@literal false}.
+     * Removes all features from this repository.
      */
-    public final void removeAll(final boolean removeAttributeEventListeners) {
-        writeLock.accept(SingleResourceGroup.INSTANCE, attributes, this::removeAllImpl);
-        if (removeAttributeEventListeners)
-            super.removeAllResourceEventListeners();
+    @Override
+    public final void clear() {
+        writeLock.run(SingleResourceGroup.INSTANCE, this::clearImpl);
     }
 
     /**
@@ -580,13 +577,5 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     protected final void failedToExpand(final Level level, final Exception e){
         getLogger().log(level, String.format("Unable to expand attributes for resource %s", getResourceName()), e);
-    }
-
-    /**
-     * Removes all attributes from this repository.
-     */
-    @Override
-    public void close() {
-        removeAll(true);
     }
 }

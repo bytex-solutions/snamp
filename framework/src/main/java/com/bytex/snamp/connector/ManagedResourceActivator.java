@@ -52,6 +52,10 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
     private static final String CATEGORY = "resourceConnector";
+
+    private static final String NAME_PROPERTY = "resourceName";
+    private static final String CONNECTION_STRING_PROPERTY = "connectionString";
+
     private static final ActivationProperty<String> CONNECTOR_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
 
@@ -264,10 +268,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                          final ManagedResourceConfiguration configuration) throws Exception {
             loadedConfigurations.put(resourceName, configuration::equals);
             identity.putAll(configuration);
-            identity.put(ManagedResourceConnector.NAME_PROPERTY, resourceName);
+            identity.put(NAME_PROPERTY, resourceName);
             identity.put(ManagedResourceConnector.TYPE_CAPABILITY_ATTRIBUTE, connectorType);
             identity.put(ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY);
-            identity.put(ManagedResourceConnector.CONNECTION_STRING_PROPERTY, configuration.getConnectionString());
+            identity.put(CONNECTION_STRING_PROPERTY, configuration.getConnectionString());
             final TConnector result = controller.createConnector(resourceName, configuration.getConnectionString(), configuration, getDependencies());
             updateFeatures(result, configuration);
             return result;
@@ -569,15 +573,15 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef) {
-        return getReferencePropertyAsString(connectorRef, ManagedResourceConnector.NAME_PROPERTY, "");
+        return getReferencePropertyAsString(connectorRef, NAME_PROPERTY, "");
     }
 
     static String getConnectionString(final ServiceReference<ManagedResourceConnector> identity){
-        return getValue(getProperties(identity), ManagedResourceConnector.CONNECTION_STRING_PROPERTY, Objects::toString).orElse("");
+        return getValue(getProperties(identity), CONNECTION_STRING_PROPERTY, Objects::toString).orElse("");
     }
 
     private static String getManagedResourceName(final Map<String, ?> identity){
-        return getValue(identity, ManagedResourceConnector.NAME_PROPERTY, String.class).orElse("");
+        return getValue(identity, NAME_PROPERTY, String.class).orElse("");
     }
 
     private static List<Bundle> getResourceConnectorBundles(final BundleContext context) {
@@ -681,6 +685,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     static String createFilter(final String resourceName) {
-        return String.format("(&(%s=%s)(%s=%s))", ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY, ManagedResourceConnector.NAME_PROPERTY, resourceName);
+        return String.format("(&(%s=%s)(%s=%s))", ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY, NAME_PROPERTY, resourceName);
     }
 }
