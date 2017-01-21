@@ -1,18 +1,13 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.ResourceEvent;
-import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.attributes.AttributeAddedEvent;
-import com.bytex.snamp.connector.attributes.AttributeRemovingEvent;
+import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.connector.*;
+import com.bytex.snamp.connector.attributes.AttributeModifiedEvent;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.notifications.NotificationAddedEvent;
-import com.bytex.snamp.connector.notifications.NotificationRemovingEvent;
+import com.bytex.snamp.connector.notifications.NotificationModifiedEvent;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.connector.operations.OperationAddedEvent;
-import com.bytex.snamp.connector.operations.OperationRemovingEvent;
+import com.bytex.snamp.connector.operations.OperationModifiedEvent;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.LoggingScope;
@@ -31,10 +26,10 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -48,6 +43,13 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 2.0
  */
 public abstract class AbstractGateway extends AbstractAggregator implements Gateway, ResourceEventListener{
+    @FunctionalInterface
+    private interface FeatureModifiedEventFactory<S, F extends MBeanFeatureInfo>{
+        FeatureModifiedEvent<F> createEvent(final S sender,
+                                            final String resourceName,
+                                            final F feature);
+    }
+
     private static final class GatewayLoggingScope extends LoggingScope {
 
         private GatewayLoggingScope(final AbstractGateway requester,
@@ -239,42 +241,18 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         return current != null ? current.state : GatewayState.CLOSED;
     }
 
-    private void attributeAdded(final AttributeAddedEvent event){
-        final FeatureAccessor<MBeanAttributeInfo> accessor =
-                addFeatureImpl(event.getResourceName(), event.getFeature());
-        if(accessor != null)
-            accessor.processEvent(event);
-    }
-
-    private void attributeRemoved(final AttributeRemovingEvent event){
-        final FeatureAccessor<MBeanAttributeInfo> accessor =
-                removeFeatureImpl(event.getResourceName(), event.getFeature());
-        if(accessor != null)
-            accessor.processEvent(event);
-    }
-
-    private void notificationAdded(final NotificationAddedEvent event){
-        final FeatureAccessor<MBeanNotificationInfo> accessor =
-                addFeatureImpl(event.getResourceName(), event.getFeature());
-        if(accessor != null)
-            accessor.processEvent(event);
-    }
-
-    private void notificationRemoved(final NotificationRemovingEvent event){
-        final FeatureAccessor<MBeanNotificationInfo> accessor = removeFeatureImpl(event.getResourceName(), event.getFeature());
-        if(accessor != null)
-            accessor.processEvent(event);
-    }
-
-    private void operationAdded(final OperationAddedEvent event){
-        final FeatureAccessor<MBeanOperationInfo> accessor =
-                addFeatureImpl(event.getResourceName(), event.getFeature());
-        if(accessor != null)
-            accessor.processEvent(event);
-    }
-
-    private void operationRemoved(final OperationRemovingEvent event){
-        final FeatureAccessor<MBeanOperationInfo> accessor = removeFeatureImpl(event.getResourceName(), event.getFeature());
+    private <F extends MBeanFeatureInfo> void featureModified(final FeatureModifiedEvent<F> event){
+        final FeatureAccessor<F> accessor;
+        switch (event.getType()) {
+            case ADDED:
+                accessor = addFeatureImpl(event.getResourceName(), event.getFeature());
+                break;
+            case REMOVING:
+                accessor = removeFeatureImpl(event.getResourceName(), event.getFeature());
+                break;
+            default:
+                return;
+        }
         if(accessor != null)
             accessor.processEvent(event);
     }
@@ -283,23 +261,16 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      * Handles resource event.
      *
      * @param event An event to handle.
-     * @see com.bytex.snamp.connector.FeatureAddedEvent
-     * @see com.bytex.snamp.connector.FeatureRemovingEvent
+     * @see com.bytex.snamp.connector.FeatureModifiedEvent
      */
     @Override
     public final void handle(final ResourceEvent event) {
-        if(event instanceof AttributeAddedEvent)
-            attributeAdded((AttributeAddedEvent) event);
-        else if(event instanceof AttributeRemovingEvent)
-            attributeRemoved((AttributeRemovingEvent)event);
-        else if(event instanceof NotificationAddedEvent)
-            notificationAdded((NotificationAddedEvent)event);
-        else if(event instanceof NotificationRemovingEvent)
-            notificationRemoved((NotificationRemovingEvent)event);
-        else if(event instanceof OperationAddedEvent)
-            operationAdded((OperationAddedEvent)event);
-        else if(event instanceof OperationRemovingEvent)
-            operationRemoved((OperationRemovingEvent)event);
+        if (event instanceof AttributeModifiedEvent)
+            featureModified((AttributeModifiedEvent) event);
+        else if (event instanceof OperationModifiedEvent)
+            featureModified((OperationModifiedEvent) event);
+        else if (event instanceof NotificationModifiedEvent)
+            featureModified((NotificationModifiedEvent) event);
     }
 
     /**
@@ -459,6 +430,17 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         beginUpdate(manager, null);
     }
 
+    private <S, F extends MBeanFeatureInfo> void exposeFeatures(final String resourceName,
+                                                                final Aggregator connector,
+                                                                final Class<S> supportType,
+                                                                final Function<? super S, F[]> features,
+                                                                final FeatureModifiedEventFactory<S, F> eventFactory){
+        final S support = connector.queryObject(supportType);
+        if(support != null)
+            for(final F feature: features.apply(support))
+                featureModified(eventFactory.createEvent(support, resourceName, feature));
+    }
+
     private synchronized void addResource(final ServiceReference<ManagedResourceConnector> resourceRef) {
         final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(resourceRef);
         final BundleContext context = getBundleContext();
@@ -468,15 +450,9 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 //add gateway as a listener
                 connector.addResourceEventListener(this);
                 //expose all features
-                final AttributeSupport attributeSupport = connector.queryObject(AttributeSupport.class);
-                if(attributeSupport != null)
-                    Arrays.stream(attributeSupport.getAttributeInfo()).forEach(metadata -> attributeAdded(new AttributeAddedEvent(attributeSupport, resourceName, metadata)));
-                final NotificationSupport notificationSupport = connector.queryObject(NotificationSupport.class);
-                if(notificationSupport != null)
-                    Arrays.stream(notificationSupport.getNotificationInfo()).forEach(metadata -> notificationAdded(new NotificationAddedEvent(notificationSupport, resourceName, metadata)));
-                final OperationSupport operationSupport = connector.queryObject(OperationSupport.class);
-                if(operationSupport != null)
-                    Arrays.stream(operationSupport.getOperationInfo()).forEach(metadata -> operationAdded(new OperationAddedEvent(operationSupport, resourceName, metadata)));
+                exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
+                exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
+                exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
             } finally {
                 context.ungetService(resourceRef);
             }

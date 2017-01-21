@@ -200,11 +200,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     private void notificationAdded(final M metadata){
-        fireResourceEvent(new NotificationAddedEvent(this, getResourceName(), metadata));
+        fireResourceEvent(NotificationModifiedEvent.notificationAdded(this, getResourceName(), metadata));
     }
 
-    private void notificationRemoved(final M metadata){
-        fireResourceEvent(new NotificationRemovingEvent(this, getResourceName(), metadata));
+    private void notificationRemoved(final M metadata) {
+        fireResourceEvent(NotificationModifiedEvent.notificationRemoving(this, getResourceName(), metadata));
     }
 
     protected abstract M connectNotifications(final String notifType,

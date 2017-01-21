@@ -3,8 +3,6 @@ package com.bytex.snamp.gateway.modeling;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
-import com.bytex.snamp.connector.notifications.NotificationAddedEvent;
-import com.bytex.snamp.connector.notifications.NotificationRemovingEvent;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.notifications.TypeBasedNotificationFilter;
 
@@ -33,15 +31,16 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
 
     @Override
     public final boolean processEvent(final FeatureModifiedEvent<MBeanNotificationInfo> event) {
-        if(event instanceof NotificationAddedEvent) {
-            connect(((NotificationAddedEvent) event).getSource());
-            return true;
+        switch (event.getType()) {
+            case ADDED:
+                connect((NotificationSupport) event.getSource());
+                return true;
+            case REMOVING:
+                close();
+                return true;
+            default:
+                return false;
         }
-        else if(event instanceof NotificationRemovingEvent) {
-            close();
-            return true;
-        }
-        else return false;
     }
 
     private void connect(final NotificationSupport value) {

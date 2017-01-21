@@ -2,8 +2,6 @@ package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
-import com.bytex.snamp.connector.operations.OperationAddedEvent;
-import com.bytex.snamp.connector.operations.OperationRemovingEvent;
 import com.bytex.snamp.connector.operations.OperationSupport;
 
 import javax.management.MBeanOperationInfo;
@@ -73,14 +71,15 @@ public abstract class OperationAccessor extends FeatureAccessor<MBeanOperationIn
 
     @Override
     public final boolean processEvent(final FeatureModifiedEvent<MBeanOperationInfo> event) {
-        if (event instanceof OperationAddedEvent) {
-            connect(((OperationAddedEvent) event).getSource());
-            return true;
+        switch (event.getType()){
+            case ADDED:
+                connect((OperationSupport)event.getSource());
+                return true;
+            case REMOVING:
+                close();
+                return true;
+            default:
+                return false;
         }
-        else if (event instanceof OperationRemovingEvent) {
-            close();
-            return true;
-        }
-        else return false;
     }
 }

@@ -4,9 +4,7 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
-import com.bytex.snamp.connector.attributes.AttributeAddedEvent;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeRemovingEvent;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -97,15 +95,16 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
 
     @Override
     public final boolean processEvent(final FeatureModifiedEvent<MBeanAttributeInfo> event) {
-        if (event instanceof AttributeAddedEvent) {
-            connect(((AttributeAddedEvent) event).getSource());
-            return true;
+        switch (event.getType()) {
+            case ADDED:
+                connect((AttributeSupport) event.getSource());
+                return true;
+            case REMOVING:
+                close();
+                return true;
+            default:
+                return false;
         }
-        else if (event instanceof AttributeRemovingEvent) {
-            close();
-            return true;
-        }
-        else return false;
     }
 
     private void connect(final AttributeSupport value){

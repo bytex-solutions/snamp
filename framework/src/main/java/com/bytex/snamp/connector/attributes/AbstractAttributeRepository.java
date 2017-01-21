@@ -77,12 +77,12 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     //this method should be called AFTER registering attribute in this manager
     private void attributeAdded(final M metadata) {
-        super.fireResourceEvent(new AttributeAddedEvent(this, getResourceName(), metadata));
+        fireResourceEvent(AttributeModifiedEvent.attributedAdded(this, getResourceName(), metadata));
     }
 
     //this method should be called before removing attribute from this manager
     private void attributeRemoved(final M metadata) {
-        super.fireResourceEvent(new AttributeRemovingEvent(this, getResourceName(), metadata));
+        fireResourceEvent(AttributeModifiedEvent.attributedRemoving(this, getResourceName(), metadata));
     }
 
     /**

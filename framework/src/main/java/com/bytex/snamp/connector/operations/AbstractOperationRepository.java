@@ -216,11 +216,11 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     }
 
     private void operationAdded(final M metadata){
-        fireResourceEvent(new OperationAddedEvent(this, getResourceName(), metadata));
+        fireResourceEvent(OperationModifiedEvent.operationAdded(this, getResourceName(), metadata));
     }
 
-    private void operationRemoved(final M metadata){
-        fireResourceEvent(new OperationRemovingEvent(this, getResourceName(), metadata));
+    private void operationRemoved(final M metadata) {
+        fireResourceEvent(OperationModifiedEvent.operationRemoving(this, getResourceName(), metadata));
     }
 
     @Override
