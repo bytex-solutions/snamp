@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.notifications.TypeBasedNotificationFilter;
@@ -60,11 +59,6 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
         return notificationSupport != null;
     }
 
-    @MethodStub
-    public void disconnected(){
-
-    }
-
     /**
      * Disconnects notification accessor from the managed resource.
      */
@@ -72,14 +66,12 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
     public final void close() {
         try {
             final NotificationSupport ns = this.notificationSupport;
-            if(ns != null)
+            if (ns != null)
                 ns.removeNotificationListener(this);
-        }
-        catch (ListenerNotFoundException ignored) {
-        }
-        finally {
+        } catch (final ListenerNotFoundException ignored) {
+        } finally {
             this.notificationSupport = null;
-            disconnected();
+            super.close();
         }
     }
 

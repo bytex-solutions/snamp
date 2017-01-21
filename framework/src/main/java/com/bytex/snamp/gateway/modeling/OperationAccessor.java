@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.modeling;
 
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.connector.operations.OperationSupport;
 
@@ -44,20 +43,14 @@ public abstract class OperationAccessor extends FeatureAccessor<MBeanOperationIn
         return operationSupport != null;
     }
 
-    @MethodStub
-    public void disconnected(){
-
-    }
-
     /**
      * Disconnects notification accessor from the managed resource.
      */
     @Override
     public final void close() {
         this.operationSupport = null;
-        disconnected();
+        super.close();
     }
-
 
     public static int removeAll(final Iterable<? extends OperationAccessor> notifications,
                              final MBeanOperationInfo metadata){

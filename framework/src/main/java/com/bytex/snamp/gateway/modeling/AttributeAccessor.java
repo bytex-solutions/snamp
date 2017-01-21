@@ -119,6 +119,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
         attributeSupport = null;
         wellKnownType.reset();
         openType.reset();
+        super.close();
     }
 
     /**

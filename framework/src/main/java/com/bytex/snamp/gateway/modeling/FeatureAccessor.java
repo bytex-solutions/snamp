@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.Internal;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 
@@ -51,11 +52,18 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo> implements Sup
         return getMetadata();
     }
 
+    @MethodStub
+    public void disconnected(){
+
+    }
+
     /**
      * Disconnects the feature accessor from the managed resource.
      */
     @Override
-    public abstract void close();
+    public void close(){
+        disconnected();
+    }
 
     /**
      * Determines whether the feature of the managed resource is accessible
