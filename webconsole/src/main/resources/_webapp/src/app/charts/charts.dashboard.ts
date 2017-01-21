@@ -2,13 +2,14 @@ import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular
 import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-
 import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
-
+import { AttributeInformation } from './model/charts.model.attribute';
 import { DragulaService } from 'ng2-dragula/ng2-dragula';
 
 import 'rxjs/add/operator/publishLast';
+import 'rxjs/add/observable/forkJoin';
+import 'rxjs/add/observable/empty';
 
 const Chart = require('chart.js')
 import 'smartwizard';
@@ -201,23 +202,65 @@ export class Dashboard {
    private loadMetricsOnInstancesSelected():void {
         $('#overlay').fadeIn();
         let _instanceForSearchMetrics:string = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
-        this.metrics = this.http.get(REST.CHART_METRICS(_instanceForSearchMetrics))
-            .map((res:Response) => {
-                let _data:any = res.json();
-                let _values:AttributeInformation[] = [];
-                for (let i in _data) {
-                    _values.push(new AttributeInformation(_data[i]));
+
+        this.metrics = Observable.forkJoin(
+            this.http.get(REST.CHART_METRICS_BY_COMPONENT(_instanceForSearchMetrics))
+                .map((res:Response) => {
+                    let _data:any = res.json();
+                    let _values:AttributeInformation[] = [];
+                    for (let i in _data) {
+                        _values.push(new AttributeInformation(_data[i]));
+                    }
+                    return _values;
+                }).catch((err) => { return Observable.empty()}),
+            this.http.get(REST.CHART_METRICS_BY_INSTANCE(this.selectedComponent))
+                .map((res:Response) => {
+                    let _data:any = res.json();
+                    let _values:AttributeInformation[] = [];
+                    for (let i in _data) {
+                        _values.push(new AttributeInformation(_data[i]));
+                    }
+                    return _values;
+                }).catch((err) => { return Observable.empty()})
+        )
+        .map((_data:[AttributeInformation[], AttributeInformation[]]) => {
+            let _returnData:AttributeInformation[] = [];
+
+            // if one of input arrays is empty - return another one
+            if (_data[1].length == 0 && _data[0].length > 0) {
+                return _data[0];
+            }
+            if (_data[0].length == 0 && _data[1].length > 0) {
+                return _data[1];
+            }
+            for (let i = 0; i < _data[0].length; i++) {
+                let _currentValue:AttributeInformation = _data[0][i];
+                for (let j = 0; j < _data[1].length; j++) {
+                    if (_currentValue.name == _data[1][j].name) {
+                        if (_currentValue.description == undefined) {
+                            _currentValue.description = _data[1][j].description;
+                        }
+                        if (_currentValue.type == undefined) {
+                            _currentValue.type = _data[1][j].type;
+                        }
+                        if (_currentValue.unitOfMeasurement == undefined) {
+                            _currentValue.unitOfMeasurement = _data[1][j].unitOfMeasurement;
+                        }
+                    }
                 }
-                return _values;
-            })
-            .publishLast()
-            .refCount();
-            // set auto selected first metric if the array is not empty
-            this.metrics.subscribe((data:AttributeInformation[]) => {
-                if (data && data.length > 0) {
-                    this.selectedMetric = data[0];
-                }
-            })
+                _returnData.push(_currentValue);
+            }
+            return _returnData;
+        })
+        .publishLast()
+        .refCount();
+
+        // set auto selected first metric if the array is not empty
+        this.metrics.subscribe((data:AttributeInformation[]) => {
+            if (data && data.length > 0) {
+                this.selectedMetric = data[0];
+            }
+        })
          $('#overlay').fadeOut();
    }
 
@@ -248,23 +291,5 @@ export class Dashboard {
    addChartToDashboard():void {
         $("#addChartModal").modal("hide");
    }
-}
-
-class AttributeInformation {
-    public name:string = "undefined";
-    public unitOfMeasurement:string = "undefined";
-    public type:string = "undefined";
-
-    constructor(_json:any) {
-        if (_json["name"] != undefined) {
-            this.name = _json["name"];
-        }
-        if (_json["unitOfMeasurement"] != undefined) {
-            this.unitOfMeasurement = _json["unitOfMeasurement"];
-        }
-        if (_json["type"] != undefined) {
-            this.type = _json["type"];
-        }
-    }
 }
 

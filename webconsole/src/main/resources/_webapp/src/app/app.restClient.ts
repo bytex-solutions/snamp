@@ -142,7 +142,11 @@ export class REST {
         return "/snamp/web/api/managedResources"; // should be uncommented further // + componentName;
     }
 
-    public static CHART_METRICS(instanceName:string):string {
+    public static CHART_METRICS_BY_COMPONENT(componentName:string):string {
+        return "/snamp/web/api/managedResources/components/" + componentName + "/attributes";
+    }
+
+    public static CHART_METRICS_BY_INSTANCE(instanceName:string):string {
         return "/snamp/web/api/managedResources/" + instanceName + "/attributes";
     }
 }
