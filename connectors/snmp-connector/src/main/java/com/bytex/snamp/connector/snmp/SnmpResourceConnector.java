@@ -5,6 +5,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
@@ -682,11 +683,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
 
     SnmpResourceConnector(final String resourceName,
-                          final String connectionString,
-                          final Map<String, String> parameters,
+                          final ManagedResourceInfo configuration,
                           final Duration discoveryTimeout) throws IOException {
-        final boolean smartMode = SnmpConnectorDescriptionProvider.getInstance().isSmartModeEnabled(parameters);
-        client = new ConcurrentResourceAccessor<>(SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(connectionString), parameters));
+        super(configuration);
+        final boolean smartMode = SnmpConnectorDescriptionProvider.getInstance().isSmartModeEnabled(configuration);
+        client = new ConcurrentResourceAccessor<>(SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(configuration.getConnectionString()), configuration));
         attributes = new SnmpAttributeRepository(resourceName, client, smartMode, discoveryTimeout);
         notifications = new SnmpNotificationRepository(resourceName,
                 client,

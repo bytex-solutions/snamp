@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
@@ -11,7 +10,6 @@ import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
 import javax.management.*;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -19,7 +17,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
-import static com.bytex.snamp.ArrayUtils.find;
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
@@ -30,7 +27,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  * @since 1.0
  */
-public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements Aggregator, DynamicMBean {
+public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector {
 
     /**
      * Initializes a new client of the specified managed resource.
@@ -169,11 +166,14 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         }
     }
 
+
+
     /**
      * Creates a new instance of the specified connector using service {@link ManagedResourceConnectorFactoryService}.
      * @param context The context of the caller bundle.
-     * @param connectorType Type of connector to instantiate.
-     * @param instantiationParams Instantiation parameters. See method {@link ManagedResourceConnectorFactoryService#instantiationParameters(String, String, Map)}.
+     * @param connectorType Type of the connector to instantiate.
+     * @param resourceName Name of the resource
+     * @param configuration Configuration of the managed resource.
      * @return A new instance of resource connector.
      * @throws Exception An exception occurred by {@link ManagedResourceConnector} constructor.
      * @throws InstantiationException Not enough parameters to instantiate {@link ManagedResourceConnector}.
@@ -182,14 +182,15 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     public static ManagedResourceConnector createConnector(final BundleContext context,
                                                            final String connectorType,
-                                                           final Map<String, ?> instantiationParams) throws Exception {
+                                                           final String resourceName,
+                                                           final ManagedResourceInfo configuration) throws Exception {
         ServiceReference<ManagedResourceConnectorFactoryService> ref = null;
         try {
             ref = getServiceReference(context, connectorType, null, ManagedResourceConnectorFactoryService.class);
             if (ref == null)
                 throw unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class);
             final ManagedResourceConnectorFactoryService service = context.getService(ref);
-            return service.createConnector(instantiationParams);
+            return service.createConnector(resourceName, configuration);
         } catch (final InvalidSyntaxException ignored) {
             throw unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class);
         } finally {
@@ -309,28 +310,6 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         }
     }
 
-    public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,
-                                                                        final ServiceReference<ManagedResourceConnector> connectorRef) throws IOException{
-        return getResourceConfiguration(context, getManagedResourceName(connectorRef));
-    }
-
-    public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,
-                                                                        final String resourceName) throws IOException {
-        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context,
-                ConfigurationManager.class);
-        if (manager != null)
-            try {
-                return manager.get().transformConfiguration(config -> config.getEntities(ManagedResourceConfiguration.class).get(resourceName));
-            } finally {
-                manager.release(context);
-            }
-        else return null;
-    }
-
-    public ManagedResourceConfiguration getResourceConfiguration(final BundleContext context) throws IOException {
-        return getResourceConfiguration(context, this);
-    }
-
     public AttributeList getAttributes() throws ReflectionException, MBeanException {
         final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
         return attributeSupport == null ? new AttributeList() : attributeSupport.getAttributes();
@@ -346,6 +325,74 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     public <T> T queryObject(@Nonnull final Class<T> objectType) {
         final ManagedResourceConnector connector = getService();
         return connector != null ? connector.queryObject(objectType) : null;
+    }
+
+    /**
+     * Adds a new listener for the connector-related events.
+     * <p>
+     * The managed resource connector should holds a weak reference to all added event listeners.
+     *
+     * @param listener An event listener to add.
+     */
+    @Override
+    public void addResourceEventListener(final ResourceEventListener listener) {
+        final ManagedResourceConnector connector = getService();
+        if(connector != null)
+            connector.addResourceEventListener(listener);
+    }
+
+    /**
+     * Removes connector event listener.
+     *
+     * @param listener The listener to remove.
+     */
+    @Override
+    public void removeResourceEventListener(final ResourceEventListener listener) {
+        final ManagedResourceConnector connector = getService();
+        if(connector != null)
+            connector.removeResourceEventListener(listener);
+    }
+
+    /**
+     * Gets mutable set of characteristics of this managed resource connector.
+     *
+     * @return Characteristics of this managed resource connector.
+     */
+    @Nonnull
+    @Override
+    public ManagedResourceInfo getConfiguration() {
+        final ManagedResourceConnector connector = getService();
+        return connector == null ? EMPTY_CONFIGURATION : connector.getConfiguration();
+    }
+
+    @Override
+    public void close() throws Exception {
+
+    }
+
+    /**
+     * Updates resource connector with a new connection configuration.
+     *
+     * @param configuration A new configuration.
+     * @throws Exception                                                    Unable to update managed resource connector.
+     * @throws UnsupportedUpdateOperationException This operation is not supported
+     *                                                                      by this resource connector.
+     */
+    @Override
+    public void update(final ManagedResourceInfo configuration) throws Exception {
+        final ManagedResourceConnector connector = getService();
+        if (connector != null)
+            connector.update(configuration);
+    }
+
+    @Override
+    public boolean canExpand(final Class<? extends MBeanFeatureInfo> featureType) {
+        return false;
+    }
+
+    @Override
+    public Collection<? extends MBeanFeatureInfo> expandAll() {
+        return null;
     }
 
     /**

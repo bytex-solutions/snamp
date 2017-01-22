@@ -4,6 +4,7 @@ import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.impl.TypeTokens;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
 import com.bytex.jcommands.impl.XmlParserDefinition;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
@@ -441,8 +442,10 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
     @Aggregation(cached = true)
     private final RShellOperations operations;
 
-    private RShellResourceConnector(final String resourceName,
-                                    final RShellConnectionOptions connectionOptions) throws Exception {
+    RShellResourceConnector(final String resourceName,
+                            final ManagedResourceInfo configuration) throws Exception{
+        super(configuration);
+        final RShellConnectionOptions connectionOptions = new RShellConnectionOptions(configuration.getConnectionString(), configuration);
         executionChannel = connectionOptions.createExecutionChannel();
         if(executionChannel == null)
             throw new InstantiationException(String.format("Unknown channel: %s", connectionOptions));
@@ -452,12 +455,6 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
         operations = new RShellOperations(resourceName,
                 executionChannel,
                 new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)));
-    }
-
-    RShellResourceConnector(final String resourceName,
-                            final String connectionString,
-                            final Map<String, String> connectionOptions) throws Exception{
-        this(resourceName, new RShellConnectionOptions(connectionString, connectionOptions));
     }
 
     @Override

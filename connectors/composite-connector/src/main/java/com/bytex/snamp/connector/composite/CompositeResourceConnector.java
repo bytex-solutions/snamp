@@ -1,23 +1,16 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * Represents resource connector that can combine many resource connectors.
@@ -26,17 +19,6 @@ import java.util.regex.PatternSyntaxException;
  * @since 1.0
  */
 final class CompositeResourceConnector extends AbstractManagedResourceConnector {
-    private static final Pattern CONNECTION_STRING_PATTERN = Pattern.compile("(?<connectorType>[a-z]+)\\s*:=\\s*(?<connectionString>.+)", Pattern.CASE_INSENSITIVE);
-    private static final Function<String, Pattern> CONNECTION_STRING_SPLITTER_CACHE = CacheBuilder.newBuilder()
-            .softValues()
-            .maximumSize(50)
-            .build(new CacheLoader<String, Pattern>() {
-                @Override
-                public Pattern load(@Nonnull final String splitter) throws PatternSyntaxException {
-                    return Pattern.compile(splitter);
-                }
-            })::getUnchecked;
-
     private final Composition connectors;
     @Aggregation(cached = true)
     private final AttributeComposition attributes;
@@ -45,7 +27,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     @Aggregation(cached = true)
     private final OperationComposition operations;
 
-    CompositeResourceConnector(final String resourceName,
+    private CompositeResourceConnector(final String resourceName,
                                final ExecutorService threadPool,
                                final Duration syncPeriod,
                                final URL[] groovyPath) throws IOException {
@@ -55,6 +37,15 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
         notifications = new NotificationComposition(resourceName, connectors, threadPool);
         notifications.addNotificationListener(attributes, null, null);
         operations = new OperationComposition(resourceName, connectors);
+    }
+
+    CompositeResourceConnector(final String resourceName,
+                               final ManagedResourceInfo configuration,
+                               final CompositeResourceConfigurationDescriptor parser) throws IOException {
+        this(resourceName, parser.parseThreadPool(configuration),
+                parser.parseSyncPeriod(configuration),
+                parser.parseGroovyPath(configuration));
+        setConfiguration(configuration);
     }
 
     @Override
@@ -67,45 +58,25 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
         removeResourceEventListener(listener, attributes, notifications, operations);
     }
 
-    private void update(final Map<String, String> connectionStrings, final Function<String, ? extends Map<String, String>> connectionParameters) throws Exception{
+    private void update(final Map<String, ManagedResourceInfo> resources) throws Exception {
         //update supplied connectors
-        Acceptor.forEachAccept(connectionStrings.entrySet(), entry -> connectors.updateConnector(entry.getKey(), entry.getValue(), connectionParameters.apply(entry.getKey())));
+        Acceptor.forEachAccept(resources.entrySet(), entry -> connectors.updateConnector(entry.getKey(), entry.getValue()));
         //dispose connectors that are not specified in the connection string
-        connectors.retainConnectors(connectionStrings.keySet());
+        connectors.retainConnectors(resources.keySet());
     }
 
     @Override
-    public void update(final String connectionString, final Map<String, String> connectionParameters) throws Exception {
+    public void update(final ManagedResourceInfo configuration) throws Exception {
+        setConfiguration(configuration);
         final CompositeResourceConfigurationDescriptor parser = CompositeResourceConfigurationDescriptor.getInstance();
-        //extract connection strings of each connector
-        final Map<String, String> connectionStrings = parseConnectionString(connectionString, parser.parseSeparator(connectionParameters));
-        //extract connection parameters for each connector
-        final ConnectionParametersMap parsedParams = ConnectionParametersMap.parse(connectionParameters);
+        final ComposedConfiguration parsedParams = ComposedConfiguration.parse(configuration, parser.parseSeparator(configuration));
         //do update
-        update(connectionStrings, parsedParams);
+        update(parsedParams);
     }
 
     @Override
     protected MetricsSupport createMetricsReader() {
         return assembleMetricsReader(attributes, operations, notifications);
-    }
-
-    private static Map<String, String> parseConnectionString(final String connectionString, final Pattern splitter) {
-        return splitter.splitAsStream(connectionString)
-                .map(String::trim)
-                .map(CONNECTION_STRING_PATTERN::matcher)
-                .filter(Matcher::matches)
-                .collect(HashMap::new, (result, match) -> result.put(match.group("connectorType"), match.group("connectionString")), Map::putAll);
-    }
-
-    /**
-     * Decompose connection string to the connection strings for each connector.
-     * Example: jmx:=service:jmx:rmi:///jndi/rmi://localhost:5657/karaf-root; snmp:=192.168.0.1
-     * @param connectionString Connection string to parse.
-     * @return A map with connection types and connection strings.
-     */
-    static Map<String, String> parseConnectionString(final String connectionString, final String splitter){
-        return parseConnectionString(connectionString, CONNECTION_STRING_SPLITTER_CACHE.apply(splitter));
     }
 
     /**

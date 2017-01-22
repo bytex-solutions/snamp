@@ -1,15 +1,13 @@
 package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import org.osgi.service.http.HttpService;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Hashtable;
-import java.util.Map;
-
-import static com.bytex.snamp.connector.http.HttpConnectorConfigurationDescriptionProvider.COMPONENT_INSTANCE_PARAM;
 
 /**
  * Represents activator of {@link HttpAcceptor}.
@@ -24,11 +22,9 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
     }
 
     private static HttpAcceptor newResourceConnector(final String resourceName,
-                                              final String connectionString,
-                                              final Map<String, String> parameters,
+                                                     final ManagedResourceInfo configuration,
                                               final DependencyManager dependencies) throws IOException{
-        parameters.put(COMPONENT_INSTANCE_PARAM, connectionString);
-        return new HttpAcceptor(resourceName, parameters);
+        return new HttpAcceptor(resourceName, configuration);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector;
 
 import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
@@ -51,6 +52,8 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      */
     String TYPE_CAPABILITY_ATTRIBUTE = "type";
 
+    ManagedResourceInfo EMPTY_CONFIGURATION = new EmptyManagedResourceInfo();
+
     /**
      * Represents an exception indicating that the resource connector cannot be updated
      * without it recreation. This class cannot be inherited.
@@ -72,15 +75,13 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
     }
 
     /**
-     * Updates resource connector with a new connection options.
-     * @param connectionString A new connection string.
-     * @param connectionParameters A new connection parameters.
+     * Updates resource connector with a new connection configuration.
+     * @param configuration A new configuration.
      * @throws Exception Unable to update managed resource connector.
      * @throws UnsupportedUpdateOperationException This operation is not supported
      *  by this resource connector.
      */
-    default void update(final String connectionString,
-                final Map<String, String> connectionParameters) throws Exception{
+    default void update(final ManagedResourceInfo configuration) throws Exception{
         throw new UnsupportedUpdateOperationException("Update operation is not supported");
     }
 
@@ -104,7 +105,7 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      */
     @Override
     @Nonnull
-    Map<String, String> getConfiguration();
+    ManagedResourceInfo getConfiguration();
 
     static String getConnectorType(final Bundle bnd) {
         final BundleRevision revision = bnd.adapt(BundleRevision.class);

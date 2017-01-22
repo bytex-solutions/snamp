@@ -4,6 +4,7 @@ import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Localizable;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.metrics.ImmutableMetrics;
@@ -13,13 +14,12 @@ import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.jmx.JMExceptionUtils;
-import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
 import javax.management.*;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
@@ -39,21 +39,24 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  */
 public abstract class AbstractManagedResourceConnector extends AbstractAggregator implements ManagedResourceConnector, Localizable {
     private final LazySoftReference<MetricsSupport> metrics;
-    private ImmutableMap<String, String> configuration;
+    private ManagedResourceInfo configuration;
 
     protected AbstractManagedResourceConnector() {
-        metrics = new LazySoftReference<>();
-        configuration = ImmutableMap.of();
+        this(EMPTY_CONFIGURATION);
     }
 
-    protected AbstractManagedResourceConnector(final Map<String, String> configuration) {
+    protected AbstractManagedResourceConnector(final ManagedResourceInfo configuration) {
         metrics = new LazySoftReference<>();
-        this.configuration = ImmutableMap.copyOf(configuration);
+        setConfiguration(configuration);
+    }
+
+    protected final void setConfiguration(final ManagedResourceInfo value) {
+        configuration = Objects.requireNonNull(value);
     }
 
     @Nonnull
     @Override
-    public final ImmutableMap<String, String> getConfiguration() {
+    public final ManagedResourceInfo getConfiguration() {
         return configuration;
     }
 

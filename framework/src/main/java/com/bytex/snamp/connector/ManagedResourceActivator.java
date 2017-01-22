@@ -17,7 +17,6 @@ import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -30,7 +29,10 @@ import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.*;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -70,21 +72,18 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         /**
          * Creates a new instance of the managed resource connector.
          * @param resourceName The name of the managed resource.
-         * @param connectionString Managed resource connection string.
-         * @param connectionParameters Connection parameters.
+         * @param configuration Configuration of the managed resource.
          * @param dependencies A collection of connector dependencies.
          * @return A new instance of the resource connector.
          * @throws Exception Unable to instantiate managed resource connector.
          */
         TConnector createConnector(final String resourceName,
-                                   final String connectionString,
-                                   final Map<String, String> connectionParameters,
+                                   final ManagedResourceInfo configuration,
                                    final DependencyManager dependencies) throws Exception;
     }
 
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
         private final ManagedResourceConnectorFactory<TConnector> controller;
-        private final Map<String, Predicate<? super ManagedResourceConfiguration>> loadedConfigurations;
 
         /**
          * Represents name of the managed resource connector.
@@ -97,7 +96,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             super(ManagedResourceConnector.class, ObjectArrays.<RequiredService>concat(dependencies, new SimpleDependency<>(ConfigurationManager.class)));
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             this.connectorType = connectorType;
-            this.loadedConfigurations = Maps.newHashMapWithExpectedSize(10);
         }
 
         private ManagedResourceConnectorRegistry(final ManagedResourceConnectorFactory<TConnector> controller,
@@ -193,20 +191,15 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         private TConnector update(TConnector connector,
                                   final String resourceName,
                                   final ManagedResourceConfiguration newConfig) throws Exception {
-            final Predicate<? super ManagedResourceConfiguration> oldConfig = loadedConfigurations.get(resourceName);
             //we should not update resource connector if connection parameters was not changed
-            if (!oldConfig.test(newConfig)) {
-                loadedConfigurations.put(resourceName, newConfig::equals);
+            if (!connector.getConfiguration().equals(newConfig)) {
                 //trying to update resource connector on-the-fly
                 try {
-                    connector.update(newConfig.getConnectionString(), newConfig);
+                    connector.update(newConfig);
                 } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored) {
                     //Update operation is not supported -> force recreation
                     connector.close();
-                    connector = controller.createConnector(resourceName,
-                            newConfig.getConnectionString(),
-                            newConfig,
-                            getDependencies());
+                    connector = controller.createConnector(resourceName, newConfig, getDependencies());
                 }
             }
             //but we should always update resource features
@@ -266,13 +259,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         private TConnector createService(final Map<String, Object> identity,
                                          final String resourceName,
                                          final ManagedResourceConfiguration configuration) throws Exception {
-            loadedConfigurations.put(resourceName, configuration::equals);
             identity.putAll(configuration);
             identity.put(NAME_PROPERTY, resourceName);
             identity.put(ManagedResourceConnector.TYPE_CAPABILITY_ATTRIBUTE, connectorType);
             identity.put(ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY);
             identity.put(CONNECTION_STRING_PROPERTY, configuration.getConnectionString());
-            final TConnector result = controller.createConnector(resourceName, configuration.getConnectionString(), configuration, getDependencies());
+            final TConnector result = controller.createConnector(resourceName, configuration, getDependencies());
             updateFeatures(result, configuration);
             return result;
         }
@@ -301,17 +293,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         @Override
         protected void cleanupService(final TConnector service,
                                       final Map<String, ?> identity) throws Exception {
-            try {
-                service.close();
-            }
-            finally {
-                loadedConfigurations.remove(getManagedResourceName(identity));
-            }
-        }
-
-        @Override
-        protected void destroyManager() {
-            loadedConfigurations.clear();
+            service.close();
         }
     }
 
@@ -324,14 +306,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             this.connectorFactory = Objects.requireNonNull(factory);
             this.dependencies = dependencies;
         }
-
+        
         @Override
-        public TConnector createConnector(final Map<String, ?> parameters) throws Exception {
-            final String connectionString = getValue(parameters, CONNECTION_STRING, Objects::toString).orElseThrow(InstantiationException::new);
-            final String resourceName = getValue(parameters, RESOURCE_NAME, Objects::toString).orElseThrow(InstantiationException::new);
-            @SuppressWarnings("unchecked")
-            final Map<String, String> connectionParams = getValue(parameters, CONNECTION_PARAMS, value -> (Map<String, String>) value).orElseGet(Collections::emptyMap);
-            return connectorFactory.createConnector(resourceName, connectionString, connectionParams, dependencies);
+        public TConnector createConnector(final String resourceName, final ManagedResourceInfo configuration) throws Exception {
+            return connectorFactory.createConnector(resourceName, configuration, dependencies);
         }
     }
 

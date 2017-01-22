@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import java.util.Map;
@@ -19,15 +20,11 @@ public final class CompositeResourceActivator extends ManagedResourceActivator<C
     }
 
     private static CompositeResourceConnector newResourceConnector(final String resourceName,
-                                                                   final String connectionString,
-                                                                   final Map<String, String> parameters,
+                                                                   final ManagedResourceInfo configuration,
                                                                    final DependencyManager dependencies) throws Exception{
         final CompositeResourceConfigurationDescriptor parser = CompositeResourceConfigurationDescriptor.getInstance();
-        final CompositeResourceConnector result = new CompositeResourceConnector(resourceName,
-                parser.parseThreadPool(parameters),
-                parser.parseSyncPeriod(parameters),
-                parser.parseGroovyPath(parameters));
-        result.update(connectionString, parameters);
+        final CompositeResourceConnector result = new CompositeResourceConnector(resourceName, configuration, parser);
+        result.update(configuration);
         return result;
     }
 }

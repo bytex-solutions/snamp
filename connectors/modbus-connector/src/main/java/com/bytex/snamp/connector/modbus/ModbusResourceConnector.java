@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.modbus;
 
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
@@ -16,6 +17,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Objects;
+
+import static com.bytex.snamp.connector.modbus.ModbusResourceConnectorConfigurationDescriptor.parseConnectionTimeout;
+import static com.bytex.snamp.connector.modbus.ModbusResourceConnectorConfigurationDescriptor.parseRetryCount;
 
 /**
  * Represents Modbus connector.
@@ -104,9 +108,14 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         return assembleMetricsReader(attributes);
     }
 
-    void connect(final int socketTimeout, final int retryCount) throws IOException {
+    private void connect(final int socketTimeout, final int retryCount) throws IOException {
         client.setRetryCount(retryCount);
         client.connect(socketTimeout);
+    }
+
+    void connect(final ManagedResourceInfo configuration) throws IOException {
+        setConfiguration(configuration);
+        connect(parseConnectionTimeout(configuration), parseRetryCount(configuration));
     }
 
     @Override

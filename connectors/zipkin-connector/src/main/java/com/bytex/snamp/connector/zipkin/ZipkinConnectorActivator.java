@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.zipkin;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import org.osgi.service.http.HttpService;
 
@@ -24,10 +25,9 @@ public final class ZipkinConnectorActivator extends ManagedResourceActivator<Zip
     }
 
     private static ZipkinConnector createConnector(final String resourceName,
-                                                   final String connectionString,
-                                                   final Map<String, String> connectionParameters,
+                                                   final ManagedResourceInfo configuration,
                                                    final DependencyManager dependencies) throws URISyntaxException {
-        return new ZipkinConnector(resourceName, connectionString, connectionParameters);
+        return new ZipkinConnector(resourceName, configuration);
     }
 
     @Override

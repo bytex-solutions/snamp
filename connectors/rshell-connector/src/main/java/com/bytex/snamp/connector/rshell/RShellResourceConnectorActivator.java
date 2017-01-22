@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.rshell;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import java.util.Map;
@@ -22,11 +23,8 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
     }
 
     private static RShellResourceConnector createConnector(final String resourceName,
-                                                   final String connectionString,
-                                                   final Map<String, String> connectionOptions,
+                                                           final ManagedResourceInfo configuration,
                                                    final DependencyManager dependencies) throws Exception {
-        return new RShellResourceConnector(resourceName,
-                connectionString,
-                connectionOptions);
+        return new RShellResourceConnector(resourceName, configuration);
     }
 }

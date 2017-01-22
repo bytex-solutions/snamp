@@ -1,15 +1,12 @@
 package com.bytex.snamp.connector.modbus;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
-
-import static com.bytex.snamp.connector.modbus.ModbusResourceConnectorConfigurationDescriptor.parseConnectionTimeout;
-import static com.bytex.snamp.connector.modbus.ModbusResourceConnectorConfigurationDescriptor.parseRetryCount;
 
 /**
  * Represents
@@ -22,11 +19,10 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
     }
 
     private static ModbusResourceConnector createConnector(final String resourceName,
-                                                           final String connectionString,
-                                                           final Map<String, String> connectionParameters,
+                                                           final ManagedResourceInfo configuration,
                                                            final DependencyManager dependencies) throws URISyntaxException, IOException {
-        final ModbusResourceConnector connector = new ModbusResourceConnector(resourceName, new URI(connectionString));
-        connector.connect(parseConnectionTimeout(connectionParameters), parseRetryCount(connectionParameters));
+        final ModbusResourceConnector connector = new ModbusResourceConnector(resourceName, new URI(configuration.getConnectionString()));
+        connector.connect(configuration);
         return connector;
     }
 }

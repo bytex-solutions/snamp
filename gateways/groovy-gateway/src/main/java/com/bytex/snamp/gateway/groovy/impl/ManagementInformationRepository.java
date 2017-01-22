@@ -3,7 +3,6 @@ package com.bytex.snamp.gateway.groovy.impl;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.groovy.AttributesRootAPI;
@@ -12,12 +11,10 @@ import com.bytex.snamp.gateway.groovy.ResourceAttributesAnalyzer;
 import com.bytex.snamp.gateway.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.gateway.modeling.*;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -147,11 +144,15 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
 
     @Override
     public Map<String, ?> getResourceParameters(final String resourceName) {
+        ManagedResourceConnectorClient client = null;
         try {
-            final ManagedResourceConfiguration config = ManagedResourceConnectorClient.getResourceConfiguration(context, resourceName);
-            return config != null ? ImmutableMap.copyOf(config) : ImmutableMap.<String, String>of();
-        } catch (final IOException ignored) {
-            return ImmutableMap.of();
+            client = new ManagedResourceConnectorClient(context, resourceName);
+            return client.getConfiguration();
+        } catch (final InstanceNotFoundException e) {
+            return ManagedResourceConnectorClient.EMPTY_CONFIGURATION;
+        } finally {
+            if (client != null)
+                client.release(context);
         }
     }
 

@@ -31,10 +31,9 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
     }
 
     private static GroovyResourceConnector createConnector(final String resourceName,
-                                                   final String connectionString,
-                                                   final Map<String, String> connectionParameters,
+                                                           final com.bytex.snamp.configuration.ManagedResourceInfo configuration,
                                                    final DependencyManager dependencies) throws IOException, ResourceException, ScriptException {
-        return new GroovyResourceConnector(resourceName, connectionString, connectionParameters);
+        return new GroovyResourceConnector(resourceName, configuration);
     }
 
     private static AbstractDiscoveryService<ManagedResourceInfo> newDiscoveryService(final DependencyManager dependencies){

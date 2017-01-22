@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.zipkin;
 
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.dsp.DataStreamConnector;
 import com.bytex.snamp.connector.dsp.NotificationParser;
 import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParserLoader;
@@ -39,9 +40,9 @@ final class ZipkinConnector extends DataStreamConnector implements AsyncSpanCons
     private volatile Exception closeException;
     private CollectorComponent zipkinCollector;
 
-    private ZipkinConnector(final String resourceName, final String connectionString, final Map<String, String> parameters, final ZipkinConnectorConfigurationDescriptionProvider provider) throws URISyntaxException {
-        super(resourceName, parameters, provider);
-        zipkinCollector = provider.createCollector(connectionString, createStorage());
+    private ZipkinConnector(final String resourceName, final ManagedResourceInfo configuration, final ZipkinConnectorConfigurationDescriptionProvider provider) throws URISyntaxException {
+        super(resourceName, configuration, provider);
+        zipkinCollector = provider.createCollector(configuration.getConnectionString(), createStorage());
         if(zipkinCollector != null) {
             zipkinCollector.start();
             getLogger().info(String.format("Zipkin collector is started for resource %s", resourceName));
@@ -50,8 +51,8 @@ final class ZipkinConnector extends DataStreamConnector implements AsyncSpanCons
         }
     }
 
-    ZipkinConnector(final String resourceName, final String connectionString, final Map<String, String> parameters) throws URISyntaxException {
-        this(resourceName, connectionString, parameters, ZipkinConnectorConfigurationDescriptionProvider.getInstance());
+    ZipkinConnector(final String resourceName, final ManagedResourceInfo configuration) throws URISyntaxException {
+        this(resourceName, configuration, ZipkinConnectorConfigurationDescriptionProvider.getInstance());
     }
 
     private Logger getLogger(){

@@ -9,7 +9,6 @@ import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import static com.bytex.snamp.MapUtils.toProperties;
@@ -30,19 +29,18 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     private final ManagedResourceScriptlet scriptlet;
 
     GroovyResourceConnector(final String resourceName,
-                            final String connectionString,
-                            final Map<String, String> params) throws IOException, ResourceException, ScriptException {
-        final GroovyConnectionString connectionInfo = new GroovyConnectionString(connectionString);
+                            final com.bytex.snamp.configuration.ManagedResourceInfo configuration) throws IOException, ResourceException, ScriptException {
+        final GroovyConnectionString connectionInfo = new GroovyConnectionString(configuration.getConnectionString());
         final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(resourceName,
                 getClass().getClassLoader(),
                 false,
-                toProperties(params),
+                toProperties(configuration),
                 connectionInfo.getScriptPath());
 
         scriptlet = engine.createScript(connectionInfo.getScriptName(), null);
         scriptlet.run();
         attributes = new GroovyAttributeRepository(resourceName, scriptlet);
-        final ExecutorService threadPool = GroovyResourceConfigurationDescriptor.getInstance().parseThreadPool(params);
+        final ExecutorService threadPool = GroovyResourceConfigurationDescriptor.getInstance().parseThreadPool(configuration);
         events = new GroovyNotificationRepository(resourceName, scriptlet, threadPool, Utils.getBundleContextOfObject(this));
         operations = new GroovyOperationRepository(resourceName, scriptlet);
     }

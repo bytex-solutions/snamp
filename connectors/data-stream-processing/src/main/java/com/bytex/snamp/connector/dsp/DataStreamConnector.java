@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.dsp;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.dsp.notifications.NotificationSource;
@@ -56,21 +57,22 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     protected final ExecutorService threadPool;
 
     protected DataStreamConnector(final String resourceName,
-                                  final Map<String, String> parameters,
+                                  final ManagedResourceInfo configuration,
                                   final DataStreamDrivenConnectorConfigurationDescriptionProvider descriptor) {
+        super(configuration);
         {
-            String componentInstance = descriptor.parseComponentInstance(parameters);
+            String componentInstance = descriptor.parseComponentInstance(configuration);
             if (isNullOrEmpty(componentInstance))
                 componentInstance = resourceName;
-            final String componentName = descriptor.parseComponentName(parameters);
+            final String componentName = descriptor.parseComponentName(configuration);
             source = new NotificationSource(componentName, componentInstance);
         }
-        threadPool = descriptor.parseThreadPool(parameters);
+        threadPool = descriptor.parseThreadPool(configuration);
         //init parser
-        notificationParser = createNotificationParser(resourceName, source, parameters);
+        notificationParser = createNotificationParser(resourceName, source, configuration);
         assert notificationParser != null;
         //init attributes
-        attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(parameters));
+        attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(configuration));
         assert attributes != null;
         attributes.init(threadPool, descriptor);
         //init notifications

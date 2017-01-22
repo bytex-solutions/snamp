@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -16,8 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import static com.bytex.snamp.connector.ManagedResourceConnectorFactoryService.instantiationParameters;
 
 /**
  * Represents composition of managed resource connectors.
@@ -36,15 +35,14 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
     }
 
     private static void updateConnector(final Map<String, ManagedResourceConnector> connectors,
-                                   final String connectorType,
-                                   final String connectionString,
-                                   final String resourceName,
-                                   final Map<String, String> parameters,
+                                        final String connectorType,
+                                        final String resourceName,
+                                        final ManagedResourceInfo configuration,
                                         final BundleContext context) throws Exception {
         ManagedResourceConnector connector = connectors.get(connectorType);
         if (connector != null) {  //update existing connector
             try {
-                connector.update(connectionString, parameters);
+                connector.update(configuration);
                 return;
             } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException e) {
                 //connector cannot be updated. We dispose this connector and create a new one
@@ -53,24 +51,14 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
             }
         }
         //create new connector
-        connector = ManagedResourceConnectorClient.createConnector(context,
-                connectorType,
-                instantiationParameters(connectionString, resourceName, parameters)
-        );
+        connector = ManagedResourceConnectorClient.createConnector(context, connectorType, resourceName, configuration);
         connectors.put(connectorType, connector);
     }
 
-    /**
-     * Update connector participated in the composition or create a new one.
-     * @param connectorType Type of connector to create.
-     * @param connectionString Resource connection string.
-     * @param parameters Connection parameters.
-     * @throws Exception Unable to update connector.
-     */
-    void updateConnector(final String connectorType, final String connectionString, final Map<String, String> parameters) throws Exception {
+    void updateConnector(final String connectorType, final ManagedResourceInfo configuration) throws Exception {
         final String resourceName = this.resourceName;
         final BundleContext context = Utils.getBundleContextOfObject(this);
-        writeLock.accept(SingleResourceGroup.INSTANCE, connectors, connectors -> updateConnector(connectors, connectorType, connectionString, resourceName, parameters, context), (Duration) null);
+        writeLock.accept(SingleResourceGroup.INSTANCE, connectors, connectors -> updateConnector(connectors, connectorType, resourceName, configuration, context), (Duration) null);
     }
 
     private static void retainConnectors(final Map<String, ManagedResourceConnector> connectors, final Set<String> set) throws Exception {

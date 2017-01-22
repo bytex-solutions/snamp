@@ -1,5 +1,6 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.concurrent.LazyStrongReference;
@@ -11,7 +12,6 @@ import org.osgi.service.cm.ManagedServiceFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -325,8 +325,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     private static abstract class ManagedServiceFactoryImpl<TService> extends HashMap<String, TService> implements ManagedServiceFactory{
         private static final long serialVersionUID = 6353271076932722292L;
 
-        private synchronized <V> V synchronizedInvoke(final Callable<? extends V> action) throws Exception{
-            return action.call();
+        private synchronized <E extends Throwable> void synchronizedInvoke(final Acceptor<? super ManagedServiceFactoryImpl<TService>, E> action) throws E{
+            action.accept(this);
         }
     }
 
@@ -500,21 +500,14 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final void cleanupService(final ManagedServiceFactoryImpl<TService> serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.synchronizedInvoke(() -> {
+            serviceInstance.synchronizedInvoke((Map<?, TService> si) -> {
                 try {
-                    for (final TService service : serviceInstance.values())
+                    for (final TService service : si.values())
                         dispose(service, stopBundle);
                 } finally {
-                    serviceInstance.clear();
+                    si.clear();
                 }
-                return null;
             });
-            destroyManager();
-        }
-
-        @MethodStub
-        protected void destroyManager() throws Exception{
-
         }
     }
 

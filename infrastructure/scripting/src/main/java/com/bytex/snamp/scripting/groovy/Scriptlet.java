@@ -2,6 +2,7 @@ package com.bytex.snamp.scripting.groovy;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
@@ -9,6 +10,7 @@ import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LoggerProvider;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import groovy.lang.Closure;
@@ -280,7 +282,15 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
 
     @Override
     public final ManagedResourceConfiguration getResourceConfiguration(final String resourceName) throws IOException {
-        return ManagedResourceConnectorClient.getResourceConfiguration(getBundleContext(), resourceName);
+        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+        if (manager == null)
+            return null;
+        else
+            try {
+                return manager.get().transformConfiguration(config -> config.getEntities(ManagedResourceConfiguration.class).get(resourceName));
+            } finally {
+                manager.release(getBundleContext());
+            }
     }
 
     @Override

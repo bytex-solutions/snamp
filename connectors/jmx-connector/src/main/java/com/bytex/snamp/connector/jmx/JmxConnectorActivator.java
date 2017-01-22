@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import javax.management.MalformedObjectNameException;
@@ -27,10 +28,9 @@ public final class JmxConnectorActivator extends ManagedResourceActivator<JmxCon
     }
 
     private static JmxConnector createConnector(final String resourceName,
-                                        final String connectionString,
-                                        final Map<String, String> connectionOptions,
+                                                final ManagedResourceInfo configuration,
                                         final DependencyManager dependencies) throws MalformedURLException, MalformedObjectNameException {
-        return new JmxConnector(resourceName, connectionString, connectionOptions);
+        return new JmxConnector(resourceName, configuration);
     }
 
     private static JmxDiscoveryService newDiscoveryService(final DependencyManager dependencies){

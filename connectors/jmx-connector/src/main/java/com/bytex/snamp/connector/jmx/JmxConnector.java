@@ -4,6 +4,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
@@ -683,7 +684,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
     @Aggregation(cached = true)
     private final JmxOperationRepository operations;
 
-    JmxConnector(final String resourceName,
+    private JmxConnector(final String resourceName,
                  final JmxConnectionOptions connectionOptions) {
         this.connectionManager = connectionOptions.createConnectionManager(getLogger());
         //attempts to establish connection immediately
@@ -708,9 +709,9 @@ final class JmxConnector extends AbstractManagedResourceConnector {
     }
 
     JmxConnector(final String resourceName,
-                 final String connectionString,
-                 final Map<String, String> connectionOptions) throws MalformedURLException, MalformedObjectNameException {
-        this(resourceName, new JmxConnectionOptions(connectionString, connectionOptions));
+                 final ManagedResourceInfo configuration) throws MalformedURLException, MalformedObjectNameException {
+        this(resourceName, new JmxConnectionOptions(configuration.getConnectionString(), configuration));
+        setConfiguration(configuration);
     }
 
     private Logger getLogger(){

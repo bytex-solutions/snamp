@@ -4,6 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import org.snmp4j.log.OSGiLogFactory;
 
@@ -43,16 +44,14 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     }
 
     private static SnmpResourceConnector createConnector(final String resourceName,
-                                                 final String connectionString,
-                                                 final Map<String, String> connectionOptions,
-                                                 final DependencyManager dependencies) throws IOException {
+                                                         final ManagedResourceInfo configuration,
+                                                         final DependencyManager dependencies) throws IOException {
         final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class);
         assert configManager != null;
 
         final SnmpResourceConnector result =
                 new SnmpResourceConnector(resourceName,
-                        connectionString,
-                        connectionOptions,
+                        configuration,
                         configManager.transformConfiguration(SnmpResourceConnectorActivator::getDiscoveryTimeout));
         result.listen();
         return result;
