@@ -9,7 +9,8 @@ import { DragulaService } from 'ng2-dragula/ng2-dragula';
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/observable/empty';
+import 'rxjs/add/observable/from';
+import 'rxjs/add/observable/of';
 
 const Chart = require('chart.js')
 import 'smartwizard';
@@ -203,60 +204,62 @@ export class Dashboard {
         $('#overlay').fadeIn();
         let _instanceForSearchMetrics:string = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
 
-        this.metrics = Observable.forkJoin(
-            this.http.get(REST.CHART_METRICS_BY_COMPONENT(_instanceForSearchMetrics))
-                .map((res:Response) => {
-                    let _data:any = res.json();
-                    let _values:AttributeInformation[] = [];
-                    for (let i in _data) {
-                        _values.push(new AttributeInformation(_data[i]));
-                    }
-                    return _values;
-                }).catch((err) => { return Observable.empty()}),
-            this.http.get(REST.CHART_METRICS_BY_INSTANCE(this.selectedComponent))
-                .map((res:Response) => {
-                    let _data:any = res.json();
-                    let _values:AttributeInformation[] = [];
-                    for (let i in _data) {
-                        _values.push(new AttributeInformation(_data[i]));
-                    }
-                    return _values;
-                }).catch((err) => { return Observable.empty()})
-        )
-        .map((_data:[AttributeInformation[], AttributeInformation[]]) => {
-            let _returnData:AttributeInformation[] = [];
+        let _obsComponents = this.http.get(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
+             .map((res:Response) => {
+                 let _data:any = res.json();
+                 console.log("components metrics data: ", _data);
+                 let _values:AttributeInformation[] = [];
+                 for (let i in _data) {
+                     _values.push(new AttributeInformation(_data[i]));
+                 }
+                 return _values;
+             }).catch((err) => { return Observable.of([])});
 
-            // if one of input arrays is empty - return another one
-            if (_data[1].length == 0 && _data[0].length > 0) {
-                return _data[0];
-            }
-            if (_data[0].length == 0 && _data[1].length > 0) {
-                return _data[1];
-            }
-            for (let i = 0; i < _data[0].length; i++) {
-                let _currentValue:AttributeInformation = _data[0][i];
-                for (let j = 0; j < _data[1].length; j++) {
-                    if (_currentValue.name == _data[1][j].name) {
-                        if (_currentValue.description == undefined) {
-                            _currentValue.description = _data[1][j].description;
-                        }
-                        if (_currentValue.type == undefined) {
-                            _currentValue.type = _data[1][j].type;
-                        }
-                        if (_currentValue.unitOfMeasurement == undefined) {
-                            _currentValue.unitOfMeasurement = _data[1][j].unitOfMeasurement;
+        let _obsInstances = this.http.get(REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
+            .map((res:Response) => {
+                let _data:any = res.json();
+                console.log("instance metrics data: ", _data);
+                let _values:AttributeInformation[] = [];
+                for (let i in _data) {
+                    _values.push(new AttributeInformation(_data[i]));
+                }
+                return _values;
+            }).catch((err) => { return Observable.of([])});
+
+        this.metrics = Observable.forkJoin([_obsComponents, _obsInstances])
+            .map((_data) => {
+                let _returnData:AttributeInformation[] = [];
+                console.log("Whole the data is: ", _data);
+                // if one of input arrays is empty - return another one
+                if (_data[1].length == 0 && _data[0].length > 0) {
+                    return _data[0];
+                }
+                if (_data[0].length == 0 && _data[1].length > 0) {
+                    return _data[1];
+                }
+                for (let i = 0; i < _data[0].length; i++) {
+                    let _currentValue:AttributeInformation = _data[0][i];
+                    for (let j = 0; j < _data[1].length; j++) {
+                        if (_currentValue.name == _data[1][j].name) {
+                            if (_currentValue.description == undefined) {
+                                _currentValue.description = _data[1][j].description;
+                            }
+                            if (_currentValue.type == undefined) {
+                                _currentValue.type = _data[1][j].type;
+                            }
+                            if (_currentValue.unitOfMeasurement == undefined) {
+                                _currentValue.unitOfMeasurement = _data[1][j].unitOfMeasurement;
+                            }
                         }
                     }
+                    _returnData.push(_currentValue);
                 }
-                _returnData.push(_currentValue);
-            }
-            return _returnData;
-        })
-        .publishLast()
-        .refCount();
+                return _returnData;
+            });
 
         // set auto selected first metric if the array is not empty
         this.metrics.subscribe((data:AttributeInformation[]) => {
+            console.log("subscribe is processing for metrics...");
             if (data && data.length > 0) {
                 this.selectedMetric = data[0];
             }

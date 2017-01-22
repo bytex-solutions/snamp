@@ -4,6 +4,7 @@ import { CookieService } from 'angular2-cookie/core';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/throw';
+import 'rxjs/add/observable/empty';
 import 'rxjs/add/operator/catch';
 
 @Injectable()
@@ -26,7 +27,7 @@ constructor(private http: Http, private _cookieService:CookieService) {}
             console.log("Auth is not working.", error);
             window.location.href = "login.html?tokenExpired=true";
       } else {
-         return Observable.throw(error);
+         return Observable.empty();
       }
     }
 
