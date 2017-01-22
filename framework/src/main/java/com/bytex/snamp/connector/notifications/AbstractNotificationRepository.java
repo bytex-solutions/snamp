@@ -138,7 +138,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * Defines source for all outbound notifications emitted by this object.
      * @param value A source for all notifications. Cannot be {@literal null}.
      */
-    public void setSource(final ManagedResourceConnector value){
+    public final void setSource(final ManagedResourceConnector value){
         notificationSource = Objects.requireNonNull(value);
     }
 
