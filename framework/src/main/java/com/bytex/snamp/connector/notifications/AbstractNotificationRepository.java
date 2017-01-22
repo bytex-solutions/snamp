@@ -4,11 +4,13 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.metrics.NotificationMetric;
 import com.bytex.snamp.connector.metrics.NotificationMetricRecorder;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
 import javax.management.*;
@@ -86,6 +88,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final KeyedObjects<String, M> notifications;
     private final NotificationListenerList listeners;
     private final NotificationMetricRecorder metrics;
+    private Object notificationSource;
     private final boolean expandable;
 
     /**
@@ -125,6 +128,18 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         readLock.accept(SingleResourceGroup.INSTANCE, notifications.values(), collector, (notifications, collector1) -> notifications.forEach(n -> sender.accept(n, collector1)));
         fireListeners(collector.notifications);
         collector.notifications.clear();    //help GC
+    }
+
+    protected final Object getSource(){
+        return MoreObjects.firstNonNull(notificationSource, this);
+    }
+
+    /**
+     * Defines source for all outbound notifications emitted by this object.
+     * @param value A source for all notifications. Cannot be {@literal null}.
+     */
+    public void setSource(final ManagedResourceConnector value){
+        notificationSource = Objects.requireNonNull(value);
     }
 
     /**
@@ -172,7 +187,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                 .setSequenceNumber(sequenceNumber)
                 .setMessage(message)
                 .setUserData(userData)
-                .setSource(this)
+                .setSource(getSource())
                 .get());
     }
 
@@ -455,6 +470,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     @Override
     public void close() {
         listeners.clear();
+        notificationSource = null;
         super.close();
     }
 
