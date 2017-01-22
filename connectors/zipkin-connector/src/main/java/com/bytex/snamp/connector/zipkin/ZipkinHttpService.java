@@ -41,7 +41,6 @@ public final class ZipkinHttpService {
         dispatcher = new SpanDispatcher();
     }
 
-
     private Response receiveSpans(final List<Span> spans){
         dispatcher.handleService(spans);
         return Response.status(Response.Status.ACCEPTED).build();

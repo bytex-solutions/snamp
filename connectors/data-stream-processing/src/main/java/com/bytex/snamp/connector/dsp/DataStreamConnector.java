@@ -4,7 +4,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.dsp.notifications.NotificationSource;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
@@ -28,7 +27,6 @@ import java.util.stream.Stream;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents abstract class for stream-driven resource connector.
@@ -40,8 +38,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  */
 public abstract class DataStreamConnector extends AbstractManagedResourceConnector {
-    @Aggregation(cached = true)
-    private final NotificationSource source;
     @Aggregation(cached = true)
     protected final DataStreamDrivenAttributeRepository attributes;
     @Aggregation(cached = true)
@@ -60,16 +56,9 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
                                   final ManagedResourceInfo configuration,
                                   final DataStreamDrivenConnectorConfigurationDescriptionProvider descriptor) {
         super(configuration);
-        {
-            String componentInstance = descriptor.parseComponentInstance(configuration);
-            if (isNullOrEmpty(componentInstance))
-                componentInstance = resourceName;
-            final String componentName = descriptor.parseComponentName(configuration);
-            source = new NotificationSource(componentName, componentInstance);
-        }
         threadPool = descriptor.parseThreadPool(configuration);
         //init parser
-        notificationParser = createNotificationParser(resourceName, source, configuration);
+        notificationParser = createNotificationParser(resourceName, configuration);
         assert notificationParser != null;
         //init attributes
         attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(configuration));
@@ -79,7 +68,8 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         notifications = createNotificationRepository(resourceName);
         assert notifications != null;
         notifications.init(threadPool);
-
+        notifications.setSource(this);
+        
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
         sequenceNumberProvider = DistributedServices.getDistributedCounter(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName));
@@ -153,20 +143,14 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         }
     }
 
-    public final boolean represents(final NotificationSource value){
-        return source.equals(value);
-    }
-
     /**
      * Creates a new notification parser.
      * @param resourceName Resource name.
-     * @param source Component identity.
-     * @param parameters Set of parameters that may be used by notification parser.
+     * @param configuration Set of parameters that may be used by notification parser.
      * @return A new instance of notification parser.
      */
     protected abstract NotificationParser createNotificationParser(final String resourceName,
-                                                                   final NotificationSource source,
-                                                                   final Map<String, String> parameters);
+                                                                   final ManagedResourceInfo configuration);
 
     /**
      * Creates a new instance of repository for attributes.

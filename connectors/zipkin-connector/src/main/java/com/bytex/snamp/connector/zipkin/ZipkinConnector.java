@@ -2,9 +2,8 @@ package com.bytex.snamp.connector.zipkin;
 
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.dsp.DataStreamConnector;
-import com.bytex.snamp.connector.dsp.NotificationParser;
+import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParser;
 import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParserLoader;
-import com.bytex.snamp.connector.dsp.notifications.NotificationSource;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableMap;
@@ -15,7 +14,6 @@ import zipkin.storage.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -98,17 +96,19 @@ final class ZipkinConnector extends DataStreamConnector implements AsyncSpanCons
      * Creates a new notification parser.
      *
      * @param resourceName Resource name.
-     * @param source       Component identity.
      * @param parameters   Set of parameters that may be used by notification parser.
      * @return A new instance of notification parser.
      */
     @Override
-    protected NotificationParser createNotificationParser(final String resourceName, final NotificationSource source, final Map<String, String> parameters) {
+    protected GroovyNotificationParser createNotificationParser(final String resourceName, final ManagedResourceInfo parameters) {
         return callUnchecked(() -> {
             final URL[] scriptPath = ZipkinConnectorConfigurationDescriptionProvider.getInstance().parseScriptPath(parameters);
             final GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, parameters, true, scriptPath);
             final String scriptName = ZipkinConnectorConfigurationDescriptionProvider.getInstance().parseScriptFile(parameters);
-            return loader.createScript(scriptName, new Binding());
+            final GroovyNotificationParser parser = loader.createScript(scriptName, new Binding());
+            parser.setComponentName(parameters.getGroupName());
+            parser.setInstanceName(resourceName);
+            return parser;
         });
     }
 

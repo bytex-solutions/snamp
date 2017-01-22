@@ -5,12 +5,10 @@ import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.dsp.DataStreamConnector;
 import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParser;
 import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParserLoader;
-import com.bytex.snamp.connector.dsp.notifications.NotificationSource;
 import groovy.grape.GrabAnnotationTransformation;
 import groovy.lang.Binding;
 
 import java.net.URL;
-import java.util.Map;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -29,7 +27,7 @@ final class HttpAcceptor extends DataStreamConnector {
     }
 
     @Override
-    protected GroovyNotificationParser createNotificationParser(final String resourceName, final NotificationSource source, final Map<String, String> parameters) {
+    protected GroovyNotificationParser createNotificationParser(final String resourceName, final ManagedResourceInfo parameters) {
         return callUnchecked(() -> {
             final URL[] path = HttpConnectorConfigurationDescriptionProvider.getInstance().parseScriptPath(parameters);
             //load standard HTTP parser for measurements
@@ -37,8 +35,10 @@ final class HttpAcceptor extends DataStreamConnector {
             final GroovyNotificationParser mainParser = loader.createScript("MeasurementParser.groovy", new Binding());
             //load user-defined parser
             final String scriptFile = HttpConnectorConfigurationDescriptionProvider.getInstance().parseScriptFile(parameters);
-            if(!isNullOrEmpty(scriptFile))   //user-defined parser as fallback parser
+            if (!isNullOrEmpty(scriptFile))   //user-defined parser as fallback parser
                 mainParser.setFallbackParser(loader.createScript(scriptFile, new Binding()));
+            mainParser.setInstanceName(resourceName);
+            mainParser.setComponentName(parameters.getGroupName());
             return mainParser;
         });
     }

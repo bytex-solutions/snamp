@@ -260,6 +260,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         notifications = new JavaBeanNotificationRepository(resourceName,
                 notifTypes,
                 getBundleContextOfObject(this));
+        notifications.setSource(this);
         operations = JavaBeanOperationRepository.create(resourceName, this, beanInfo);
     }
 

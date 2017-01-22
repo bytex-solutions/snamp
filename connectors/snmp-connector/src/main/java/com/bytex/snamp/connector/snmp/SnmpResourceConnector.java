@@ -692,6 +692,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         notifications = new SnmpNotificationRepository(resourceName,
                 client,
                 Utils.getBundleContextOfObject(this));
+        notifications.setSource(this);
 
     }
 

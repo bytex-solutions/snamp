@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.dsp;
 
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.core.LoggerProvider;
@@ -12,6 +11,7 @@ import javax.management.Notification;
 import javax.management.ReflectionException;
 import java.io.Serializable;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -27,25 +27,23 @@ import java.util.logging.Logger;
 public class DataStreamDrivenAttributeRepository extends DistributedAttributeRepository<DataStreamDrivenAttribute> {
     private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
 
-    private final WriteOnceRef<ExecutorService> threadPool;
-    private final WriteOnceRef<DataStreamDrivenConnectorConfigurationDescriptionProvider> configurationParser;
+    private ExecutorService threadPool;
+    private DataStreamDrivenConnectorConfigurationDescriptionProvider configurationParser;
 
     public DataStreamDrivenAttributeRepository(final String resourceName,
                                                final Duration syncPeriod) {
         super(resourceName, DataStreamDrivenAttribute.class, false, syncPeriod);
-        threadPool = new WriteOnceRef<>();
-        configurationParser = new WriteOnceRef<>();
     }
 
     final void init(final ExecutorService threadPool, final DataStreamDrivenConnectorConfigurationDescriptionProvider parser) {
-        this.threadPool.set(threadPool);
-        this.configurationParser.set(parser);
+        this.threadPool = Objects.requireNonNull(threadPool);
+        this.configurationParser = Objects.requireNonNull(parser);
     }
 
     @Override
     public AttributeList getAttributes(final String[] attributes) {
         try {
-            return getAttributesParallel(threadPool.get(), attributes, BATCH_READ_WRITE_TIMEOUT);
+            return getAttributesParallel(threadPool, attributes, BATCH_READ_WRITE_TIMEOUT);
         } catch (final InterruptedException | TimeoutException e) {
             getLogger().log(Level.SEVERE, "Unable to read attributes", e);
             return new AttributeList();
@@ -61,7 +59,7 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
     @Override
     public AttributeList setAttributes(final AttributeList attributes) {
         try {
-            return setAttributesParallel(threadPool.get(), attributes, BATCH_READ_WRITE_TIMEOUT);
+            return setAttributesParallel(threadPool, attributes, BATCH_READ_WRITE_TIMEOUT);
         } catch (final InterruptedException | TimeoutException e) {
             getLogger().log(Level.SEVERE, "Unable to write attributes", e);
             return new AttributeList();
@@ -70,12 +68,12 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
 
     @Override
     public AttributeList getAttributes() throws MBeanException, ReflectionException {
-        return getAttributesParallel(threadPool.get(), BATCH_READ_WRITE_TIMEOUT);
+        return getAttributesParallel(threadPool, BATCH_READ_WRITE_TIMEOUT);
     }
 
     @Override
     protected DataStreamDrivenAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
-        final String gaugeType = configurationParser.get().parseGaugeType(descriptor);
+        final String gaugeType = configurationParser.parseGaugeType(descriptor);
         final DataStreamDrivenAttributeFactory factory = AttributeParser.parse(gaugeType);
         if(factory == null)
             throw new UnrecognizedAttributeTypeException(gaugeType);
@@ -89,7 +87,7 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
      */
     @Override
     protected final ExecutorService getThreadPool() {
-        return threadPool.get();
+        return threadPool;
     }
 
     /**
@@ -145,13 +143,13 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
         parallelForEach(attribute -> {
             if(attribute instanceof MetricHolderAttribute<?, ?>)
                 ((MetricHolderAttribute<?, ?>) attribute).reset();
-        }, threadPool.get());
+        }, threadPool);
     }
 
     @Override
     public void close() {
-        threadPool.clear();
-        configurationParser.clear();
+        threadPool = null;
+        configurationParser = null;
         super.close();
     }
 }

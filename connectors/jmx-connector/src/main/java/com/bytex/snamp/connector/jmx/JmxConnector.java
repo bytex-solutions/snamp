@@ -704,6 +704,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                 connectionManager,
                 connectionOptions.getThreadPool(),
                 smartMode);
+        this.notifications.setSource(this);
         this.attributes = new JmxAttributeRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager, smartMode);
         this.operations = new JmxOperationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager, smartMode);
     }

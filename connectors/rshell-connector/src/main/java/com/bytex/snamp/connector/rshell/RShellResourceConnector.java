@@ -47,8 +47,8 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
         private static final long serialVersionUID = -403897890533078455L;
         final XmlCommandLineToolProfile commandProfile;
 
-        public RShellOperationInfo(String name, OpenType<?> returnType,
-                                   final XmlCommandLineToolProfile profile, OperationDescriptor descriptor) {
+        private RShellOperationInfo(String name, OpenType<?> returnType,
+                            final XmlCommandLineToolProfile profile, OperationDescriptor descriptor) {
             super(name, getDescription(descriptor), getSignature(profile, getDescription(descriptor)),
                     returnType, getImpact(profile), descriptor);
             commandProfile = profile;

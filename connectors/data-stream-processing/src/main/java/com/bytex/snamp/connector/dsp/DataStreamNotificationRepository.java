@@ -37,8 +37,8 @@ public class DataStreamNotificationRepository extends AbstractNotificationReposi
                 parallelForEach(listeners, listenerConsumer, threadPool);
         }
     }
-    private final MessageDrivenNotificationListenerInvoker threadPool;
 
+    private final MessageDrivenNotificationListenerInvoker threadPool;
 
     public DataStreamNotificationRepository(final String resourceName) {
         super(resourceName, DataStreamNotification.class, false);

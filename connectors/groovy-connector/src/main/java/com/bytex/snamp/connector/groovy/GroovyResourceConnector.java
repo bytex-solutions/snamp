@@ -42,6 +42,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         attributes = new GroovyAttributeRepository(resourceName, scriptlet);
         final ExecutorService threadPool = GroovyResourceConfigurationDescriptor.getInstance().parseThreadPool(configuration);
         events = new GroovyNotificationRepository(resourceName, scriptlet, threadPool, Utils.getBundleContextOfObject(this));
+        events.setSource(this);
         operations = new GroovyOperationRepository(resourceName, scriptlet);
     }
 

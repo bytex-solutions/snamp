@@ -1,30 +1,27 @@
 package com.bytex.snamp.connector.http;
 
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.dsp.notifications.NotificationSource;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.dsp.DataStreamConnector;
 import com.bytex.snamp.core.ExposedServiceHandler;
-import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.instrumentation.measurements.Measurement;
 import com.bytex.snamp.scripting.groovy.xml.XmlSlurperSlim;
-import com.google.common.base.Joiner;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.sun.jersey.spi.resource.Singleton;
 import groovy.json.JsonSlurper;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
-import javax.annotation.Nonnull;
+import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.io.StringReader;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
+import java.util.Set;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -37,60 +34,6 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 @Singleton
 @Path("/")
 public final class AcceptorService {
-    private static final class AcceptorNotFoundException extends Exception{
-        private static final long serialVersionUID = 7841487883004602958L;
-
-        private AcceptorNotFoundException(){
-        }
-
-        @Override
-        public AcceptorNotFoundException fillInStackTrace() {
-            return this;
-        }
-    }
-
-    private static abstract class HttpAcceptorHandler<I, E extends Throwable> extends ExposedServiceHandler<ManagedResourceConnector, I, E>{
-        private HttpAcceptorHandler(){
-            super(ManagedResourceConnector.class);
-        }
-
-        abstract boolean handleService(final HttpAcceptor acceptor, final I userData) throws E;
-
-        @Override
-        protected final boolean handleService(final ManagedResourceConnector service, final I userData) throws E {
-            return !(service instanceof HttpAcceptor) || handleService((HttpAcceptor) service, userData);
-        }
-    }
-
-    //represents loader of published HTTP acceptors in the form of cache with lazy values
-    private static final class HttpAcceptorLoader extends CacheLoader<NotificationSource, HttpAcceptor>{
-        @Override
-        public HttpAcceptor load(@Nonnull final NotificationSource source) throws AcceptorNotFoundException {
-            //used to find the appropriate acceptor
-            final class HttpAcceptorFinder extends HttpAcceptorHandler<NotificationSource, ExceptionPlaceholder>{
-                private HttpAcceptor acceptor;
-
-                private HttpAcceptor getAcceptor(final NotificationSource source) throws AcceptorNotFoundException {
-                    handleService(source);
-                    if (acceptor == null)
-                        throw new AcceptorNotFoundException();
-                    else
-                        return acceptor;
-                }
-
-                @Override
-                boolean handleService(final HttpAcceptor acceptor, final NotificationSource source) {
-                    final boolean found;
-                    if(found = acceptor.represents(source))
-                        this.acceptor = acceptor;
-                    return !found;
-                }
-            }
-
-            return new HttpAcceptorFinder().getAcceptor(source);
-        }
-    }
-
     private static final class Payload{
         private final Map<String, ?> headers;
         private final Object body;
@@ -101,22 +44,23 @@ public final class AcceptorService {
         }
     }
 
-    private static final class CustomPayloadDispatcher extends HttpAcceptorHandler<Payload, Exception>{
+    private static final class CustomPayloadDispatcher extends ExposedServiceHandler<ManagedResourceConnector, Payload, Exception> {
+        private CustomPayloadDispatcher() {
+            super(ManagedResourceConnector.class);
+        }
+
         @Override
-        protected boolean handleService(final HttpAcceptor acceptor, final Payload userData) throws Exception {
-            acceptor.dispatch(userData.headers, userData.body);
+        protected boolean handleService(final ManagedResourceConnector service, final Payload userData) throws Exception {
+            if (service instanceof DataStreamConnector)
+                ((DataStreamConnector) service).dispatch(userData.headers, userData.body);
             return true;
         }
     }
 
-    private final LoadingCache<NotificationSource, HttpAcceptor> acceptors;
     private final JsonSlurper jsonParser;
     private final CustomPayloadDispatcher payloadDispatcher;
 
     AcceptorService() {
-        acceptors = CacheBuilder.newBuilder()
-                .weakValues()
-                .build(new HttpAcceptorLoader());
         jsonParser = new JsonSlurper();
         payloadDispatcher = new CustomPayloadDispatcher();
     }
@@ -129,9 +73,15 @@ public final class AcceptorService {
     @GET
     @Path("/ping")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response ping(){
+    public Response ping() {
         final Version version = getBundleContextOfObject(this).getBundle().getVersion();
-        final String sources = Joiner.on(';').join(acceptors.asMap().keySet());
+        final String httpAcceptorType = ManagedResourceConnector.getConnectorType(HttpAcceptor.class);
+        final Set<String> sources = new HashSet<>();
+        for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(getBundleContext()).values()) {
+            final String connectorType = ManagedResourceConnector.getConnectorType(connectorRef.getBundle());
+            if (Objects.equals(httpAcceptorType, connectorType))
+                sources.add(ManagedResourceConnectorClient.getManagedResourceName(connectorRef));
+        }
         final String responseBody = String.format("HTTP Acceptor, version=%s, sources=%s", version, sources);
         return Response.ok()
                 .entity(responseBody)
@@ -148,6 +98,10 @@ public final class AcceptorService {
         return Response.noContent().build();
     }
 
+    private BundleContext getBundleContext(){
+        return getBundleContextOfObject(this);
+    }
+
     /**
      * Consumes measurement from remote component.
      * @param measurement A measurement to accept.
@@ -156,30 +110,25 @@ public final class AcceptorService {
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/measurement")
-    public Response acceptMeasurement(@Context final HttpHeaders headers, final Measurement measurement){
-        final NotificationSource source = new NotificationSource(measurement.getComponentName(), measurement.getInstanceName());
+    public Response acceptMeasurement(@Context final HttpHeaders headers, final Measurement measurement) {
         //find the appropriate connector and redirect
-        final HttpAcceptor acceptor;
-        try{
-            acceptor = acceptors.get(source);
-        } catch (final ExecutionException e){
-            if(e.getCause() instanceof AcceptorNotFoundException)
-                throw new WebApplicationException(e.getCause(), Response
-                        .status(Response.Status.NOT_FOUND)
-                        .type(MediaType.TEXT_PLAIN_TYPE)
-                        .entity(String.format("Acceptor for %s doesn't exist", source))
-                        .build());
-            else
-                throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        //acceptor is found. Redirect measurement to it
+        ManagedResourceConnectorClient client = null;
+        final Response response;
         try {
-            acceptor.dispatch(wrapHeaders(headers), measurement);
+            client = new ManagedResourceConnectorClient(getBundleContext(), measurement.getInstanceName());
+            if (client.acceptAs(DataStreamConnector.class, acceptor -> acceptor.dispatch(wrapHeaders(headers), measurement)))
+                response = Response.noContent().build();
+            else
+                response = Response.status(Response.Status.BAD_REQUEST).entity("Resource %s is not data stream processor").build();
+        } catch (final InstanceNotFoundException e) {
+            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
         } catch (final Exception e) {
-            LoggerProvider.getLoggerForObject(acceptor).log(Level.SEVERE, String.format("Failed to dispatch measurement %s", measurement), e);
             throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        } finally {
+            if (client != null)
+                client.release(getBundleContext());
         }
-        return Response.noContent().build();
+        return response;
     }
 
     private void acceptCustomPayload(final Map<String, ?> headers, final Object body) throws Exception {

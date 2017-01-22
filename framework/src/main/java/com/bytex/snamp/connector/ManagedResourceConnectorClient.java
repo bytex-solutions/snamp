@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector;
 
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
@@ -71,6 +72,15 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                                                    final Locale loc){
         final List<Bundle> candidates = ManagedResourceActivator.getResourceConnectorBundles(context, connectorType);
         return candidates.isEmpty() ? null : candidates.get(0).getHeaders(loc != null ? loc.toString() : null).get(header);
+    }
+
+    public <T extends ManagedResourceConnector, E extends Throwable> boolean acceptAs(final Class<T> expectedType,
+                                                                                final Acceptor<? super T, E> handler) throws E {
+        final ManagedResourceConnector connector = getService();
+        final boolean success;
+        if (success = expectedType.isInstance(connector))
+            handler.accept(expectedType.cast(connector));
+        return success;
     }
 
     /**

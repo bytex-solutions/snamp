@@ -20,15 +20,10 @@ import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
-import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsLong;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.GROUP_NAME_PROPERTY;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
-import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Represents configuration descriptor for message-driven connectors.
@@ -36,8 +31,6 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  */
 public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
-    public static final String COMPONENT_INSTANCE_PARAM = "instanceName";
-    private static final String COMPONENT_NAME_PARAM = "componentName";
     private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
     private static final String RANGE_START_PARAM = "from";
     private static final String RANGE_END_PARAM = "to";
@@ -48,7 +41,7 @@ public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider 
     protected static class ConnectorConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private static final String RESOURCE_NAME = "ConnectorConfiguration";
         private final ResourceReader fallbackReader;
-        private static final String[] DEFAULT_PARAMS = {COMPONENT_INSTANCE_PARAM, COMPONENT_NAME_PARAM, SYNC_PERIOD_PARAM};
+        private static final String[] DEFAULT_PARAMS = {SYNC_PERIOD_PARAM};
 
         /**
          * Initializes a new resource-based descriptor.
@@ -144,14 +137,6 @@ public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider 
 
     protected DataStreamDrivenConnectorConfigurationDescriptionProvider(){
         super(ConnectorConfigurationDescription.createDefault(), AttributeConfigurationDescription.createDefault(), EventConfigurationDescription.createDefault());
-    }
-
-    protected String parseComponentInstance(final Map<String, String> parameters){
-        return getValue(parameters, COMPONENT_INSTANCE_PARAM, Function.identity()).orElse("");
-    }
-
-    protected String parseComponentName(final Map<String, String> parameters) {
-        return getValue(parameters, COMPONENT_NAME_PARAM, Function.identity()).orElseGet(() -> firstNonNull(parameters.get(GROUP_NAME_PROPERTY), "DEFAULT"));
     }
 
     protected Duration parseSyncPeriod(final Map<String, String> parameters) {

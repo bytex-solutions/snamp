@@ -36,6 +36,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
         attributes = new AttributeComposition(resourceName, connectors, threadPool, syncPeriod, scriptLoader);
         notifications = new NotificationComposition(resourceName, connectors, threadPool);
         notifications.addNotificationListener(attributes, null, null);
+        notifications.setSource(this);
         operations = new OperationComposition(resourceName, connectors);
     }
 
