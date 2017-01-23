@@ -2,7 +2,7 @@ import { Axis } from './abstract.axis';
 import { AttributeInformation } from './attribute';
 
 export class AttributeValueAxis extends Axis {
-    public type:string = "attributeValue";
+    public type:string = Axis.ATTRIBUTES;
     public sourceAttribute:AttributeInformation;
 
     public toJSON():any {
