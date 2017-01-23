@@ -204,9 +204,6 @@ export class Dashboard {
    private loadMetricsOnInstancesSelected():void {
         $('#overlay').fadeIn();
         let _instanceForSearchMetrics:string = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
-
-        console.log(this.selectedAllInstances, this.allInstances[0], this.selectedInstances[0]);
-
         let _obsComponents = this.http.getIgnoreErrors(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
              .map((res:Response) => {
                  let _data:any = res.json();
@@ -221,7 +218,6 @@ export class Dashboard {
         let _obsInstances = this.http.getIgnoreErrors(REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
             .map((res:Response) => {
                 let _data:any = res.json();
-                console.log("instance metrics data: ", _data);
                 let _values:AttributeInformation[] = [];
                 for (let i in _data) {
                     _values.push(new AttributeInformation(_data[i]));
@@ -232,7 +228,6 @@ export class Dashboard {
         this.metrics = Observable.forkJoin([_obsComponents, _obsInstances])
             .map((_data) => {
                 let _returnData:AttributeInformation[] = [];
-                console.log("Whole the data is: ", _data);
                 // if one of input arrays is empty - return another one
                 if (_data[1].length == 0 && _data[0].length > 0) {
                     return _data[0];
@@ -262,7 +257,6 @@ export class Dashboard {
 
         // set auto selected first metric if the array is not empty
         this.metrics.subscribe((data:AttributeInformation[]) => {
-            console.log("subscribe is processing for metrics...");
             if (data && data.length > 0) {
                 this.selectedMetric = data[0];
             }
