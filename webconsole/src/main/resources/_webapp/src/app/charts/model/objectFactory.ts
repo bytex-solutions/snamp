@@ -47,7 +47,7 @@ export class Factory {
             return _axis;
         }
     }
-
+    // method for creating charts
     public static chartFromJSON(_json:any):AbstractChart {
         let _type:string = _json["@type"];
         if (_type == undefined || _type.length == 0) {
