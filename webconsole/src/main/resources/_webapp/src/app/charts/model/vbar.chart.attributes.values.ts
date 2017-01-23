@@ -3,7 +3,7 @@ import { InstanceNameAxis } from './instance.axis';
 import { AttributeValueAxis } from './attribute.value.axis';
 
 export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
-    public @type:string = "verticalBarChartOfAttributeValues";
+    public type:string = "verticalBarChartOfAttributeValues";
 
     public createDefaultAxisX() {
         return new InstanceNameAxis();

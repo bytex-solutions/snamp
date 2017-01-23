@@ -18,4 +18,12 @@ export class AttributeInformation {
             this.description = _json["description"];
         }
     }
+
+    public toJSON():any {
+        let _value:any = {};
+        _value["type"] = this.type;
+        _value["name"] = this.name;
+        _value["unitOfMeasurement"] = this.unitOfMeasurement;
+        return _value;
+    }
 }

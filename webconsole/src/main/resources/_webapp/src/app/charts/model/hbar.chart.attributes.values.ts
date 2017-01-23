@@ -3,7 +3,7 @@ import { InstanceNameAxis } from './instance.axis';
 import { AttributeValueAxis } from './attribute.value.axis';
 
 export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
-    public @type:string = "horizontalBarChartOfAttributeValues";
+    public type:string = "horizontalBarChartOfAttributeValues";
 
     public createDefaultAxisX() {
         return new InstanceNameAxis();

@@ -3,7 +3,7 @@ import { InstanceNameAxis } from './instance.axis';
 import { AttributeValueAxis } from './attribute.value.axis';
 
 export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
-    public @type:string = "panelOfAttributeValues";
+    public type:string = "panelOfAttributeValues";
 
     public createDefaultAxisX() {
         return new InstanceNameAxis();
