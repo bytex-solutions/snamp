@@ -8,8 +8,9 @@ import com.bytex.snamp.SpecialUse;
  * @version 2.0
  */
 final class ThreadPoolList extends ConfigurationEntityList<SerializableThreadPoolConfiguration> {
+    private static final long serialVersionUID = 5480918847294476287L;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public ThreadPoolList(){
 
     }

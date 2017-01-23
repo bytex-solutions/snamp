@@ -20,7 +20,7 @@ public abstract class SerializedState<T extends Serializable> implements Seriali
      * @return Recreated object.
      * @implSpec This method always call {@link #get()} method.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final Object readResolve(){
         return get();
     }

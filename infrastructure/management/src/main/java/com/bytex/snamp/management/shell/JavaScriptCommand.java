@@ -30,11 +30,11 @@ description = "Run JavaScript from command line")
 @Service
 public final class JavaScriptCommand extends SnampShellCommand  {
     @Argument(index = 0, name = "script-or-file-path", description = "JavaScript code or file name with JavaScript", required = true)
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String scriptOrFilePath;
 
     @Option(name = "-f", aliases = {"--file", "--jsfile"}, description = "Interpret command argument as a path to file with script")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean useFilePath;
 
     public JavaScriptCommand() {

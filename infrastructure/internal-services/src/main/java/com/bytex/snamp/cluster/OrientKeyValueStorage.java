@@ -2,7 +2,6 @@ package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.orientechnologies.orient.core.db.ODatabase;
 import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
@@ -38,7 +37,6 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         }
     }
 
-    @SpecialUse
     private final AtomicReference<OClass> documentClass;
     private final ODatabaseDocumentTx database;
     private final String indexName;

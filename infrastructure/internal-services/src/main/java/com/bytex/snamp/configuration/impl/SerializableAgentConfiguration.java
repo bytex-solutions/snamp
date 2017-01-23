@@ -29,7 +29,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
     /**
      * Initializes a new empty agent configuration.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableAgentConfiguration(){
         gateways = new GatewayList();
         threadPools = new ThreadPoolList();

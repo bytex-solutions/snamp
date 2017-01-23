@@ -21,6 +21,6 @@ public interface SerializableSnapshotSupport<T extends SerializableSnapshotSuppo
      * @throws ObjectStreamException Serializable state cannot be created.
      * @implSpec This method should always call method {@link #takeSnapshot()}.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     Object writeReplace() throws ObjectStreamException;
 }

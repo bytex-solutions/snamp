@@ -10,19 +10,19 @@ final class SnmpLongObject extends SnmpScalarObject<Counter64>{
     final static int SYNTAX = SYNTAX_COUNTER64;
     private static final long DEFAULT_VALUE = -1;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     SnmpLongObject(final SnmpAttributeAccessor connector) {
         super(connector, new Counter64(DEFAULT_VALUE));
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     static Counter64 toSnmpObject(final Object value){
         if(value instanceof Number)
             return new Counter64(((Number)value).longValue());
         else return new Counter64(DEFAULT_VALUE);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     static long fromSnmpObject(final Variable value){
         return value.toLong();
     }

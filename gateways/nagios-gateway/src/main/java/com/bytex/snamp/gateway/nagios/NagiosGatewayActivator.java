@@ -11,7 +11,7 @@ import org.osgi.service.http.HttpService;
  */
 public final class NagiosGatewayActivator extends GatewayActivator<NagiosGateway> {
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public NagiosGatewayActivator() {
         super(NagiosGatewayActivator::newGateway,
                 simpleDependencies(HttpService.class),

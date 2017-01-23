@@ -13,7 +13,7 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  */
 @JsonTypeName("event")
 public final class EventDataObject extends AbstractFeatureDataObject<EventConfiguration> {
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public EventDataObject() {
 
     }

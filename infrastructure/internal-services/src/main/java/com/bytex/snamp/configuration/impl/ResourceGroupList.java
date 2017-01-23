@@ -12,7 +12,7 @@ import com.bytex.snamp.SpecialUse;
 final class ResourceGroupList extends ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> {
     private static final long serialVersionUID = -3661389588364513413L;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public ResourceGroupList() {
     }
 

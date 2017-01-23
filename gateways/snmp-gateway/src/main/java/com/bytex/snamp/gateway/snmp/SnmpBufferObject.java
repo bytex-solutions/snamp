@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.OctetString;
@@ -23,12 +22,10 @@ final class SnmpBufferObject extends SnmpScalarObject<OctetString> {
     static final int SYNTAX = SMIConstants.SYNTAX_OCTET_STRING;
     private static final OctetString DEFAULT_VALUE = new OctetString();
 
-    @SpecialUse
     SnmpBufferObject(final SnmpAttributeAccessor attribute) {
         super(attribute, DEFAULT_VALUE);
     }
 
-    @SpecialUse
     static OctetString toSnmpObject(final Object value){
         final ByteBuffer result;
         if(value instanceof ByteBuffer)
@@ -63,7 +60,6 @@ final class SnmpBufferObject extends SnmpScalarObject<OctetString> {
         }
     }
 
-    @SpecialUse
     static Buffer fromSnmpObject(final Variable value, final Type attributeType) throws InvalidAttributeValueException {
         if(value instanceof OctetString)
             return convert((OctetString)value, attributeType);

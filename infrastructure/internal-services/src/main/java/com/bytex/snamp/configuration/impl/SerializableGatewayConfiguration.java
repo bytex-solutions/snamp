@@ -23,7 +23,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     /**
      * Initializes a new empty gateway instance settings.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableGatewayConfiguration(){
         gatewayType = "";
     }

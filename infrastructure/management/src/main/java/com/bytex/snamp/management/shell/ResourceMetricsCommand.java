@@ -25,23 +25,23 @@ import static com.google.common.collect.Iterables.getFirst;
 @Service
 public final class ResourceMetricsCommand extends SnampShellCommand {
     @Argument(index = 0, name = "resourceName", required = false, description = "Name of the managed resource for which metrics should be displayed")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String resourceName = "";
 
     @Option(name = "-a", aliases = "--attributes", required = false, description = "Show metrics for attributes")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean showAttributes;
 
     @Option(name = "-n", aliases = "--notifications", required = false, description = "Show metrics for notifications")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean showNotifications;
 
     @Option(name = "-o", aliases = "--operations", required = false, description = "Show metrics for operations")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean showOperations;
 
     @Option(name = "-r", aliases = "--reset", required = false, description = "Reset metrics")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean resetMetrics;
 
     private static void printMetrics(final Rate rate, final StringBuilder output){

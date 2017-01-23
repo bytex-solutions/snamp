@@ -8,7 +8,7 @@ import com.bytex.snamp.SpecialUse;
 final class GatewayList extends ConfigurationEntityList<SerializableGatewayConfiguration> {
     private static final long serialVersionUID = 8142154170844526063L;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public GatewayList() {
     }
 

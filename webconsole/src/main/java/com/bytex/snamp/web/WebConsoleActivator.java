@@ -6,10 +6,10 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
-import com.bytex.snamp.web.serviceModel.managedResources.ManagedResourceInformationService;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
 import com.bytex.snamp.web.serviceModel.logging.WebConsoleLogService;
+import com.bytex.snamp.web.serviceModel.managedResources.ManagedResourceInformationService;
 import org.ops4j.pax.logging.PaxLoggingService;
 import org.ops4j.pax.logging.spi.PaxAppender;
 import org.osgi.framework.InvalidSyntaxException;
@@ -19,7 +19,6 @@ import javax.servlet.Servlet;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 /**
  * The type Web console activator.
@@ -118,7 +117,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public WebConsoleActivator() {
         super(new WebConsoleServletProvider(),
                 new LogNotifierProvider(),

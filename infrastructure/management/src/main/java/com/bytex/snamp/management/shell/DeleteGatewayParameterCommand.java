@@ -19,13 +19,14 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 @Service
 public final class DeleteGatewayParameterCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the gateway instance to modify")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String instanceName = "";
 
     @Argument(name = "parameter", index = 1, required = true, description = "Name of the parameter to remove")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String paramName = "";
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     public DeleteGatewayParameterCommand(){
         super(GatewayConfiguration.class);
     }

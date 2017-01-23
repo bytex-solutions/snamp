@@ -18,14 +18,15 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
     description = "Deletes configuration parameter from managed resource")
 @Service
 public final class DeleteResourceParameterCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 0, required = true, name = "resourceName", description = "Name of resource to modify")
     private String resourceName = "";
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 1, name = "parameter", required = true, description = "Configuration parameter to remove")
     private String paramName = "";
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     public DeleteResourceParameterCommand(){
         super(ManagedResourceConfiguration.class);
     }

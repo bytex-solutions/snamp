@@ -233,7 +233,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      * @throws IllegalStateException This connector is closed.
      */
     @Aggregation    //already cached in the field
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     public final MetricsSupport getMetrics() {
         return metrics.lazyGet(this, AbstractManagedResourceConnector::createMetricsReader);
     }

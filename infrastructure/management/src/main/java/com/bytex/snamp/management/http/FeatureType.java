@@ -187,7 +187,7 @@ public enum FeatureType {
         });
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public static FeatureType fromString(final String value){
         switch (value){
             case ATTRIBUTES_TYPE: return ATTRIBUTES;

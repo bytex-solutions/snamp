@@ -41,7 +41,7 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
             handler.set(listener);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public final void then(final Closure<?> listener){
             then(Closures.toNotificationHandler(listener));
         }
@@ -72,7 +72,7 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
             return result;
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public final FilterAndProcessNotificationStatement when(final Closure<Boolean> condition){
             return when(Closures.toPredicate(condition));
         }

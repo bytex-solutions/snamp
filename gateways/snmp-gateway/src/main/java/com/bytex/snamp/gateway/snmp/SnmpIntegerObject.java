@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
@@ -18,12 +17,10 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
     static final int SYNTAX = SYNTAX_INTEGER32;
     static final int DEFAULT_VALUE = -1;
 
-    @SpecialUse
     SnmpIntegerObject(final SnmpAttributeAccessor connector)  {
         super(connector, new Integer32(DEFAULT_VALUE));
     }
 
-    @SpecialUse
     static Integer32 toSnmpObject(final Object value) {
         if(value instanceof Boolean)
             return SnmpBooleanObject.toSnmpObject(value);
@@ -32,7 +29,6 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
         else return new Integer32(DEFAULT_VALUE);
     }
 
-    @SpecialUse
     static Object fromSnmpObject(final Variable value, final Type attributeTypeInfo) throws InvalidAttributeValueException {
         switch (WellKnownType.getType(attributeTypeInfo)){
             case BYTE:

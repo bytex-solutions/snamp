@@ -17,7 +17,7 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 @Service
 public final class SendBroadcastMessageCommand extends MessageCommand {
     @Argument(index = 0, required = true, name = "message", description = "A message to send")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String message = "";
 
     @Override

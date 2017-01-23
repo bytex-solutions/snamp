@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OctetString;
@@ -13,20 +12,17 @@ import java.util.Objects;
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
 
 final class SnmpFloatObject extends SnmpScalarObject<OctetString>{
-    static final Number DEFAULT_VALUE = -1.0F;
+    private static final Number DEFAULT_VALUE = -1.0F;
     static final int SYNTAX = SYNTAX_OCTET_STRING;
 
-    @SpecialUse
     SnmpFloatObject(final SnmpAttributeAccessor connector) {
         super(connector, OctetStringHelper.toOctetString(DEFAULT_VALUE.toString()));
     }
 
-    @SpecialUse
     static OctetString toSnmpObject(final Object value){
         return OctetStringHelper.toOctetString(Objects.toString(value, "0"));
     }
 
-    @SpecialUse
     static Number fromSnmpObject(final AssignableFromByteArray value, final Type attributeTypeInfo) throws InvalidAttributeValueException {
         switch (WellKnownType.getType(attributeTypeInfo)){
             case FLOAT: return Float.parseFloat(OctetStringHelper.toString(value));

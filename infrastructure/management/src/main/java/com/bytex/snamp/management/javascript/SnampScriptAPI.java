@@ -27,7 +27,7 @@ public final class SnampScriptAPI {
      * Gets SNAMP version.
      * @return SNAMP version.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public PlatformVersion getVersion(){
         return PlatformVersion.get();
     }
@@ -38,7 +38,7 @@ public final class SnampScriptAPI {
      * @throws ScriptException Something wrong with calling JavaScript.
      * @throws IOException Can't read SNAMP configuration.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public void configure(final ConfigurationManager.ConfigurationProcessor<ScriptException> handler) throws ScriptException, IOException {
         final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
         if (manager != null)

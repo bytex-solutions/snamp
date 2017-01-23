@@ -23,7 +23,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
 @Service
 public final class ReceiveMessageCommand extends MessageCommand {
     @Reference
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private Session session;
 
     @Override

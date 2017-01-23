@@ -28,12 +28,12 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
         this.metadataCache = new LazyStrongReference<>();
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public void setValue(final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
         attributes.setAttributeValue(resourceName, attributeName, value);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public Object getValue() throws MBeanException, AttributeNotFoundException, ReflectionException {
         return attributes.getAttributeValue(resourceName, attributeName);
     }
@@ -46,7 +46,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
                         .orElseGet(() -> null);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public GroovyFeatureMetadata<MBeanAttributeInfo> getMetadata() {
         return metadataCache.lazyGet(this, GroovyResourceAttribute::detectMetadata);
     }

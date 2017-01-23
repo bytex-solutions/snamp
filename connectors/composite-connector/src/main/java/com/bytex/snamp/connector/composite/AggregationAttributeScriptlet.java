@@ -39,7 +39,7 @@ public abstract class AggregationAttributeScriptlet extends Scriptlet implements
      *
      * @param value The type of this attribute
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public final void type(final OpenType<?> value) {
         this.openType = Objects.requireNonNull(value);
     }
@@ -50,7 +50,7 @@ public abstract class AggregationAttributeScriptlet extends Scriptlet implements
      * @return The value of this attribute.
      * @throws Exception Unable to get attribute value.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public Object getValue() throws Exception {
         throw new UnsupportedOperationException();
     }
@@ -60,7 +60,7 @@ public abstract class AggregationAttributeScriptlet extends Scriptlet implements
      *
      * @return {@literal true}, if this method is readable.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public final boolean isReadable() {
         try {
             final Method getter = getClass().getMethod(GET_VALUE_METHOD);
@@ -75,7 +75,7 @@ public abstract class AggregationAttributeScriptlet extends Scriptlet implements
      *
      * @return {@literal true}, if this method is writable.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public final boolean isWritable() {
         try {
             final Method getter = getClass().getMethod(SET_VALUE_METHOD, Object.class);
@@ -101,7 +101,7 @@ public abstract class AggregationAttributeScriptlet extends Scriptlet implements
      * @return A new attribute value.
      * @throws Exception Unable to set attribute value.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public Object setValue(final Object value) throws Exception {
         throw new UnsupportedOperationException();
     }

@@ -13,7 +13,7 @@ import java.net.URISyntaxException;
  */
 public final class ModbusResourceConnectorActivator extends ManagedResourceActivator<ModbusResourceConnector> {
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public ModbusResourceConnectorActivator() {
         super(ModbusResourceConnectorActivator::createConnector, configurationDescriptor(ModbusResourceConnectorConfigurationDescriptor::new));
     }

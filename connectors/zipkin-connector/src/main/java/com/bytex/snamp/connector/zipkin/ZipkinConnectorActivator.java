@@ -8,7 +8,6 @@ import org.osgi.service.http.HttpService;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Hashtable;
-import java.util.Map;
 
 /**
  * Collects spans compatible with Twitter Zipkin.
@@ -19,7 +18,7 @@ import java.util.Map;
 public final class ZipkinConnectorActivator extends ManagedResourceActivator<ZipkinConnector> {
     private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public ZipkinConnectorActivator(){
         super(ZipkinConnectorActivator::createConnector, configurationDescriptor(ZipkinConnectorConfigurationDescriptionProvider::getInstance));
     }

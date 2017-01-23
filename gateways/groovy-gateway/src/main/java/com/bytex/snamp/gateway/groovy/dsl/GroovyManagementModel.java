@@ -25,7 +25,7 @@ public abstract class GroovyManagementModel extends GroovyObjectSupport implemen
         return callUnchecked(() -> cache.get(resourceName, () -> new GroovyManagedResource(GroovyManagementModel.this, resourceName)));
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public final GroovyManagedResource getResource(final String resourceName) {
         if (getList().contains(resourceName))
             return getOrPutResource(resourceName);

@@ -22,7 +22,7 @@ final class SerializableThreadPoolConfiguration extends AbstractEntityConfigurat
     private int queueSize;
     private Duration keepAliveTime;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableThreadPoolConfiguration(){
         threadPriority = DEFAULT_THREAD_PRIORITY;
         minPoolSize = DEFAULT_MIN_POOL_SIZE;

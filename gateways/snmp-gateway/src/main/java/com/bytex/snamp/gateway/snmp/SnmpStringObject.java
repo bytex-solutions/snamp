@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OctetString;
@@ -19,12 +18,10 @@ final class SnmpStringObject extends SnmpScalarObject<OctetString>{
     static final int SYNTAX = SYNTAX_OCTET_STRING;
     private static final String DEFAULT_VALUE = "";
 
-    @SpecialUse
     SnmpStringObject(final SnmpAttributeAccessor connector) {
         super(connector, OctetStringHelper.toOctetString(DEFAULT_VALUE));
     }
 
-    @SpecialUse
     static OctetString toSnmpObject(final Object value) {
         if (value instanceof ObjectName)
             return OctetStringHelper.toOctetString(((ObjectName) value).getCanonicalName());
@@ -35,7 +32,6 @@ final class SnmpStringObject extends SnmpScalarObject<OctetString>{
         else return OctetStringHelper.toOctetString(Objects.toString(value, DEFAULT_VALUE));
     }
 
-    @SpecialUse
     static Serializable fromSnmpObject(final AssignableFromByteArray value, final Type expectedType) throws InvalidAttributeValueException {
         switch (WellKnownType.getType(expectedType)){
             case STRING: return OctetStringHelper.toString(value);

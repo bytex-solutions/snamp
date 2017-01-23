@@ -21,28 +21,28 @@ import static com.bytex.snamp.configuration.ThreadPoolConfiguration.*;
 @Service
 public final class AddThreadPoolCommand extends AbstractThreadPoolCommand {
     @Argument(index = 0, name = "name", required = true, description = "Name of the thread pool to register")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String poolName = "";
 
     @Option(name = "-m", aliases = "--minPoolSize", description = "A number of threads to keep in the pool")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private int minPoolSize = DEFAULT_MIN_POOL_SIZE;
 
     @Option(name = "-M", aliases = "--maxPoolSize", description = "Maximum number of threads to allow in the pool")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private int maxPoolSize = DEFAULT_MAX_POOL_SIZE;
 
     @Option(name = "-p", aliases = "--priority", description = "Priority of thread in the pool: 1-10")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private int threadPriority = DEFAULT_THREAD_PRIORITY;
 
     @Option(name = "-t", aliases = "--keepAliveTime", description = "When the number of threads is greater than the minimum, this is the maximum time (in millis) that excess idle threads\n" +
             " will wait for new tasks before terminating")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private long keepAliveTime = DEFAULT_KEEP_ALIVE_TIME.toMillis();
 
     @Option(name = "-q", aliases = "--queueSize", description = "Maximum number of scheduled tasks waiting in the queue. -1 for infinite queue")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private int queueSize = INFINITE_QUEUE_SIZE;
 
     @Override

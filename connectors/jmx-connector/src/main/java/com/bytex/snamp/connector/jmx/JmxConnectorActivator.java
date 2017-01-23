@@ -6,7 +6,6 @@ import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import javax.management.MalformedObjectNameException;
 import java.net.MalformedURLException;
-import java.util.Map;
 
 
 /**
@@ -20,7 +19,7 @@ public final class JmxConnectorActivator extends ManagedResourceActivator<JmxCon
     /**
      * Initializes a new instance of the JMX connector bundle activator.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public JmxConnectorActivator() {
         super(JmxConnectorActivator::createConnector,
                 configurationDescriptor(JmxConnectorDescriptionProvider::getInstance),

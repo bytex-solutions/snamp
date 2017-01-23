@@ -14,7 +14,7 @@ public final class JmxGatewayActivator extends GatewayActivator<JmxGateway> {
     /**
      * Initializes a new instance of the gateway lifetime manager.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public JmxGatewayActivator() {
         super(JmxGatewayActivator::newGateway, configurationDescriptor(JmxGatewayConfigurationProvider::new));
     }

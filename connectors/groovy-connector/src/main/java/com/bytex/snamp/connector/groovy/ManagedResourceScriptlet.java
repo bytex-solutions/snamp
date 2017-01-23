@@ -79,7 +79,7 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
      * Declares a new attribute.
      * @param statement Attribute declaration.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void attribute(@DelegatesTo(GroovyAttributeBuilder.class) final Closure<?> statement){
         final GroovyAttributeBuilder builder = invokeDslStatement(statement, GroovyAttributeBuilder::new);
         attributes.put(builder);
@@ -89,7 +89,7 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
      * Declares a new event.
      * @param statement Event declaration.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void event(@DelegatesTo(GroovyEventBuilder.class) final Closure<?> statement){
         final GroovyEventBuilder builder = invokeDslStatement(statement, GroovyEventBuilder::new);
         events.put(builder);
@@ -99,25 +99,25 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
      * Declares a new operation.
      * @param statement Operation declaration.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void operation(@DelegatesTo(GroovyOperationBuilder.class) final Closure<?> statement){
         final GroovyOperationBuilder builder = invokeDslStatement(statement, GroovyOperationBuilder::new);
         operations.put(builder);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void emit(@DelegatesTo(NotificationBuilder.class) final Closure<?> statement) {
         final NotificationBuilder builder = invokeDslStatement(statement, NotificationBuilder::new);
         builder.setSource(this);
         emit(builder.get());
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void emit(final Notification notification){
         listeners.fire(notification);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void emit(final String type, final String message){
         emit(new Notification(type, this, 0L, message));
     }

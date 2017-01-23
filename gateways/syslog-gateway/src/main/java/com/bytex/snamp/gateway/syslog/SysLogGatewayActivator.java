@@ -9,7 +9,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
  * @since 1.0
  */
 public final class SysLogGatewayActivator extends GatewayActivator<SysLogGateway> {
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public SysLogGatewayActivator(){
         super(SysLogGatewayActivator::newGateway, configurationDescriptor(SysLogConfigurationDescriptor::getInstance));
     }

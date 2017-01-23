@@ -82,7 +82,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         private static final long serialVersionUID = 2056675059549300951L;
 
         @OnWebSocketMessage
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.REFLECTION)
         public void onMessage(final String event) throws IOException {
             offer(FORMATTER.readTree(event));
         }

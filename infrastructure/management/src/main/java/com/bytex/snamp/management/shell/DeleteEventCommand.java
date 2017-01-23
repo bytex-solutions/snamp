@@ -19,14 +19,15 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
     description = "Delete event from resource")
 @Service
 public final class DeleteEventCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to modify")
     private String resourceName = "";
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 1, name = "userDefinedName", required = true, description = "User-defined name of the event to remove")
     private String userDefinedName = "";
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     public DeleteEventCommand(){
         super(ManagedResourceConfiguration.class);
     }

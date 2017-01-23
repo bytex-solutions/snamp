@@ -60,7 +60,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
             return this;
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public final FilterAndProcessAttributeStatement failure(final Closure<?> handler){
             return failure(Closures.toAttributeHandler(handler));
         }
@@ -70,7 +70,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
             return this;
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public final FilterAndProcessAttributeStatement then(final Closure<?> handler){
             return then(Closures.toAttributeHandler(handler));
         }
@@ -118,7 +118,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
             return result;
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public final FilterAndProcessAttributeStatement when(final Closure<Boolean> valueChecker){
             return when(Closures.toPredicate(valueChecker));
         }
@@ -158,7 +158,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
         return new AttributeSelectStatement(expression);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     @Override
     public final AttributeSelectStatement select(final String expression) throws InvalidSyntaxException {
         final AttributeSelectStatement selector = createSelector(expression);

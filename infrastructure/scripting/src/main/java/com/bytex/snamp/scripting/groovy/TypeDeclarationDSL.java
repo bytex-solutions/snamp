@@ -22,33 +22,33 @@ import static com.bytex.snamp.scripting.groovy.OpenDataScriptHelpers.*;
  * @since 2.0
  */
 public interface TypeDeclarationDSL extends ScriptingAPI {
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<Byte> INT8 = SimpleType.BYTE;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<Short> INT16 = SimpleType.SHORT;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<Integer> INT32 = SimpleType.INTEGER;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<Long> INT64 = SimpleType.LONG;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<Float> FLOAT32 = SimpleType.FLOAT;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<Double> FLOAT64 = SimpleType.DOUBLE;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<String> STRING = SimpleType.STRING;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<Boolean> BOOL = SimpleType.BOOLEAN;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<ObjectName> OBJECTNAME = SimpleType.OBJECTNAME;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<BigInteger> BIGINT = SimpleType.BIGINTEGER;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<BigDecimal> BIGDECIMAL = SimpleType.BIGDECIMAL;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<Character> CHAR = SimpleType.CHARACTER;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     SimpleType<Date> DATETIME = SimpleType.DATE;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     static <T> ArrayType<T[]> ARRAY(final OpenType<T> elementType) throws OpenDataException {
         return ArrayUtils.createArrayType(elementType);
     }
@@ -61,7 +61,7 @@ public interface TypeDeclarationDSL extends ScriptingAPI {
      * @return Dictionary type definition.
      * @throws OpenDataException Invalid type definition.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     static CompositeType DICTIONARY(final String typeName,
                                               final String typeDescription,
                                               final Map<String, ?> items) throws OpenDataException {
@@ -84,7 +84,7 @@ public interface TypeDeclarationDSL extends ScriptingAPI {
      * @return Table type definition.
      * @throws OpenDataException Invalid type definition.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     static TabularType TABLE(final String typeName,
                                        final String typeDescription,
                                        final Map<String, ?> columns) throws OpenDataException {
@@ -100,11 +100,13 @@ public interface TypeDeclarationDSL extends ScriptingAPI {
         return builder.build();
     }
 
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     static CompositeData asDictionary(final CompositeType type,
                                       final Map<String, ?> items) throws OpenDataException {
         return new CompositeDataSupport(type, items);
     }
 
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     static TabularData asTable(final TabularType type,
                                        final Collection<Map<String, ?>> rows) throws OpenDataException {
         final TabularDataSupport result = new TabularDataSupport(type, rows.size() + 5, 0.75f);

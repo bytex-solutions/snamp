@@ -41,23 +41,23 @@ public final class ListenEventsCommand extends SnampShellCommand {
     }
 
     @Argument(index = 0, required = true, name = "resource", description = "The name of the resource to listen")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String resourceName = "";
 
     @Option(name = "-c", aliases = "--category", required = false, multiValued = true, description = "A set of categories of the events to listen")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] categories = ArrayUtils.emptyArray(String[].class);
 
     @Option(name = "-s", aliases = {"--size"}, required = false, multiValued = false, description = "Maximum size of the input mailbox")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private int capacity = 10;
 
     @Option(name = "-t", aliases = "--period", multiValued = false, required = false, description = "Period of listening events, in millis")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private int listenPeriodMillis = 10;
 
     @Reference
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private Session session;
 
     private static String[] getNames(final MBeanNotificationInfo[] attributes) {

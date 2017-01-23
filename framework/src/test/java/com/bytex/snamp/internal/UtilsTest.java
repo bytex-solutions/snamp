@@ -33,7 +33,7 @@ import static com.bytex.snamp.internal.Utils.reflectSetter;
  */
 public final class UtilsTest extends Assert {
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private static BigInteger getBigInteger(){
         return BigInteger.TEN;
     }
@@ -56,7 +56,7 @@ public final class UtilsTest extends Assert {
         Supplier<?> sup = reflectGetter(MethodHandles.lookup(), null, getClass().getDeclaredMethod("getBigInteger"));
         assertEquals(getBigInteger(), sup.get());
         final Object obj = new Object(){
-            @SpecialUse
+            @SpecialUse(SpecialUse.Case.REFLECTION)
             public BigDecimal getBigDecimal(){
                 return BigDecimal.ONE;
             }

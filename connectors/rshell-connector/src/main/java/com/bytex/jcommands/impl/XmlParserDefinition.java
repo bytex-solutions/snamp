@@ -344,92 +344,92 @@ public class XmlParserDefinition {
             return parser;
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public byte parseByte(final String value) throws NumberFormatException{
             return Byte.parseByte(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public byte parseByte(final String value, final String format) throws ParseException {
             return getNumberParser(format).parseAsByte(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public short parseShort(final String value) throws NumberFormatException{
             return Short.parseShort(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public short parseShort(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsShort(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public int parseInt(final String value) throws NumberFormatException{
             return Integer.parseInt(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public int parseInt(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsInt(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public long parseLong(final String value) throws NumberFormatException{
             return Long.parseLong(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public long parseLong(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsLong(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public float parseFloat(final String value) throws NumberFormatException{
             return Float.parseFloat(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public float parseFloat(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsFloat(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public double parseDouble(final String value) throws NumberFormatException{
             return Double.parseDouble(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public double parseDouble(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsDouble(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public BigInteger parseBigInteger(final String value) throws NumberFormatException{
             return new BigInteger(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public BigInteger parseBigInteger(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsBigInteger(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public BigDecimal parseBigDecimal(final String value) throws NumberFormatException{
             return new BigDecimal(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public BigDecimal parseBigDecimal(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsBigDecimal(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public Date parseDate(final String value) throws ParseException {
             return DEFAULT_DATE_TIME_FORMAT.parse(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public Date parseDate(final String value, final String format) throws ParseException{
             return getDateParser(format).parse(value);
         }
@@ -479,25 +479,25 @@ public class XmlParserDefinition {
     }
 
     @XmlAttribute(name = "blobFormat", namespace = XmlConstants.NAMESPACE, required = false)
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final void setBlobParsingFormat(final BLOBFormat value){
         blobFormatter = value;
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final BLOBFormat getBlobParsingFormat(){
         return blobFormatter;
     }
 
     @XmlAttribute(name = "dateTimeFormat", namespace = XmlConstants.NAMESPACE, required = false)
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final void setDateTimeParsingFormat(final String value){
         if(value == null || value.isEmpty())
             dateFormatter = DEFAULT_DATE_TIME_FORMAT;
         else dateFormatter = new SimpleDateParser(value);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final String getDateTimeParsingFormat(){
         return dateFormatter.toPattern();
     }
@@ -515,7 +515,7 @@ public class XmlParserDefinition {
         numberFormatter = createNumberParser(value);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final String getNumberParsingFormat(){
         return numberFormatter.toPattern();
     }

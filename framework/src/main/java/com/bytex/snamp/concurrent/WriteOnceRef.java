@@ -18,7 +18,7 @@ public class WriteOnceRef<T> implements Supplier<T> {
     private static final AtomicIntegerFieldUpdater<WriteOnceRef> LOCKED_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(WriteOnceRef.class, "locked");
     private T value;
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.JVM)
     private volatile int/*boolean*/ locked = 0;
 
     /**

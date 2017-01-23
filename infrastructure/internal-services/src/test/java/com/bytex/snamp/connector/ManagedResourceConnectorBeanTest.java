@@ -81,41 +81,41 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         private int field2;
         private boolean field3;
 
-        public TestManagementConnectorBean() throws IntrospectionException {
+        TestManagementConnectorBean() throws IntrospectionException {
             super("TestResource", EnumSet.allOf(TestNotificationType.class));
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.REFLECTION)
         @ManagementAttribute(marshaller = Property1Marshaller.class)
         public String getProperty1() {
             return field1;
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.REFLECTION)
         public void setProperty1(final String value) {
             field1 = value;
             emitPropertyChanged("property1");
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.REFLECTION)
         @ManagementAttribute
         public int getProperty2() {
             return field2;
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.REFLECTION)
         public void setProperty2(final int value) {
             field2 = value;
             emitPropertyChanged("property2");
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.REFLECTION)
         @ManagementAttribute
         public boolean getProperty3() {
             return field3;
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.REFLECTION)
         public void setProperty3(final boolean value) {
             field3 = value;
             emitPropertyChanged("property3");

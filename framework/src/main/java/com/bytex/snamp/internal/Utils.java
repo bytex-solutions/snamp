@@ -248,7 +248,7 @@ public final class Utils {
         parallelForEach(collection.spliterator(), action, threadPool);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private static Object callUncheckedImpl(final Callable<?> callable) throws Exception{
         return callable.call();
     }

@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OctetString;
@@ -16,14 +15,12 @@ import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
 
 final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
     static final int SYNTAX = SYNTAX_OCTET_STRING;
-    static final Number DEFAULT_VALUE = 0;
+    private static final Number DEFAULT_VALUE = 0;
 
-    @SpecialUse
     SnmpBigNumberObject(final SnmpAttributeAccessor attribute) {
         super(attribute, OctetStringHelper.toOctetString(DEFAULT_VALUE.toString()));
     }
 
-    @SpecialUse
     static OctetString toSnmpObject(final Object value){
         final String result;
         if(value instanceof BigDecimal)
@@ -34,7 +31,6 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
         return OctetStringHelper.toOctetString(result);
     }
 
-    @SpecialUse
     static Number fromSnmpObject(final AssignableFromByteArray value, final Type attributeTypeInfo) throws InvalidAttributeValueException {
         switch (WellKnownType.getType(attributeTypeInfo)){
             case BIG_DECIMAL:

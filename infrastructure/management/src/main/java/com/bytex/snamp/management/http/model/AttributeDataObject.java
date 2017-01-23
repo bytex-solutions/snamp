@@ -17,7 +17,7 @@ import java.time.Duration;
 public final class AttributeDataObject extends AbstractFeatureDataObject<AttributeConfiguration> {
     private Duration duration;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public AttributeDataObject() {}
 
     public AttributeDataObject(final AttributeConfiguration configuration) {

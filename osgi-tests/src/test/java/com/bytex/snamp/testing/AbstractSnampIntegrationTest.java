@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing;
 
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.gateway.*;
@@ -86,7 +85,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     };
 
     @Inject
-    @SpecialUse
     private ConfigurationManager configAdmin = null;
 
     protected AbstractSnampIntegrationTest(){

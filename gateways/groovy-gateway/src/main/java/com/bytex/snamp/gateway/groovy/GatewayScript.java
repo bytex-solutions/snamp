@@ -46,7 +46,7 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
         });
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void processAttributes(final Closure<?> closure) throws JMException {
         final AttributesRootAPI model = queryModelObject(AttributesRootAPI.class);
         if (model != null)
@@ -71,7 +71,7 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
         });
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void processEvents(final Closure<?> closure) throws JMException {
         final EventsRootAPI model = queryModelObject(EventsRootAPI.class);
         if(model != null)
@@ -88,24 +88,24 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
         handleNotification(event.getSource(), event.getNotification());
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected Object handleNotification(final Object metadata,
                                         final Object notif) {
         return null;
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final ResourceAttributesAnalyzer<?> attributesAnalyzer(final Duration checkPeriod) {
         final AttributesRootAPI model = queryModelObject(AttributesRootAPI.class);
         return model != null ? model.attributesAnalyzer(checkPeriod) : null;
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final ResourceAttributesAnalyzer<?> attributesAnalyzer(final long checkPeriod){
         return attributesAnalyzer(Duration.ofMillis(checkPeriod));
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final ResourceNotificationsAnalyzer eventsAnalyzer() {
         final EventsRootAPI model = queryModelObject(EventsRootAPI.class);
         return model != null ? model.eventsAnalyzer() : null;

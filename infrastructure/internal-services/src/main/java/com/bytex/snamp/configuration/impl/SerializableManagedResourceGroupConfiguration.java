@@ -18,7 +18,7 @@ import java.util.Objects;
 final class SerializableManagedResourceGroupConfiguration extends AbstractManagedResourceTemplate implements ManagedResourceGroupConfiguration {
     private static final long serialVersionUID = 9050126733283251808L;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableManagedResourceGroupConfiguration(){
     }
 

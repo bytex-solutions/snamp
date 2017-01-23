@@ -8,7 +8,7 @@ import com.bytex.snamp.SpecialUse;
 final class ManagedResourceList extends ConfigurationEntityList<SerializableManagedResourceConfiguration> {
     private static final long serialVersionUID = 8031527910928209252L;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public ManagedResourceList() {
     }
 

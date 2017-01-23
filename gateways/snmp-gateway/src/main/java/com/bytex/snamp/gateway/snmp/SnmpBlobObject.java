@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.snmp;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.OctetString;
@@ -24,7 +23,6 @@ final class SnmpBlobObject extends SnmpScalarObject<OctetString> {
     static final int SYNTAX = SMIConstants.SYNTAX_OCTET_STRING;
     private static final OctetString DEFAULT_VALUE = new OctetString();
 
-    @SpecialUse
     SnmpBlobObject(final SnmpAttributeAccessor attribute) {
         super(attribute, DEFAULT_VALUE);
     }
@@ -38,7 +36,6 @@ final class SnmpBlobObject extends SnmpScalarObject<OctetString> {
         return IOUtils.fromBitSet(BitSet.valueOf(bits));
     }
 
-    @SpecialUse
     static OctetString toSnmpObject(final Object value){
         if(value instanceof byte[])
             return OctetString.fromByteArray((byte[])value);
@@ -64,7 +61,6 @@ final class SnmpBlobObject extends SnmpScalarObject<OctetString> {
         }
     }
 
-    @SpecialUse
     static Object fromSnmpObject(final Variable value,
                                  final Type attributeType) throws InvalidAttributeValueException{
         if(value instanceof OctetString)

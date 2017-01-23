@@ -66,7 +66,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
         }
 
         @OnWebSocketMessage
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.REFLECTION)
         public void onMessage(final String notification) throws IOException {
             offer(formatter.readTree(notification));
         }

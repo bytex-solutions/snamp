@@ -12,7 +12,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
  */
 public final class SshGatewayActivator extends GatewayActivator<SshGateway> {
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public SshGatewayActivator() {
         super(SshGatewayActivator::newGateway, configurationDescriptor(SshGatewayDescriptionProvider::getInstance));
     }

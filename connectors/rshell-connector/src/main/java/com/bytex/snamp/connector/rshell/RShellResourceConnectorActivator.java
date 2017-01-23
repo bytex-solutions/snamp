@@ -4,8 +4,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
-import java.util.Map;
-
 /**
  * Represents an activator of the rshell resource connector.
  * This class cannot be inherited.
@@ -17,7 +15,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
     /**
      * Initializes a new instance of the connector activator.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public RShellResourceConnectorActivator() {
         super(RShellResourceConnectorActivator::createConnector);
     }

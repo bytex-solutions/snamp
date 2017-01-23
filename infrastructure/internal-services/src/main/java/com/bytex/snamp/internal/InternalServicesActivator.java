@@ -99,7 +99,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         }
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public InternalServicesActivator(){
         super(new ClusterMemberProvider(),
                 new ThreadPoolRepositoryProvider(),

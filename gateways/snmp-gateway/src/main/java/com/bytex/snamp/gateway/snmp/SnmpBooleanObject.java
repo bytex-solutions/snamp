@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.SpecialUse;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
 
@@ -8,21 +7,18 @@ import static org.snmp4j.smi.SMIConstants.SYNTAX_INTEGER32;
 
 final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
     static final int SYNTAX = SYNTAX_INTEGER32;
-    static final int defaultValue = -1;
+    private static final int DEFAULT_VALUE = -1;
     private static final Integer32 TRUE = new Integer32(1);
     private static final Integer32 FALSE = new Integer32(0);
 
-    @SpecialUse
     SnmpBooleanObject(final SnmpAttributeAccessor connector) {
-        super(connector, new Integer32(defaultValue));
+        super(connector, new Integer32(DEFAULT_VALUE));
     }
 
-    @SpecialUse
     static Integer32 toSnmpObject(final Object value){
         return value instanceof Boolean && (Boolean)value ? TRUE : FALSE;
     }
 
-    @SpecialUse
     static boolean fromSnmpObject(final Variable value){
         return value.toLong() != 0;
     }

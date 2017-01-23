@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.SpecialUse;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.SMIConstants;
 import org.snmp4j.smi.Variable;
@@ -18,7 +17,6 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
 
     private final DateTimeFormatter formatter;
 
-    @SpecialUse
     SnmpUnixTimeObject(final SnmpAttributeAccessor connector) {
         super(connector, OctetStringHelper.toOctetString(DEFAULT_VALUE));
         formatter = createFormatter(connector.getMetadata());
@@ -30,7 +28,6 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
         else return OctetStringHelper.toOctetString(DEFAULT_VALUE);
     }
 
-    @SpecialUse
     static OctetString toSnmpObject(final Object value, final DescriptorRead options){
         return toSnmpObject(value, createFormatter(options));
     }
@@ -43,7 +40,6 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
         }
     }
 
-    @SpecialUse
     static Date fromSnmpObject(final Variable value, final DescriptorRead options) throws InvalidAttributeValueException {
         if(value instanceof OctetString)
             return fromSnmpObject((OctetString) value, createFormatter(options));

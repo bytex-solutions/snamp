@@ -33,11 +33,11 @@ public final class AggregationTest extends Assert {
         }
 
         @Aggregation
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.REFLECTION)
         private StringBuilder service1 = new StringBuilder("Hello, world!");
 
         @Aggregation
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.REFLECTION)
         public short[] getService2(){
             return new short[]{1, 2, 3};
         }

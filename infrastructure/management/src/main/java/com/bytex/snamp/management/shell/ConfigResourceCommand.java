@@ -23,22 +23,23 @@ import static com.google.common.base.Strings.isNullOrEmpty;
     description = "Configure managed resource")
 @Service
 public final class ConfigResourceCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of the resource")
     private String resourceName = "";
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 1, name = "connectionType", required = false, description = "Name of the connector")
     private String connectionType = "";
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 2, name = "connectionString", required = false, description = "Connection string used for connection with managed resource")
     private String connectionString = "";
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Option(name = "-p", aliases = {"-param, --parameter"}, required = false, multiValued = true, description = "Configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     public ConfigResourceCommand(){
         super(ManagedResourceConfiguration.class);
     }

@@ -12,7 +12,7 @@ import org.osgi.service.http.HttpService;
  */
 public final class HttpGatewayActivator extends GatewayActivator<HttpGateway> {
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public HttpGatewayActivator() {
         super(HttpGatewayActivator::newGateway,
                 simpleDependencies(HttpService.class),

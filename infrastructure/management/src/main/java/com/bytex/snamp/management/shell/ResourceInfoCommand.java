@@ -24,18 +24,18 @@ import static com.bytex.snamp.management.ManagementUtils.newLine;
 @Service
 public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of configured resource to display")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String resourceName = "";
 
     @Option(name = "-a", aliases = {"--attributes"}, description = "Show resource attributes", required = false, multiValued = false)
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean showAttributes = false;
 
     @Option(name = "-e", aliases = {"--events"}, description = "Show resource events", required = false, multiValued = false)
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean showEvents = false;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Option(name = "-o", aliases = {"--operations"}, description = "Show resource operations", required = false, multiValued = false)
     private boolean showOperations = false;
 

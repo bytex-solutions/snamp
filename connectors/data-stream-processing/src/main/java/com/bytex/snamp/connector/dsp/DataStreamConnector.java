@@ -80,13 +80,13 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         return assembleMetricsReader(attributes, notifications, operations);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @ManagementOperation(description = "Resets all metrics")
     public void resetAllMetrics() {
         attributes.resetAllMetrics();
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @ManagementOperation(description = "Resets the specified metrics")
     public boolean resetMetric(@OperationParameter(name = "attributeName", description = "The name of the attribute to reset") final String attributeName) {
         final DataStreamDrivenAttribute attribute = attributes.getAttributeInfo(attributeName);

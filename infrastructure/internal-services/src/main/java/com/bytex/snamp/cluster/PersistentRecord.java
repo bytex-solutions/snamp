@@ -25,7 +25,7 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
     private volatile transient boolean detached;
     private transient ODatabaseDocumentInternal database;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public PersistentRecord() {
     }
 

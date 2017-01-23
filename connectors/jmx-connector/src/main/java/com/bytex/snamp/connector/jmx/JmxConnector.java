@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
@@ -51,21 +50,16 @@ final class JmxConnector extends AbstractManagedResourceConnector {
      * Represents JMX attribute metadata.
      */
     private interface JmxAttributeMetadata extends OpenMBeanAttributeInfo, JmxFeatureMetadata, AttributeDescriptorRead {
-        @SpecialUse
         String getType();
     }
 
     private interface JmxNotificationMetadata extends JmxFeatureMetadata, NotificationDescriptorRead{
-        @SpecialUse
         String[] getNotifTypes();
     }
 
     private interface JmxOperationMetadata extends JmxFeatureMetadata, OperationDescriptorRead{
-        @SpecialUse
         String getReturnType();
-        @SpecialUse
         MBeanParameterInfo[] getSignature();
-        @SpecialUse
         int getImpact();
     }
 

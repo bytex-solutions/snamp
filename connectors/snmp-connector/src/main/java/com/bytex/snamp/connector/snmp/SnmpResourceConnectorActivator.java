@@ -10,7 +10,6 @@ import org.snmp4j.log.OSGiLogFactory;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 
 import static com.bytex.snamp.MapUtils.getValueAsLong;
 
@@ -26,7 +25,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         OSGiLogFactory.setup();
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public SnmpResourceConnectorActivator() {
         super(SnmpResourceConnectorActivator::createConnector,
                 simpleDependencies(ThreadPoolRepository.class),

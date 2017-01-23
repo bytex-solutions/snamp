@@ -19,7 +19,7 @@ import org.osgi.framework.BundleException;
 @Service
 public final class DisableGatewayCommand extends SnampShellCommand {
     @Argument(name = "gatewayType", index = 0, required = true, description = "Type of the gateway")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String gatewayType = "";
 
     @Override

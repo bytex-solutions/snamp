@@ -20,7 +20,7 @@ public final class ManagedResourceDataObject extends TemplateDataObject<ManagedR
     /**
      * Default constructor.
      */
-    @SpecialUse //used for Jackson deserialization
+    @SpecialUse(SpecialUse.Case.SERIALIZATION) //used for Jackson deserialization
     public ManagedResourceDataObject() {
 
     }

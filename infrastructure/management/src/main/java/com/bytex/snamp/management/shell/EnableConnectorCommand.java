@@ -19,7 +19,7 @@ import org.osgi.framework.BundleException;
 @Service
 public final class EnableConnectorCommand extends SnampShellCommand {
     @Argument(name = "systemName", index = 0, required = true, description = "System name of resource connector")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String connectorType = "";
 
     @Override

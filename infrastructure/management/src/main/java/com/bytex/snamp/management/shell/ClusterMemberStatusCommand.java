@@ -21,7 +21,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
 @Service
 public class ClusterMemberStatusCommand extends SnampShellCommand {
     @Option(name = "-r", aliases = {"--resign"}, required = false, description = "Starts leader election")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean startElection = false;
 
     @Override

@@ -10,7 +10,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
  */
 public final class GroovyGatewayActivator extends GatewayActivator<GroovyGateway> {
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public GroovyGatewayActivator(){
         super(GroovyGatewayActivator::newGateway, configurationDescriptor(GroovyGatewayConfigurationProvider::new));
     }

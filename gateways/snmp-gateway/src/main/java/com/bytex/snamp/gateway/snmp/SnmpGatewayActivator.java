@@ -19,7 +19,7 @@ public final class SnmpGatewayActivator extends GatewayActivator<SnmpGateway> {
     /**
      * Initializes a new instance of the gateway lifetime manager.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public SnmpGatewayActivator() {
         super(SnmpGatewayActivator::newGateway,
                 simpleDependencies(JNDIContextManager.class, ThreadPoolRepository.class),

@@ -41,12 +41,12 @@ public final class GroovyManagedResource extends GroovyObjectSupport {
      *
      * @return A collection of all attributes in this resource.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public Set<String> getAttributes() {
         return attributes.getAttributes(resourceName);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public Set<String> getEvents() {
         return events.getEvents(resourceName);
     }
@@ -75,7 +75,7 @@ public final class GroovyManagedResource extends GroovyObjectSupport {
         }
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public GroovyResourceAttribute getAttribute(final String attributeName) {
         if (getAttributes().contains(attributeName))
             return getOrPutAttribute(attrCache, resourceName, attributeName, attributes);
@@ -85,7 +85,7 @@ public final class GroovyManagedResource extends GroovyObjectSupport {
         }
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     public GroovyResourceEvent getEvent(final String eventName) {
         if (getEvents().contains(eventName))
             return getOrPutEvent(eventCache, resourceName, eventName, events);

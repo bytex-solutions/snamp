@@ -27,7 +27,7 @@ public interface ScriptingAPI extends GroovyObject {
      * @param period Execution period, in millis.
      * @return A new timer.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     static Repeater createTimer(final Closure<?> job, final long period) {
         return new Repeater(period) {
             @Override
@@ -43,7 +43,7 @@ public interface ScriptingAPI extends GroovyObject {
      * @param period Execution period, in millis.
      * @return Executed timer.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     static Repeater schedule(final Closure<?> job, final long period) {
         final Repeater timer = createTimer(job, period);
         timer.run();
@@ -64,7 +64,7 @@ public interface ScriptingAPI extends GroovyObject {
      * @return The value of the attribute.
      * @throws JMException Unable to
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     Object getResourceAttribute(final String resourceName, final String attributeName) throws JMException;
 
     /**
@@ -75,7 +75,7 @@ public interface ScriptingAPI extends GroovyObject {
      * @return A dictionary of attribute parameters.
      * @throws AttributeNotFoundException The attribute doesn't exist in the specified managed resource.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     Dictionary<String, ?> getResourceAttributeInfo(final String resourceName, final String attributeName) throws AttributeNotFoundException, InstanceNotFoundException;
 
     /**
@@ -86,7 +86,7 @@ public interface ScriptingAPI extends GroovyObject {
      * @param value         The value of the attribute.
      * @throws JMException Unable to set attribute value.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     void setResourceAttribute(final String resourceName,
                                                final String attributeName,
                                                final Object value) throws JMException;
@@ -99,11 +99,11 @@ public interface ScriptingAPI extends GroovyObject {
      * @return A dictionary of attribute parameters.
      * @throws MBeanException Notification is not declared by managed resource.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     Dictionary<String, ?> getResourceNotificationInfo(final String resourceName,
                                                                        final String notifType) throws MBeanException, InstanceNotFoundException;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     void addNotificationListener(final String resourceName, final NotificationListener listener) throws MBeanException, InstanceNotFoundException;
 
     void addNotificationListener(final String resourceName,
@@ -111,15 +111,15 @@ public interface ScriptingAPI extends GroovyObject {
                                  final NotificationFilter filter,
                                  final Objects handback) throws MBeanException, InstanceNotFoundException;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     void removeNotificationListener(final String resourceName, final NotificationListener listener) throws ListenerNotFoundException, InstanceNotFoundException;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     ManagedResourceConfiguration getResourceConfiguration(final String resourceName) throws IOException;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     boolean isActiveClusterNode();
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     Communicator getCommunicator(final String sessionName);
 }

@@ -20,13 +20,14 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 @Service
 public final class DeleteOperationCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of the managed resource to modify")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String resourceName = "";
 
     @Argument(index = 1, name = "userDefinedName", required = true, description = "User-defined name of the operation to remove")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String userDefinedName = "";
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     public DeleteOperationCommand(){
         super(ManagedResourceConfiguration.class);
     }

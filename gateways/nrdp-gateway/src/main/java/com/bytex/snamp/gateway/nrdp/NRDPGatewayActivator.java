@@ -10,7 +10,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
  */
 public final class NRDPGatewayActivator extends GatewayActivator<NRDPGateway> {
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public NRDPGatewayActivator(){
         super(NRDPGatewayActivator::newGateway, configurationDescriptor(NRDPGatewayConfigurationDescriptor::getInstance));
     }

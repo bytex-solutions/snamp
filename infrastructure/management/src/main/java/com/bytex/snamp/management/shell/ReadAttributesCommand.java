@@ -26,19 +26,19 @@ import java.io.PrintStream;
 @Service
 public final class ReadAttributesCommand extends SnampShellCommand  {
     @Argument(index = 0, name = "resource", required = true, description = "Name of the resource to read")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String resourceName = "";
 
     @Option(name = "-n", aliases = "--name", multiValued = true, required = false, description = "Name of the attribute to read")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] attributes = ArrayUtils.emptyArray(String[].class);
 
     @Option(name = "-t", aliases = "--period", multiValued = false, required = false, description = "Period for reading attributes, in millis")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private int readPeriodMillis = 0;
 
     @Reference
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private Session session;
 
     private static void readAttributes(final DynamicMBean bean, final String[] attributes, final PrintStream output) throws JMException {

@@ -21,7 +21,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
 @Service
 public final class GatewayInstanceInfoCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(index = 0, name = "instanceName", required = true, description = "Name of gateway instance to display")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String instanceName = "";
 
     public GatewayInstanceInfoCommand(){

@@ -47,7 +47,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     }
 
     @Aggregation
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     protected MetricsSupport createMetricsReader(){
         return assembleMetricsReader(attributes, events, operations);
     }

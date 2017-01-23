@@ -16,7 +16,7 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
     private static final String SERVLET_CONTEXT = "/snamp/data/acquisition";
     private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public HttpAcceptorActivator() {
         super(HttpAcceptorActivator::newResourceConnector, configurationDescriptor(HttpConnectorConfigurationDescriptionProvider::getInstance));
     }

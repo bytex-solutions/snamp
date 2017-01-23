@@ -31,7 +31,7 @@ final class ZipkinConnector extends DataStreamConnector implements AsyncSpanCons
 
         @Override
         public synchronized ZipkinConnectorClosedException fillInStackTrace() {
-            return this;
+            return this;            
         }
     }
 

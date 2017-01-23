@@ -21,18 +21,19 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
     description = "Configure resource event")
 @Service
 public final class ConfigEventCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to modify")
     private String resourceName = "";
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 1, name = "category", required = true, description = "Category of the event")
     private String category = "";
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, description = "Event configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     public ConfigEventCommand(){
         super(ManagedResourceConfiguration.class);
     }

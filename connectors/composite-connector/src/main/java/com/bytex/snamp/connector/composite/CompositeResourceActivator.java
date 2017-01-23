@@ -4,8 +4,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
-import java.util.Map;
-
 /**
  * @author Roman Sakno
  * @version 1.0
@@ -13,7 +11,7 @@ import java.util.Map;
  */
 public final class CompositeResourceActivator extends ManagedResourceActivator<CompositeResourceConnector> {
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public CompositeResourceActivator(){
         super(CompositeResourceActivator::newResourceConnector,
                 configurationDescriptor(CompositeResourceConfigurationDescriptor::getInstance));

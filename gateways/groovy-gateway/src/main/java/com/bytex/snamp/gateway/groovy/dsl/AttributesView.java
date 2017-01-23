@@ -14,10 +14,10 @@ interface AttributesView {
 
     Collection<MBeanAttributeInfo> getAttributesMetadata(final String resourceName);
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     Object getAttributeValue(final String resourceName, final String attributeName) throws MBeanException, AttributeNotFoundException, ReflectionException;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     void setAttributeValue(final String resourceName, final String attributeName, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException;
 
 }

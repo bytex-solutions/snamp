@@ -27,7 +27,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     /**
      * Initializes a new empty configuration of the management information source.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableManagedResourceConfiguration(){
         connectionString = "";
     }

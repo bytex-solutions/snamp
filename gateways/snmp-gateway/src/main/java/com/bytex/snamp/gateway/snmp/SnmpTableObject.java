@@ -306,7 +306,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         cacheManager = new UpdateManager(Duration.ofMillis(tableCacheTime));
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     SnmpTableObject(final SnmpAttributeAccessor connector) {
         this(connector.getID(), connector);
     }

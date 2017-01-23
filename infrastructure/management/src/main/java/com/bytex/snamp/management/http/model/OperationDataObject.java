@@ -17,7 +17,7 @@ import java.time.Duration;
 public final class OperationDataObject extends AbstractFeatureDataObject<OperationConfiguration> {
     private Duration duration;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public OperationDataObject() {}
 
     public OperationDataObject(final OperationConfiguration configuration) {

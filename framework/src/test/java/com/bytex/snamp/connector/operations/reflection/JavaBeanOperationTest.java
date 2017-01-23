@@ -24,7 +24,7 @@ import java.util.Collection;
  */
 public final class JavaBeanOperationTest extends Assert {
     @ManagementOperation(description = "Computes sum of two values")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     public int sum(final int x, final int y){
         return x + y;
     }

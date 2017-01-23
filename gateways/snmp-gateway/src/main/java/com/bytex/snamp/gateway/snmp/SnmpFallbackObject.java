@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.SpecialUse;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.SMIConstants;
 
@@ -18,12 +17,10 @@ final class SnmpFallbackObject extends SnmpScalarObject<OctetString> {
     static final int SYNTAX = SMIConstants.SYNTAX_OCTET_STRING;
     private static final String DEFAULT_VALUE = "";
 
-    @SpecialUse
     SnmpFallbackObject(final SnmpAttributeAccessor attribute) {
         super(attribute, true, OctetStringHelper.toOctetString(DEFAULT_VALUE));
     }
 
-    @SpecialUse
     static OctetString toSnmpObject(final Object value){
         return OctetStringHelper.toOctetString(Objects.toString(value, DEFAULT_VALUE));
     }

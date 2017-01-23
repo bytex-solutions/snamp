@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.zipkin
 
-import com.bytex.snamp.SpecialUse
 import com.bytex.snamp.instrumentation.Identifier
+import com.bytex.snamp.instrumentation.measurements.CorrelationPolicy
 import com.bytex.snamp.io.Buffers
 import org.apache.thrift.protocol.TBinaryProtocol
 import org.apache.thrift.transport.TMemoryInputTransport
@@ -52,6 +52,7 @@ private void parseZipkinSpan(Span zipkinSpan) {
     traceId128.putLong zipkinSpan.traceIdHigh
     traceId128.putLong zipkinSpan.traceId
     result.correlationID = Identifier.ofBytes traceId128.array()
+    result.correlationPolicy = CorrelationPolicy.GLOBAL
 
     result.timeStamp = zipkinSpan.timestamp ?: System.currentTimeMillis()
     if (zipkinSpan.duration)
@@ -65,6 +66,8 @@ private void parseZipkinSpan(Span zipkinSpan) {
                 notif.message = protocol.readString()
                 notif.type = "zipkin.error"
                 return true
+            case Constants.SERVER_ADDR:
+
             default:
                 expandUserData(it, result.getAnnotations)
                 return true
@@ -72,7 +75,6 @@ private void parseZipkinSpan(Span zipkinSpan) {
     }
 }
 
-@SpecialUse
 def parse(headers, body){
     assert body instanceof Span
     parseZipkinSpan(body)

@@ -25,7 +25,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     private static final class OperationList extends ConfigurationEntityList<SerializableOperationConfiguration> {
         private static final long serialVersionUID = -6621970441951257198L;
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public OperationList(){
 
         }
@@ -41,7 +41,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     private static final class AttributeList extends ConfigurationEntityList<SerializableAttributeConfiguration> {
         private static final long serialVersionUID = -9035924377259475433L;
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public AttributeList() {
         }
 
@@ -56,7 +56,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     private static final class EventList extends ConfigurationEntityList<SerializableEventConfiguration> {
         private static final long serialVersionUID = -4425614353529830020L;
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public EventList() {
         }
 
@@ -82,7 +82,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         private static final long serialVersionUID = 8267389949041604889L;
         private Duration invocationTimeout;
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public SerializableOperationConfiguration(){
 
         }
@@ -161,7 +161,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     static final class SerializableEventConfiguration extends AbstractFeatureConfiguration implements EventConfiguration {
         private static final long serialVersionUID = -6838585011981639479L;
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public SerializableEventConfiguration(){
 
         }
@@ -176,7 +176,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         private static final long serialVersionUID = -2134014000719123759L;
         private Duration readWriteTimeout;
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public SerializableAttributeConfiguration() {
         }
 

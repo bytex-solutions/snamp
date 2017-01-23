@@ -23,7 +23,7 @@ import static com.bytex.snamp.MapUtils.toProperties;
  */
 @ImportClass(GrabAnnotationTransformation.class)
 public final class GroovyResourceActivator extends ManagedResourceActivator<GroovyResourceConnector> {
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public GroovyResourceActivator(){
         super(GroovyResourceActivator::createConnector,
                 configurationDescriptor(GroovyResourceConfigurationDescriptor::getInstance),

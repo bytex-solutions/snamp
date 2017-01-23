@@ -25,19 +25,19 @@ import java.time.Duration;
 public final class ConfigAttributeCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     private static final long INFINITE_TIMEOUT = -1;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of the resource to modify")
     private String resourceName = "";
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 1, name = "name", required = true, description = "Attribute name")
     private String name = "";
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 2, name = "readWriteTimeout", required = false, description = "Read/write timeout for attribute, in millis")
     private long readWriteTimeout = INFINITE_TIMEOUT;
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, description = "Configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 

@@ -11,7 +11,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
  */
 public final class NSCAGatewayActivator extends GatewayActivator<NSCAGateway> {
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public NSCAGatewayActivator(){
         super(NSCAGatewayActivator::newGateway, configurationDescriptor(NSCAGatewayConfigurationDescriptor::getInstance));
     }

@@ -59,7 +59,7 @@ public class Timeout implements Stateful, Serializable {
         setLocalTime(timer);
     }
 
-    @SpecialUse        //deserialization hook
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)        //deserialization hook
     private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         setLocalTime(timer);  //reset timer to the local time

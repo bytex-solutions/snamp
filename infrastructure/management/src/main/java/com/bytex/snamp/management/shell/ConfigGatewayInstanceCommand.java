@@ -23,15 +23,15 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Service
 public final class ConfigGatewayInstanceCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the gateway instance")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String instanceName = "";
 
     @Argument(name = "type", index = 1, required = false, description = "Type of gateway")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String gatewayType = "";
 
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, required = false, description = "Configuration parameters in the form of key=value")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
     public ConfigGatewayInstanceCommand(){

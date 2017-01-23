@@ -19,7 +19,7 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 @Service
 public final class DeleteGatewayInstanceCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(index = 0, name = "instanceName", required = true, description = "The name of the gateway instance to remove")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String instanceName = "";
 
     public DeleteGatewayInstanceCommand(){

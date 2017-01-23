@@ -11,7 +11,7 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  */
 @JsonTypeName("resourceGroup")
 public class ResourceGroupDataObject extends TemplateDataObject<ManagedResourceGroupConfiguration> {
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public ResourceGroupDataObject(){
 
     }

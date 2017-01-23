@@ -18,7 +18,7 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
     description = "Deletes managed resource")
 @Service
 public final class DeleteResourceCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to remove")
     private String resourceName = "";
 

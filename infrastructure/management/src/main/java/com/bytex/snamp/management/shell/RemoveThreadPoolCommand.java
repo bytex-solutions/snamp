@@ -16,7 +16,7 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 @Service
 public final class RemoveThreadPoolCommand extends AbstractThreadPoolCommand {
     @Argument(index = 0, name = "name", required = true, description = "Name of thread pool to remove")
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private String poolName = "";
 
     @Override

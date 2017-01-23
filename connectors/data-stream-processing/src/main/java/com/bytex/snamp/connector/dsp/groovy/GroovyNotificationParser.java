@@ -95,29 +95,29 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
             return this;
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public <M extends Measurement> M of(final MeasurementFinalizer<M> selector){
             return selector.terminate();
         }
     }
 
     //DSL keywords
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final DSLStarter<NotificationBuilder> notification = new NotificationBuilderStarter();
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final MeasurementFinalizer<TimeMeasurement> span = new MeasurementFinalizerImpl<>(SpanNotification::new);
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final MeasurementFinalizer<TimeMeasurement> time = new MeasurementFinalizerImpl<>(TimeMeasurementNotification::new);
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final MeasurementPipeline measurement = new MeasurementPipeline();
     //measurement types
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final MeasurementFinalizer<ValueMeasurement> bool = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofBool);
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final MeasurementFinalizer<ValueMeasurement> integer = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofInt);
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final MeasurementFinalizer<ValueMeasurement> fp = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofFP);
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final MeasurementFinalizer<ValueMeasurement> string = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofString);
 
     private final ThreadLocal<Collection<NotificationFactory>> notifications = ThreadLocal.withInitial(LinkedList::new);
@@ -128,7 +128,7 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
         define notification => define(notification)
         define measurement as bool => define(measurement).as(bool)
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected static <S> S define(final DSLStarter<S> starter){
         return starter.start();
     }
@@ -147,33 +147,38 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
         return notifications.get();
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
+    protected void resetNotifications(){
+        notifications.get().clear();
+    }
+
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final BooleanMeasurement measurement){
         getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final IntegerMeasurement measurement){
         getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final StringMeasurement measurement){
         getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final FloatingPointMeasurement measurement){
         getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final TimeMeasurement measurement){
         getNotifications().add(() -> new TimeMeasurementNotification(this, measurement));
     }
 
-    @SpecialUse
-    protected final void value(final Span measurement){
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
+    protected final void addMeasurement(final Span measurement){
         getNotifications().add(() -> new SpanNotification(this, measurement));
     }
 
@@ -184,7 +189,7 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
      * @return Notification; or measurement; or {@literal null}, if notification should be ignored.
      * @throws Exception Unable to parse notifications.
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected abstract Object parse(final Object headers, final Object body) throws Exception;
 
     @SuppressWarnings("unchecked")
@@ -214,7 +219,7 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
      * @return Parsing result.
      * @throws Exception Parsing is failed
      */
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final Stream<Notification> delegateParsing(final Map<String, ?> headers, final Object body) throws Exception{
         return nextParser == null ? Stream.empty() : nextParser.parse(headers, body);
     }
