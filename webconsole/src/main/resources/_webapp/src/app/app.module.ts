@@ -13,6 +13,7 @@ import { Sidebar } from './menu/sidebar.component';
 import { TopNavBar } from './menu/topnavbar.component';
 import { UsernameComponent } from './app.username';
 import { SnampLogService } from './app.logService';
+import { ChartService } from './app.chartService';
 import { NoContent } from './no-content';
 import { FontAwesomeDirective } from 'ng2-fontawesome';
 import { ApiClient } from './app.restClient'
@@ -41,6 +42,7 @@ import { MomentModule } from 'angular2-moment';
 const APP_PROVIDERS = [
   ApiClient,
   SnampLogService,
+  ChartService,
   CookieService
 ];
 
