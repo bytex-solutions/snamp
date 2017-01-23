@@ -148,11 +148,6 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
-    protected void resetNotifications(){
-        notifications.get().clear();
-    }
-
-    @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final BooleanMeasurement measurement){
         getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
     }

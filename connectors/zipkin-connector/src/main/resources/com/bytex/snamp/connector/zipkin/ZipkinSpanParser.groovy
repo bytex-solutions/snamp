@@ -1,8 +1,8 @@
 package com.bytex.snamp.connector.zipkin
 
+import com.bytex.snamp.ArrayUtils
 import com.bytex.snamp.instrumentation.Identifier
 import com.bytex.snamp.instrumentation.measurements.CorrelationPolicy
-import com.bytex.snamp.io.Buffers
 import org.apache.thrift.protocol.TBinaryProtocol
 import org.apache.thrift.transport.TMemoryInputTransport
 import zipkin.BinaryAnnotation
@@ -42,21 +42,20 @@ private static void expandUserData(BinaryAnnotation annotation, Map<String, Stri
 }
 
 private void parseZipkinSpan(Span zipkinSpan) {
-    def result = define measurement of span
+    final result = new com.bytex.snamp.instrumentation.measurements.Span()
     result.name = zipkinSpan.name
     result.spanID = Identifier.ofLong zipkinSpan.id
     if (zipkinSpan.parentId != null)   //because parentId may be 0
         result.parentSpanID = Identifier.ofLong zipkinSpan.parentId
     //parse traceID as correlation
-    def traceId128 = Buffers.allocByteBuffer 16, false
-    traceId128.putLong zipkinSpan.traceIdHigh
-    traceId128.putLong zipkinSpan.traceId
-    result.correlationID = Identifier.ofBytes traceId128.array()
+    result.correlationID = Identifier.ofBytes ArrayUtils.toByteArray([zipkinSpan.traceIdHigh, zipkinSpan.traceId] as long[])
     result.correlationPolicy = CorrelationPolicy.GLOBAL
 
     result.timeStamp = zipkinSpan.timestamp ?: System.currentTimeMillis()
     if (zipkinSpan.duration)
         result.setDuration zipkinSpan.duration, TimeUnit.MICROSECONDS //using microseconds according with Zipkin's Span specification
+    else
+        result.setDuration 0, TimeUnit.MILLISECONDS
     //parse binary annotations
     zipkinSpan.binaryAnnotations.every {
         switch (it.key){
@@ -73,6 +72,8 @@ private void parseZipkinSpan(Span zipkinSpan) {
                 return true
         }
     }
+
+    addMeasurement result
 }
 
 def parse(headers, body){

@@ -97,8 +97,9 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     }
 
     public final void dispatch(final Map<String, ?> headers, final Object body) throws Exception {
-        final Stream<Notification> notifications = notificationParser.parse(headers, body).filter(Objects::nonNull);
-        notifications.forEach(this::handleNotification);
+        try (final Stream<Notification> notifications = notificationParser.parse(headers, body).filter(Objects::nonNull)) {
+            notifications.forEach(this::handleNotification);
+        }
     }
 
     /**
