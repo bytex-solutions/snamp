@@ -6,6 +6,8 @@ import { Subject } from 'rxjs/Subject';
 import { ApiClient, REST } from './app.restClient';
 
 import { Dashboard } from './charts/model/dashboard';
+import { AbstractChart } from './charts/model/abstract.chart';
+import { Factory } from './charts/model/objectFactory';
 
 @Injectable()
 export class ChartService {
@@ -25,8 +27,13 @@ export class ChartService {
             })
             .subscribe(data => {
                 console.log(data);
-                // this._dashboard = data;
-                // console.log(this._dashboard);
+                this._dashboard = new Dashboard();
+                if (data["charts"] != undefined && data["charts"].length > 0) {
+                    for (let i = 0; i < data["charts"]; i++) {
+                        this._dashboard.charts.push(Factory.chartFromJSON(data["charts"][i]));
+                    }
+                }
+                console.log(this._dashboard);
             });
     }
 

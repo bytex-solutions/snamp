@@ -1,5 +1,19 @@
 import { Axis } from './abstract.axis';
-import { Chart } from './abstract.chart';
+import { AbstractChart } from './abstract.chart';
+
+import { ChronoAxis } from './chrono.axis';
+import { InstanceNameAxis } from './instance.axis';
+import { AttributeValueAxis } from './attribute.value.axis';
+import { AttributeInformation } from './attribute';
+
+import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
+import { ChartOfAttributeValues } from './abstract.chart.attributes.values';
+
+import { VerticalBarChartOfAttributeValues } from './vbar.chart.attributes.values';
+import { HorizontalBarChartOfAttributeValues } from './hbar.chart.attributes.values';
+import { LineChartOfAttributeValues } from './line.chart.attributes.values';
+import { PanelOfAttributeValues } from './panel.attributes.values';
+import { PieChartOfAttributeValues } from './pie.chart.attributes.values';
 
 // Factory to create appropriate objects from json
 export class Factory {
@@ -14,41 +28,74 @@ export class Factory {
             switch(_type) {
                 case Axis.CHRONO:
                     _axis = new ChronoAxis();
-                    if (_json["name"] != undefined) {
-                        _axis.name = _json["name"];
-                    }
                     break;
                 case Axis.INSTANCE:
                     _axis = new InstanceNameAxis();
-                    if (_json["name"] != undefined) {
-                        _axis.name = _json["name"];
-                    }
                     break;
                 case Axis.ATTRIBUTES:
                     _axis = new AttributeValueAxis();
-                    if (_json["name"] != undefined) {
-                        _axis.name = _json["name"];
-                    }
                     if (_json["sourceAttribute"] != undefined) {
-                        _axis.sourceAttribute = new AttributeInformation(_json["sourceAttribute"]);
+                        (<AttributeValueAxis>_axis).sourceAttribute = new AttributeInformation(_json["sourceAttribute"]);
                     }
                     break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
             }
+             if (_json["name"] != undefined) {
+                _axis.name = _json["name"];
+             }
             return _axis;
         }
     }
 
-    public static chartFromJSON(_json:any):Chart {
+    public static chartFromJSON(_json:any):AbstractChart {
         let _type:string = _json["@type"];
         if (_type == undefined || _type.length == 0) {
             throw new Error("Type is not set for chart");
         } else {
-            let _chart:Chart;
+            let _chart:AbstractChart;
             switch(_type) {
+                case AbstractChart.VBAR:
+                    _chart = new VerticalBarChartOfAttributeValues();
+                    break;
+                case AbstractChart.HBAR:
+                    _chart = new HorizontalBarChartOfAttributeValues();
+                    break;
+                case AbstractChart.LINE:
+                    _chart = new LineChartOfAttributeValues();
+                    break;
+                case AbstractChart.PANEL:
+                    _chart = new PanelOfAttributeValues();
+                    break;
+                case AbstractChart.PIE:
+                    _chart = new PieChartOfAttributeValues();
+                    break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
+            }
+
+            if (_chart instanceof ChartOfAttributeValues) {
+                if (_json["component"] != undefined) { // ChartOfAttributeValues
+                    (<ChartOfAttributeValues>_chart).component = _json["component"];
+                }
+                if (_json["instances"] != undefined) { // ChartOfAttributeValues
+                    (<ChartOfAttributeValues>_chart).instances = _json["instances"];
+                }
+            }
+
+            if (_chart instanceof TwoDimensionalChartOfAttributeValues) {
+                if (_json["X"] != undefined) { // TwoDimensionalChartOfAttributeValues
+                    (<TwoDimensionalChartOfAttributeValues>_chart).setAxisX(Factory.axisFromJSON(_json["X"]));
+                }
+                if (_json["Y"] != undefined) { // TwoDimensionalChartOfAttributeValues
+                    (<TwoDimensionalChartOfAttributeValues>_chart).setAxisY(Factory.axisFromJSON(_json["Y"]));
+                }
+            }
+            if (_json["name"] != undefined) {
+                _chart.name = _json["name"];
+            }
+            if (_json["preferences"] != undefined) {
+                _chart.preferences = _json["preferences"];
             }
             return _chart;
         }

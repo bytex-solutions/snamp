@@ -23,11 +23,11 @@ export abstract class TwoDimensionalChartOfAttributeValues extends ChartOfAttrib
         return this.axisY;
     }
 
-    public setAxisX(x:axis):void {
+    public setAxisX(x:Axis):void {
         this.axisX = x;
     }
 
-    public setAxisY(y:axis):void {
+    public setAxisY(y:Axis):void {
         this.axisY = y;
     }
 }

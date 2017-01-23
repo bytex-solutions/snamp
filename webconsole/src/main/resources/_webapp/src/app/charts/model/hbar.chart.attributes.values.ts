@@ -1,9 +1,10 @@
-import { ChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
+import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
 import { InstanceNameAxis } from './instance.axis';
 import { AttributeValueAxis } from './attribute.value.axis';
+import { AbstractChart } from './abstract.chart';
 
 export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
-    public type:string = "horizontalBarChartOfAttributeValues";
+    public type:string = AbstractChart.HBAR;
 
     public createDefaultAxisX() {
         return new InstanceNameAxis();

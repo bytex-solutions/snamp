@@ -1,9 +1,10 @@
-import { ChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
+import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
 import { ChronoAxis } from './chrono.axis';
 import { AttributeValueAxis } from './attribute.value.axis';
+import { AbstractChart } from './abstract.chart';
 
 export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
-    public type:string = "lineChartOfAttributeValues";
+    public type:string = AbstractChart.LINE;
 
     public createDefaultAxisX() {
         return new ChronoAxis();
