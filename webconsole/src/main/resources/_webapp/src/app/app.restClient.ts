@@ -142,6 +142,8 @@ export class REST {
     }
 
     // web console api (chart related and others)
+    public static CHART_DASHBOARD:string = "/snamp/web/api/charts/settings";
+
     public static CHART_COMPONENTS:string = "/snamp/web/api/managedResources/components";
 
     public static CHART_INSTANCES(componentName:string):string {

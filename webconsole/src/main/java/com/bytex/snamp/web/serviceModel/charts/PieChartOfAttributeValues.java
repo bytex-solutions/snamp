@@ -13,10 +13,10 @@ import java.util.Optional;
  * @since 2.0
  */
 @JsonTypeName("pieChartOfAttributeValues")
-public final class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<InstanceNameAxis, AttributeValueAxis> {
+    public final class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<InstanceNameAxis, AttributeValueAxis> {
     public static final class ChartData extends AttributeChartData {
         private ChartData(final String instanceName, final Attribute attribute) {
-            super(instanceName, attribute, PanelOfAttributeValues.class);
+            super(instanceName, attribute, PieChartOfAttributeValues.class);
         }
     }
 
