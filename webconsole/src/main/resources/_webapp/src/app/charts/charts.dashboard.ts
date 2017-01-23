@@ -8,6 +8,7 @@ import { AttributeInformation } from './model/charts.model.attribute';
 import { DragulaService } from 'ng2-dragula/ng2-dragula';
 
 import 'rxjs/add/operator/publishLast';
+import 'rxjs/add/operator/cache';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
@@ -204,7 +205,9 @@ export class Dashboard {
         $('#overlay').fadeIn();
         let _instanceForSearchMetrics:string = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
 
-        let _obsComponents = this.http.get(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
+        console.log(this.selectedAllInstances, this.allInstances[0], this.selectedInstances[0]);
+
+        let _obsComponents = this.http.getIgnoreErrors(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
              .map((res:Response) => {
                  let _data:any = res.json();
                  console.log("components metrics data: ", _data);
@@ -213,9 +216,9 @@ export class Dashboard {
                      _values.push(new AttributeInformation(_data[i]));
                  }
                  return _values;
-             }).catch((err) => { return Observable.of([])});
+             }).catch((res:Response) => Observable.of([])).cache();
 
-        let _obsInstances = this.http.get(REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
+        let _obsInstances = this.http.getIgnoreErrors(REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
             .map((res:Response) => {
                 let _data:any = res.json();
                 console.log("instance metrics data: ", _data);
@@ -224,7 +227,7 @@ export class Dashboard {
                     _values.push(new AttributeInformation(_data[i]));
                 }
                 return _values;
-            }).catch((err) => { return Observable.of([])});
+            }).catch((res:Response) => Observable.of([])).cache();
 
         this.metrics = Observable.forkJoin([_obsComponents, _obsInstances])
             .map((_data) => {

@@ -37,6 +37,11 @@ constructor(private http: Http, private _cookieService:CookieService) {}
     }).catch(this.handleError)
   }
 
+  getIgnoreErrors(url) {
+    return this.http.get(url, {
+      headers: this.createAuthorizationHeader()
+    });
+  }
   put(url, data) {
     return this.http.put(url, data, {
       headers: this.createAuthorizationHeader()
