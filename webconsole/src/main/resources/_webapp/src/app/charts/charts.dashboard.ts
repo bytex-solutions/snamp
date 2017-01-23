@@ -4,7 +4,7 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
-import { AttributeInformation } from './model/charts.model.attribute';
+import { AttributeInformation } from './model/attribute';
 import { DragulaService } from 'ng2-dragula/ng2-dragula';
 
 import 'rxjs/add/operator/publishLast';
