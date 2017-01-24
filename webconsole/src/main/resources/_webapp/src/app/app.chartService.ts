@@ -37,6 +37,18 @@ export class ChartService {
             });
     }
 
+    private saveDashboard():void {
+        console.log("Saving some dashboard... ");
+         this._http.put(REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
+            .map((res:Response) => {
+                console.log("Result of dashboard request is: ", res);
+                return res.json();
+            })
+            .subscribe(data => {
+                console.log("Dashboard has been saved successfully");
+            });
+    }
+
     constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
           this.chartObs = new Subject<Dashboard>();
           this.loadDashboard();
@@ -50,5 +62,23 @@ export class ChartService {
         console.log("New chart data is: ", _data);
     }
 
+    hasChartWithName(name:string):boolean {
+        let _value:boolean = false;
+        for (let i = 0; i < this._dashboard.charts.length; i++) {
+            if (this._dashboard.charts[i].name == name) {
+                _value = true;
+                break;
+            }
+        }
+        return _value;
+    }
 
+    newChart(chart:AbstractChart):void {
+        if (this.hasChartWithName) {
+            throw new Error("Chart with that name already exists!");
+        } else {
+            this._dashboard.charts.push(chart);
+            this.saveDashboard();
+        }
+    }
 }
