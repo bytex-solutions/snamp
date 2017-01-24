@@ -7,6 +7,10 @@ import { Modal } from 'angular2-modal/plugins/vex';
 import { AttributeInformation } from './model/attribute';
 import { DragulaService } from 'ng2-dragula/ng2-dragula';
 
+import { ChartService } from '../app.chartService';
+import { Factory } from './model/objectFactory';
+import { AbstractChart } from './model/abstract.chart';
+
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
 import 'rxjs/add/observable/forkJoin';
@@ -49,7 +53,8 @@ export class Dashboard {
               overlay: Overlay,
               vcRef: ViewContainerRef,
               private modal: Modal,
-              private dragulaService: DragulaService) {
+              private dragulaService: DragulaService,
+              private _chartService:ChartService) {
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
 
@@ -289,6 +294,10 @@ export class Dashboard {
     }
 
    addChartToDashboard():void {
+        let _instances:string[] = ((this.selectedAllInstances) ? this.allInstances : this.selectedInstances);
+        let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.selectedComponent,
+            _instances, this.selectedMetric);
+        this._chartService.newChart(chart);
         $("#addChartModal").modal("hide");
    }
 }

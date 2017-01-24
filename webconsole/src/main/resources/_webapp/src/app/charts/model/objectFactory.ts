@@ -104,7 +104,7 @@ export class Factory {
     }
 
     public static create2dChart(type:string, name:string, component?:string, instances?:string[],
-        sourceAttribute?:AttributeInformation) {
+        sourceAttribute?:AttributeInformation):AbstractChart {
             let _chart:TwoDimensionalChartOfAttributeValues;
             switch(type) {
                 case AbstractChart.VBAR:
