@@ -21,6 +21,8 @@ public interface CMGatewayParser extends CMConfigurationParser<GatewayConfigurat
      */
     String getFactoryPersistentID(final String gatewayType);
 
+    GatewayConfiguration parse(final Dictionary<String, ?> configuration);
+
     /**
      * Extracts the name of the gateway instance from its configuration.
      * @param gatewayInstanceConfig The gateway instance configuration supplied by {@link org.osgi.service.cm.Configuration} object.

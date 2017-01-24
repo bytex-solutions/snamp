@@ -155,18 +155,25 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
     }
 
     @Override
-    public SerializableManagedResourceConfiguration parse(final Configuration config) throws IOException {
+    public SerializableManagedResourceConfiguration parse(final Dictionary<String, ?> configuration) throws IOException {
         final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
-        result.setConnectionString(getConnectionString(config.getProperties()));
-        result.setType(getConnectorType(config.getFactoryPid()));
+        result.setConnectionString(getConnectionString(configuration));
         //deserialize attributes
-        result.setAttributes(getAttributes(config.getProperties()));
+        result.setAttributes(getAttributes(configuration));
         //deserialize events
-        result.setEvents(getEvents(config.getProperties()));
+        result.setEvents(getEvents(configuration));
         //deserialize operations
-        result.setOperations(getOperations(config.getProperties()));
+        result.setOperations(getOperations(configuration));
         //deserialize parameters
-        fillConnectionOptions(config.getProperties(), result);
+        fillConnectionOptions(configuration, result);
+        result.reset();
+        return result;
+    }
+
+    @Override
+    public SerializableManagedResourceConfiguration parse(final Configuration config) throws IOException {
+        final SerializableManagedResourceConfiguration result = parse(config.getProperties());
+        result.setType(getConnectorType(config.getFactoryPid()));
         result.reset();
         return result;
     }

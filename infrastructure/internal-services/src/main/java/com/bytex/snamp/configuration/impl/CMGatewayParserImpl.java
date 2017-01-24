@@ -103,11 +103,18 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     }
 
     @Override
-    public SerializableGatewayConfiguration parse(final Configuration config) {
+    public SerializableGatewayConfiguration parse(final Dictionary<String, ?> configuration) {
         final SerializableGatewayConfiguration result = new SerializableGatewayConfiguration();
-        result.setType(getGatewayType(config.getFactoryPid()));
         //deserialize parameters
-        fillGatewayInstanceParameters(config.getProperties(), result);
+        fillGatewayInstanceParameters(configuration, result);
+        result.reset();
+        return result;
+    }
+
+    @Override
+    public SerializableGatewayConfiguration parse(final Configuration config) {
+        final SerializableGatewayConfiguration result = parse(config.getProperties());
+        result.setType(getGatewayType(config.getFactoryPid()));
         result.reset();
         return result;
     }

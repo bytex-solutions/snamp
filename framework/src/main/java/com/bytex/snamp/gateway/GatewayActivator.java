@@ -102,15 +102,12 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
                            final Dictionary<String, ?> configuration) throws Exception {
             final CMGatewayParser parser = getParser();
             final String instanceName = parser.getInstanceName(configuration);
-            @SuppressWarnings("unchecked")
-            final GatewayConfiguration newConfig = getNewConfiguration(instanceName, getDependencies().getDependency(ConfigurationManager.class));
+            final GatewayConfiguration newConfig = parser.parse(configuration);
             if (newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be updated. Configuration not found.", instanceName));
+            newConfig.setType(gatewayType);
+            newConfig.expandParameters();
             return update(gatewayInstance, newConfig);
-        }
-
-        private static GatewayConfiguration getNewConfiguration(final String instanceName, final ConfigurationManager manager) throws IOException {
-            return manager.transformConfiguration(config -> config.getEntities(GatewayConfiguration.class).get(instanceName));
         }
 
         private G createService(final Map<String, Object> identity,
@@ -137,10 +134,11 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
                                   final Dictionary<String, ?> configuration) throws Exception {
             final CMGatewayParser parser = getParser();
             final String instanceName = parser.getInstanceName(configuration);
-            @SuppressWarnings("unchecked")
-            final GatewayConfiguration newConfig = getNewConfiguration(instanceName, getDependencies().getDependency(ConfigurationManager.class));
+            final GatewayConfiguration newConfig = parser.parse(configuration);
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be created. Configuration not found.", instanceName));
+            newConfig.setType(gatewayType);
+            newConfig.expandParameters();
             return createService(identity, instanceName, newConfig);
         }
 

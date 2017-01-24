@@ -27,7 +27,6 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanOperationInfo;
-import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -104,7 +103,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         private CMManagedResourceParser getParser(){
-            @SuppressWarnings("unchecked")
             final ConfigurationManager configManager = getDependencies().getDependency(ConfigurationManager.class);
             assert configManager != null;
             final CMManagedResourceParser parser = configManager.queryObject(CMManagedResourceParser.class);
@@ -184,10 +182,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             connector.expandAll();
         }
 
-        private static ManagedResourceConfiguration getNewConfiguration(final String resourceName, final ConfigurationManager manager) throws IOException {
-            return manager.transformConfiguration(config -> config.getEntities(ManagedResourceConfiguration.class).get(resourceName));
-        }
-
         private TConnector update(TConnector connector,
                                   final String resourceName,
                                   final ManagedResourceConfiguration newConfig) throws Exception {
@@ -221,10 +215,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                     final Dictionary<String, ?> configuration) throws Exception {
             final CMManagedResourceParser parser = getParser();
             final String resourceName = parser.getResourceName(configuration);
-            @SuppressWarnings("unchecked")
-            final ManagedResourceConfiguration newConfig = getNewConfiguration(resourceName, getDependencies().getDependency(ConfigurationManager.class));
+            final ManagedResourceConfiguration newConfig = parser.parse(configuration);
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Managed resource %s cannot be updated. Configuration not found.", resourceName));
+            newConfig.expandParameters();
             return update(connector, resourceName, newConfig);
         }
 
@@ -283,10 +277,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                            final Dictionary<String, ?> configuration) throws Exception {
             final CMManagedResourceParser parser = getParser();
             final String resourceName = parser.getResourceName(configuration);
-            @SuppressWarnings("unchecked")
-            final ManagedResourceConfiguration newConfig = getNewConfiguration(resourceName, getDependencies().getDependency(ConfigurationManager.class));
+            final ManagedResourceConfiguration newConfig = parser.parse(configuration);
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Managed resource %s cannot be created. Configuration not found.", resourceName));
+            newConfig.setType(connectorType);
+            newConfig.expandParameters();
             return createService(identity, resourceName, newConfig);
         }
 

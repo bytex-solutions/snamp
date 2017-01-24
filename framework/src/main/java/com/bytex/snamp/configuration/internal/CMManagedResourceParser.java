@@ -3,6 +3,7 @@ package com.bytex.snamp.configuration.internal;
 
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
+import java.io.IOException;
 import java.util.Dictionary;
 
 /**
@@ -21,6 +22,8 @@ public interface CMManagedResourceParser extends CMConfigurationParser<ManagedRe
      * @return The persistent identifier.
      */
     String getFactoryPersistentID(final String connectorType);
+
+    ManagedResourceConfiguration parse(final Dictionary<String, ?> configuration) throws IOException;
 
     /**
      * Extracts resource name from the managed resource configuration.
