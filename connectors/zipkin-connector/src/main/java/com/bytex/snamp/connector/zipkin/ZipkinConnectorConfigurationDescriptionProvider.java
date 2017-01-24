@@ -28,13 +28,13 @@ final class ZipkinConnectorConfigurationDescriptionProvider extends DataStreamDr
     private static final Splitter SCRIPT_PATH_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
     private static final String PARSER_SCRIPT_PATH_PARAM = "parserScriptPath";
     private static final String PARSER_SCRIPT_NAME_PARAM = "parserScript";
-
+    private static final String USE_SERVICE_NAME_AS_INSTANCE = "useServiceNameAsInstance";
 
     private static final LazySoftReference<ZipkinConnectorConfigurationDescriptionProvider> INSTANCE = new LazySoftReference<>();
 
     private static final class ZipkinConnectorConfigurationDescription extends ConnectorConfigurationDescription{
         private ZipkinConnectorConfigurationDescription(){
-            super("ConnectorParameters", PARSER_SCRIPT_NAME_PARAM, PARSER_SCRIPT_PATH_PARAM);
+            super("ConnectorParameters", PARSER_SCRIPT_NAME_PARAM, PARSER_SCRIPT_PATH_PARAM, USE_SERVICE_NAME_AS_INSTANCE);
         }
     }
 
@@ -91,5 +91,9 @@ final class ZipkinConnectorConfigurationDescriptionProvider extends DataStreamDr
 
     String parseScriptFile(final Map<String, String> parameters){
         return getValue(parameters, PARSER_SCRIPT_NAME_PARAM, Function.identity()).orElse("ZipkinSpanParser.groovy");
+    }
+
+    boolean useServiceNameAsInstanceName(final Map<String, String> parameters) {
+        return getValue(parameters, USE_SERVICE_NAME_AS_INSTANCE, Boolean::parseBoolean).orElse(Boolean.FALSE);
     }
 }

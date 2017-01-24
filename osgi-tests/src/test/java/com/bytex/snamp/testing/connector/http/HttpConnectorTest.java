@@ -78,8 +78,6 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
     @Test
     public void configurationTest(){
         testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
-                "instanceName",
-                "componentName",
                 "synchronizationPeriod",
                 "parserScriptPath",
                 "parserScript"

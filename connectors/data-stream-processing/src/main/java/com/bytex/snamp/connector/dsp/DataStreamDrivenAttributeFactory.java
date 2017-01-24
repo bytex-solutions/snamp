@@ -8,6 +8,6 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
  * @since 2.0
  */
 @FunctionalInterface
-interface DataStreamDrivenAttributeFactory {
+public interface DataStreamDrivenAttributeFactory {
     DataStreamDrivenAttribute createAttribute(final String name, final AttributeDescriptor descriptor) throws Exception;
 }

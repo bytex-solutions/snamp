@@ -73,11 +73,10 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
 
     @Override
     protected DataStreamDrivenAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
-        final String gaugeType = configurationParser.parseGaugeType(descriptor);
-        final DataStreamDrivenAttributeFactory factory = AttributeParser.parse(gaugeType);
-        if(factory == null)
-            throw new UnrecognizedAttributeTypeException(gaugeType);
-        return factory.createAttribute(attributeName, descriptor);
+        final DataStreamDrivenAttributeFactory gaugeFactory = configurationParser.parseGaugeType(descriptor);
+        if(gaugeFactory == null)
+            throw new UnrecognizedAttributeTypeException(attributeName);
+        return gaugeFactory.createAttribute(attributeName, descriptor);
     }
 
     /**

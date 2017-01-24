@@ -102,12 +102,15 @@ final class ZipkinConnector extends DataStreamConnector implements AsyncSpanCons
     @Override
     protected GroovyNotificationParser createNotificationParser(final String resourceName, final ManagedResourceInfo parameters) {
         return callUnchecked(() -> {
-            final URL[] scriptPath = ZipkinConnectorConfigurationDescriptionProvider.getInstance().parseScriptPath(parameters);
+            final ZipkinConnectorConfigurationDescriptionProvider parametersParser = ZipkinConnectorConfigurationDescriptionProvider.getInstance();
+            final URL[] scriptPath = parametersParser.parseScriptPath(parameters);
+            final boolean useServiceNameAsInstanceName = parametersParser.useServiceNameAsInstanceName(parameters);
             final GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, parameters, true, scriptPath);
-            final String scriptName = ZipkinConnectorConfigurationDescriptionProvider.getInstance().parseScriptFile(parameters);
+            final String scriptName = parametersParser.parseScriptFile(parameters);
             final GroovyNotificationParser parser = loader.createScript(scriptName, new Binding());
             parser.setComponentName(parameters.getGroupName());
             parser.setInstanceName(resourceName);
+            parser.setProperty("useServiceNameAsInstanceName", useServiceNameAsInstanceName);
             return parser;
         });
     }

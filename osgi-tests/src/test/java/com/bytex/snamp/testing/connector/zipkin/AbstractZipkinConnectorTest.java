@@ -10,7 +10,6 @@ import zipkin.reporter.Sender;
 import zipkin.reporter.kafka08.KafkaSender;
 import zipkin.reporter.urlconnection.URLConnectionSender;
 
-import javax.management.JMException;
 import java.util.Map;
 
 /**
@@ -31,7 +30,7 @@ public abstract class AbstractZipkinConnectorTest extends AbstractResourceConnec
         super(CONNECTOR_TYPE, connectionString, parameters);
     }
 
-    protected static void sendSpans(final Sender sender, final Span... spans) throws JMException, InterruptedException {
+    protected static void sendSpans(final Sender sender, final Span... spans) {
         final AsyncReporter<Span> reporter = AsyncReporter.builder(sender).build();
         for(final Span span: spans)
             reporter.report(span);

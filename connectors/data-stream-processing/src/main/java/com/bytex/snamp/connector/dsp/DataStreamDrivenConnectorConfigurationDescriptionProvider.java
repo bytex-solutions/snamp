@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.dsp.notifications.MeasurementNotification;
 import com.bytex.snamp.jmx.CompositeDataUtils;
+import com.bytex.snamp.parser.ParseException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.Filter;
@@ -180,8 +181,10 @@ public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider 
         return getField(descriptor, CHANNELS_PARAM, Convert::toLong).orElse(1L);
     }
 
-    public String parseGaugeType(final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, GAUGE_TYPE_PARAM, String::valueOf, DSPConnectorAbsentConfigurationParameterException::new);
+    public DataStreamDrivenAttributeFactory parseGaugeType(final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException, ParseException {
+        final String gaugeType =
+                getFieldIfPresent(descriptor, GAUGE_TYPE_PARAM, String::valueOf, DSPConnectorAbsentConfigurationParameterException::new);
+        return AttributeParser.parse(gaugeType);
     }
 
     static NotificationFilter parseNotificationFilter(final Descriptor descriptor) throws InvalidSyntaxException {

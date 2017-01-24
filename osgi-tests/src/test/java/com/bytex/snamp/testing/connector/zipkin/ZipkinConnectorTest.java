@@ -99,8 +99,7 @@ public class ZipkinConnectorTest extends AbstractZipkinConnectorTest {
     @Test
     public void configurationTest(){
         testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
-                "instanceName",
-                "componentName",
+                "useServiceNameAsInstance",
                 "synchronizationPeriod",
                 "parserScriptPath",
                 "parserScript"
