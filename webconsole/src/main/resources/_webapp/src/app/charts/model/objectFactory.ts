@@ -90,6 +90,8 @@ export class Factory {
                 if (_json["Y"] != undefined) { // TwoDimensionalChartOfAttributeValues
                     (<TwoDimensionalChartOfAttributeValues>_chart).setAxisY(Factory.axisFromJSON(_json["Y"]));
                 }
+                (<TwoDimensionalChartOfAttributeValues>_chart).getAxisX(); // set not null axis. just secure it.
+                (<TwoDimensionalChartOfAttributeValues>_chart).getAxisY(); // set not null axis. just secure it.
             }
             if (_json["name"] != undefined) {
                 _chart.name = _json["name"];
@@ -99,5 +101,49 @@ export class Factory {
             }
             return _chart;
         }
+    }
+
+    public static create2dChart(type:string, name:string, component?:string, instances?:string[],
+        sourceAttribute?:AttributeInformation) {
+            let _chart:TwoDimensionalChartOfAttributeValues;
+            switch(type) {
+                case AbstractChart.VBAR:
+                    _chart = new VerticalBarChartOfAttributeValues();
+                    break;
+                case AbstractChart.HBAR:
+                    _chart = new HorizontalBarChartOfAttributeValues();
+                    break;
+                case AbstractChart.LINE:
+                    _chart = new LineChartOfAttributeValues();
+                    break;
+                case AbstractChart.PANEL:
+                    _chart = new PanelOfAttributeValues();
+                    break;
+                case AbstractChart.PIE:
+                    _chart = new PieChartOfAttributeValues();
+                    break;
+                default:
+                    throw new Error("Type " + type + " is unknown and cannot be parsed correctly");
+            }
+
+            _chart.getAxisX();
+            _chart.getAxisY();
+
+            _chart.name = name;
+
+            if (component) {
+                _chart.component = component;
+            }
+
+            if (instances) {
+                _chart.instances = instances;
+            }
+
+            if (sourceAttribute) {
+                _chart.setSourceAttribute(sourceAttribute);
+            }
+
+            return _chart;
+
     }
 }

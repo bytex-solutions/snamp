@@ -1,5 +1,7 @@
 import { ChartOfAttributeValues } from './abstract.chart.attributes.values';
 import { Axis } from './abstract.axis';
+import { AttributeInformation } from './attribute';
+import { AttributeValueAxis } from './attribute.value.axis';
 
 export abstract class TwoDimensionalChartOfAttributeValues extends ChartOfAttributeValues {
     private axisX:Axis;
@@ -29,5 +31,11 @@ export abstract class TwoDimensionalChartOfAttributeValues extends ChartOfAttrib
 
     public setAxisY(y:Axis):void {
         this.axisY = y;
+    }
+
+    public setSourceAttribute(sourceAttribute:AttributeInformation):void {
+        if (this.getAxisX() instanceof AttributeValueAxis) {
+            (<AttributeValueAxis>this.getAxisX()).sourceAttribute = sourceAttribute;
+        }
     }
 }
