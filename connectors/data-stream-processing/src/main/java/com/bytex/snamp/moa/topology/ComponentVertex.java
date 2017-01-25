@@ -1,10 +1,10 @@
 package com.bytex.snamp.moa.topology;
 
 import com.bytex.snamp.instrumentation.measurements.Span;
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -21,8 +21,14 @@ public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex
 
     ComponentVertex(final Span span) {
         componentName = span.getComponentName();
-        instances = Collections.newSetFromMap(new ConcurrentHashMap<>());
-        instances.add(span.getInstanceName());
+        final ConcurrentLinkedHashMap<String, Boolean> instances = new ConcurrentLinkedHashMap.Builder<String, Boolean>()
+                .concurrencyLevel(Runtime.getRuntime().availableProcessors() * 2)
+                //at maximum we can hold no more than 100 instances of the same component
+                //we expected that this capacity is enough for typical clusters
+                .maximumWeightedCapacity(100)
+                .build();
+        this.instances = Collections.newSetFromMap(instances);
+        this.instances.add(span.getInstanceName());
     }
 
     /**
