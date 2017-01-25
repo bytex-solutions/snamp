@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.composite.functions;
 
-import com.bytex.snamp.math.DoubleReservoir;
-import com.bytex.snamp.math.Reservoir;
+import com.bytex.snamp.moa.DoubleReservoir;
+import com.bytex.snamp.moa.Reservoir;
 
 /**
  * Computes percentile.

@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.composite.functions;
 
-import com.bytex.snamp.math.ExponentialMovingAverage;
+import com.bytex.snamp.moa.ExponentialMovingAverage;
 
 import java.util.concurrent.TimeUnit;
 

@@ -73,7 +73,7 @@ private void parseZipkinSpan(Span zipkinSpan) {
                         return
                 }
                 //resolve instance name using IP address
-                getInetAddress(annotation.endpoint).ifPresent({ result.annotations["address"] = it.hostAddress })
+                getInetAddress(annotation.endpoint).ifPresent { result.annotations["address"] = it.hostAddress }
                 if (annotation.endpoint.port)
                     result.annotations["port"] = annotation.endpoint.port.toString()
         }
@@ -88,11 +88,13 @@ private void parseZipkinSpan(Span zipkinSpan) {
                     notif.type = "zipkin.error"
                     return
                 default:
-                    parseBinaryAnnotation(annotation.key, protocol, result.annotations)
+                    parseBinaryAnnotation annotation.key, protocol, result.annotations
                     return
             }
         }
 
+    result.setComponentName componentName
+    result.setInstanceName componentInstance
     addMeasurement result
 }
 

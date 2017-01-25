@@ -2,8 +2,8 @@ package com.bytex.snamp.connector.metrics;
 
 
 import com.bytex.snamp.io.SerializedState;
-import com.bytex.snamp.math.DoubleReservoir;
-import com.bytex.snamp.math.ExponentialMovingAverage;
+import com.bytex.snamp.moa.DoubleReservoir;
+import com.bytex.snamp.moa.ExponentialMovingAverage;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;

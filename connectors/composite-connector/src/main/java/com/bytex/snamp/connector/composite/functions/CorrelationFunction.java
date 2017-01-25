@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.composite.functions;
 
-import com.bytex.snamp.math.Correlation;
+import com.bytex.snamp.moa.Correlation;
 
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;

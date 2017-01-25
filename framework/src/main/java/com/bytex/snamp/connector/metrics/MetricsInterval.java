@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.metrics;
 import com.bytex.snamp.concurrent.TimeLimitedDouble;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 import com.bytex.snamp.concurrent.TimeLimitedObject;
-import com.bytex.snamp.math.ExponentialMovingAverage;
+import com.bytex.snamp.moa.ExponentialMovingAverage;
 import com.google.common.collect.ImmutableSortedSet;
 
 import java.io.Serializable;

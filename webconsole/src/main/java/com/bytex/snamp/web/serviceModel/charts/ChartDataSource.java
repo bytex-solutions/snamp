@@ -57,7 +57,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
                         if (actionThread.isInterrupted())
                             return null;    //if submitter is interrupted then exit
                         /*
-                            A reference to managed resource connector used only for obtaining attribute values.
+                            A reference to managed resource connector used for obtaining attribute values only.
                          */
                         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connector.getValue());
                         final AttributeList attributes;

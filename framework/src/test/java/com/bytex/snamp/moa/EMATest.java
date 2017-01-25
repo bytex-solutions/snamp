@@ -1,4 +1,4 @@
-package com.bytex.snamp.math;
+package com.bytex.snamp.moa;
 
 import org.junit.Assert;
 import org.junit.Test;

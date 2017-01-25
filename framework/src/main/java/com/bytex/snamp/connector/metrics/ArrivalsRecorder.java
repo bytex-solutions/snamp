@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.math.Correlation;
+import com.bytex.snamp.moa.Correlation;
 
 import java.time.Duration;
 import java.time.Instant;
