@@ -14,48 +14,58 @@ import java.io.ObjectOutput;
  * @author Roman Sakno
  */
 public final class Span extends TimeMeasurement {
-    public static final CorrelationPolicy DEFAULT_CORRELATION_POLICY = CorrelationPolicy.LOCAL;
-
     private static final long serialVersionUID = -1873210335013467017L;
     private Identifier correlationID = Identifier.EMPTY;
     private Identifier spanID = Identifier.EMPTY;
     private Identifier parentSpanID = Identifier.EMPTY;
-    private CorrelationPolicy correlationPolicy = DEFAULT_CORRELATION_POLICY;
+    private String subsystemName = "";
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
+        out.writeUTF(subsystemName);
         correlationID.serialize(out);
         spanID.serialize(out);
         parentSpanID.serialize(out);
-        out.writeUTF(correlationPolicy.name());
         super.writeExternal(out);
     }
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+        subsystemName = in.readUTF();
         correlationID = Identifier.deserialize(in);
         spanID = Identifier.deserialize(in);
         parentSpanID = Identifier.deserialize(in);
-        correlationPolicy = CorrelationPolicy.valueOf(in.readUTF());
         super.readExternal(in);
     }
 
-    @JsonProperty("correlType")
-    public CorrelationPolicy getCorrelationPolicy(){
-        return correlationPolicy;
+    /**
+     * Gets module inside of the reporting application which reports this span.
+     * <p>
+     *     Subsystem name allows to represent interoperability between different subsystems/modules
+     *     inside
+     * @return Reporting module inside of this application.
+     */
+    @JsonProperty("mn")
+    public String getModule(){
+        return subsystemName;
     }
 
-    public void setCorrelationPolicy(final CorrelationPolicy value){
-        if(value == null)
-            throw new IllegalArgumentException("value cannot be null");
-        correlationPolicy = value;
+    /**
+     * Sets module inside of the reporting application which reports this span.
+     * @param name Name of the module. Cannot be {@literal null}.
+     */
+    public void setModule(final String name) {
+        if (name == null)
+            throw new IllegalArgumentException();
+        else
+            subsystemName = name;
     }
 
     public Identifier getCorrelationID(){
         return correlationID;
     }
 
-    @JsonProperty("correl")
+    @JsonProperty("cid")
     public void setCorrelationID(final Identifier value) {
         if (value == null)
             throw new IllegalArgumentException();
@@ -63,7 +73,7 @@ public final class Span extends TimeMeasurement {
             correlationID = value;
     }
 
-    @JsonProperty("s")
+    @JsonProperty("id")
     public Identifier getSpanID(){
         return spanID;
     }
@@ -75,7 +85,7 @@ public final class Span extends TimeMeasurement {
             spanID = value;
     }
 
-    @JsonProperty("ps")
+    @JsonProperty("pid")
     public Identifier getParentSpanID(){
         return parentSpanID;
     }

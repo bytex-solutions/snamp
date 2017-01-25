@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.zipkin
 
 import com.bytex.snamp.ArrayUtils
 import com.bytex.snamp.instrumentation.Identifier
-import com.bytex.snamp.instrumentation.measurements.CorrelationPolicy
+
 import com.google.common.net.InetAddresses
 import org.apache.thrift.protocol.TBinaryProtocol
 import org.apache.thrift.transport.TMemoryInputTransport
@@ -54,7 +54,6 @@ private void parseZipkinSpan(Span zipkinSpan) {
         result.parentSpanID = Identifier.ofLong zipkinSpan.parentId
     //parse traceID as correlation
     result.correlationID = Identifier.ofBytes ArrayUtils.toByteArray([zipkinSpan.traceIdHigh, zipkinSpan.traceId] as long[])
-    result.correlationPolicy = CorrelationPolicy.GLOBAL
 
     result.timeStamp = zipkinSpan.timestamp ?: System.currentTimeMillis()
     if (zipkinSpan.duration)

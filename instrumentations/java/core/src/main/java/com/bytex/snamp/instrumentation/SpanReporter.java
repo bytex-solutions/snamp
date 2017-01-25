@@ -1,6 +1,5 @@
 package com.bytex.snamp.instrumentation;
 
-import com.bytex.snamp.instrumentation.measurements.CorrelationPolicy;
 import com.bytex.snamp.instrumentation.measurements.Span;
 import com.bytex.snamp.instrumentation.reporters.Reporter;
 
@@ -21,25 +20,26 @@ public class SpanReporter extends MeasurementReporter<Span> {
         TraceScope newScope();
     }
 
-    private CorrelationPolicy correlationPolicy;
-
     protected SpanReporter(final Iterable<Reporter> reporters,
                            final String name,
                            final Map<String, String> userData) {
         super(reporters, name, userData);
-        correlationPolicy = Span.DEFAULT_CORRELATION_POLICY;
     }
 
     /**
-     * Defines policy for correlation of all spans reported by this object.
-     * @param value A new correlation policy. Cannot be {@literal null}.
-     * @return This reporter.
+     * Creates a new trace scope.
+     * @param correlationID Correlation identifier.
+     * @param parentSpanID Identifier of the parent span.
+     * @param moduleName Name of the reporting module.
+     * @return Trace scope.
      */
-    public SpanReporter correlationPolicy(final CorrelationPolicy value){
-        if(value == null)
-            throw new IllegalArgumentException("Correlation policy cannot be null");
-        correlationPolicy = value;
-        return this;
+    public TraceScope beginTrace(final Identifier correlationID, final Identifier parentSpanID, final String moduleName){
+        return new TraceScope(correlationID, parentSpanID, moduleName) {
+            @Override
+            protected void report(final Span s) {
+                SpanReporter.this.report(s);
+            }
+        };
     }
 
     /**
@@ -49,12 +49,7 @@ public class SpanReporter extends MeasurementReporter<Span> {
      * @return Trace scope.
      */
     public TraceScope beginTrace(final Identifier correlationID, final Identifier parentSpanID){
-        return new TraceScope(correlationID, correlationPolicy, parentSpanID) {
-            @Override
-            protected void report(final Span s) {
-                SpanReporter.this.report(s);
-            }
-        };
+        return beginTrace(correlationID, parentSpanID, "");
     }
 
     /**
