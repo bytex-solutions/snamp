@@ -27,3 +27,36 @@ select.form-control:not([size]):not([multiple]) {
     height: auto;
     cursor: pointer;
 }
+
+#chartMenu {
+  background: #536980;
+  color: rgba(255,255,255,0.95);
+  position: fixed;
+  right: 0;
+  top: 50%;
+  margin-top: -10em !important;
+  list-style-type: none;
+  z-index: 1400;
+  padding: 9px 0 9px 9px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+#chartMenu li {
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+
+#chartMenu li i {
+    padding: 7px;
+    border-radius: 5px;
+    font-size: 1.5em;
+}
+
+#chartMenu li:hover i {
+    background: #1ABB9C;
+}
+
+#chartMenu li:last-child {
+    margin-bottom: 0;
+}

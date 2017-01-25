@@ -131,6 +131,14 @@
 </div>
 
 
+<ul id="chartMenu" [dragula]='"first-bag"'>
+  <li class="removable" [tooltip]="'Pie chart'" data-chart-type="doughnut"><i class="fa fa-pie-chart" aria-hidden="true"></i></li>
+  <li class="removable" [tooltip]="'Horizontal bar chart'" data-chart-type="horizontalBar"><i class="fa fa-align-left " aria-hidden="true"></i></li>
+  <li class="removable" [tooltip]="'Vertical bar chart'" data-chart-type="bar"><i class="fa fa-bar-chart" aria-hidden="true"></i></li>
+  <li class="removable" [tooltip]="'Simple line chart'" data-chart-type="line"><i class="fa fa-line-chart" aria-hidden="true"></i></li>
+  <li class="removable" [tooltip]="'Panel with values'" data-chart-type="panel"><i class="fa fa-columns" aria-hidden="true"></i></li>
+</ul>
+
 <div class="right_col" role="main" style="min-height: 949px;">
   <div class="">
     <div class="page-title">
@@ -143,46 +151,9 @@
 
     <div class="row" style="margin-top: 30px">
 
-      <panel [header]="'Charts'" [column]="'10'">
-        <div class='wrapper'>
-          <div class='container row' [dragula]='"first-bag"' style="min-height: 400px;">
+      <div class='container col-md-12' [dragula]='"first-bag"' style="min-height: 400px;">
 
-          </div>
-        </div>
-      </panel>
-
-      <panel [header]="'Instruments'" [column]="'2'">
-        <div class='wrapper'>
-          <div class='container' [dragula]='"first-bag"'>
-
-            <div class="thumbnail with-caption" data-chart-type="doughnut">
-              <img src="/snamp/assets/img/piechart.png" width="320">
-              <p>Pie chart</p>
-            </div>
-
-            <div class="thumbnail with-caption" data-chart-type="horizontalBar">
-              <img src="/snamp/assets/img/hbarchart.png" width="320">
-              <p>Horizontal bar chart</p>
-            </div>
-
-            <div class="thumbnail with-caption" data-chart-type="bar">
-              <img src="/snamp/assets/img/vbarchart.png" width="320">
-              <p>Vertical bar chart</p>
-            </div>
-
-            <div class="thumbnail with-caption" data-chart-type="line">
-              <img src="/snamp/assets/img/linechart.png" width="320">
-              <p>Line chart</p>
-            </div>
-
-
-            <div class="thumbnail with-caption" data-chart-type="value" style="display: none;">
-              <img src="/snamp/assets/img/justvalue.png" width="320">
-              <p>Value representation</p>
-            </div>
-          </div>
-        </div>
-      </panel>
+      </div>
 
     </div>
   </div>
