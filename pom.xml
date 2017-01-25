@@ -38,7 +38,6 @@
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
     <junit.version>4.12</junit.version>
     <snmp4j.version>2.5.1</snmp4j.version>
-    <gson.version>2.7</gson.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
     <karaf.version>4.0.8</karaf.version>
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
@@ -64,11 +63,11 @@
     <jetty.version>9.2.19.v20160908</jetty.version>
     <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
     <snamp.gateway.syslog.version>2.0.0</snamp.gateway.syslog.version>
-    <snamp.json.version>2.0.0</snamp.json.version>
     <snamp.maxVersion>3</snamp.maxVersion>
     <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
     <cellar.version>4.0.3</cellar.version>
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
+    <snamp.json.version>2.0.0</snamp.json.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
     <osgi.version>5.0.0</osgi.version>
     <hazelcast.version>3.7.2</hazelcast.version>
@@ -85,6 +84,7 @@
     <groovy.version>2.4.7</groovy.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <sshd.version>0.14.0</sshd.version>
+    <concurrentlinkedhashmap.version>1.4.2</concurrentlinkedhashmap.version>
     <guava.version>19.0</guava.version>
     <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
     <snamp.connectors.version>2.0.0</snamp.connectors.version>
@@ -92,6 +92,11 @@
   </properties>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
+        <artifactId>concurrentlinkedhashmap-lru</artifactId>
+        <version>${concurrentlinkedhashmap.version}</version>
+      </dependency>
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty</artifactId>

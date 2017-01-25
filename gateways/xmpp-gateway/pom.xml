@@ -109,7 +109,7 @@
                             com.bytex.snamp.json,
                             com.google.common.base,
                             com.google.common.collect,
-                            org.codehaus.jackson.map,
+                            com.google.gson,
                             javax.management,
                             javax.management.openmbean,
                             javax.net.ssl</Import-Package>
