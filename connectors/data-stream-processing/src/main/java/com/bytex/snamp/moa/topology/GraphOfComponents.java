@@ -19,10 +19,10 @@ public final class GraphOfComponents extends ConcurrentHashMap<String, Component
     private static final long serialVersionUID = 2292647118511712487L;
     private final ConcurrentLinkedHashMap<Identifier, ComponentVertex> idToVertexCache; //key is a spanID of the node
 
-    public GraphOfComponents(final long maxSpans) {
+    public GraphOfComponents(final long historySize) {
         idToVertexCache = new ConcurrentLinkedHashMap.Builder<Identifier, ComponentVertex>()
                 .concurrencyLevel(Runtime.getRuntime().availableProcessors() * 2)
-                .maximumWeightedCapacity(maxSpans)  //this setting helps to remove eldest spans from the cache
+                .maximumWeightedCapacity(historySize)  //this setting helps to remove eldest spans from the cache
                 .build();
     }
 
