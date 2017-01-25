@@ -4,6 +4,8 @@ export class Dashboard {
     public type:string = "dashboardOfCharts";
     public charts:AbstractChart[] = [];
 
+    constructor(){};
+
     public toJSON():any {
         let _value:any = {};
         _value["@type"] = this.type;

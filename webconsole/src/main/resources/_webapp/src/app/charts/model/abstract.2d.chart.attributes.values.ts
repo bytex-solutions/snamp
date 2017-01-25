@@ -37,5 +37,8 @@ export abstract class TwoDimensionalChartOfAttributeValues extends ChartOfAttrib
         if (this.getAxisX() instanceof AttributeValueAxis) {
             (<AttributeValueAxis>this.getAxisX()).sourceAttribute = sourceAttribute;
         }
+        if (this.getAxisY() instanceof AttributeValueAxis) {
+            (<AttributeValueAxis>this.getAxisY()).sourceAttribute = sourceAttribute;
+        }
     }
 }

@@ -9,7 +9,9 @@ export class AttributeValueAxis extends Axis {
         let _value:any = {};
         _value["@type"] = this.type;
         _value["name"] = this.name;
-        _value["sourceAttribute"] = this.sourceAttribute.toJSON();
+        if (_value["sourceAttribute"] != undefined) {
+            _value["sourceAttribute"] = this.sourceAttribute.toJSON();
+        }
         return _value;
     }
 }

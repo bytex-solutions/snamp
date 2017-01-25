@@ -7,11 +7,11 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
     public type:string = AbstractChart.HBAR;
 
     public createDefaultAxisX() {
-        return new InstanceNameAxis();
+        return new AttributeValueAxis();
     }
 
     public createDefaultAxisY() {
-        return new AttributeValueAxis();
+        return new InstanceNameAxis();
     }
 
     public toJSON():any {

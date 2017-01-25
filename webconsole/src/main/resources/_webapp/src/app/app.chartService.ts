@@ -26,11 +26,10 @@ export class ChartService {
                 return res.json();
             })
             .subscribe(data => {
-                console.log(data);
                 this._dashboard = new Dashboard();
-                if (data["charts"] != undefined && data["charts"].length > 0) {
-                    for (let i = 0; i < data["charts"]; i++) {
-                        this._dashboard.charts.push(Factory.chartFromJSON(data["charts"][i]));
+                if (data.charts.length > 0) {
+                    for (let i = 0; i < data.charts.length; i++) {
+                        this._dashboard.charts.push(Factory.chartFromJSON(data.charts[i]));
                     }
                 }
                 console.log(this._dashboard);
@@ -40,10 +39,6 @@ export class ChartService {
     private saveDashboard():void {
         console.log("Saving some dashboard... ");
          this._http.put(REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .map((res:Response) => {
-                console.log("Result of dashboard request is: ", res);
-                return res.json();
-            })
             .subscribe(data => {
                 console.log("Dashboard has been saved successfully");
             });
@@ -59,7 +54,9 @@ export class ChartService {
     }
 
     pushNewChartData(_data:any):void {
-        console.log("New chart data is: ", _data);
+        if (!$.isEmptyObject(_data)) {
+            console.log("New chart data is: ", _data);
+        }
     }
 
     hasChartWithName(name:string):boolean {
@@ -74,9 +71,10 @@ export class ChartService {
     }
 
     newChart(chart:AbstractChart):void {
-        if (this.hasChartWithName) {
+        if (this.hasChartWithName(chart.name)) {
             throw new Error("Chart with that name already exists!");
         } else {
+            console.log("New created chart is: ", chart);
             this._dashboard.charts.push(chart);
             this.saveDashboard();
         }

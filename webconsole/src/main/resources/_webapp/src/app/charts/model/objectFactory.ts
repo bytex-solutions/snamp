@@ -99,6 +99,7 @@ export class Factory {
             if (_json["preferences"] != undefined) {
                 _chart.preferences = _json["preferences"];
             }
+            console.log("New chart has been instantiated from the json data object: ", _chart);
             return _chart;
         }
     }
@@ -106,6 +107,7 @@ export class Factory {
     public static create2dChart(type:string, name:string, component?:string, instances?:string[],
         sourceAttribute?:AttributeInformation):AbstractChart {
             let _chart:TwoDimensionalChartOfAttributeValues;
+            type = AbstractChart.TYPE_MAPPING[type];
             switch(type) {
                 case AbstractChart.VBAR:
                     _chart = new VerticalBarChartOfAttributeValues();
