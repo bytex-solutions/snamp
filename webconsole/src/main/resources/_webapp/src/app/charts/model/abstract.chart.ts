@@ -36,13 +36,17 @@ export abstract class AbstractChart {
 
     public name:string;
     public preferences:{ [key: string]: any } = { };
-    public id:string = Guid.newGuid();
+    public id:string = GUID.newGuid();
     public chartData: ChartData[] = [];
     public abstract toJSON():any;
-    public abstract draw():void;
-    public abstract updateChart(_data:ChartData):void;
 
-    protected simplifyData():any[] = {
+    // different types of charts should be rendered in different ways
+    public abstract draw():void;
+
+    // when new value comes - we should process it. see abstract.chart.attributes.values as a default implementation
+    public abstract newValue(_data:ChartData):void;
+
+    protected simplifyData():any[] {
         let _value:any[] = [];
         for (let i = 0; i < this.chartData.length; i++) {
             _value.push(this.chartData[i].attributeValue);
@@ -52,14 +56,13 @@ export abstract class AbstractChart {
 
     public subscribeToSubject(_obs:Observable<ChartData>):void {
         _obs.subscribe((data:ChartData) => {
-            this.chartData.push(data);
-            this.updateChart(data);
+            this.newValue(data);
         });
     }
 }
 
-class Guid {
-    static newGuid() {
+class GUID {
+    static newGuid():string {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
             return "chart" + v.toString(16);

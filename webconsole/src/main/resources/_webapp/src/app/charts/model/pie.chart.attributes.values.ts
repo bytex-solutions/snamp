@@ -4,10 +4,12 @@ import { AttributeValueAxis } from './attribute.value.axis';
 import { AbstractChart } from './abstract.chart';
 import { ChartData } from './chart.data';
 
+const Chart = require('chart.js')
+
 export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.PIE;
 
-    private _chartObject:Chart = undefined;
+    private _chartObject:any = undefined;
 
     public createDefaultAxisX() {
         return new InstanceNameAxis();
@@ -17,15 +19,29 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
         return new AttributeValueAxis();
     }
 
-    public updateData(_data:ChartData):void {
-        this._chartObject.addData(_data, this.chartData.length + 1);
+    public newValue(_data:ChartData):void {
+        let _index:number = -1;
+        for (let i = 0; i < this.chartData.length; i++) {
+            if (this.chartData[i].instanceName == _data.instanceName) {
+                _index = i; // remember the index
+                this.chartData[i] = _data; // change the data
+                break;
+            }
+        }
+        if (_index == -1) {
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+            _index = this.chartData.length; // and set it to the end of the array
+            this._chartObject.addData(_data, this.chartData.length);
+        } else {
+            this._chartObject.datasets[1].points[_index].value = _data.attributeValue;
+        }
     }
 
     public draw():void {
         var _result = new Chart($("#" + this.id), {
             type: AbstractChart.CHART_TYPE_OF(this.type),
             data: {
-                labels: this.getLabels(),
+                labels: this.instances,
                 datasets: [{
                     label: (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(),
                     data: this.simplifyData(),

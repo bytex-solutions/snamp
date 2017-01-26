@@ -68,7 +68,7 @@ export class ChartService {
     pushNewChartData(_data:any):void {
         console.log("New chart data is: ", _data);
         // load data from localStorage, create one if no data exists
-        let _dataNow:any = this.localStorageService.get(this.KEY_DATA);
+        let _dataNow:any = this.getEntireChartData();
         if (_dataNow == undefined) {
             _dataNow = {};
         }
@@ -88,7 +88,23 @@ export class ChartService {
             }
 
             // append this data for this data array
-            _dataNow[_currentChartName].push(_chartData);
+            if (_chartData.chartType == AbstractChart.LINE) {
+                // in case of line - we just push the value
+                _dataNow[_currentChartName].push(_chartData)
+            } else {
+                // otherwise - we replace existent value or append it if nothing exists
+                let _found:boolean = false;
+                for (let j = 0; j < _dataNow[_currentChartName].length; j++) {
+                    if (_dataNow[_currentChartName][j].instanceName == _chartData.instanceName) {
+                        _found = true;
+                        _dataNow[_currentChartName][j] = _chartData;
+                        break;
+                    }
+                }
+                if (!_found) {
+                    _dataNow[_currentChartName].push(_chartData);
+                }
+            }
         }
 
         // save data back to localStorage
