@@ -1,11 +1,16 @@
 package com.bytex.snamp.moa.topology;
 
+import com.bytex.snamp.connector.metrics.Arrivals;
+import com.bytex.snamp.connector.metrics.ArrivalsRecorder;
 import com.bytex.snamp.instrumentation.measurements.Span;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 
+import java.time.Duration;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 
 /**
  * Represents component as a vertex in graph.
@@ -14,10 +19,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @version 2.0
  * @since 2.0
  */
-public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex> {
+public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex> implements Consumer<Span> {
     private static final long serialVersionUID = -8818600618319266377L;
     private final String componentName;
     private final Set<String> instances;
+    private final ArrivalsRecorder arrivals;
 
     ComponentVertex(final Span span) {
         componentName = span.getComponentName();
@@ -29,6 +35,25 @@ public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex
                 .build();
         this.instances = Collections.newSetFromMap(instances);
         this.instances.add(span.getInstanceName());
+        this.arrivals = new ArrivalsRecorder(componentName);
+    }
+
+    private void handleSpan(final Span span){
+        arrivals.accept(span.convertTo(Duration.class));
+    }
+
+    @Override
+    public void accept(final Span span) {
+        if(Objects.equals(getComponentName(), span.getComponentName()))
+            handleSpan(span);
+    }
+
+    /**
+     * Gets analytics about arrivals
+     * @return Analytics about arrivals.
+     */
+    public Arrivals getArrivals(){
+        return arrivals;
     }
 
     /**

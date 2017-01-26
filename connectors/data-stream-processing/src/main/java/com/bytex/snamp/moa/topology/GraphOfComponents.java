@@ -18,8 +18,10 @@ import java.util.function.Consumer;
 public final class GraphOfComponents extends ConcurrentHashMap<String, ComponentVertex> implements Consumer<Span>, Stateful {//key in map is a component name
     private static final long serialVersionUID = 2292647118511712487L;
     private final ConcurrentLinkedHashMap<Identifier, ComponentVertex> idToVertexCache; //key is a spanID of the node
-    /*UC: we have two correlated spans: A => B. Span B can be received earlier than A. In this case cache will not contain a vertex with appropriate spanID
-    and span B will be lost. To avoid this we use buffer to save spans like B.*/
+    /*
+        UC: we have two correlated spans: A => B. Span B can be received earlier than A. In this case cache will not contain a vertex with appropriate spanID
+        and span B will be lost. To avoid this we use buffer to save spans like B.
+    */
     private final ConcurrentLinkedHashMap<Identifier, Span> spanBuffer; //key is a parentSpanId
 
     public GraphOfComponents(final long historySize) {
@@ -44,10 +46,10 @@ public final class GraphOfComponents extends ConcurrentHashMap<String, Component
         //detect whether the vertex representing the component exists in the map of vertices
         ComponentVertex vertex = new ComponentVertex(span);
         vertex = MoreObjects.firstNonNull(putIfAbsent(span.getComponentName(), vertex), vertex);
-        vertex.addInstance(span.getInstanceName());
+        vertex.accept(span);
         //add a new span ID into the cache that provides O(1) search of vertex by its spanID
         if (!span.getSpanID().equals(Identifier.EMPTY)) {
-            idToVertexCache.put(span.getSpanID(), vertex);  //spanID is unqique so we sure that there is no duplicate key in the map. Eldest span will be removed automatically
+            idToVertexCache.put(span.getSpanID(), vertex);  //spanID is unique so we sure that there is no duplicate key in the map. Eldest span will be removed automatically
             //correlate buffered span with newly supplied span
             final Span childSpan = spanBuffer.remove(span.getSpanID());
             if (childSpan != null)
@@ -70,6 +72,7 @@ public final class GraphOfComponents extends ConcurrentHashMap<String, Component
     public void clear() {
         super.clear();
         idToVertexCache.clear();
+        spanBuffer.clear();
     }
 
     /**

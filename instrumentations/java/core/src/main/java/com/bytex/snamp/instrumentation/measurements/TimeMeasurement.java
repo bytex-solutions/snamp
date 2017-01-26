@@ -88,13 +88,15 @@ public class TimeMeasurement extends Measurement {
         }
     }
 
-    private Object convertTo(final String className) throws IllegalArgumentException{
-        if(className.equals("java.time.Duration"))
-            return toDuration();
-        else if(className.equals("long"))
-            return timeUnit.toNanos(duration);
-        else
-            throw new IllegalArgumentException(String.format("Conversion to type %s is not supported", className));
+    private Object convertTo(final String className) throws IllegalArgumentException {
+        switch (className) {
+            case "java.time.Duration":
+                return toDuration();
+            case "long":
+                return timeUnit.toNanos(duration);
+            default:
+                throw new IllegalArgumentException(String.format("Conversion to type %s is not supported", className));
+        }
     }
 
     @SuppressWarnings("unchecked")
