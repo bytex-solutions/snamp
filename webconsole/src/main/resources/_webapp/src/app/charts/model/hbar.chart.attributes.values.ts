@@ -2,6 +2,7 @@ import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attrib
 import { InstanceNameAxis } from './instance.axis';
 import { AttributeValueAxis } from './attribute.value.axis';
 import { AbstractChart } from './abstract.chart';
+import { ChartData } from './chart.data';
 
 export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.HBAR;
@@ -13,6 +14,9 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
     public createDefaultAxisY() {
         return new InstanceNameAxis();
     }
+
+    public draw():void {}
+    public updateChart(_data:ChartData):void {}
 
     public toJSON():any {
         let _value:any = {};

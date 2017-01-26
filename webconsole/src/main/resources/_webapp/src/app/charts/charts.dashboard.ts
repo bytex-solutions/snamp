@@ -48,6 +48,8 @@ export class Dashboard {
 
         initialized = false;
 
+        private _charts:AbstractChart[] = [];
+
 
         constructor(apiClient: ApiClient,
               overlay: Overlay,
@@ -57,6 +59,8 @@ export class Dashboard {
               private _chartService:ChartService) {
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
+
+        _charts = this._chartService.getCharts();
 
         // do not remove when dropping
         dragulaService.setOptions('first-bag', {
@@ -298,6 +302,7 @@ export class Dashboard {
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.selectedComponent,
             _instances, this.selectedMetric);
         this._chartService.newChart(chart);
+        this._charts.push(chart);
         $("#addChartModal").modal("hide");
    }
 }

@@ -2,6 +2,7 @@ import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attrib
 import { ChronoAxis } from './chrono.axis';
 import { AttributeValueAxis } from './attribute.value.axis';
 import { AbstractChart } from './abstract.chart';
+import { ChartData } from './chart.data';
 
 export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.LINE;
@@ -13,6 +14,9 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
     public createDefaultAxisY() {
         return new AttributeValueAxis();
     }
+
+    public draw():void {}
+    public updateChart(_data:ChartData):void {}
 
     public toJSON():any {
         let _value:any = {};

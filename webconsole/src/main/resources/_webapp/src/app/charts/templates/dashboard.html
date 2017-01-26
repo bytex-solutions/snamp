@@ -153,6 +153,15 @@
 
       <div class='container col-md-12' [dragula]='"first-bag"' style="min-height: 400px;">
 
+        <div class="row">
+          <panel
+                  *ngFor="let chart of _charts"
+                  [header]="chart.name"
+                  [column]="'3'">
+            <canvas [attr.id]="chart.id"></canvas>
+            {{chart.draw()}}
+          </panel>
+        </div>
       </div>
 
     </div>

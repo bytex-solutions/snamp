@@ -13,11 +13,22 @@ import { ChartData } from './charts/model/chart.data';
 @Injectable()
 export class ChartService {
     private MAX_SIZE:number = 10000;
-    private SPLICE_COUNT:number = 30; // how many elements will we delete from the end of the array
+    private SPLICE_COUNT:number = 30; // h  ow many elements will we delete from the end of the array
     private RECENT_COUNT:number = 15; // default count of the recent message
     private KEY_DATA:string = "snampChartData";
     private _dashboard:Dashboard;
     private chartSubjects:{ [key:string]: Subject<ChartData> } = {};
+
+    constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
+          this.loadDashboard();
+          if (this.localStorageService.get(this.KEY_DATA) == undefined) {
+               this.localStorageService.set(this.KEY_DATA, {});
+          }
+    }
+
+    public getCharts():AbstractChart[] {
+        return this._dashboard.charts;
+    }
 
     private loadDashboard():void {
         console.log("Loading some dashboard...");
@@ -52,13 +63,6 @@ export class ChartService {
             .subscribe(data => {
                 console.log("Dashboard has been saved successfully");
             });
-    }
-
-    constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
-          this.loadDashboard();
-          if (this.localStorageService.get(this.KEY_DATA) == undefined) {
-               this.localStorageService.set(this.KEY_DATA, {});
-          }
     }
 
     pushNewChartData(_data:any):void {
