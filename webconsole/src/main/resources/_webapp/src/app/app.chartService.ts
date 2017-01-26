@@ -29,11 +29,17 @@ export class ChartService {
             .subscribe(data => {
                 this._dashboard = new Dashboard();
                 this.chartSubjects = {};
+                let _chartData:{ [key:string]: ChartData[] } = this.getEntireChartData();
                 if (data.charts.length > 0) {
                     for (let i = 0; i < data.charts.length; i++) {
                         let _currentChart:AbstractChart = Factory.chartFromJSON(data.charts[i]);
-                        this._dashboard.charts.push(_currentChart);
                         this.chartSubjects[_currentChart.name] = new Subject<ChartData>();
+                        // append the existent chart data from LC to chart from the backend
+                        if (_chartData != undefined && _chartData[_currentChart.name] != undefined) {
+                            _currentChart.chartData = _chartData[_currentChart.name];
+                        }
+                        _currentChart.subscribeToSubject(this.chartSubjects[_currentChart.name]);
+                        this._dashboard.charts.push(_currentChart);
                     }
                 }
                 console.log(this._dashboard);
@@ -103,6 +109,7 @@ export class ChartService {
             console.log("New created chart is: ", chart);
             this._dashboard.charts.push(chart);
             this.chartSubjects[chart.name] = new Subject<ChartData>();
+            chart.subscribeToSubject(this.chartSubjects[chart.name]);
             this.saveDashboard();
         }
     }
@@ -110,11 +117,25 @@ export class ChartService {
     removeChart(chartName:string):void {
         for (let i = 0; i < this._dashboard.charts.length; i++ ) {
             if (this._dashboard.charts[i].name == chartName) {
+
+                // remove the chart from the dashboard
                 this._dashboard.charts.splice(i, 1);
+
+                // nullify the corresppnding subject
+                this.chartSubjects[chartName] = undefined;
+
+                // remove localStorage data for this chart
+                let _dataLC:any = this.localStorageService.get(this.KEY_DATA);
+                if (_dataLC != undefined && _dataLC[chartName] != undefined) {
+                    _dataLC[chartName] = undefined;
+                    this.localStorageService.set(this.KEY_DATA, _dataLC);
+                }
+
+                // save the dashboard
+                this.saveDashboard();
                 return;
             }
         }
-
         throw new Error("Could not find a chart " + chartName);
     }
 
@@ -126,7 +147,7 @@ export class ChartService {
         }
     }
 
-    getEntireChartData():any {
+    getEntireChartData():{ [key:string]: ChartData[] } {
         let _object:any = this.localStorageService.get(this.KEY_DATA);
         let _value:{ [key:string]: ChartData[] } = {};
         if (_object != undefined) {

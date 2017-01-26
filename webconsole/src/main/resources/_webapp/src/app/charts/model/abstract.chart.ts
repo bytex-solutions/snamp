@@ -1,3 +1,6 @@
+import { ChartData } from './chart.data';
+import { Observable } from 'rxjs/Observable';
+
 export abstract class AbstractChart {
     public static VBAR:string = "verticalBarChartOfAttributeValues";
     public static PIE:string = "pieChartOfAttributeValues";
@@ -33,6 +36,12 @@ export abstract class AbstractChart {
 
     public name:string;
     public preferences:{ [key: string]: any } = { };
-
+    public chartData: ChartData[] = [];
     public abstract toJSON():any;
+
+    public subscribeToSubject(_obs:Observable<ChartData>):void {
+        _obs.subscribe((data:ChartData) => {
+            this.chartData.push(data);
+        });
+    }
 }
