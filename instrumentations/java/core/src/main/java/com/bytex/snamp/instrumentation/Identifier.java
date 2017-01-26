@@ -164,7 +164,7 @@ public final class Identifier implements Serializable {
 
     @Override
     public boolean equals(final Object other) {
-        return other == this || other instanceof Identifier && equals((Identifier) other);
+        return other instanceof Identifier && equals((Identifier) other);
     }
 
     @Override
