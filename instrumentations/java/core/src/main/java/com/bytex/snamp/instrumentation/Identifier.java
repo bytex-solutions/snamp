@@ -43,18 +43,34 @@ public final class Identifier implements Serializable {
         this(new char[0], false);
     }
 
-    private static SecureRandom getSecureRandom(){
-        return SecureRandomHolder.INSTANCE;
-    }
-
     /**
      * Generates a new unique identifier.
      * @return A new unique identifier.
      */
-    public static Identifier randomID(){
-        final byte[] randomBytes = new byte[16];
-        getSecureRandom().nextBytes(randomBytes);
-        return ofBytes(randomBytes);
+    public static Identifier randomID() {
+        return randomID(16);
+    }
+
+    /**
+     * Generates a new unique identifier.
+     * @param bytes Number of random bytes used to create identifier.
+     * @return A new unique identifier.
+     */
+    public static Identifier randomID(final int bytes) {
+        switch (bytes){
+            case 4:
+                return ofLong(SecureRandomHolder.INSTANCE.nextInt());
+            case 8:
+                return ofLong(SecureRandomHolder.INSTANCE.nextLong());
+            case 1:
+                byte[] randomBytes = new byte[1];
+                SecureRandomHolder.INSTANCE.nextBytes(randomBytes);
+                return ofString(Byte.toString(randomBytes[0]));
+            default:
+                randomBytes = new byte[bytes];
+                SecureRandomHolder.INSTANCE.nextBytes(randomBytes);
+                return ofBytes(randomBytes);
+        }
     }
 
     /**

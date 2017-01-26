@@ -6,6 +6,8 @@ import com.bytex.snamp.instrumentation.measurements.Span;
 import com.google.common.base.MoreObjects;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -15,7 +17,7 @@ import java.util.function.Consumer;
  * @version 2.0
  * @since 2.0
  */
-public final class GraphOfComponents extends ConcurrentHashMap<String, ComponentVertex> implements Consumer<Span>, Stateful {//key in map is a component name
+public final class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId, ComponentVertex> implements Consumer<Span>, Stateful {//key in map is a component name
     private static final long serialVersionUID = 2292647118511712487L;
     private final ConcurrentLinkedHashMap<Identifier, ComponentVertex> idToVertexCache; //key is a spanID of the node
     /*
@@ -23,6 +25,8 @@ public final class GraphOfComponents extends ConcurrentHashMap<String, Component
         and span B will be lost. To avoid this we use buffer to save spans like B.
     */
     private final ConcurrentLinkedHashMap<Identifier, Span> spanBuffer; //key is a parentSpanId
+
+    private final Set<String> allowedComponents;
 
     public GraphOfComponents(final long historySize) {
         final int concurrencyLevel = Runtime.getRuntime().availableProcessors() * 2;
@@ -34,6 +38,17 @@ public final class GraphOfComponents extends ConcurrentHashMap<String, Component
                 .concurrencyLevel(concurrencyLevel)
                 .maximumWeightedCapacity(historySize)
                 .build();
+        allowedComponents = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    }
+
+    /**
+     * Gets mutable set of allowed components.
+     * <p>
+     *     These components are used as a filter for input spans.
+     * @return Mutable set of allowed components.
+     */
+    public Set<String> getAllowedComponents(){
+        return allowedComponents;
     }
 
     /**
@@ -43,9 +58,12 @@ public final class GraphOfComponents extends ConcurrentHashMap<String, Component
      */
     @Override
     public void accept(final Span span) {
+        //drop span if its source is not allowed
+        if(!allowedComponents.contains(span.getComponentName()))
+            return;
         //detect whether the vertex representing the component exists in the map of vertices
         ComponentVertex vertex = new ComponentVertex(span);
-        vertex = MoreObjects.firstNonNull(putIfAbsent(span.getComponentName(), vertex), vertex);
+        vertex = MoreObjects.firstNonNull(putIfAbsent(vertex.getId(), vertex), vertex);
         vertex.accept(span);
         //add a new span ID into the cache that provides O(1) search of vertex by its spanID
         if (!span.getSpanID().equals(Identifier.EMPTY)) {

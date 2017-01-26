@@ -94,22 +94,19 @@ final class ZipkinConnector extends DataStreamConnector implements AsyncSpanCons
 
     /**
      * Creates a new notification parser.
-     *
-     * @param resourceName Resource name.
-     * @param parameters   Set of parameters that may be used by notification parser.
      * @return A new instance of notification parser.
      */
     @Override
-    protected GroovyNotificationParser createNotificationParser(final String resourceName, final ManagedResourceInfo parameters) {
+    protected GroovyNotificationParser createNotificationParser() {
         return callUnchecked(() -> {
             final ZipkinConnectorConfigurationDescriptionProvider parametersParser = ZipkinConnectorConfigurationDescriptionProvider.getInstance();
-            final URL[] scriptPath = parametersParser.parseScriptPath(parameters);
-            final boolean useServiceNameAsInstanceName = parametersParser.useServiceNameAsInstanceName(parameters);
-            final GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, parameters, true, scriptPath);
-            final String scriptName = parametersParser.parseScriptFile(parameters);
+            final URL[] scriptPath = parametersParser.parseScriptPath(getConfiguration());
+            final boolean useServiceNameAsInstanceName = parametersParser.useServiceNameAsInstanceName(getConfiguration());
+            final GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, getConfiguration(), true, scriptPath);
+            final String scriptName = parametersParser.parseScriptFile(getConfiguration());
             final GroovyNotificationParser parser = loader.createScript(scriptName, new Binding());
-            parser.setComponentName(parameters.getGroupName());
-            parser.setInstanceName(resourceName);
+            parser.setComponentName(getComponentName());
+            parser.setInstanceName(getInstanceName());
             parser.setProperty("useServiceNameAsInstanceName", useServiceNameAsInstanceName);
             return parser;
         });

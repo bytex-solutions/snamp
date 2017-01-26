@@ -27,18 +27,18 @@ final class HttpAcceptor extends DataStreamConnector {
     }
 
     @Override
-    protected GroovyNotificationParser createNotificationParser(final String resourceName, final ManagedResourceInfo parameters) {
+    protected GroovyNotificationParser createNotificationParser() {
         return callUnchecked(() -> {
-            final URL[] path = HttpConnectorConfigurationDescriptionProvider.getInstance().parseScriptPath(parameters);
+            final URL[] path = HttpConnectorConfigurationDescriptionProvider.getInstance().parseScriptPath(getConfiguration());
             //load standard HTTP parser for measurements
-            GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, parameters, true, path);
+            GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, getConfiguration(), true, path);
             final GroovyNotificationParser mainParser = loader.createScript("MeasurementParser.groovy", new Binding());
             //load user-defined parser
-            final String scriptFile = HttpConnectorConfigurationDescriptionProvider.getInstance().parseScriptFile(parameters);
+            final String scriptFile = HttpConnectorConfigurationDescriptionProvider.getInstance().parseScriptFile(getConfiguration());
             if (!isNullOrEmpty(scriptFile))   //user-defined parser as fallback parser
                 mainParser.setFallbackParser(loader.createScript(scriptFile, new Binding()));
-            mainParser.setInstanceName(resourceName);
-            mainParser.setComponentName(parameters.getGroupName());
+            mainParser.setInstanceName(getInstanceName());
+            mainParser.setComponentName(getComponentName());
             return mainParser;
         });
     }

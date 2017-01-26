@@ -46,7 +46,7 @@ public final class Span extends TimeMeasurement {
      * @return Reporting module inside of this application.
      */
     @JsonProperty("mn")
-    public String getModule(){
+    public String getModuleName(){
         return subsystemName;
     }
 
@@ -54,7 +54,7 @@ public final class Span extends TimeMeasurement {
      * Sets module inside of the reporting application which reports this span.
      * @param name Name of the module. Cannot be {@literal null}.
      */
-    public void setModule(final String name) {
+    public void setModuleName(final String name) {
         if (name == null)
             throw new IllegalArgumentException();
         else

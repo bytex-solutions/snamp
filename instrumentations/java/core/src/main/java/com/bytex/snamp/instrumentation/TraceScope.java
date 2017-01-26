@@ -109,7 +109,7 @@ public abstract class TraceScope implements MeasurementScope {
         if (annotations != null)
             s.addAnnotations(annotations);
         s.setSpanID(spanID);
-        s.setModule(moduleName);
+        s.setModuleName(moduleName);
         s.setCorrelationID(getCorrelationID());
         s.setDuration(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
         //pop scope

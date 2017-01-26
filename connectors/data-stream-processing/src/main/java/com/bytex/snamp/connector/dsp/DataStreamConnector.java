@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents abstract class for stream-driven resource connector.
@@ -51,14 +52,16 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
      * Represents thread pool for parallel operations.
      */
     protected final ExecutorService threadPool;
+    private final String instanceName;
 
     protected DataStreamConnector(final String resourceName,
                                   final ManagedResourceInfo configuration,
                                   final DataStreamDrivenConnectorConfigurationDescriptionProvider descriptor) {
         super(configuration);
+        instanceName = resourceName;
         threadPool = descriptor.parseThreadPool(configuration);
         //init parser
-        notificationParser = createNotificationParser(resourceName, configuration);
+        notificationParser = createNotificationParser();
         assert notificationParser != null;
         //init attributes
         attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(configuration));
@@ -73,6 +76,15 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
         sequenceNumberProvider = DistributedServices.getDistributedCounter(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName));
+    }
+
+    protected String getInstanceName(){
+        return instanceName;
+    }
+
+    protected String getComponentName() {
+        final String groupName = getConfiguration().getGroupName();
+        return isNullOrEmpty(groupName) ? getInstanceName() : groupName;
     }
 
     @Override
@@ -146,12 +158,9 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
 
     /**
      * Creates a new notification parser.
-     * @param resourceName Resource name.
-     * @param configuration Set of parameters that may be used by notification parser.
      * @return A new instance of notification parser.
      */
-    protected abstract NotificationParser createNotificationParser(final String resourceName,
-                                                                   final ManagedResourceInfo configuration);
+    protected abstract NotificationParser createNotificationParser();
 
     /**
      * Creates a new instance of repository for attributes.
