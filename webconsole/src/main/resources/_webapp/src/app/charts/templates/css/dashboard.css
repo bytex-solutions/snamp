@@ -45,6 +45,7 @@ select.form-control:not([size]):not([multiple]) {
 #chartMenu li {
     cursor: pointer;
     margin-bottom: 15px;
+    margin-right: 5px;
 }
 
 #chartMenu li i {

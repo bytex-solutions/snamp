@@ -8,15 +8,16 @@ import { ApiClient, REST } from './app.restClient';
 import { Dashboard } from './charts/model/dashboard';
 import { AbstractChart } from './charts/model/abstract.chart';
 import { Factory } from './charts/model/objectFactory';
+import { ChartData } from './charts/model/chart.data';
 
 @Injectable()
 export class ChartService {
-    private MAX_SIZE:number = 1000;
+    private MAX_SIZE:number = 10000;
     private SPLICE_COUNT:number = 30; // how many elements will we delete from the end of the array
     private RECENT_COUNT:number = 15; // default count of the recent message
-    private KEY:string = "snampCharts";
-    private chartObs:Subject<Dashboard>;
+    private KEY_DATA:string = "snampChartData";
     private _dashboard:Dashboard;
+    private chartSubjects:{ [key:string]: Subject<ChartData> } = {};
 
     private loadDashboard():void {
         console.log("Loading some dashboard...");
@@ -27,9 +28,12 @@ export class ChartService {
             })
             .subscribe(data => {
                 this._dashboard = new Dashboard();
+                this.chartSubjects = {};
                 if (data.charts.length > 0) {
                     for (let i = 0; i < data.charts.length; i++) {
-                        this._dashboard.charts.push(Factory.chartFromJSON(data.charts[i]));
+                        let _currentChart:AbstractChart = Factory.chartFromJSON(data.charts[i]);
+                        this._dashboard.charts.push(_currentChart);
+                        this.chartSubjects[_currentChart.name] = new Subject<ChartData>();
                     }
                 }
                 console.log(this._dashboard);
@@ -45,18 +49,40 @@ export class ChartService {
     }
 
     constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
-          this.chartObs = new Subject<Dashboard>();
           this.loadDashboard();
-    }
-
-    getChartObs():Observable<Dashboard> {
-        return this.chartObs.asObservable().share();
+          if (this.localStorageService.get(this.KEY_DATA) == undefined) {
+               this.localStorageService.set(this.KEY_DATA, {});
+          }
     }
 
     pushNewChartData(_data:any):void {
-        if (!$.isEmptyObject(_data)) {
-            console.log("New chart data is: ", _data);
+        console.log("New chart data is: ", _data);
+        // load data from localStorage, create one if no data exists
+        let _dataNow:any = this.localStorageService.get(this.KEY_DATA);
+        if (_dataNow == undefined) {
+            _dataNow = {};
         }
+        // loop through all the data we have received
+        for (var _currentChartName in _data) {
+            // create a chart
+            let _chartData:ChartData = ChartData.fromJSON(_data[_currentChartName]);
+
+            // notify all the components that something has changed
+            if (this.chartSubjects[_currentChartName] != undefined) {
+                this.chartSubjects[_currentChartName].next(_chartData);
+            }
+
+            // check if our localStorage contains the data for this chart
+            if (_dataNow[_currentChartName] == undefined) {
+                _dataNow[_currentChartName] = [];
+            }
+
+            // append this data for this data array
+            _dataNow[_currentChartName].push(_chartData);
+        }
+
+        // save data back to localStorage
+        this.localStorageService.set(this.KEY_DATA, _dataNow);
     }
 
     hasChartWithName(name:string):boolean {
@@ -76,7 +102,44 @@ export class ChartService {
         } else {
             console.log("New created chart is: ", chart);
             this._dashboard.charts.push(chart);
+            this.chartSubjects[chart.name] = new Subject<ChartData>();
             this.saveDashboard();
         }
+    }
+
+    removeChart(chartName:string):void {
+        for (let i = 0; i < this._dashboard.charts.length; i++ ) {
+            if (this._dashboard.charts[i].name == chartName) {
+                this._dashboard.charts.splice(i, 1);
+                return;
+            }
+        }
+
+        throw new Error("Could not find a chart " + chartName);
+    }
+
+    getObservableForChart(name:string):Observable<ChartData> {
+        if (this.chartSubjects[name] != undefined) {
+            return this.chartSubjects[name].asObservable().share();
+        } else {
+            throw new Error("Cannot find any subject for chart " + name);
+        }
+    }
+
+    getEntireChartData():any {
+        let _object:any = this.localStorageService.get(this.KEY_DATA);
+        let _value:{ [key:string]: ChartData[] } = {};
+        if (_object != undefined) {
+            for (var _element in _object) {
+                let _newChartDataArray:ChartData[] = [];
+                if (_object[_element] instanceof Array) {
+                    for (let i = 0; i < _object[_element].length; i++) {
+                        _newChartDataArray.push(ChartData.fromJSON(_object[_element][i]));
+                    }
+                }
+                _value[_element] = _newChartDataArray;
+            }
+        }
+        return _value;
     }
 }
