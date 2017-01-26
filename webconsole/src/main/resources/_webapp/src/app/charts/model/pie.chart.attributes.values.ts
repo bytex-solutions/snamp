@@ -38,7 +38,10 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
     }
 
     public draw():void {
-        var _result = new Chart($("#" + this.id), {
+        var ctx = $("#" + this.id);
+        console.log("Prepared chart data: ", AbstractChart.CHART_TYPE_OF(this.type), this.instances,
+            (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(), this.simplifyData());
+        var _result = new Chart(ctx, {
             type: AbstractChart.CHART_TYPE_OF(this.type),
             data: {
                 labels: this.instances,
