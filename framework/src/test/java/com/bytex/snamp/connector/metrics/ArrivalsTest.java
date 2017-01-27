@@ -36,11 +36,12 @@ public final class ArrivalsTest extends Assert {
     @Test
     public void availabilityTest() throws InterruptedException {
         final ArrivalsRecorder recorder = new ArrivalsRecorder("testGauge");
+        recorder.setChannels(1);
         recorder.accept(Duration.ofSeconds(1L));
         recorder.accept(Duration.ofSeconds(1L));
         recorder.accept(Duration.ofSeconds(2L));
         Thread.sleep(1001);
-        final double avail = recorder.getMeanAvailability(MetricsInterval.SECOND, 1) * 100;
+        final double avail = recorder.getMeanAvailability(MetricsInterval.SECOND) * 100;
         assertTrue(avail > 20D);
         assertTrue(avail < 25D);
     }

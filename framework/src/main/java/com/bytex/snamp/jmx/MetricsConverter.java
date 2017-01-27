@@ -1037,31 +1037,30 @@ public final class MetricsConverter {
         return fields.build();
     }
 
-    private static void fillArrivals(final Arrivals arrivals, final CompositeDataBuilder output, final long channels){
+    private static void fillArrivals(final Arrivals arrivals, final CompositeDataBuilder output){
         fillTimer(arrivals, output);
         fillRate(arrivals, output);
         output
                 .put(EFFICIENCY_FIELD, arrivals.getEfficiency())
                 .put(CORRELATION_FIELD, arrivals.getCorrelation())
-                .put(MEAN_AVAILABILITY_LAST_SECOND_FIELD, arrivals.getMeanAvailability(MetricsInterval.SECOND, channels))
-                .put(MEAN_AVAILABILITY_LAST_MINUTE_FIELD, arrivals.getMeanAvailability(MetricsInterval.MINUTE, channels))
-                .put(MEAN_AVAILABILITY_LAST_5_MINUTES_FIELD, arrivals.getMeanAvailability(MetricsInterval.FIVE_MINUTES, channels))
-                .put(MEAN_AVAILABILITY_LAST_15_MINUTES_FIELD, arrivals.getMeanAvailability(MetricsInterval.FIFTEEN_MINUTES, channels))
-                .put(MEAN_AVAILABILITY_LAST_HOUR_FIELD, arrivals.getMeanAvailability(MetricsInterval.HOUR, channels))
-                .put(MEAN_AVAILABILITY_LAST_12_HOURS_FIELD, arrivals.getMeanAvailability(MetricsInterval.TWELVE_HOURS, channels))
-                .put(MEAN_AVAILABILITY_LAST_DAY_FIELD, arrivals.getMeanAvailability(MetricsInterval.DAY, channels))
-                .put(INSTANT_AVAILABILITY_FIELD, arrivals.getInstantAvailability(channels));
+                .put(MEAN_AVAILABILITY_LAST_SECOND_FIELD, arrivals.getMeanAvailability(MetricsInterval.SECOND))
+                .put(MEAN_AVAILABILITY_LAST_MINUTE_FIELD, arrivals.getMeanAvailability(MetricsInterval.MINUTE))
+                .put(MEAN_AVAILABILITY_LAST_5_MINUTES_FIELD, arrivals.getMeanAvailability(MetricsInterval.FIVE_MINUTES))
+                .put(MEAN_AVAILABILITY_LAST_15_MINUTES_FIELD, arrivals.getMeanAvailability(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MEAN_AVAILABILITY_LAST_HOUR_FIELD, arrivals.getMeanAvailability(MetricsInterval.HOUR))
+                .put(MEAN_AVAILABILITY_LAST_12_HOURS_FIELD, arrivals.getMeanAvailability(MetricsInterval.TWELVE_HOURS))
+                .put(MEAN_AVAILABILITY_LAST_DAY_FIELD, arrivals.getMeanAvailability(MetricsInterval.DAY))
+                .put(INSTANT_AVAILABILITY_FIELD, arrivals.getInstantAvailability());
     }
 
     /**
      * Converts {@link Arrivals} into {@link CompositeData}.
      * @param arrivals Arrivals collector to convert. Cannot be {@literal null}.
-     * @param channels Number of receiving channels used to compute mean and instant availability of these channels.
      * @return A {@link CompositeData} which contains data from arrivals collector.
      */
-    public static CompositeData fromArrivals(final Arrivals arrivals, final long channels){
+    public static CompositeData fromArrivals(final Arrivals arrivals){
         final CompositeDataBuilder fields = new CompositeDataBuilder(ARRIVALS_TYPE);
-        fillArrivals(arrivals, fields, channels);
+        fillArrivals(arrivals, fields);
         return fields.build();
     }
 }

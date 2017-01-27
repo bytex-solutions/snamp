@@ -20,16 +20,18 @@ final class ArrivalsAttribute extends MetricHolderAttribute<ArrivalsRecorder, Ti
     static final CompositeType TYPE = ARRIVALS_TYPE;
     static final String NAME = "arrivals";
     private static final long serialVersionUID = -5234028741040752357L;
-    private final long channels;
 
     ArrivalsAttribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
-        super(TimeMeasurementNotification.class, name, TYPE, descriptor, ArrivalsRecorder::new);
-        channels = DataStreamDrivenConnectorConfigurationDescriptionProvider.parseChannels(descriptor);
+        super(TimeMeasurementNotification.class, name, TYPE, descriptor, metricName -> {
+            final ArrivalsRecorder recorder = new ArrivalsRecorder(metricName);
+            recorder.setChannels(DataStreamDrivenConnectorConfigurationDescriptionProvider.parseChannels(descriptor));
+            return recorder;
+        });
     }
 
     @Override
     CompositeData getValue(final ArrivalsRecorder metric) {
-        return fromArrivals(metric, channels);
+        return fromArrivals(metric);
     }
 
     @Override

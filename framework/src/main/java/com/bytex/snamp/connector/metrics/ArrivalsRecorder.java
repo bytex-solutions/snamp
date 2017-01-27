@@ -14,13 +14,15 @@ import java.time.Instant;
  * @see <a href="https://en.wikipedia.org/wiki/M/M/1_queue">M/M/1 queue</a>
  */
 public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrivals {
-    private static final double NANOS_IN_SECOND = 1_000_000_000D;
+    private static final double NANOS_IN_SECOND = Duration.ofSeconds(1L).toNanos();
     private static final long serialVersionUID = 6146322787615499495L;
     private final Correlation rpsAndTimeCorrelation;  //correlation between rps and response time.
+    private long channels;
 
     public ArrivalsRecorder(final String name, final int samplingSize){
         super(name, samplingSize, NANOS_IN_SECOND);
         rpsAndTimeCorrelation = new Correlation();
+        channels = 1;
     }
 
     public ArrivalsRecorder(final String name){
@@ -30,6 +32,17 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
     private ArrivalsRecorder(final ArrivalsRecorder source){
         super(source);
         rpsAndTimeCorrelation = source.rpsAndTimeCorrelation.clone();
+    }
+
+    @Override
+    public long getChannels() {
+        return channels;
+    }
+
+    public void setChannels(final long value){
+        if(value < 1)
+            throw new IllegalArgumentException("Number of channels cannot be less than 1");
+        channels = value;
     }
 
     @Override
@@ -80,12 +93,12 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
     }
 
     @Override
-    public double getMeanAvailability(final MetricsInterval interval, final long channels){
+    public double getMeanAvailability(final MetricsInterval interval){
         return getAvailability(getMeanRate(interval), toSeconds(getMeanValue()), channels);
     }
 
     @Override
-    public double getInstantAvailability(final long channels){
+    public double getInstantAvailability(){
         return getAvailability(getLastRate(MetricsInterval.SECOND), toSeconds(getLastValue()), channels);
     }
 

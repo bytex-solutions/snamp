@@ -181,11 +181,12 @@ public final class MetricsConverterTest extends Assert {
     @Test
     public void arrivalsConversion() throws InterruptedException {
         final ArrivalsRecorder recorder = new ArrivalsRecorder("testGauge");
+        recorder.setChannels(1);
         recorder.accept(Duration.ofSeconds(1L));
         recorder.accept(Duration.ofSeconds(1L));
         recorder.accept(Duration.ofSeconds(2L));
         Thread.sleep(1001);
-        final CompositeData data = MetricsConverter.fromArrivals(recorder, 1);
+        final CompositeData data = MetricsConverter.fromArrivals(recorder);
         final double avail = getDouble(data, "meanAvailabilityLastSecond", Double.NaN) * 100;
         assertTrue(avail > 20D);
     }
