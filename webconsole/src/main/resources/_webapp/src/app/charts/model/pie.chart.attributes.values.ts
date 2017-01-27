@@ -20,6 +20,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
     }
 
     public newValue(_data:ChartData):void {
+        console.log("new data arrived: ", _data);
         let _index:number = -1;
         for (let i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].instanceName == _data.instanceName) {
@@ -39,7 +40,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
 
     public draw():any    {
         var ctx = $("#" + this.id);
-        console.log("Prepared chart data: ", AbstractChart.CHART_TYPE_OF(this.type), this.instances,
+        console.log("Prepared chart data: ", ctx, AbstractChart.CHART_TYPE_OF(this.type), this.instances,
             (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(), this.simplifyData());
         var _result = new Chart(ctx, {
             type: AbstractChart.CHART_TYPE_OF(this.type),

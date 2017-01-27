@@ -68,7 +68,6 @@ export class Dashboard {
 
         dragulaService.drop.subscribe((value) => {
            this.selectedChartType = $(value[1]).attr("data-chart-type");
-           $("#chartArea li.removable").remove();
            this.initModal();
         });
    }
@@ -125,6 +124,10 @@ export class Dashboard {
         var _thisReference = this;
         $(document).ready(function(){
              _thisReference.initWizard();
+             let ch:any = _thisReference._charts;
+             for (let i = 0; i < ch.length; i++) {
+                ch[i].draw();
+             }
         });
    }
 
@@ -251,8 +254,12 @@ export class Dashboard {
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.selectedComponent,
             _instances, this.selectedMetric);
         this._chartService.newChart(chart);
-        this._charts.push(chart);
         $("#addChartModal").modal("hide");
+
+         setTimeout(function() {
+            $("#chartArea li.removable").remove();
+            chart.draw();
+         }, 500);
    }
 }
 
