@@ -32,10 +32,11 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
         if (_index == -1) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
             _index = this.chartData.length; // and set it to the end of the array
-            this._chartObject.addData(_data, this.chartData.length);
-        } else {
-            this._chartObject.datasets[1].points[_index].value = _data.attributeValue;
         }
+
+        console.log(this._chartObject.data);
+        this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
+        this._chartObject.update();
     }
 
     public draw():any    {
