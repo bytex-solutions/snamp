@@ -81,7 +81,23 @@
               </div>
             </div>
 
-            <div id="metric" class="row" style="margin-top: 100px;">
+            <div id="metric" class="row" style="margin-top: 10px;">
+              <div class="bs-example" data-example-id="simple-jumbotron" *ngIf="selectedMetric != undefined">
+                <div class="jumbotron">
+                  <p>
+                    <strong>Name: </strong>{{selectedMetric.name}}
+                  </p>
+                  <p *ngIf="selectedMetric.type != undefined && selectedMetric.type.length > 0">
+                    <strong>Type: </strong>{{selectedMetric.type}}
+                  </p>
+                  <p *ngIf="selectedMetric.unitOfMeasurement != undefined && selectedMetric.unitOfMeasurement.length > 0">
+                    <strong>Unit of measurement: </strong>{{selectedMetric.unitOfMeasurement}}
+                  </p>
+                  <p *ngIf="selectedMetric.description != undefined && selectedMetric.description.length > 0">
+                    <strong>Description: </strong>{{selectedMetric.description}}
+                  </p>
+                </div>
+              </div>
               <div class="item form-group">
                 <label
                         class="control-label col-md-3 col-sm-3 col-xs-12"

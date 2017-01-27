@@ -61,3 +61,11 @@ select.form-control:not([size]):not([multiple]) {
 #chartMenu li:last-child {
     margin-bottom: 0;
 }
+
+.jumbotron {
+    padding: 15px !important;
+}
+
+.jumbotron p {
+    font-size: 17px !important;
+}
