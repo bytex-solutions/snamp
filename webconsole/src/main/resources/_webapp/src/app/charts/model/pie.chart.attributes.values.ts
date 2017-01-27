@@ -32,12 +32,13 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
             this.chartData.push(_data); // if no data with this instance is found - append it to array
             _index = this.chartData.length - 1; // and set it to the end of the array
         }
-        console.log(this._chartObject.data);
-        this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
-        this._chartObject.update();
+        if (this._chartObject != undefined) {
+            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
+            this._chartObject.update();
+        }
     }
 
-    public draw():any    {
+    public draw():void    {
         var ctx = $("#" + this.id);
         console.log("Prepared chart data: ", ctx, AbstractChart.CHART_TYPE_OF(this.type), this.instances,
             (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(), this.simplifyData());
@@ -53,7 +54,6 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
             }
         });
         this._chartObject = _result;
-        return undefined;
     }
 
     public toJSON():any {

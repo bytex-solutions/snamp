@@ -4,8 +4,12 @@ import { AttributeValueAxis } from './attribute.value.axis';
 import { AbstractChart } from './abstract.chart';
 import { ChartData } from './chart.data';
 
+const Chart = require('chart.js')
+
 export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.LINE;
+
+    private _chartObject:any = undefined;
 
     public createDefaultAxisX() {
         return new ChronoAxis();
@@ -15,8 +19,32 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
         return new AttributeValueAxis();
     }
 
-    public draw():any {}
-    public updateChart(_data:ChartData):void {}
+    public newValue(_data:ChartData):void {
+        this.chartData.push(_data);
+        let _index:number = this.chartData.length - 1;
+        if (this._chartObject != undefined) {
+            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
+            this._chartObject.update();
+        }
+    }
+
+    public draw():void    {
+        var ctx = $("#" + this.id);
+        console.log("Prepared chart data: ", ctx, AbstractChart.CHART_TYPE_OF(this.type), this.instances,
+            (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(), this.simplifyData());
+        var _result = new Chart(ctx, {
+            type: AbstractChart.CHART_TYPE_OF(this.type),
+            data: {
+                labels: this.instances,
+                datasets: [{
+                    label: (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(),
+                    data: this.simplifyData(),
+                    borderWidth: 1
+                }]
+            }
+        });
+        this._chartObject = _result;
+    }
 
     public toJSON():any {
         let _value:any = {};

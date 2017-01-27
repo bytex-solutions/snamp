@@ -15,7 +15,7 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         return new AttributeValueAxis();
     }
 
-    public draw():any {}
+    public draw():void {}
     public updateChart(_data:ChartData):void {}
 
     public toJSON():any {
