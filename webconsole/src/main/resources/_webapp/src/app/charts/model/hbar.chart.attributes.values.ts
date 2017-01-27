@@ -15,7 +15,7 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
         return new InstanceNameAxis();
     }
 
-    public draw():void {}
+    public draw():any {}
     public updateChart(_data:ChartData):void {}
 
     public toJSON():any {

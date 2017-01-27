@@ -37,7 +37,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
         }
     }
 
-    public draw():void {
+    public draw():any    {
         var ctx = $("#" + this.id);
         console.log("Prepared chart data: ", AbstractChart.CHART_TYPE_OF(this.type), this.instances,
             (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(), this.simplifyData());
@@ -62,6 +62,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
             }
         });
         this._chartObject = _result;
+        return undefined;
     }
 
     public toJSON():any {

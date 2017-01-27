@@ -68,7 +68,7 @@ export class Dashboard {
 
         dragulaService.drop.subscribe((value) => {
            this.selectedChartType = $(value[1]).attr("data-chart-type");
-           $("#chartArea").find('.removable').remove();
+           $("#chartArea li.removable").remove();
            this.initModal();
         });
    }

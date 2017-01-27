@@ -15,7 +15,7 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
         return new AttributeValueAxis();
     }
 
-    public draw():void {}
+    public draw():any {}
     public updateChart(_data:ChartData):void {}
 
     public toJSON():any {

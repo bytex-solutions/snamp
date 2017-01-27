@@ -23,7 +23,7 @@ export abstract class AbstractChart {
         let _value:string = "";
         for (let key in AbstractChart.TYPE_MAPPING) {
             if (AbstractChart.TYPE_MAPPING[key] == name) {
-                _value = AbstractChart.TYPE_MAPPING[key];
+                _value = key;
                 break;
             }
         }
