@@ -43,6 +43,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.time.Duration;
+import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -359,6 +360,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         while (true) {
             Thread.sleep(3000);
             //LoggerProvider.getLoggerForBundle(getTestBundleContext()).severe("Test log");
+            this.beanInstance.setInt32(new Random().nextInt(100));
         }
     }
 
@@ -423,7 +425,7 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         // second instance of gateways for better console default content (dummyTest support)
         final GatewayConfiguration snmpAdapterDummy = gateways.getOrAdd("new_snmp_adapter");
         snmpAdapterDummy.setType(ADAPTER_NAME);
-        snmpAdapterDummy.getParameters().put("port", "3232");
+        snmpAdapterDummy.getParameters().put("port", "6889");
         snmpAdapterDummy.getParameters().put("host", SNMP_HOST);
         snmpAdapterDummy.getParameters().put(TEST_PARAMETER, "parameter");
         snmpAdapterDummy.getParameters().put("socketTimeout", "5000");

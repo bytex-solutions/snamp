@@ -20,7 +20,6 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
     }
 
     public newValue(_data:ChartData):void {
-        console.log("new data arrived: ", _data);
         let _index:number = -1;
         for (let i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].instanceName == _data.instanceName) {
@@ -31,9 +30,8 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
         }
         if (_index == -1) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
-            _index = this.chartData.length; // and set it to the end of the array
+            _index = this.chartData.length - 1; // and set it to the end of the array
         }
-
         console.log(this._chartObject.data);
         this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
         this._chartObject.update();
@@ -52,15 +50,6 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
                     data: this.simplifyData(),
                     borderWidth: 1
                 }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero:true
-                        }
-                    }]
-                }
             }
         });
         this._chartObject = _result;

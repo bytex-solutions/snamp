@@ -63,7 +63,6 @@ export class App {
         .map((msg) => JSON.parse(msg.data))
         .filter((msg) => (msg['@messageType'] == 'chartData'))
         .subscribe((msg) => {
-            console.log(msg["dataForCharts"], $.isEmptyObject(msg["dataForCharts"]));
             if (!$.isEmptyObject(msg["dataForCharts"])) {
                 this._chartService.pushNewChartData(msg.dataForCharts);
             }
