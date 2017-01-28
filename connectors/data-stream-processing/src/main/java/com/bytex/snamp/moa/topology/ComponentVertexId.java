@@ -12,20 +12,24 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class ComponentVertexId {
+final class ComponentVertexId {
     private final String componentName;
     private final String moduleName;
 
     ComponentVertexId(final Span span){
-        componentName = span.getComponentName();
-        moduleName = span.getModuleName();
+        this(span.getComponentName(), span.getModuleName());
     }
 
-    public String getComponentName(){
+    ComponentVertexId(final String cname, final String mname){
+        componentName = Objects.requireNonNull(cname);
+        moduleName = Objects.requireNonNull(mname);
+    }
+
+    String getComponentName(){
         return componentName;
     }
 
-    public String getModuleName(){
+    String getModuleName(){
         return moduleName;
     }
 

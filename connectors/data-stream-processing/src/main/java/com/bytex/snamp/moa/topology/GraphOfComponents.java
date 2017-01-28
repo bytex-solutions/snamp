@@ -66,7 +66,7 @@ public final class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId
         vertex = MoreObjects.firstNonNull(putIfAbsent(vertex.getId(), vertex), vertex);
         vertex.accept(span);
         //add a new span ID into the cache that provides O(1) search of vertex by its spanID
-        if (!span.getSpanID().equals(Identifier.EMPTY)) {
+        if (!span.getSpanID().isEmpty()) {
             idToVertexCache.put(span.getSpanID(), vertex);  //spanID is unique so we sure that there is no duplicate key in the map. Eldest span will be removed automatically
             //correlate buffered span with newly supplied span
             final Span childSpan = spanBuffer.remove(span.getSpanID());
@@ -74,13 +74,21 @@ public final class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId
                 accept(childSpan);
         }
         //try to resolve vertex by spanID using cache and create edge between parent/child vertices
-        if (!span.getParentSpanID().equals(Identifier.EMPTY)) {
+        if (!span.getParentSpanID().isEmpty()) {
             final ComponentVertex parentVertex = idToVertexCache.remove(span.getParentSpanID());     //expecting O(1) removal of the parent vertex
             if (parentVertex == null)
                 spanBuffer.put(span.getParentSpanID(), span);
             else
                 parentVertex.add(vertex);
         }
+    }
+
+    public ComponentVertex get(final String componentName){
+        return get(componentName, "");
+    }
+
+    public ComponentVertex get(final String componentName, final String moduleName){
+        return get(new ComponentVertexId(componentName, moduleName));
     }
 
     /**

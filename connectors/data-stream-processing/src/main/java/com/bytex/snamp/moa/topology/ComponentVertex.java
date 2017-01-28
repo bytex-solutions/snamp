@@ -40,6 +40,7 @@ public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex
     private void handleSpan(final Span span) {
         instances.add(span.getInstanceName());
         arrivals.accept(span.convertTo(Duration.class));
+        arrivals.setChannels(instances.size());
     }
 
     @Override
@@ -69,7 +70,15 @@ public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex
      * Gets identifier of this vertex.
      * @return Identifier of this vertex.
      */
-    public ComponentVertexId getId(){
+    ComponentVertexId getId(){
         return id;
+    }
+
+    public String getName(){
+        return id.getComponentName();
+    }
+
+    public String getModuleName(){
+        return id.getModuleName();
     }
 }

@@ -166,6 +166,14 @@ public final class Identifier implements Serializable {
     }
 
     /**
+     * Determines whether this identifier is empty.
+     * @return {@literal true}, if this identifier is empty.
+     */
+    public boolean isEmpty(){
+        return content.length == 0;
+    }
+
+    /**
      * Computes hash code for this identifier.
      * @return Hash code of this identifier.
      */

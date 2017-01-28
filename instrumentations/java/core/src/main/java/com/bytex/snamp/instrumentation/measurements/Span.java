@@ -38,6 +38,11 @@ public final class Span extends TimeMeasurement {
         super.readExternal(in);
     }
 
+    public void generateIDs(){
+        correlationID = Identifier.randomID();
+        spanID = Identifier.randomID();
+    }
+
     /**
      * Gets module inside of the reporting application which reports this span.
      * <p>
