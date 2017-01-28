@@ -1,9 +1,9 @@
-package com.bytex.snamp.web.serviceModel.managedResources;
+package com.bytex.snamp.web.serviceModel.commons;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.connector.ClusteredResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
@@ -16,7 +16,6 @@ import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Objects;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
@@ -87,11 +86,19 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
                 resources.read(resources -> resources.get(componentName).stream().toArray(String[]::new));
     }
 
-    private static String getComponentName(final ManagedResourceConnectorClient client){
-        String componentName = Objects.toString(client.getProperty(ManagedResourceConfiguration.GROUP_NAME_PROPERTY), "");
-        if(isNullOrEmpty(componentName))
-            componentName = client.getConnectorType();
-        return componentName;
+    private static String getComponentName(final ManagedResourceConnectorClient client) {
+        final ClusteredResourceConnector clusteredResource = client.queryObject(ClusteredResourceConnector.class);
+        String componentName;
+        if (clusteredResource == null)
+            componentName = client.getConfiguration().getGroupName();
+        else
+            componentName = clusteredResource.getComponentName();
+        return isNullOrEmpty(componentName) ? client.getManagedResourceName() : componentName;
+    }
+
+    private static String getInstanceName(final ManagedResourceConnectorClient client) {
+        final ClusteredResourceConnector clusteredResource = client.queryObject(ClusteredResourceConnector.class);
+        return clusteredResource == null ? client.getManagedResourceName() : clusteredResource.getInstanceName();
     }
 
     private BundleContext getBundleContext(){
@@ -101,11 +108,11 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     private void connectorChanged(final ManagedResourceConnectorClient client, final int type) {
         switch (type) {
             case ServiceEvent.REGISTERED:
-                resources.write(resources -> resources.put(getComponentName(client), client.getManagedResourceName()));
+                resources.write(resources -> resources.put(getComponentName(client), getInstanceName(client)));
                 return;
             case ServiceEvent.UNREGISTERING:
             case ServiceEvent.MODIFIED_ENDMATCH:
-                resources.write(resources -> resources.remove(getComponentName(client), client.getManagedResourceName()));
+                resources.write(resources -> resources.remove(getComponentName(client), getInstanceName(client)));
         }
     }
 

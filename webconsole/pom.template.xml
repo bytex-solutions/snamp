@@ -82,6 +82,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>data-stream-processing</artifactId>
+            <version>${snamp.stream.processing.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>

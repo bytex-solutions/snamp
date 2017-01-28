@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.http;
 
+import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
@@ -116,7 +117,7 @@ public final class AcceptorService {
         final Response response;
         try {
             client = new ManagedResourceConnectorClient(getBundleContext(), measurement.getInstanceName());
-            if (client.acceptAs(DataStreamConnector.class, acceptor -> acceptor.dispatch(wrapHeaders(headers), measurement)))
+            if (Aggregator.queryAndAccept(client, DataStreamConnector.class, acceptor -> acceptor.dispatch(wrapHeaders(headers), measurement)))
                 response = Response.noContent().build();
             else
                 response = Response.status(Response.Status.BAD_REQUEST).entity("Resource %s is not data stream processor").build();

@@ -9,7 +9,7 @@ import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
 import com.bytex.snamp.web.serviceModel.logging.WebConsoleLogService;
-import com.bytex.snamp.web.serviceModel.managedResources.ManagedResourceInformationService;
+import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
 import org.ops4j.pax.logging.PaxLoggingService;
 import org.ops4j.pax.logging.spi.PaxAppender;
 import org.osgi.framework.InvalidSyntaxException;

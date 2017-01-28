@@ -18,9 +18,6 @@ public final class GraphOfComponentsTest extends Assert {
 
     public GraphOfComponentsTest() {
         graph = new GraphOfComponents(1000);
-        graph.getAllowedComponents().add(COMPONENT1);
-        graph.getAllowedComponents().add(COMPONENT2);
-        graph.getAllowedComponents().add(COMPONENT3);
     }
 
     @Test
@@ -52,7 +49,8 @@ public final class GraphOfComponentsTest extends Assert {
         assertTrue(childComponent.isEmpty());
 
         rootComponent.contains(childComponent);
-        
+
+        assertTrue(graph.remove(COMPONENT2));
 
         graph.clear();
     }

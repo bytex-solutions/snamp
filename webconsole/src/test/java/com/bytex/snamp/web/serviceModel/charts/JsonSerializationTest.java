@@ -1,7 +1,7 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
 import com.bytex.snamp.jmx.WellKnownType;
-import com.bytex.snamp.web.serviceModel.managedResources.AttributeInformation;
+import com.bytex.snamp.web.serviceModel.commons.AttributeInformation;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;

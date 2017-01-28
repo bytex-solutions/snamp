@@ -1,13 +1,12 @@
 package com.bytex.snamp.moa.topology;
 
 import com.bytex.snamp.Stateful;
+import com.bytex.snamp.connector.dsp.notifications.SpanNotification;
 import com.bytex.snamp.instrumentation.Identifier;
 import com.bytex.snamp.instrumentation.measurements.Span;
 import com.google.common.base.MoreObjects;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 
-import java.util.Collections;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -17,7 +16,7 @@ import java.util.function.Consumer;
  * @version 2.0
  * @since 2.0
  */
-public final class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId, ComponentVertex> implements Consumer<Span>, Stateful {//key in map is a component name
+public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId, ComponentVertex> implements Consumer<Span>, Stateful {//key in map is a component name
     private static final long serialVersionUID = 2292647118511712487L;
     private final ConcurrentLinkedHashMap<Identifier, ComponentVertex> idToVertexCache; //key is a spanID of the node
     /*
@@ -25,8 +24,6 @@ public final class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId
         and span B will be lost. To avoid this we use buffer to save spans like B.
     */
     private final ConcurrentLinkedHashMap<Identifier, Span> spanBuffer; //key is a parentSpanId
-
-    private final Set<String> allowedComponents;
 
     public GraphOfComponents(final long historySize) {
         final int concurrencyLevel = Runtime.getRuntime().availableProcessors() * 2;
@@ -38,17 +35,14 @@ public final class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId
                 .concurrencyLevel(concurrencyLevel)
                 .maximumWeightedCapacity(historySize)
                 .build();
-        allowedComponents = Collections.newSetFromMap(new ConcurrentHashMap<>());
     }
 
-    /**
-     * Gets mutable set of allowed components.
-     * <p>
-     *     These components are used as a filter for input spans.
-     * @return Mutable set of allowed components.
-     */
-    public Set<String> getAllowedComponents(){
-        return allowedComponents;
+    protected boolean filterSpan(final Span span){
+        return true;
+    }
+
+    public final void handleNotification(final SpanNotification span){
+        accept(span.getMeasurement());
     }
 
     /**
@@ -57,9 +51,9 @@ public final class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId
      * @param span the input argument
      */
     @Override
-    public void accept(final Span span) {
+    public final void accept(final Span span) {
         //drop span if its source is not allowed
-        if(!allowedComponents.contains(span.getComponentName()))
+        if(!filterSpan(span))
             return;
         //detect whether the vertex representing the component exists in the map of vertices
         ComponentVertex vertex = new ComponentVertex(span);
@@ -83,19 +77,25 @@ public final class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId
         }
     }
 
-    public ComponentVertex get(final String componentName){
+    public final ComponentVertex get(final String componentName){
         return get(componentName, "");
     }
 
-    public ComponentVertex get(final String componentName, final String moduleName){
+    public final ComponentVertex get(final String componentName, final String moduleName){
         return get(new ComponentVertexId(componentName, moduleName));
+    }
+
+    public final boolean remove(final String componentName) {
+        final boolean success = keySet().removeIf(id -> id.getComponentName().equals(componentName));
+        idToVertexCache.values().removeIf(entry -> entry.getName().equals(componentName));
+        return success;
     }
 
     /**
      * Removes all of the mappings from this map.
      */
     @Override
-    public void clear() {
+    public final void clear() {
         super.clear();
         idToVertexCache.clear();
         spanBuffer.clear();

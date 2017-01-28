@@ -4,7 +4,6 @@ package com.bytex.snamp;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -85,7 +84,7 @@ public interface Aggregator {
         return result.isPresent() ? result.get() : fallback.get();
     }
 
-    static <I> boolean queryAndAccept(final Aggregator a, final Class<I> type, final Consumer<? super I> processing){
+    static <I, E extends Throwable> boolean queryAndAccept(final Aggregator a, final Class<I> type, final Acceptor<? super I, E> processing) throws E{
         final I obj = a.queryObject(type);
         if(obj != null){
             processing.accept(obj);
