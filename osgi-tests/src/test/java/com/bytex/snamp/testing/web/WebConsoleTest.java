@@ -35,6 +35,7 @@ import javax.ws.rs.core.HttpHeaders;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -118,6 +119,8 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
                 }
                 this.beanMap.values().forEach(dynamicMBean -> {
                     ((TestOpenMBean)dynamicMBean).setInt32(new Random().nextInt(100));
+                    ((TestOpenMBean)dynamicMBean).setBigInt(BigInteger.valueOf(10 + new Random().nextInt(100)));
+                    // append new int for third attribute changer pls
                 });
             }
         }).start();

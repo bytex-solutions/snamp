@@ -28,20 +28,25 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                 break;
             }
         }
+        let updateColors:boolean = false;
         if (_index == -1) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
             _index = this.chartData.length - 1; // and set it to the end of the array
+            updateColors = true;
         }
         if (this._chartObject != undefined) {
             this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
+            if (updateColors) {
+                this._chartObject.data.datasets[0].backgroundColor = this.hslFromData();
+                this._chartObject.data.datasets[0].borderColor = this.borderColors();
+                this._chartObject.data.datasets[0].hoverBackgroundColor = this.hoverHslFromData();
+            }
             this._chartObject.update();
         }
     }
 
     public draw():void    {
         var ctx = $("#" + this.id);
-        console.log("Prepared chart data: ", ctx, AbstractChart.CHART_TYPE_OF(this.type), this.instances,
-            (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(), this.simplifyData());
         var _result = new Chart(ctx, {
             type: AbstractChart.CHART_TYPE_OF(this.type),
             data: {
@@ -49,8 +54,23 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                 datasets: [{
                     label: (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(),
                     data: this.simplifyData(),
+                    backgroundColor : this.hslFromData(),
+                    borderColor: this.borderColors(),
+                    hoverBackgroundColor: this.hoverHslFromData(),
                     borderWidth: 1
-                }]
+                }],
+                options: {
+                    cutoutPercentage: 50,
+                    rotation: Math.PI,
+                    circumference: Math.PI * 0.5,
+                    elements: {
+                        arc: {
+                            backgroundColor: 'rgb(255, 0, 0)',
+                            borderColor: 'rgb(0, 0, 255)',
+                            borderWidth: 1
+                        }
+                    }
+                }
             }
         });
         this._chartObject = _result;
