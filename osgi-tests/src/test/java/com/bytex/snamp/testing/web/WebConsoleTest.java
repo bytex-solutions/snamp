@@ -2,10 +2,7 @@ package com.bytex.snamp.testing.web;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.EventConfiguration;
-import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayActivator;
@@ -14,8 +11,9 @@ import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.json.JsonUtils;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
-import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
+import com.bytex.snamp.testing.connector.jmx.AbstractMultiBeanJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
+import com.google.common.collect.ImmutableMap;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
@@ -27,8 +25,10 @@ import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
 import javax.management.AttributeChangeNotification;
+import javax.management.DynamicMBean;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.ws.rs.core.HttpHeaders;
@@ -43,9 +43,13 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
@@ -67,7 +71,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
         SnampFeature.GROOVY_CONNECTOR,
         SnampFeature.COMPOSITE_CONNECTOR
 })
-public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
     private static final ObjectMapper FORMATTER = new ObjectMapper();
     private static final String GROUP_NAME = "myGroup";
     private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
@@ -76,6 +80,10 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
     private static final String TEST_PARAMETER = "testParameter";
+
+    private static final String FIRST_BEAN_NAME = BEAN_NAME + "_1";
+    private static final String SECOND_BEAN_NAME = BEAN_NAME + "_2";
+    private static final String THIRD_BEAN_NAME = BEAN_NAME + "_3";
 
     //must be public
     @WebSocket
@@ -92,13 +100,36 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
     private WebSocketClient client;
     private final TestAuthenticator authenticator;
 
+    private static Map<ObjectName, DynamicMBean> createBeans() throws MalformedObjectNameException {
+        return ImmutableMap.of(
+                new ObjectName(FIRST_BEAN_NAME), new TestOpenMBean(),
+                new ObjectName(SECOND_BEAN_NAME), new TestOpenMBean(),
+                new ObjectName(THIRD_BEAN_NAME), new TestOpenMBean()
+        );
+    }
+
+    private void simulateChanging() throws InterruptedException {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                    fail("Something went wrong with thread for simulateChanging");
+                }
+                this.beanMap.values().forEach(dynamicMBean -> {
+                    ((TestOpenMBean)dynamicMBean).setInt32(new Random().nextInt(100));
+                });
+            }
+        }).start();
+    }
+
     /**
      * Instantiates a new Web console test.
      *
      * @throws MalformedObjectNameException the malformed object name exception
      */
     public WebConsoleTest() throws MalformedObjectNameException {
-        super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
+        super(createBeans());
         authenticator = new TestAuthenticator();
     }
 
@@ -357,10 +388,9 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
      */
     @Test
     public void dummyTest() throws InterruptedException {
+        simulateChanging();
         while (true) {
             Thread.sleep(3000);
-            //LoggerProvider.getLoggerForBundle(getTestBundleContext()).severe("Test log");
-            this.beanInstance.setInt32(new Random().nextInt(100));
         }
     }
 
@@ -421,90 +451,119 @@ public final class WebConsoleTest extends AbstractJmxConnectorTest<TestOpenMBean
         snmpAdapter.getParameters().put(TEST_PARAMETER, "parameter");
         snmpAdapter.getParameters().put("socketTimeout", "5000");
         snmpAdapter.getParameters().put("context", "1.1");
-
-        // second instance of gateways for better console default content (dummyTest support)
-        final GatewayConfiguration snmpAdapterDummy = gateways.getOrAdd("new_snmp_adapter");
-        snmpAdapterDummy.setType(ADAPTER_NAME);
-        snmpAdapterDummy.getParameters().put("port", "6889");
-        snmpAdapterDummy.getParameters().put("host", SNMP_HOST);
-        snmpAdapterDummy.getParameters().put(TEST_PARAMETER, "parameter");
-        snmpAdapterDummy.getParameters().put("socketTimeout", "5000");
-        snmpAdapterDummy.getParameters().put("context", "1.2");
     }
 
     @Override
-    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+    protected final void startResourceConnector(final BundleContext context) {
+        Arrays.stream(new int[] {1,2,3}).forEach(i -> {
+            try {
+                startResourceConnector(testName,
+                        connectorType,
+                        TEST_RESOURCE_NAME + "_" + String.valueOf(i),
+                        context);
+            } catch (final TimeoutException | InterruptedException | BundleException | ExecutionException e) {
+                fail(e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Creates a new configuration for running this test.
+     *
+     * @param config The configuration to modify.
+     */
+    @Override
+    protected final void setupTestConfiguration(final AgentConfiguration config) {
+        Arrays.stream(new int[] {1,2,3}).forEach(i -> {
+            final ManagedResourceConfiguration targetConfig =
+                    config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME + "_" + String.valueOf(i));
+            targetConfig.getParameters().putAll(connectorParameters);
+            targetConfig.setConnectionString(connectionString);
+            targetConfig.setType(connectorType);
+            targetConfig.setGroupName(getGroupName());
+            fillAttributesForBean(BEAN_NAME + "_" + String.valueOf(i), i, targetConfig.getFeatures(AttributeConfiguration.class));
+            fillEventsForBean(BEAN_NAME + "_" + String.valueOf(i), targetConfig.getFeatures(EventConfiguration.class));
+            fillOperationsForBean(BEAN_NAME + "_" + String.valueOf(i), targetConfig.getFeatures(OperationConfiguration.class));
+        });
+        fillGateways(config.getEntities(GatewayConfiguration.class));
+    }
+
+    private void fillAttributesForBean(final String beanName, final int prefix, final EntityMap<? extends AttributeConfiguration> attributes) {
+        final String strPrefix = String.valueOf(prefix);
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAlternativeName("string");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.1.0");
+        attribute.getParameters().put("objectName", beanName);
+        attribute.getParameters().put("oid", strPrefix + "1.1.0");
 
         attribute = attributes.getOrAdd("2.0");
         attribute.setAlternativeName("boolean");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.2.0");
+        attribute.getParameters().put("objectName", beanName);
+        attribute.getParameters().put("oid", strPrefix + "1.2.0");
 
         attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.3.0");
+        attribute.getParameters().put("objectName", beanName);
+        attribute.getParameters().put("oid", strPrefix + "1.3.0");
 
         attribute = attributes.getOrAdd("4.0");
         attribute.setAlternativeName("bigint");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.4.0");
+        attribute.getParameters().put("objectName", beanName);
+        attribute.getParameters().put("oid", strPrefix + "1.4.0");
 
         attribute = attributes.getOrAdd("5.1");
         attribute.setAlternativeName("array");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.5.1");
+        attribute.getParameters().put("objectName", beanName);
+        attribute.getParameters().put("oid", strPrefix + "1.5.1");
 
         attribute = attributes.getOrAdd("6.1");
         attribute.setAlternativeName("dictionary");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.6.1");
+        attribute.getParameters().put("objectName", beanName);
+        attribute.getParameters().put("oid", strPrefix + "1.6.1");
 
         attribute = attributes.getOrAdd("7.1");
         attribute.setAlternativeName("table");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.7.1");
+        attribute.getParameters().put("objectName", beanName);
+        attribute.getParameters().put("oid", strPrefix + "1.7.1");
 
         attribute = attributes.getOrAdd("8.0");
         attribute.setAlternativeName("float");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("oid", "1.1.8.0");
+        attribute.getParameters().put("objectName", beanName);
+        attribute.getParameters().put("oid", strPrefix + "1.8.0");
 
         attribute = attributes.getOrAdd("9.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("objectName", beanName);
         attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        attribute.getParameters().put("oid", "1.1.9.0");
+        attribute.getParameters().put("oid", strPrefix + "1.9.0");
 
         attribute = attributes.getOrAdd("10.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("objectName", beanName);
         attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
-        attribute.getParameters().put("oid", "1.1.10.0");
+        attribute.getParameters().put("oid", strPrefix + "1.10.0");
 
         attribute = attributes.getOrAdd("11.0");
         attribute.setAlternativeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
+        attribute.getParameters().put("objectName", beanName);
         attribute.getParameters().put("displayFormat", "rfc1903");
-        attribute.getParameters().put("oid", "1.1.11.0");
+        attribute.getParameters().put("oid", strPrefix + "1.11.0");
     }
 
-    @Override
-    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+    private void fillEventsForBean(final String beanName, final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.getParameters().put("objectName", beanName);
 
         event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.getParameters().put("objectName", beanName);
 
         event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.plainnotif");
         event.getParameters().put("severity", "notice");
-        event.getParameters().put("objectName", BEAN_NAME);
+        event.getParameters().put("objectName", beanName);
+    }
+
+    private void fillOperationsForBean(final String beanName, final EntityMap<? extends OperationConfiguration> events) {
+        // not ready yet
     }
 }
