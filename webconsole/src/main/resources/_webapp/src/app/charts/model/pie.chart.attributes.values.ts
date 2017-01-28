@@ -49,8 +49,12 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
                 datasets: [{
                     label: (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(),
                     data: this.simplifyData(),
+                    backgroundColor : this.hslFromData(), // implement
                     borderWidth: 1
-                }]
+                }],
+                options: {
+                    cutoutPercentage: 30
+                }
             }
         });
         this._chartObject = _result;
