@@ -5,7 +5,6 @@ import { Observable } from 'rxjs/Observable';
 import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
 import { AttributeInformation } from './model/attribute';
-import { DragulaService } from 'ng2-dragula/ng2-dragula';
 
 import { ChartService } from '../app.chartService';
 import { Factory } from './model/objectFactory';
@@ -26,7 +25,7 @@ import 'select2';
 @Component({
   moduleId: module.id,
   templateUrl: './templates/dashboard.html',
-  styleUrls: ['./templates/css/dashboard.css', './templates/css/dragula.css']
+  styleUrls: [ './templates/css/dashboard.css' ]
 })
 export class Dashboard {
 
@@ -80,22 +79,16 @@ export class Dashboard {
               overlay: Overlay,
               vcRef: ViewContainerRef,
               private modal: Modal,
-              private dragulaService: DragulaService,
               private _chartService:ChartService) {
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
 
         this._charts = this._chartService.getCharts();
+   }
 
-        // do not remove when dropping
-        dragulaService.setOptions('first-bag', {
-          copy: true
-        });
-
-        dragulaService.drop.subscribe((value) => {
-           this.selectedChartType = $(value[1]).attr("data-chart-type");
-           this.initModal();
-        });
+   appendChartClicked(type:string) {
+        this.selectedChartType = type;
+        this.initModal();
    }
 
    private initModal():void {

@@ -105,3 +105,7 @@ select.form-control:not([size]):not([multiple]) {
 .grid-placeholder {
 	background-color: rgba(0, 0, 0, 0.3);
 }
+
+.x_title h2 {
+    font-size: small;
+}

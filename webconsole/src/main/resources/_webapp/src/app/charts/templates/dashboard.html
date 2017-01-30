@@ -147,12 +147,12 @@
 </div>
 
 
-<ul id="chartMenu" [dragula]='"first-bag"'>
-  <li class="removable" [tooltip]="'Pie chart'" data-chart-type="doughnut"><i class="fa fa-pie-chart" aria-hidden="true"></i></li>
-  <li class="removable" [tooltip]="'Horizontal bar chart'" data-chart-type="horizontalBar"><i class="fa fa-align-left " aria-hidden="true"></i></li>
-  <li class="removable" [tooltip]="'Vertical bar chart'" data-chart-type="bar"><i class="fa fa-bar-chart" aria-hidden="true"></i></li>
-  <li class="removable" [tooltip]="'Simple line chart'" data-chart-type="line"><i class="fa fa-line-chart" aria-hidden="true"></i></li>
-  <li class="removable" [tooltip]="'Panel with values'" data-chart-type="panel"><i class="fa fa-columns" aria-hidden="true"></i></li>
+<ul id="chartMenu">
+  <li [tooltip]="'Pie chart'" (click)="appendChartClicked('doughnut')"><i class="fa fa-pie-chart" aria-hidden="true"></i></li>
+  <li [tooltip]="'Horizontal bar chart'" (click)="appendChartClicked('horizontalBar')"><i class="fa fa-align-left " aria-hidden="true"></i></li>
+  <li [tooltip]="'Vertical bar chart'" (click)="appendChartClicked('bar')"><i class="fa fa-bar-chart" aria-hidden="true"></i></li>
+  <li [tooltip]="'Simple line chart'" (click)="appendChartClicked('line')"><i class="fa fa-line-chart" aria-hidden="true"></i></li>
+  <li [tooltip]="'Panel with values'" (click)="appendChartClicked('panel')"><i class="fa fa-columns" aria-hidden="true"></i></li>
 </ul>
 
 <div class="right_col" role="main" style="min-height: 949px;">
@@ -167,7 +167,7 @@
 
     <div class="row" style="margin-top: 30px">
 
-      <div class='container col-md-12' id="chartArea" [dragula]='"second-bag"'[ngGrid]="gridConfig"  style="min-height: 900px;">
+      <div class='container col-md-12' id="chartArea" [ngGrid]="gridConfig"  style="min-height: 900px;">
             <panel
                     *ngFor="let chart of _charts; let i = index"
                     [(ngGridItem)]="chart.preferences['gridcfg']"
