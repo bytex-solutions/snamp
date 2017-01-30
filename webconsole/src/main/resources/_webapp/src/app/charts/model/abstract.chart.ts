@@ -39,6 +39,10 @@ export abstract class AbstractChart {
     public chartData: ChartData[] = [];
     public abstract toJSON():any;
 
+    constructor() {
+        this.preferences["xsize"] = 3;
+    }
+
     // different types of charts should be rendered in different ways
     public abstract draw():void;
 

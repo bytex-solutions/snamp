@@ -84,6 +84,9 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
         _value["instances"] = this.instances;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
+        if ($.isEmptyObject(this.preferences)) {
+            _value["preferences"] = this.preferences;
+        }
         return _value;
     }
 }

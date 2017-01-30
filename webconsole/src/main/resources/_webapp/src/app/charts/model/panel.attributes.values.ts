@@ -15,8 +15,49 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         return new AttributeValueAxis();
     }
 
-    public draw():void {}
-    public updateChart(_data:ChartData):void {}
+    constructor() {
+        super();
+        this.preferences["xsize"] = 2;
+    }
+
+    public newValue(_data:ChartData):void {
+        let _index:number = -1;
+        for (let i = 0; i < this.chartData.length; i++) {
+            if (this.chartData[i].instanceName == _data.instanceName) {
+                _index = i; // remember the index
+                this.chartData[i] = _data; // change the data
+                break;
+            }
+        }
+        if (_index == -1) {
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+        }
+        var _chr = $("#panel_" + this.id);
+        if (_chr != undefined) {
+            if (_index == -1) {
+                _chr.append('<dt>' + _data.instanceName + '</dt>');
+                var _newDD = $('<dd>' + _data.attributeValue + '</dd>');
+                _newDD.attr("id", "ddInstance" + _data.instanceName);
+                _chr.append(_newDD);
+            } else {
+                _chr.find("#ddInstance" + _data.instanceName).html(_data.attributeValue);
+            }
+        }
+    }
+
+    public draw():void    {
+        var ctx = $("#" + this.id);
+        var _result = $('<dl class="border-around"></dl>');
+        _result.attr("id", "panel_" + this.id);
+        ctx.parent().append(_result);
+        ctx.remove();
+        for (let i = 0; i < this.chartData.length; i++) {
+            _result.append('<dt>' + this.chartData[i].instanceName + '</dt>');
+            var _newDD = $('<dd>' + this.chartData[i].attributeValue + '</dd>');
+            _newDD.attr("id", "ddInstance" + this.chartData[i].instanceName);
+            _result.append(_newDD);
+        }
+    }
 
     public toJSON():any {
         let _value:any = {};
@@ -26,6 +67,9 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         _value["instances"] = this.instances;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
+        if ($.isEmptyObject(this.preferences)) {
+            _value["preferences"] = this.preferences;
+        }
         return _value;
     }
 }

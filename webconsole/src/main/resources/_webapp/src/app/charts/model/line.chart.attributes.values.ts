@@ -19,6 +19,11 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
         return new AttributeValueAxis();
     }
 
+    constructor() {
+        super();
+        this.preferences["xsize"] = 6;
+    }
+
     private prepareDatasets():any {
         let _value:any[] = [];
         for (let i = 0; i < this.instances.length; i++) {
@@ -26,10 +31,8 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
             _currentValue.label = this.instances[i];
             _currentValue.data = [];
             _currentValue.borderColor = AbstractChart.hslFromValue(i, this.instances.length, 0.7);
-            _currentValue.strokeColor =  AbstractChart.hslFromValue(i, this.instances.length, 0.1   );
             _currentValue.pointColor =  AbstractChart.hslFromValue(i, this.instances.length, 0.1);
-            _currentValue.pointStrokeColor =  AbstractChart.hslFromValue(i, this.instances.length, 0.1);
-            _currentValue.pointHighlightStroke =  AbstractChart.hslFromValue(i, this.instances.length, 0.1);
+            _currentValue.fill = false;
             _currentValue.radius = 1;
             _currentValue.borderWidth = 1;
             for (let j = 0; j < this.chartData.length; j++) {
@@ -66,6 +69,8 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
 
     public draw():void    {
         var ctx = $("#" + this.id);
+        ctx.width(ctx.parent().width());
+        ctx.height(ctx.parent().height());
         var _result = new Chart(ctx, {
             type: AbstractChart.CHART_TYPE_OF(this.type),
             data: {
@@ -75,7 +80,9 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
               options: {
                 animation: {
                     duration: 200,
-                    easing: 'linear'
+                    easing: 'linear',
+                    responsive: true,
+                    maintainAspectRatio: false
                 },
                 scales: {
                   xAxes: [{
@@ -100,6 +107,9 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
         _value["instances"] = this.instances;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
+        if ($.isEmptyObject(this.preferences)) {
+            _value["preferences"] = this.preferences;
+        }
         return _value;
     }
 }
