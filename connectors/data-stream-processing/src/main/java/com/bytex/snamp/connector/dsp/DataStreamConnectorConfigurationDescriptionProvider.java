@@ -31,7 +31,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
  * @since 2.0
  * @version 2.0
  */
-public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
+public abstract class DataStreamConnectorConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
     private static final String RANGE_START_PARAM = "from";
     private static final String RANGE_END_PARAM = "to";
@@ -132,11 +132,11 @@ public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider 
         }
     }
 
-    protected DataStreamDrivenConnectorConfigurationDescriptionProvider(final ConfigurationEntityDescription<?>... descriptions){
+    protected DataStreamConnectorConfigurationDescriptionProvider(final ConfigurationEntityDescription<?>... descriptions){
         super(descriptions);
     }
 
-    protected DataStreamDrivenConnectorConfigurationDescriptionProvider(){
+    protected DataStreamConnectorConfigurationDescriptionProvider(){
         super(ConnectorConfigurationDescription.createDefault(), AttributeConfigurationDescription.createDefault(), EventConfigurationDescription.createDefault());
     }
 
@@ -153,37 +153,37 @@ public abstract class DataStreamDrivenConnectorConfigurationDescriptionProvider 
         return Duration.parse(String.valueOf(value));
     }
 
-    static long parseRangeStartAsLong(final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_START_PARAM, Convert::toLong, DSPConnectorAbsentConfigurationParameterException::new);
+    static long parseRangeStartAsLong(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_START_PARAM, Convert::toLong, DSConnectorAbsentConfigurationParameterException::new);
     }
 
-    static long parseRangeEndAsLong(final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_END_PARAM, Convert::toLong, DSPConnectorAbsentConfigurationParameterException::new);
+    static long parseRangeEndAsLong(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_END_PARAM, Convert::toLong, DSConnectorAbsentConfigurationParameterException::new);
     }
 
-    static double parseRangeStartAsDouble(final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_START_PARAM, DataStreamDrivenConnectorConfigurationDescriptionProvider::objToDouble, DSPConnectorAbsentConfigurationParameterException::new);
+    static double parseRangeStartAsDouble(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_START_PARAM, DataStreamConnectorConfigurationDescriptionProvider::objToDouble, DSConnectorAbsentConfigurationParameterException::new);
     }
 
-    static double parseRangeEndAsDouble(final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_END_PARAM, DataStreamDrivenConnectorConfigurationDescriptionProvider::objToDouble, DSPConnectorAbsentConfigurationParameterException::new);
+    static double parseRangeEndAsDouble(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_END_PARAM, DataStreamConnectorConfigurationDescriptionProvider::objToDouble, DSConnectorAbsentConfigurationParameterException::new);
     }
 
-    static Duration parseRangeStartAsDuration(final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_START_PARAM, DataStreamDrivenConnectorConfigurationDescriptionProvider::objToDuration, DSPConnectorAbsentConfigurationParameterException::new);
+    static Duration parseRangeStartAsDuration(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_START_PARAM, DataStreamConnectorConfigurationDescriptionProvider::objToDuration, DSConnectorAbsentConfigurationParameterException::new);
     }
 
-    static Duration parseRangeEndAsDuration(final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_END_PARAM, DataStreamDrivenConnectorConfigurationDescriptionProvider::objToDuration, DSPConnectorAbsentConfigurationParameterException::new);
+    static Duration parseRangeEndAsDuration(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException {
+        return getFieldIfPresent(descriptor, RANGE_END_PARAM, DataStreamConnectorConfigurationDescriptionProvider::objToDuration, DSConnectorAbsentConfigurationParameterException::new);
     }
 
     static long parseChannels(final AttributeDescriptor descriptor){
         return getField(descriptor, CHANNELS_PARAM, Convert::toLong).orElse(1L);
     }
 
-    public DataStreamDrivenAttributeFactory parseGaugeType(final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException, ParseException {
+    public SyntheticAttributeFactory parseGaugeType(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException, ParseException {
         final String gaugeType =
-                getFieldIfPresent(descriptor, GAUGE_TYPE_PARAM, String::valueOf, DSPConnectorAbsentConfigurationParameterException::new);
+                getFieldIfPresent(descriptor, GAUGE_TYPE_PARAM, String::valueOf, DSConnectorAbsentConfigurationParameterException::new);
         return AttributeParser.parse(gaugeType);
     }
 

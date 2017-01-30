@@ -14,7 +14,7 @@ import java.util.Objects;
  * @version 2.0
  * @author Roman Sakno
  */
-public abstract class UnaryFunctionAttribute<T> extends ProcessingAttribute<T> {
+public abstract class UnaryFunctionAttribute<T> extends DerivedAttribute<T> {
     private static final long serialVersionUID = 3652422235984102814L;
     private final String sourceAttribute;
 

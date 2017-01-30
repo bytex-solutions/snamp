@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.zipkin;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
-import com.bytex.snamp.connector.dsp.DataStreamDrivenConnectorConfigurationDescriptionProvider;
+import com.bytex.snamp.connector.dsp.DataStreamConnectorConfigurationDescriptionProvider;
 import com.google.common.base.Splitter;
 import zipkin.collector.CollectorComponent;
 import zipkin.collector.kafka.KafkaCollector;
@@ -23,7 +23,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-final class ZipkinConnectorConfigurationDescriptionProvider extends DataStreamDrivenConnectorConfigurationDescriptionProvider {
+final class ZipkinConnectorConfigurationDescriptionProvider extends DataStreamConnectorConfigurationDescriptionProvider {
     private static final Splitter URL_PATH_SPLITTER = Splitter.on('/').omitEmptyStrings();
     private static final Splitter SCRIPT_PATH_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
     private static final String PARSER_SCRIPT_PATH_PARAM = "parserScriptPath";

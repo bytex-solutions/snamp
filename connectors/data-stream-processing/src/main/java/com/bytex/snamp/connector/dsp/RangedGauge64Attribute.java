@@ -26,11 +26,11 @@ final class RangedGauge64Attribute extends MetricHolderAttribute<RangedGauge64Re
         super(ValueMeasurementNotification.class, name, TYPE, descriptor, (n) -> new RangedGauge64Recorder(n, rangeStart, rangeEnd));
     }
 
-    RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
+    RangedGauge64Attribute(final String name, final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
         this(name,
                 descriptor,
-                DataStreamDrivenConnectorConfigurationDescriptionProvider.parseRangeStartAsLong(descriptor),
-                DataStreamDrivenConnectorConfigurationDescriptionProvider.parseRangeEndAsLong(descriptor));
+                DataStreamConnectorConfigurationDescriptionProvider.parseRangeStartAsLong(descriptor),
+                DataStreamConnectorConfigurationDescriptionProvider.parseRangeEndAsLong(descriptor));
     }
 
     @Override

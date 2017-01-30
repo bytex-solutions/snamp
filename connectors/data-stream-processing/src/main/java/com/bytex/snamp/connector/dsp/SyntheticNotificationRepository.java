@@ -24,7 +24,7 @@ import static com.bytex.snamp.internal.Utils.parallelForEach;
  * @since 2.0
  * @version 2.0
  */
-public class DataStreamNotificationRepository extends AbstractNotificationRepository<DataStreamNotification> {
+public class SyntheticNotificationRepository extends AbstractNotificationRepository<SyntheticNotification> {
     private static final class MessageDrivenNotificationListenerInvoker extends WriteOnceRef<ExecutorService> implements NotificationListenerInvoker{
 
         @Override
@@ -40,8 +40,8 @@ public class DataStreamNotificationRepository extends AbstractNotificationReposi
 
     private final MessageDrivenNotificationListenerInvoker threadPool;
 
-    public DataStreamNotificationRepository(final String resourceName) {
-        super(resourceName, DataStreamNotification.class, false);
+    public SyntheticNotificationRepository(final String resourceName) {
+        super(resourceName, SyntheticNotification.class, false);
         threadPool = new MessageDrivenNotificationListenerInvoker();
     }
 
@@ -70,18 +70,18 @@ public class DataStreamNotificationRepository extends AbstractNotificationReposi
     }
 
     @Override
-    protected DataStreamNotification connectNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
+    protected SyntheticNotification connectNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
         switch (metadata.getName(notifType)){
             case AttributeChangeNotification.ATTRIBUTE_CHANGE:
-                return new DataStreamNotification(notifType, AttributeChangeNotification.class, "Occurs when one of registered attribute will be changed", metadata);
+                return new SyntheticNotification(notifType, AttributeChangeNotification.class, "Occurs when one of registered attribute will be changed", metadata);
             case TimeMeasurementNotification.TYPE:
-                return new DataStreamNotification(notifType, TimeMeasurementNotification.class, "Occurs when time measurement will be supplied", metadata);
+                return new SyntheticNotification(notifType, TimeMeasurementNotification.class, "Occurs when time measurement will be supplied", metadata);
             case SpanNotification.TYPE:
-                return new DataStreamNotification(notifType, SpanNotification.class, "Occurs when span will be occurred", metadata);
+                return new SyntheticNotification(notifType, SpanNotification.class, "Occurs when span will be occurred", metadata);
             case ValueMeasurementNotification.TYPE:
-                return new DataStreamNotification(notifType, ValueMeasurementNotification.class, "Occurs when instant measurement will be supplied", metadata);
+                return new SyntheticNotification(notifType, ValueMeasurementNotification.class, "Occurs when instant measurement will be supplied", metadata);
             default:
-                return new DataStreamNotification(notifType, metadata);
+                return new SyntheticNotification(notifType, metadata);
         }
     }
 }

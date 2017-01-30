@@ -7,10 +7,10 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
  * @version 2.0
  * @since 2.0
  */
-public class DSPConnectorAbsentConfigurationParameterException extends AbsentConfigurationParameterException {
+public class DSConnectorAbsentConfigurationParameterException extends AbsentConfigurationParameterException {
     private static final long serialVersionUID = 1576035556039625703L;
 
-    public DSPConnectorAbsentConfigurationParameterException(final String parameterName) {
+    public DSConnectorAbsentConfigurationParameterException(final String parameterName) {
         super(parameterName);
     }
 }

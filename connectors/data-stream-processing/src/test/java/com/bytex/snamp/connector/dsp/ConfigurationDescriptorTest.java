@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import java.util.Locale;
 
-import static com.bytex.snamp.connector.dsp.DataStreamDrivenConnectorConfigurationDescriptionProvider.AttributeConfigurationDescription;
+import static com.bytex.snamp.connector.dsp.DataStreamConnectorConfigurationDescriptionProvider.AttributeConfigurationDescription;
 
 /**
  * @author Roman Sakno

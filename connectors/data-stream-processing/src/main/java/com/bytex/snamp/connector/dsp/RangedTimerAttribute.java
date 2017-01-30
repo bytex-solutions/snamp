@@ -26,11 +26,11 @@ final class RangedTimerAttribute extends MetricHolderAttribute<RangedTimerRecord
         super(TimeMeasurementNotification.class, name, TYPE, descriptor, (n) -> new RangedTimerRecorder(n, rangeStart, rangeEnd));
     }
 
-    RangedTimerAttribute(final String name, final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
+    RangedTimerAttribute(final String name, final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
         this(name,
                 descriptor,
-                DataStreamDrivenConnectorConfigurationDescriptionProvider.parseRangeStartAsDuration(descriptor),
-                DataStreamDrivenConnectorConfigurationDescriptionProvider.parseRangeEndAsDuration(descriptor));
+                DataStreamConnectorConfigurationDescriptionProvider.parseRangeStartAsDuration(descriptor),
+                DataStreamConnectorConfigurationDescriptionProvider.parseRangeEndAsDuration(descriptor));
     }
 
     @Override

@@ -24,7 +24,7 @@ final class ArrivalsAttribute extends MetricHolderAttribute<ArrivalsRecorder, Ti
     ArrivalsAttribute(final String name, final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(TimeMeasurementNotification.class, name, TYPE, descriptor, metricName -> {
             final ArrivalsRecorder recorder = new ArrivalsRecorder(metricName);
-            recorder.setChannels(DataStreamDrivenConnectorConfigurationDescriptionProvider.parseChannels(descriptor));
+            recorder.setChannels(DataStreamConnectorConfigurationDescriptionProvider.parseChannels(descriptor));
             return recorder;
         });
     }

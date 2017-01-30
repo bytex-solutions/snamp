@@ -26,11 +26,11 @@ final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRe
         super(ValueMeasurementNotification.class, name, TYPE, descriptor, (n) -> new RangedGaugeFPRecorder(n, rangeStart, rangeEnd));
     }
 
-    RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor) throws DSPConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
+    RangedGaugeFPAttribute(final String name, final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException, InvalidSyntaxException {
         this(name,
                 descriptor,
-                DataStreamDrivenConnectorConfigurationDescriptionProvider.parseRangeStartAsDouble(descriptor),
-                DataStreamDrivenConnectorConfigurationDescriptionProvider.parseRangeEndAsDouble(descriptor));
+                DataStreamConnectorConfigurationDescriptionProvider.parseRangeStartAsDouble(descriptor),
+                DataStreamConnectorConfigurationDescriptionProvider.parseRangeEndAsDouble(descriptor));
     }
 
     @Override

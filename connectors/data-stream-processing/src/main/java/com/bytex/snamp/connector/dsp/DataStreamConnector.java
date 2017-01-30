@@ -40,9 +40,9 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public abstract class DataStreamConnector extends AbstractManagedResourceConnector implements ClusteredResourceConnector {
     @Aggregation(cached = true)
-    protected final DataStreamDrivenAttributeRepository attributes;
+    protected final SyntheticAttributeRepository attributes;
     @Aggregation(cached = true)
-    protected final DataStreamNotificationRepository notifications;
+    protected final SyntheticNotificationRepository notifications;
     @Aggregation(cached = true)
     private final NotificationParser notificationParser;
     @Aggregation(cached = true)
@@ -56,7 +56,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
 
     protected DataStreamConnector(final String resourceName,
                                   final ManagedResourceInfo configuration,
-                                  final DataStreamDrivenConnectorConfigurationDescriptionProvider descriptor) {
+                                  final DataStreamConnectorConfigurationDescriptionProvider descriptor) {
         super(configuration);
         instanceName = resourceName;
         threadPool = descriptor.parseThreadPool(configuration);
@@ -103,7 +103,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @ManagementOperation(description = "Resets the specified metrics")
     public boolean resetMetric(@OperationParameter(name = "attributeName", description = "The name of the attribute to reset") final String attributeName) {
-        final DataStreamDrivenAttribute attribute = attributes.getAttributeInfo(attributeName);
+        final SyntheticAttribute attribute = attributes.getAttributeInfo(attributeName);
         final boolean success;
         if (success = attribute instanceof MetricHolderAttribute<?, ?>)
             ((MetricHolderAttribute<?, ?>) attribute).reset();
@@ -134,7 +134,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         return LoggerProvider.getLoggerForObject(this);
     }
 
-    private void attributeProcessed(final DataStreamDrivenAttribute attribute, final DataStreamDrivenAttribute.NotificationProcessingResult result) {
+    private void attributeProcessed(final SyntheticAttribute attribute, final SyntheticAttribute.NotificationProcessingResult result) {
         if(result.isProcessed()) {
             //log processing error if it was happened
             final Optional<Throwable> processingError = result.getProcessingError();
@@ -170,12 +170,12 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
      * @param syncPeriod Cluster-wide synchronization period. Cannot be {@literal null}.
      * @return A new instance of repository.
      */
-    protected DataStreamDrivenAttributeRepository createAttributeRepository(final String resourceName, final Duration syncPeriod){
-        return new DataStreamDrivenAttributeRepository(resourceName, syncPeriod);
+    protected SyntheticAttributeRepository createAttributeRepository(final String resourceName, final Duration syncPeriod){
+        return new SyntheticAttributeRepository(resourceName, syncPeriod);
     }
 
-    protected DataStreamNotificationRepository createNotificationRepository(final String resourceName){
-        return new DataStreamNotificationRepository(resourceName);
+    protected SyntheticNotificationRepository createNotificationRepository(final String resourceName){
+        return new SyntheticNotificationRepository(resourceName);
     }
 
     @Override

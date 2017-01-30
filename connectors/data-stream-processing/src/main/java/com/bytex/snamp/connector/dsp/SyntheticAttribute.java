@@ -12,14 +12,14 @@ import javax.management.openmbean.OpenType;
 import java.util.Optional;
 
 /**
- * Represents attribute which value depends on the measurement notification received from external component.
+ * Represents attribute which value can be inferred from the input stream of notifications.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  * @see DistributedAttribute
- * @see ProcessingAttribute
+ * @see DerivedAttribute
  */
-public abstract class DataStreamDrivenAttribute extends AbstractOpenAttributeInfo {
+public abstract class SyntheticAttribute extends AbstractOpenAttributeInfo {
     /**
      * Represents notification processing result.
      */
@@ -67,11 +67,11 @@ public abstract class DataStreamDrivenAttribute extends AbstractOpenAttributeInf
         }
     };
 
-    DataStreamDrivenAttribute(final String name,
-                              final OpenType<?> type,
-                              final String description,
-                              final AttributeSpecifier specifier,
-                              final AttributeDescriptor descriptor) {
+    SyntheticAttribute(final String name,
+                       final OpenType<?> type,
+                       final String description,
+                       final AttributeSpecifier specifier,
+                       final AttributeDescriptor descriptor) {
         super(name, type, description, specifier, descriptor);
     }
 
@@ -142,7 +142,7 @@ public abstract class DataStreamDrivenAttribute extends AbstractOpenAttributeInf
         };
     }
 
-    static MBeanException cannotBeModified(final DataStreamDrivenAttribute attribute){
+    static MBeanException cannotBeModified(final SyntheticAttribute attribute){
         return new MBeanException(new UnsupportedOperationException(String.format("Attribute '%s' cannot be modified", attribute)));
     }
 

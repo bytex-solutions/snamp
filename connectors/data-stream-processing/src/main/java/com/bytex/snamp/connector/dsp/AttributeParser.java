@@ -18,9 +18,9 @@ final class AttributeParser extends Tokenizer {
         super(input);
     }
 
-    private static DataStreamDrivenAttributeFactory createExtractionAttribute(final String fieldName,
-                                                                              final String gaugeType,
-                                                                              final String sourceAttribute) throws ParseException {
+    private static SyntheticAttributeFactory createExtractionAttribute(final String fieldName,
+                                                                       final String gaugeType,
+                                                                       final String sourceAttribute) throws ParseException {
         final CompositeType metricType;
         switch (gaugeType) {
             case Gauge64Attribute.NAME:
@@ -62,7 +62,7 @@ final class AttributeParser extends Tokenizer {
             throw new IncorrectGaugeOperatorException(gaugeType, fieldName);
     }
 
-    private DataStreamDrivenAttributeFactory parseExtractionAttribute() throws ParseException {
+    private SyntheticAttributeFactory parseExtractionAttribute() throws ParseException {
         //get <extraction-operator> from <gauge-type> <source-attribute>
         final NameToken operator = nextToken(NameToken.class);
         nextToken(FROM_KEYWORD::equals);
@@ -73,7 +73,7 @@ final class AttributeParser extends Tokenizer {
         return createExtractionAttribute(operator.toString(), gaugeType.toString(), sourceAttribute.toString());
     }
 
-    private DataStreamDrivenAttributeFactory parse() throws ParseException{
+    private SyntheticAttributeFactory parse() throws ParseException{
         final NameToken token = nextToken(NameToken.class);
         switch (token.toString()){
             case Gauge64Attribute.NAME:
@@ -103,7 +103,7 @@ final class AttributeParser extends Tokenizer {
         }
     }
 
-    static DataStreamDrivenAttributeFactory parse(final String gaugeType) throws ParseException {
+    static SyntheticAttributeFactory parse(final String gaugeType) throws ParseException {
         try(final AttributeParser parser = new AttributeParser(gaugeType)){
             return parser.parse();
         }

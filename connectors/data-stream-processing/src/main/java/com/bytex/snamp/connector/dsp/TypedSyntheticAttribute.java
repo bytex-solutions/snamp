@@ -16,20 +16,20 @@ import java.util.Objects;
  * @since 2.0
  * @version 2.0
  */
-abstract class TypedDataStreamDrivenAttribute<N extends Notification> extends DataStreamDrivenAttribute {
+abstract class TypedSyntheticAttribute<N extends Notification> extends SyntheticAttribute {
     private static final long serialVersionUID = 4061148981437115601L;
     private final Class<N> expectedType;
     private final NotificationFilter filter;
 
-    TypedDataStreamDrivenAttribute(final Class<N> notificationType,
-                                   final String name,
-                                   final OpenType<?> type,
-                                   final String description,
-                                   final AttributeSpecifier specifier,
-                                   final AttributeDescriptor descriptor) throws InvalidSyntaxException {
+    TypedSyntheticAttribute(final Class<N> notificationType,
+                            final String name,
+                            final OpenType<?> type,
+                            final String description,
+                            final AttributeSpecifier specifier,
+                            final AttributeDescriptor descriptor) throws InvalidSyntaxException {
         super(name, type, description, specifier, descriptor);
         expectedType = Objects.requireNonNull(notificationType);
-        filter = DataStreamDrivenConnectorConfigurationDescriptionProvider.parseNotificationFilter(descriptor);
+        filter = DataStreamConnectorConfigurationDescriptionProvider.parseNotificationFilter(descriptor);
     }
 
     protected abstract Object changeAttributeValue(final N notification) throws Exception;

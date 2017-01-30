@@ -14,7 +14,7 @@ final class UnrecognizedAttributeTypeException extends ParseException {
         super(String.format("Attribute '%s' is not recognized by MD connector", attributeName));
     }
 
-    UnrecognizedAttributeTypeException(final Class<? extends DataStreamDrivenAttribute> type){
+    UnrecognizedAttributeTypeException(final Class<? extends SyntheticAttribute> type){
         super(String.format("Unsupported attribute type '%s'", type));
     }
 }

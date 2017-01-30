@@ -24,18 +24,18 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-public class DataStreamDrivenAttributeRepository extends DistributedAttributeRepository<DataStreamDrivenAttribute> {
+public class SyntheticAttributeRepository extends DistributedAttributeRepository<SyntheticAttribute> {
     private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
 
     private ExecutorService threadPool;
-    private DataStreamDrivenConnectorConfigurationDescriptionProvider configurationParser;
+    private DataStreamConnectorConfigurationDescriptionProvider configurationParser;
 
-    public DataStreamDrivenAttributeRepository(final String resourceName,
-                                               final Duration syncPeriod) {
-        super(resourceName, DataStreamDrivenAttribute.class, false, syncPeriod);
+    public SyntheticAttributeRepository(final String resourceName,
+                                        final Duration syncPeriod) {
+        super(resourceName, SyntheticAttribute.class, false, syncPeriod);
     }
 
-    final void init(final ExecutorService threadPool, final DataStreamDrivenConnectorConfigurationDescriptionProvider parser) {
+    final void init(final ExecutorService threadPool, final DataStreamConnectorConfigurationDescriptionProvider parser) {
         this.threadPool = Objects.requireNonNull(threadPool);
         this.configurationParser = Objects.requireNonNull(parser);
     }
@@ -72,8 +72,8 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
     }
 
     @Override
-    protected DataStreamDrivenAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
-        final DataStreamDrivenAttributeFactory gaugeFactory = configurationParser.parseGaugeType(descriptor);
+    protected SyntheticAttribute connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
+        final SyntheticAttributeFactory gaugeFactory = configurationParser.parseGaugeType(descriptor);
         if(gaugeFactory == null)
             throw new UnrecognizedAttributeTypeException(attributeName);
         return gaugeFactory.createAttribute(attributeName, descriptor);
@@ -96,7 +96,7 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
      * @return Serializable state of the attribute; or {@literal null}, if attribute doesn't support synchronization across cluster.
      */
     @Override
-    protected final Serializable takeSnapshot(final DataStreamDrivenAttribute attribute) {
+    protected final Serializable takeSnapshot(final SyntheticAttribute attribute) {
         return Convert.toType(attribute, DistributedAttribute.class, DistributedAttribute::takeSnapshot, attr -> null);
     }
 
@@ -107,7 +107,7 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
      * @param snapshot  Serializable snapshot used for initialization.
      */
     @Override
-    protected final void loadFromSnapshot(final DataStreamDrivenAttribute attribute, final Serializable snapshot) {
+    protected final void loadFromSnapshot(final SyntheticAttribute attribute, final Serializable snapshot) {
         if (attribute instanceof DistributedAttribute<?, ?>)
             ((DistributedAttribute<?, ?>) attribute).loadFromSnapshot(snapshot);
     }
@@ -120,21 +120,21 @@ public class DataStreamDrivenAttributeRepository extends DistributedAttributeRep
      * @throws Exception Internal connector error.
      */
     @Override
-    protected final Object getAttribute(final DataStreamDrivenAttribute metadata) throws Exception {
+    protected final Object getAttribute(final SyntheticAttribute metadata) throws Exception {
         if (metadata instanceof DistributedAttribute<?, ?>)
             return ((DistributedAttribute<?, ?>) metadata).getValue();
-        else if (metadata instanceof ProcessingAttribute<?>)
-            return ((ProcessingAttribute<?>) metadata).getValue(this);
+        else if (metadata instanceof DerivedAttribute<?>)
+            return ((DerivedAttribute<?>) metadata).getValue(this);
         else
             throw new UnrecognizedAttributeTypeException(metadata.getClass());
     }
 
     @Override
-    protected final void setAttribute(final DataStreamDrivenAttribute attribute, final Object value) throws Exception {
-        throw DataStreamDrivenAttribute.cannotBeModified(attribute);
+    protected final void setAttribute(final SyntheticAttribute attribute, final Object value) throws Exception {
+        throw SyntheticAttribute.cannotBeModified(attribute);
     }
 
-    public final void handleNotification(final Notification notification, final BiConsumer<? super DataStreamDrivenAttribute, ? super DataStreamDrivenAttribute.NotificationProcessingResult> callback) {
+    public final void handleNotification(final Notification notification, final BiConsumer<? super SyntheticAttribute, ? super SyntheticAttribute.NotificationProcessingResult> callback) {
         parallelForEach(attribute -> callback.accept(attribute, attribute.dispatch(notification)), getThreadPool());
     }
 

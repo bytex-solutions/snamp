@@ -16,7 +16,7 @@ import java.io.Serializable;
  * @version 2.0
  * @since 2.0
  */
-public abstract class DistributedAttribute<T, N extends Notification> extends TypedDataStreamDrivenAttribute<N> {
+public abstract class DistributedAttribute<T, N extends Notification> extends TypedSyntheticAttribute<N> {
     private static final long serialVersionUID = 1695985515176219703L;
 
     protected DistributedAttribute(final Class<N> notificationType,

@@ -14,14 +14,14 @@ import javax.management.openmbean.OpenType;
  * @since 2.0
  * @implNote By default, this attribute doesn't respond to the received measurement notifications.
  */
-public abstract class ProcessingAttribute<T> extends DataStreamDrivenAttribute {
+public abstract class DerivedAttribute<T> extends SyntheticAttribute {
     private static final long serialVersionUID = 2475124771284618979L;
 
-    protected ProcessingAttribute(final String name,
-                                  final OpenType<T> type,
-                                  final String description,
-                                  final AttributeSpecifier specifier,
-                                  final AttributeDescriptor descriptor) {
+    protected DerivedAttribute(final String name,
+                               final OpenType<T> type,
+                               final String description,
+                               final AttributeSpecifier specifier,
+                               final AttributeDescriptor descriptor) {
         super(name, type, description, specifier, descriptor);
     }
 
