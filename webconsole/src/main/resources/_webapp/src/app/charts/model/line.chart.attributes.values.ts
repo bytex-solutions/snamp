@@ -47,7 +47,6 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
     }
 
     public newValue(_data:ChartData):void {
-        console.log("new data for line chart is: ", _data);
         this.chartData.push(_data);
         let _index:number = this.chartData.length - 1;
         if (this._chartObject != undefined) {

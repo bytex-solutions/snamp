@@ -174,7 +174,7 @@
                   *ngFor="let chart of _charts"
                   [header]="chart.name"
                   [column]="chart.preferences['xsize']">
-            <div style="max-height: 200px; width: 100%">
+            <div>
               <canvas [attr.id]="chart.id" width="200" height="200"></canvas>
             </div>
           </panel>
