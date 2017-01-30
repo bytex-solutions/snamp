@@ -81,10 +81,10 @@
         <bundle>mvn:com.bytex.snamp/snmp4j/${snmp4j.version}</bundle>
     </feature>
 
-    <feature name="snamp-stream-processing" description="SNAMP instrumentation library and connector for measurements" version="${snamp.stream.processing.version}">
+    <feature name="snamp-stream-processing" description="SNAMP instrumentation library and connector for measurements" version="${snamp.stream.connector.version}">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
         <bundle>mvn:com.bytex.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
-        <bundle start="true">mvn:com.bytex.snamp/data-stream-processing/${snamp.stream.processing.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/data-stream-connector/${snamp.stream.connector.version}</bundle>
     </feature>
 </features>

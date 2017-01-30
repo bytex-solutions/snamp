@@ -21,7 +21,7 @@
     </dependency>
     <dependency>
       <groupId>com.bytex.snamp</groupId>
-      <artifactId>data-stream-processing</artifactId>
+      <artifactId>data-stream-connector</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
     </dependency>

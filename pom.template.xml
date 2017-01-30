@@ -64,7 +64,7 @@
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
     <snamp.connector.snmp.version>2.0.0</snamp.connector.snmp.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
-    <snamp.stream.processing.version>2.0.0</snamp.stream.processing.version>
+    <snamp.stream.connector.version>2.0.0</snamp.stream.connector.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
     <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>

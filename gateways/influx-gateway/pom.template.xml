@@ -82,8 +82,8 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>data-stream-processing</artifactId>
-            <version>${snamp.stream.processing.version}</version>
+            <artifactId>data-stream-connector</artifactId>
+            <version>${snamp.stream.connector.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

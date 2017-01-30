@@ -10,9 +10,9 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Message Processing Framework</name>
     <description>Framework for writing connectors based on message processing</description>
-    <artifactId>data-stream-processing</artifactId>
+    <artifactId>data-stream-connector</artifactId>
     <packaging>bundle</packaging>
-    <version>${snamp.stream.processing.version}</version>
+    <version>${snamp.stream.connector.version}</version>
     <build>
         <resources>
             <resource>
