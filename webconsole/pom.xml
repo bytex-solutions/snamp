@@ -88,6 +88,12 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>com.bytex.snamp.instrumentation</groupId>
+      <artifactId>core</artifactId>
+      <version>1.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>

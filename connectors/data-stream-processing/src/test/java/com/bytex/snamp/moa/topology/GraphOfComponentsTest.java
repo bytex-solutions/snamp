@@ -21,6 +21,53 @@ public final class GraphOfComponentsTest extends Assert {
     }
 
     @Test
+    public void recursiveSpanCollectionTest(){
+        //root component
+        final Span rootSpan = new Span();
+        rootSpan.setComponentName(COMPONENT1);
+        rootSpan.setInstanceName("node1");
+        rootSpan.setDuration(15, TimeUnit.MILLISECONDS);
+        rootSpan.generateIDs();
+        graph.accept(rootSpan);
+
+        final Span span = new Span();
+        span.setComponentName(COMPONENT2);
+        span.setInstanceName("node1");
+        span.setDuration(5, TimeUnit.MILLISECONDS);
+        span.setCorrelationID(rootSpan.getCorrelationID());
+        span.setSpanID(Identifier.randomID(4));
+        span.setParentSpanID(rootSpan.getSpanID());
+        graph.accept(span);
+
+        final Span recursiveSpan = new Span();
+        recursiveSpan.setComponentName(COMPONENT1);
+        recursiveSpan.setInstanceName("node1");
+        recursiveSpan.setDuration(30, TimeUnit.SECONDS);
+        recursiveSpan.setCorrelationID(rootSpan.getCorrelationID());
+        recursiveSpan.setSpanID(Identifier.randomID(4));
+        recursiveSpan.setParentSpanID(span.getSpanID());
+        graph.accept(recursiveSpan);
+
+        assertEquals(2, graph.size());
+
+        final ComponentVertex rootComponent = graph.get(COMPONENT1);
+        assertNotNull(rootComponent);
+        assertEquals(1, rootComponent.size());
+        final ComponentVertex childComponent = graph.get(COMPONENT2);
+        assertNotNull(childComponent);
+        assertEquals(1, childComponent.size());
+
+        assertTrue(rootComponent.contains(childComponent));
+        assertTrue(childComponent.contains(rootComponent));
+
+        assertTrue(graph.remove(COMPONENT1));
+        assertTrue(graph.values().contains(childComponent));
+        assertEquals(0, childComponent.size());
+
+        graph.clear();
+    }
+
+    @Test
     public void simpleSpanCollectionTest(){
         //root component
         final Span rootSpan = new Span();
@@ -48,7 +95,7 @@ public final class GraphOfComponentsTest extends Assert {
         assertNotNull(childComponent);
         assertTrue(childComponent.isEmpty());
 
-        rootComponent.contains(childComponent);
+        assertTrue(rootComponent.contains(childComponent));
 
         assertTrue(graph.remove(COMPONENT2));
 

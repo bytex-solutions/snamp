@@ -1,4 +1,4 @@
-package com.bytex.snamp.impl;
+package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.MapUtils;
@@ -12,7 +12,6 @@ import com.bytex.snamp.connector.dsp.notifications.SpanNotification;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.instrumentation.measurements.Span;
-import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.GraphOfComponents;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import org.osgi.framework.BundleContext;
@@ -57,13 +56,6 @@ final class TopologyAnalyzerService extends GraphOfComponents implements Topolog
         for(final ServiceReference<ManagedResourceConnector> connectorRef: ManagedResourceConnectorClient.getConnectors(getBundleContext()).values()){
             serviceChanged(ServiceEvent.REGISTERED, connectorRef);
         }
-    }
-
-    @Override
-    public void visit(final Visitor visitor) {
-        for (final ComponentVertex vertex : values())
-            if (!visitor.visit(vertex))
-                return;
     }
 
     private BundleContext getBundleContext(){

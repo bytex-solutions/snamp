@@ -49,6 +49,10 @@ public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex
             handleSpan(span);
     }
 
+    void removeChild(final String componentName){
+        removeIf(vertex -> vertex.getName().equals(componentName));
+    }
+
     /**
      * Gets analytics about arrivals
      *
@@ -80,5 +84,10 @@ public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex
 
     public String getModuleName(){
         return id.getModuleName();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("component=%s, module=%s, instances=%s, children=%s", id.getComponentName(), id.getModuleName(), instances, size());
     }
 }

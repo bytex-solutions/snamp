@@ -1,4 +1,4 @@
-package com.bytex.snamp.impl;
+package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ConfigurationManager;

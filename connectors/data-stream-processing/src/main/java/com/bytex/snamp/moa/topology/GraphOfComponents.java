@@ -89,7 +89,14 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId, Comp
     public final boolean remove(final String componentName) {
         final boolean success = keySet().removeIf(id -> id.getComponentName().equals(componentName));
         idToVertexCache.values().removeIf(entry -> entry.getName().equals(componentName));
+        spanBuffer.values().removeIf(entry -> entry.getComponentName().equals(componentName));
+        values().forEach(vertex -> vertex.removeChild(componentName));
         return success;
+    }
+
+    public final <E extends Throwable> void forEach(final Acceptor<? super ComponentVertex, E> visitor) throws E {
+        for (final ComponentVertex vertex : values())
+            visitor.accept(vertex);
     }
 
     /**

@@ -1,38 +1,24 @@
 package com.bytex.snamp.web.serviceModel.e2e;
 
-import com.bytex.snamp.moa.topology.ComponentVertex;
-import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonTypeName;
 
 import java.util.Objects;
-import java.util.function.Consumer;
 
 /**
- * Represents component-specific E2E view.
+ * Represents E2E view based on the specified component.
  * @author Roman Sakno
- * @since 2.0
  * @version 2.0
+ * @since 2.0
  */
-@JsonTypeName("componentSpecificView")
-public final class ComponentSpecificView extends E2EView implements TopologyAnalyzer.Visitor{
+public abstract class ComponentSpecificView {
+    private String rootComponent = "";
 
-
-    @Override
-    void build(final TopologyAnalyzer analyzer) {
-        analyzer.visit(this);
+    @JsonProperty("rootComponent")
+    public final String getTargetComponent(){
+        return rootComponent;
     }
 
-    private void fillView(final ComponentVertex root){
-
-    }
-
-    @Override
-    public boolean visit(final ComponentVertex vertex) {
-        if (vertex.getName().equals(getTargetComponent())) {
-            fillView(vertex);
-            return false;   //abort iteration
-        } else
-            return true;
+    public final void setTargetComponent(final String value){
+        rootComponent = Objects.requireNonNull(value);
     }
 }

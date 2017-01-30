@@ -1,6 +1,7 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
 import com.bytex.snamp.json.ThreadLocalJsonFactory;
+import com.bytex.snamp.web.serviceModel.ObjectMapperSingleton;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -8,7 +9,6 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.JsonSerializableWithType;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
-import org.codehaus.jackson.node.BaseJsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 
 import javax.annotation.Nonnull;
