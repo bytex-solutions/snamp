@@ -11,6 +11,8 @@ import { Routes, RouterModule } from '@angular/router';
 import { ModalModule } from 'angular2-modal';
 import { VexModalModule } from 'angular2-modal/plugins/vex';
 
+import { NgGridModule } from '../controls/nggrid/modules/NgGrid.module';
+
 import { DragulaModule } from 'ng2-dragula';
 
 import { Dashboard } from './charts.dashboard';
@@ -32,6 +34,7 @@ const PROVIDERS:any =  [
       VexModalModule,
       HttpModule,
       CommonSnampUtilsModule,
+      NgGridModule,
       RouterModule.forChild([{ path: '', component: Dashboard }])
     ],
     declarations: [ Dashboard ],

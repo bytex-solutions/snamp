@@ -167,20 +167,23 @@
 
     <div class="row" style="margin-top: 30px">
 
-      <div class='container col-md-12' id="chartArea" [dragula]='"second-bag"' style="min-height: 400px;">
+      <div class='container col-md-12' id="chartArea" [dragula]='"second-bag"' style="min-height: 900px;">
 
-        <div class="row" >
-          <panel
-                  *ngFor="let chart of _charts"
-                  [header]="chart.name"
-                  [column]="chart.preferences['xsize']">
-            <div>
+
+        <div [ngGrid]="gridConfig">
+          <div *ngFor="let chart of _charts; let i = index" [(ngGridItem)]="chart.preferences['gridcfg']" (onResize)="onResize(i, $event)" (onDrag)="onDrag(i, $event)">
+            <div class="handle">
+              {{chart.name}}
+              <div class="box-header-btns pull-right">
+                <a title="Remove widget" (click)="removeWidget(i);">
+                  <i class="glyphicon glyphicon-trash"></i>
+                </a>
+              </div>
               <canvas [attr.id]="chart.id" width="200" height="200"></canvas>
             </div>
-          </panel>
+          </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>

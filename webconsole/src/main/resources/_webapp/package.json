@@ -1,18 +1,17 @@
 {
-  "name": "angular2-webpack-starter",
-  "version": "5.0.5",
-  "description": "An Angular 2 Webpack Starter kit featuring Angular 2 (Router, Http, Forms, Services, Tests, E2E, Coverage), Karma, Protractor, Jasmine, Istanbul, TypeScript, and Webpack by AngularClass",
+  "name": "Snamp-webUI-console-webpack",
+  "version": "2.0.0",
+  "description": "SNAMP web UI console for dashboards, configuring SNAMP core and setting watchers etc",
   "keywords": [
     "angular2",
     "webpack",
-    "typescript"
+    "typescript",
+    "snamp"
   ],
-  "author": "Patrick Stapleton <patrick@angularclass.com>",
-  "homepage": "https://github.com/angularclass/angular2-webpack-starter",
-  "license": "MIT",
+  "author": "Evgeniy Kirichenko <evgeniy.kirichenko@bytex.solutions>",
+  "license": "Apache 2.0",
   "scripts": {
     "build:dev": "webpack --config config/webpack.dev.js --progress --profile",
-    "build:docker": "npm run build:prod && docker build -t angular2-webpack-start:latest .",
     "build:prod": "webpack --config config/webpack.prod.js  --progress --profile --bail",
     "build": "npm run build:dev",
     "ci": "npm run lint && npm test && npm run e2e",
@@ -105,7 +104,8 @@
     "prismjs": "1.6.0",
     "ng2-dragula": "1.2.0",
     "dragula": "3.7.2",
-    "chart.js": "2.4.0"
+    "chart.js": "2.4.0",
+    "angular2-grid": "2.0.1"
 
   },
   "devDependencies": {

@@ -41,6 +41,12 @@ export abstract class AbstractChart {
 
     constructor() {
         this.preferences["xsize"] = 3;
+        this.preferences["gridcfg"] = {};
+        this.preferences["gridcfg"]['dragHandle'] = '.handle';
+        this.preferences["gridcfg"]['col'] = 1;
+        this.preferences["gridcfg"]['row'] = 1;
+        this.preferences["gridcfg"]['sizex'] = 1;
+        this.preferences["gridcfg"]['sizey'] = 1;
     }
 
     // different types of charts should be rendered in different ways

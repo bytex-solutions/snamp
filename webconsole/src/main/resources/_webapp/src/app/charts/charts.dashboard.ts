@@ -17,6 +17,8 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
 
+import {NgGrid, NgGridItem, NgGridConfig, NgGridItemConfig, NgGridItemEvent} from '../controls/nggrid/main'
+
 import 'smartwizard';
 import 'select2';
 
@@ -48,6 +50,30 @@ export class Dashboard {
         initialized = false;
 
         private _charts:AbstractChart[] = [];
+
+        private gridConfig: NgGridConfig = <NgGridConfig>{
+            'margins': [5],
+            'draggable': true,
+            'resizable': true,
+            'max_cols': 0,
+            'max_rows': 0,
+            'visible_cols': 0,
+            'visible_rows': 0,
+            'min_cols': 1,
+            'min_rows': 1,
+            'col_width': 2,
+            'row_height': 2,
+            'cascade': 'up',
+            'min_width': 50,
+            'min_height': 50,
+            'fix_to_grid': true,
+            'auto_style': true,
+            'auto_resize': false,
+            'maintain_ratio': false,
+            'prefer_new': false,
+            'zoom_on_drag': true,
+            'limit_to_screen': true
+        };
 
 
         constructor(apiClient: ApiClient,
@@ -168,7 +194,6 @@ export class Dashboard {
         let _obsComponents = this.http.getIgnoreErrors(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
              .map((res:Response) => {
                  let _data:any = res.json();
-                 console.log("components metrics data: ", _data);
                  let _values:AttributeInformation[] = [];
                  for (let i in _data) {
                      _values.push(new AttributeInformation(_data[i]));
@@ -259,7 +284,17 @@ export class Dashboard {
          setTimeout(function() {
             $("#chartArea li.removable").remove();
             chart.draw();
-         }, 500);
+         }, 1500);
    }
+
+   	onDrag(index: number, event: NgGridItemEvent): void {
+   		// Do something here
+   		console.log("Dragged: ", index, event);
+   	}
+
+   	onResize(index: number, event: NgGridItemEvent): void {
+   		// Do something here
+   		console.log("Resized: ", index, event);
+   	}
 }
 

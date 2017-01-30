@@ -19,6 +19,10 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
         return new AttributeValueAxis();
     }
 
+    constructor() {
+        super();
+    }
+
     public newValue(_data:ChartData):void {
         let _index:number = -1;
         for (let i = 0; i < this.chartData.length; i++) {
