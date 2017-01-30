@@ -52,17 +52,17 @@ export class Dashboard {
         private _charts:AbstractChart[] = [];
 
         private gridConfig: NgGridConfig = <NgGridConfig>{
-            'margins': [5],
+            'margins': [10],
             'draggable': true,
             'resizable': true,
             'max_cols': 0,
             'max_rows': 0,
             'visible_cols': 0,
             'visible_rows': 0,
-            'min_cols': 1,
-            'min_rows': 1,
-            'col_width': 2,
-            'row_height': 2,
+            'min_cols': 2,
+            'min_rows': 2,
+            'col_width': 100,
+            'row_height': 100,
             'cascade': 'up',
             'min_width': 50,
             'min_height': 50,

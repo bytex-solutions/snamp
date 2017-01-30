@@ -80,15 +80,7 @@ select.form-control:not([size]):not([multiple]) {
 	box-sizing: border-box;
 }
 
-.box-header-btns {
-    top: 15px;
-    right: 10px;
-    cursor: pointer;
-    position: absolute;
-}
-
 .grid {
-	background-color: #efefef;
 	transform-origin: top center;
 	transition: transform 0.5s;
 }
