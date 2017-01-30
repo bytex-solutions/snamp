@@ -1,5 +1,6 @@
 package com.bytex.snamp.moa.topology;
 
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Stateful;
 import com.bytex.snamp.connector.dsp.notifications.SpanNotification;
 import com.bytex.snamp.instrumentation.Identifier;

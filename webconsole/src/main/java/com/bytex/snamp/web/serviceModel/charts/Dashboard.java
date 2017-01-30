@@ -17,11 +17,7 @@ import java.util.List;
 @JsonTypeName("dashboardOfCharts")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 public final class Dashboard {
-    private final List<Chart> charts;
-
-    public Dashboard(){
-        charts = new LinkedList<>();
-    }
+    private final List<Chart> charts = new LinkedList<>();
 
     @JsonProperty("charts")
     public List<Chart> getCharts(){
@@ -33,7 +29,7 @@ public final class Dashboard {
         charts.addAll(value);
     }
 
-    public void addChart(final Chart value){
+    void addChart(final Chart value){
         charts.add(value);
     }
 }
