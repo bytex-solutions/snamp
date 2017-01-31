@@ -14,11 +14,11 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 import javax.annotation.Nonnull;
 import javax.ws.rs.Path;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.internal.Utils.parallelForEach;
 
@@ -72,24 +72,31 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
         }
     }
 
-    private final class ArrivalsMetricSender extends Repeater{
+    private static final class ArrivalsMetricSender extends Repeater{
         private final TopologyAnalyzer topologyAnalyzer;
+        private final WeakReference<E2EDataSource> serviceRef;
 
-        private ArrivalsMetricSender(final Duration period, final TopologyAnalyzer analyzer){
+        private ArrivalsMetricSender(final E2EDataSource service, final Duration period, final TopologyAnalyzer analyzer){
             super(period);
             topologyAnalyzer = Objects.requireNonNull(analyzer);
+            assert service != null;
+            serviceRef = new WeakReference<>(service);
         }
 
         private void processVertex(final WebConsoleSession session,
                                    final ComponentVertex vertex){
-            final ComponentArrivalsMessage message = new ComponentArrivalsMessage(E2EDataSource.this);
+            final E2EDataSource service = serviceRef.get();
+            if (service == null) return;
+            final ComponentArrivalsMessage message = new ComponentArrivalsMessage(service);
             message.setData(vertex);
             session.sendMessage(message);
         }
 
         private void processVertex(final ComponentVertex vertex, final Thread actionThread) {
             if (actionThread.isInterrupted()) return;
-            forEachSession(session -> processVertex(session, vertex));
+            final E2EDataSource service = serviceRef.get();
+            if (service == null) return;
+            service.forEachSession(session -> processVertex(session, vertex));
         }
 
         @Override
@@ -100,30 +107,39 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
         @Override
         protected void doAction() {
             final Thread actionThread = Thread.currentThread();
-            topologyAnalyzer.parallelForEach(vertex -> processVertex(vertex, actionThread), threadPool);
+            final E2EDataSource service = serviceRef.get();
+            if (service == null) return;
+            topologyAnalyzer.parallelForEach(vertex -> processVertex(vertex, actionThread), service.threadPool);
         }
     }
 
-    private final class TopologyBuilder extends Repeater{
+    private static final class TopologyBuilder extends Repeater{
         private final TopologyAnalyzer topologyAnalyzer;
+        private final WeakReference<E2EDataSource> serviceRef;
 
-        private TopologyBuilder(final Duration period, final TopologyAnalyzer analyzer){
+        private TopologyBuilder(final E2EDataSource service, final Duration period, final TopologyAnalyzer analyzer) {
             super(period);
             topologyAnalyzer = Objects.requireNonNull(analyzer);
+            assert service != null;
+            serviceRef = new WeakReference<>(service);
         }
 
-        private void buildViewData(final WebConsoleSession session, final E2EView view, final Thread actionThread){
-            if(actionThread.isInterrupted()) return;
-            final ViewDataMessage message = new ViewDataMessage(E2EDataSource.this);
+        private void buildViewData(final WebConsoleSession session, final E2EView view, final Thread actionThread) {
+            if (actionThread.isInterrupted()) return;
+            final E2EDataSource service = serviceRef.get();
+            if (service == null) return;
+            final ViewDataMessage message = new ViewDataMessage(service);
             message.setViewData(view, topologyAnalyzer);
             session.sendMessage(message);
         }
 
-        private void doActionForSession(final WebConsoleSession session, final Thread actionThread){
-            if(actionThread.isInterrupted()) return;
-            final Dashboard dashboard = getUserData(session);
+        private void doActionForSession(final WebConsoleSession session, final Thread actionThread) {
+            if (actionThread.isInterrupted()) return;
+            final E2EDataSource service = serviceRef.get();
+            if (service == null) return;
+            final Dashboard dashboard = service.getUserData(session);
             //building graph for each view may be expensive. Therefore we build graph as separated task
-            parallelForEach(dashboard.getViews(), view -> buildViewData(session, view, actionThread), threadPool);
+            parallelForEach(dashboard.getViews(), view -> buildViewData(session, view, actionThread), service.threadPool);
         }
 
         @Override
@@ -134,7 +150,9 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
         @Override
         protected void doAction() {
             final Thread actionThread = Thread.currentThread();
-            forEachSession(session -> doActionForSession(session, actionThread), threadPool);
+            final E2EDataSource service = serviceRef.get();
+            if (service == null) return;
+            service.forEachSession(session -> doActionForSession(session, actionThread), service.threadPool);
         }
     }
 
@@ -148,8 +166,8 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
         super(Dashboard.class);
         this.threadPool = Objects.requireNonNull(threadPool);
         final Duration refreshTime = getTopologyRefreshTime(manager);
-        topologyBuilder = new TopologyBuilder(refreshTime, topologyAnalyzer);
-        arrivalsSender = new ArrivalsMetricSender(refreshTime, topologyAnalyzer);
+        topologyBuilder = new TopologyBuilder(this, refreshTime, topologyAnalyzer);
+        arrivalsSender = new ArrivalsMetricSender(this, refreshTime, topologyAnalyzer);
     }
 
     private static Duration getTopologyRefreshTime(final ConfigurationManager manager) throws IOException {
@@ -177,17 +195,15 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
         return new Dashboard();
     }
 
-    private static void close(final Repeater... repeaters) throws TimeoutException, InterruptedException {
-        for(final Repeater r: repeaters)
-            r.close(r.getPeriod());
-    }
-
     @Override
     public void close() throws Exception {
         super.close();
         try {
-            close(topologyBuilder, arrivalsSender);
+            topologyBuilder.close();
+            arrivalsSender.close();
         } finally {
+            topologyBuilder.serviceRef.clear();
+            arrivalsSender.serviceRef.clear();
             topologyBuilder = null;
             arrivalsSender = null;
         }

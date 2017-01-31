@@ -2,7 +2,6 @@ package com.bytex.snamp.web.serviceModel.e2e;
 
 import com.bytex.snamp.instrumentation.Identifier;
 import com.bytex.snamp.instrumentation.measurements.Span;
-import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.GraphOfComponents;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -10,9 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * @author Roman Sakno
@@ -25,11 +22,6 @@ public final class AdjacencyMatrixTest extends Assert {
 
         private TopologyAnalyzerMock() {
             super(100);
-        }
-
-        @Override
-        public void parallelForEach(final Consumer<? super ComponentVertex> visitor, final Executor executor) {
-            forEach(visitor::accept);
         }
     }
 

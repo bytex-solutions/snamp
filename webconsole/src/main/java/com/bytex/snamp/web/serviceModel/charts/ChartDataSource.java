@@ -19,6 +19,7 @@ import javax.management.AttributeList;
 import javax.management.JMException;
 import javax.ws.rs.Path;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,14 +60,20 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         }
     }
 
-    private final class AttributeSupplierThread extends Repeater {
-        private AttributeSupplierThread(final Duration period) {
+    private static final class AttributeSupplierThread extends Repeater {
+        private final WeakReference<ChartDataSource> serviceRef;
+
+        private AttributeSupplierThread(final ChartDataSource service, final Duration period) {
             super(period);
+            assert service != null;
+            serviceRef = new WeakReference<>(service);
         }
 
         private void processAttributes(final WebConsoleSession session, final String resourceName, final AttributeList attributes) {
-            final Dashboard dashboard = getUserData(session);
-            final ChartDataMessage message = new ChartDataMessage(ChartDataSource.this);
+            final ChartDataSource service = serviceRef.get();
+            if(service == null) return;
+            final Dashboard dashboard = service.getUserData(session);
+            final ChartDataMessage message = new ChartDataMessage(service);
             dashboard.getCharts().stream()
                     .filter(chart -> chart instanceof ChartOfAttributeValues)
                     .forEach(chart -> ((ChartOfAttributeValues) chart).fillCharData(resourceName, attributes, message.getChartData()));
@@ -76,6 +83,14 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         @Override
         protected String generateThreadName() {
             return getClass().getSimpleName();
+        }
+
+        private Logger getLogger(){
+            return LoggerProvider.getLoggerForBundle(getBundleContext());
+        }
+
+        private BundleContext getBundleContext(){
+            return getBundleContextOfObject(this);
         }
 
         private void processConnector(final Map.Entry<String, ServiceReference<ManagedResourceConnector>> connector,
@@ -92,7 +107,9 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             } finally {
                 client.release(getBundleContext()); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
             }
-            forEachSession(session -> processAttributes(session, resourceName, attributes));
+            final ChartDataSource service = serviceRef.get();
+            if (service == null) return;
+            service.forEachSession(session -> processAttributes(session, resourceName, attributes));
         }
 
         @Override
@@ -100,7 +117,9 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             final Thread actionThread = Thread.currentThread();
             final Set<Map.Entry<String, ServiceReference<ManagedResourceConnector>>> connectors =
                     ManagedResourceConnectorClient.getConnectors(getBundleContext()).entrySet();
-            parallelForEach(connectors, entry -> processConnector(entry, actionThread), threadPool);
+            final ChartDataSource service = serviceRef.get();
+            if (service == null) return;
+            parallelForEach(connectors, entry -> processConnector(entry, actionThread), service.threadPool);
         }
     }
 
@@ -110,7 +129,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
     public ChartDataSource(final ConfigurationManager manager, final ExecutorService threadPool) throws IOException {
         super(Dashboard.class);
         this.threadPool = Objects.requireNonNull(threadPool);
-        attributeSupplier = new AttributeSupplierThread(getRefreshTime(manager));
+        attributeSupplier = new AttributeSupplierThread(this, getRefreshTime(manager));
     }
 
     private static Duration getRefreshTime(final ConfigurationManager manager) throws IOException {
@@ -120,20 +139,12 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         });
     }
 
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForBundle(getBundleContext());
-    }
-
     /**
      * {@inheritDoc}
      */
     @Override
     protected void initialize() {
         attributeSupplier.run();
-    }
-
-    private BundleContext getBundleContext(){
-        return getBundleContextOfObject(this);
     }
 
     @Nonnull
@@ -146,8 +157,9 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
     public void close() throws Exception {
         super.close();
         try {
-            attributeSupplier.close(attributeSupplier.getPeriod());
+            attributeSupplier.close();
         } finally {
+            attributeSupplier.serviceRef.clear();
             attributeSupplier = null;
         }
     }
