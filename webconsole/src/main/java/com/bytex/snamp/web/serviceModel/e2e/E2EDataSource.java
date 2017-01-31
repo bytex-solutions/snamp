@@ -81,9 +81,7 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
         }
 
         private void processVertex(final WebConsoleSession session,
-                                   final ComponentVertex vertex,
-                                   final Thread actionThread){
-            if(actionThread.isInterrupted()) return;
+                                   final ComponentVertex vertex){
             final ComponentArrivalsMessage message = new ComponentArrivalsMessage(E2EDataSource.this);
             message.setData(vertex);
             session.sendMessage(message);
@@ -91,7 +89,7 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
 
         private void processVertex(final ComponentVertex vertex, final Thread actionThread) {
             if (actionThread.isInterrupted()) return;
-            forEachSession(session -> processVertex(session, vertex, actionThread));
+            forEachSession(session -> processVertex(session, vertex));
         }
 
         @Override
