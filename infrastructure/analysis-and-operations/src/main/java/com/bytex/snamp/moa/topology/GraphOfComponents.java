@@ -5,10 +5,12 @@ import com.bytex.snamp.Stateful;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.instrumentation.Identifier;
 import com.bytex.snamp.instrumentation.measurements.Span;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.MoreObjects;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /**
@@ -97,6 +99,10 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId, Comp
     public final <E extends Throwable> void forEach(final Acceptor<? super ComponentVertex, E> visitor) throws E {
         for (final ComponentVertex vertex : values())
             visitor.accept(vertex);
+    }
+
+    public final void parallelForEach(final Consumer<? super ComponentVertex> visitor, final Executor executor){
+        Utils.parallelForEach(values(), visitor, executor);
     }
 
     /**

@@ -89,9 +89,9 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
             session.sendMessage(message);
         }
 
-        private void doActionForSession(final WebConsoleSession session, final Thread actionThread){
-            if(actionThread.isInterrupted()) return;
-            topologyAnalyzer.forEach(vertex -> processVertex(session, vertex, actionThread));
+        private void processVertex(final ComponentVertex vertex, final Thread actionThread) {
+            if (actionThread.isInterrupted()) return;
+            forEachSession(session -> processVertex(session, vertex, actionThread));
         }
 
         @Override
@@ -102,7 +102,7 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
         @Override
         protected void doAction() {
             final Thread actionThread = Thread.currentThread();
-            forEachSession(session -> doActionForSession(session, actionThread));
+            topologyAnalyzer.parallelForEach(vertex -> processVertex(vertex, actionThread), threadPool);
         }
     }
 

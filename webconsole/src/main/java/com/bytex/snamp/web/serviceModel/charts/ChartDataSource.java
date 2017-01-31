@@ -5,6 +5,7 @@ import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import com.bytex.snamp.web.serviceModel.WebMessage;
@@ -15,17 +16,20 @@ import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
 import javax.management.AttributeList;
-import javax.management.MBeanException;
-import javax.management.ReflectionException;
+import javax.management.JMException;
 import javax.ws.rs.Path;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import static com.bytex.snamp.internal.Utils.parallelForEach;
 
 /**
  * Represents source of charts data.
@@ -60,7 +64,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             super(period);
         }
 
-        private void processAttributes(final WebConsoleSession session, final String resourceName, final AttributeList attributes) throws ReflectionException, MBeanException {
+        private void processAttributes(final WebConsoleSession session, final String resourceName, final AttributeList attributes) {
             final Dashboard dashboard = getUserData(session);
             final ChartDataMessage message = new ChartDataMessage(ChartDataSource.this);
             dashboard.getCharts().stream()
@@ -69,41 +73,34 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             session.sendMessage(message);
         }
 
-        private void doActionForSession(final WebConsoleSession session, final Thread actionThread) {
-            for (final Map.Entry<String, ServiceReference<ManagedResourceConnector>> connector : ManagedResourceConnectorClient.getConnectors(getBundleContext()).entrySet()) {
-                if (actionThread.isInterrupted())
-                    return;   //if submitter is interrupted then exit
-                else
-                    threadPool.submit(() -> {
-                        if (actionThread.isInterrupted())
-                            return null;    //if submitter is interrupted then exit
-                        /*
-                            A reference to managed resource connector used for obtaining attribute values only.
-                         */
-                        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connector.getValue());
-                        final AttributeList attributes;
-                        final String resourceName = client.getManagedResourceName();
-                        try {
-                            attributes = client.getAttributes();
-                        } finally {
-                            client.release(getBundleContext()); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
-                        }
-                        if (!actionThread.isInterrupted())
-                            processAttributes(session, resourceName, attributes);
-                        return null;
-                    });
-            }
-        }
-
         @Override
         protected String generateThreadName() {
             return getClass().getSimpleName();
         }
 
+        private void processConnector(final Map.Entry<String, ServiceReference<ManagedResourceConnector>> connector,
+                                      final Thread actionThread) {
+            if (actionThread.isInterrupted()) return;
+            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connector.getValue());
+            final AttributeList attributes;
+            final String resourceName = client.getManagedResourceName();
+            try {
+                attributes = client.getAttributes();
+            } catch (final JMException e) {
+                getLogger().log(Level.WARNING, String.format("Unable to read attributes of resource %s", resourceName), e);
+                return;
+            } finally {
+                client.release(getBundleContext()); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
+            }
+            forEachSession(session -> processAttributes(session, resourceName, attributes));
+        }
+
         @Override
         protected void doAction() {
             final Thread actionThread = Thread.currentThread();
-            forEachSession(session -> doActionForSession(session, actionThread), threadPool);
+            final Set<Map.Entry<String, ServiceReference<ManagedResourceConnector>>> connectors =
+                    ManagedResourceConnectorClient.getConnectors(getBundleContext()).entrySet();
+            parallelForEach(connectors, entry -> processConnector(entry, actionThread), threadPool);
         }
     }
 
@@ -121,6 +118,10 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             final long renewTime = MapUtils.getValue(config, CHART_DATA_REFRESH_TIME_PARAM, Long::parseLong).orElse(900L);
             return Duration.ofMillis(renewTime);
         });
+    }
+
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForBundle(getBundleContext());
     }
 
     /**
