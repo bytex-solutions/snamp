@@ -203,7 +203,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
         final WeakEventListener<L, ?>[] snapshot = listeners;
         switch (a.length) {
             default:
-                for (int inputIndex = 0, outputIndex = 0; inputIndex < Math.min(snapshot.length, a.length); inputIndex++) {
+                for (int inputIndex = 0, outputIndex = 0; inputIndex < Integer.min(snapshot.length, a.length); inputIndex++) {
                     final L listener = snapshot[inputIndex].get();
                     if (listener != null) Array.set(a, outputIndex++, listener);
                 }

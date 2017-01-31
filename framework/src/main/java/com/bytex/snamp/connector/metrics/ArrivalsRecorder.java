@@ -93,8 +93,8 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
     }
 
     @Override
-    public double getMeanAvailability(final MetricsInterval interval){
-        return getAvailability(getMeanRate(interval), toSeconds(getMeanValue()), channels);
+    public double getLastMeanAvailability(final MetricsInterval interval){
+        return getAvailability(getLastMeanRate(interval), toSeconds(getLastMeanValue(interval)), channels);
     }
 
     @Override
@@ -110,7 +110,7 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
     public double getEfficiency(){
         final double summaryDuration = toSeconds(getSummaryValue());
         final double uptime = toSeconds(Duration.between(getStartTime(), Instant.now()));
-        return summaryDuration / uptime;
+        return Double.min(summaryDuration / uptime, 1D);
     }
 
     /**

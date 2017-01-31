@@ -8,7 +8,7 @@ import com.bytex.snamp.moa.topology.TopologyAnalyzer;
  * @version 2.0
  * @since 2.0
  */
-interface MatrixBasedView extends E2EView {
+abstract class MatrixBasedView extends E2EView {
     @Override
-    AdjacencyMatrix build(final TopologyAnalyzer analyzer);
+    abstract AdjacencyMatrix build(final TopologyAnalyzer analyzer);
 }

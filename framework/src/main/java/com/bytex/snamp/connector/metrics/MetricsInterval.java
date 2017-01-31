@@ -22,50 +22,50 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
     SECOND(1, TimeUnit.SECONDS){
         @Override
         public String toString() {
-            return "1 second";
+            return "Second";
         }
     },
     MINUTE(1, TimeUnit.MINUTES){
         @Override
         public String toString() {
-            return "1 minute";
+            return "Minute";
         }
     },
     FIVE_MINUTES(5, TimeUnit.MINUTES){
         @Override
         public String toString() {
-            return "5 minutes";
+            return "5Minutes";
         }
     },
     FIFTEEN_MINUTES(15, TimeUnit.MINUTES){
         @Override
         public String toString() {
-            return "15 minutes";
+            return "15Minutes";
         }
     },
     HOUR(1, TimeUnit.HOURS){
         @Override
         public String toString() {
-            return "1 hour";
+            return "Hour";
         }
     },
     TWELVE_HOURS(12, TimeUnit.HOURS){
         @Override
         public String toString() {
-            return "12 hours";
+            return "12Hours";
         }
     },
     DAY(1, TimeUnit.DAYS){
         @Override
         public String toString() {
-            return "1 day";
+            return "Day";
         }
     };
 
     /**
      * Sorted set of available intervals for fast iteration.
      */
-    static final ImmutableSortedSet<MetricsInterval> ALL_INTERVALS = ImmutableSortedSet.copyOf(MetricsInterval::compareTo, Arrays.asList(values()));
+    public static final ImmutableSortedSet<MetricsInterval> ALL_INTERVALS = ImmutableSortedSet.copyOf(MetricsInterval::compareTo, Arrays.asList(values()));
 
     private final long timeToLive;
 
@@ -131,4 +131,6 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
     public final ImmutableSortedSet<MetricsInterval> less(){
         return ALL_INTERVALS.headSet(this, false);
     }
+
+    public abstract String toString();
 }

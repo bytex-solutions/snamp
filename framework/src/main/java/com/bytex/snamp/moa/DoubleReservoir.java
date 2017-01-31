@@ -151,7 +151,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
             }
             break;
         }
-        return Math.max(low, high);
+        return Integer.max(low, high);
     }
 
     /**

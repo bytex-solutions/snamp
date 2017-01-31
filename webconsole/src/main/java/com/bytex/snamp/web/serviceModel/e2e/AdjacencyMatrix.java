@@ -39,8 +39,6 @@ public abstract class AdjacencyMatrix implements Acceptor<ComponentVertex, Excep
         }
     }
 
-    abstract void serialize(final ObjectNode output);
-
     @Override
     public final void serialize(final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider) throws IOException {
         final ObjectNode serializedForm = ThreadLocalJsonFactory.getFactory().objectNode();
@@ -53,7 +51,6 @@ public abstract class AdjacencyMatrix implements Acceptor<ComponentVertex, Excep
             vertices.add(vertexNode);
         }
         serializedForm.put("vertices", vertices);
-        serialize(serializedForm);
         serializedForm.serialize(jsonGenerator, serializerProvider);
     }
 

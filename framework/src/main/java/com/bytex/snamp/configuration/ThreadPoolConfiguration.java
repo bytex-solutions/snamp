@@ -21,7 +21,7 @@ public interface ThreadPoolConfiguration extends EntityConfiguration {
     /**
      * Default number of threads to keep in the pool.
      */
-    int DEFAULT_MIN_POOL_SIZE = Math.min(2, Runtime.getRuntime().availableProcessors());
+    int DEFAULT_MIN_POOL_SIZE = Integer.min(2, Runtime.getRuntime().availableProcessors());
 
     /**
      * When the number of threads is greater than the minimum, this is the maximum time that excess idle threads

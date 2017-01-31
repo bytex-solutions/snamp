@@ -7,7 +7,7 @@ package com.bytex.snamp.connector.metrics;
  * @since 2.0
  */
 public interface Arrivals extends RatedTimer {
-    double getMeanAvailability(final MetricsInterval interval);
+    double getLastMeanAvailability(final MetricsInterval interval);
 
     double getInstantAvailability();
 

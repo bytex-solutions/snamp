@@ -11,11 +11,11 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  * @version 2.0
  */
 @JsonTypeName("landscape")
-public final class LandscapeView implements MatrixBasedView{
+public final class LandscapeView extends MatrixBasedView{
     /**
      * Represents overall landscape of all components in the environment.
      */
-    public static final class ViewData extends AdjacencyMatrixWithArrivals {
+    public static final class ViewData extends AdjacencyMatrix {
         private ViewData(){
             
         }
@@ -32,7 +32,7 @@ public final class LandscapeView implements MatrixBasedView{
     }
 
     @Override
-    public ViewData build(final TopologyAnalyzer analyzer) {
+    ViewData build(final TopologyAnalyzer analyzer) {
         final ViewData matrix = new ViewData();
         analyzer.forEach(matrix);
         return matrix;

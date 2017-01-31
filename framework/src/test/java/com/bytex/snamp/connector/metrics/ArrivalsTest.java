@@ -41,7 +41,7 @@ public final class ArrivalsTest extends Assert {
         recorder.accept(Duration.ofSeconds(1L));
         recorder.accept(Duration.ofSeconds(2L));
         Thread.sleep(1001);
-        final double avail = recorder.getMeanAvailability(MetricsInterval.SECOND) * 100;
+        final double avail = recorder.getLastMeanAvailability(MetricsInterval.SECOND) * 100;
         assertTrue(avail > 20D);
         assertTrue(avail < 25D);
     }

@@ -55,7 +55,7 @@ public final class CharReader extends Reader implements SafeCloseable {
     }
 
     public synchronized int getRemaining() throws IOException{
-        return Math.max(0, getLength() - getPosition());
+        return Integer.max(0, getLength() - getPosition());
     }
 
     @Override
@@ -110,7 +110,7 @@ public final class CharReader extends Reader implements SafeCloseable {
         if(!hasMore())
             return 0L;
         // Bound skip by beginning and end of the source
-        final long skipped = Math.min(getRemaining(), n);
+        final long skipped = Long.min(getRemaining(), n);
         position += skipped;
         return skipped;
     }

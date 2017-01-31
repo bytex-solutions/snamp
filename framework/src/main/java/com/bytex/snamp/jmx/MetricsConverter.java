@@ -1043,13 +1043,13 @@ public final class MetricsConverter {
         output
                 .put(EFFICIENCY_FIELD, arrivals.getEfficiency())
                 .put(CORRELATION_FIELD, arrivals.getCorrelation())
-                .put(MEAN_AVAILABILITY_LAST_SECOND_FIELD, arrivals.getMeanAvailability(MetricsInterval.SECOND))
-                .put(MEAN_AVAILABILITY_LAST_MINUTE_FIELD, arrivals.getMeanAvailability(MetricsInterval.MINUTE))
-                .put(MEAN_AVAILABILITY_LAST_5_MINUTES_FIELD, arrivals.getMeanAvailability(MetricsInterval.FIVE_MINUTES))
-                .put(MEAN_AVAILABILITY_LAST_15_MINUTES_FIELD, arrivals.getMeanAvailability(MetricsInterval.FIFTEEN_MINUTES))
-                .put(MEAN_AVAILABILITY_LAST_HOUR_FIELD, arrivals.getMeanAvailability(MetricsInterval.HOUR))
-                .put(MEAN_AVAILABILITY_LAST_12_HOURS_FIELD, arrivals.getMeanAvailability(MetricsInterval.TWELVE_HOURS))
-                .put(MEAN_AVAILABILITY_LAST_DAY_FIELD, arrivals.getMeanAvailability(MetricsInterval.DAY))
+                .put(MEAN_AVAILABILITY_LAST_SECOND_FIELD, arrivals.getLastMeanAvailability(MetricsInterval.SECOND))
+                .put(MEAN_AVAILABILITY_LAST_MINUTE_FIELD, arrivals.getLastMeanAvailability(MetricsInterval.MINUTE))
+                .put(MEAN_AVAILABILITY_LAST_5_MINUTES_FIELD, arrivals.getLastMeanAvailability(MetricsInterval.FIVE_MINUTES))
+                .put(MEAN_AVAILABILITY_LAST_15_MINUTES_FIELD, arrivals.getLastMeanAvailability(MetricsInterval.FIFTEEN_MINUTES))
+                .put(MEAN_AVAILABILITY_LAST_HOUR_FIELD, arrivals.getLastMeanAvailability(MetricsInterval.HOUR))
+                .put(MEAN_AVAILABILITY_LAST_12_HOURS_FIELD, arrivals.getLastMeanAvailability(MetricsInterval.TWELVE_HOURS))
+                .put(MEAN_AVAILABILITY_LAST_DAY_FIELD, arrivals.getLastMeanAvailability(MetricsInterval.DAY))
                 .put(INSTANT_AVAILABILITY_FIELD, arrivals.getInstantAvailability());
     }
 
