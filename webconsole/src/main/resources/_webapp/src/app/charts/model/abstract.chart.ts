@@ -85,7 +85,7 @@ export abstract class AbstractChart {
         let _value:string[] = [];
         let _dataValues:any[] = this.simplifyData();
         for (let i = 0; i < _dataValues.length; i++) {
-            _value.push(AbstractChart.hslFromValue(i, _dataValues.length, 0.6)); ;
+            _value.push(AbstractChart.hslFromValue(i, _dataValues.length, 0.3)); ;
         }
         return _value;
     }

@@ -36,7 +36,7 @@ select.form-control:not([size]):not([multiple]) {
   top: 50%;
   margin-top: -10em !important;
   list-style-type: none;
-  z-index: 1400;
+  z-index: 3;
   padding: 9px 0 9px 9px;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;

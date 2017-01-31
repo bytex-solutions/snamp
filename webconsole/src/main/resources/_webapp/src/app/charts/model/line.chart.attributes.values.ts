@@ -5,6 +5,7 @@ import { AbstractChart } from './abstract.chart';
 import { ChartData } from './chart.data';
 
 const Chart = require('chart.js')
+import 'chartjs-plugin-zoom';
 
 export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.LINE;
@@ -21,7 +22,8 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
 
     constructor() {
         super();
-        this.preferences["xsize"] = 6;
+        this.setSizeX(6);
+        this.setSizeY(3);
     }
 
     private prepareDatasets():any {
@@ -88,6 +90,19 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
                     responsive: true,
                     maintainAspectRatio: false
                 },
+                pan: {
+                    // Boolean to enable panning
+                    enabled: true,
+
+                    // Panning directions. Remove the appropriate direction to disable
+                    // Eg. 'y' would only allow panning in the y direction
+                    mode: 'x'
+                },
+                zoom: {
+					enabled: true,
+					drag: true,
+					mode: 'x'
+				},
                 scales: {
                   xAxes: [{
                     type: 'time',
