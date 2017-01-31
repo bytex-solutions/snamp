@@ -78,7 +78,9 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
     public newValue(_data:ChartData):void {
         this.chartData.push(_data);
         let _index:number = this.chartData.length - 1;
-
+        if (this._chartObject != undefined) {
+            this._chartObject.update();
+        }
     }
 
     private testData():any {
@@ -104,7 +106,7 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
           chart.y2Axis
               .tickFormat(d3.format(',.2f'));
 
-          d3.select('#' + this.id + ' svg')
+          d3.select('#' + _thisReference.id)
               .datum(_thisReference.testData())
               .transition().duration(500)
               .call(chart);
