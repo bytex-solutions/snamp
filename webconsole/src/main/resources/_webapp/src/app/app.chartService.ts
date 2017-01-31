@@ -66,7 +66,6 @@ export class ChartService {
     }
 
     pushNewChartData(_data:any):void {
-        console.log("New chart data is: ", _data);
         // load data from localStorage, create one if no data exists
         let _dataNow:any = this.getEntireChartData();
         if (_dataNow == undefined) {

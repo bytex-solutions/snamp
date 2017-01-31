@@ -26,7 +26,7 @@ import 'select2';
 @Component({
   moduleId: module.id,
   templateUrl: './templates/dashboard.html',
-  styleUrls: [ './templates/css/dashboard.css', './templates/css/nv.d3.css' ]
+  styleUrls: [ './templates/css/dashboard.css' ]
 })
 export class Dashboard {
 
