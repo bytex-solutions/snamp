@@ -83,8 +83,8 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>data-stream-connector</artifactId>
-            <version>${snamp.stream.connector.version}</version>
+            <artifactId>analysis-and-operations</artifactId>
+            <version>${snamp.ops.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

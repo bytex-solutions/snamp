@@ -70,6 +70,7 @@
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
     <snamp.security.version>2.0.0</snamp.security.version>
+    <snamp.ops.version>2.0.0</snamp.ops.version>
   </properties>
   <version>${snamp.version}</version>
   <organization>
@@ -419,9 +420,9 @@
     <module>features/core-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/standard-features</module>
-    <module>instrumentations/java</module>
+    <module>instrumentation/java</module>
     <module>osgi-tests</module>
-
+      <module>infrastructure/analysis-and-operations</module>
   </modules>
     <repositories>
         <repository>

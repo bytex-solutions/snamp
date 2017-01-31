@@ -27,8 +27,9 @@
     <module>features/core-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/standard-features</module>
-    <module>instrumentations/java</module>
+    <module>instrumentation/java</module>
     <module>osgi-tests</module>
+    <module>infrastructure/analysis-and-operations</module>
   </modules>
   <properties>
     <snamp.gateway.influx.version>2.0.0</snamp.gateway.influx.version>
@@ -36,6 +37,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <snamp.version>2.0.0</snamp.version>
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
+    <snamp.stream.connector.version>2.0.0</snamp.stream.connector.version>
     <junit.version>4.12</junit.version>
     <snmp4j.version>2.5.1</snmp4j.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
@@ -72,11 +74,11 @@
     <osgi.version>5.0.0</osgi.version>
     <hazelcast.version>3.7.2</hazelcast.version>
     <jsr305.version>3.0.1</jsr305.version>
+    <snamp.ops.version>2.0.0</snamp.ops.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
     <jline.version>2.14.1</jline.version>
     <orientdb.version>2.2.13</orientdb.version>
-    <snamp.stream.connector.version>2.0.0</snamp.stream.connector.version>
     <jettison.version>1.3.8</jettison.version>
     <jersey.version>1.19.3</jersey.version>
     <snamp.services.version>2.0.0</snamp.services.version>

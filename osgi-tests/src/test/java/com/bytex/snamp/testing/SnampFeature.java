@@ -11,9 +11,9 @@ import java.util.Objects;
 public enum SnampFeature {
     PLATFORM("core-features", "2.0.0", "snamp-core"),
 
-    HTTP_ACCEPTOR("connectors-pack", "2.0.0", "snamp-http-acceptor"),
+    HTTP_ACCEPTOR("connectors-pack", "2.0.0", "snamp-stream-connector", "snamp-http-acceptor"),
     JMX_CONNECTOR("connectors-pack", "2.0.0", "snamp-jmx-connector"),
-    ZIPKIN_CONNECTOR("connectors-pack", "2.0.0", "snamp-zipkin-connector"),
+    ZIPKIN_CONNECTOR("connectors-pack", "2.0.0", "snamp-stream-connector", "snamp-zipkin-connector"),
     COMPOSITE_CONNECTOR("connectors-pack", "2.0.0", "snamp-composite-connector"),
     SNMP_GATEWAY("gateways-pack", "2.0.0", "snamp-snmp-gateway"),
     INFLUX_GATEWAY("gateways-pack", "2.0.0", "snamp-influx-gateway"),
@@ -31,7 +31,7 @@ public enum SnampFeature {
     GROOVY_CONNECTOR("connectors-pack", "2.0.0", "snamp-groovy-connector"),
     GROOVY_GATEWAY("gateways-pack", "2.0.0", "snamp-groovy-gateway"),
     MODBUS_CONNECTOR("connectors-pack", "2.0.0", "snamp-modbus-connector"),
-    STANDARD_TOOLS("standard-features", "2.0.0", "snamp-management", "snamp-web-console");
+    STANDARD_TOOLS("standard-features", "2.0.0", "snamp-management", "snamp-analysis-and-operations", "snamp-web-console");
 
     final String[] featureNames;
     private final String artifactId;

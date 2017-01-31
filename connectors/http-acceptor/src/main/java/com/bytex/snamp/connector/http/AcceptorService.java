@@ -4,7 +4,7 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.dsp.DataStreamConnector;
+import com.bytex.snamp.connector.dataStream.DataStreamConnector;
 import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.instrumentation.measurements.Measurement;
 import com.bytex.snamp.scripting.groovy.xml.XmlSlurperSlim;

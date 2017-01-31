@@ -2,9 +2,9 @@ package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
-import com.bytex.snamp.connector.dsp.DataStreamConnector;
-import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParser;
-import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParserLoader;
+import com.bytex.snamp.connector.dataStream.DataStreamConnector;
+import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationParser;
+import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationParserLoader;
 import groovy.grape.GrabAnnotationTransformation;
 import groovy.lang.Binding;
 

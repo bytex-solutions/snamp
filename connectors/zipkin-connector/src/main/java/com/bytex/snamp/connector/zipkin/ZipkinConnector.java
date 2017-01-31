@@ -1,9 +1,9 @@
 package com.bytex.snamp.connector.zipkin;
 
 import com.bytex.snamp.configuration.ManagedResourceInfo;
-import com.bytex.snamp.connector.dsp.DataStreamConnector;
-import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParser;
-import com.bytex.snamp.connector.dsp.groovy.GroovyNotificationParserLoader;
+import com.bytex.snamp.connector.dataStream.DataStreamConnector;
+import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationParser;
+import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationParserLoader;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableMap;

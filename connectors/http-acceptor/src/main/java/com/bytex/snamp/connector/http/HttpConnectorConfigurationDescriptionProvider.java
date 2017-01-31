@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
-import com.bytex.snamp.connector.dsp.DataStreamConnectorConfigurationDescriptionProvider;
+import com.bytex.snamp.connector.dataStream.DataStreamConnectorConfigurationDescriptionProvider;
 import com.google.common.base.Splitter;
 
 import java.net.URL;

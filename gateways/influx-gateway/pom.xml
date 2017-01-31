@@ -20,10 +20,20 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
-      <artifactId>data-stream-connector</artifactId>
-      <version>2.0.0</version>
+      <groupId>com.bytex.snamp.instrumentation</groupId>
+      <artifactId>core</artifactId>
+      <version>1.0.0</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>jackson-core-asl</artifactId>
+          <groupId>org.codehaus.jackson</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jackson-mapper-asl</artifactId>
+          <groupId>org.codehaus.jackson</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.bytex.snamp.instrumentation</groupId>
@@ -84,7 +94,7 @@
                             com.bytex.snamp.concurrent,
                             com.bytex.snamp.configuration,
                             com.bytex.snamp.connector,
-                            com.bytex.snamp.connector.dsp.notifications,
+                            com.bytex.snamp.connector.dataStream.notifications,
                             com.bytex.snamp.connector.notifications,
                             com.bytex.snamp.core,
                             com.bytex.snamp.gateway,
