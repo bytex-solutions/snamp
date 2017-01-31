@@ -4,8 +4,8 @@ import { AttributeValueAxis } from './attribute.value.axis';
 import { AbstractChart } from './abstract.chart';
 import { ChartData } from './chart.data';
 
-const Chart = require('chart.js')
-import 'chartjs-plugin-zoom';
+const d3 = require('d3');
+const nv = require('nvd3');
 
 export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.LINE;
@@ -25,6 +25,33 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
         this.setSizeX(6);
         this.setSizeY(3);
     }
+
+// random data section
+    private bump(a, m):any {
+        var x = 1 / (.1 + Math.random()),
+            y = 2 * Math.random() - .5,
+            z = 10 / (.1 + Math.random());
+        for (var i = 0; i < m; i++) {
+          var w = (i / m - y) * z;
+          a[i] += x * Math.exp(-w * w);
+        }
+      }
+
+    private stream_layers(n, m, o):any {
+      var _thisReference = this;
+      return d3.range(n).map(function() {
+          var a = [], i;
+          for (i = 0; i < m; i++) a[i] = o + o * Math.random();
+          for (i = 0; i < 5; i++) _thisReference.bump(a, m);
+          return a.map(_thisReference.stream_index);
+        });
+    }
+
+     private stream_index(d, i):any {
+        return {x: i, y: Math.max(0, d)};
+    }
+// random data section
+
 
     private prepareDatasets():any {
         let _value:any[] = [];
@@ -51,71 +78,41 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
     public newValue(_data:ChartData):void {
         this.chartData.push(_data);
         let _index:number = this.chartData.length - 1;
-        if (this._chartObject != undefined) {
-            let _ds:any[] = this._chartObject.data.datasets;
-            let _found:boolean = false;
-            for (let i = 0; i < _ds.length; i++) {
-                if (_ds[i].label == _data.instanceName) {
-                    _ds[i].data.push({x: _data.timestamp, y: _data.attributeValue});
-                    _found = true;
-                    break;
-                }
-            }
-            if (!_found) {
-                this._chartObject.data.datasets = this.prepareDatasets();
-            }
-            this._chartObject.update();
-        }
+
+    }
+
+    private testData():any {
+      return this.stream_layers(3,128,.1).map(function(data, i) {
+        return {
+          key: 'Stream' + i,
+          values: data
+        };
+      });
     }
 
     public draw():void    {
-        var ctx = $("#" + this.id);
-        ctx.width(ctx.parent().width());
-        ctx.height(ctx.parent().height());
-        var _result = new Chart(ctx, {
-            type: AbstractChart.CHART_TYPE_OF(this.type),
-            data: {
-                labels: this.instances,
-                datasets: this.prepareDatasets()
-            },
-              options: {
-                responsive: true,
-                title: {
-                    display: true,
-                    text: this.component
-                },
-                animation: {
-                    duration: 200,
-                    easing: 'linear',
-                    responsive: true,
-                    maintainAspectRatio: false
-                },
-                pan: {
-                    // Boolean to enable panning
-                    enabled: true,
+       var _thisReference = this;
+        nv.addGraph(function() {
+          var chart = nv.models.lineWithFocusChart();
 
-                    // Panning directions. Remove the appropriate direction to disable
-                    // Eg. 'y' would only allow panning in the y direction
-                    mode: 'x'
-                },
-                zoom: {
-					enabled: true,
-					drag: true,
-					mode: 'x'
-				},
-                scales: {
-                  xAxes: [{
-                    type: 'time',
-                    time: {
-                      time: {
-                          unit: 'millisecond'
-                      }
-                    }
-                  }],
-                },
-              }
+          chart.xAxis
+              .tickFormat(d3.format(',f'));
+
+          chart.yAxis
+              .tickFormat(d3.format(',.2f'));
+
+          chart.y2Axis
+              .tickFormat(d3.format(',.2f'));
+
+          d3.select('#' + this.id + ' svg')
+              .datum(_thisReference.testData())
+              .transition().duration(500)
+              .call(chart);
+
+          nv.utils.windowResize(chart.update);
+          _thisReference._chartObject = chart;
+          return chart;
         });
-        this._chartObject = _result;
     }
 
     public toJSON():any {

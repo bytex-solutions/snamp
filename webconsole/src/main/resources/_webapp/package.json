@@ -106,7 +106,9 @@
     "dragula": "3.7.2",
     "chart.js": "2.4.0",
     "angular2-grid": "2.0.1",
-    "chartjs-plugin-zoom": "0.4.5"
+    "chartjs-plugin-zoom": "0.4.5",
+    "d3": "3.5.4",
+    "nvd3": "1.8.5"
 
   },
   "devDependencies": {

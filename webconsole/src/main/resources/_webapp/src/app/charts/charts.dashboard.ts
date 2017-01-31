@@ -9,6 +9,7 @@ import { AttributeInformation } from './model/attribute';
 import { ChartService } from '../app.chartService';
 import { Factory } from './model/objectFactory';
 import { AbstractChart } from './model/abstract.chart';
+import { LineChartOfAttributeValues } from './model/line.chart.attributes.values';
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
@@ -25,7 +26,7 @@ import 'select2';
 @Component({
   moduleId: module.id,
   templateUrl: './templates/dashboard.html',
-  styleUrls: [ './templates/css/dashboard.css' ]
+  styleUrls: [ './templates/css/dashboard.css', './templates/css/nv.d3.css' ]
 })
 export class Dashboard {
 
@@ -288,6 +289,10 @@ export class Dashboard {
    	onResize(index: number, event: NgGridItemEvent): void {
    		// Do something here
    		console.log("Resized: ", index, event);
+   	}
+
+   	isChartLineType(chart:AbstractChart):boolean {
+   	    return (chart instanceof LineChartOfAttributeValues);
    	}
 }
 
