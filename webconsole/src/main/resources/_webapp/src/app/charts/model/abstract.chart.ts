@@ -1,6 +1,9 @@
 import { ChartData } from './chart.data';
 import { Observable } from 'rxjs/Observable';
 
+const Chart = require('chart.js');
+Chart.defaults.global.maintainAspectRatio = false;
+
 export abstract class AbstractChart {
     public static VBAR:string = "verticalBarChartOfAttributeValues";
     public static PIE:string = "pieChartOfAttributeValues";
@@ -39,14 +42,29 @@ export abstract class AbstractChart {
     public chartData: ChartData[] = [];
     public abstract toJSON():any;
 
+    protected setCol(n:number): void {
+        this.preferences["gridcfg"]['col'] = n;
+    }
+
+    protected setRow(n:number): void {
+        this.preferences["gridcfg"]['row'] = n;
+    }
+
+    protected setSizeX(n:number): void {
+        this.preferences["gridcfg"]['sizex'] = n;
+    }
+
+    protected setSizeY(n:number): void {
+        this.preferences["gridcfg"]['sizey'] = n;
+    }
+
     constructor() {
-        this.preferences["xsize"] = 3;
         this.preferences["gridcfg"] = {};
         this.preferences["gridcfg"]['dragHandle'] = '.handle';
-        this.preferences["gridcfg"]['col'] = 1;
-        this.preferences["gridcfg"]['row'] = 1;
-        this.preferences["gridcfg"]['sizex'] = 1;
-        this.preferences["gridcfg"]['sizey'] = 1;
+        this.setCol(1);
+        this.setRow(1);
+        this.setSizeX(2);
+        this.setSizeY(2);
     }
 
     // different types of charts should be rendered in different ways

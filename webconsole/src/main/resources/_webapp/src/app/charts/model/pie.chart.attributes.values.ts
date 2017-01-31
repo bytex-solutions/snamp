@@ -4,7 +4,7 @@ import { AttributeValueAxis } from './attribute.value.axis';
 import { AbstractChart } from './abstract.chart';
 import { ChartData } from './chart.data';
 
-const Chart = require('chart.js')
+const Chart = require('chart.js');
 
 export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.PIE;
@@ -21,6 +21,8 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
 
     constructor() {
         super();
+        this.setSizeX(2);
+        this.setSizeY(3);
     }
 
     public newValue(_data:ChartData):void {
@@ -66,15 +68,13 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
                     borderWidth: 1
                 }],
                 options: {
-                    cutoutPercentage: 50,
+                    responsive: true,
+                    cutoutPercentage: 40,
                     rotation: Math.PI,
                     circumference: Math.PI * 0.5,
-                    elements: {
-                        arc: {
-                            backgroundColor: 'rgb(255, 0, 0)',
-                            borderColor: 'rgb(0, 0, 255)',
-                            borderWidth: 1
-                        }
+                    title: {
+                        display: true,
+                        text: this.component
                     }
                 }
             }
@@ -90,7 +90,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
         _value["instances"] = this.instances;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
-        if ($.isEmptyObject(this.preferences)) {
+        if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
         }
         return _value;

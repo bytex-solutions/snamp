@@ -77,6 +77,11 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
                 datasets: this.prepareDatasets()
             },
               options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: this.component
+                },
                 animation: {
                     duration: 200,
                     easing: 'linear',

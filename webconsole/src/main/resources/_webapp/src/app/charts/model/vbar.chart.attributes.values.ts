@@ -60,15 +60,10 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                     borderWidth: 1
                 }],
                 options: {
-                    cutoutPercentage: 50,
-                    rotation: Math.PI,
-                    circumference: Math.PI * 0.5,
-                    elements: {
-                        arc: {
-                            backgroundColor: 'rgb(255, 0, 0)',
-                            borderColor: 'rgb(0, 0, 255)',
-                            borderWidth: 1
-                        }
+                   responsive: true,
+                    title: {
+                        display: true,
+                        text: this.component
                     }
                 }
             }

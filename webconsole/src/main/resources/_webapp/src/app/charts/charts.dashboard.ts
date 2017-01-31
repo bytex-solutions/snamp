@@ -54,23 +54,23 @@ export class Dashboard {
             'margins': [10],
             'draggable': true,
             'resizable': true,
-            'max_cols': 0,
-            'max_rows': 0,
+            'max_cols': 10,
+            'max_rows': 10,
             'visible_cols': 0,
             'visible_rows': 0,
-            'min_cols': 2,
-            'min_rows': 2,
+            'min_cols': 1,
+            'min_rows': 1,
             'col_width': 100,
             'row_height': 100,
-            'cascade': 'up',
+            'cascade': 'left',
             'min_width': 50,
             'min_height': 50,
-            'fix_to_grid': true,
+            'fix_to_grid': false,
             'auto_style': true,
             'auto_resize': false,
             'maintain_ratio': false,
-            'prefer_new': false,
-            'zoom_on_drag': true,
+            'prefer_new': true,
+            'zoom_on_drag': false,
             'limit_to_screen': true
         };
 
@@ -277,7 +277,7 @@ export class Dashboard {
          setTimeout(function() {
             $("#chartArea li.removable").remove();
             chart.draw();
-         }, 1500);
+         }, 400);
    }
 
    	onDrag(index: number, event: NgGridItemEvent): void {

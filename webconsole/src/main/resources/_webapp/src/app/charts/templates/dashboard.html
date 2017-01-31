@@ -167,18 +167,22 @@
 
     <div class="row" style="margin-top: 30px">
 
-      <div class='container col-md-12' id="chartArea" [ngGrid]="gridConfig"  style="min-height: 900px;">
-            <panel
-                    *ngFor="let chart of _charts; let i = index"
-                    [(ngGridItem)]="chart.preferences['gridcfg']"
-                    (onResize)="onResize(i, $event)"
-                    (onDrag)="onDrag(i, $event)"
-                    [header]="chart.name"
-                    [column]="'n/a'">
-              <div>
-                <canvas [attr.id]="chart.id" width="200" height="200"></canvas>
+      <div class='container col-md-12' [ngGrid]="gridConfig"  style="min-height: 900px;">
+
+          <div *ngFor="let chart of _charts; let i = index" [(ngGridItem)]="chart.preferences['gridcfg']" (onResize)="onResize(i, $event)" (onDrag)="onDrag(i, $event)">
+            <div class="handle">
+              {{chart.name}}
+              <div class="box-header-btns pull-right">
+                <a title="Remove widget" (click)="removeWidget(i);">
+                  <i class="glyphicon glyphicon-trash"></i>
+                </a>
               </div>
-            </panel>
+            </div>
+            <div id="wrapper" style="position: relative; width: 100%; height: calc(100% - 60px);">
+              <canvas [attr.id]="chart.id" height="50"></canvas>
+            </div>
+          </div>
+
       </div>
     </div>
   </div>

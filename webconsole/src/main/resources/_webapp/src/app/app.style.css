@@ -4723,6 +4723,7 @@ a.details {
 dl.border-around {
 	padding: 0;
 	width: 15em;
+	margin: 25px auto 0 auto;
 }
 
 .border-around dt {
