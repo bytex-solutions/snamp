@@ -7,6 +7,9 @@ import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
+import com.bytex.snamp.web.serviceModel.WebMessage;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeName;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -17,6 +20,7 @@ import javax.management.ReflectionException;
 import javax.ws.rs.Path;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -31,8 +35,25 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  */
 @Path("/")
 public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashboard> {
+    private static final String CHART_DATA_REFRESH_TIME_PARAM = "chartDataRefreshTime";
     public static final String NAME = "charts";
     public static final String URL_CONTEXT = "/charts";
+
+    @JsonTypeName("chartData")
+    public static final class ChartDataMessage extends WebMessage {
+        private static final long serialVersionUID = 2810215967189225444L;
+        private final Map<String, ChartData> chartData;
+
+        private ChartDataMessage(final ChartDataSource source) {
+            super(source);
+            chartData = new HashMap<>();
+        }
+
+        @JsonProperty("dataForCharts")
+        public Map<String, ChartData> getChartData(){
+            return chartData;
+        }
+    }
 
     private final class AttributeSupplierThread extends Repeater {
         private AttributeSupplierThread(final Duration period) {
@@ -48,7 +69,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             session.sendMessage(message);
         }
 
-        private void doActionImpl(final WebConsoleSession session, final Thread actionThread) {
+        private void doActionForSession(final WebConsoleSession session, final Thread actionThread) {
             for (final Map.Entry<String, ServiceReference<ManagedResourceConnector>> connector : ManagedResourceConnectorClient.getConnectors(getBundleContext()).entrySet()) {
                 if (actionThread.isInterrupted())
                     return;   //if submitter is interrupted then exit
@@ -75,9 +96,14 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         }
 
         @Override
+        protected String generateThreadName() {
+            return getClass().getSimpleName();
+        }
+
+        @Override
         protected void doAction() {
             final Thread actionThread = Thread.currentThread();
-            forEachSession(session -> doActionImpl(session, actionThread));
+            forEachSession(session -> doActionForSession(session, actionThread), threadPool);
         }
     }
 
@@ -87,12 +113,14 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
     public ChartDataSource(final ConfigurationManager manager, final ExecutorService threadPool) throws IOException {
         super(Dashboard.class);
         this.threadPool = Objects.requireNonNull(threadPool);
-        final Duration refreshTime = manager.transformConfiguration(config -> {
-            final String RENEW_TIME = "chartDataRefreshTime";
-            final long renewTime = MapUtils.getValue(config, RENEW_TIME, Long::parseLong).orElse(900L);
+        attributeSupplier = new AttributeSupplierThread(getRefreshTime(manager));
+    }
+
+    private static Duration getRefreshTime(final ConfigurationManager manager) throws IOException {
+        return manager.transformConfiguration(config -> {
+            final long renewTime = MapUtils.getValue(config, CHART_DATA_REFRESH_TIME_PARAM, Long::parseLong).orElse(900L);
             return Duration.ofMillis(renewTime);
         });
-        attributeSupplier = new AttributeSupplierThread(refreshTime);
     }
 
     /**
