@@ -3,7 +3,6 @@ package com.bytex.snamp.web.serviceModel.e2e;
 import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
@@ -53,66 +52,6 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
         }
     }
 
-    @JsonTypeName("componentArrivals")
-    public static final class ComponentArrivalsMessage extends WebMessage{
-        private static final long serialVersionUID = -4267371223798230629L;
-        private ComponentArrivals arrivals;
-
-        private ComponentArrivalsMessage(final E2EDataSource service){
-            super(service);
-        }
-
-        private void setData(final ComponentVertex vertex){
-            arrivals = new ComponentArrivals(vertex);
-        }
-
-        @JsonProperty("data")
-        public ComponentArrivals getData(){
-            return arrivals;
-        }
-    }
-
-    private static final class ArrivalsMetricSender extends Repeater{
-        private final TopologyAnalyzer topologyAnalyzer;
-        private final WeakReference<E2EDataSource> serviceRef;
-
-        private ArrivalsMetricSender(final E2EDataSource service, final Duration period, final TopologyAnalyzer analyzer){
-            super(period);
-            topologyAnalyzer = Objects.requireNonNull(analyzer);
-            assert service != null;
-            serviceRef = new WeakReference<>(service);
-        }
-
-        private void processVertex(final WebConsoleSession session,
-                                   final ComponentVertex vertex){
-            final E2EDataSource service = serviceRef.get();
-            if (service == null) return;
-            final ComponentArrivalsMessage message = new ComponentArrivalsMessage(service);
-            message.setData(vertex);
-            session.sendMessage(message);
-        }
-
-        private void processVertex(final ComponentVertex vertex, final Thread actionThread) {
-            if (actionThread.isInterrupted()) return;
-            final E2EDataSource service = serviceRef.get();
-            if (service == null) return;
-            service.forEachSession(session -> processVertex(session, vertex));
-        }
-
-        @Override
-        protected String generateThreadName() {
-            return getClass().getSimpleName();
-        }
-
-        @Override
-        protected void doAction() {
-            final Thread actionThread = Thread.currentThread();
-            final E2EDataSource service = serviceRef.get();
-            if (service == null) return;
-            topologyAnalyzer.parallelForEach(vertex -> processVertex(vertex, actionThread), service.threadPool);
-        }
-    }
-
     private static final class TopologyBuilder extends Repeater{
         private final TopologyAnalyzer topologyAnalyzer;
         private final WeakReference<E2EDataSource> serviceRef;
@@ -158,7 +97,6 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
 
     private final ExecutorService threadPool;
     private TopologyBuilder topologyBuilder;
-    private ArrivalsMetricSender arrivalsSender;
 
     public E2EDataSource(final ConfigurationManager manager,
                          final TopologyAnalyzer topologyAnalyzer,
@@ -167,7 +105,6 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
         this.threadPool = Objects.requireNonNull(threadPool);
         final Duration refreshTime = getTopologyRefreshTime(manager);
         topologyBuilder = new TopologyBuilder(this, refreshTime, topologyAnalyzer);
-        arrivalsSender = new ArrivalsMetricSender(this, refreshTime, topologyAnalyzer);
     }
 
     private static Duration getTopologyRefreshTime(final ConfigurationManager manager) throws IOException {
@@ -186,7 +123,6 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
     @Override
     protected void initialize() {
         topologyBuilder.run();
-        arrivalsSender.run();
     }
 
     @Nonnull
@@ -200,12 +136,9 @@ public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboa
         super.close();
         try {
             topologyBuilder.close();
-            arrivalsSender.close();
         } finally {
             topologyBuilder.serviceRef.clear();
-            arrivalsSender.serviceRef.clear();
             topologyBuilder = null;
-            arrivalsSender = null;
         }
     }
 }

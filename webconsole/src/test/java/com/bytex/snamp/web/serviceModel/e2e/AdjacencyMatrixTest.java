@@ -27,6 +27,7 @@ public final class AdjacencyMatrixTest extends Assert {
 
     private static final String COMPONENT1 = "dispatcher";
     private static final String COMPONENT2 = "mobileApp";
+    private static final String COMPONENT3 = "database";
     private final TopologyAnalyzerMock graph;
     private final ObjectMapper mapper;
 
@@ -48,6 +49,7 @@ public final class AdjacencyMatrixTest extends Assert {
         final Span span = new Span();
         span.setComponentName(COMPONENT2);
         span.setInstanceName("node1");
+        span.setModuleName("main");
         span.setDuration(5, TimeUnit.MILLISECONDS);
         span.setCorrelationID(rootSpan.getCorrelationID());
         span.setSpanID(Identifier.randomID(4));
@@ -64,6 +66,43 @@ public final class AdjacencyMatrixTest extends Assert {
         graph.accept(recursiveSpan);
 
         final AdjacencyMatrix matrix = new LandscapeView().build(graph);
+        graph.forEach(matrix);
+        final String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(matrix);
+        assertNotNull(json);
+    }
+
+    @Test
+    public void childComponentsTest() throws IOException {
+        //root component
+        final Span firstSpan = new Span();
+        firstSpan.setComponentName(COMPONENT1);
+        firstSpan.setInstanceName("node1");
+        firstSpan.setDuration(15, TimeUnit.MILLISECONDS);
+        firstSpan.generateIDs();
+        graph.accept(firstSpan);
+
+        final Span secondSpan = new Span();
+        secondSpan.setComponentName(COMPONENT2);
+        secondSpan.setInstanceName("node1");
+        secondSpan.setModuleName("main");
+        secondSpan.setDuration(5, TimeUnit.MILLISECONDS);
+        secondSpan.setCorrelationID(firstSpan.getCorrelationID());
+        secondSpan.setSpanID(Identifier.randomID(4));
+        secondSpan.setParentSpanID(firstSpan.getSpanID());
+        graph.accept(secondSpan);
+
+        final Span thirdSpan = new Span();
+        thirdSpan.setComponentName(COMPONENT3);
+        thirdSpan.setInstanceName("db-master");
+        thirdSpan.setDuration(5, TimeUnit.MILLISECONDS);
+        thirdSpan.setCorrelationID(secondSpan.getCorrelationID());
+        thirdSpan.setSpanID(Identifier.randomID(4));
+        thirdSpan.setParentSpanID(secondSpan.getSpanID());
+        graph.accept(thirdSpan);
+
+        final ChildComponentsView view = new ChildComponentsView();
+        view.setTargetComponent(COMPONENT2);
+        final AdjacencyMatrix matrix = view.build(graph);
         graph.forEach(matrix);
         final String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(matrix);
         assertNotNull(json);

@@ -5,7 +5,6 @@ import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.ComponentVertexIdentity;
-import com.bytex.snamp.web.serviceModel.ObjectMapperSingleton;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.codehaus.jackson.JsonGenerator;
@@ -18,7 +17,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import java.io.IOException;
 
 /**
- * Represents abstract class for building adjacency matrix.
+ * Abstract adjacency matrix.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
@@ -26,39 +25,32 @@ import java.io.IOException;
 public abstract class AdjacencyMatrix implements Acceptor<ComponentVertex, ExceptionPlaceholder>, JsonSerializableWithType {
     private final Multimap<ComponentVertexIdentity, ComponentVertexIdentity> matrix = HashMultimap.create();
 
-    abstract boolean filterRootComponent(final ComponentVertex vertex);
+    final void setAdjacency(final ComponentVertex source, final ComponentVertex destination){
+        matrix.put(source.getIdentity(), destination.getIdentity());
+    }
 
-    abstract boolean filterChildComponent(final ComponentVertex vertex);
-
-    void interceptVertex(final ComponentVertex vertex){
-
+    final boolean hasAdjacency(final ComponentVertex source, final ComponentVertex destination){
+        return matrix.containsEntry(source.getIdentity(), destination.getIdentity());
     }
 
     @Override
-    public final void accept(final ComponentVertex vertex) {
-        if (filterRootComponent(vertex)) {    //visit only root component and its linked nodes
-            final ComponentVertexIdentity parentId = vertex.getIdentity();
-            interceptVertex(vertex);
-            for (final ComponentVertex child : vertex)
-                if (filterChildComponent(child)) {
-                    matrix.put(parentId, child.getIdentity());
-                    interceptVertex(child);
-                }
-        }
-    }
+    public abstract void accept(final ComponentVertex vertex);
+
+    abstract void serialize(final ObjectNode node);
 
     @Override
     public final void serialize(final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider) throws IOException {
         final ObjectNode serializedForm = ThreadLocalJsonFactory.getFactory().objectNode();
         //serialize matrix
-        final ArrayNode vertices = ThreadLocalJsonFactory.getFactory().arrayNode();
-        for (final ComponentVertexIdentity vertex : matrix.keySet()) {
-            final ObjectNode vertexNode = ThreadLocalJsonFactory.getFactory().objectNode();
-            vertexNode.put("vertex", ObjectMapperSingleton.INSTANCE.valueToTree(vertex));
-            vertexNode.put("connections", ObjectMapperSingleton.INSTANCE.valueToTree(matrix.get(vertex)));
-            vertices.add(vertexNode);
+        final ObjectNode vertices = ThreadLocalJsonFactory.getFactory().objectNode();
+        for(final ComponentVertexIdentity source: matrix.keySet()){
+            final ArrayNode sourceNode = ThreadLocalJsonFactory.getFactory().arrayNode();
+            for(final ComponentVertexIdentity destination: matrix.get(source))
+                sourceNode.add(destination.toString());
+            vertices.put(source.toString(), sourceNode);
         }
         serializedForm.put("vertices", vertices);
+        serialize(serializedForm);
         serializedForm.serialize(jsonGenerator, serializerProvider);
     }
 

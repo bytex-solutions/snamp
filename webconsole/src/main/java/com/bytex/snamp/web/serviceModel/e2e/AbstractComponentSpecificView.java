@@ -10,7 +10,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public abstract class ComponentSpecificView {
+public abstract class AbstractComponentSpecificView extends MatrixBasedView {
     private String rootComponent = "";
 
     @JsonProperty("rootComponent")
@@ -21,4 +21,6 @@ public abstract class ComponentSpecificView {
     public final void setTargetComponent(final String value){
         rootComponent = Objects.requireNonNull(value);
     }
+
+
 }

@@ -2,11 +2,9 @@ package com.bytex.snamp.moa.topology;
 
 import com.bytex.snamp.instrumentation.measurements.Span;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonSerializableWithType;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
-import org.codehaus.jackson.node.ObjectNode;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -70,9 +68,6 @@ public final class ComponentVertexIdentity implements JsonSerializableWithType {
 
     @Override
     public void serialize(final JsonGenerator jgen, final SerializerProvider provider) throws IOException {
-        jgen.writeStartObject();
-        jgen.writeStringField("componentName", componentName);
-        jgen.writeStringField("moduleName", moduleName);
-        jgen.writeEndObject();
+        jgen.writeString(toString());
     }
 }

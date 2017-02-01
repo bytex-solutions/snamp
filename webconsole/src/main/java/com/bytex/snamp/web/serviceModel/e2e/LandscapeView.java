@@ -1,7 +1,6 @@
 package com.bytex.snamp.web.serviceModel.e2e;
 
 import com.bytex.snamp.moa.topology.ComponentVertex;
-import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
 /**
@@ -15,26 +14,20 @@ public final class LandscapeView extends MatrixBasedView{
     /**
      * Represents overall landscape of all components in the environment.
      */
-    public static final class ViewData extends AdjacencyMatrix {
-        private ViewData(){
-            
+    public static final class ViewData extends AdjacencyMatrixWithArrivals {
+        private ViewData() {
+
         }
 
         @Override
-        boolean filterRootComponent(final ComponentVertex vertex) {
-            return true;
-        }
-
-        @Override
-        boolean filterChildComponent(final ComponentVertex vertex) {
-            return true;
+        public void accept(final ComponentVertex vertex) {
+            computeArrivals(vertex);
+            vertex.forEach(child -> setAdjacency(vertex, child));
         }
     }
 
     @Override
-    ViewData build(final TopologyAnalyzer analyzer) {
-        final ViewData matrix = new ViewData();
-        analyzer.forEach(matrix);
-        return matrix;
+    ViewData createMatrix() {
+        return new ViewData();
     }
 }
