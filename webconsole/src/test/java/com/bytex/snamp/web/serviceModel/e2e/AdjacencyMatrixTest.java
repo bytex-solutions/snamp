@@ -107,4 +107,42 @@ public final class AdjacencyMatrixTest extends Assert {
         final String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(matrix);
         assertNotNull(json);
     }
+
+    @Test
+    public void modulesComponentsTest() throws IOException {
+        //root component
+        final Span firstSpan = new Span();
+        firstSpan.setComponentName(COMPONENT1);
+        firstSpan.setInstanceName("node1");
+        firstSpan.setDuration(15, TimeUnit.MILLISECONDS);
+        firstSpan.generateIDs();
+        graph.accept(firstSpan);
+
+        final Span secondSpan = new Span();
+        secondSpan.setComponentName(COMPONENT2);
+        secondSpan.setInstanceName("node1");
+        secondSpan.setModuleName("controller");
+        secondSpan.setDuration(5, TimeUnit.MILLISECONDS);
+        secondSpan.setCorrelationID(firstSpan.getCorrelationID());
+        secondSpan.setSpanID(Identifier.randomID(4));
+        secondSpan.setParentSpanID(firstSpan.getSpanID());
+        graph.accept(secondSpan);
+
+        final Span thirdSpan = new Span();
+        thirdSpan.setComponentName(COMPONENT2);
+        thirdSpan.setInstanceName("node2");
+        thirdSpan.setModuleName("dataAccess");
+        thirdSpan.setDuration(5, TimeUnit.MILLISECONDS);
+        thirdSpan.setCorrelationID(secondSpan.getCorrelationID());
+        thirdSpan.setSpanID(Identifier.randomID(4));
+        thirdSpan.setParentSpanID(secondSpan.getSpanID());
+        graph.accept(thirdSpan);
+
+        final ComponentModulesView view = new ComponentModulesView();
+        view.setTargetComponent(COMPONENT2);
+        final AdjacencyMatrix matrix = view.build(graph);
+        graph.forEach(matrix);
+        final String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(matrix);
+        assertNotNull(json);
+    }
 }

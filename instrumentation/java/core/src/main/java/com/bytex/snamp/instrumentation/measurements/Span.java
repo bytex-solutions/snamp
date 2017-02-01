@@ -18,11 +18,11 @@ public final class Span extends TimeMeasurement {
     private Identifier correlationID = Identifier.EMPTY;
     private Identifier spanID = Identifier.EMPTY;
     private Identifier parentSpanID = Identifier.EMPTY;
-    private String subsystemName = "";
+    private String moduleName = "";
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
-        out.writeUTF(subsystemName);
+        out.writeUTF(moduleName);
         correlationID.serialize(out);
         spanID.serialize(out);
         parentSpanID.serialize(out);
@@ -31,7 +31,7 @@ public final class Span extends TimeMeasurement {
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-        subsystemName = in.readUTF();
+        moduleName = in.readUTF();
         correlationID = Identifier.deserialize(in);
         spanID = Identifier.deserialize(in);
         parentSpanID = Identifier.deserialize(in);
@@ -52,7 +52,7 @@ public final class Span extends TimeMeasurement {
      */
     @JsonProperty("mn")
     public String getModuleName(){
-        return subsystemName;
+        return moduleName;
     }
 
     /**
@@ -63,7 +63,7 @@ public final class Span extends TimeMeasurement {
         if (name == null)
             throw new IllegalArgumentException();
         else
-            subsystemName = name;
+            moduleName = name;
     }
 
     public Identifier getCorrelationID(){
