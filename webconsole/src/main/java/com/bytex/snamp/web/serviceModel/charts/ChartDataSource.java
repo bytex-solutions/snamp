@@ -69,17 +69,6 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             serviceRef = new WeakReference<>(service);
         }
 
-        private void processAttributes(final WebConsoleSession session, final String resourceName, final AttributeList attributes) {
-            final ChartDataSource service = serviceRef.get();
-            if(service == null) return;
-            final Dashboard dashboard = service.getUserData(session);
-            final ChartDataMessage message = new ChartDataMessage(service);
-            dashboard.getCharts().stream()
-                    .filter(chart -> chart instanceof ChartOfAttributeValues)
-                    .forEach(chart -> ((ChartOfAttributeValues) chart).fillCharData(resourceName, attributes, message.getChartData()));
-            session.sendMessage(message);
-        }
-
         @Override
         protected String generateThreadName() {
             return getClass().getSimpleName();
@@ -109,7 +98,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             }
             final ChartDataSource service = serviceRef.get();
             if (service == null) return;
-            service.forEachSession(session -> processAttributes(session, resourceName, attributes));
+            service.forEachSession(session -> service.processAttributes(session, resourceName, attributes));
         }
 
         @Override
@@ -137,6 +126,17 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             final long renewTime = MapUtils.getValue(config, CHART_DATA_REFRESH_TIME_PARAM, Long::parseLong).orElse(900L);
             return Duration.ofMillis(renewTime);
         });
+    }
+
+    private void processAttributes(final WebConsoleSession session,
+                                          final String resourceName,
+                                          final AttributeList attributes) {
+        final Dashboard dashboard = getUserData(session);
+        final ChartDataMessage message = new ChartDataMessage(this);
+        dashboard.getCharts().stream()
+                .filter(chart -> chart instanceof ChartOfAttributeValues)
+                .forEach(chart -> ((ChartOfAttributeValues) chart).fillCharData(resourceName, attributes, message.getChartData()));
+        session.sendMessage(message);
     }
 
     /**
