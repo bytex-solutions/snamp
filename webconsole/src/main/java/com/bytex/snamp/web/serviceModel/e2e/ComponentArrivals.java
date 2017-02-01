@@ -18,7 +18,7 @@ import java.util.function.Function;
  * @since 2.0
  * @version 2.0
  */
-public final class ComponentArrivals extends ComponentIdentity{
+public final class ComponentArrivals {
     @JsonProperty("channels")
     public final long channels;
     @JsonProperty("scalability")
@@ -49,7 +49,6 @@ public final class ComponentArrivals extends ComponentIdentity{
     public final Map<String, Double> meanRate;
 
     ComponentArrivals(final ComponentVertex vertex) {
-        super(vertex);
         final String ALL_TIME = "AllTime";
         final Arrivals metric = vertex.getArrivals();
         channels = metric.getChannels();

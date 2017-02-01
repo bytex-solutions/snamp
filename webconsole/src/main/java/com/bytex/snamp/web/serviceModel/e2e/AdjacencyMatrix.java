@@ -4,6 +4,7 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import com.bytex.snamp.moa.topology.ComponentVertex;
+import com.bytex.snamp.moa.topology.ComponentVertexIdentity;
 import com.bytex.snamp.web.serviceModel.ObjectMapperSingleton;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -23,19 +24,26 @@ import java.io.IOException;
  * @since 2.0
  */
 public abstract class AdjacencyMatrix implements Acceptor<ComponentVertex, ExceptionPlaceholder>, JsonSerializableWithType {
-    private final Multimap<ComponentIdentity, ComponentIdentity> matrix = HashMultimap.create();
+    private final Multimap<ComponentVertexIdentity, ComponentVertexIdentity> matrix = HashMultimap.create();
 
     abstract boolean filterRootComponent(final ComponentVertex vertex);
 
     abstract boolean filterChildComponent(final ComponentVertex vertex);
 
+    void interceptVertex(final ComponentVertex vertex){
+
+    }
+
     @Override
     public final void accept(final ComponentVertex vertex) {
         if (filterRootComponent(vertex)) {    //visit only root component and its linked nodes
-            final ComponentIdentity parentId = new ComponentIdentity(vertex);
+            final ComponentVertexIdentity parentId = vertex.getIdentity();
+            interceptVertex(vertex);
             for (final ComponentVertex child : vertex)
-                if (filterChildComponent(child))
-                    matrix.put(parentId, new ComponentIdentity(child));
+                if (filterChildComponent(child)) {
+                    matrix.put(parentId, child.getIdentity());
+                    interceptVertex(child);
+                }
         }
     }
 
@@ -44,7 +52,7 @@ public abstract class AdjacencyMatrix implements Acceptor<ComponentVertex, Excep
         final ObjectNode serializedForm = ThreadLocalJsonFactory.getFactory().objectNode();
         //serialize matrix
         final ArrayNode vertices = ThreadLocalJsonFactory.getFactory().arrayNode();
-        for (final ComponentIdentity vertex : matrix.keySet()) {
+        for (final ComponentVertexIdentity vertex : matrix.keySet()) {
             final ObjectNode vertexNode = ThreadLocalJsonFactory.getFactory().objectNode();
             vertexNode.put("vertex", ObjectMapperSingleton.INSTANCE.valueToTree(vertex));
             vertexNode.put("connections", ObjectMapperSingleton.INSTANCE.valueToTree(matrix.get(vertex)));

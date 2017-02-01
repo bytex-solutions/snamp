@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  * @version 2.0
  * @since 2.0
  */
-public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId, ComponentVertex> implements Consumer<Span>, Stateful {//key in map is a component name
+public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity, ComponentVertex> implements Consumer<Span>, Stateful {//key in map is a component name
     private static final long serialVersionUID = 2292647118511712487L;
     private final ConcurrentLinkedHashMap<Identifier, ComponentVertex> idToVertexCache; //key is a spanID of the node
     /*
@@ -60,7 +60,7 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId, Comp
             return;
         //detect whether the vertex representing the component exists in the map of vertices
         ComponentVertex vertex = new ComponentVertex(span);
-        vertex = MoreObjects.firstNonNull(putIfAbsent(vertex.getId(), vertex), vertex);
+        vertex = MoreObjects.firstNonNull(putIfAbsent(vertex.getIdentity(), vertex), vertex);
         vertex.accept(span);
         //add a new span ID into the cache that provides O(1) search of vertex by its spanID
         if (!span.getSpanID().isEmpty()) {
@@ -85,7 +85,7 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexId, Comp
     }
 
     public final ComponentVertex get(final String componentName, final String moduleName){
-        return get(new ComponentVertexId(componentName, moduleName));
+        return get(new ComponentVertexIdentity(componentName, moduleName));
     }
 
     public final boolean remove(final String componentName) {

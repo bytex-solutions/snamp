@@ -20,12 +20,12 @@ import java.util.function.Consumer;
  */
 public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex> implements Consumer<Span> {
     private static final long serialVersionUID = -8818600618319266377L;
-    private final ComponentVertexId id;
+    private final ComponentVertexIdentity id;
     private final Set<String> instances;
     private final ArrivalsRecorder arrivals;
 
     ComponentVertex(final Span span) {
-        id = new ComponentVertexId(span);
+        id = new ComponentVertexIdentity(span);
         final ConcurrentLinkedHashMap<String, Boolean> instances = new ConcurrentLinkedHashMap.Builder<String, Boolean>()
                 .concurrencyLevel(Runtime.getRuntime().availableProcessors() * 2)
                 //at maximum we can hold no more than 100 instances of the same component
@@ -74,7 +74,7 @@ public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex
      * Gets identifier of this vertex.
      * @return Identifier of this vertex.
      */
-    ComponentVertexId getId(){
+    public ComponentVertexIdentity getIdentity(){
         return id;
     }
 
