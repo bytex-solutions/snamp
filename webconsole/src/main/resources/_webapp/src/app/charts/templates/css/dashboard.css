@@ -118,3 +118,8 @@ select.form-control:not([size]):not([multiple]) {
 .placeholder {
     position: absolute;
 }
+
+.nvd3.nv-pie.nv-chart-donut1 .nv-pie-title {
+    opacity: 0.4;
+    fill: rgba(224, 116, 76, 0.91);
+}

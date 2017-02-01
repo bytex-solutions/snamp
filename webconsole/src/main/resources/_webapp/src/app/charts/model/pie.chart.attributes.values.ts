@@ -4,12 +4,14 @@ import { AttributeValueAxis } from './attribute.value.axis';
 import { AbstractChart } from './abstract.chart';
 import { ChartData } from './chart.data';
 
-const Chart = require('chart.js');
+const d3 = require('d3');
+const nv = require('nvd3');
 
 export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.PIE;
 
     private _chartObject:any = undefined;
+    private _svgReadyData:any = undefined;
 
     public createDefaultAxisX() {
         return new InstanceNameAxis();
@@ -23,6 +25,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
         super();
         this.setSizeX(2);
         this.setSizeY(3);
+        this._svgReadyData = this.prepareDatasets();
     }
 
     public newValue(_data:ChartData):void {
@@ -34,52 +37,56 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
                 break;
             }
         }
-        let updateColors:boolean = false;
         if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-            _index = this.chartData.length - 1; // and set it to the end of the array
-            updateColors = true;
+            this.chartData.push(_data); // if no data with this instance is found - append it to an array
+            this._svgReadyData.push({ key: _data.instanceName, y: _data.attributeValue});
+        } else {
+            for (let i = 0; i < this._svgReadyData.length; i++) {
+                if (this._svgReadyData[i].key == _data.instanceName) {
+                    this._svgReadyData[i].y = _data.attributeValue;
+                }
+            }
         }
         if (this._chartObject != undefined) {
-            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
-            if (updateColors) {
-                this._chartObject.data.datasets[0].backgroundColor = this.hslFromData();
-                this._chartObject.data.datasets[0].borderColor = this.borderColors();
-                this._chartObject.data.datasets[0].hoverBackgroundColor = this.hoverHslFromData();
-            }
             this._chartObject.update();
         }
     }
 
-    public draw():void    {
-        var ctx = $("#" + this.id);
-        console.log("Prepared chart data: ", ctx, AbstractChart.CHART_TYPE_OF(this.type), this.instances,
-            (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(), this.simplifyData());
-        var _result = new Chart(ctx, {
-            type: AbstractChart.CHART_TYPE_OF(this.type),
-            data: {
-                labels: this.instances,
-                datasets: [{
-                    label: (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(),
-                    data: this.simplifyData(),
-                    backgroundColor : this.hslFromData(),
-                    borderColor: this.borderColors(),
-                    hoverBackgroundColor: this.hoverHslFromData(),
-                    borderWidth: 1
-                }],
-                options: {
-                    responsive: true,
-                    cutoutPercentage: 40,
-                    rotation: Math.PI,
-                    circumference: Math.PI * 0.5,
-                    title: {
-                        display: true,
-                        text: this.component
-                    }
-                }
-            }
-        });
-        this._chartObject = _result;
+    private prepareDatasets():any {
+        let _value:any = [];
+        for (let i = 0; i < this.chartData.length; i++) {
+            _value.push({
+                key: this.chartData[i].instanceName,
+                y: this.chartData[i].attributeValue
+            });
+        }
+        return _value;
+    }
+
+    public draw():void {
+         // refresh data to be actual in this phase
+         this._svgReadyData = this.prepareDatasets();
+         let _sam:string = (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation();
+         var _thisReference = this;
+         nv.addGraph(function() {
+             var pieChart = nv.models.pieChart()
+                 .x(function(d) { return d.key })
+                 .y(function(d) { return d.y })
+                 .donut(true)
+                 .padAngle(.08)
+                 .cornerRadius(5)
+                 .id('donut1');
+             pieChart.title(_sam);
+             pieChart.pie.donutLabelsOutside(true).donut(true);
+
+             d3.select("#" + _thisReference.id)
+                 .datum(_thisReference._svgReadyData)
+                 .transition().duration(1200)
+                 .call(pieChart);
+
+             _thisReference._chartObject = pieChart;
+             return pieChart;
+         });
     }
 
     public toJSON():any {
