@@ -53,14 +53,16 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
                 if (_ds[i].key == _data.instanceName) {
                     _ds[i].values.push({x: _data.timestamp, y: _data.attributeValue});
                     _found = true;
+                    if (_ds.length > 200) {
+                        _ds.shift(); // remove first element in case we have too many elements
+                    }
                     break;
                 }
             }
             if (!_found) {
                 _ds = this.prepareDatasets();
             }
-            d3.select('#' + this.id).datum(_ds)
-                        .transition().duration(500).call(this._chartObject);
+            d3.select('#' + this.id).datum(_ds).transition().duration(100).call(this._chartObject);
         }
     }
 
@@ -80,7 +82,7 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
               .tickFormat(d3.format('d'));
 
           chart.y2Axis.tickFormat(function(d){
-                 return d3.time.format('%X')(new Date(d));
+                 return d3.time.format('%H:%M:%S')(new Date(d));
            });
 
           d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
