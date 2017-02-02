@@ -111,7 +111,6 @@ final class TopologyAnalyzerService extends GraphOfComponents implements Topolog
     }
 
     private void serviceChanged(final int type, final ServiceReference<ManagedResourceConnector> connectorRef){
-        @SuppressWarnings("unchecked")
         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connectorRef);
         try {
             switch (type) {

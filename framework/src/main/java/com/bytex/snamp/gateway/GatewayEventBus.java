@@ -71,22 +71,22 @@ final class GatewayEventBus {
     }
 
     static void notifyInstanceStopped(final String gatewayType, final Gateway gatewayInstance) {
-        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is stopped", gatewayType, gatewayInstance.getInstanceName()));
+        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is stopped", gatewayType, gatewayInstance));
         fireEventListeners(gatewayType, new GatewayStoppedEvent(gatewayInstance));
     }
 
     static void notifyInstanceStarted(final String gatewayType, final Gateway gatewayInstance){
-        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is started", gatewayType, gatewayInstance.getInstanceName()));
+        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is started", gatewayType, gatewayInstance));
         fireEventListeners(gatewayType, new GatewayStartedEvent(gatewayInstance));
     }
 
     static void notifyInstanceUpdating(final String gatewayType, final Gateway gatewayInstance){
-        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is updating", gatewayType, gatewayInstance.getInstanceName()));
+        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is updating", gatewayType, gatewayInstance));
         fireEventListeners(gatewayType, new GatewayUpdatingEvent(gatewayInstance));
     }
 
     static void notifyInstanceUpdated(final String gatewayType, final Gateway gatewayInstance) {
-        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is updated", gatewayType, gatewayInstance.getInstanceName()));
+        LoggerProvider.getLoggerForObject(gatewayInstance).info(String.format("Gateway %s/%s is updated", gatewayType, gatewayInstance));
         fireEventListeners(gatewayType, new GatewayUpdatedEvent(gatewayInstance));
     }
 }

@@ -24,6 +24,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanOperationInfo;
@@ -76,6 +77,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @return A new instance of the resource connector.
          * @throws Exception Unable to instantiate managed resource connector.
          */
+        @Nonnull
         TConnector createConnector(final String resourceName,
                                    final ManagedResourceInfo configuration,
                                    final DependencyManager dependencies) throws Exception;

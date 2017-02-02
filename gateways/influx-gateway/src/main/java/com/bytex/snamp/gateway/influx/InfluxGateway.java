@@ -44,26 +44,26 @@ final class InfluxGateway extends AbstractGateway {
 
         @Override
         protected String generateThreadName() {
-            return "PointsUploader-".concat(getInstanceName());
+            return "PointsUploader-".concat(instanceName);
         }
 
         @Override
         protected void stateChanged(final RepeaterState s) {
             switch (s){
                 case STARTED:
-                    getLogger().fine(String.format("Points uploader for '%s' instance is started", getInstanceName()));
+                    getLogger().fine(String.format("Points uploader for '%s' instance is started", instanceName));
                 return;
                 case FAILED:
-                    getLogger().log(Level.SEVERE, String.format("Points uploader for '%s' instance is broken", getInstanceName()), getException());
+                    getLogger().log(Level.SEVERE, String.format("Points uploader for '%s' instance is broken", instanceName), getException());
                 return;
                 case CLOSED:
-                    getLogger().fine(String.format("Points uploader for '%s' instance is closed", getInstanceName()));
+                    getLogger().fine(String.format("Points uploader for '%s' instance is closed", instanceName));
                 return;
                 case STOPPED:
-                    getLogger().fine(String.format("Points uploader for '%s' instance is stopped", getInstanceName()));
+                    getLogger().fine(String.format("Points uploader for '%s' instance is stopped", instanceName));
                 return;
                 case STOPPING:
-                    getLogger().fine(String.format("Points uploader for '%s' instance is stopping", getInstanceName()));
+                    getLogger().fine(String.format("Points uploader for '%s' instance is stopping", instanceName));
             }
         }
     }

@@ -37,11 +37,11 @@ final class HttpGateway extends AbstractGateway {
     }
 
     private String getServletContextForAttributes(){
-        return String.format(ROOT_CONTEXT, getInstanceName());
+        return String.format(ROOT_CONTEXT, instanceName);
     }
 
     private String getServletContextForNotifications(){
-        return String.format(ROOT_CONTEXT + "/notifications", getInstanceName());
+        return String.format(ROOT_CONTEXT + "/notifications", instanceName);
     }
 
     @Override

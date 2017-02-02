@@ -91,15 +91,20 @@ public interface Gateway extends FrameworkService, ServiceListener, Closeable {
         boolean setProperty(final String propertyName, final Object value);
     }
 
+    /**
+     * Gets configuration of this gateway.
+     * @return Configuration of this gateway.
+     */
     @Nonnull
     @Override
     Map<String, Object> getConfiguration();
 
     /**
-     * Gets name of this instance.
-     * @return The name of this instance.
+     * Updates configuration of this gateway.
+     * @param configuration A new configuration to update
+     * @throws Exception Unable to update this gateway.
      */
-    String getInstanceName();
+    void update(final Map<String, String> configuration) throws Exception;
 
     /**
      * Gets state of this instance.

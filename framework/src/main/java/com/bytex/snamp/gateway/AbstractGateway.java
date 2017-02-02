@@ -67,28 +67,30 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         private final ImmutableMap<String, String> parameters;
         private final GatewayState state;
 
-        private InternalState(final GatewayState state, final ImmutableMap<String, String> params) {
+        private InternalState(final GatewayState state, final Map<String, String> params) {
             this.state = state;
-            this.parameters = params;
+            this.parameters = ImmutableMap.copyOf(params);
         }
 
-        private static InternalState initialState() {
-            return new InternalState(GatewayState.CREATED, ImmutableMap.of());
+        private InternalState(){
+            state = GatewayState.CREATED;
+            parameters = ImmutableMap.of();
         }
 
-        private InternalState setParameters(final Map<String, String> value) {
-            return new InternalState(state, ImmutableMap.copyOf(value));
+        InternalState setParameters(final Map<String, String> value) {
+            return new InternalState(state, value);
         }
 
-        private InternalState transition(final GatewayState value) {
-            return new InternalState(value, parameters);
+        InternalState transition(final GatewayState value) {
+            switch (value) {
+                case CLOSED:
+                    return null;
+                default:
+                    return new InternalState(value, parameters);
+            }
         }
 
-        private static InternalState finalState() {
-            return null;
-        }
-
-        private boolean parametersAreEqual(final Map<String, String> newParameters) {
+        boolean parametersAreEqual(final Map<String, String> newParameters) {
             if (parameters.size() == newParameters.size()) {
                 for (final Map.Entry<String, String> entry : newParameters.entrySet())
                     if (!Objects.equals(parameters.get(entry.getKey()), entry.getValue()))
@@ -205,7 +207,10 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     private volatile InternalState mutableState;
-    private final String instanceName;
+    /**
+     * Gets name of this instance.
+     */
+    protected final String instanceName;
 
     /**
      * Initializes a new instance of gateway.
@@ -213,22 +218,13 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      */
     protected AbstractGateway(final String instanceName) {
         this.instanceName = instanceName;
-        mutableState = InternalState.initialState();
+        mutableState = new InternalState();
     }
 
     @Nonnull
     @Override
     public final Map<String, Object> getConfiguration() {
         return ImmutableMap.of();
-    }
-
-    /**
-     * Gets name of this gateway instance.
-     * @return The name of the gateway instance.
-     */
-    @Override
-    public final String getInstanceName(){
-        return instanceName;
     }
 
     /**
@@ -363,30 +359,26 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      * </p>
      * @param current The current configuration parameters.
      * @param newParameters A new configuration parameters.
+     * @return {@literal true}, if the gateway is modified; otherwise, {@literal false}.
      * @throws Exception Unable to update this gateway.
      */
-    protected void update(final Map<String, String> current,
+    protected boolean update(final Map<String, String> current,
                           final Map<String, String> newParameters) throws Exception {
-        if (!current.equals(newParameters)) {
-            tryStop();
-            tryStart(newParameters);
-        }
+        doStop();
+        doStart(newParameters);
+        return false;
     }
 
-    final synchronized boolean tryUpdate(final Map<String, String> newParameters) throws Exception{
+    @Override
+    public final synchronized void update(final Map<String, String> newParameters) throws Exception {
         final InternalState currentState = mutableState;
-        switch (currentState.state){
+        switch (currentState.state) {
+            case CREATED:
+                doStart(newParameters);
             case STARTED:
                 //compare parameters
-                if(!currentState.parametersAreEqual(newParameters)) {
-                    final InternalState newState = currentState.setParameters(newParameters);
-                    update(currentState.parameters, newState.parameters);
-                    mutableState = newState;
-                    return true;
-                }
-                else return false;
-            default:
-                return false;
+                if (!currentState.parametersAreEqual(newParameters) && update(currentState.parameters, newParameters))
+                    mutableState = currentState.setParameters(newParameters);
         }
     }
 
@@ -472,9 +464,9 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
             }
     }
 
-    final synchronized boolean tryStart(final Map<String, String> params) throws Exception{
+    private synchronized void doStart(final Map<String, String> params) throws Exception {
         final InternalState currentState = mutableState;
-        switch (currentState.state){
+        switch (currentState.state) {
             case CREATED:
             case STOPPED:
                 //explore all available resources
@@ -486,15 +478,12 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 mutableState = newState.transition(GatewayState.STARTED);
                 started();
                 ManagedResourceConnectorClient.addResourceListener(getBundleContext(), this);
-                return true;
-            default:
-                return false;
         }
     }
 
-    private synchronized boolean tryStop() throws Exception{
+    private synchronized void doStop() throws Exception {
         final InternalState currentState = mutableState;
-        switch (currentState.state){
+        switch (currentState.state) {
             case STARTED:
                 try {
                     stop();
@@ -502,15 +491,11 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                     final Collection<ServiceReference<ManagedResourceConnector>> resources =
                             context.getServiceReferences(ManagedResourceConnector.class, null);
                     resources.forEach(this::removeResource);
-                }
-                finally {
+                } finally {
                     getBundleContext().removeServiceListener(this);
                     mutableState = currentState.transition(GatewayState.STOPPED);
                 }
                 stopped();
-                return true;
-            default:
-                return false;
         }
     }
 
@@ -559,13 +544,13 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     @Override
     public final void close() throws IOException {
         try {
-            tryStop();
+            doStop();
         } catch (final IOException e) {
             throw e;
         } catch (final Exception e) {
             throw new IOException(String.format("Unable to release resources associated with %s gateway instance", instanceName), e);
         } finally {
-            mutableState = InternalState.finalState();
+            mutableState = mutableState.transition(GatewayState.CLOSED);
             clearCache();
         }
     }

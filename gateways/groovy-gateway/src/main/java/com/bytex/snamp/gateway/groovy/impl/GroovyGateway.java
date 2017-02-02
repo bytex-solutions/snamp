@@ -14,7 +14,6 @@ import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.io.IOException;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static com.bytex.snamp.MapUtils.toProperties;
@@ -98,7 +97,7 @@ final class GroovyGateway extends AbstractGateway {
         final GatewayScriptEngine engine = new GatewayScriptEngine(getClass().getClassLoader(),
                 toProperties(parameters),
                 GroovyGatewayConfigurationProvider.getScriptPath(parameters));
-        engine.getGlobalVariables().setVariable(GATEWAY_INSTANCE_NAME, getInstanceName());
+        engine.getGlobalVariables().setVariable(GATEWAY_INSTANCE_NAME, instanceName);
         engine.getGlobalVariables().setVariable(GatewayScript.MODEL_GLOBAL_VAR, repository);
         final GatewayScript script = engine.createScript(GroovyGatewayConfigurationProvider.getScriptFile(parameters),
                 parameters);

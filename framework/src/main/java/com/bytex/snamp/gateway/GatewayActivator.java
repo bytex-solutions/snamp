@@ -16,6 +16,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Supplier;
@@ -38,7 +39,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 1.0
  */
-public class GatewayActivator<G extends AbstractGateway> extends AbstractServiceLibrary {
+public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary {
     private static final String CATEGORY = "gateway";
     private static final ActivationProperty<String> GATEWAY_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
@@ -52,11 +53,12 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      */
     @FunctionalInterface
     protected interface GatewayFactory<G extends Gateway>{
+        @Nonnull
         G createInstance(final String gatewayInstance,
                          final DependencyManager dependencies) throws Exception;
     }
 
-    private static final class GatewayInstances<G extends AbstractGateway> extends ServiceSubRegistryManager<Gateway, G>{
+    private static final class GatewayInstances<G extends Gateway> extends ServiceSubRegistryManager<Gateway, G>{
         private final GatewayFactory<G> gatewayInstanceFactory;
         /**
          * Represents type of gateway.
@@ -91,12 +93,6 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
             return getParser().getFactoryPersistentID(gatewayType);
         }
 
-        private G update(final G gatewayInstance,
-                         final GatewayConfiguration configuration) throws Exception {
-            gatewayInstance.tryUpdate(configuration);
-            return gatewayInstance;
-        }
-
         @Override
         protected G update(final G gatewayInstance,
                            final Dictionary<String, ?> configuration) throws Exception {
@@ -107,7 +103,8 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
                 throw new IllegalStateException(String.format("Gateway %s cannot be updated. Configuration not found.", instanceName));
             newConfig.setType(gatewayType);
             newConfig.expandParameters();
-            return update(gatewayInstance, newConfig);
+            gatewayInstance.update(newConfig);
+            return gatewayInstance;
         }
 
         private G createService(final Map<String, Object> identity,
@@ -118,15 +115,8 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
             identity.put(Gateway.NAME_PROPERTY, instanceName);
             identity.put(Gateway.CATEGORY_PROPERTY, CATEGORY);
             final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, getDependencies());
-            if (gatewayInstance != null) {
-                if (gatewayInstance.tryStart(configuration)) {
-                    return gatewayInstance;
-                } else {
-                    gatewayInstance.close();
-                    throw new IllegalStateException(String.format("Unable to start '%s' instance", instanceName));
-                }
-            }
-            else throw new InstantiationException(String.format("Unable to instantiate '%s' instance", instanceName));
+            gatewayInstance.update(configuration);
+            return gatewayInstance;
         }
 
         @Override

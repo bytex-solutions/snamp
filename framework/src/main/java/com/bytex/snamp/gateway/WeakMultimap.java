@@ -17,16 +17,16 @@ import java.util.Objects;
 final class WeakMultimap {
 
     private WeakMultimap(){
-
+        throw new InstantiationError();
     }
 
-    public static <K, V> boolean put(final Multimap<K, WeakReference<V>> map,
+    static <K, V> boolean put(final Multimap<K, WeakReference<V>> map,
                                     final K key,
                                     final V value){
         return map.put(key, new WeakReference<>(value));
     }
 
-    public static <K, V> int remove(final Multimap<K, WeakReference<V>> map,
+    static <K, V> int remove(final Multimap<K, WeakReference<V>> map,
                                         final K key,
                                         final V value){
         int result = 0;
@@ -49,7 +49,7 @@ final class WeakMultimap {
      * @param <V> Type of the values in map.
      * @param reader Entry reader.
      */
-    public static <K, V, E extends Exception> void iterate(final Multimap<K, WeakReference<V>> map, final EntryReader<K, V, E> reader) throws E {
+    static <K, V, E extends Exception> void iterate(final Multimap<K, WeakReference<V>> map, final EntryReader<K, V, E> reader) throws E {
         final ImmutableSet<K> keys = ImmutableSet.copyOf(map.keySet());
         for (final K key : keys)
             for (final Iterator<WeakReference<V>> it = map.get(key).iterator(); it.hasNext(); ) {
