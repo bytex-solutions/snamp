@@ -9,8 +9,6 @@ import { AttributeInformation } from './model/attribute';
 import { ChartService } from '../app.chartService';
 import { Factory } from './model/objectFactory';
 import { AbstractChart } from './model/abstract.chart';
-import { LineChartOfAttributeValues } from './model/line.chart.attributes.values';
-import { PieChartOfAttributeValues } from './model/pie.chart.attributes.values';
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
@@ -290,10 +288,6 @@ export class Dashboard {
    	onResize(index: number, event: NgGridItemEvent): void {
    		// Do something here
    		console.log("Resized: ", index, event);
-   	}
-
-   	isSvgType(chart:AbstractChart):boolean {
-   	    return (chart instanceof LineChartOfAttributeValues) || (chart instanceof PieChartOfAttributeValues);
    	}
 }
 

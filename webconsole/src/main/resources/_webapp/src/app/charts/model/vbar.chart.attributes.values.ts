@@ -37,33 +37,34 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
         }
         if (_index == -1) {
             this.chartData.push(_data); // if no data with this instance is found - append it to an array
-            this._svgReadyData.push({
-                key: _data.instanceName,
-                values: [{
-                    label: _data.attributeValue,
+            this._svgReadyData[0].values.push({
+                    label: _data.instanceName,
                     value: _data.attributeName
-                }]});
+                });
         } else {
-            for (let i = 0; i < this._svgReadyData.length; i++) {
-                if (this._svgReadyData[i].key == _data.instanceName) {
-                    this._svgReadyData[i].values[0].value = _data.attributeValue;
+            for (let i = 0; i < this._svgReadyData[0].values.length; i++) {
+                if (this._svgReadyData[0].values[i].label == _data.instanceName) {
+                    this._svgReadyData[0].values[i].value = _data.attributeValue;
                 }
             }
         }
+
         if (this._chartObject != undefined) {
             this._chartObject.update();
         }
     }
 
     private prepareDatasets():any {
+        let chartName:string = (<AttributeValueAxis> this.getAxisY()).getLabelRepresentation();
         let _value:any = [];
+        _value.push({
+            key: chartName,
+            values: []
+        });
         for (let i = 0; i < this.chartData.length; i++) {
-            _value.push({
-                key: this.chartData[i].instanceName,
-                values: {
-                    label: this.chartData[i].attributeName,
-                    value: this.chartData[i].attributeValue
-                }
+            _value[0].values.push({
+                label: this.chartData[i].instanceName,
+                value: this.chartData[i].attributeValue
             });
         }
         return _value;
@@ -72,22 +73,16 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
     public draw():void {
          // refresh data to be actual in this phase
          this._svgReadyData = this.prepareDatasets();
-         let _sam:string = (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation();
          var _thisReference = this;
           nv.addGraph(function() {
-             var chart = nv.models.multiBarHorizontalChart()
-                 .x(function(d) { return d.label })
-                 .y(function(d) { return d.value })
-                 //.margin({top: 30, right: 20, bottom: 50, left: 175})
-                 .showValues(true)           //Show bar value next to each bar.
-                 .tooltips(true)             //Show tooltips on hover.
-                 .transitionDuration(350)
-                 .showControls(true); //Allow user to switch between "Grouped" and "Stacked" mode.
+            var chart = nv.models.discreteBarChart()
+                .x(function(d) { return d.label })
+                .y(function(d) { return d.value })
+                .staggerLabels(true)
+                .showValues(true)
+                .duration(250);
 
-             chart.yAxis
-                 .tickFormat(d3.format(',.2f'));
-
-             d3.select('#chart1 svg')
+             d3.select('#' + _thisReference.id)
                  .datum(_thisReference._svgReadyData)
                  .call(chart);
 

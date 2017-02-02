@@ -179,8 +179,7 @@
               </div>
             </div>
             <div id="wrapper" style="position: relative; width: 100%; height: calc(100% - 60px);">
-              <canvas [attr.id]="chart.id" height="50" *ngIf="!isSvgType(chart)"></canvas>
-              <svg [attr.id]="chart.id" *ngIf="isSvgType(chart)"></svg>
+              <svg [attr.id]="chart.id"></svg>
             </div>
           </div>
 
