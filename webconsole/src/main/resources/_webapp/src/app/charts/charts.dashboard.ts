@@ -274,20 +274,16 @@ export class Dashboard {
         this._chartService.newChart(chart);
         $("#addChartModal").modal("hide");
 
+         var _thisReference = this;
          setTimeout(function() {
-            $("#chartArea li.removable").remove();
             chart.draw();
+            _thisReference._chartService.saveDashboard();
          }, 400);
    }
 
-   	onDrag(index: number, event: NgGridItemEvent): void {
-   		// Do something here
-   		console.log("Dragged: ", index, event);
-   	}
-
-   	onResize(index: number, event: NgGridItemEvent): void {
-   		// Do something here
-   		console.log("Resized: ", index, event);
+   	onChangeStop(index: number, event: NgGridItemEvent): void {
+   		this._charts[index].preferences["gridcfg"] = event;
+   		this._chartService.saveDashboard();
    	}
 }
 

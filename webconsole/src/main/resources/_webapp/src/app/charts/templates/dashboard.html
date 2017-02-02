@@ -169,7 +169,7 @@
 
       <div class='container col-md-12' [ngGrid]="gridConfig"  style="min-height: 900px;">
 
-          <div *ngFor="let chart of _charts; let i = index" [(ngGridItem)]="chart.preferences['gridcfg']" (onResize)="onResize(i, $event)" (onDrag)="onDrag(i, $event)">
+          <div *ngFor="let chart of _charts; let i = index" [(ngGridItem)]="chart.preferences['gridcfg']" (onChangeStop)="onChangeStop(i, $event)">
             <div class="handle">
               {{chart.name}}
               <div class="box-header-btns pull-right">

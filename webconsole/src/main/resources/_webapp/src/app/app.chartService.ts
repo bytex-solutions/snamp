@@ -5,6 +5,8 @@ import { LocalStorageService } from 'angular-2-local-storage';
 import { Subject } from 'rxjs/Subject';
 import { ApiClient, REST } from './app.restClient';
 
+import { $WebSocket, WebSocketSendMode } from 'angular2-websocket/angular2-websocket';
+
 import { Dashboard } from './charts/model/dashboard';
 import { AbstractChart } from './charts/model/abstract.chart';
 import { Factory } from './charts/model/objectFactory';
@@ -28,6 +30,11 @@ export class ChartService {
 
     public getCharts():AbstractChart[] {
         return this._dashboard.charts;
+    }
+
+    public setDefaultDashboard(ws:$WebSocket):void {
+        ws.setSendMode(WebSocketSendMode.Direct);
+        ws.send(JSON.stringify(this._dashboard.toJSON()));
     }
 
     private loadDashboard():void {
@@ -57,7 +64,7 @@ export class ChartService {
             });
     }
 
-    private saveDashboard():void {
+    public saveDashboard():void {
         console.log("Saving some dashboard... ");
          this._http.put(REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
             .subscribe(data => {
