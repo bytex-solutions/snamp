@@ -38,11 +38,9 @@ abstract class SerializableConfigurationParser<E extends AbstractEntityConfigura
         getConfig(admin).delete();
     }
 
-    private void readItems(final Configuration input, final Map<String, E> output) throws IOException {
-        final Dictionary<String, ?> items = input.getProperties();
-        final Enumeration<String> names = items == null ? EmptyStringEnumerator.getInstance() : items.keys();
-        while (names.hasMoreElements()) {
-            final String itemName = names.nextElement();
+    private void readItems(final Dictionary<String, ?> items, final Enumeration<String> keys, final Map<String, E> output) throws IOException {
+        while (keys.hasMoreElements()) {
+            final String itemName = keys.nextElement();
             if (!excludeConfigKeys.contains(itemName))
                 switch (itemName) {
                     case SERVICE_PID:
@@ -53,6 +51,13 @@ abstract class SerializableConfigurationParser<E extends AbstractEntityConfigura
                             output.put(itemName, deserialize(itemName, items));
                 }
         }
+    }
+
+    private void readItems(final Configuration input, final Map<String, E> output) throws IOException {
+        final Dictionary<String, ?> items = input.getProperties();
+        final Optional<Enumeration<String>> names = Optional.ofNullable(items).map(Dictionary::keys);
+        if (names.isPresent())
+            readItems(items, names.get(), output);
     }
 
     @Override
