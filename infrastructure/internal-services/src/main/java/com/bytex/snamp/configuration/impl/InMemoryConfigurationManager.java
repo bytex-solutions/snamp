@@ -8,7 +8,6 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 
 import java.io.IOException;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
 /**
  * Represents in-memory configuration manager.
@@ -18,7 +17,6 @@ import java.util.logging.Logger;
  * @since 1.2
  */
 public final class InMemoryConfigurationManager extends AbstractAggregator implements ConfigurationManager {
-    private final Logger logger = Logger.getLogger("InMemoryConfigurationManager");
     private final ConcurrentResourceAccessor<SerializableAgentConfiguration> currentConfiguration =
             new ConcurrentResourceAccessor<>(new SerializableAgentConfiguration());
 
