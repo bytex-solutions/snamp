@@ -124,7 +124,6 @@ public class SpanReporter extends MeasurementReporter<Span> {
         };
     }
 
-    @SuppressWarnings("unchecked")
     public final <V> Callable<V> wrap(final Callable<V> obj){
         return wrap(obj, getTraceScopeProvider());
     }

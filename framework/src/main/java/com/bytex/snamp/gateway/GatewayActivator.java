@@ -79,7 +79,6 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
             this(Gateway.getGatewayType(Utils.getBundleContextOfObject(factory).getBundle()), factory, dependencies);
         }
 
-        @SuppressWarnings("unchecked")
         private CMGatewayParser getParser(){
             final ConfigurationManager configManager = getDependencies().getDependency(ConfigurationManager.class);
             assert configManager != null;

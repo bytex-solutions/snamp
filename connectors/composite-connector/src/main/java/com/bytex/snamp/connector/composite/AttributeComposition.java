@@ -108,7 +108,6 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T resolveAs(final String name, final SimpleType<T> expectedType) throws Exception {
         return Convert.toOpenType(resolveAs(name, WellKnownType.getType(expectedType)), expectedType);
     }
