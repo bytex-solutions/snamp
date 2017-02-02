@@ -25,9 +25,4 @@ public interface OperationConfiguration extends FeatureConfiguration {
      * @param value A new timeout value.
      */
     void setInvocationTimeout(final Duration value);
-
-    static void copy(final OperationConfiguration source, final OperationConfiguration dest){
-        dest.setInvocationTimeout(source.getInvocationTimeout());
-        dest.load(source);
-    }
 }

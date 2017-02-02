@@ -10,7 +10,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Represents template of managed resource.
@@ -18,7 +18,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 1.0
  * @since 1.0
  */
-abstract class AbstractManagedResourceTemplate extends AbstractEntityConfiguration {
+abstract class AbstractManagedResourceTemplate extends AbstractEntityConfiguration implements ManagedResourceTemplate {
     private static final long serialVersionUID = -9024738184822056816L;
 
 
@@ -125,6 +125,24 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
             super.readExternal(in);
         }
 
+        private void loadParameters(final Map<String, String> parameters){
+            clear();
+            putAll(parameters);
+        }
+
+        private void load(final OperationConfiguration configuration){
+            invocationTimeout = configuration.getInvocationTimeout();
+            loadParameters(configuration);
+        }
+
+        @Override
+        public void load(final Map<String, String> parameters) {
+            if(parameters instanceof OperationConfiguration)
+                load((OperationConfiguration) parameters);
+            else
+                loadParameters(parameters);
+        }
+
         @Override
         public Duration getInvocationTimeout() {
             return invocationTimeout;
@@ -164,6 +182,12 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public SerializableEventConfiguration(){
 
+        }
+
+        @Override
+        public void load(final Map<String, String> parameters) {
+            clear();
+            putAll(parameters);
         }
     }
 
@@ -218,6 +242,23 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
             super.readExternal(in);
         }
 
+        private void loadParameters(final Map<String, String> parameters){
+            clear();
+            putAll(parameters);
+        }
+
+        private void load(final AttributeConfiguration configuration){
+            readWriteTimeout = configuration.getReadWriteTimeout();
+            loadParameters(configuration);
+        }
+
+        @Override
+        public void load(final Map<String, String> parameters) {
+            if(parameters instanceof AttributeConfiguration)
+                load((AttributeConfiguration) parameters);
+
+        }
+
         /**
          * Gets attribute value invoke/write operation timeout.
          *
@@ -258,21 +299,23 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     private final ConfigurationEntityList<SerializableAttributeConfiguration> attributes;
     private final ConfigurationEntityList<SerializableEventConfiguration> events;
     private final ConfigurationEntityList<SerializableOperationConfiguration> operations;
-    private String connectionType;
+    private String type;
 
     AbstractManagedResourceTemplate(){
         attributes = new AttributeList();
         events = new EventList();
         operations = new OperationList();
-        connectionType = "";
+        type = "";
     }
 
+    @Override
     public final String getType(){
-        return connectionType;
+        return type;
     }
 
+    @Override
     public final void setType(final String value){
-        connectionType = firstNonNull(value, "");
+        type = nullToEmpty(value);
         markAsModified();
     }
 
@@ -316,7 +359,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
-        out.writeUTF(connectionType);
+        out.writeUTF(type);
         attributes.writeExternal(out);
         events.writeExternal(out);
         operations.writeExternal(out);
@@ -325,7 +368,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-        connectionType = in.readUTF();
+        type = in.readUTF();
         attributes.readExternal(in);
         events.readExternal(in);
         operations.readExternal(in);
@@ -333,11 +376,40 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     }
 
     @Override
-    public void reset() {
+    public final void reset() {
         attributes.reset();
         events.reset();
         operations.reset();
         super.reset();
+    }
+
+    @Override
+    public final void clear() {
+        super.clear();
+        attributes.clear();
+        events.clear();
+        operations.clear();
+    }
+
+    private void loadParameters(final Map<String, String> parameters){
+        super.clear();
+        putAll(parameters);
+    }
+
+    private void load(final ManagedResourceTemplate template){
+        type = template.getType();
+        AbstractEntityConfiguration.<AttributeConfiguration>copyEntities(template.getFeatures(AttributeConfiguration.class), attributes);
+        AbstractEntityConfiguration.<EventConfiguration>copyEntities(template.getFeatures(EventConfiguration.class), events);
+        AbstractEntityConfiguration.<OperationConfiguration>copyEntities(template.getFeatures(OperationConfiguration.class), operations);
+        loadParameters(template);
+    }
+
+    @Override
+    public void load(final Map<String, String> parameters) {
+        if (parameters instanceof ManagedResourceTemplate)
+            load((ManagedResourceTemplate) parameters);
+        else
+            loadParameters(parameters);
     }
 
     /**

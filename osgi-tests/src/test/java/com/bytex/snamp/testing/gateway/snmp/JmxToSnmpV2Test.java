@@ -93,16 +93,14 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         processConfiguration(config -> {
             final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).remove(TEST_RESOURCE_NAME);
             assertNotNull(resource);
-            ManagedResourceConfiguration.copy(resource,
-                    config.getEntities(ManagedResourceConfiguration.class).getOrAdd(NEW_RESOURCE_NAME));
+            config.getEntities(ManagedResourceConfiguration.class).getOrAdd(NEW_RESOURCE_NAME).load(resource);
             return true;
         });
         Thread.sleep(1000);
         processConfiguration(config -> {
             final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).remove(NEW_RESOURCE_NAME);
             assertNotNull(resource);
-            ManagedResourceConfiguration.copy(resource,
-                    config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME));
+            config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME).load(resource);
             return true;
         });
     }

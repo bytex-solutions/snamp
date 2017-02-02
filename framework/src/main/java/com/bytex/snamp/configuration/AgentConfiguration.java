@@ -57,42 +57,7 @@ public interface AgentConfiguration extends Cloneable, EntityConfiguration {
     <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType);
 
     /**
-     * Imports the state of specified object into this object.
-     * @param input The import source.
-     */
-    default void load(final AgentConfiguration input) {
-        copy(input, this);
-    }
-
-    /**
      * Clears this configuration.
      */
     void clear();
-
-    /**
-     * Copies configuration from one object to another object.
-     * @param input The configuration import source.
-     * @param output The configuration import destination.
-     */
-    static void copy(final AgentConfiguration input, final AgentConfiguration output) {
-        if (input == null || output == null) return;
-        //import parameters
-        output.load(input);
-        //import hosting configuration
-        ConfigurationEntityCopier.copy(input.getEntities(GatewayConfiguration.class),
-                output.getEntities(GatewayConfiguration.class),
-                GatewayConfiguration::copy);
-        //import management targets
-        ConfigurationEntityCopier.copy(input.getEntities(ManagedResourceConfiguration.class),
-                output.getEntities(ManagedResourceConfiguration.class),
-                (ConfigurationEntityCopier<ManagedResourceConfiguration>) ManagedResourceConfiguration::copy);
-        //import thread pools
-        ConfigurationEntityCopier.copy(input.getEntities(ThreadPoolConfiguration.class),
-                output.getEntities(ThreadPoolConfiguration.class),
-                ThreadPoolConfiguration::copy);
-        //import groups
-        ConfigurationEntityCopier.copy(input.getEntities(ManagedResourceGroupConfiguration.class),
-                output.getEntities(ManagedResourceGroupConfiguration.class),
-                (ConfigurationEntityCopier<ManagedResourceGroupConfiguration>) ManagedResourceGroupConfiguration::copy);
-    }
 }

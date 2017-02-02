@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -49,6 +50,28 @@ final class SerializableThreadPoolConfiguration extends AbstractEntityConfigurat
         queueSize = in.readInt();
         keepAliveTime = (Duration) in.readObject();
         super.readExternal(in);
+    }
+
+    private void loadParameters(final Map<String, String> parameters){
+        clear();
+        putAll(parameters);
+    }
+
+    private void load(final ThreadPoolConfiguration configuration){
+        minPoolSize = configuration.getMinPoolSize();
+        maxPoolSize = configuration.getMaxPoolSize();
+        threadPriority = configuration.getThreadPriority();
+        queueSize = configuration.getQueueSize();
+        keepAliveTime = configuration.getKeepAliveTime();
+        loadParameters(configuration);
+    }
+
+    @Override
+    public void load(final Map<String, String> parameters) {
+        if(parameters instanceof ThreadPoolConfiguration)
+            load((ThreadPoolConfiguration) parameters);
+        else
+            loadParameters(parameters);
     }
 
     @Override

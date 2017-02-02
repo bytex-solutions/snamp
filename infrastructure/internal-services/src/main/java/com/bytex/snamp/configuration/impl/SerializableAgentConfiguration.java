@@ -8,6 +8,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.bytex.snamp.configuration.impl.AbstractManagedResourceTemplate.*;
@@ -60,6 +61,27 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         clonedConfig.load(this);
         clonedConfig.reset();
         return clonedConfig;
+    }
+
+    private void loadParameters(final Map<String, String> parameters){
+        super.clear();
+        putAll(parameters);
+    }
+
+    private void load(final AgentConfiguration configuration) {
+        AbstractEntityConfiguration.<ManagedResourceConfiguration>copyEntities(configuration.getEntities(ManagedResourceConfiguration.class), resources);
+        AbstractEntityConfiguration.<ThreadPoolConfiguration>copyEntities(configuration.getEntities(ThreadPoolConfiguration.class), threadPools);
+        AbstractEntityConfiguration.<GatewayConfiguration>copyEntities(configuration.getEntities(GatewayConfiguration.class), gateways);
+        AbstractEntityConfiguration.<ManagedResourceGroupConfiguration>copyEntities(configuration.getEntities(ManagedResourceGroupConfiguration.class), groups);
+        loadParameters(configuration);
+    }
+
+    @Override
+    public void load(final Map<String, String> parameters) {
+        if(parameters instanceof AgentConfiguration)
+            load((AgentConfiguration) parameters);
+        else
+            loadParameters(parameters);
     }
 
     @Override

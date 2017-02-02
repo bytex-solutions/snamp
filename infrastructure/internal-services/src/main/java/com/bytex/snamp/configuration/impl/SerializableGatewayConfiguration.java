@@ -6,6 +6,7 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -47,6 +48,24 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     public void setType(final String gatewayType) {
         markAsModified();
         this.gatewayType = firstNonNull(gatewayType, "");
+    }
+
+    private void loadParameters(final Map<String, String> parameters){
+        clear();
+        putAll(parameters);
+    }
+
+    private void load(final GatewayConfiguration configuration){
+        gatewayType = configuration.getType();
+        loadParameters(configuration);
+    }
+
+    @Override
+    public void load(final Map<String, String> parameters) {
+        if (parameters instanceof GatewayConfiguration)
+            load((GatewayConfiguration) parameters);
+        else
+            loadParameters(parameters);
     }
 
     private boolean equals(final GatewayConfiguration other){

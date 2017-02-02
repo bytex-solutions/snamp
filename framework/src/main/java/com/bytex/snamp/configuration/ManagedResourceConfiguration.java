@@ -38,9 +38,4 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate, M
      * @param connectionString The connection string that is used to connect to the management server.
      */
     void setConnectionString(final String connectionString);
-
-    static void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
-        ManagedResourceTemplate.copy(input, output);
-        output.setConnectionString(input.getConnectionString());
-    }
 }

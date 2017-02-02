@@ -25,14 +25,4 @@ public interface AttributeConfiguration extends FeatureConfiguration {
      * @param value A new value of the timeout.
      */
     void setReadWriteTimeout(final Duration value);
-
-    /**
-     * Copies management attributes.
-     * @param source The attribute to copy.
-     * @param dest The attribute to fill.
-     */
-    static void copy(final AttributeConfiguration source, final AttributeConfiguration dest){
-        dest.setReadWriteTimeout(source.getReadWriteTimeout());
-        dest.load(source);
-    }
 }

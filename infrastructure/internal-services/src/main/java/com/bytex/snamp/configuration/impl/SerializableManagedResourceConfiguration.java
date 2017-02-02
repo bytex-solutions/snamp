@@ -9,6 +9,7 @@ import com.bytex.snamp.configuration.OperationConfiguration;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -68,6 +69,19 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         connectionString = in.readUTF();
         super.readExternal(in);
+    }
+
+    private void load(final ManagedResourceConfiguration configuration){
+        connectionString = configuration.getConnectionString();
+        super.load(configuration);
+    }
+
+    @Override
+    public void load(final Map<String, String> parameters) {
+        if (parameters instanceof ManagedResourceConfiguration)
+            load((ManagedResourceConfiguration) parameters);
+        else
+            super.load(parameters);
     }
 
     /**

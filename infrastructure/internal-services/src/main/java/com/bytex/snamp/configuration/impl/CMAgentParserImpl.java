@@ -1,5 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityConfiguration;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
@@ -37,7 +38,7 @@ final class CMAgentParserImpl {
         return !Constants.SERVICE_PID.equals(key);
     }
 
-    static void loadParameters(final ConfigurationAdmin admin, final EntityConfiguration agentConfig) throws IOException {
+    static void loadParameters(final ConfigurationAdmin admin, final AgentConfiguration agentConfig) throws IOException {
         final Configuration conf = getConfig(admin);
         if (conf.getProperties() != null) {
             Iterator<String> keys = Iterators.filter(Iterators.forEnumeration(conf.getProperties().keys()), CMAgentParserImpl::isValidParameter);

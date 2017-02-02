@@ -7,12 +7,4 @@ package com.bytex.snamp.configuration;
  * @version 2.0
  */
 public interface EventConfiguration extends FeatureConfiguration {
-    /**
-     * Copies management events.
-     * @param source The event to copy.
-     * @param dest The event to fill.
-     */
-    static void copy(final EventConfiguration source, final EventConfiguration dest){
-        dest.load(source);
-    }
 }

@@ -55,13 +55,4 @@ public interface ThreadPoolConfiguration extends EntityConfiguration {
     int getThreadPriority();
 
     void setThreadPriority(final int value);
-
-    static void copy(final ThreadPoolConfiguration input, final ThreadPoolConfiguration output){
-        output.load(input);
-        output.setQueueSize(input.getQueueSize());
-        output.setKeepAliveTime(input.getKeepAliveTime());
-        output.setMaxPoolSize(input.getMaxPoolSize());
-        output.setMinPoolSize(input.getMinPoolSize());
-        output.setThreadPriority(input.getThreadPriority());
-    }
 }

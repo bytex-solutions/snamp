@@ -13,9 +13,4 @@ public interface GatewayConfiguration extends TypedEntityConfiguration {
      * @since 1.2
      */
     String THREAD_POOL_KEY = "threadPool";
-
-    static void copy(final GatewayConfiguration input, final GatewayConfiguration output){
-        output.setType(input.getType());
-        output.load(input);
-    }
 }
