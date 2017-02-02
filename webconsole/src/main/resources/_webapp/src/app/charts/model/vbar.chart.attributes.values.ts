@@ -80,6 +80,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                 .y(function(d) { return d.value })
                 .staggerLabels(true)
                 .showValues(true)
+                .padAngle(.08)
                 .duration(250);
 
              d3.select('#' + _thisReference.id)

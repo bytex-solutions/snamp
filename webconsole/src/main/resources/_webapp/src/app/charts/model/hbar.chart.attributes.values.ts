@@ -79,14 +79,14 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
             var chart = nv.models.multiBarHorizontalChart()
                 .x(function(d) { return d.label })
                 .y(function(d) { return d.value })
-                .yErr(function(d) { return [-Math.abs(d.value * Math.random() * 0.3), Math.abs(d.value * Math.random() * 0.3)] })
                 .barColor(d3.scale.category20().range())
                 .duration(250)
+                .padAngle(.08)
                 .showValues(true)
                 .stacked(false);
 
              chart.yAxis
-                 .tickFormat(d3.format(',.2f'));
+                 .tickFormat(d3.format('d'));
 
              d3.select('#' + _thisReference.id)
                  .datum(_thisReference._svgReadyData)
