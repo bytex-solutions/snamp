@@ -76,7 +76,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
                                                                      final String filter,
                                                                      final Acceptor<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
         final Configuration[] configs = admin.listConfigurations(filter);
-        if(configs != null && configs.length > 0)
+        if(configs != null)
             for(final Configuration config: configs)
                 reader.accept(config);
     }

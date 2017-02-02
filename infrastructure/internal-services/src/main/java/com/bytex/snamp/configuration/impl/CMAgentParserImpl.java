@@ -3,6 +3,7 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.configuration.EntityConfiguration;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
+import org.osgi.framework.Constants;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -32,10 +33,14 @@ final class CMAgentParserImpl {
         conf.update(new Hashtable<>(agentConfig));
     }
 
+    private static boolean isValidParameter(final String key){
+        return !Constants.SERVICE_PID.equals(key);
+    }
+
     static void loadParameters(final ConfigurationAdmin admin, final EntityConfiguration agentConfig) throws IOException {
         final Configuration conf = getConfig(admin);
         if (conf.getProperties() != null) {
-            final Iterator<String> keys = Iterators.forEnumeration(conf.getProperties().keys());
+            Iterator<String> keys = Iterators.filter(Iterators.forEnumeration(conf.getProperties().keys()), CMAgentParserImpl::isValidParameter);
             final Map<String, String> params = Maps.toMap(keys, key -> getValue(conf.getProperties(), key, Objects::toString).orElse(""));
             agentConfig.load(params);
         }
