@@ -6,6 +6,7 @@ import { GatewaysComponent }  from './configuration.gateways';
 import { ResourcesComponent }  from './configuration.resources';
 import { RGroupsComponent }  from './configuration.rgroups';
 import { SnampCfgComponent }  from './configuration.snampcfg';
+import { SnampLogViewComponent }  from './configuration.logview';
 import { HttpModule } from '@angular/http';
 import { CookieService } from 'angular2-cookie/core';
 
@@ -67,3 +68,10 @@ export class RGroupsModule { }
   providers:    PROVIDERS
 })
 export class SnampCFGModule { }
+
+@NgModule({
+  imports:      IMPORTS.concat([RouterModule.forChild([{ path: '', component: SnampLogViewComponent }])]),
+  declarations: [ SnampLogViewComponent ],
+  providers:    PROVIDERS
+})
+export class SnampLogViewModile { }

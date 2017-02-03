@@ -1,0 +1,23 @@
+<div class="right_col" role="main" style="min-height: 1400px;">
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>Log view</h3>
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="row" style="margin-top: 30px">
+        <panel [header]="'Log table'" [column]="'12'">
+          <a class="btn btn-app" (click)="clearAllLogs()" style="float: right;">
+            <i class="fa fa-trash"></i> Clear
+          </a>
+          <div style="margin-top: 10px">
+              <ng2-smart-table [settings]="settings" [source]="source"></ng2-smart-table>
+          </div>
+        </panel>
+    </div>
+
+  </div>
+</div>
