@@ -5,7 +5,7 @@ import { LocalStorageService } from 'angular-2-local-storage';
 import { Subject } from 'rxjs/Subject';
 import { ApiClient, REST } from './app.restClient';
 
-import { $WebSocket, WebSocketSendMode } from 'angular2-websocket/angular2-websocket';
+import { $WebSocket } from 'angular2-websocket/angular2-websocket';
 
 import { Dashboard } from './charts/model/dashboard';
 import { AbstractChart } from './charts/model/abstract.chart';
@@ -33,8 +33,7 @@ export class ChartService {
     }
 
     public setDefaultDashboard(ws:$WebSocket):void {
-        ws.setSendMode(WebSocketSendMode.Direct);
-        ws.send(JSON.stringify(this._dashboard.toJSON()));
+        ws.send(JSON.stringify(this._dashboard.toJSON())).publish().connect();
     }
 
     private loadDashboard():void {

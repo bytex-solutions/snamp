@@ -80,7 +80,6 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                 .y(function(d) { return d.value })
                 .staggerLabels(true)
                 .showValues(true)
-                .padAngle(.08)
                 .duration(250);
 
              d3.select('#' + _thisReference.id)
@@ -101,7 +100,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
         _value["instances"] = this.instances;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
-        if ($.isEmptyObject(this.preferences)) {
+        if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
         }
         return _value;
