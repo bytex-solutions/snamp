@@ -14,7 +14,6 @@ import { TopNavBar } from './menu/topnavbar.component';
 import { UsernameComponent } from './app.username';
 import { SnampLogService } from './app.logService';
 import { ChartService } from './app.chartService';
-import { NoContent } from './no-content';
 import { FontAwesomeDirective } from 'ng2-fontawesome';
 import { ApiClient } from './app.restClient'
 import { CookieService } from 'angular2-cookie/core';
