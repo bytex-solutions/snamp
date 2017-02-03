@@ -76,12 +76,12 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
                  .padAngle(.08)
                  .cornerRadius(5)
                  .id('donut1');
+
              pieChart.title(_sam);
              pieChart.pie.donutLabelsOutside(true).donut(true);
 
              d3.select("#" + _thisReference.id)
                  .datum(_thisReference._svgReadyData)
-                 .transition().duration(1200)
                  .call(pieChart);
 
              _thisReference._chartObject = pieChart;

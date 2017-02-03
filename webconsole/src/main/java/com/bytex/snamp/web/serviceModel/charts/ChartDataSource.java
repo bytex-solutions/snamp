@@ -89,7 +89,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         this.threadPool = Objects.requireNonNull(threadPool);
         final Duration refreshTime = manager.transformConfiguration(config -> {
             final String RENEW_TIME = "chartDataRefreshTime";
-            final long renewTime = MapUtils.getValue(config.getParameters(), RENEW_TIME, Long::parseLong).orElse(900L);
+            final long renewTime = MapUtils.getValue(config.getParameters(), RENEW_TIME, Long::parseLong).orElse(1500L);
             return Duration.ofMillis(renewTime);
         });
         attributeSupplier = new AttributeSupplierThread(refreshTime);

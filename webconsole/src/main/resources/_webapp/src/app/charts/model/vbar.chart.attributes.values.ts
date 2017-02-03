@@ -80,7 +80,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                 .y(function(d) { return d.value })
                 .staggerLabels(true)
                 .showValues(true)
-                .duration(250);
+                .interactiveUpdateDelay(0);
 
              d3.select('#' + _thisReference.id)
                  .datum(_thisReference._svgReadyData)

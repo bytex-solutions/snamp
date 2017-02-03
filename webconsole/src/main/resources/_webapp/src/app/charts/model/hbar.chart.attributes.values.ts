@@ -80,9 +80,9 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
                 .x(function(d) { return d.label })
                 .y(function(d) { return d.value })
                 .barColor(d3.scale.category20().range())
-                .duration(250)
                 .showValues(true)
-                .stacked(false);
+                .stacked(false)
+                .interactiveUpdateDelay(0);
 
              chart.yAxis
                  .tickFormat(d3.format('d'));

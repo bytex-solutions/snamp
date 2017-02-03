@@ -71,6 +71,7 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
        var _thisReference = this;
         nv.addGraph(function() {
           var chart = nv.models.lineWithFocusChart();
+          chart.interactiveUpdateDelay(0);
 
           chart.xAxis.tickFormat(function(d){
                 return d3.time.format('%X')(new Date(d));
@@ -86,7 +87,7 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
            });
 
           d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
-            .transition().duration(500).call(chart);
+            .transition().call(chart);
 
           nv.utils.windowResize(chart.update);
           _thisReference._chartObject = chart;
