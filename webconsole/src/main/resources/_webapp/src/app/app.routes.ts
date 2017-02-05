@@ -9,4 +9,6 @@ export const ROUTES: Routes = [
   { path: 'snampcfg', loadChildren: () => System.import('./configuration/configuration.modules').then(m => m.SnampCFGModule) },
   { path: 'logview', loadChildren: () => System.import('./configuration/configuration.modules').then(m => m.SnampLogViewModile) },
   { path: 'charts', loadChildren: () => System.import('./charts/charts.modules').then(m => m.DashboardModule) },
+  { path: 'view', loadChildren: () => System.import('./analysis/analysis.modules').then(m => m.AnalysisModule) },
+  { path: 'addView', loadChildren: () => System.import('./analysis/analysis.modules').then(m => m.AnalysisModule) }
 ];

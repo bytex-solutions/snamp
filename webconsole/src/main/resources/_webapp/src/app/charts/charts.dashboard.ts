@@ -16,7 +16,7 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
 
-import {NgGrid, NgGridItem, NgGridConfig, NgGridItemConfig, NgGridItemEvent} from '../controls/nggrid/main'
+import { NgGrid, NgGridItem, NgGridConfig, NgGridItemConfig, NgGridItemEvent } from '../controls/nggrid/main';
 
 import 'smartwizard';
 import 'select2';

@@ -53,7 +53,6 @@ const APP_PROVIDERS = [
     Footer,
     Sidebar,
     TopNavBar,
-    NoContent,
     FontAwesomeDirective,
     UsernameComponent,
     KeysPipe

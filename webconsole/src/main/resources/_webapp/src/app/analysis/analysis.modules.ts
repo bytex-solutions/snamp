@@ -8,9 +8,10 @@ import { PanelComponent } from '../panel.component';
 import { Routes, RouterModule } from '@angular/router';
 import { ModalModule } from 'angular2-modal';
 import { VexModalModule } from 'angular2-modal/plugins/vex';
-import { NgGridModule } from '../controls/nggrid/modules/NgGrid.module';
-import { Dashboard } from './charts.dashboard';
 import { CommonSnampUtilsModule } from '../app.module';
+
+import { AddView } from './analysis.add.view';
+import { MainView } from './analysis.view';
 
 const PROVIDERS:any =  [
   ApiClient
@@ -25,10 +26,13 @@ const PROVIDERS:any =  [
       VexModalModule,
       HttpModule,
       CommonSnampUtilsModule,
-      NgGridModule,
-      RouterModule.forChild([{ path: '', component: Dashboard }])
+      RouterModule.forChild([
+             { path: '', component: AddView },
+             { path: 'addView', component: AddView },
+             { path: 'view/:id', component: MainView }
+      ])
     ],
-    declarations: [ Dashboard ],
+    declarations: [ AddView, MainView ],
     providers:    PROVIDERS
 })
-export class DashboardModule {}
+export class AnalysisModule {}
