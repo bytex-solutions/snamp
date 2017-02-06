@@ -4,9 +4,11 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
+import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
 import com.bytex.snamp.web.serviceModel.logging.WebConsoleLogService;
 import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
@@ -45,9 +47,31 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     //=============Predefined services for WebConsole======
+    private static final class E2EDataSourceProvider extends ProvidedService<WebConsoleService, E2EDataSource>{
+        private E2EDataSourceProvider(){
+            super(WebConsoleService.class, simpleDependencies(ConfigurationManager.class, ThreadPoolRepository.class, TopologyAnalyzer.class));
+        }
+
+        @Override
+        protected E2EDataSource activateService(final Map<String, Object> identity) throws IOException {
+            identity.put(WebConsoleService.NAME, E2EDataSource.NAME);
+            identity.put(WebConsoleService.URL_CONTEXT, E2EDataSource.URL_CONTEXT);
+            final ThreadPoolRepository repository = getDependencies().getDependency(ThreadPoolRepository.class);
+            assert repository != null;
+            return new E2EDataSource(getDependencies().getDependency(ConfigurationManager.class),
+                    getDependencies().getDependency(TopologyAnalyzer.class),
+                    repository.getThreadPool(THREAD_POOL_NAME, true));
+        }
+
+        @Override
+        protected void cleanupService(final E2EDataSource serviceInstance, final boolean stopBundle) throws Exception {
+            serviceInstance.close();
+        }
+    }
+
     private static final class ChartDataSourceProvider extends ProvidedService<WebConsoleService, ChartDataSource>{
         private ChartDataSourceProvider(){
-            super(WebConsoleService.class, (RequiredService<?>[]) simpleDependencies(ConfigurationManager.class, ThreadPoolRepository.class));
+            super(WebConsoleService.class, simpleDependencies(ConfigurationManager.class, ThreadPoolRepository.class));
         }
 
         @Override
@@ -123,7 +147,8 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
                 new LogNotifierProvider(),
                 new VersionResourceProvider(),
                 new ManagedResourceInformationServiceProvider(),
-                new ChartDataSourceProvider());
+                new ChartDataSourceProvider(),
+                new E2EDataSourceProvider());
     }
 
     @Override

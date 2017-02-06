@@ -33,7 +33,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final class ConfigurationServiceManager extends ProvidedService<ConfigurationManager, PersistentConfigurationManager>{
 
         private ConfigurationServiceManager() {
-            super(ConfigurationManager.class, (RequiredService<?>[]) simpleDependencies(ConfigurationAdmin.class));
+            super(ConfigurationManager.class, simpleDependencies(ConfigurationAdmin.class));
         }
 
         @SuppressWarnings("unchecked")
@@ -45,7 +45,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
 
     private static final class ClusterMemberProvider extends ProvidedService<ClusterMember, GridMember>{
         private ClusterMemberProvider(){
-            super(ClusterMember.class, (RequiredService<?>[]) simpleDependencies(HazelcastInstance.class));
+            super(ClusterMember.class, simpleDependencies(HazelcastInstance.class));
         }
 
         @SuppressWarnings("unchecked")

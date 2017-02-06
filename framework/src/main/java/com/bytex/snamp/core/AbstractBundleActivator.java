@@ -956,7 +956,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         return getBundleContextOfObject(this).getProperty(propertyName);
     }
 
-    protected static RequiredServiceAccessor<?>[] simpleDependencies(final Class<?>... deps){
+    protected static RequiredService<?>[] simpleDependencies(final Class<?>... deps){
         if(deps.length == 0) return ArrayUtils.emptyArray(RequiredServiceAccessor[].class);
         final RequiredServiceAccessor<?>[] result = new RequiredServiceAccessor<?>[deps.length];
         for(int i = 0; i < deps.length; i++)
