@@ -7,6 +7,8 @@ export abstract class E2EView {
     public name:string;
     public preferences:{ [key: string]: any } = { };
     public id:string = "e2eview" + GUID.newGuid();
+
+    public abstract toJSON():any;
 }
 
 class GUID {
