@@ -49,18 +49,14 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     //=============Predefined services for WebConsole======
     private static final class E2EDataSourceProvider extends ProvidedService<WebConsoleService, E2EDataSource>{
         private E2EDataSourceProvider(){
-            super(WebConsoleService.class, simpleDependencies(ConfigurationManager.class, ThreadPoolRepository.class, TopologyAnalyzer.class));
+            super(WebConsoleService.class, simpleDependencies(TopologyAnalyzer.class));
         }
 
         @Override
         protected E2EDataSource activateService(final Map<String, Object> identity) throws IOException {
             identity.put(WebConsoleService.NAME, E2EDataSource.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, E2EDataSource.URL_CONTEXT);
-            final ThreadPoolRepository repository = getDependencies().getDependency(ThreadPoolRepository.class);
-            assert repository != null;
-            return new E2EDataSource(getDependencies().getDependency(ConfigurationManager.class),
-                    getDependencies().getDependency(TopologyAnalyzer.class),
-                    repository.getThreadPool(THREAD_POOL_NAME, true));
+            return new E2EDataSource(getDependencies().getDependency(TopologyAnalyzer.class));
         }
 
         @Override

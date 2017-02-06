@@ -7,17 +7,26 @@ import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import com.bytex.snamp.web.serviceModel.WebMessage;
+import com.google.common.collect.Maps;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
 import javax.annotation.Nonnull;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 import static com.bytex.snamp.internal.Utils.parallelForEach;
 
@@ -28,117 +37,58 @@ import static com.bytex.snamp.internal.Utils.parallelForEach;
  */
 @Path("/")
 public final class E2EDataSource extends AbstractPrincipalBoundedService<Dashboard> {
-    private static final String TOPOLOGY_REFRESH_TIME_PARAM = "topologyRefreshTime";
     public static final String NAME = "E2E";
     public static final String URL_CONTEXT = "/e2e";
 
-    @JsonTypeName("E2EViewData")
-    public static final class ViewDataMessage extends WebMessage{
-        private static final long serialVersionUID = -3059792024115805370L;
-        private Object viewData;
+    private static final class ViewDataCollector extends HashMap<String, Object> implements Consumer<E2EView> {
+        private final TopologyAnalyzer analyzer;
 
-        private ViewDataMessage(final E2EDataSource service){
-            super(service);
-            viewData = new HashMap<>();
-        }
-
-        private void setViewData(final E2EView view, final TopologyAnalyzer analyzer){
-            viewData = view.build(analyzer);
-        }
-
-        @JsonProperty("dataForViews")
-        public Object getViewData(){
-            return viewData;
-        }
-    }
-
-    private static final class TopologyBuilder extends Repeater{
-        private final TopologyAnalyzer topologyAnalyzer;
-        private final WeakReference<E2EDataSource> serviceRef;
-
-        private TopologyBuilder(final E2EDataSource service, final Duration period, final TopologyAnalyzer analyzer) {
-            super(period);
-            topologyAnalyzer = Objects.requireNonNull(analyzer);
-            assert service != null;
-            serviceRef = new WeakReference<>(service);
-        }
-
-        private void buildViewData(final WebConsoleSession session, final E2EView view, final Thread actionThread) {
-            if (actionThread.isInterrupted()) return;
-            final E2EDataSource service = serviceRef.get();
-            if (service == null) return;
-            final ViewDataMessage message = new ViewDataMessage(service);
-            message.setViewData(view, topologyAnalyzer);
-            session.sendMessage(message);
-        }
-
-        private void doActionForSession(final WebConsoleSession session, final Thread actionThread) {
-            if (actionThread.isInterrupted()) return;
-            final E2EDataSource service = serviceRef.get();
-            if (service == null) return;
-            final Dashboard dashboard = service.getUserData(session);
-            //building graph for each view may be expensive. Therefore we build graph as separated task
-            parallelForEach(dashboard.getViews(), view -> buildViewData(session, view, actionThread), service.threadPool);
+        private ViewDataCollector(final TopologyAnalyzer graphAnalyzer, final int expectedSize) {
+            super((int) (expectedSize / 0.75F + 1.0F));
+            analyzer = graphAnalyzer;
         }
 
         @Override
-        protected String generateThreadName() {
-            return getClass().getSimpleName();
-        }
-
-        @Override
-        protected void doAction() {
-            final Thread actionThread = Thread.currentThread();
-            final E2EDataSource service = serviceRef.get();
-            if (service == null) return;
-            service.forEachSession(session -> doActionForSession(session, actionThread), service.threadPool);
+        public void accept(final E2EView view) {
+            final Object data = view.build(analyzer);
+            if (data != null)
+                put(view.getName(), data);
         }
     }
 
-    private final ExecutorService threadPool;
-    private TopologyBuilder topologyBuilder;
+    private final TopologyAnalyzer analyzer;
 
-    public E2EDataSource(final ConfigurationManager manager,
-                         final TopologyAnalyzer topologyAnalyzer,
-                         final ExecutorService threadPool) throws IOException {
+    public E2EDataSource(final TopologyAnalyzer topologyAnalyzer) throws IOException {
         super(Dashboard.class);
-        this.threadPool = Objects.requireNonNull(threadPool);
-        final Duration refreshTime = getTopologyRefreshTime(manager);
-        topologyBuilder = new TopologyBuilder(this, refreshTime, topologyAnalyzer);
+        analyzer = Objects.requireNonNull(topologyAnalyzer);
     }
 
-    private static Duration getTopologyRefreshTime(final ConfigurationManager manager) throws IOException {
-        return manager.transformConfiguration(config -> {
-            final long renewTime = MapUtils.getValue(config, TOPOLOGY_REFRESH_TIME_PARAM, Long::parseLong).orElse(900L);
-            return Duration.ofMillis(renewTime);
-        });
+    @Override
+    protected void initialize() {
+        //nothing to do
+    }
+
+    private Map<String, ?> collectViewData(final List<E2EView> views){
+        final ViewDataCollector collector = new ViewDataCollector(analyzer, views.size());
+        views.forEach(collector);
+        return collector;
     }
 
     /**
-     * Initializes this service.
-     * <p/>
-     * Services for SNAMP Web Console has lazy initialization. They will be initialized when the first session of the client
-     * will be attached. This approach helps to save computation resources when SNAMP deployed as cluster with many nodes.
+     * Collects E2E views.
+     * @param dashboard A dashboard with configured views.
+     * @return A map with view data.
      */
-    @Override
-    protected void initialize() {
-        topologyBuilder.run();
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, ?> collectViewData(final Dashboard dashboard) {
+        return collectViewData(dashboard.getViews());
     }
 
     @Nonnull
     @Override
     protected Dashboard createUserData() {
         return new Dashboard();
-    }
-
-    @Override
-    public void close() throws Exception {
-        super.close();
-        try {
-            topologyBuilder.close();
-        } finally {
-            topologyBuilder.serviceRef.clear();
-            topologyBuilder = null;
-        }
     }
 }
