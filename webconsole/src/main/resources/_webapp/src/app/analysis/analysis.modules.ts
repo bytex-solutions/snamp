@@ -10,6 +10,7 @@ import { ModalModule } from 'angular2-modal';
 import { VexModalModule } from 'angular2-modal/plugins/vex';
 import { CommonSnampUtilsModule } from '../app.module';
 
+import { TemplateView } from './analysis.template';
 import { AddView } from './analysis.add.view';
 import { MainView } from './analysis.view';
 
@@ -26,13 +27,14 @@ const PROVIDERS:any =  [
       VexModalModule,
       HttpModule,
       CommonSnampUtilsModule,
-      RouterModule.forChild([
-             { path: '', component: AddView },
-             { path: 'addView', component: AddView },
-             { path: 'view/:id', component: MainView }
-      ])
+      RouterModule.forChild([{
+            path: '', component: TemplateView, children: [
+                { path: '', component: AddView },
+                { path: ':id', component: MainView }
+            ]
+      }])
     ],
-    declarations: [ AddView, MainView ],
+    declarations: [ TemplateView, AddView, MainView ],
     providers:    PROVIDERS
 })
 export class AnalysisModule {}

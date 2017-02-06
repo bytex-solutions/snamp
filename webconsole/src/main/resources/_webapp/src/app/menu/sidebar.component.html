@@ -46,7 +46,7 @@
                   {{_view}}
                 </a>
               </li>
-              <li routerLinkActive="activeLi"><a routerLink="addView" routerLinkActive="active">+ Add view</a></li>
+              <li routerLinkActive="activeLi" [routerLinkActiveOptions]="{exact: true}"><a routerLink="view" [routerLinkActiveOptions]="{exact: true}" routerLinkActive="active">+ Add view</a></li>
             </ul>
           </li>
         </ul>
