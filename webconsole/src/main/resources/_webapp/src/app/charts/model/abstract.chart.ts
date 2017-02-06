@@ -81,41 +81,10 @@ export abstract class AbstractChart {
         return _value;
     }
 
-    protected hslFromData():string[] {
-        let _value:string[] = [];
-        let _dataValues:any[] = this.simplifyData();
-        for (let i = 0; i < _dataValues.length; i++) {
-            _value.push(AbstractChart.hslFromValue(i, _dataValues.length, 0.3)); ;
-        }
-        return _value;
-    }
-
-    protected borderColors():string[] {
-        let _value:string[] = []
-        for (let i = 0; i < this.chartData.length; i++) {
-            _value.push("#536980");
-        }
-        return _value;
-    }
-
-    protected hoverHslFromData():string[] {
-        let _value:string[] = [];
-        let _dataValues:any[] = this.simplifyData();
-        for (let i = 0; i < _dataValues.length; i++) {
-            _value.push(AbstractChart.hslFromValue(i, _dataValues.length, 0.75)); ;
-        }
-        return _value;
-    }
-
     public subscribeToSubject(_obs:Observable<ChartData>):void {
         _obs.subscribe((data:ChartData) => {
             this.newValue(data);
         });
-    }
-
-    public static hslFromValue(i:number, count:number, opacity:any):string {
-         let clr:any = 360 * i / count;
-         return 'hsla(' + clr + ', 100%, 50%, ' + opacity + ')';
     }
 }
 
