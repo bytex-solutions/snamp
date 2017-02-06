@@ -124,7 +124,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
@@ -199,16 +199,12 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         assertEquals(JsonUtils.toJsonArray(FIRST_RESOURCE_NAME, SECOND_RESOURCE_NAME, THIRD_RESOURCE_NAME), node);
     }
 
-    /**
-     * This test should pass as well as the following one. But it does not =(
-     * @throws IOException
-     */
     @Test
     public void listOfInstancesWithGroupNameTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         final JsonNode groupName = httpGet("/managedResources/components", authenticationToken);
-        assertEquals(JsonUtils.toJsonArray(GROUP_NAME), groupName);
-        final JsonNode node = httpGet(String.format("/managedResources/%s", groupName.get(0).asText()), authenticationToken);
+        assertEquals(JsonUtils.toJsonArray(SECOND_RESOURCE_NAME, THIRD_RESOURCE_NAME, GROUP_NAME), groupName);
+        final JsonNode node = httpGet(String.format("/managedResources?component=%s", GROUP_NAME), authenticationToken);
         assertNotNull(node);
         assertEquals(JsonUtils.toJsonArray(FIRST_RESOURCE_NAME), node);
     }
