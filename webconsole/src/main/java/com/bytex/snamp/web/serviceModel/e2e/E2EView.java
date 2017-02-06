@@ -15,9 +15,11 @@ import java.util.Map;
  * @version 2.0
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-@JsonSubTypes({@JsonSubTypes.Type(
-    LandscapeView.class
-)})
+@JsonSubTypes({
+        @JsonSubTypes.Type(LandscapeView.class),
+        @JsonSubTypes.Type(ChildComponentsView.class),
+        @JsonSubTypes.Type(ComponentModulesView.class)
+})
 public abstract class E2EView {
     private final Map<String, Object> preferences;
     private String name;

@@ -86,6 +86,8 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      */
     @Override
     public final synchronized boolean removeIf(final Predicate<? super L> filter) {
+        if(isEmpty())
+            return false;
         @SuppressWarnings("unchecked")
         final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length];
         boolean result = false;
@@ -100,6 +102,23 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
         }
         this.listeners = outputIndex == 0 ? emptyListeners() : Arrays.copyOf(newSnapshot, outputIndex);
         return result;
+    }
+
+    /**
+     * Remove dead references to the listeners.
+     * @return Number of survived listeners.
+     */
+    public final synchronized int sanitize() {
+        if (isEmpty())
+            return 0;
+        @SuppressWarnings("unchecked")
+        final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length];
+        int outputIndex = 0;
+        for (final WeakEventListener<L, E> listenerRef : listeners)
+            if (listenerRef.get() != null)
+                newSnapshot[outputIndex++] = listenerRef;
+        this.listeners = outputIndex == 0 ? emptyListeners() : Arrays.copyOf(newSnapshot, outputIndex);
+        return outputIndex;
     }
 
     /**
