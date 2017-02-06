@@ -1,8 +1,8 @@
 export abstract class E2EView {
 
-    public static CHILD_COMPONENT = "childComponents";
-    public static COMPONENT_MODULES = "componentModules";
-    public static COMPONENT_MODULES = "landscape";
+    public static CHILD_COMPONENT:string = "childComponents";
+    public static COMPONENT_MODULES:string = "componentModules";
+    public static LANDSCAPE:string = "landscape";
 
     public name:string;
     public preferences:{ [key: string]: any } = { };
