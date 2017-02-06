@@ -3,6 +3,7 @@ import 'style!css!less!font-awesome-webpack/font-awesome-styles.loader!font-awes
 import { LocalStorageService } from 'angular-2-local-storage';
 import { SnampLog, SnampLogService } from './app.logService';
 import { ChartService } from './app.chartService';
+import { ViewService } from './app.viewService';
 import { Title }  from '@angular/platform-browser';
 
 import { $WebSocket, WebSocketConfig } from 'angular2-websocket/angular2-websocket';
@@ -37,7 +38,8 @@ export class App {
               private modal: Modal,
               private _snampLogService: SnampLogService,
               private _router: Router,
-              private _chartService:ChartService) {
+              private _chartService:ChartService,
+              private _viewService:ViewService) {
        title.setTitle("SNAMP web console");
        overlay.defaultViewContainer = vcRef;
   }

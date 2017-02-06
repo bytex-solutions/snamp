@@ -147,7 +147,7 @@ export class REST {
     public static CHART_COMPONENTS:string = "/snamp/web/api/managedResources/components";
 
     public static CHART_INSTANCES(componentName:string):string {
-        return "/snamp/web/api/managedResources"; // should be uncommented further // + componentName;
+        return "/snamp/web/api/managedResources/" + componentName;
     }
 
     public static CHART_METRICS_BY_COMPONENT(componentName:string):string {
@@ -157,4 +157,7 @@ export class REST {
     public static CHART_METRICS_BY_INSTANCE(instanceName:string):string {
         return "/snamp/web/api/managedResources/" + instanceName + "/attributes";
     }
+
+    // web console api (view related and others)
+    public static VIEWS_DASHBOARD:string = "/snamp/web/api/e2e/settings";
 }

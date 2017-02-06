@@ -54,6 +54,7 @@ export class ChartService {
                         // append the existent chart data from LC to chart from the backend
                         if (_chartData != undefined && _chartData[_currentChart.name] != undefined) {
                             _currentChart.chartData = _chartData[_currentChart.name];
+                            // make the data consistent - remove all data in case its instance name is absent in chart
                         }
                         _currentChart.subscribeToSubject(this.chartSubjects[_currentChart.name]);
                         this._dashboard.charts.push(_currentChart);
