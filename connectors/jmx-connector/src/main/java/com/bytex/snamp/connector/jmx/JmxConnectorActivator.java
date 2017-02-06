@@ -5,7 +5,7 @@ import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import javax.management.MalformedObjectNameException;
-import java.net.MalformedURLException;
+import java.io.IOException;
 
 
 /**
@@ -28,8 +28,10 @@ public final class JmxConnectorActivator extends ManagedResourceActivator<JmxCon
 
     private static JmxConnector createConnector(final String resourceName,
                                                 final ManagedResourceInfo configuration,
-                                        final DependencyManager dependencies) throws MalformedURLException, MalformedObjectNameException {
-        return new JmxConnector(resourceName, configuration);
+                                        final DependencyManager dependencies) throws IOException, MalformedObjectNameException {
+        final JmxConnector connector = new JmxConnector(resourceName, configuration);
+        connector.init();
+        return connector;
     }
 
     private static JmxDiscoveryService newDiscoveryService(final DependencyManager dependencies){

@@ -61,13 +61,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         boolean equate(final V value1, final V value2);
     }
 
-    protected final String connectorType;
+    private final String connectorType;
+
     /**
      * Represents connection string.
      */
     protected final String connectionString;
     protected static final String TEST_RESOURCE_NAME = "test-target";
-    protected final Map<String, String> connectorParameters;
+    private final Map<String, String> connectorParameters;
 
     protected AbstractResourceConnectorTest(final String connectorType,
                                             final String connectionString){
@@ -82,13 +83,13 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         this.connectorParameters = parameters;
     }
 
-    private static void waitForConnector(final Duration timeout,
+    public static void waitForConnector(final Duration timeout,
                                   final String resourceName,
                                   final BundleContext context) throws TimeoutException, InterruptedException {
         SpinWait.spinUntilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, timeout);
     }
 
-    private static void waitForNoConnector(final Duration timeout,
+    public static void waitForNoConnector(final Duration timeout,
                                            final String resourceName,
                                            final BundleContext context) throws TimeoutException, InterruptedException {
         SpinWait.spinUntil(() -> ManagedResourceConnectorClient.getResourceConnector(context, resourceName) != null, timeout);
@@ -128,7 +129,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     }
 
-    public void stopResourceConnector(final TestName testName,
+    public final void stopResourceConnector(final TestName testName,
                                               final String connectorType,
                                              final String resourceName,
                                                final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
@@ -143,7 +144,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         stopResourceConnector(testName, connectorType, TEST_RESOURCE_NAME, context);
     }
 
-    public void startResourceConnector(final TestName testName,
+    public final void startResourceConnector(final TestName testName,
                                               final String connectorType,
                                               final String resourceName,
                                               final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
@@ -154,7 +155,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         }
     }
 
-    protected void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException, ExecutionException {
+    protected final void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException, ExecutionException {
         startResourceConnector(testName,
                 connectorType,
                 TEST_RESOURCE_NAME,
@@ -182,7 +183,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
      * @param config The configuration to modify.
      */
     @Override
-    protected void setupTestConfiguration(final AgentConfiguration config) {
+    protected final void setupTestConfiguration(final AgentConfiguration config) {
         final ManagedResourceConfiguration targetConfig =
                 config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME);
         targetConfig.putAll(connectorParameters);

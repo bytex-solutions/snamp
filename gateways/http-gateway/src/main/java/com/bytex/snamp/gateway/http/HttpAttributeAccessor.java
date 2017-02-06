@@ -6,9 +6,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.management.MBeanAttributeInfo;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
@@ -24,7 +23,8 @@ final class HttpAttributeAccessor extends AttributeAccessor implements HttpAcces
         super(attributeInfo);
         final String dateFormat = HttpGatewayConfigurationDescriptor.parseDateFormatParam(getMetadata().getDescriptor());
         formatter = new ObjectMapper();
-        formatter.setDateFormat(new SimpleDateFormat(dateFormat));
+        if (!isNullOrEmpty(dateFormat))
+            formatter.setDateFormat(new SimpleDateFormat(dateFormat));
         formatter.registerModule(new JsonUtils());
     }
 

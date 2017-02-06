@@ -167,13 +167,9 @@ final class JmxConnectionManager implements AutoCloseable {
         watchDog.run();
     }
 
-    boolean connect() {
-        try {
-            return connectionHolder.createConnection() != null;
-        } catch (final IOException e) {
-            watchDog.reportProblem(e);
-            return false;
-        }
+    void connect() throws IOException {
+        connectionHolder.createConnection();
+        assert connectionHolder.isInitialized();
     }
 
     <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws InterruptedException, JMException, IOException {

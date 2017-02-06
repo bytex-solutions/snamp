@@ -3,15 +3,18 @@ package com.bytex.snamp.testing.web;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.json.JsonUtils;
+import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
-import com.bytex.snamp.testing.connector.jmx.AbstractMultiBeanJmxConnectorTest;
+import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
+import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import com.google.common.collect.ImmutableMap;
 import org.codehaus.jackson.JsonNode;
@@ -27,14 +30,12 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
-import javax.management.AttributeChangeNotification;
-import javax.management.DynamicMBean;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
+import javax.management.*;
 import javax.ws.rs.core.HttpHeaders;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -44,10 +45,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -63,28 +62,35 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies({
-        SnampFeature.SNMP_GATEWAY,
+        SnampFeature.HTTP_GATEWAY,
         SnampFeature.GROOVY_GATEWAY,
         SnampFeature.NAGIOS_GATEWAY,
         SnampFeature.NRDP_GATEWAY,
         SnampFeature.SSH_GATEWAY,
         SnampFeature.STANDARD_TOOLS,
         SnampFeature.GROOVY_CONNECTOR,
-        SnampFeature.COMPOSITE_CONNECTOR
+        SnampFeature.COMPOSITE_CONNECTOR,
+        SnampFeature.JMX_CONNECTOR,
+        SnampFeature.HTTP_ACCEPTOR
 })
-public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
+public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     private static final ObjectMapper FORMATTER = new ObjectMapper();
+    private static final String TEST_RESOURCE_NAME = "myResource";
     private static final String GROUP_NAME = "myGroup";
     private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
-    private static final String ADAPTER_NAME = "snmp";
-    private static final String SNMP_PORT = "3222";
-    private static final String SNMP_HOST = "127.0.0.1";
+    private static final String JMX_CONNECTOR_TYPE = "jmx";
+    private static final String ADAPTER_NAME = "http";
     private static final String TEST_PARAMETER = "testParameter";
 
     private static final String FIRST_BEAN_NAME = BEAN_NAME + "_1";
+    private static final String FIRST_RESOURCE_NAME = TEST_RESOURCE_NAME + "_1";
+
     private static final String SECOND_BEAN_NAME = BEAN_NAME + "_2";
+    private static final String SECOND_RESOURCE_NAME = TEST_RESOURCE_NAME + "_2";
+
     private static final String THIRD_BEAN_NAME = BEAN_NAME + "_3";
+    private static final String THIRD_RESOURCE_NAME = TEST_RESOURCE_NAME + "_3";
 
     //must be public
     @WebSocket
@@ -100,31 +106,7 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
 
     private WebSocketClient client;
     private final TestAuthenticator authenticator;
-
-    private static Map<ObjectName, DynamicMBean> createBeans() throws MalformedObjectNameException {
-        return ImmutableMap.of(
-                new ObjectName(FIRST_BEAN_NAME), new TestOpenMBean(),
-                new ObjectName(SECOND_BEAN_NAME), new TestOpenMBean(),
-                new ObjectName(THIRD_BEAN_NAME), new TestOpenMBean()
-        );
-    }
-
-    private void simulateChanging() throws InterruptedException {
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException e) {
-                    fail("Something went wrong with thread for simulateChanging");
-                }
-                this.beanMap.values().forEach(dynamicMBean -> {
-                    ((TestOpenMBean)dynamicMBean).setInt32(new Random().nextInt(100));
-                    ((TestOpenMBean)dynamicMBean).setBigInt(BigInteger.valueOf(10 + new Random().nextInt(100)));
-                    // append new int for third attribute changer pls
-                });
-            }
-        }).start();
-    }
+    private final Map<ObjectName, TestOpenMBean> beanMap;
 
     /**
      * Instantiates a new Web console test.
@@ -132,7 +114,11 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
      * @throws MalformedObjectNameException the malformed object name exception
      */
     public WebConsoleTest() throws MalformedObjectNameException {
-        super(createBeans());
+        beanMap = ImmutableMap.of(
+                new ObjectName(FIRST_BEAN_NAME), new TestOpenMBean(),
+                new ObjectName(SECOND_BEAN_NAME), new TestOpenMBean(),
+                new ObjectName(THIRD_BEAN_NAME), new TestOpenMBean()
+        );
         authenticator = new TestAuthenticator();
     }
 
@@ -156,23 +142,22 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
         }
     }
 
-
-        private static void httpPut(final String servicePostfix, final String authenticationToken, final JsonNode data) throws IOException {
-            final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
-            //write attribute
-            HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
-            connection.setRequestMethod("PUT");
-            connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, "application/json");
-            connection.setRequestProperty(HttpHeaders.AUTHORIZATION, authenticationToken);
-            connection.setDoOutput(true);
-            IOUtils.writeString(FORMATTER.writeValueAsString(data), connection.getOutputStream(), Charset.defaultCharset());
-            connection.connect();
-            try {
-                assertEquals(204, connection.getResponseCode());
-            } finally {
-                connection.disconnect();
-            }
+    private static void httpPut(final String servicePostfix, final String authenticationToken, final JsonNode data) throws IOException {
+        final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
+        //write attribute
+        HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, "application/json");
+        connection.setRequestProperty(HttpHeaders.AUTHORIZATION, authenticationToken);
+        connection.setDoOutput(true);
+        IOUtils.writeString(FORMATTER.writeValueAsString(data), connection.getOutputStream(), Charset.defaultCharset());
+        connection.connect();
+        try {
+            assertEquals(204, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
         }
+    }
 
     private static JsonNode httpGet(final String servicePostfix, final String authenticationToken) throws IOException{
         final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
@@ -211,7 +196,7 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         final JsonNode node = httpGet("/managedResources", authenticationToken);
         assertNotNull(node);
-        assertEquals(JsonUtils.toJsonArray(TEST_RESOURCE_NAME), node);
+        assertEquals(JsonUtils.toJsonArray(FIRST_RESOURCE_NAME, SECOND_RESOURCE_NAME, THIRD_RESOURCE_NAME), node);
     }
 
     /**
@@ -225,13 +210,13 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
         assertEquals(JsonUtils.toJsonArray(GROUP_NAME), groupName);
         final JsonNode node = httpGet(String.format("/managedResources/%s", groupName.get(0).asText()), authenticationToken);
         assertNotNull(node);
-        assertEquals(JsonUtils.toJsonArray(TEST_RESOURCE_NAME), node);
+        assertEquals(JsonUtils.toJsonArray(FIRST_RESOURCE_NAME), node);
     }
 
     @Test
     public void listOfAttributesTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = httpGet("/managedResources/" + TEST_RESOURCE_NAME + "/attributes", authenticationToken);
+        final JsonNode node = httpGet("/managedResources/" + FIRST_RESOURCE_NAME + "/attributes", authenticationToken);
         assertTrue(node instanceof ArrayNode);
         assertTrue("Unexpected JSON " + node, node.size() > 0);
         for(int i = 0; i < node.size(); i++){
@@ -283,7 +268,7 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
                 "      }\n" +
                 "    }\n" +
                 "  } ]\n" +
-                "}", TEST_RESOURCE_NAME, GROUP_NAME, "3.0", GROUP_NAME, "3.0");
+                "}", FIRST_RESOURCE_NAME, GROUP_NAME, "3.0", GROUP_NAME, "3.0");
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         httpPut("/charts/settings", authenticationToken, FORMATTER.readTree(dashboardDefinition));
         runWebSocketTest(new EventReceiver(), authenticationToken, events -> {
@@ -391,9 +376,14 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
      */
     @Test
     public void dummyTest() throws InterruptedException {
-        simulateChanging();
+        final Random rnd = new Random(248284792L);
         while (true) {
-            Thread.sleep(3000);
+            beanMap.values().forEach(bean -> {
+                bean.setInt32(rnd.nextInt(100));
+                bean.setBigInt(BigInteger.valueOf(10 + rnd.nextInt(100)));
+                // append new int for third attribute changer pls
+            });
+            Thread.sleep(500L);
         }
     }
 
@@ -410,7 +400,18 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
 
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
-        super.beforeStartTest(context);
+        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        beanMap.entrySet().forEach(entry -> {
+            try {
+                if(mbs.isRegistered(entry.getKey())) {
+                    mbs.unregisterMBean(entry.getKey());
+                } else {
+                    mbs.registerMBean(entry.getValue(), entry.getKey());
+                }
+            } catch (final JMException e) {
+                fail(e.getMessage());
+            }
+        });
         client = new WebSocketClient();
         client.setConnectTimeout(4000);
         client.setDaemon(true);
@@ -418,9 +419,23 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
         beforeCleanupTest(context);
     }
 
+    private void startConnectors(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        ManagedResourceActivator.enableConnector(context, JMX_CONNECTOR_TYPE);
+        AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), FIRST_RESOURCE_NAME, context);
+        AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), SECOND_RESOURCE_NAME, context);
+        AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), THIRD_RESOURCE_NAME, context);
+    }
+
+    private void stopConnectors(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        ManagedResourceActivator.disableConnector(context, JMX_CONNECTOR_TYPE);
+        AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), THIRD_RESOURCE_NAME, context);
+        AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), SECOND_RESOURCE_NAME, context);
+        AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), FIRST_RESOURCE_NAME, context);
+    }
+
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        startResourceConnector(context);
+        startConnectors(context);
         syncWithGatewayStartedEvent(ADAPTER_NAME, () -> {
             GatewayActivator.enableGateway(context, ADAPTER_NAME);
             return null;
@@ -430,58 +445,34 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
         GatewayActivator.disableGateway(context, ADAPTER_NAME);
-        stopResourceConnector(context);
+        stopConnectors(context);
     }
 
     @Override
     protected void afterCleanupTest(final BundleContext context) throws Exception {
-        super.afterCleanupTest(context);
+        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        beanMap.keySet().forEach(beanName -> {
+            try {
+                mbs.unregisterMBean(beanName);
+            } catch (final InstanceNotFoundException | MBeanRegistrationException e) {
+                fail(e.getMessage());
+            }
+        });
         client.stop();
         client = null;
     }
 
-    @Override
-    protected String getGroupName() {
-        return GROUP_NAME;
-    }
-
-    @Override
-    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
-        final GatewayConfiguration snmpAdapter = gateways.getOrAdd(ADAPTER_INSTANCE_NAME);
-        snmpAdapter.setType(ADAPTER_NAME);
-        snmpAdapter.put("port", SNMP_PORT);
-        snmpAdapter.put("host", SNMP_HOST);
-        snmpAdapter.put(TEST_PARAMETER, "parameter");
-        snmpAdapter.put("socketTimeout", "5000");
-        snmpAdapter.put("context", "1.1");
+    private void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        GatewayConfiguration adapter = gateways.getOrAdd(ADAPTER_INSTANCE_NAME);
+        adapter.setType(ADAPTER_NAME);
+        adapter.put(TEST_PARAMETER, "parameter");
+        adapter.put("socketTimeout", "5000");
 
         // second instance of gateways for better console default content (dummyTest support)
-        final GatewayConfiguration snmpAdapterDummy = gateways.getOrAdd("new_snmp_adapter");
-        snmpAdapterDummy.setType(ADAPTER_NAME);
-        snmpAdapterDummy.put("port", "3232");
-        snmpAdapterDummy.put("host", SNMP_HOST);
-        snmpAdapterDummy.put(TEST_PARAMETER, "parameter");
-        snmpAdapterDummy.put("socketTimeout", "5000");
-        snmpAdapterDummy.put("context", "1.2");
-        snmpAdapter.put("port", SNMP_PORT);
-        snmpAdapter.put("host", SNMP_HOST);
-        snmpAdapter.put(TEST_PARAMETER, "parameter");
-        snmpAdapter.put("socketTimeout", "5000");
-        snmpAdapter.put("context", "1.1");
-    }
-
-    @Override
-    protected final void startResourceConnector(final BundleContext context) {
-        Arrays.stream(new int[] {1,2,3}).forEach(i -> {
-            try {
-                startResourceConnector(testName,
-                        connectorType,
-                        TEST_RESOURCE_NAME + "_" + String.valueOf(i),
-                        context);
-            } catch (final TimeoutException | InterruptedException | BundleException | ExecutionException e) {
-                fail(e.getMessage());
-            }
-        });
+        adapter = gateways.getOrAdd("new_http_adapter");
+        adapter.setType(ADAPTER_NAME);
+        adapter.put(TEST_PARAMETER, "parameter");
+        adapter.put("socketTimeout", "5000");
     }
 
     /**
@@ -490,98 +481,87 @@ public final class WebConsoleTest extends AbstractMultiBeanJmxConnectorTest {
      * @param config The configuration to modify.
      */
     @Override
-    protected final void setupTestConfiguration(final AgentConfiguration config) {
-        Arrays.stream(new int[] {1,2,3}).forEach(i -> {
-            final ManagedResourceConfiguration targetConfig =
-                    config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME + "_" + String.valueOf(i));
-            targetConfig.putAll(connectorParameters);
-            targetConfig.setConnectionString(connectionString);
-            targetConfig.setType(connectorType);
-            targetConfig.setGroupName(getGroupName());
-            fillAttributesForBean(BEAN_NAME + "_" + String.valueOf(i), i, targetConfig.getFeatures(AttributeConfiguration.class));
-            fillEventsForBean(BEAN_NAME + "_" + String.valueOf(i), targetConfig.getFeatures(EventConfiguration.class));
-            fillOperationsForBean(BEAN_NAME + "_" + String.valueOf(i), targetConfig.getFeatures(OperationConfiguration.class));
-        });
+    protected void setupTestConfiguration(final AgentConfiguration config) {
+        fillManagedResources(config.getEntities(ManagedResourceConfiguration.class));
         fillGateways(config.getEntities(GatewayConfiguration.class));
     }
 
-    private void fillAttributesForBean(final String beanName, final int prefix, final EntityMap<? extends AttributeConfiguration> attributes) {
-        final String strPrefix = String.valueOf(prefix);
+    private void fillManagedResources(final EntityMap<? extends ManagedResourceConfiguration> resources){
+        ManagedResourceConfiguration resource = resources.getOrAdd(FIRST_RESOURCE_NAME);
+        resource.put("objectName", FIRST_BEAN_NAME);
+        resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
+        resource.setGroupName(GROUP_NAME);
+        resource.setType(JMX_CONNECTOR_TYPE);
+        resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
+        resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
+        fillJmxAttributes(resource.getFeatures(AttributeConfiguration.class));
+        fillJmxEvents(resource.getFeatures(EventConfiguration.class));
+
+        resource = resources.getOrAdd(SECOND_RESOURCE_NAME);
+        resource.put("objectName", SECOND_BEAN_NAME);
+        resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
+        resource.setType(JMX_CONNECTOR_TYPE);
+        resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
+        resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
+        fillJmxAttributes(resource.getFeatures(AttributeConfiguration.class));
+        fillJmxEvents(resource.getFeatures(EventConfiguration.class));
+
+        resource = resources.getOrAdd(THIRD_RESOURCE_NAME);
+        resource.put("objectName", THIRD_BEAN_NAME);
+        resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
+        resource.setType(JMX_CONNECTOR_TYPE);
+        resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
+        resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
+        fillJmxAttributes(resource.getFeatures(AttributeConfiguration.class));
+        fillJmxEvents(resource.getFeatures(EventConfiguration.class));
+    }
+
+    private void fillJmxAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAlternativeName("string");
 
-        attribute.put("objectName", beanName);
-        attribute.put("oid", strPrefix + "1.1.0");
-
         attribute = attributes.getOrAdd("2.0");
         attribute.setAlternativeName("boolean");
-        attribute.put("objectName", beanName);
-        attribute.put("oid", strPrefix + "1.2.0");
 
         attribute = attributes.getOrAdd("3.0");
         attribute.setAlternativeName("int32");
-        attribute.put("objectName", beanName);
-        attribute.put("oid", strPrefix + "1.3.0");
 
         attribute = attributes.getOrAdd("4.0");
         attribute.setAlternativeName("bigint");
-        attribute.put("objectName", beanName);
-        attribute.put("oid", strPrefix + "1.4.0");
 
         attribute = attributes.getOrAdd("5.1");
         attribute.setAlternativeName("array");
-        attribute.put("objectName", beanName);
-        attribute.put("oid", strPrefix + "1.5.1");
 
         attribute = attributes.getOrAdd("6.1");
         attribute.setAlternativeName("dictionary");
-        attribute.put("objectName", beanName);
-        attribute.put("oid", strPrefix + "1.6.1");
 
         attribute = attributes.getOrAdd("7.1");
         attribute.setAlternativeName("table");
-        attribute.put("objectName", beanName);
-        attribute.put("oid", strPrefix + "1.7.1");
 
         attribute = attributes.getOrAdd("8.0");
         attribute.setAlternativeName("float");
-        attribute.put("objectName", beanName);
-        attribute.put("oid", strPrefix + "1.8.0");
 
         attribute = attributes.getOrAdd("9.0");
         attribute.setAlternativeName("date");
-        attribute.put("objectName", beanName);
         attribute.put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        attribute.put("oid", strPrefix + "1.9.0");
 
         attribute = attributes.getOrAdd("10.0");
         attribute.setAlternativeName("date");
-        attribute.put("objectName", beanName);
         attribute.put("displayFormat", "rfc1903-human-readable");
-        attribute.put("oid", strPrefix + "1.10.0");
 
         attribute = attributes.getOrAdd("11.0");
         attribute.setAlternativeName("date");
-        attribute.put("objectName", beanName);
         attribute.put("displayFormat", "rfc1903");
-        attribute.put("oid", strPrefix + "1.11.0");
     }
 
-    private void fillEventsForBean(final String beanName, final EntityMap<? extends EventConfiguration> events) {
+    private void fillJmxEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.put("severity", "notice");
-        event.put("objectName", beanName);
 
         event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.testnotif");
         event.put("severity", "panic");
-        event.put("objectName", beanName);
 
         event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.plainnotif");
         event.put("severity", "notice");
-        event.put("objectName", beanName);
-    }
-
-    private void fillOperationsForBean(final String beanName, final EntityMap<? extends OperationConfiguration> events) {
-        // not ready yet
     }
 }

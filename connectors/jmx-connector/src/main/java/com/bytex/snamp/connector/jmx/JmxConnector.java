@@ -681,8 +681,6 @@ final class JmxConnector extends AbstractManagedResourceConnector {
     private JmxConnector(final String resourceName,
                  final JmxConnectionOptions connectionOptions) {
         this.connectionManager = connectionOptions.createConnectionManager(getLogger());
-        //attempts to establish connection immediately
-        connectionManager.connect();
         //SmartMode can be enabled if
         final boolean smartMode;
         if(connectionOptions.isSmartModeEnabled()){
@@ -707,6 +705,10 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                  final ManagedResourceInfo configuration) throws MalformedURLException, MalformedObjectNameException {
         this(resourceName, new JmxConnectionOptions(configuration.getConnectionString(), configuration));
         setConfiguration(configuration);
+    }
+
+    void init() throws IOException {
+        connectionManager.connect();
     }
 
     private Logger getLogger(){

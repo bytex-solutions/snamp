@@ -21,7 +21,7 @@ import java.lang.management.PlatformManagedObject;
 @SnampDependencies(SnampFeature.JMX_CONNECTOR)
 public abstract class AbstractJmxConnectorTest<MBean> extends AbstractResourceConnectorTest {
     private final ObjectName beanName;
-    protected final MBean beanInstance;
+    private final MBean beanInstance;
     protected static final String CONNECTOR_NAME = "jmx";
     public static final String JMX_LOGIN = "karaf";
     public static final String JMX_PASSWORD = "karaf";
