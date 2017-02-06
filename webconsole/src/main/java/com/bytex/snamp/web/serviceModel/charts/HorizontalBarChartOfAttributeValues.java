@@ -17,7 +17,7 @@ import java.util.Optional;
 public final class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<AttributeValueAxis, InstanceNameAxis> {
     public static final class ChartData extends AttributeChartData {
         private ChartData(final String instanceName, final Attribute attribute) {
-            super(instanceName, attribute, PanelOfAttributeValues.class);
+            super(instanceName, attribute, HorizontalBarChartOfAttributeValues.class);
         }
     }
 

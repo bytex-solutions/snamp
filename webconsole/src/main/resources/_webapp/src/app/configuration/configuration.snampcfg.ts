@@ -7,8 +7,6 @@ import { SnampLog, SnampLogService } from '../app.logService';
 import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
 
-import { Ng2SmartTableModule, LocalDataSource } from 'ng2-smart-table';
-
 @Component({
   moduleId: module.id,
   templateUrl: './templates/snampcfg.html',
@@ -19,37 +17,6 @@ export class SnampCfgComponent implements OnInit {
   private http:ApiClient;
   public selectedComponent:SnampComponent;
   public components:SnampComponent[] = [];
-  source: LocalDataSource;
-
-  public rows = [];
-
-  public settings = {
-     columns: {
-       level: {
-         title: 'Level'
-       },
-       message: {
-         title: 'Message'
-       },
-       localTime: {
-         title: 'Timestamp',
-         filter: false,
-         sortDirection: 'desc '
-       },
-       shortDetailsHtml: {
-          title: 'Details',
-          type: 'html'
-       }
-     },
-     actions: {
-        add: false,
-        edit: false,
-        delete: false
-     },
-     pager: {
-        perPage: 8
-     }
-  };
 
   constructor(apiClient: ApiClient,
               overlay: Overlay,
@@ -71,21 +38,6 @@ export class SnampCfgComponent implements OnInit {
               this.selectedComponent = this.components[0];
             }
         });
-
-        this.source = new LocalDataSource(this._snampLogService.getAllLogsJSON());
-        this._snampLogService.getLogObs()
-             .subscribe((newLog:SnampLog) => {
-                  this.source.add(newLog);
-                  this.source.refresh();
-           });
-   }
-
-   clearAllLogs() {
-      $('#overlay').fadeIn();
-      this._snampLogService.clear();
-      this.source.empty();
-      this.source.refresh();
-      $('#overlay').fadeOut();
    }
 
    selectComponent(selected:SnampComponent) {

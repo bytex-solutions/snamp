@@ -4,22 +4,16 @@ import { ApiClient }     from '../app.restClient';
 import { TooltipModule } from 'ng2-tooltip';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
-import { UiSwitchComponent } from '../ui-switch.component';
 import { PanelComponent } from '../panel.component';
-import { CookieService } from 'angular2-cookie/core';
 import { Routes, RouterModule } from '@angular/router';
 import { ModalModule } from 'angular2-modal';
 import { VexModalModule } from 'angular2-modal/plugins/vex';
-
-import { DragulaModule } from 'ng2-dragula';
-
+import { NgGridModule } from '../controls/nggrid/modules/NgGrid.module';
 import { Dashboard } from './charts.dashboard';
-
 import { CommonSnampUtilsModule } from '../app.module';
 
 const PROVIDERS:any =  [
-  ApiClient,
-  CookieService
+  ApiClient
 ];
 
 @NgModule({
@@ -27,11 +21,11 @@ const PROVIDERS:any =  [
       CommonModule,
       TooltipModule,
       FormsModule,
-      DragulaModule,
       ModalModule.forRoot(),
       VexModalModule,
       HttpModule,
       CommonSnampUtilsModule,
+      NgGridModule,
       RouterModule.forChild([{ path: '', component: Dashboard }])
     ],
     declarations: [ Dashboard ],

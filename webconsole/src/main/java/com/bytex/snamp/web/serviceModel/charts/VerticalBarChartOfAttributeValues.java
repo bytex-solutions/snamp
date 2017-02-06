@@ -16,7 +16,7 @@ import java.util.Optional;
 public final class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<InstanceNameAxis, AttributeValueAxis> {
     public static final class ChartData extends AttributeChartData {
         private ChartData(final String instanceName, final Attribute attribute) {
-            super(instanceName, attribute, PanelOfAttributeValues.class);
+            super(instanceName, attribute, VerticalBarChartOfAttributeValues.class);
         }
     }
 

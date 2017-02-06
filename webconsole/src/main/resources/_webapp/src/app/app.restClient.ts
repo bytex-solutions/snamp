@@ -4,6 +4,7 @@ import { CookieService } from 'angular2-cookie/core';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/throw';
+import 'rxjs/add/observable/empty';
 import 'rxjs/add/operator/catch';
 
 @Injectable()
@@ -26,7 +27,7 @@ constructor(private http: Http, private _cookieService:CookieService) {}
             console.log("Auth is not working.", error);
             window.location.href = "login.html?tokenExpired=true";
       } else {
-         return Observable.throw(error);
+         return Observable.empty();
       }
     }
 
@@ -36,6 +37,11 @@ constructor(private http: Http, private _cookieService:CookieService) {}
     }).catch(this.handleError)
   }
 
+  getIgnoreErrors(url) {
+    return this.http.get(url, {
+      headers: this.createAuthorizationHeader()
+    });
+  }
   put(url, data) {
     return this.http.put(url, data, {
       headers: this.createAuthorizationHeader()
@@ -133,5 +139,22 @@ export class REST {
 
     public static RESOURCE_SUBENTITY(resourceName:string, entityType:string):string {
         return REST.ROOT_PATH + "/resource/" + resourceName + "/" + entityType + "/configuration";
+    }
+
+    // web console api (chart related and others)
+    public static CHART_DASHBOARD:string = "/snamp/web/api/charts/settings";
+
+    public static CHART_COMPONENTS:string = "/snamp/web/api/managedResources/components";
+
+    public static CHART_INSTANCES(componentName:string):string {
+        return "/snamp/web/api/managedResources"; // should be uncommented further // + componentName;
+    }
+
+    public static CHART_METRICS_BY_COMPONENT(componentName:string):string {
+        return "/snamp/web/api/managedResources/components/" + componentName + "/attributes";
+    }
+
+    public static CHART_METRICS_BY_INSTANCE(instanceName:string):string {
+        return "/snamp/web/api/managedResources/" + instanceName + "/attributes";
     }
 }

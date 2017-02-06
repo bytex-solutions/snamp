@@ -1,3 +1,160 @@
+<!-- Modal for entity appending -->
+<div class="modal fade" id="addChartModal" role="dialog" aria-labelledby="addChartLabel">
+  <div class="modal-dialog modal-xlg modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title leftAlign" id="addChartLabel">Visualization wizard</h4>
+      </div>
+      <br/>
+      <div class="modal-body">
+        <div id="smartwizardForChart" style="height: 95%">
+          <ul>
+            <li>
+              <a [attr.href]="'#component'">
+                Component<br />
+                <small>Select component</small>
+              </a>
+            </li>
+            <li>
+              <a [attr.href]="'#instances'">
+                Instances<br />
+                <small>Mark instances</small>
+              </a>
+            </li>
+            <li>
+              <a [attr.href]="'#metric'">
+                Metric<br />
+                <small>Choose metric</small>
+              </a>
+            </li>
+            <li>
+              <a [attr.href]="'#save'">
+                Save<br />
+                <small>Add to dashboard</small>
+              </a>
+            </li>
+          </ul>
+
+          <div style="height:100%">
+            <div id="component" class="row" style="margin-top: 100px;">
+              <div class="item form-group">
+                <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="componentSelect"
+                        style="margin-top: 7px;">
+                  Component <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <select class="form-control" [(ngModel)]="selectedComponent" (ngModelChange)="onComponentSelect($event)" id="componentSelect">
+                    <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="instances" class="row" style="margin-top: 100px;">
+              <div class="col-md-12 col-sm-12 col-xs-12 text-center" *ngIf="(instances | async) == undefined">
+                <strong>No instances are found - cannot proceed</strong>
+              </div>
+
+              <div class="item form-group" *ngIf="instances | async">
+                <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="instancesSelect"
+                        style="margin-top: 7px;">
+                  Instances <span class="required">*</span>
+                </label>
+
+                <div class="col-md-6 col-sm-6 col-xs-12" >
+                  Select all
+                  <ui-switch
+                          [(ngModel)]="selectedAllInstances"
+                          (change)="triggerShowInstances($event)"
+                          [size]="'small'">
+                  </ui-switch>
+                  <br/>
+                  <select class="select2_multiple form-control" id="instancesSelect" style="display: none;" multiple="multiple">
+                    <option *ngFor="let instance of instances | async">{{instance}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="metric" class="row" style="margin-top: 10px;">
+              <div class="bs-example" data-example-id="simple-jumbotron" *ngIf="selectedMetric != undefined">
+                <div class="jumbotron">
+                  <p>
+                    <strong>Name: </strong>{{selectedMetric.name}}
+                  </p>
+                  <p *ngIf="selectedMetric.type != undefined && selectedMetric.type.length > 0">
+                    <strong>Type: </strong>{{selectedMetric.type}}
+                  </p>
+                  <p *ngIf="selectedMetric.unitOfMeasurement != undefined && selectedMetric.unitOfMeasurement.length > 0">
+                    <strong>Unit of measurement: </strong>{{selectedMetric.unitOfMeasurement}}
+                  </p>
+                  <p *ngIf="selectedMetric.description != undefined && selectedMetric.description.length > 0">
+                    <strong>Description: </strong>{{selectedMetric.description}}
+                  </p>
+                </div>
+              </div>
+              <div class="item form-group">
+                <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="metricSelect"
+                        style="margin-top: 7px;">
+                  Select metric <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <select class="form-control" [(ngModel)]="selectedMetric" id="metricSelect">
+                    <option [tooltip]="metric.type" *ngFor="let metric of metrics | async" [ngValue]="metric">{{metric.name}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="save" style="margin-top: 100px;">
+
+              <div class="row" [tooltip]="'Click chart name to input new value'">
+                <div class="item form-group col-md-offset-4">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          style="margin-top: 7px;">
+                    Chart name <span class="required">*</span>
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <inline-edit [(ngModel)]="chartName"
+                                 [ngModelOptions]="{standalone: true}">
+                    </inline-edit>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top: 15px">
+                <button
+                        type="button"
+                        class="btn btn-primary col-md-4 col-md-offset-4"
+                        (click)="addChartToDashboard()">
+                  Append to dashboard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<ul id="chartMenu">
+  <li [tooltip]="'Pie chart'" (click)="appendChartClicked('doughnut')"><i class="fa fa-pie-chart" aria-hidden="true"></i></li>
+  <li [tooltip]="'Horizontal bar chart'" (click)="appendChartClicked('horizontalBar')"><i class="fa fa-align-left " aria-hidden="true"></i></li>
+  <li [tooltip]="'Vertical bar chart'" (click)="appendChartClicked('bar')"><i class="fa fa-bar-chart" aria-hidden="true"></i></li>
+  <li [tooltip]="'Simple line chart'" (click)="appendChartClicked('line')"><i class="fa fa-line-chart" aria-hidden="true"></i></li>
+  <li [tooltip]="'Panel with values'" (click)="appendChartClicked('panel')"><i class="fa fa-columns" aria-hidden="true"></i></li>
+</ul>
+
 <div class="right_col" role="main" style="min-height: 949px;">
   <div class="">
     <div class="page-title">
@@ -10,47 +167,23 @@
 
     <div class="row" style="margin-top: 30px">
 
-      <panel [header]="'Charts'" [column]="'10'">
-        <div class='wrapper'>
-          <div class='container row' [dragula]='"first-bag"' style="min-height: 400px;">
+      <div class='container col-md-12' [ngGrid]="gridConfig"  style="min-height: 900px;">
 
-          </div>
-        </div>
-      </panel>
-
-      <panel [header]="'Instruments'" [column]="'2'">
-        <div class='wrapper'>
-          <div class='container' [dragula]='"first-bag"'>
-
-            <div class="thumbnail with-caption" data-chart-type="doughnut">
-              <img src="/snamp/assets/img/piechart.png" width="320">
-              <p>Pie chart</p>
+          <div *ngFor="let chart of _charts; let i = index" [(ngGridItem)]="chart.preferences['gridcfg']" (onChangeStop)="onChangeStop(i, $event)">
+            <div class="handle">
+              {{chart.name}}
+              <div class="box-header-btns pull-right">
+                <a title="Remove widget" (click)="removeWidget(i);">
+                  <i class="glyphicon glyphicon-trash"></i>
+                </a>
+              </div>
             </div>
-
-            <div class="thumbnail with-caption" data-chart-type="horizontalBar">
-              <img src="/snamp/assets/img/hbarchart.png" width="320">
-              <p>Horizontal bar chart</p>
-            </div>
-
-            <div class="thumbnail with-caption" data-chart-type="bar">
-              <img src="/snamp/assets/img/vbarchart.png" width="320">
-              <p>Vertical bar chart</p>
-            </div>
-
-            <div class="thumbnail with-caption" data-chart-type="line">
-              <img src="/snamp/assets/img/linechart.png" width="320">
-              <p>Line chart</p>
-            </div>
-
-
-            <div class="thumbnail with-caption" data-chart-type="value" style="display: none;">
-              <img src="/snamp/assets/img/justvalue.png" width="320">
-              <p>Value representation</p>
+            <div id="wrapper" style="position: relative; width: 100%; height: calc(100% - 60px);">
+              <svg [attr.id]="chart.id"></svg>
             </div>
           </div>
-        </div>
-      </panel>
 
+      </div>
     </div>
   </div>
 </div>

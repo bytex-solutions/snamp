@@ -1,4 +1,8 @@
 import { Component } from '@angular/core';
+import { ApiClient } from '../app.restClient';
+import { Observable } from 'rxjs/Observable';
+
+import 'rxjs/add/observable/of';
 
 @Component({
   selector: 'side-bar',
@@ -7,7 +11,13 @@ import { Component } from '@angular/core';
 })
 
 export class Sidebar {
-    constructor() {}
+    constructor(private http:ApiClient) {}
+
+    private views:Observable<Array<string>>;
+
+    ngOnInit() {
+        this.views = Observable.of(new Array<string>()).map((data) => { return ["View_1", "View_2", "View_3"]});
+    }
 
     anchorClicked(event: MouseEvent) {
         var _thisReference = this;

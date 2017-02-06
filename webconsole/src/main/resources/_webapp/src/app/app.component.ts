@@ -2,6 +2,7 @@ import { Component, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import 'style!css!less!font-awesome-webpack/font-awesome-styles.loader!font-awesome-webpack/font-awesome.config.js';
 import { LocalStorageService } from 'angular-2-local-storage';
 import { SnampLog, SnampLogService } from './app.logService';
+import { ChartService } from './app.chartService';
 import { Title }  from '@angular/platform-browser';
 
 import { $WebSocket, WebSocketConfig } from 'angular2-websocket/angular2-websocket';
@@ -35,7 +36,8 @@ export class App {
               vcRef: ViewContainerRef,
               private modal: Modal,
               private _snampLogService: SnampLogService,
-              private _router: Router) {
+              private _router: Router,
+              private _chartService:ChartService) {
        title.setTitle("SNAMP web console");
        overlay.defaultViewContainer = vcRef;
   }
@@ -47,6 +49,7 @@ export class App {
   ngAfterViewInit() {
 
     $(document).ready(function(){
+        // open the current active element on the left side panel
         setTimeout(function() {
           $('li.activeLi').parents('li').addClass('active');
           $('li.activeLi').parents("ul").slideDown("slow");
@@ -58,10 +61,18 @@ export class App {
 
     this.ws.getDataStream()
         .map((msg) => JSON.parse(msg.data))
+        .filter((msg) => (msg['@messageType'] == 'chartData'))
+        .subscribe((msg) => {
+            if (!$.isEmptyObject(msg["dataForCharts"])) {
+                this._chartService.pushNewChartData(msg.dataForCharts);
+            }
+        });
+
+    this.ws.getDataStream()
+        .map((msg) => JSON.parse(msg.data))
         .filter((msg) => msg['@messageType'] == 'log')
         .subscribe(
           (msg)=> {
-              console.log(msg);
               let _log:SnampLog = SnampLog.makeFromJson(msg);
               this._snampLogService.pushLog(_log);
 

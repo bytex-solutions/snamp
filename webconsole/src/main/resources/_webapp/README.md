@@ -29,6 +29,7 @@ git clone --depth 1 https://github.com/kmkatsma/angular2-webpack-starter-gentele
 cd angular2-webpack-starter-gentelella
 
 # install the repo with npm
+install python 2.7.5
 npm install
 
 # install typings with typings

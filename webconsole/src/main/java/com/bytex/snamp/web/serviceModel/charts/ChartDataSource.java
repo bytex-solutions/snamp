@@ -123,7 +123,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
 
     private static Duration getRefreshTime(final ConfigurationManager manager) throws IOException {
         return manager.transformConfiguration(config -> {
-            final long renewTime = MapUtils.getValue(config, CHART_DATA_REFRESH_TIME_PARAM, Long::parseLong).orElse(900L);
+            final long renewTime = MapUtils.getValue(config, CHART_DATA_REFRESH_TIME_PARAM, Long::parseLong).orElse(1500L);
             return Duration.ofMillis(renewTime);
         });
     }
