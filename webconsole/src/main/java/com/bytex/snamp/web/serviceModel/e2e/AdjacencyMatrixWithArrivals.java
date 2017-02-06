@@ -38,8 +38,8 @@ public abstract class AdjacencyMatrixWithArrivals extends AdjacencyMatrix {
         @JsonProperty("meanResponseTime")
         public final Map<String, Long> meanResponseTime;
 
-        @JsonProperty("deviationRT")
-        public final long deviationRT;
+        @JsonProperty("responseTimeStdDev")
+        public final long responseTimeStdDev;
         @JsonProperty("responseTime90")
         public final long responseTime90;
         @JsonProperty("responseTime95")
@@ -63,7 +63,7 @@ public abstract class AdjacencyMatrixWithArrivals extends AdjacencyMatrix {
             maxResponseTime.put(ALL_TIME, metric.getMaxValue().toNanos());
             meanResponseTime = fillMap(metric, Arrivals::getLastMeanValue, Duration::toNanos);
             meanResponseTime.put(ALL_TIME, metric.getMeanValue().toNanos());
-            deviationRT = metric.getDeviation().toNanos();
+            responseTimeStdDev = metric.getDeviation().toNanos();
             responseTime90 = metric.getQuantile(0.9D).toNanos();
             responseTime95 = metric.getQuantile(0.95D).toNanos();
             responseTime98 = metric.getQuantile(0.98D).toNanos();
