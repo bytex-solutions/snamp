@@ -7,6 +7,32 @@ import { LandscapeView } from './landscape.view';
 // Factory to create appropriate objects from json
 export class Factory {
 
+    public static createView(viewName:string, viewType:string, rootComponent?:string):E2EView {
+        let _view:E2EView;
+        switch(viewType) {
+            case E2EView.CHILD_COMPONENT:
+                _view = new ChildComponentsView();
+                break;
+            case E2EView.COMPONENT_MODULES:
+                _view = new ComponentModulesView();
+                break;
+            case E2EView.LANDSCAPE:
+                _view = new LandscapeView();
+                break;
+            default:
+                throw new Error("Type " + viewType + " is unknown and cannot be parsed correctly");
+        }
+        _view.name = viewName;
+        if (rootComponent) {
+            if (_view instanceof AbstractComponentSpecificView) {
+                (<AbstractComponentSpecificView>_view).rootComponent = rootComponent;
+             } else {
+                throw new Error("Attempt to set rootComponent for non component specific view");
+             }
+        }
+        return _view;
+    }
+
     // method for creating views
     public static viewFromJSON(_json:any):E2EView {
         let _type:string = _json["@type"];
