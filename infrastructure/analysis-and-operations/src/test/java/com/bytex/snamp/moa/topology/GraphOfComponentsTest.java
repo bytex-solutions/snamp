@@ -68,6 +68,53 @@ public final class GraphOfComponentsTest extends Assert {
     }
 
     @Test
+    public void spanTreeCollectionTest(){
+        //root component
+        final Span rootSpan = new Span();
+        rootSpan.setComponentName(COMPONENT1);
+        rootSpan.setInstanceName("node1");
+        rootSpan.setDuration(15, TimeUnit.MILLISECONDS);
+        rootSpan.generateIDs();
+        graph.accept(rootSpan);
+
+        Span span = new Span();
+        span.setComponentName(COMPONENT2);
+        span.setInstanceName("node1");
+        span.setDuration(5, TimeUnit.MILLISECONDS);
+        span.setCorrelationID(rootSpan.getCorrelationID());
+        span.setSpanID(Identifier.randomID(4));
+        span.setParentSpanID(rootSpan.getSpanID());
+        graph.accept(span);
+
+        span = new Span();
+        span.setComponentName(COMPONENT3);
+        span.setInstanceName("node1");
+        span.setDuration(3, TimeUnit.MILLISECONDS);
+        span.setCorrelationID(rootSpan.getCorrelationID());
+        span.setSpanID(Identifier.randomID(4));
+        span.setParentSpanID(rootSpan.getSpanID());
+        graph.accept(span);
+
+        assertEquals(3, graph.size());
+
+        final ComponentVertex rootComponent = graph.get(COMPONENT1);
+        assertNotNull(rootComponent);
+        assertEquals(2, rootComponent.size());
+        final ComponentVertex childComponent1 = graph.get(COMPONENT2);
+        assertNotNull(childComponent1);
+        assertEquals(0, childComponent1.size());
+        final ComponentVertex childComponent2 = graph.get(COMPONENT3);
+        assertNotNull(childComponent2);
+        assertEquals(0, childComponent2.size());
+
+
+        assertTrue(rootComponent.contains(childComponent1));
+        assertTrue(rootComponent.contains(childComponent2));
+
+        graph.clear();
+    }
+
+    @Test
     public void simpleSpanCollectionTest(){
         //root component
         final Span rootSpan = new Span();

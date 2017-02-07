@@ -4,6 +4,7 @@ import com.bytex.snamp.instrumentation.measurements.Span;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -21,26 +22,27 @@ public abstract class TraceScope implements MeasurementScope {
     private final String moduleName;
     private Map<String, String> annotations;
 
+    private TraceScope(final Identifier correlationID, final Identifier spanID, final Identifier parentSpanID, final String moduleName) {
+        this.moduleName = Objects.requireNonNull(moduleName);
+        this.spanID = Objects.requireNonNull(spanID);
+        this.correlationID = Objects.requireNonNull(correlationID);
+        startTime = System.nanoTime();
+        //push scope
+        parent = parentSpanID.isEmpty() ? CURRENT_SCOPE.get() : ephemeralScope(correlationID, parentSpanID);
+        CURRENT_SCOPE.set(this);
+    }
+
     protected TraceScope(final Identifier correlationID, final Identifier parentSpanID, final String moduleName) {
-        if (correlationID == null)
-            throw new IllegalArgumentException("correlationID cannot be null");
-        else if (parentSpanID == null)
-            throw new IllegalArgumentException("parentSpanID cannot be null");
-        else if(moduleName == null)
-            throw new IllegalArgumentException("moduleName cannot be null");
-        else {
-            this.moduleName = moduleName;
-            this.spanID = Identifier.randomID();
-            this.correlationID = correlationID;
-            startTime = System.nanoTime();
-            //push scope
-            if (Identifier.EMPTY.equals(parentSpanID)) {
-                parent = CURRENT_SCOPE.get();
-            } else {
-                parent = null;
+        this(correlationID, Identifier.randomID(), parentSpanID, moduleName);
+    }
+
+    private static TraceScope ephemeralScope(final Identifier correlationID, final Identifier spanID){
+        return new TraceScope(correlationID, spanID, Identifier.EMPTY, "") {
+            @Override
+            protected void report(final Span s) {
+                //ephemeral scope cannot report anything
             }
-            CURRENT_SCOPE.set(this);
-        }
+        };
     }
 
     /**
@@ -59,7 +61,7 @@ public abstract class TraceScope implements MeasurementScope {
      * @return Correlation ID associated with this scope.
      */
     public final Identifier getCorrelationID() {
-        return Identifier.EMPTY.equals(correlationID) && parent != null ? parent.getCorrelationID() : correlationID;
+        return correlationID.isEmpty() && parent != null ? parent.getCorrelationID() : correlationID;
     }
 
     /**

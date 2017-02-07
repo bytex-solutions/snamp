@@ -4,7 +4,7 @@ import com.bytex.snamp.instrumentation.measurements.Measurement
 
 private void parseMeasurement(Measurement measurement) {
     if (componentInstance == measurement.getInstanceName() && componentName == measurement.getComponentName())
-        addMeasurement body
+        addMeasurement measurement
 }
 
 def parse(headers, body){

@@ -13,7 +13,6 @@ import java.util.Hashtable;
  * Represents activator of {@link HttpAcceptor}.
  */
 public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAcceptor> {
-    private static final String SERVLET_CONTEXT = "/snamp/data/acquisition";
     private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
     @SpecialUse(SpecialUse.Case.OSGi)
@@ -41,12 +40,11 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
     @Override
     protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
         super.activate(activationProperties);
-        @SuppressWarnings("unchecked")
         final HttpService publisher = getDependencies().getDependency(HttpService.class);
         assert publisher != null;
         activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, publisher);
         //register servlet
-        publisher.registerServlet(SERVLET_CONTEXT, new JerseyServletContainer(), new Hashtable<>(), null);
+        publisher.registerServlet(JerseyServletContainer.CONTEXT, new JerseyServletContainer(), new Hashtable<>(), null);
     }
 
     /**
@@ -57,6 +55,6 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
     @Override
     protected void deactivate(final ActivationPropertyReader activationProperties) {
         final HttpService publisher = activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY);
-        publisher.unregister(SERVLET_CONTEXT);
+        publisher.unregister(JerseyServletContainer.CONTEXT);
     }
 }

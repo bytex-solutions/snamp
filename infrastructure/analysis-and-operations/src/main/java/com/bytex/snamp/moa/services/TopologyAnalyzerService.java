@@ -8,6 +8,7 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connector.ClusteredResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.core.LoggerProvider;
@@ -110,18 +111,18 @@ final class TopologyAnalyzerService extends GraphOfComponents implements Topolog
         return LoggerProvider.getLoggerForBundle(getBundleContext());
     }
 
-    private void serviceChanged(final int type, final ServiceReference<ManagedResourceConnector> connectorRef){
+    private void serviceChanged(final int type, final ServiceReference<ManagedResourceConnector> connectorRef) {
         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connectorRef);
         try {
             switch (type) {
                 case ServiceEvent.REGISTERED:
-                    Aggregator.queryAndAccept(client, ClusteredResourceConnector.class, this::resourceRegistered);
-                    Aggregator.queryAndAccept(client, NotificationSupport.class, this::addNotificationListener);
+                    if (Aggregator.queryAndAccept(client, ClusteredResourceConnector.class, this::resourceRegistered))
+                        Aggregator.queryAndAccept(client, NotificationSupport.class, this::addNotificationListener);
                     return;
                 case ServiceEvent.MODIFIED_ENDMATCH:
                 case ServiceEvent.UNREGISTERING:
-                    Aggregator.queryAndAccept(client, NotificationSupport.class, this::removeNotificationListener);
-                    Aggregator.queryAndAccept(client, ClusteredResourceConnector.class, this::resourceUnregistered);
+                    if (Aggregator.queryAndAccept(client, ClusteredResourceConnector.class, this::resourceUnregistered))
+                        Aggregator.queryAndAccept(client, NotificationSupport.class, this::removeNotificationListener);
                     return;
             }
         } finally {
@@ -142,13 +143,17 @@ final class TopologyAnalyzerService extends GraphOfComponents implements Topolog
 
     @Override
     public boolean isNotificationEnabled(final Notification notification) {
-        return notification instanceof SpanNotification;
+        return notification instanceof SpanNotification ||
+                notification instanceof NotificationContainer &&
+                        isNotificationEnabled(((NotificationContainer) notification).get());
     }
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        if (isNotificationEnabled(notification))
+        if (notification instanceof SpanNotification)
             handleNotification((SpanNotification) notification);
+        else if (notification instanceof NotificationContainer)
+            handleNotification(((NotificationContainer) notification).get(), handback);
     }
 
     /**

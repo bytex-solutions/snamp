@@ -37,6 +37,14 @@ public final class AdjacencyMatrixTest extends Assert {
     }
 
     @Test
+    public void landscapeViewSerialization() throws IOException {
+        final LandscapeView view = new LandscapeView();
+        view.setName("myLandscape");
+        final String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(view);
+        assertNotNull(json);
+    }
+
+    @Test
     public void landscapeTest() throws IOException {
         //root component
         final Span rootSpan = new Span();

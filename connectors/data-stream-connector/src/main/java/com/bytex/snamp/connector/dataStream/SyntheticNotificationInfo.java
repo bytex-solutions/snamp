@@ -12,16 +12,16 @@ import javax.management.NotificationFilter;
  * @version 2.0
  * @since 2.0
  */
-public class SyntheticNotification extends AbstractNotificationInfo implements NotificationFilter {
+public class SyntheticNotificationInfo extends AbstractNotificationInfo implements NotificationFilter {
     private static final long serialVersionUID = -3224023906663012968L;
     private final NotificationFilter filter;
 
-    protected SyntheticNotification(final String notifType, final Class<? extends Notification> notificationType, final String description, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
+    protected SyntheticNotificationInfo(final String notifType, final Class<? extends Notification> notificationType, final String description, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
         super(notifType, description, notificationType, descriptor);
         filter = DataStreamConnectorConfigurationDescriptionProvider.parseNotificationFilter(descriptor);
     }
 
-    public SyntheticNotification(final String notifType, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
+    public SyntheticNotificationInfo(final String notifType, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
         this(notifType, Notification.class, "Simple proxy notification", descriptor);
     }
 

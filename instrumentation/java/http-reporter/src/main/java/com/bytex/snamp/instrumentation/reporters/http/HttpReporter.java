@@ -5,7 +5,6 @@ import com.bytex.snamp.instrumentation.reporters.Reporter;
 import com.bytex.snamp.instrumentation.reporters.util.MeasurementBuffer;
 import com.bytex.snamp.instrumentation.reporters.util.SoftMeasurementBuffer;
 import com.sun.jersey.api.client.*;
-import com.sun.jersey.api.client.async.FutureListener;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.GZIPContentEncodingFilter;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
@@ -14,19 +13,18 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Represents asynchronous HTTP reporter.
+ * Represents HTTP reporter that can be worker in synchronous our asynchronous mode.
  * <p />
  *     This report can be used in conjunction with HTTP Connector.
  * @author Roman Sakno
@@ -54,6 +52,23 @@ public final class HttpReporter implements Reporter {
         }
     }
 
+    private static final class MeasurementSender extends WeakReference<HttpReporter> implements Runnable {
+        private final Measurement[] measurements;
+
+        private MeasurementSender(final HttpReporter reporter, final Measurement... measurements) {
+            super(reporter);
+            this.measurements = measurements;
+        }
+
+        @Override
+        public void run() {
+            final HttpReporter reporter = get();
+            if (reporter != null)
+                reporter.reportSync(measurements);
+            clear();
+        }
+    }
+
     private static final Logger LOGGER = Logger.getLogger("SnampHttpReporter");
 
     /**
@@ -74,10 +89,11 @@ public final class HttpReporter implements Reporter {
     private static final String BATCH_PATH = "/snamp/data/acquisition/measurements";
     private static final String NON_BATCH_PATH = "/snamp/data/acquisition/measurement";
     private final Client httpClient;
-    private final AsyncWebResource batchResource;
+    private final WebResource batchResource;
     private final WebResource nonBatchResource;
     private final MeasurementBuffer buffer;
     private final AtomicBoolean resending;
+    private boolean asynchronous;
 
     public HttpReporter(final URI snampLocation, final Map<String, ?> properties) {
         final DefaultClientConfig clientConfig = new SnampClientConfig(properties);
@@ -89,11 +105,12 @@ public final class HttpReporter implements Reporter {
         final ExecutorService customExecutorService = (ExecutorService) clientConfig.getProperty(EXECUTOR_SERVICE_PROPERTY);
         if(customExecutorService != null)
             httpClient.setExecutorService(customExecutorService);
-        batchResource = httpClient.asyncResource(UriBuilder.fromUri(snampLocation).path(BATCH_PATH).build());
+        batchResource = httpClient.resource(UriBuilder.fromUri(snampLocation).path(BATCH_PATH).build());
         nonBatchResource = httpClient.resource(UriBuilder.fromUri(snampLocation).path(NON_BATCH_PATH).build());
         final MeasurementBuffer buffer = (MeasurementBuffer) clientConfig.getProperty(BUFFER_PROPERTY);
         this.buffer = buffer == null ? new SoftMeasurementBuffer() : buffer;
         resending = new AtomicBoolean(false);
+        asynchronous = true;
     }
 
     public HttpReporter(final String snampLocation, final Map<String, ?> properties) throws URISyntaxException {
@@ -107,7 +124,11 @@ public final class HttpReporter implements Reporter {
      */
     @Override
     public boolean isAsynchronous() {
-        return true;
+        return asynchronous;
+    }
+
+    public void setAsynchronous(final boolean value){
+        asynchronous = value;
     }
 
     /**
@@ -157,56 +178,52 @@ public final class HttpReporter implements Reporter {
             }
     }
 
-    private FutureListener<ClientResponse> createResponseHandler(final Measurement... measurements) {
-        return new FutureListener<ClientResponse>() {
-            @Override
-            public void onComplete(final Future<ClientResponse> f) throws InterruptedException {
-                final ClientResponse response;
-                try {
-                    response = f.get();
-                } catch (final ExecutionException e) {
-                    LOGGER.log(Level.WARNING, String.format("Unable to send measurements to %s", batchResource.getURI()), e);
-                    saveMeasurements(measurements);
-                    return;
-                }
-                switch (response.getStatus()) {
-                    case 204:
-                    case 200:
-                        LOGGER.fine("Successfully submitted measurements");
-                        //only one thread can be used for resending measurements at a time
-                        if (resending.compareAndSet(false, true))
-                            try {
-                                resendMeasurements();
-                            } finally {
-                                resending.set(false);
-                            }
-                        return;
-                    default:
-                        LOGGER.warning(String.format("Failed to submit measurements. Response code is %s (%s)", response.getStatus(), response.getStatusInfo().getReasonPhrase()));
-                        saveMeasurements(measurements);
-                }
-            }
-        };
+    private void reportSync(final Measurement[] measurements) {
+        final ClientRequest request = ClientRequest.create()
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(measurements)
+                .build(batchResource.getURI(), HttpMethod.POST);
+        final ClientResponse response;
+        try {
+            response = batchResource.getHeadHandler().handle(request);
+        } catch (final ClientHandlerException e) {
+            LOGGER.log(Level.WARNING, String.format("Unable to send measurements to %s", batchResource.getURI()), e);
+            saveMeasurements(measurements);
+            return;
+        }
+        switch (response.getStatus()) {
+            case 204:
+            case 200:
+                LOGGER.fine("Successfully submitted measurements");
+                //only one thread can be used for resending measurements at a time
+                if (resending.compareAndSet(false, true))
+                    try {
+                        resendMeasurements();
+                    } finally {
+                        resending.set(false);
+                    }
+                return;
+            default:
+                LOGGER.warning(String.format("Failed to submit measurements. Response code is %s (%s)", response.getStatus(), response.getStatusInfo().getReasonPhrase()));
+                saveMeasurements(measurements);
+        }
     }
 
     /**
      * Send one or more measurements.
      *
      * @param measurements A set of measurements to send.
-     * @throws IOException Some I/O error occurred when posting measurements to SNAMP.
      */
     @Override
-    public void report(final Measurement... measurements) throws IOException {
+    public void report(final Measurement... measurements) {
         //send this portion of measurements
-        final ClientRequest asyncRequest = ClientRequest.create()
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(measurements)
-                .build(batchResource.getURI(), HttpMethod.POST);
-
-        batchResource.handle(asyncRequest, createResponseHandler(measurements));
+        if (asynchronous)
+            httpClient.getExecutorService().execute(new MeasurementSender(this, measurements));
+        else
+            reportSync(measurements);
     }
 
-    int getBufferedMeasurements(){
+    public int getBufferedMeasurements(){
         return buffer.size();
     }
 

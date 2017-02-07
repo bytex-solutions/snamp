@@ -5,11 +5,13 @@ import com.bytex.snamp.Stateful;
 import com.bytex.snamp.instrumentation.Identifier;
 import com.bytex.snamp.instrumentation.measurements.Span;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
-import com.google.common.base.MoreObjects;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Provides analysis of topology between components based on stream of {@link Span}.
@@ -19,12 +21,21 @@ import java.util.function.Consumer;
  */
 public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity, ComponentVertex> implements Consumer<Span>, Stateful {//key in map is a component name
     private static final long serialVersionUID = 2292647118511712487L;
+
+    private static final class SpanQueue extends ArrayBlockingQueue<Span> {
+        private static final long serialVersionUID = -5482006202965410683L;
+
+        SpanQueue() {
+            super(20);
+        }
+    }
+
     private final ConcurrentLinkedHashMap<Identifier, ComponentVertex> idToVertexCache; //key is a spanID of the node
     /*
         UC: we have two correlated spans: A => B. Span B can be received earlier than A. In this case cache will not contain a vertex with appropriate spanID
         and span B will be lost. To avoid this we use buffer to save spans like B.
     */
-    private final ConcurrentLinkedHashMap<Identifier, Span> spanBuffer; //key is a parentSpanId
+    private final ConcurrentLinkedHashMap<Identifier, SpanQueue> spanBuffer; //key is a parentSpanId
 
     public GraphOfComponents(final long historySize) {
         final int concurrencyLevel = Runtime.getRuntime().availableProcessors() * 2;
@@ -32,7 +43,7 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity
                 .concurrencyLevel(concurrencyLevel)
                 .maximumWeightedCapacity(historySize)  //this setting helps to remove eldest spans from the cache
                 .build();
-        spanBuffer = new ConcurrentLinkedHashMap.Builder<Identifier, Span>()
+        spanBuffer = new ConcurrentLinkedHashMap.Builder<Identifier, SpanQueue>()
                 .concurrencyLevel(concurrencyLevel)
                 .maximumWeightedCapacity(historySize)
                 .build();
@@ -58,21 +69,26 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity
             return;
         //detect whether the vertex representing the component exists in the map of vertices
         ComponentVertex vertex = new ComponentVertex(span);
-        vertex = MoreObjects.firstNonNull(putIfAbsent(vertex.getIdentity(), vertex), vertex);
+        vertex = firstNonNull(putIfAbsent(vertex.getIdentity(), vertex), vertex);
         vertex.accept(span);
         //add a new span ID into the cache that provides O(1) search of vertex by its spanID
         if (!span.getSpanID().isEmpty()) {
             idToVertexCache.put(span.getSpanID(), vertex);  //spanID is unique so we sure that there is no duplicate key in the map. Eldest span will be removed automatically
             //correlate buffered span with newly supplied span
-            final Span childSpan = spanBuffer.remove(span.getSpanID());
-            if (childSpan != null)
-                accept(childSpan);
+            final SpanQueue children = spanBuffer.remove(span.getSpanID());
+            if (children != null) {
+                children.forEach(this);
+                children.clear();   //help GC
+            }
         }
         //try to resolve vertex by spanID using cache and create edge between parent/child vertices
         if (!span.getParentSpanID().isEmpty()) {
-            final ComponentVertex parentVertex = idToVertexCache.remove(span.getParentSpanID());     //expecting O(1) removal of the parent vertex
-            if (parentVertex == null)
-                spanBuffer.put(span.getParentSpanID(), span);
+            final ComponentVertex parentVertex = idToVertexCache.get(span.getParentSpanID());     //expecting O(1) access to the parent vertex
+            if (parentVertex == null) {
+                SpanQueue queue = new SpanQueue();
+                queue = firstNonNull(spanBuffer.putIfAbsent(span.getParentSpanID(), queue), queue);
+                queue.offer(span);
+            }
             else
                 parentVertex.add(vertex);
         }
@@ -89,7 +105,7 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity
     public final boolean remove(final String componentName) {
         final boolean success = keySet().removeIf(id -> id.getComponentName().equals(componentName));
         idToVertexCache.values().removeIf(entry -> entry.getName().equals(componentName));
-        spanBuffer.values().removeIf(entry -> entry.getComponentName().equals(componentName));
+        spanBuffer.clear();
         values().forEach(vertex -> vertex.removeChild(componentName));
         return success;
     }
@@ -104,9 +120,9 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity
      */
     @Override
     public final void clear() {
-        super.clear();
         idToVertexCache.clear();
         spanBuffer.clear();
+        super.clear();
     }
 
     /**

@@ -14,6 +14,7 @@ import javax.ws.rs.core.Application;
  */
 final class JerseyServletContainer extends ServletContainer {
     private static final long serialVersionUID = 5710139261115306229L;
+    static final String CONTEXT = "/snamp/data/acquisition";
 
     JerseyServletContainer() {
         super(createAppConfig());

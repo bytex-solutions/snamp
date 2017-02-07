@@ -7,6 +7,12 @@ import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.instrumentation.ApplicationInfo;
+import com.bytex.snamp.instrumentation.Identifier;
+import com.bytex.snamp.instrumentation.MetricRegistry;
+import com.bytex.snamp.instrumentation.TraceScope;
+import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
+import com.bytex.snamp.instrumentation.reporters.http.HttpReporter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.json.JsonUtils;
@@ -39,6 +45,7 @@ import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
@@ -62,6 +69,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies({
+        SnampFeature.WRAPPED_LIBS,
         SnampFeature.HTTP_GATEWAY,
         SnampFeature.GROOVY_GATEWAY,
         SnampFeature.NAGIOS_GATEWAY,
@@ -74,12 +82,24 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
         SnampFeature.HTTP_ACCEPTOR
 })
 public final class WebConsoleTest extends AbstractSnampIntegrationTest {
+    private static final class TestApplicationInfo extends ApplicationInfo {
+        static void setName(final String componentName, final String instanceName){
+            setName(componentName);
+            setInstance(instanceName);
+        }
+    }
+
     private static final ObjectMapper FORMATTER = new ObjectMapper();
     private static final String TEST_RESOURCE_NAME = "myResource";
+
     private static final String GROUP_NAME = "myGroup";
+
     private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
+
     private static final String JMX_CONNECTOR_TYPE = "jmx";
+    private static final String HTTP_ACCEPTOR_TYPE = "http";
+
     private static final String ADAPTER_NAME = "http";
     private static final String TEST_PARAMETER = "testParameter";
 
@@ -91,6 +111,13 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     private static final String THIRD_BEAN_NAME = BEAN_NAME + "_3";
     private static final String THIRD_RESOURCE_NAME = TEST_RESOURCE_NAME + "_3";
+
+    private static final String FOURTH_RESOURCE_NAME = "iOS";
+    private static final String GROUP1_NAME = "mobileApp";
+    private static final String FIFTH_RESOURCE_NAME = "node2";
+    private static final String GROUP2_NAME = "dispatcher";
+    private static final String SIXTH_RESOURCE_NAME = "paypal";
+    private static final String GROUP3_NAME = "paymentSystem";
 
     //must be public
     @WebSocket
@@ -124,7 +151,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
@@ -139,6 +166,25 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 session.getRemote().sendString(FORMATTER.writeValueAsString(obj));
             Thread.sleep(sessionWait.toMillis());
             testBody.accept(webSocketHandler);
+        }
+    }
+
+    private static JsonNode httpPost(final String servicePostfix, final String authenticationToken, final JsonNode data) throws IOException {
+        final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
+        //write attribute
+        HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, "application/json");
+        connection.setRequestProperty(HttpHeaders.AUTHORIZATION, authenticationToken);
+        connection.setDoOutput(true);
+        connection.setDoInput(true);
+        IOUtils.writeString(FORMATTER.writeValueAsString(data), connection.getOutputStream(), Charset.defaultCharset());
+        connection.connect();
+        try {
+            assertEquals(200, connection.getResponseCode());
+            return FORMATTER.readTree(connection.getInputStream());
+        } finally {
+            connection.disconnect();
         }
     }
 
@@ -221,6 +267,38 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
             assertTrue(name instanceof TextNode);
             assertTrue(type instanceof TextNode);
         }
+    }
+
+    @Test
+    public void endToEndTest() throws URISyntaxException, InterruptedException, IOException {
+        final HttpReporter reporter = new HttpReporter("http://localhost:8181/", ImmutableMap.of());
+        reporter.setAsynchronous(false);
+        try (final MetricRegistry registry = new MetricRegistry(reporter)) {
+            TestApplicationInfo.setName(GROUP1_NAME, FOURTH_RESOURCE_NAME);
+            final Identifier parentSpanId;
+            final Identifier correlationID = Identifier.randomID(4);
+            try (final TraceScope scope = registry.tracer("myTrace").beginTrace(correlationID)) {
+                Thread.sleep(200L);
+                parentSpanId = scope.getSpanID();
+            }
+            TestApplicationInfo.setName(GROUP2_NAME, FIFTH_RESOURCE_NAME);
+            try (final TraceScope ignored = registry.tracer("myTrace").beginTrace(correlationID, parentSpanId)) {
+                Thread.sleep(100L);
+            }
+            TestApplicationInfo.setName(GROUP3_NAME, SIXTH_RESOURCE_NAME);
+            try (final TraceScope ignored = registry.tracer("myTrace").beginTrace(correlationID, parentSpanId)) {
+                Thread.sleep(300L);
+            }
+        }
+        Thread.sleep(2000L);    //wait because span processing is asynchronous operation
+        final String landscapeView = "{\n" +
+                "  \"@type\" : \"landscape\",\n" +
+                "  \"preferences\" : { },\n" +
+                "  \"name\" : \"myLandscape\"\n" +
+                "}";
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode graph = httpPost("/e2e/compute", authenticationToken, FORMATTER.readTree(landscapeView));
+        assertNotNull(graph);
     }
 
     @Test
@@ -417,13 +495,21 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     private void startConnectors(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
         ManagedResourceActivator.enableConnector(context, JMX_CONNECTOR_TYPE);
+        ManagedResourceActivator.enableConnector(context, HTTP_ACCEPTOR_TYPE);
         AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), FIRST_RESOURCE_NAME, context);
         AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), SECOND_RESOURCE_NAME, context);
         AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), THIRD_RESOURCE_NAME, context);
+        AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), FOURTH_RESOURCE_NAME, context);
+        AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), FIFTH_RESOURCE_NAME, context);
+        AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), SIXTH_RESOURCE_NAME, context);
     }
 
     private void stopConnectors(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
         ManagedResourceActivator.disableConnector(context, JMX_CONNECTOR_TYPE);
+        ManagedResourceActivator.disableConnector(context, HTTP_ACCEPTOR_TYPE);
+        AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), SIXTH_RESOURCE_NAME, context);
+        AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), FIFTH_RESOURCE_NAME, context);
+        AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), FOURTH_RESOURCE_NAME, context);
         AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), THIRD_RESOURCE_NAME, context);
         AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), SECOND_RESOURCE_NAME, context);
         AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), FIRST_RESOURCE_NAME, context);
@@ -510,9 +596,28 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
         fillJmxAttributes(resource.getFeatures(AttributeConfiguration.class));
         fillJmxEvents(resource.getFeatures(EventConfiguration.class));
+
+        resource = resources.getOrAdd(FOURTH_RESOURCE_NAME);
+        resource.setGroupName(GROUP1_NAME);
+        resource.setType(HTTP_ACCEPTOR_TYPE);
+        fillSpanEvents(resource.getFeatures(EventConfiguration.class));
+
+        resource = resources.getOrAdd(FIFTH_RESOURCE_NAME);
+        resource.setGroupName(GROUP2_NAME);
+        resource.setType(HTTP_ACCEPTOR_TYPE);
+        fillSpanEvents(resource.getFeatures(EventConfiguration.class));
+
+        resource = resources.getOrAdd(SIXTH_RESOURCE_NAME);
+        resource.setGroupName(GROUP3_NAME);
+        resource.setType(HTTP_ACCEPTOR_TYPE);
+        fillSpanEvents(resource.getFeatures(EventConfiguration.class));
     }
 
-    private void fillJmxAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+    private static void fillSpanEvents(final EntityMap<? extends EventConfiguration> events) {
+        events.getOrAdd(SpanNotification.TYPE);
+    }
+
+    private static void fillJmxAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAlternativeName("string");
 
@@ -550,7 +655,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         attribute.put("displayFormat", "rfc1903");
     }
 
-    private void fillJmxEvents(final EntityMap<? extends EventConfiguration> events) {
+    private static void fillJmxEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.put("severity", "notice");
 
