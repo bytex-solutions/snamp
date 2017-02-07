@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ApiClient } from '../app.restClient';
+import { ViewService } from '../app.viewService';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/of';
@@ -11,12 +11,12 @@ import 'rxjs/add/observable/of';
 })
 
 export class Sidebar {
-    constructor(private http:ApiClient) {}
+    constructor(private _viewService:ViewService) {}
 
-    private views:Observable<Array<string>>;
+    private views:string[] = [];
 
     ngOnInit() {
-        this.views = Observable.of(new Array<string>()).map((data) => { return ["View_1", "View_2", "View_3"]});
+        this.views = this._viewService.getViewNames();
     }
 
     anchorClicked(event: MouseEvent) {

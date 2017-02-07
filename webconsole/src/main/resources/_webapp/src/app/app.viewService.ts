@@ -26,6 +26,11 @@ export class ViewService {
         return this._dashboard.views;
     }
 
+
+    public getViewNames():string[] {
+        return this._dashboard.views.map(element => element.name);
+    }
+
     private loadDashboard():void {
         console.log("Loading some dashboard for views...");
         this._http.get(REST.VIEWS_DASHBOARD)
