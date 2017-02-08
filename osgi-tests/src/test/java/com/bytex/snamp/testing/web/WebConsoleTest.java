@@ -234,7 +234,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         final JsonNode node = httpGet("/managedResources/components", authenticationToken);
         assertNotNull(node);
-        assertEquals(JsonUtils.toJsonArray(GROUP_NAME), node);
+        assertEquals(JsonUtils.toJsonArray(GROUP_NAME, GROUP1_NAME, GROUP2_NAME, GROUP3_NAME), node);
     }
 
     @Test
