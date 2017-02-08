@@ -20,8 +20,9 @@ export class Sidebar {
     }
 
     anchorClicked(event: MouseEvent) {
-        var _thisReference = this;
-        var $li = $('#' + event.srcElement.id.replace("chevron","li")).parent();
+        var target = event.target || event.srcElement || event.currentTarget;
+        var idAttr = $(target).attr("id");
+        var $li = $('#' + idAttr.replace("chevron","li")).parent();
         if ($li.is('.active')) {
             $li.removeClass('active active-sm');
                 $('ul:first', $li).slideUp();
