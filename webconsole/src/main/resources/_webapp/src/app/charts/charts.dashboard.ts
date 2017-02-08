@@ -161,6 +161,7 @@ export class Dashboard {
         var _thisReference = this;
 
         $(this.getSmartWizardIdentifier()).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
+            console.log("step direction: ", stepDirection);
             if (stepNumber == 3) {
                 _thisReference.updateChartName();
             } else if (stepNumber == 2) {

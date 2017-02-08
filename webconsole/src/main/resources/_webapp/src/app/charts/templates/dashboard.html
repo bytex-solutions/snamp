@@ -82,33 +82,39 @@
             </div>
 
             <div id="metric" class="row" style="margin-top: 10px;">
-              <div class="bs-example" data-example-id="simple-jumbotron" *ngIf="selectedMetric != undefined">
-                <div class="jumbotron">
-                  <p>
-                    <strong>Name: </strong>{{selectedMetric.name}}
-                  </p>
-                  <p *ngIf="selectedMetric.type != undefined && selectedMetric.type.length > 0">
-                    <strong>Type: </strong>{{selectedMetric.type}}
-                  </p>
-                  <p *ngIf="selectedMetric.unitOfMeasurement != undefined && selectedMetric.unitOfMeasurement.length > 0">
-                    <strong>Unit of measurement: </strong>{{selectedMetric.unitOfMeasurement}}
-                  </p>
-                  <p *ngIf="selectedMetric.description != undefined && selectedMetric.description.length > 0">
-                    <strong>Description: </strong>{{selectedMetric.description}}
-                  </p>
-                </div>
+              <div class="col-md-12 col-sm-12 col-xs-12 text-center" style="margin-top:100px" *ngIf="(metrics | async) == undefined || (metrics | async).length == 0">
+                <strong>No metrics are found - cannot proceed</strong>
               </div>
-              <div class="item form-group">
-                <label
-                        class="control-label col-md-3 col-sm-3 col-xs-12"
-                        for="metricSelect"
-                        style="margin-top: 7px;">
-                  Select metric <span class="required">*</span>
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                  <select class="form-control" [(ngModel)]="selectedMetric" id="metricSelect">
-                    <option [tooltip]="metric.type" *ngFor="let metric of metrics | async" [ngValue]="metric">{{metric.name}}</option>
-                  </select>
+
+              <div  *ngIf="(metrics | async) != undefined && (metrics | async).length > 0">
+                <div class="bs-example" data-example-id="simple-jumbotron" *ngIf="selectedMetric != undefined">
+                  <div class="jumbotron">
+                    <p>
+                      <strong>Name: </strong>{{selectedMetric.name}}
+                    </p>
+                    <p *ngIf="selectedMetric.type != undefined && selectedMetric.type.length > 0">
+                      <strong>Type: </strong>{{selectedMetric.type}}
+                    </p>
+                    <p *ngIf="selectedMetric.unitOfMeasurement != undefined && selectedMetric.unitOfMeasurement.length > 0">
+                      <strong>Unit of measurement: </strong>{{selectedMetric.unitOfMeasurement}}
+                    </p>
+                    <p *ngIf="selectedMetric.description != undefined && selectedMetric.description.length > 0">
+                      <strong>Description: </strong>{{selectedMetric.description}}
+                    </p>
+                  </div>
+                </div>
+                <div class="item form-group">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          for="metricSelect"
+                          style="margin-top: 7px;">
+                    Select metric <span class="required">*</span>
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <select class="form-control" [(ngModel)]="selectedMetric" id="metricSelect">
+                      <option [tooltip]="metric.type" *ngFor="let metric of metrics | async" [ngValue]="metric">{{metric.name}}</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
