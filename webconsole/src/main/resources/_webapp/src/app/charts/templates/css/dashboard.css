@@ -123,3 +123,7 @@ select.form-control:not([size]):not([multiple]) {
     opacity: 0.4;
     fill: rgba(224, 116, 76, 0.91);
 }
+
+.x_title h2 {
+    font-size: inherit !important;
+}

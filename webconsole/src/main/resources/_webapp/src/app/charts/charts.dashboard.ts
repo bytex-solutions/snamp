@@ -286,5 +286,28 @@ export class Dashboard {
    		this._charts[index].preferences["gridcfg"] = event;
    		this._chartService.saveDashboard();
    	}
+
+   	removeChart(chartName:string):void {
+   	    this._chartService.removeChart(chartName);
+   	}
+
+    collapseClicked(event: MouseEvent) {
+       var target = event.srcElement;
+       var $BOX_PANEL = $(target).closest('.x_panel'),
+           $ICON = $(target).find('i'),
+           $BOX_CONTENT = $BOX_PANEL.find('.x_content');
+
+       // fix for some div with hardcoded fix class
+       if ($BOX_PANEL.attr('style')) {
+           $BOX_CONTENT.slideToggle(200, function(){
+               $BOX_PANEL.removeAttr('style');
+           });
+       } else {
+           $BOX_CONTENT.slideToggle(200);
+           $BOX_PANEL.css('height', 'auto');
+       }
+
+       $ICON.toggleClass('fa-chevron-up fa-chevron-down');
+    }
 }
 
