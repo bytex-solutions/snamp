@@ -15,7 +15,6 @@ import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.instrumentation.reporters.http.HttpReporter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
-import com.bytex.snamp.json.JsonUtils;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -151,7 +150,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
@@ -234,7 +233,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         final JsonNode node = httpGet("/managedResources/components", authenticationToken);
         assertNotNull(node);
-        assertEquals(JsonUtils.toJsonArray(GROUP_NAME, GROUP1_NAME, GROUP2_NAME, GROUP3_NAME), node);
+        assertTrue(node.isArray());
+        assertEquals(4, node.size());
     }
 
     @Test
@@ -242,17 +242,20 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         final JsonNode node = httpGet("/managedResources", authenticationToken);
         assertNotNull(node);
-        assertEquals(JsonUtils.toJsonArray(FIRST_RESOURCE_NAME, SECOND_RESOURCE_NAME, THIRD_RESOURCE_NAME), node);
+        assertTrue(node.isArray());
+        assertEquals(6, node.size());
     }
 
     @Test
     public void listOfInstancesWithGroupNameTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode groupName = httpGet("/managedResources/components", authenticationToken);
-        assertEquals(JsonUtils.toJsonArray(SECOND_RESOURCE_NAME, THIRD_RESOURCE_NAME, GROUP_NAME), groupName);
+        final JsonNode groups = httpGet("/managedResources/components", authenticationToken);
+        assertTrue(groups.isArray());
+        assertEquals(4, groups.size());
         final JsonNode node = httpGet(String.format("/managedResources?component=%s", GROUP_NAME), authenticationToken);
         assertNotNull(node);
-        assertEquals(JsonUtils.toJsonArray(FIRST_RESOURCE_NAME), node);
+        assertTrue(node.isArray());
+        assertEquals(3, node.size());
     }
 
     @Test
