@@ -1,9 +1,6 @@
 import { ChartData } from './chart.data';
 import { Observable } from 'rxjs/Observable';
 
-const Chart = require('chart.js');
-Chart.defaults.global.maintainAspectRatio = false;
-
 export abstract class AbstractChart {
     public static VBAR:string = "verticalBarChartOfAttributeValues";
     public static PIE:string = "pieChartOfAttributeValues";
