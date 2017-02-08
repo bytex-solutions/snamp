@@ -33,7 +33,7 @@ public class SpanReceiver extends org.apache.htrace.core.SpanReceiver {
     public static final String REPORTER_CLASSES = "snamp.instrumentation.reporters";
 
     private final Iterable<Reporter> reporters;
-    private static final Pattern SPLITTER = Pattern.compile(";");
+    private static final Pattern SPLITTER = Pattern.compile(";", Pattern.LITERAL);
 
     public SpanReceiver(final HTraceConfiguration configuration) throws ReflectiveOperationException {
         final ClassLoader loader = getClass().getClassLoader();

@@ -38,7 +38,7 @@ enum ComponentNameSource {  //WARNING: order of this enum is significant for cal
      */
     COMMAND_LINE{
         private final Pattern CLASS_NAME_SPLITTER = Pattern.compile("\\s+");
-        private final Pattern DOT_SPLITTER = Pattern.compile("\\.");
+        private final Pattern DOT_SPLITTER = Pattern.compile(".", Pattern.LITERAL);
 
         @Override
         String getName() {

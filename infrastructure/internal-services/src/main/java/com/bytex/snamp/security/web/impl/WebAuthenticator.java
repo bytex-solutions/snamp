@@ -17,6 +17,8 @@ import java.util.logging.Logger;
  */
 @Path(WebAuthenticator.PATH)
 public final class WebAuthenticator extends JWTAuthenticator {
+    //private static final Pattern HOST_NAME_PATTERN = Pattern.compile("(?<hn>([\\p{IsAlphabetic}\\d.\\-;@]+)|(\\[.+]))(:[0-9]+)?");
+
     /**
      * Represents URL path to this service.
      */
@@ -42,7 +44,10 @@ public final class WebAuthenticator extends JWTAuthenticator {
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response authenticate(@FormParam("username") final String userName, @FormParam("password") final String password) throws WebApplicationException {
+    public Response authenticate(@FormParam("username") final String userName,
+                                 @FormParam("password") final String password,
+                                 @HeaderParam("Host") final String hostName,
+                                 @Context final SecurityContext security) throws WebApplicationException {
         final LoginContext context;
         try {
             context = new LoginContext(JAAS_REALM, new NamePasswordHandler(userName, password));
@@ -60,13 +65,14 @@ public final class WebAuthenticator extends JWTAuthenticator {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (final LoginException e) {
             getLogger().log(Level.SEVERE, "Login subsystem failed", e);
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         getLogger().fine(() -> String.format("Successful authentication of user %s", userName));
+        final int COOKIE_AGE = 30 * 24 * 60 * 60;   //30 days
         return Response
                 .noContent()
-                .cookie(new NewCookie(AUTH_COOKIE, jwToken, "/", "",
-                        "SNAMP web console cookie", NewCookie.DEFAULT_MAX_AGE, false))
+                .cookie(new NewCookie(AUTH_COOKIE, jwToken, "/", hostName,
+                        "SNAMP JWT authentication token", COOKIE_AGE, security.isSecure()))
                 .build();
     }
 
