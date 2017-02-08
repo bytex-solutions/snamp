@@ -10,6 +10,8 @@ import { ChartService } from '../app.chartService';
 import { Factory } from './model/objectFactory';
 import { AbstractChart } from './model/abstract.chart';
 
+import { ActivatedRoute } from '@angular/router';
+
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
 import 'rxjs/add/observable/forkJoin';
@@ -29,61 +31,63 @@ import 'select2';
 })
 export class Dashboard {
 
-        private http:ApiClient;
+    private http:ApiClient;
 
-        components:Observable<string[]>;
-        selectedComponent:string = "";
+    components:Observable<string[]>;
+    selectedComponent:string = "";
 
-        metrics:Observable<AttributeInformation[]>;
-        selectedMetric:AttributeInformation;
+    metrics:Observable<AttributeInformation[]>;
+    selectedMetric:AttributeInformation;
 
-        instances:Observable<string[]>;
-        selectedInstances:string[] = [];
-        allInstances:string[] = [];
-        selectedAllInstances:boolean = true;
+    instances:Observable<string[]>;
+    selectedInstances:string[] = [];
+    allInstances:string[] = [];
+    selectedAllInstances:boolean = true;
 
-        selectedChartType:string = "bar";
+    selectedChartType:string = "bar";
 
-        chartName:string = "newChart";
+    chartName:string = "newChart";
 
-        initialized = false;
+    initialized = false;
 
-        private _charts:AbstractChart[] = [];
+    private _charts:AbstractChart[] = [];
 
-        private gridConfig: NgGridConfig = <NgGridConfig>{
-            'margins': [10],
-            'draggable': true,
-            'resizable': true,
-            'max_cols': 10,
-            'max_rows': 10,
-            'visible_cols': 0,
-            'visible_rows': 0,
-            'min_cols': 1,
-            'min_rows': 1,
-            'col_width': 100,
-            'row_height': 100,
-            'cascade': 'left',
-            'min_width': 50,
-            'min_height': 50,
-            'fix_to_grid': false,
-            'auto_style': true,
-            'auto_resize': false,
-            'maintain_ratio': false,
-            'prefer_new': true,
-            'zoom_on_drag': false,
-            'limit_to_screen': true
-        };
+    public groupName:string = "";
+
+    private gridConfig: NgGridConfig = <NgGridConfig>{
+        'margins': [10],
+        'draggable': true,
+        'resizable': true,
+        'max_cols': 10,
+        'max_rows': 10,
+        'visible_cols': 0,
+        'visible_rows': 0,
+        'min_cols': 1,
+        'min_rows': 1,
+        'col_width': 100,
+        'row_height': 100,
+        'cascade': 'left',
+        'min_width': 50,
+        'min_height': 50,
+        'fix_to_grid': false,
+        'auto_style': true,
+        'auto_resize': false,
+        'maintain_ratio': false,
+        'prefer_new': true,
+        'zoom_on_drag': false,
+        'limit_to_screen': true
+    };
 
 
-        constructor(apiClient: ApiClient,
-              overlay: Overlay,
-              vcRef: ViewContainerRef,
-              private modal: Modal,
-              private _chartService:ChartService) {
+    constructor(apiClient: ApiClient,
+          overlay: Overlay,
+          vcRef: ViewContainerRef,
+          private modal: Modal,
+          private _chartService:ChartService,
+          private route: ActivatedRoute) {
+
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
-
-        this._charts = this._chartService.getCharts();
    }
 
    appendChartClicked(type:string) {
@@ -125,6 +129,13 @@ export class Dashboard {
    }
 
    ngOnInit():void {
+      this.route.params
+             .map(params => params['groupName'])
+             .subscribe((gn) => {
+                this.groupName = gn;
+                this._charts = this._chartService.getChartsByGroupName(this.groupName);
+             });
+
         this.components = this.http.get(REST.CHART_COMPONENTS)
             .map((res:Response) => { return <string[]>res.json()})
             .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
@@ -270,7 +281,7 @@ export class Dashboard {
 
    addChartToDashboard():void {
         let _instances:string[] = ((this.selectedAllInstances) ? this.allInstances : this.selectedInstances);
-        let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.selectedComponent,
+        let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
             _instances, this.selectedMetric);
         this._chartService.newChart(chart);
         $("#addChartModal").modal("hide");

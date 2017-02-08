@@ -12,6 +12,14 @@ import { AbstractChart } from './charts/model/abstract.chart';
 import { Factory } from './charts/model/objectFactory';
 import { ChartData } from './charts/model/chart.data';
 
+import { ActivatedRoute } from '@angular/router';
+
+import 'rxjs/add/operator/publishLast';
+import 'rxjs/add/operator/cache';
+import 'rxjs/add/observable/forkJoin';
+import 'rxjs/add/observable/from';
+import 'rxjs/add/observable/of';
+
 @Injectable()
 export class ChartService {
     private MAX_SIZE:number = 10000;
@@ -20,6 +28,8 @@ export class ChartService {
     private KEY_DATA:string = "snampChartData";
     private _dashboard:Dashboard;
     private chartSubjects:{ [key:string]: Subject<ChartData> } = {};
+
+    private groups:Observable<string[]>;
 
     constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
           this.loadDashboard();
@@ -32,36 +42,57 @@ export class ChartService {
         return this._dashboard.charts;
     }
 
+    public getChartsByGroupName(groupName:string):AbstractChart[] {
+        return this._dashboard.charts.filter(_ch => (_ch.getGroupName() == groupName));
+    }
+
+    public getGroups():Observable<string[]> {
+        return this.groups;
+    }
+
+    public addNewGroup(groupName:string):void {
+        this._dashboard.groups.push(groupName);
+        this.saveDashboard();
+    }
+
     public setDefaultDashboard(ws:$WebSocket):void {
         ws.send(JSON.stringify(this._dashboard.toJSON())).publish().connect();
     }
 
     private loadDashboard():void {
         console.log("Loading some dashboard...");
-        this._http.get(REST.CHART_DASHBOARD)
+        let _res:any = this._http.get(REST.CHART_DASHBOARD)
             .map((res:Response) => {
                 console.log("Result of dashboard request is: ", res);
                 return res.json();
-            })
-            .subscribe(data => {
-                this._dashboard = new Dashboard();
-                this.chartSubjects = {};
-                let _chartData:{ [key:string]: ChartData[] } = this.getEntireChartData();
-                if (data.charts.length > 0) {
-                    for (let i = 0; i < data.charts.length; i++) {
-                        let _currentChart:AbstractChart = Factory.chartFromJSON(data.charts[i]);
-                        this.chartSubjects[_currentChart.name] = new Subject<ChartData>();
-                        // append the existent chart data from LC to chart from the backend
-                        if (_chartData != undefined && _chartData[_currentChart.name] != undefined) {
-                            _currentChart.chartData = _chartData[_currentChart.name];
-                            // make the data consistent - remove all data in case its instance name is absent in chart
-                        }
-                        _currentChart.subscribeToSubject(this.chartSubjects[_currentChart.name]);
-                        this._dashboard.charts.push(_currentChart);
+            }).publishLast().refCount();
+        this.groups = _res.map((data:any) => {
+            if (data["groups"] == undefined) {
+                return [];
+            } else {
+                return data["groups"];
+            };
+        });
+        _res.subscribe(data => {
+            this._dashboard = new Dashboard();
+            this.chartSubjects = {};
+            let _chartData:{ [key:string]: ChartData[] } = this.getEntireChartData();
+            if (data.charts.length > 0) {
+                for (let i = 0; i < data.charts.length; i++) {
+                    let _currentChart:AbstractChart = Factory.chartFromJSON(data.charts[i]);
+                    this.chartSubjects[_currentChart.name] = new Subject<ChartData>();
+                    // append the existent chart data from LC to chart from the backend
+                    if (_chartData != undefined && _chartData[_currentChart.name] != undefined) {
+                        _currentChart.chartData = _chartData[_currentChart.name];
+                        // make the data consistent - remove all data in case its instance name is absent in chart
                     }
+                    _currentChart.subscribeToSubject(this.chartSubjects[_currentChart.name]);
+                    this._dashboard.charts.push(_currentChart);
                 }
-                console.log(this._dashboard);
-            });
+            }
+            this._dashboard.groups = data.groups;
+            console.log(this._dashboard);
+        });
     }
 
     public saveDashboard():void {

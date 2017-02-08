@@ -12,6 +12,9 @@ import { NgGridModule } from '../controls/nggrid/modules/NgGrid.module';
 import { Dashboard } from './charts.dashboard';
 import { CommonSnampUtilsModule } from '../app.module';
 
+import { TemplateView } from './charts.template';
+import { EmptyDashboard } from './charts.empty.dashboard';
+
 const PROVIDERS:any =  [
   ApiClient
 ];
@@ -26,9 +29,14 @@ const PROVIDERS:any =  [
       HttpModule,
       CommonSnampUtilsModule,
       NgGridModule,
-      RouterModule.forChild([{ path: '', component: Dashboard }])
+      RouterModule.forChild([{
+          path: '', component: TemplateView, children: [
+              { path: '', component: EmptyDashboard },
+              { path: ':groupName', component: Dashboard }
+          ]
+       }])
     ],
-    declarations: [ Dashboard ],
+    declarations: [ Dashboard, TemplateView ],
     providers:    PROVIDERS
 })
 export class DashboardModule {}

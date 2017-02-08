@@ -26,7 +26,13 @@
         <ul class="nav side-menu">
           <li><a id="chartli" (click)="anchorClicked($event)"><i class="fa fa-newspaper-o"></i> Dashboards<span id="chartchevron" class="fa fa-chevron-down"></span></a>
             <ul class="nav child_menu">
-              <li routerLinkActive="activeLi"><a routerLink="charts" routerLinkActive="active">Charts</a></li>
+              <li *ngFor="let name of groupNames | async"
+                  routerLinkActive="activeLi">
+                <a [routerLink]="['charts', name]" routerLinkActive="active">
+                  {{_view}}
+                </a>
+              </li>
+              <li><a href="#" (click)="newDashboard()">+ New dashboard</a></li>
             </ul>
           </li>
           <li><a id="homeli" (click)="anchorClicked($event)"><i class="fa fa-home"></i> Configure<span id="homechevron" class="fa fa-chevron-down"></span></a>

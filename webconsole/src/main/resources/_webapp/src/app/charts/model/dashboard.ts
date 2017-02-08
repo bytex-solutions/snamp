@@ -3,6 +3,7 @@ import { AbstractChart } from './abstract.chart';
 export class Dashboard {
     public type:string = "dashboardOfCharts";
     public charts:AbstractChart[] = [];
+    public groups:string[] = [];
 
     constructor(){};
 
@@ -14,6 +15,7 @@ export class Dashboard {
             _charts.push(this.charts[i].toJSON());
         }
         _value["charts"] = _charts;
+        _value["groups"] = this.groups;
         return _value;
     }
 }

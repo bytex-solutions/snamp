@@ -40,7 +40,7 @@ export class MainView {
           .subscribe((id) => {
              this.mainView = id;
           });
-}
+    }
 
    ngAfterViewInit():void {
         var _thisReference = this;

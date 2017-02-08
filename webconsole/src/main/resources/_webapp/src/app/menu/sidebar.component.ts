@@ -1,22 +1,42 @@
-import { Component } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { ViewService } from '../app.viewService';
+import { ChartService } from '../app.chartService';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/of';
 
+import { overlayConfigFactory } from "angular2-modal";
+import {
+  VEXBuiltInThemes,
+  Modal,
+  DialogPreset,
+  DialogFormModal,
+  DialogPresetBuilder,
+  VEXModalContext,
+  VexModalModule,
+  providers
+} from 'angular2-modal/plugins/vex';
+
 @Component({
   selector: 'side-bar',
-  styleUrls: [ '../app.style.css' ],
-  templateUrl: './sidebar.component.html'
+  styleUrls: [ '../app.style.css', './vex.css'],
+  templateUrl: './sidebar.component.html',
+  providers: providers,
+  encapsulation: ViewEncapsulation.None
 })
 
 export class Sidebar {
-    constructor(private _viewService:ViewService) {}
+    constructor(private _viewService:ViewService, private _chartService:ChartService, private modal: Modal) {}
 
     private views:string[] = [];
+    private groupNames:Observable<string[]>;
 
     ngOnInit() {
         this.views = [];//this._viewService.getViewNames();
+    }
+
+    ngAfterViewInit() {
+        this.groupNames = this._chartService.getGroups();
     }
 
     anchorClicked(event: MouseEvent) {
@@ -35,5 +55,17 @@ export class Sidebar {
                 $li.addClass('active');
                 $('ul:first', $li).slideDown();
             }
+    }
+
+    newDashboard():void {
+        this.modal.prompt()
+            .className(<VEXBuiltInThemes>'default')
+            .message('New dashboard')
+            .placeholder('Please set the name for a new dashboard')
+            .open()
+             .then(dialog => dialog.result)
+             .then(result => {
+                console.log("result",result);
+             })
     }
 }

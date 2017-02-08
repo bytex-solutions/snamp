@@ -47,6 +47,7 @@ export class Factory {
             return _axis;
         }
     }
+
     // method for creating charts
     public static chartFromJSON(_json:any):AbstractChart {
         let _type:string = _json["@type"];
@@ -104,7 +105,7 @@ export class Factory {
         }
     }
 
-    public static create2dChart(type:string, name:string, component?:string, instances?:string[],
+    public static create2dChart(type:string, name:string, groupName:string, component?:string, instances?:string[],
         sourceAttribute?:AttributeInformation):AbstractChart {
             let _chart:TwoDimensionalChartOfAttributeValues;
             type = AbstractChart.TYPE_MAPPING[type];
@@ -132,6 +133,7 @@ export class Factory {
             _chart.getAxisY();
 
             _chart.name = name;
+            _chart.setGroupName(groupName);
 
             if (component) {
                 _chart.component = component;

@@ -17,27 +17,19 @@ export abstract class AbstractChart {
         'panel':            AbstractChart.PANEL
     };
 
-    // reverse mapping
-    public static CHART_TYPE_OF(name:string):string {
-        let _value:string = "";
-        for (let key in AbstractChart.TYPE_MAPPING) {
-            if (AbstractChart.TYPE_MAPPING[key] == name) {
-                _value = key;
-                break;
-            }
-        }
-        if (_value == "") {
-            throw new Error("Cannot find any corresponding type for " + name);
-        } else {
-            return _value;
-        }
-    }
-
     public name:string;
     public preferences:{ [key: string]: any } = { };
     public id:string = "chart" + GUID.newGuid();
     public chartData: ChartData[] = [];
     public abstract toJSON():any;
+
+    public getGroupName():string {
+        return this.preferences["groupName"];
+    }
+
+    public setGroupName(groupName:string):void {
+        this.preferences["groupName"] = groupName;
+    }
 
     protected setCol(n:number): void {
         this.preferences["gridcfg"]['col'] = n;
