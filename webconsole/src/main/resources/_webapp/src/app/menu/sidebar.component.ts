@@ -16,7 +16,7 @@ export class Sidebar {
     private views:string[] = [];
 
     ngOnInit() {
-        this.views = this._viewService.getViewNames();
+        this.views = [];//this._viewService.getViewNames();
     }
 
     anchorClicked(event: MouseEvent) {
