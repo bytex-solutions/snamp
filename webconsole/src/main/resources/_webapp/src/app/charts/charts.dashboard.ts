@@ -54,6 +54,10 @@ export class Dashboard {
 
     public groupName:string = "";
 
+    intervals:TimeInterval[] = TimeInterval.generateIntervals();
+
+    timeInterval:TimeInterval = undefined;
+
     private gridConfig: NgGridConfig = <NgGridConfig>{
         'margins': [10],
         'draggable': true,
@@ -88,6 +92,7 @@ export class Dashboard {
 
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
+        this.timeInterval = this.intervals[0];
    }
 
    appendChartClicked(type:string) {
@@ -104,6 +109,7 @@ export class Dashboard {
             this.selectedInstances = [];
             this.selectedMetric = undefined;
             this.selectedComponent = "";
+            this.timeInterval = this.intervals[0];
 
             // fill components and selected component
             this.ngOnInit();
@@ -281,6 +287,10 @@ export class Dashboard {
         let _instances:string[] = ((this.selectedAllInstances) ? this.allInstances : this.selectedInstances);
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
             _instances, this.selectedMetric);
+
+        if (this.selectedChartType == "line") {
+            chart.preferences["interval"] = this.timeInterval.id;
+        }
         this._chartService.newChart(chart);
         this._charts = this._chartService.getChartsByGroupName(this.groupName);
         $("#addChartModal").modal("hide");
@@ -301,5 +311,26 @@ export class Dashboard {
    	    this._chartService.removeChart(chartName);
    	    this._charts = this._chartService.getChartsByGroupName(this.groupName);
    	}
+}
+
+class TimeInterval {
+    public id:number = 0;
+    public description:string = "";
+
+    constructor(id:number, description:string) {
+        this.id = id;
+        this.description = description;
+    }
+
+    public static generateIntervals():TimeInterval[] {
+        let value:TimeInterval[] = [];
+        value.push(new TimeInterval(1, "1 minute"));
+        value.push(new TimeInterval(5, "5 minutes"));
+        value.push(new TimeInterval(15, "15 minutes"));
+        value.push(new TimeInterval(60, "1 hour"));
+        value.push(new TimeInterval(720, "12 hours"));
+        value.push(new TimeInterval(1440, "24 hours"));
+        return value;
+    }
 }
 

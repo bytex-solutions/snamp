@@ -56322,7 +56322,7 @@ var LineChartOfAttributeValues = (function (_super) {
             _currentValue.values = [];
             for (var j = 0; j < this.chartData.length; j++) {
                 if (this.instances[i] == this.chartData[j].instanceName) {
-                    _currentValue.values.push({ x: this.chartData[j].timestamp, y: this.chartData[i].attributeValue });
+                    _currentValue.values.push({ x: this.chartData[j].timestamp, y: this.chartData[j].attributeValue });
                 }
             }
             _value.push(_currentValue);
@@ -56339,8 +56339,8 @@ var LineChartOfAttributeValues = (function (_super) {
                 if (_ds[i].key == _data.instanceName) {
                     _ds[i].values.push({ x: _data.timestamp, y: _data.attributeValue });
                     _found = true;
-                    if (_ds.length > 200) {
-                        _ds.shift(); // remove first element in case we have too many elements
+                    if ((new Date().getTime() - _ds[i].values[0].x.getTime()) > this.preferences["interval"] * 60 * 1000) {
+                        _ds[i].values.shift(); // remove first element in case it's out of interval range
                     }
                     break;
                 }

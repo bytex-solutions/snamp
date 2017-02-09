@@ -119,9 +119,27 @@
               </div>
             </div>
 
-            <div id="save" style="margin-top: 100px;">
+            <div id="save" style="margin-top: 70px;">
 
-              <div class="row" [tooltip]="'Click chart name to input new value'">
+              <div class="row">
+                <div class="item form-group col-md-offset-4" *ngIf="selectedChartType == 'line'">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          for="lineChartIntervalSelect"
+                          style="margin-top: 7px;">
+                    Select time interval <span class="required">*</span>
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <select class="form-control" [(ngModel)]="timeInterval" id="lineChartIntervalSelect">
+                      <option *ngFor="let interval of intervals" [ngValue]="interval">{{interval.description}}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <br/>
+
+              <div class="row">
                 <div class="item form-group col-md-offset-4">
                   <label
                           class="control-label col-md-3 col-sm-3 col-xs-12"

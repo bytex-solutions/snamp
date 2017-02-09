@@ -34,7 +34,7 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
             _currentValue.values = [];
             for (let j = 0; j < this.chartData.length; j++) {
                 if (this.instances[i] == this.chartData[j].instanceName) {
-                    _currentValue.values.push({x: this.chartData[j].timestamp, y: this.chartData[i].attributeValue});
+                    _currentValue.values.push({x: this.chartData[j].timestamp, y: this.chartData[j].attributeValue});
                 }
 
             }
@@ -53,8 +53,8 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
                 if (_ds[i].key == _data.instanceName) {
                     _ds[i].values.push({x: _data.timestamp, y: _data.attributeValue});
                     _found = true;
-                    if (_ds.length > 200) {
-                        _ds.shift(); // remove first element in case we have too many elements
+                    if ((new Date().getTime() - (<Date>_ds[i].values[0].x).getTime()) > this.preferences["interval"] * 60 * 1000) {
+                        _ds[i].values.shift(); // remove first element in case it's out of interval range
                     }
                     break;
                 }
