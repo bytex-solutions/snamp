@@ -175,18 +175,20 @@
 
       <div class='container col-md-12' [ngGrid]="gridConfig"  style="min-height: 900px;">
 
-          <div class="x_panel tile handle" *ngFor="let chart of _charts; let i = index" [(ngGridItem)]="chart.preferences['gridcfg']" (onChangeStop)="onChangeStop(i, $event)">
-            <div class="x_title">
-              <h2>{{chart.name}}</h2>
-              <ul class="nav navbar-right panel_toolbox">
-                <li>
-                  <a class="close-link" (click)="removeChart(chart.name)"><i class="fa fa-close"></i></a>
-                </li>
-              </ul>
-              <div class="clearfix"></div>
-            </div>
-            <div class="x_content" id="wrapper" style="position: relative; width: 100%; height: calc(100%; - 40px) !important;">
+          <div class="x_panel" *ngFor="let chart of _charts; let i = index" [(ngGridItem)]="chart.preferences['gridcfg']" (onChangeStop)="onChangeStop(i, $event)">
+            <div class="handle">
+              <div class="x_title title">
+                <h2>{{chart.name}}</h2>
+                <ul class="nav navbar-right panel_toolbox">
+                  <li>
+                    <a class="close-link" (click)="removeChart(chart.name)"><i class="fa fa-close"></i></a>
+                  </li>
+                </ul>
+                <div class="clearfix"></div>
+              </div>
+              <div class="x_content" id="wrapper" style="position: relative; width: 100%; height: calc(100% - 40px) !important;">
               <svg [attr.id]="chart.id"></svg>
+            </div>
             </div>
           </div>
 
