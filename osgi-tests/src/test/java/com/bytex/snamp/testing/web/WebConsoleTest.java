@@ -42,10 +42,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.*;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -260,7 +257,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void listOfAttributesTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = httpGet("/managedResources/" + FIRST_RESOURCE_NAME + "/attributes", authenticationToken);
+        final JsonNode node = httpGet("/managedResources/" + URLEncoder.encode(FIRST_RESOURCE_NAME, "UTF-8") + "/attributes", authenticationToken);
         assertTrue(node instanceof ArrayNode);
         assertTrue("Unexpected JSON " + node, node.size() > 0);
         for(int i = 0; i < node.size(); i++){
