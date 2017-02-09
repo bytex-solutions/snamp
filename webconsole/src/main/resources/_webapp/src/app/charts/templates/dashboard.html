@@ -152,7 +152,7 @@
   </div>
 </div>
 
-
+<img src="/snamp/assets/img/add.png" *ngIf="!_charts || _charts.length == 0" class="chartMenuImage"/>
 <ul id="chartMenu">
   <li [tooltip]="'Pie chart'" (click)="appendChartClicked('doughnut')"><i class="fa fa-pie-chart" aria-hidden="true"></i></li>
   <li [tooltip]="'Horizontal bar chart'" (click)="appendChartClicked('horizontalBar')"><i class="fa fa-align-left " aria-hidden="true"></i></li>
@@ -173,7 +173,7 @@
 
     <div class="row" style="margin-top: 30px">
 
-      <div class='container col-md-12' [ngGrid]="gridConfig"  style="min-height: 900px;">
+      <div class='container col-md-12' [ngGrid]="gridConfig"  style="min-height: 900px; width: calc(100% - 45px) !important;">
 
           <div class="x_panel" *ngFor="let chart of _charts; let i = index" [(ngGridItem)]="chart.preferences['gridcfg']" (onChangeStop)="onChangeStop(i, $event)">
             <div class="handle">

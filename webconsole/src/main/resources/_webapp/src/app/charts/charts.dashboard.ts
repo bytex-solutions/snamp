@@ -58,8 +58,8 @@ export class Dashboard {
         'margins': [10],
         'draggable': true,
         'resizable': true,
-        'max_cols': 10,
-        'max_rows': 10,
+        'max_cols': 14,
+        'max_rows': 0,
         'visible_cols': 0,
         'visible_rows': 0,
         'min_cols': 1,
@@ -129,13 +129,6 @@ export class Dashboard {
    }
 
    ngOnInit():void {
-      this.route.params
-             .map(params => params['groupName'])
-             .subscribe((gn) => {
-                this.groupName = gn;
-                this._charts = this._chartService.getChartsByGroupName(this.groupName);
-             });
-
         this.components = this.http.get(REST.CHART_COMPONENTS)
             .map((res:Response) => { return <string[]>res.json()})
             .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
@@ -152,12 +145,17 @@ export class Dashboard {
 
    ngAfterViewInit():void {
         var _thisReference = this;
+        this.route.params
+             .map(params => params['groupName'])
+             .subscribe((gn) => {
+                this.groupName = gn;
+                this._charts = this._chartService.getChartsByGroupName(this.groupName);
+                for (let i = 0; i < this._charts.length; i++) {
+                    this._charts[i].draw();
+                 }
+             });
         $(document).ready(function(){
              _thisReference.initWizard();
-             let ch:any = _thisReference._charts;
-             for (let i = 0; i < ch.length; i++) {
-                ch[i].draw();
-             }
         });
    }
 

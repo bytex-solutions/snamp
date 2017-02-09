@@ -28,6 +28,14 @@ select.form-control:not([size]):not([multiple]) {
     cursor: pointer;
 }
 
+.chartMenuImage {
+  position: fixed;
+  right: 80px;
+  top: 50%;
+  margin-top: -9em !important;
+  z-index: 3;
+}
+
 #chartMenu {
   background: #536980;
   color: rgba(255,255,255,0.95);
