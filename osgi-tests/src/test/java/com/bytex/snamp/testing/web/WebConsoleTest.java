@@ -452,7 +452,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final Random rnd = new Random(248284792L);
         while (true) {
             beanMap.values().forEach(bean -> {
-                bean.setInt32(rnd.nextInt(150));
+                bean.setInt32((int)Math.round(Math.abs(rnd.nextGaussian())) * 100);
                 bean.setBigInt(BigInteger.valueOf(1000 * rnd.nextInt(1000)));
                 bean.setFloat(rnd.nextFloat() * 100F);
                 // append new int for third attribute changer pls
