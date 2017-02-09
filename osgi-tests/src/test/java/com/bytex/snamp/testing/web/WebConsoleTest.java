@@ -341,7 +341,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 "      }\n" +
                 "    }\n" +
                 "  } ]\n" +
-                "}", FIRST_RESOURCE_NAME, GROUP_NAME, "3.0", GROUP_NAME, "3.0");
+                "}", FIRST_RESOURCE_NAME, GROUP_NAME, "requestsPerSecond", GROUP_NAME, "requestsPerSecond");
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         httpPut("/charts/settings", authenticationToken, FORMATTER.readTree(dashboardDefinition));
         runWebSocketTest(new EventReceiver(), authenticationToken, events -> {
