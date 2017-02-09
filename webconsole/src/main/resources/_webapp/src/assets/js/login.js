@@ -43,11 +43,12 @@ function showRequest(formData, jqForm, options) {
 // post-submit callback
 function redirect(data)  {
     $('.errorBlock').css("display", "none");
+    console.log("Success!")
     window.location.href = "."
 }
 // error handler
 function invalidCredentials(event, textStatus, error) {
     $('.errorBlock').css("display", "inline-block");
     $('.errorBody').html(error);
-    console.log("Error while login to SNAMP console:", event);
+    console.log("Error while login to SNAMP console:", event, textStatus, error);
 }

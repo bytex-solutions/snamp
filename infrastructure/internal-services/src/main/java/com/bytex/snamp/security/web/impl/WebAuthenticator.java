@@ -75,7 +75,7 @@ public final class WebAuthenticator extends JWTAuthenticator {
         if(m.matches())
             return Response
                     .noContent()
-                    .cookie(new NewCookie(AUTH_COOKIE, jwToken, "/", m.group(),
+                    .cookie(new NewCookie(AUTH_COOKIE, jwToken, "/", m.group(1),
                             "SNAMP JWT authentication token", COOKIE_AGE, security.isSecure()))
                     .build();
         else

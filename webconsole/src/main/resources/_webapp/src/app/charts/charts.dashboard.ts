@@ -264,7 +264,7 @@ export class Dashboard {
                 allowClear: true
             });
             _select.on('change', (e) => {
-                _thisReference.onInstanceSelect($(e.target).val()); // no native actions on the selec2 component
+                _thisReference.onInstanceSelect($(e.target).val()); // no native actions on the selec2 componentс
              });
             _select.fadeIn("fast");
         } else {
