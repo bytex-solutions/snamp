@@ -264,7 +264,7 @@ export class Dashboard {
                 allowClear: true
             });
             _select.on('change', (e) => {
-                _thisReference.onInstanceSelect($(e.target).val());
+                _thisReference.onInstanceSelect($(e.target).val()); // no native actions on the selec2 component
              });
             _select.fadeIn("fast");
         } else {
@@ -284,6 +284,7 @@ export class Dashboard {
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
             _instances, this.selectedMetric);
         this._chartService.newChart(chart);
+        this._charts = this._chartService.getChartsByGroupName(this.groupName);
         $("#addChartModal").modal("hide");
 
          var _thisReference = this;
@@ -300,6 +301,7 @@ export class Dashboard {
 
    	removeChart(chartName:string):void {
    	    this._chartService.removeChart(chartName);
+   	    this._charts = this._chartService.getChartsByGroupName(this.groupName);
    	}
 }
 
