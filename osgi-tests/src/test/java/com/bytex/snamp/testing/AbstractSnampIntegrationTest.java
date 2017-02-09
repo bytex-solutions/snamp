@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
 import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
+import org.ops4j.pax.exam.util.Filter;
 import org.osgi.framework.BundleContext;
 
 import javax.inject.Inject;
@@ -85,6 +86,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     };
 
     @Inject
+    @Filter(timeout = 20_000L)
     private ConfigurationManager configAdmin = null;
 
     protected AbstractSnampIntegrationTest(){

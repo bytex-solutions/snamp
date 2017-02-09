@@ -149,6 +149,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         result.add(bootDelegationPackage("org.bouncycastle*"));
         result.addAll(builder.getFeatures(getClass()));
         result.addAll(builder.getBundles(getClass()));
+        result.add(cleanCaches(true));
         return result.toArray(new Option[result.size()]);
     }
 
