@@ -22,7 +22,7 @@ public class SyntheticNotificationInfo extends AbstractNotificationInfo implemen
     }
 
     public SyntheticNotificationInfo(final String notifType, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
-        this(notifType, Notification.class, "Simple proxy notification", descriptor);
+        this(notifType, Notification.class, descriptor.getDescription("Simple proxy notification"), descriptor);
     }
 
     @Override

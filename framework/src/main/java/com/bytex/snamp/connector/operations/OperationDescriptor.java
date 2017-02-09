@@ -18,7 +18,6 @@ import java.util.Objects;
 
 import static com.bytex.snamp.connector.attributes.AttributeSupport.DESCRIPTION_FIELD;
 import static com.bytex.snamp.connector.operations.OperationSupport.*;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents descriptor of the managed resource operation.
@@ -160,16 +159,15 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
         else return WellKnownType.getType(operationInfo.getReturnType());
     }
 
-    public String getDescription(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(null);
+    public static String getDescription(final Descriptor metadata, final String defval){
+        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(defval);
     }
 
-    public String getDescription(){
-        return getDescription(this);
+    public String getDescription(final String defval){
+        return getDescription(this, defval);
     }
 
-    public final String getDescription(final String defval){
-        final String result = getDescription();
-        return isNullOrEmpty(result) ? defval : result;
+    public String getDescription() {
+        return getDescription(this, "");
     }
 }

@@ -73,7 +73,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                                 final String type,
                                 final int impact,
                                 final OperationDescriptor descriptor) {
-            super(name, description, signature, type, impact, descriptor);
+            super(name, descriptor.getDescription(description), signature, type, impact, descriptor);
             this.descriptor = descriptor;
         }
 
@@ -271,7 +271,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                                        final ObjectName eventOwner,
                                        final NotificationDescriptor descriptor) {
             super(listID,
-                    nativeNotif.getDescription(),
+                    descriptor.getDescription(nativeNotif.getDescription()),
                     descriptor.setFields(nativeNotif.getDescriptor()));
             this.eventOwner = eventOwner;
         }
@@ -589,7 +589,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
                                          AttributeDescriptor metadata,
                                          final Function<MBeanAttributeInfo, OpenType<?>> typeResolver) throws OpenDataException{
             super(attributeName,
-                    nativeAttr.getDescription(),
+                    metadata.getDescription(nativeAttr.getDescription()),
                     detectAttributeType(nativeAttr, typeResolver),
                     nativeAttr.isReadable(),
                     isWritable,

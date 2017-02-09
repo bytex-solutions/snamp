@@ -78,7 +78,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public final String getDescription(){
-        return getDescription(this);
+        return getDescription(this, "");
     }
 
     public final String getDescription(final String defval){
@@ -138,12 +138,12 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return getReadWriteTimeout(metadata.getDescriptor());
     }
 
-    public String getDescription(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(null);
+    public static String getDescription(final Descriptor metadata, final String defVal){
+        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(defVal);
     }
 
-    public String getDescription(final MBeanAttributeInfo metadata) {
-        return metadata.getDescription();
+    public static String getDescription(final MBeanAttributeInfo metadata) {
+        return getDescription(metadata.getDescriptor(), metadata.getDescription());
     }
 
     public static OpenType<?> getOpenType(final Descriptor metadata){

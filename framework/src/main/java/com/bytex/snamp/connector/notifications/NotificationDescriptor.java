@@ -89,19 +89,19 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public final String getDescription(){
-        return getDescription(this);
+        return getDescription(this, "");
     }
 
     public final String getDescription(final String defval){
-        return DescriptorUtils.getField(this, DESCRIPTION_FIELD, Objects::toString).orElse(defval);
+        return getDescription(this, defval);
     }
 
-    public static String getDescription(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(null);
+    public static String getDescription(final Descriptor metadata, final String defval){
+        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(defval);
     }
 
     public static String getDescription(final MBeanNotificationInfo metadata){
-        return metadata.getDescription();
+        return getDescription(metadata.getDescriptor(), metadata.getDescription());
     }
 
     public static Severity getSeverity(final Descriptor metadata) {
