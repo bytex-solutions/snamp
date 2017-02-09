@@ -89,9 +89,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     private static final ObjectMapper FORMATTER = new ObjectMapper();
-    private static final String TEST_RESOURCE_NAME = "myResource";
 
-    private static final String GROUP_NAME = "myGroup";
+    private static final String GROUP_NAME = "web-server";
 
     private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
@@ -103,13 +102,13 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     private static final String TEST_PARAMETER = "testParameter";
 
     private static final String FIRST_BEAN_NAME = BEAN_NAME + "_1";
-    private static final String FIRST_RESOURCE_NAME = TEST_RESOURCE_NAME + "_1";
+    private static final String FIRST_RESOURCE_NAME = "node#1";
 
     private static final String SECOND_BEAN_NAME = BEAN_NAME + "_2";
-    private static final String SECOND_RESOURCE_NAME = TEST_RESOURCE_NAME + "_2";
+    private static final String SECOND_RESOURCE_NAME = "node#2";
 
     private static final String THIRD_BEAN_NAME = BEAN_NAME + "_3";
-    private static final String THIRD_RESOURCE_NAME = TEST_RESOURCE_NAME + "_3";
+    private static final String THIRD_RESOURCE_NAME = "node#3";
 
     private static final String FOURTH_RESOURCE_NAME = "iOS";
     private static final String GROUP1_NAME = "mobileApp";
@@ -150,7 +149,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,

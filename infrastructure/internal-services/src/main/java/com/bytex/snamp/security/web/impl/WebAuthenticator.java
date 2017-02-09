@@ -71,7 +71,7 @@ public final class WebAuthenticator extends JWTAuthenticator {
         }
         getLogger().fine(() -> String.format("Successful authentication of user %s", userName));
         final int COOKIE_AGE = 30 * 24 * 60 * 60;   //30 days
-        Matcher m = HOST_NAME_PATTERN.matcher(hostName);
+        final Matcher m = HOST_NAME_PATTERN.matcher(hostName);
         if(m.matches())
             return Response
                     .noContent()
