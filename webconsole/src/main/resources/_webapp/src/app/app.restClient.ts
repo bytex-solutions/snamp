@@ -78,23 +78,23 @@ export class REST {
     public static AVAILABLE_COMPONENT_LIST = REST.ROOT_PATH + "/components";
 
     public static AVAILABLE_ENTITIES_BY_TYPE(entityType:string):string {
-        return REST.ROOT_PATH + "/" + entityType + "/list";
+        return REST.ROOT_PATH + "/" + encodeURIComponent(entityType) + "/list";
     }
 
     public static ENABLE_COMPONENT(componentClass:string, componentType:string):string {
-        return REST.ROOT_PATH + "/" + componentClass + "/" + componentType + "/enable";
+        return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/enable";
     }
 
     public static DISABLE_COMPONENT(componentClass:string, componentType:string):string {
-        return REST.ROOT_PATH + "/" + componentClass + "/" + componentType + "/disable";
+        return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/disable";
     }
 
     public static GATEWAY_BY_NAME(name:string):string {
-        return REST.GATEWAY_CONFIG + "/" + name;
+        return REST.GATEWAY_CONFIG + "/" + encodeURIComponent(name);
     }
 
     public static RESOURCE_BY_NAME(name:string):string {
-        return REST.RESOURCE_CONFIG + "/" + name;
+        return REST.RESOURCE_CONFIG + "/" + encodeURIComponent(name);
     }
 
     public static ENTITY
@@ -108,19 +108,19 @@ export class REST {
     }
 
     public static ENTITY_PARAMETERS_DESCRIPTION(entityClass:string, entityType:string):string {
-        return REST.ROOT_PATH + "/" + entityClass + "/" + entityType + "/configuration";
+        return REST.ROOT_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityType) + "/configuration";
     }
 
     public static SUBENTITY_PARAMETERS_DESCRIPTION(entityType:string, entityClass:string ):string {
-        return REST.ROOT_PATH + "/resource/" + entityType + "/" + entityClass + "/configuration";
+        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/configuration";
     }
 
     public static BINDINGS(gatewayName:string, bindingEntityType:string):string {
-        return REST.GATEWAY_BY_NAME(gatewayName) + "/" + bindingEntityType + "/bindings";
+        return REST.GATEWAY_BY_NAME(gatewayName) + "/" + encodeURIComponent(bindingEntityType) + "/bindings";
     }
 
     public static ENTITY_PARAMETERS(entityClass:string, entityName:string, key:string):string {
-        return REST.CFG_PATH + "/" + entityClass + "/" + entityName + "/parameters/" + key;
+        return REST.CFG_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityName) + "/parameters/" + encodeURIComponent(key);
     }
 
     public static RESOURCE_CONNECTION_STRING(entityName:string):string {
@@ -134,11 +134,11 @@ export class REST {
     }
 
     public static RESOURCE_ENTITY_BY_TYPE_AND_NAME(entityType:string, name:string, entityName:string):string {
-        return REST.RESOURCE_BY_NAME(name) + "/" + entityType + "/" + entityName;
+        return REST.RESOURCE_BY_NAME(name) + "/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityName);
     }
 
     public static RESOURCE_SUBENTITY(resourceName:string, entityType:string):string {
-        return REST.ROOT_PATH + "/resource/" + resourceName + "/" + entityType + "/configuration";
+        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/configuration";
     }
 
     // web console api (chart related and others)
@@ -147,7 +147,7 @@ export class REST {
     public static CHART_COMPONENTS:string = "/snamp/web/api/managedResources/components";
 
     public static CHART_INSTANCES(componentName:string):string {
-        return "/snamp/web/api/managedResources?component=" + componentName;
+        return "/snamp/web/api/managedResources?component=" + encodeURIComponent(componentName);
     }
 
     public static CHART_METRICS_BY_COMPONENT(componentName:string):string {

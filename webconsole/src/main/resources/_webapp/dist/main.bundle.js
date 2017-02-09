@@ -55549,19 +55549,19 @@ var REST = (function () {
     function REST() {
     }
     REST.AVAILABLE_ENTITIES_BY_TYPE = function (entityType) {
-        return REST.ROOT_PATH + "/" + entityType + "/list";
+        return REST.ROOT_PATH + "/" + encodeURIComponent(entityType) + "/list";
     };
     REST.ENABLE_COMPONENT = function (componentClass, componentType) {
-        return REST.ROOT_PATH + "/" + componentClass + "/" + componentType + "/enable";
+        return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/enable";
     };
     REST.DISABLE_COMPONENT = function (componentClass, componentType) {
-        return REST.ROOT_PATH + "/" + componentClass + "/" + componentType + "/disable";
+        return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/disable";
     };
     REST.GATEWAY_BY_NAME = function (name) {
-        return REST.GATEWAY_CONFIG + "/" + name;
+        return REST.GATEWAY_CONFIG + "/" + encodeURIComponent(name);
     };
     REST.RESOURCE_BY_NAME = function (name) {
-        return REST.RESOURCE_CONFIG + "/" + name;
+        return REST.RESOURCE_CONFIG + "/" + encodeURIComponent(name);
     };
     REST.GATEWAY_TYPE = function (name) {
         return REST.GATEWAY_BY_NAME(name) + "/type";
@@ -55570,16 +55570,16 @@ var REST = (function () {
         return REST.RESOURCE_BY_NAME(name) + "/type";
     };
     REST.ENTITY_PARAMETERS_DESCRIPTION = function (entityClass, entityType) {
-        return REST.ROOT_PATH + "/" + entityClass + "/" + entityType + "/configuration";
+        return REST.ROOT_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityType) + "/configuration";
     };
     REST.SUBENTITY_PARAMETERS_DESCRIPTION = function (entityType, entityClass) {
-        return REST.ROOT_PATH + "/resource/" + entityType + "/" + entityClass + "/configuration";
+        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/configuration";
     };
     REST.BINDINGS = function (gatewayName, bindingEntityType) {
-        return REST.GATEWAY_BY_NAME(gatewayName) + "/" + bindingEntityType + "/bindings";
+        return REST.GATEWAY_BY_NAME(gatewayName) + "/" + encodeURIComponent(bindingEntityType) + "/bindings";
     };
     REST.ENTITY_PARAMETERS = function (entityClass, entityName, key) {
-        return REST.CFG_PATH + "/" + entityClass + "/" + entityName + "/parameters/" + key;
+        return REST.CFG_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityName) + "/parameters/" + encodeURIComponent(key);
     };
     REST.RESOURCE_CONNECTION_STRING = function (entityName) {
         return REST.RESOURCE_BY_NAME(entityName) + "/connectionString";
@@ -55588,13 +55588,13 @@ var REST = (function () {
         return REST.RESOURCE_BY_NAME(name) + "/group";
     };
     REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME = function (entityType, name, entityName) {
-        return REST.RESOURCE_BY_NAME(name) + "/" + entityType + "/" + entityName;
+        return REST.RESOURCE_BY_NAME(name) + "/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityName);
     };
     REST.RESOURCE_SUBENTITY = function (resourceName, entityType) {
-        return REST.ROOT_PATH + "/resource/" + resourceName + "/" + entityType + "/configuration";
+        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/configuration";
     };
     REST.CHART_INSTANCES = function (componentName) {
-        return "/snamp/web/api/managedResources?component=" + componentName;
+        return "/snamp/web/api/managedResources?component=" + encodeURIComponent(componentName);
     };
     REST.CHART_METRICS_BY_COMPONENT = function (componentName) {
         return "/snamp/web/api/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";

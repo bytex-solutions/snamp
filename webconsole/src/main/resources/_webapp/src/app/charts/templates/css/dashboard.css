@@ -126,4 +126,5 @@ select.form-control:not([size]):not([multiple]) {
 
 .x_title h2 {
     font-size: inherit !important;
+    color: black;
 }
