@@ -23,7 +23,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
 
     constructor() {
         super();
-        this.setSizeX(2);
+        this.setSizeX(3);
         this.setSizeY(3);
         this._svgReadyData = this.prepareDatasets();
     }

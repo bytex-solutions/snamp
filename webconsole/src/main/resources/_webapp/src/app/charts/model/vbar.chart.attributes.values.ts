@@ -23,6 +23,8 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
 
     constructor() {
         super();
+        this.setSizeX(3);
+        this.setSizeY(3);
         this._svgReadyData = this.prepareDatasets();
     }
 

@@ -125,13 +125,12 @@
                 <div class="item form-group col-md-offset-4">
                   <label
                           class="control-label col-md-3 col-sm-3 col-xs-12"
-                          style="margin-top: 7px;">
+                          style="margin-top: 7px;"
+                          for="chartNameInput">
                     Chart name <span class="required">*</span>
                   </label>
                   <div class="col-md-6 col-sm-6 col-xs-12">
-                    <inline-edit [(ngModel)]="chartName"
-                                 [ngModelOptions]="{standalone: true}">
-                    </inline-edit>
+                    <input type="text" class="form-control" id="chartNameInput" placeholder="Chart name" [(ngModel)]="chartName">
                   </div>
                 </div>
               </div>

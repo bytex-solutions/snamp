@@ -17,7 +17,8 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
 
     constructor() {
         super();
-        this.preferences["xsize"] = 2;
+        this.setSizeX(2);
+        this.setSizeY(4);
     }
 
     public newValue(_data:ChartData):void {

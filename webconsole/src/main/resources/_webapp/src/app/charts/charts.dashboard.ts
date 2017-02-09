@@ -125,7 +125,7 @@ export class Dashboard {
 
    private updateChartName():void {
         this.chartName = this.selectedChartType + "." +
-            this.selectedComponent + "." + ((this.selectedMetric != undefined) ? this.selectedMetric.name : "");
+            this.selectedComponent + "." + ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_" + this._charts.length;
    }
 
    ngOnInit():void {

@@ -56167,6 +56167,8 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         this.type = abstract_chart_1.AbstractChart.HBAR;
         this._chartObject = undefined;
         this._svgReadyData = undefined;
+        this.setSizeX(3);
+        this.setSizeY(3);
         this._svgReadyData = this.prepareDatasets();
     }
     HorizontalBarChartOfAttributeValues.prototype.createDefaultAxisX = function () {
@@ -56556,7 +56558,8 @@ var PanelOfAttributeValues = (function (_super) {
     function PanelOfAttributeValues() {
         _super.call(this);
         this.type = abstract_chart_1.AbstractChart.PANEL;
-        this.preferences["xsize"] = 2;
+        this.setSizeX(2);
+        this.setSizeY(4);
     }
     PanelOfAttributeValues.prototype.createDefaultAxisX = function () {
         return new instance_axis_1.InstanceNameAxis();
@@ -56641,7 +56644,7 @@ var PieChartOfAttributeValues = (function (_super) {
         this.type = abstract_chart_1.AbstractChart.PIE;
         this._chartObject = undefined;
         this._svgReadyData = undefined;
-        this.setSizeX(2);
+        this.setSizeX(3);
         this.setSizeY(3);
         this._svgReadyData = this.prepareDatasets();
     }
@@ -56746,6 +56749,8 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
         this.type = abstract_chart_1.AbstractChart.VBAR;
         this._chartObject = undefined;
         this._svgReadyData = undefined;
+        this.setSizeX(3);
+        this.setSizeY(3);
         this._svgReadyData = this.prepareDatasets();
     }
     VerticalBarChartOfAttributeValues.prototype.createDefaultAxisX = function () {
