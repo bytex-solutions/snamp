@@ -9,6 +9,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Roman Sakno
@@ -17,7 +19,7 @@ import java.util.logging.Logger;
  */
 @Path(WebAuthenticator.PATH)
 public final class WebAuthenticator extends JWTAuthenticator {
-    //private static final Pattern HOST_NAME_PATTERN = Pattern.compile("(?<hn>([\\p{IsAlphabetic}\\d.\\-;@]+)|(\\[.+]))(:[0-9]+)?");
+    private static final Pattern HOST_NAME_PATTERN = Pattern.compile("(?<hn>([\\p{IsAlphabetic}\\d.\\-;@]+)|(\\[.+]))(:[0-9]+)?");
 
     /**
      * Represents URL path to this service.
@@ -69,11 +71,15 @@ public final class WebAuthenticator extends JWTAuthenticator {
         }
         getLogger().fine(() -> String.format("Successful authentication of user %s", userName));
         final int COOKIE_AGE = 30 * 24 * 60 * 60;   //30 days
-        return Response
-                .noContent()
-                .cookie(new NewCookie(AUTH_COOKIE, jwToken, "/", hostName,
-                        "SNAMP JWT authentication token", COOKIE_AGE, security.isSecure()))
-                .build();
+        Matcher m = HOST_NAME_PATTERN.matcher(hostName);
+        if(m.matches())
+            return Response
+                    .noContent()
+                    .cookie(new NewCookie(AUTH_COOKIE, jwToken, "/", m.group(),
+                            "SNAMP JWT authentication token", COOKIE_AGE, security.isSecure()))
+                    .build();
+        else
+            throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Invalid host name " + hostName).build());
     }
 
     /**

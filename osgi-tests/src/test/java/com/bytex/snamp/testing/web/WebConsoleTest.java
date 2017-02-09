@@ -456,8 +456,9 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final Random rnd = new Random(248284792L);
         while (true) {
             beanMap.values().forEach(bean -> {
-                bean.setInt32(rnd.nextInt(100));
-                bean.setBigInt(BigInteger.valueOf(10 + rnd.nextInt(100)));
+                bean.setInt32(rnd.nextInt(150));
+                bean.setBigInt(BigInteger.valueOf(1000 * rnd.nextInt(1000)));
+                bean.setFloat(rnd.nextFloat() * 100F);
                 // append new int for third attribute changer pls
             });
             Thread.sleep(500L);
@@ -626,38 +627,20 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAlternativeName("string");
 
-        attribute = attributes.getOrAdd("2.0");
+        attribute = attributes.getOrAdd("online");
         attribute.setAlternativeName("boolean");
 
-        attribute = attributes.getOrAdd("3.0");
+        attribute = attributes.getOrAdd("requestsPerSecond");
+        attribute.setUnitOfMeasurement("requests");
         attribute.setAlternativeName("int32");
 
-        attribute = attributes.getOrAdd("4.0");
+        attribute = attributes.getOrAdd("usedMemory");
+        attribute.setUnitOfMeasurement("MBytes");
         attribute.setAlternativeName("bigint");
 
-        attribute = attributes.getOrAdd("5.1");
-        attribute.setAlternativeName("array");
-
-        attribute = attributes.getOrAdd("6.1");
-        attribute.setAlternativeName("dictionary");
-
-        attribute = attributes.getOrAdd("7.1");
-        attribute.setAlternativeName("table");
-
-        attribute = attributes.getOrAdd("8.0");
+        attribute = attributes.getOrAdd("CPU");
+        attribute.setUnitOfMeasurement("%");
         attribute.setAlternativeName("float");
-
-        attribute = attributes.getOrAdd("9.0");
-        attribute.setAlternativeName("date");
-        attribute.put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-
-        attribute = attributes.getOrAdd("10.0");
-        attribute.setAlternativeName("date");
-        attribute.put("displayFormat", "rfc1903-human-readable");
-
-        attribute = attributes.getOrAdd("11.0");
-        attribute.setAlternativeName("date");
-        attribute.put("displayFormat", "rfc1903");
     }
 
     private static void fillJmxEvents(final EntityMap<? extends EventConfiguration> events) {
