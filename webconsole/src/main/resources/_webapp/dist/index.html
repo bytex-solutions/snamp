@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>SNAMP webconsole</title>
+
+  <meta name="description" content="SNAMP webconsole">
+
+  
+  <!-- Configured Head Tags  -->
+  <link rel="apple-touch-icon" sizes="57x57" href="/assets/icon/apple-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="/assets/icon/apple-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="/assets/icon/apple-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="/assets/icon/apple-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="/assets/icon/apple-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="/assets/icon/apple-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="/assets/icon/apple-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="/assets/icon/apple-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="/assets/icon/apple-icon-180x180.png">
+	<link rel="icon" type="image/png" sizes="192x192" href="/assets/icon/android-icon-192x192.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/assets/icon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="/assets/icon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/assets/icon/favicon-16x16.png">
+	<link rel="manifest" href="/assets/manifest.json">
+	<meta name="msapplication-TileColor" content="#00bcd4">
+	<meta name="msapplication-TileImage" content="/assets/icon/ms-icon-144x144.png">
+	<meta name="theme-color" content="#00bcd4">
+  
+
+  <!-- base url -->
+  <base href="/snamp/">
+ <!-- <script src="assets/vendors/tether/tether.min.js"></script>-->
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/css/select2.css" rel="stylesheet">
+  <link href="assets/css/smart_wizard.css" rel="stylesheet">
+  <link href="assets/css/smart_wizard_theme_arrows.css" rel="stylesheet">
+  <link href="assets/css/pnotify.css" rel="stylesheet">
+  <link href="assets/css/pnotify.buttons.css" rel="stylesheet">
+  <link href="assets/css/pnotify.brighttheme.css" rel="stylesheet">
+  <link href="assets/css/nv.d3.css" rel="stylesheet">
+  <style>
+    #overlay {
+        background: #1a1a1a;
+        opacity: 1;
+        color: #000000;
+        position: fixed;
+        height: 100%;
+        width: 100%;
+        z-index: 5000;
+        top: 0;
+        left: 0;
+        float: left;
+        text-align: center;
+        padding-top: 17%;
+    }
+  </style>
+</head>
+
+<body class="nav-md">
+
+  <div id="overlay">
+    <img src="assets/img/giphy.gif" alt="Loading">
+  </div>
+
+  <div class="container body">
+    <div class="main_container">
+    <app></app>
+
+    
+
+    </div>
+  </div>
+  <script>window.__theme = 'bs4';</script>
+  <script src="assets/js/prettify.min.js"></script>
+<script type="text/javascript" src="polyfills.bundle.js"></script><script type="text/javascript" src="vendor.bundle.js"></script><script type="text/javascript" src="main.bundle.js"></script></body>
+</html>
