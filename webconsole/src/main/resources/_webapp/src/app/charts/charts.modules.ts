@@ -36,7 +36,7 @@ const PROVIDERS:any =  [
           ]
        }])
     ],
-    declarations: [ Dashboard, TemplateView ],
+    declarations: [ Dashboard, EmptyDashboard, TemplateView ],
     providers:    PROVIDERS
 })
 export class DashboardModule {}

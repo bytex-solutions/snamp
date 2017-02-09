@@ -66,7 +66,6 @@ export class Sidebar {
              .then(dialog => dialog.result)
              .then(result => {
                 console.log("result",result);
-                this.groupNames.push(result);
                 this._chartService.addNewGroup(result);
                 this._router.navigateByUrl('/charts/' + result);
              })

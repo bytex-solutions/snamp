@@ -29,7 +29,7 @@
               <li *ngFor="let name of groupNames"
                   routerLinkActive="activeLi">
                 <a [routerLink]="['charts', name]" routerLinkActive="active">
-                  {{_view}}
+                  {{name}}
                 </a>
               </li>
               <li><a href="#" (click)="newDashboard()">+ New dashboard</a></li>
