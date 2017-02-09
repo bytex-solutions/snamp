@@ -2,41 +2,41 @@ import { Component, ViewEncapsulation } from '@angular/core';
 import { ViewService } from '../app.viewService';
 import { ChartService } from '../app.chartService';
 import { Observable } from 'rxjs/Observable';
-
+import { Router } from '@angular/router';
 import 'rxjs/add/observable/of';
-
 import { overlayConfigFactory } from "angular2-modal";
 import {
   VEXBuiltInThemes,
   Modal,
-  DialogPreset,
-  DialogFormModal,
-  DialogPresetBuilder,
-  VEXModalContext,
-  VexModalModule,
-  providers
+  DialogFormModal
 } from 'angular2-modal/plugins/vex';
 
 @Component({
   selector: 'side-bar',
   styleUrls: [ '../app.style.css', './vex.css'],
   templateUrl: './sidebar.component.html',
-  providers: providers,
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  entryComponents: [
+    DialogFormModal
+  ]
 })
 
 export class Sidebar {
-    constructor(private _viewService:ViewService, private _chartService:ChartService, private modal: Modal) {}
+    constructor(private _viewService:ViewService, private _chartService:ChartService,
+        private modal: Modal, private _router: Router) {}
 
     private views:string[] = [];
-    private groupNames:Observable<string[]>;
+    private groupNames:string[] = [];
 
     ngOnInit() {
         this.views = [];//this._viewService.getViewNames();
+
+        this._chartService.getGroups().subscribe((data:string[]) => {
+            this.groupNames = data;
+        });
     }
 
     ngAfterViewInit() {
-        this.groupNames = this._chartService.getGroups();
     }
 
     anchorClicked(event: MouseEvent) {
@@ -66,6 +66,9 @@ export class Sidebar {
              .then(dialog => dialog.result)
              .then(result => {
                 console.log("result",result);
+                this.groupNames.push(result);
+                this._chartService.addNewGroup(result);
+                this._router.navigateByUrl('/charts/' + result);
              })
     }
 }

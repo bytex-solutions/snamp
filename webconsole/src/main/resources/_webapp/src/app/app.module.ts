@@ -38,13 +38,20 @@ import { TooltipModule } from 'ng2-tooltip';
 
 import { MomentModule } from 'angular2-moment';
 
+import {
+  VexModalModule,
+  providers
+} from 'angular2-modal/plugins/vex';
+
+
 // Application wide providers
 const APP_PROVIDERS = [
   ApiClient,
   SnampLogService,
   ChartService,
   CookieService,
-  ViewService
+  ViewService,
+  providers
 ];
 
 
@@ -65,6 +72,7 @@ const APP_PROVIDERS = [
     ModalModule.forRoot(),
     TooltipModule,
     FormsModule,
+    VexModalModule,
     HttpModule,
     MomentModule,
     LocalStorageModule.withConfig({
