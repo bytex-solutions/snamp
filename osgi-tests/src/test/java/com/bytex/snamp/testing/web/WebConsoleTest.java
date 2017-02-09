@@ -624,18 +624,22 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         attribute.setAlternativeName("string");
 
         attribute = attributes.getOrAdd("online");
+        attribute.setDescription("Is service online?");
         attribute.setAlternativeName("boolean");
 
         attribute = attributes.getOrAdd("requestsPerSecond");
         attribute.setUnitOfMeasurement("requests");
+        attribute.setDescription("Number of requests per second handled by Web Server");
         attribute.setAlternativeName("int32");
 
         attribute = attributes.getOrAdd("usedMemory");
         attribute.setUnitOfMeasurement("MBytes");
+        attribute.setDescription("Used amount of memory, in megabytes");
         attribute.setAlternativeName("bigint");
 
         attribute = attributes.getOrAdd("CPU");
         attribute.setUnitOfMeasurement("%");
+        attribute.setDescription("CPU utilization");
         attribute.setAlternativeName("float");
     }
 
