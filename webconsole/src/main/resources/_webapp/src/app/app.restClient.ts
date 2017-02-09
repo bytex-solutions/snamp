@@ -151,11 +151,11 @@ export class REST {
     }
 
     public static CHART_METRICS_BY_COMPONENT(componentName:string):string {
-        return "/snamp/web/api/managedResources/components/" + componentName + "/attributes";
+        return "/snamp/web/api/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";
     }
 
     public static CHART_METRICS_BY_INSTANCE(instanceName:string):string {
-        return "/snamp/web/api/managedResources/" + instanceName + "/attributes";
+        return "/snamp/web/api/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
     }
 
     // web console api (view related and others)

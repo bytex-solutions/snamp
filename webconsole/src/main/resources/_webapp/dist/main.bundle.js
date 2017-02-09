@@ -55597,10 +55597,10 @@ var REST = (function () {
         return "/snamp/web/api/managedResources?component=" + componentName;
     };
     REST.CHART_METRICS_BY_COMPONENT = function (componentName) {
-        return "/snamp/web/api/managedResources/components/" + componentName + "/attributes";
+        return "/snamp/web/api/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";
     };
     REST.CHART_METRICS_BY_INSTANCE = function (instanceName) {
-        return "/snamp/web/api/managedResources/" + instanceName + "/attributes";
+        return "/snamp/web/api/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
     };
     REST.ROOT_PATH = "/snamp/management";
     REST.CFG_PATH = REST.ROOT_PATH + "/configuration";
