@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+
 import javax.management.MBeanNotificationInfo;
 import java.util.Objects;
 
@@ -13,7 +15,7 @@ final class CompositeNotification extends MBeanNotificationInfo implements Compo
     private final String connectorType;
 
     CompositeNotification(final String connectorType, final MBeanNotificationInfo info) {
-        super(info.getNotifTypes(), info.getName(), info.getDescription(), info.getDescriptor());
+        super(info.getNotifTypes(), info.getName(), NotificationDescriptor.getDescription(info), info.getDescriptor());
         this.connectorType = Objects.requireNonNull(connectorType);
     }
 

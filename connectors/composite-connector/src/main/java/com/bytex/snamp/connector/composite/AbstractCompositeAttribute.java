@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+
 import javax.management.AttributeNotFoundException;
 import javax.management.Descriptor;
 import javax.management.MBeanAttributeInfo;
@@ -19,7 +21,7 @@ abstract class AbstractCompositeAttribute extends MBeanAttributeInfo {
                                final boolean isWritable,
                                final boolean isIs,
                                final Descriptor descriptor){
-        super(name, type, description, isReadable, isWritable, isIs, descriptor);
+        super(name, type, AttributeDescriptor.getDescription(descriptor, description), isReadable, isWritable, isIs, descriptor);
     }
 
     static AttributeNotFoundException attributeNotFound(final String connectorType, final String attributeName) {
