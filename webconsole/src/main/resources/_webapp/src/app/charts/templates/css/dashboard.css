@@ -78,14 +78,6 @@ select.form-control:not([size]):not([multiple]) {
     font-size: 17px !important;
 }
 
-.handle {
-	width: 100%;
-	height: 100%;
-	color: rgba(255,255,255,0.8);
-	padding: 15px;
-	box-sizing: border-box;
-}
-
 .grid {
 	transform-origin: top center;
 	transition: transform 0.5s;
@@ -134,4 +126,11 @@ select.form-control:not([size]):not([multiple]) {
 .x_title h2 {
     font-size: inherit !important;
     color: black;
+}
+
+.x_title {
+    border-bottom: 2px solid #E6E9ED;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+    font-style: italic;
 }

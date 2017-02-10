@@ -193,8 +193,8 @@
       <div class='container col-md-12' [ngGrid]="gridConfig"  style="min-height: 900px; width: calc(100% - 45px) !important;">
 
           <div class="x_panel" *ngFor="let chart of _charts; let i = index" [(ngGridItem)]="chart.preferences['gridcfg']" (onChangeStop)="onChangeStop(i, $event)">
-            <div class="handle">
-              <div class="x_title title">
+
+              <div class="x_title title handle">
                 <h2>{{chart.name}}</h2>
                 <ul class="nav navbar-right panel_toolbox">
                   <li>
@@ -203,11 +203,11 @@
                 </ul>
                 <div class="clearfix"></div>
               </div>
-              <div class="x_content" id="wrapper" style="position: relative; width: 100%; height: calc(100% - 40px) !important;">
-              <svg [attr.id]="chart.id"></svg>
+              <div class="x_content" id="wrapper" style="position: relative; width: 100%; height: calc(100% - 10px) !important;">
+                <svg [attr.id]="chart.id"></svg>
+              </div>
             </div>
-            </div>
-          </div>
+
 
       </div>
     </div>
