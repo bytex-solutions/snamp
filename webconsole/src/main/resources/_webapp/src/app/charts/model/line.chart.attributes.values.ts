@@ -82,7 +82,8 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
           chart.xScale(d3.time.scale());
 
           chart.yAxis
-              .tickFormat(d3.format('d'));
+              .tickFormat(d3.format('d'))
+              .axisLabel((<AttributeValueAxis>_thisReference.getAxisY()).sourceAttribute.unitOfMeasurement);
 
           chart.x2Axis.tickFormat(function (d) { return ''; });
 

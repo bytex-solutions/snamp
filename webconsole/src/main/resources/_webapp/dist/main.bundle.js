@@ -56367,7 +56367,8 @@ var LineChartOfAttributeValues = (function (_super) {
             });
             chart.xScale(d3.time.scale());
             chart.yAxis
-                .tickFormat(d3.format('d'));
+                .tickFormat(d3.format('d'))
+                .axisLabel(_thisReference.getAxisY().sourceAttribute.unitOfMeasurement);
             chart.x2Axis.tickFormat(function (d) { return ''; });
             d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
                 .transition().call(chart);
