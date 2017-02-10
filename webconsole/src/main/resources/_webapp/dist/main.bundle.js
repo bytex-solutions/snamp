@@ -54890,10 +54890,12 @@ __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
 __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
 __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
+var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var ChartService = (function () {
-    function ChartService(localStorageService, _http) {
+    function ChartService(localStorageService, _http, _router) {
         this.localStorageService = localStorageService;
         this._http = _http;
+        this._router = _router;
         this.MAX_SIZE = 10000;
         this.SPLICE_COUNT = 30; // h  ow many elements will we delete from the end of the array
         this.RECENT_COUNT = 15; // default count of the recent message
@@ -54947,7 +54949,6 @@ var ChartService = (function () {
                     _this.chartSubjects[_currentChart.name] = new Subject_1.Subject();
                     // append the existent chart data from LC to chart from the backend
                     if (_chartData != undefined && _chartData[_currentChart.name] != undefined) {
-                        _currentChart.chartData = _chartData[_currentChart.name];
                     }
                     _currentChart.subscribeToSubject(_this.chartSubjects[_currentChart.name]);
                     _this._dashboard.charts.push(_currentChart);
@@ -55073,10 +55074,10 @@ var ChartService = (function () {
     };
     ChartService = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object, (typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object, (typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object, (typeof (_c = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _c) || Object])
     ], ChartService);
     return ChartService;
-    var _a, _b;
+    var _a, _b, _c;
 }());
 exports.ChartService = ChartService;
 
@@ -55903,10 +55904,10 @@ exports.ChartOfAttributeValues = ChartOfAttributeValues;
 /***/ },
 
 /***/ "./src/app/charts/model/abstract.chart.ts":
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
 var AbstractChart = (function () {
     function AbstractChart() {
         this.preferences = {};
@@ -55947,7 +55948,9 @@ var AbstractChart = (function () {
     AbstractChart.prototype.subscribeToSubject = function (_obs) {
         var _this = this;
         _obs.subscribe(function (data) {
-            _this.newValue(data);
+            if ($('#' + _this.id).length) {
+                _this.newValue(data); // if the chart is visible - update
+            }
         });
     };
     AbstractChart.VBAR = "verticalBarChartOfAttributeValues";
@@ -55978,6 +55981,7 @@ var GUID = (function () {
     return GUID;
 }());
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -56167,7 +56171,7 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         this.type = abstract_chart_1.AbstractChart.HBAR;
         this._chartObject = undefined;
         this._svgReadyData = undefined;
-        this.setSizeX(3);
+        this.setSizeX(6);
         this.setSizeY(3);
         this._svgReadyData = this.prepareDatasets();
     }
@@ -58291,7 +58295,7 @@ __export(__webpack_require__("./src/app/app.module.ts"));
 /***/ "./src/app/menu/sidebar.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <!-- menu profile quick info -->\r\n    <div class=\"profile\">\r\n      <div class=\"profile_pic\">\r\n        <img src=\"assets/img/anyUser.png\" alt=\"...\" class=\"img-circle profile_img\">\r\n      </div>\r\n      <div class=\"profile_info\">\r\n        <span>Welcome,</span>\r\n        <h2><username></username></h2>\r\n      </div>\r\n    </div>\r\n    <!-- /menu profile quick info -->\r\n\r\n    <br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a href=\"#\" (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let _view of views\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n      <div class=\"menu_section\">\r\n        <h3>Live On</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"additionalli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-bug\"></i> Additional Pages <span id=\"additionalchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li><a href=\"e_commerce.html\">E-commerce</a></li>\r\n              <li><a href=\"projects.html\">Projects</a></li>\r\n              <li><a href=\"project_detail.html\">Project Detail</a></li>\r\n              <li><a href=\"contacts.html\">Contacts</a></li>\r\n              <li><a href=\"profile.html\">Profile</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"extrasli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-windows\"></i> Extras <span id=\"extraschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li><a href=\"page_403.html\">403 Error</a></li>\r\n              <li><a href=\"page_404.html\">404 Error</a></li>\r\n              <li><a href=\"page_500.html\">500 Error</a></li>\r\n              <li><a href=\"plain_page.html\">Plain Page</a></li>\r\n              <li><a href=\"login.html\">Login Page</a></li>\r\n              <li><a href=\"pricing_tables.html\">Pricing Tables</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"multilevelli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-sitemap\"></i> Multilevel Menu <span id=\"multilevelchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n                <li><a href=\"#level1_1\">Level One</a>\r\n                <li><a>Level One<span class=\"fa fa-chevron-down\"></span></a>\r\n                  <ul class=\"nav child_menu\">\r\n                    <li class=\"sub_menu\"><a href=\"level2.html\">Level Two</a>\r\n                    </li>\r\n                    <li><a href=\"#level2_1\">Level Two</a>\r\n                    </li>\r\n                    <li><a href=\"#level2_2\">Level Two</a>\r\n                    </li>\r\n                  </ul>\r\n                </li>\r\n                <li><a href=\"#level1_2\">Level One</a>\r\n                </li>\r\n            </ul>\r\n          </li>\r\n          <li><a href=\"javascript:void(0)\"><i class=\"fa fa-laptop\"></i> Landing Page <span class=\"label label-success pull-right\">Coming Soon</span></a></li>\r\n        </ul>\r\n      </div>\r\n\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <!-- menu profile quick info -->\r\n    <div class=\"profile\">\r\n      <div class=\"profile_pic\">\r\n        <img src=\"assets/img/anyUser.png\" alt=\"...\" class=\"img-circle profile_img\">\r\n      </div>\r\n      <div class=\"profile_info\">\r\n        <span>Welcome,</span>\r\n        <h2><username></username></h2>\r\n      </div>\r\n    </div>\r\n    <!-- /menu profile quick info -->\r\n\r\n    <br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let _view of views\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n      <div class=\"menu_section\">\r\n        <h3>Live On</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"additionalli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-bug\"></i> Additional Pages <span id=\"additionalchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li><a href=\"e_commerce.html\">E-commerce</a></li>\r\n              <li><a href=\"projects.html\">Projects</a></li>\r\n              <li><a href=\"project_detail.html\">Project Detail</a></li>\r\n              <li><a href=\"contacts.html\">Contacts</a></li>\r\n              <li><a href=\"profile.html\">Profile</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"extrasli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-windows\"></i> Extras <span id=\"extraschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li><a href=\"page_403.html\">403 Error</a></li>\r\n              <li><a href=\"page_404.html\">404 Error</a></li>\r\n              <li><a href=\"page_500.html\">500 Error</a></li>\r\n              <li><a href=\"plain_page.html\">Plain Page</a></li>\r\n              <li><a href=\"login.html\">Login Page</a></li>\r\n              <li><a href=\"pricing_tables.html\">Pricing Tables</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"multilevelli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-sitemap\"></i> Multilevel Menu <span id=\"multilevelchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n                <li><a href=\"#level1_1\">Level One</a>\r\n                <li><a>Level One<span class=\"fa fa-chevron-down\"></span></a>\r\n                  <ul class=\"nav child_menu\">\r\n                    <li class=\"sub_menu\"><a href=\"level2.html\">Level Two</a>\r\n                    </li>\r\n                    <li><a href=\"#level2_1\">Level Two</a>\r\n                    </li>\r\n                    <li><a href=\"#level2_2\">Level Two</a>\r\n                    </li>\r\n                  </ul>\r\n                </li>\r\n                <li><a href=\"#level1_2\">Level One</a>\r\n                </li>\r\n            </ul>\r\n          </li>\r\n          <li><a href=\"javascript:void(0)\"><i class=\"fa fa-laptop\"></i> Landing Page <span class=\"label label-success pull-right\">Coming Soon</span></a></li>\r\n        </ul>\r\n      </div>\r\n\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 

@@ -150,10 +150,12 @@ export class Dashboard {
    }
 
    ngAfterViewInit():void {
+        console.log("ng on init view for chart dashboard... ");
         var _thisReference = this;
         this.route.params
              .map(params => params['groupName'])
              .subscribe((gn) => {
+                console.log("Component for group: ", gn);
                 this.groupName = gn;
                 this._charts = this._chartService.getChartsByGroupName(this.groupName);
                 for (let i = 0; i < this._charts.length; i++) {

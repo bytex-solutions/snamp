@@ -20,6 +20,8 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
 
+import { Router } from '@angular/router';
+
 @Injectable()
 export class ChartService {
     private MAX_SIZE:number = 10000;
@@ -31,7 +33,7 @@ export class ChartService {
 
     private groups:Observable<string[]>;
 
-    constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
+    constructor(private localStorageService: LocalStorageService, private _http:ApiClient, private _router: Router) {
           this.loadDashboard();
           if (this.localStorageService.get(this.KEY_DATA) == undefined) {
                this.localStorageService.set(this.KEY_DATA, {});
@@ -83,7 +85,7 @@ export class ChartService {
                     this.chartSubjects[_currentChart.name] = new Subject<ChartData>();
                     // append the existent chart data from LC to chart from the backend
                     if (_chartData != undefined && _chartData[_currentChart.name] != undefined) {
-                        _currentChart.chartData = _chartData[_currentChart.name];
+                        // _currentChart.chartData = _chartData[_currentChart.name];
                         // make the data consistent - remove all data in case its instance name is absent in chart
                     }
                     _currentChart.subscribeToSubject(this.chartSubjects[_currentChart.name]);

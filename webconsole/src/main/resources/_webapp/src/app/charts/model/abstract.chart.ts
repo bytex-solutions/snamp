@@ -72,7 +72,9 @@ export abstract class AbstractChart {
 
     public subscribeToSubject(_obs:Observable<ChartData>):void {
         _obs.subscribe((data:ChartData) => {
-            this.newValue(data);
+            if($('#' + this.id).length) {
+                this.newValue(data); // if the chart is visible - update
+            }
         });
     }
 }
