@@ -34,11 +34,9 @@ exports.push([module.i, "", ""]);
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
+"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
-var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
-var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 var objectFactory_1 = __webpack_require__("./src/app/analysis/model/objectFactory.ts");
 var abstract_e2e_view_1 = __webpack_require__("./src/app/analysis/model/abstract.e2e.view.ts");
 var app_viewService_1 = __webpack_require__("./src/app/app.viewService.ts");
@@ -47,28 +45,19 @@ __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
 __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
 __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
-__webpack_require__("./node_modules/smartwizard/js/jquery.smartWizard.min.js");
-__webpack_require__("./node_modules/select2/dist/js/select2.js");
 var AddView = (function () {
-    function AddView(apiClient, overlay, vcRef, modal, _viewService) {
-        this.modal = modal;
+    function AddView(apiClient, _viewService) {
         this._viewService = _viewService;
         this.types = ViewType.createViewTypes();
         this.chosenComponent = undefined;
         this.viewType = undefined;
         this.viewName = undefined;
         this.http = apiClient;
-        overlay.defaultViewContainer = vcRef;
     }
     AddView.prototype.ngOnInit = function () {
         this.components = this.http.get(app_restClient_1.REST.CHART_COMPONENTS)
             .map(function (res) { return res.json(); })
             .publishLast().refCount();
-    };
-    AddView.prototype.ngAfterViewInit = function () {
-        var _thisReference = this;
-        $(document).ready(function () {
-        });
     };
     AddView.prototype.saveView = function () {
         var _view = objectFactory_1.Factory.createView(this.viewName, this.viewType.id, this.chosenComponent);
@@ -81,10 +70,10 @@ var AddView = (function () {
             template: __webpack_require__("./src/app/analysis/templates/addView.html"),
             styles: [__webpack_require__("./src/app/analysis/templates/css/addView.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _e) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _b) || Object])
     ], AddView);
     return AddView;
-    var _a, _b, _c, _d, _e;
+    var _a, _b;
 }());
 exports.AddView = AddView;
 var ViewType = (function () {
@@ -106,7 +95,6 @@ var ViewType = (function () {
     return ViewType;
 }());
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -190,38 +178,35 @@ exports.TemplateView = TemplateView;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
+"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
-var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
-var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
+var app_viewService_1 = __webpack_require__("./src/app/app.viewService.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
 __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
 __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
-__webpack_require__("./node_modules/smartwizard/js/jquery.smartWizard.min.js");
-__webpack_require__("./node_modules/select2/dist/js/select2.js");
 var MainView = (function () {
-    function MainView(apiClient, overlay, vcRef, modal, route) {
-        this.modal = modal;
+    function MainView(apiClient, route, _viewService) {
         this.route = route;
-        this.mainView = "";
+        this._viewService = _viewService;
+        this.currentView = undefined;
         this.http = apiClient;
-        overlay.defaultViewContainer = vcRef;
     }
     MainView.prototype.ngOnInit = function () {
         var _this = this;
         this.route.params
             .map(function (params) { return params['id']; })
             .subscribe(function (id) {
-            _this.mainView = id;
-        });
-    };
-    MainView.prototype.ngAfterViewInit = function () {
-        var _thisReference = this;
-        $(document).ready(function () {
+            _this.currentView = _this._viewService.getViewByName(id);
+            var _thisReference = _this;
+            setInterval(function () {
+                _thisReference._viewService.getDataForView(_thisReference.currentView).subscribe(function (data) {
+                    console.log(data);
+                });
+            }, 3000);
         });
     };
     MainView = __decorate([
@@ -230,14 +215,13 @@ var MainView = (function () {
             template: __webpack_require__("./src/app/analysis/templates/view.html"),
             styles: [__webpack_require__("./src/app/analysis/templates/css/view.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _e) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _b) || Object, (typeof (_c = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _c) || Object])
     ], MainView);
     return MainView;
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c;
 }());
 exports.MainView = MainView;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 

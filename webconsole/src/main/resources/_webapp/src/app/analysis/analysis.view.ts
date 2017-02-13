@@ -1,11 +1,11 @@
-import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { Overlay } from 'angular2-modal';
-import { Modal } from 'angular2-modal/plugins/vex';
-
 import { ActivatedRoute } from '@angular/router';
+
+import { E2EView } from './model/abstract.e2e.view';
+import { ViewService } from '../app.viewService';
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
@@ -13,40 +13,32 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
 
-import 'smartwizard';
-import 'select2';
-
-
 @Component({
   moduleId: module.id,
   templateUrl: './templates/view.html',
   styleUrls: [ './templates/css/view.css' ]
 })
-export class MainView {
+export class MainView implements OnInit {
 
     private http:ApiClient;
-    private mainView:string = "";
+    private currentView:E2EView = undefined;
 
-    constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, private modal: Modal,
-        private route: ActivatedRoute) {
-
+    constructor(apiClient: ApiClient, private route: ActivatedRoute, private _viewService:ViewService) {
         this.http = apiClient;
-        overlay.defaultViewContainer = vcRef;
    }
 
    ngOnInit():void {
       this.route.params
           .map(params => params['id'])
           .subscribe((id) => {
-             this.mainView = id;
+             this.currentView = this._viewService.getViewByName(id);
+             var _thisReference = this;
+             setInterval(function() {
+                _thisReference._viewService.getDataForView(_thisReference.currentView).subscribe(data => {
+                    console.log(data);
+                });
+              }, 3000);
           });
     }
-
-   ngAfterViewInit():void {
-        var _thisReference = this;
-        $(document).ready(function(){
-
-        });
-   }
 }
 

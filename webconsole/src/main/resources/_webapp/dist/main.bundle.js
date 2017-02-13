@@ -55617,6 +55617,8 @@ var REST = (function () {
     REST.CHART_COMPONENTS = "/snamp/web/api/managedResources/components";
     // web console api (view related and others)
     REST.VIEWS_DASHBOARD = "/snamp/web/api/e2e/settings";
+    // compute e2e view
+    REST.COMPUTE_VIEW = "/snamp/web/api/e2e/compute";
     return REST;
 }());
 exports.REST = REST;
@@ -55799,6 +55801,25 @@ var ViewService = (function () {
         }
         else {
             throw new Error("Cannot find any subject for view " + name);
+        }
+    };
+    ViewService.prototype.getDataForView = function (view) {
+        return this._http.post(app_restClient_1.REST.COMPUTE_VIEW, view.toJSON())
+            .map(function (data) { return data.json(); });
+    };
+    ViewService.prototype.getViewByName = function (name) {
+        var result = undefined;
+        for (var i = 0; i < this._dashboard.views.length; i++) {
+            if (this._dashboard.views[i].name == name) {
+                result = this._dashboard.views[i];
+                break;
+            }
+        }
+        if (result == undefined) {
+            throw new Error("Could not find a view with name" + name);
+        }
+        else {
+            return result;
         }
     };
     ViewService.prototype.hasViewWithName = function (name) {

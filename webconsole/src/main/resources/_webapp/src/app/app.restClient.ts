@@ -160,4 +160,7 @@ export class REST {
 
     // web console api (view related and others)
     public static VIEWS_DASHBOARD:string = "/snamp/web/api/e2e/settings";
+
+    // compute e2e view
+    public static COMPUTE_VIEW:string = "/snamp/web/api/e2e/compute";
 }

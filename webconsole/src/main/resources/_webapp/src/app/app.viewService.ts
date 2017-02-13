@@ -111,6 +111,26 @@ export class ViewService {
         }
     }
 
+    getDataForView(view:E2EView):Observable<any> {
+        return this._http.post(REST.COMPUTE_VIEW, view.toJSON())
+            .map((data:Response) => data.json());
+    }
+
+    getViewByName(name:string):E2EView {
+        let result:E2EView = undefined;
+        for (let i = 0; i < this._dashboard.views.length; i++) {
+            if (this._dashboard.views[i].name == name) {
+                result = this._dashboard.views[i];
+                break;
+            }
+        }
+        if (result == undefined) {
+            throw new Error("Could not find a view with name" + name);
+        } else {
+            return result;
+        }
+    }
+
     hasViewWithName(name:string):boolean {
         let _value:boolean = false;
         for (let i = 0; i < this._dashboard.views.length; i++) {

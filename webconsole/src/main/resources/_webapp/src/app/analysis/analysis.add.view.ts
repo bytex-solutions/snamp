@@ -1,9 +1,7 @@
-import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { Overlay } from 'angular2-modal';
-import { Modal } from 'angular2-modal/plugins/vex';
 
 import { Factory } from './model/objectFactory';
 import { E2EView } from './model/abstract.e2e.view';
@@ -16,16 +14,12 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
 
-import 'smartwizard';
-import 'select2';
-
-
 @Component({
   moduleId: module.id,
   templateUrl: './templates/addView.html',
   styleUrls: [ './templates/css/addView.css' ]
 })
-export class AddView {
+export class AddView implements OnInit {
 
     private http:ApiClient;
     components:Observable<string[]>;
@@ -35,28 +29,14 @@ export class AddView {
     viewType:ViewType = undefined;
     viewName:string = undefined;
 
-
-
-    constructor(apiClient: ApiClient,
-          overlay: Overlay,
-          vcRef: ViewContainerRef,
-          private modal: Modal,
-          private _viewService:ViewService) {
-    this.http = apiClient;
-    overlay.defaultViewContainer = vcRef;
+    constructor(apiClient: ApiClient, private _viewService:ViewService) {
+        this.http = apiClient;
    }
 
    ngOnInit():void {
         this.components = this.http.get(REST.CHART_COMPONENTS)
             .map((res:Response) => { return <string[]>res.json()})
             .publishLast().refCount();
-   }
-
-   ngAfterViewInit():void {
-        var _thisReference = this;
-        $(document).ready(function(){
-
-        });
    }
 
    saveView():void {
