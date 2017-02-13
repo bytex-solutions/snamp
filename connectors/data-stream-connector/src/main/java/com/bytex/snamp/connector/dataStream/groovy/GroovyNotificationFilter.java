@@ -25,7 +25,7 @@ public abstract class GroovyNotificationFilter extends Script implements Notific
     @Override
     public final Object getProperty(final String property) {
         final Notification n = notificationStorage.get();
-        return GroovySystem.getMetaClassRegistry()
+        return n == null ? super.getProperty(property) : GroovySystem.getMetaClassRegistry()
                 .getMetaClass(n.getClass())
                 .getProperty(getClass(), n, property, false, false);
     }
