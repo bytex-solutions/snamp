@@ -8,7 +8,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, "", ""]);
+exports.push([module.i, ".form-group {\r\n    margin-bottom: 30px;\r\n}\r\n\r\n.form {\r\n    margin-top: 20px;\r\n}", ""]);
 
 // exports
 
@@ -40,6 +40,7 @@ var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 var objectFactory_1 = __webpack_require__("./src/app/analysis/model/objectFactory.ts");
+var abstract_e2e_view_1 = __webpack_require__("./src/app/analysis/model/abstract.e2e.view.ts");
 var app_viewService_1 = __webpack_require__("./src/app/app.viewService.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
@@ -70,7 +71,7 @@ var AddView = (function () {
         });
     };
     AddView.prototype.saveView = function () {
-        var _view = objectFactory_1.Factory.createView(this.viewName, this.viewType, this.chosenComponent);
+        var _view = objectFactory_1.Factory.createView(this.viewName, this.viewType.id, this.chosenComponent);
         this._viewService.newView(_view);
         console.log("New view has been appended successfully");
     };
@@ -87,17 +88,19 @@ var AddView = (function () {
 }());
 exports.AddView = AddView;
 var ViewType = (function () {
-    function ViewType(name, id) {
+    function ViewType(name, id, description) {
         this.name = "";
         this.id = "";
+        this.description = "";
         this.name = name;
         this.id = id;
+        this.description = description;
     }
     ViewType.createViewTypes = function () {
         var result = [];
-        result.push(new ViewType("Landscape view", "landscape"));
-        result.push(new ViewType("Child components view", "children"));
-        result.push(new ViewType("Component modules view", "modules"));
+        result.push(new ViewType("Landscape view", abstract_e2e_view_1.E2EView.LANDSCAPE, "Represents E2E view of all components in IT landscape"));
+        result.push(new ViewType("Child components view", abstract_e2e_view_1.E2EView.CHILD_COMPONENT, "Represents E2E view of child components"));
+        result.push(new ViewType("Component modules view", abstract_e2e_view_1.E2EView.COMPONENT_MODULES, "Represents communications scheme between the modules within the component"));
         return result;
     };
     return ViewType;
@@ -241,7 +244,7 @@ exports.MainView = MainView;
 /***/ "./src/app/analysis/templates/addView.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Add E2E view</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <div class='container col-md-6' style=\"min-height: 900px;\">\r\n        <div class=\"form\">\r\n          <div class=\"form-group row\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewName\">\r\n              1. View name <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <input type=\"text\" id=\"viewName\" [(ngModel)]=\"viewName\" required=\"required\" class=\"form-control\" placeholder=\"Input view name\"/>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewType\">\r\n              2. Type of view <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <select class=\"form-control\" [(ngModel)]=\"viewType\" id=\"viewType\">\r\n                <option *ngFor=\"let type of types\" [ngValue]=\"type\">{{type.name}}</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\" *ngIf=\"viewType && viewType.id != 'landscape'\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewType\">\r\n              3. Component to analysis <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <select class=\"form-control\" [(ngModel)]=\"chosenComponent\" id=\"component\">\r\n                <option *ngFor=\"let component of components | async\" [ngValue]=\"component\">{{component}}</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"ln_solid\"></div>\r\n\r\n          <div class=\"form-group row\">\r\n            <div class=\"col-sm-10\">\r\n              <div class=\"btn btn-primary\" (click)=\"saveView()\">Save</div>\r\n            </div>\r\n          </div>\r\n\r\n        </div>\r\n\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Add E2E view</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'Gateway type'\" [column]=\"'8'\">\r\n        <div class=\"form leftAlign\">\r\n\r\n          <div class=\"form-group row\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewName\">\r\n              1. View name <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <input type=\"text\" id=\"viewName\" [(ngModel)]=\"viewName\" required=\"required\" class=\"form-control\" placeholder=\"Input view name\"/>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewType\">\r\n              2. Type of view <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <select class=\"form-control\" [(ngModel)]=\"viewType\" id=\"viewType\">\r\n                <option *ngFor=\"let type of types\" [ngValue]=\"type\">{{type.name}}</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\" *ngIf=\"viewType && viewType.id != 'landscape'\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewType\">\r\n              3. Component to analysis <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <select class=\"form-control\" [(ngModel)]=\"chosenComponent\" id=\"component\">\r\n                <option *ngFor=\"let component of components | async\" [ngValue]=\"component\">{{component}}</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"ln_solid\"></div>\r\n\r\n          <div class=\"row\">\r\n            <div class=\"col-sm-1 col-sm-offset-11\">\r\n              <div class=\"btn btn-primary\" (click)=\"saveView()\">Save</div>\r\n            </div>\r\n          </div>\r\n\r\n        </div>\r\n      </panel>\r\n\r\n      <panel [header]=\"'Description'\" [column]=\"'4'\">\r\n        <div class=\"row\">\r\n          <div class=\"col-sm-12 pagination-centered\" *ngIf=\"!viewType\">\r\n              Please select a type to get a description\r\n          </div>\r\n          <div class=\"col-sm-12\" *ngIf=\"viewType\">\r\n            {{viewType.description}}\r\n          </div>\r\n        </div>\r\n      </panel>\r\n\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 

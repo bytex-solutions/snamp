@@ -4750,3 +4750,8 @@ dl.border-around {
 	font-size: large;
 	color: rgba(0,0,0,0.8);
 }
+
+select.form-control:not([size]):not([multiple]) {
+    height: auto !important;
+    cursor: pointer;
+}

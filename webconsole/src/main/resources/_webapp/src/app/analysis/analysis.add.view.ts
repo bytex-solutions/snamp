@@ -32,7 +32,7 @@ export class AddView {
     types:ViewType[] = ViewType.createViewTypes();
 
     chosenComponent:string = undefined;
-    viewType:string = undefined;
+    viewType:ViewType = undefined;
     viewName:string = undefined;
 
 
@@ -60,7 +60,7 @@ export class AddView {
    }
 
    saveView():void {
-        let _view:E2EView = Factory.createView(this.viewName, this.viewType, this.chosenComponent);
+        let _view:E2EView = Factory.createView(this.viewName, this.viewType.id, this.chosenComponent);
         this._viewService.newView(_view);
         console.log("New view has been appended successfully");
    }
@@ -69,17 +69,19 @@ export class AddView {
 class ViewType {
     public name:string = "";
     public id:string = "";
+    public description:string = "";
 
-    constructor(name:string, id:string) {
+    constructor(name:string, id:string, description:string) {
         this.name = name;
         this.id = id;
+        this.description = description;
     }
 
     public static createViewTypes():ViewType[] {
         let result:ViewType[] = [];
-        result.push(new ViewType("Landscape view", "landscape"));
-        result.push(new ViewType("Child components view", "children"));
-        result.push(new ViewType("Component modules view", "modules"));
+        result.push(new ViewType("Landscape view", E2EView.LANDSCAPE, "Represents E2E view of all components in IT landscape"));
+        result.push(new ViewType("Child components view", E2EView.CHILD_COMPONENT, "Represents E2E view of child components"));
+        result.push(new ViewType("Component modules view",  E2EView.COMPONENT_MODULES, "Represents communications scheme between the modules within the component"));
         return result;
     }
 }
