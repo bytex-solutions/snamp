@@ -50,8 +50,6 @@ public class SyntheticAttributeRepository extends DistributedAttributeRepository
         }
     }
 
-
-
     private Logger getLogger(){
         return LoggerProvider.getLoggerForObject(this);
     }
@@ -76,7 +74,9 @@ public class SyntheticAttributeRepository extends DistributedAttributeRepository
         final SyntheticAttributeFactory gaugeFactory = configurationParser.parseGaugeType(descriptor);
         if(gaugeFactory == null)
             throw new UnrecognizedAttributeTypeException(attributeName);
-        return gaugeFactory.createAttribute(attributeName, descriptor);
+        final SyntheticAttribute attribute = gaugeFactory.createAttribute(attributeName, descriptor);
+        attribute.setupFilter(configurationParser);
+        return attribute;
     }
 
     /**

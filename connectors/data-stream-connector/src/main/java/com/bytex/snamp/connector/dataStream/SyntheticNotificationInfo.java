@@ -14,11 +14,11 @@ import javax.management.NotificationFilter;
  */
 public class SyntheticNotificationInfo extends AbstractNotificationInfo implements NotificationFilter {
     private static final long serialVersionUID = -3224023906663012968L;
-    private final NotificationFilter filter;
+    private NotificationFilter filter;
 
     protected SyntheticNotificationInfo(final String notifType, final Class<? extends Notification> notificationType, final String description, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
         super(notifType, description, notificationType, descriptor);
-        filter = DataStreamConnectorConfigurationDescriptionProvider.parseNotificationFilter(descriptor);
+        filter = n -> true;
     }
 
     public SyntheticNotificationInfo(final String notifType, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
@@ -28,5 +28,9 @@ public class SyntheticNotificationInfo extends AbstractNotificationInfo implemen
     @Override
     public boolean isNotificationEnabled(final Notification notification) {
         return filter.isNotificationEnabled(notification);
+    }
+
+    final void setupFilter(final DataStreamConnectorConfigurationDescriptionProvider configurationParser){
+        filter = configurationParser.parseNotificationFilter(getDescriptor());
     }
 }

@@ -5,18 +5,14 @@ import com.bytex.snamp.ResourceReader;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
-import com.bytex.snamp.jmx.CompositeDataUtils;
+import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationFilterFactory;
 import com.bytex.snamp.parser.ParseException;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
-import org.osgi.framework.Filter;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.Descriptor;
 import javax.management.NotificationFilter;
-import javax.management.openmbean.CompositeData;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
@@ -132,12 +128,24 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
         }
     }
 
+    private final GroovyNotificationFilterFactory filterFactory;
+
     protected DataStreamConnectorConfigurationDescriptionProvider(final ConfigurationEntityDescription<?>... descriptions){
         super(descriptions);
+        filterFactory = createNotificationFilterFactory(getClass().getClassLoader());
     }
 
     protected DataStreamConnectorConfigurationDescriptionProvider(){
         super(ConnectorConfigurationDescription.createDefault(), AttributeConfigurationDescription.createDefault(), EventConfigurationDescription.createDefault());
+        filterFactory = createNotificationFilterFactory(getClass().getClassLoader());
+    }
+
+    private static GroovyNotificationFilterFactory createNotificationFilterFactory(final ClassLoader loader){
+        try {
+            return new GroovyNotificationFilterFactory(loader);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     protected Duration parseSyncPeriod(final Map<String, String> parameters) {
@@ -187,22 +195,10 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
         return AttributeParser.parse(gaugeType);
     }
 
-    static NotificationFilter parseNotificationFilter(final Descriptor descriptor) throws InvalidSyntaxException {
+    final NotificationFilter parseNotificationFilter(final Descriptor descriptor) {
         final String filter = getField(descriptor, FILTER_PARAM, String::valueOf).orElse("");
-        if (filter.isEmpty()) {
+        if (filter.isEmpty())
             return notification -> true;
-        } else {
-            final Filter ldapFilter = FrameworkUtil.createFilter(filter);
-            return notification -> {
-                final Map<String, ?> dataToFilter;
-                if (notification instanceof MeasurementNotification<?>)
-                    dataToFilter = ((MeasurementNotification<?>) notification).getMeasurement().getAnnotations();
-                else if (notification.getUserData() instanceof CompositeData)
-                    dataToFilter = CompositeDataUtils.toMap((CompositeData) notification.getUserData());
-                else
-                    dataToFilter = ImmutableMap.of("userData", notification.getUserData());
-                return ldapFilter.matches(dataToFilter);
-            };
-        }
+        return filterFactory.create(filter);
     }
 }

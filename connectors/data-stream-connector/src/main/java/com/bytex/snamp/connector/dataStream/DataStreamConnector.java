@@ -70,7 +70,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         //init notifications
         notifications = createNotificationRepository(resourceName);
         assert notifications != null;
-        notifications.init(threadPool);
+        notifications.init(threadPool, descriptor);
         notifications.setSource(this);
         
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));

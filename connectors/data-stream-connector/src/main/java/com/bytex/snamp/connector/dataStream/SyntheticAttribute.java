@@ -3,11 +3,12 @@ package com.bytex.snamp.connector.dataStream;
 import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
 import com.bytex.snamp.instrumentation.measurements.Measurement;
+import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
 
 import javax.management.MBeanException;
 import javax.management.Notification;
+import javax.management.NotificationFilter;
 import javax.management.openmbean.OpenType;
 import java.util.Optional;
 
@@ -67,12 +68,15 @@ public abstract class SyntheticAttribute extends AbstractOpenAttributeInfo {
         }
     };
 
+    private NotificationFilter filter;
+
     SyntheticAttribute(final String name,
                        final OpenType<?> type,
                        final String description,
                        final AttributeSpecifier specifier,
                        final AttributeDescriptor descriptor) {
         super(name, type, description, specifier, descriptor);
+        filter = n -> true;
     }
 
     /**
@@ -155,7 +159,7 @@ public abstract class SyntheticAttribute extends AbstractOpenAttributeInfo {
         return representsMeasurement(measurement.getMeasurement());
     }
 
-    protected abstract NotificationProcessingResult handleNotification(final Notification notification) throws Exception;
+    protected abstract NotificationProcessingResult handleNotification(final Notification notification);
 
     /**
      * Handles notification and return new attribute value.
@@ -163,10 +167,13 @@ public abstract class SyntheticAttribute extends AbstractOpenAttributeInfo {
      * @return A new attribute value.
      */
     final NotificationProcessingResult dispatch(final Notification notification) {
-        try {
+        if (filter.isNotificationEnabled(notification))
             return handleNotification(notification);
-        } catch (final Exception e) {
-            return processingFailed(e);
-        }
+        else
+            return notificationIgnored();
+    }
+
+    final void setupFilter(final DataStreamConnectorConfigurationDescriptionProvider configurationParser){
+        filter = configurationParser.parseNotificationFilter(getDescriptor());
     }
 }

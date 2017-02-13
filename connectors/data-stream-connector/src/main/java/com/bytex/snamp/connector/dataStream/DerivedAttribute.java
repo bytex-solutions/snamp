@@ -28,7 +28,7 @@ public abstract class DerivedAttribute<T> extends SyntheticAttribute {
     protected abstract T getValue(final AttributeSupport support) throws Exception;
 
     @Override
-    protected NotificationProcessingResult handleNotification(final Notification notification) throws Exception {
+    protected NotificationProcessingResult handleNotification(final Notification notification) {
         return notificationIgnored();
     }
 }

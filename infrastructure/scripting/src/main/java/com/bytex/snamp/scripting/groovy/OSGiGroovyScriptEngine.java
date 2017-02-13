@@ -9,6 +9,7 @@ import groovy.util.GroovyScriptEngine;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleReference;
 
@@ -90,7 +91,7 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
      * @throws ScriptException   if there is a problem parsing the script
      */
     @Override
-    public final B createScript(final String scriptName, final Binding binding) throws ResourceException, ScriptException {
+    public synchronized final B createScript(final String scriptName, final Binding binding) throws ResourceException, ScriptException {
         final Script result;
         final Binding bindingUnion = binding == null ? rootBinding : concatBindings(rootBinding, binding);
         try {
@@ -115,7 +116,7 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
      * @throws ResourceException if there is a problem accessing the script
      * @throws ScriptException   if there is a problem parsing the script
      */
-    public final <C extends B> C createScript(final String scriptName, final Binding binding, final Class<C> baseScriptClass) throws ResourceException, ScriptException{
+    public synchronized final <C extends B> C createScript(final String scriptName, final Binding binding, final Class<C> baseScriptClass) throws ResourceException, ScriptException{
         final Script result;
         final Binding bindingUnion = binding == null ? rootBinding : concatBindings(rootBinding, binding);
 
@@ -133,6 +134,12 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
         final C typedResult = baseScriptClass.cast(result);
         interceptCreate(typedResult);
         return typedResult;
+    }
+
+
+    public synchronized final B parseScript(final String text, final Binding binding) {
+        final Class<?> scriptImpl = getGroovyClassLoader().parseClass(text);
+        return baseScriptClass.cast(InvokerHelper.createScript(scriptImpl, binding));
     }
 
     public static Binding concatBindings(final Binding first, final Binding... other){

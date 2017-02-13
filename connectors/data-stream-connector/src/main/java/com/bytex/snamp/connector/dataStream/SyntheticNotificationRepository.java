@@ -39,14 +39,16 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
     }
 
     private final MessageDrivenNotificationListenerInvoker threadPool;
+    private DataStreamConnectorConfigurationDescriptionProvider configurationParser;
 
     public SyntheticNotificationRepository(final String resourceName) {
         super(resourceName, SyntheticNotificationInfo.class, false);
         threadPool = new MessageDrivenNotificationListenerInvoker();
     }
 
-    final void init(final ExecutorService threadPool) {
+    final void init(final ExecutorService threadPool, final DataStreamConnectorConfigurationDescriptionProvider configurationParser) {
         this.threadPool.set(threadPool);
+        this.configurationParser = configurationParser;
     }
 
     private static Notification prepareNotification(final SyntheticNotificationInfo metadata, final Notification notification) {
@@ -75,17 +77,35 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
 
     @Override
     protected SyntheticNotificationInfo connectNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
+        final SyntheticNotificationInfo result;
         switch (metadata.getName(notifType)){
             case AttributeChangeNotification.ATTRIBUTE_CHANGE:
-                return new SyntheticNotificationInfo(notifType, AttributeChangeNotification.class, "Occurs when one of registered attribute will be changed", metadata);
+                result = new SyntheticNotificationInfo(notifType, AttributeChangeNotification.class, "Occurs when one of registered attribute will be changed", metadata);
+                break;
             case TimeMeasurementNotification.TYPE:
-                return new SyntheticNotificationInfo(notifType, TimeMeasurementNotification.class, "Occurs when time measurement will be supplied", metadata);
+                result = new SyntheticNotificationInfo(notifType, TimeMeasurementNotification.class, "Occurs when time measurement will be supplied", metadata);
+                break;
             case SpanNotification.TYPE:
-                return new SyntheticNotificationInfo(notifType, SpanNotification.class, "Occurs when span will be occurred", metadata);
+                result = new SyntheticNotificationInfo(notifType, SpanNotification.class, "Occurs when span will be occurred", metadata);
+                break;
             case ValueMeasurementNotification.TYPE:
-                return new SyntheticNotificationInfo(notifType, ValueMeasurementNotification.class, "Occurs when instant measurement will be supplied", metadata);
+                result = new SyntheticNotificationInfo(notifType, ValueMeasurementNotification.class, "Occurs when instant measurement will be supplied", metadata);
+                break;
             default:
-                return new SyntheticNotificationInfo(notifType, metadata);
+                result = new SyntheticNotificationInfo(notifType, metadata);
+                break;
         }
+        result.setupFilter(configurationParser);
+        return result;
+    }
+
+    /**
+     * Removes all notifications from this repository.
+     */
+    @Override
+    public void close() {
+        super.close();
+        threadPool.clear();
+        configurationParser = null;
     }
 }
