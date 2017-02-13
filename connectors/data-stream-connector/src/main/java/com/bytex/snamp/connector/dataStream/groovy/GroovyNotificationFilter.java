@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.dataStream.groovy;
 
+import groovy.lang.GroovySystem;
 import groovy.lang.Script;
-import org.codehaus.groovy.runtime.InvokerHelper;
 
 import javax.management.Notification;
 import javax.management.NotificationFilter;
@@ -25,7 +25,9 @@ public abstract class GroovyNotificationFilter extends Script implements Notific
     @Override
     public final Object getProperty(final String property) {
         final Notification n = notificationStorage.get();
-        return InvokerHelper.getProperty(n, property);
+        return GroovySystem.getMetaClassRegistry()
+                .getMetaClass(n.getClass())
+                .getProperty(getClass(), n, property, false, false);
     }
 
     /**
