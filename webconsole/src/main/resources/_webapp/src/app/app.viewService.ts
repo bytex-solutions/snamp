@@ -10,6 +10,11 @@ import { E2EView } from './analysis/model/abstract.e2e.view';
 import { Factory } from './analysis/model/objectFactory';
 
 import 'rxjs/add/operator/publishLast';
+import 'rxjs/add/operator/cache';
+import 'rxjs/add/observable/forkJoin';
+import 'rxjs/add/observable/from';
+import 'rxjs/add/observable/of';
+
 
 @Injectable()
 export class ViewService {
@@ -17,7 +22,7 @@ export class ViewService {
     private _dashboard:Dashboard;
     private viewSubjects:{ [key:string]: Subject<any> } = {};
 
-    private viewNames:Observable<string[]>;
+    private viewNames:Subject<string[]> = new Subject();
 
     constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
           this.loadDashboard();
@@ -32,7 +37,7 @@ export class ViewService {
 
 
     public getViewNames():Observable<string[]> {
-        return this.viewNames;
+        return this.viewNames.asObservable().share();
     }
 
     private loadDashboard():void {
@@ -43,16 +48,10 @@ export class ViewService {
                 return res.json();
             }).publishLast().refCount();
 
-        this.viewNames = _res.map((data:any) => {
-            if (data["views"] == undefined || data["views"].length == 0) {
-                return [];
-            } else {
-                return data["views"].map(view => { return view["name"]});
-            };
-        });
         _res.subscribe(data => {
             this._dashboard = new Dashboard();
             this.viewSubjects = {};
+            this.viewNames.next(data.views.map(_d => _d.name));
             if (data.views.length > 0) {
                 for (let i = 0; i < data.views.length; i++) {
                     let _currentView:E2EView = Factory.viewFromJSON(data.charts[i]);
@@ -80,6 +79,7 @@ export class ViewService {
             console.log("New created view is: ", view);
             this._dashboard.views.push(view);
             this.viewSubjects[view.name] = new Subject<any>();
+            this.viewNames.next(this._dashboard.views.map(data => data.name));
            // view.subscribeToSubject(this.viewSubjects[view.name]);
             this.saveDashboard();
         }

@@ -55714,12 +55714,17 @@ var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
 var dashboard_1 = __webpack_require__("./src/app/analysis/model/dashboard.ts");
 var objectFactory_1 = __webpack_require__("./src/app/analysis/model/objectFactory.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
+__webpack_require__("./node_modules/rxjs/add/operator/cache.js");
+__webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
+__webpack_require__("./node_modules/rxjs/add/observable/from.js");
+__webpack_require__("./node_modules/rxjs/add/observable/of.js");
 var ViewService = (function () {
     function ViewService(localStorageService, _http) {
         this.localStorageService = localStorageService;
         this._http = _http;
         this.KEY_DATA = "snampViewData";
         this.viewSubjects = {};
+        this.viewNames = new Subject_1.Subject();
         this.loadDashboard();
         if (this.localStorageService.get(this.KEY_DATA) == undefined) {
             this.localStorageService.set(this.KEY_DATA, {});
@@ -55729,7 +55734,7 @@ var ViewService = (function () {
         return this._dashboard.views;
     };
     ViewService.prototype.getViewNames = function () {
-        return this.viewNames;
+        return this.viewNames.asObservable().share();
     };
     ViewService.prototype.loadDashboard = function () {
         var _this = this;
@@ -55739,18 +55744,10 @@ var ViewService = (function () {
             console.log("Result of dashboard request is: ", res);
             return res.json();
         }).publishLast().refCount();
-        this.viewNames = _res.map(function (data) {
-            if (data["views"] == undefined || data["views"].length == 0) {
-                return [];
-            }
-            else {
-                return data["views"].map(function (view) { return view["name"]; });
-            }
-            ;
-        });
         _res.subscribe(function (data) {
             _this._dashboard = new dashboard_1.Dashboard();
             _this.viewSubjects = {};
+            _this.viewNames.next(data.views.map(function (_d) { return _d.name; }));
             if (data.views.length > 0) {
                 for (var i = 0; i < data.views.length; i++) {
                     var _currentView = objectFactory_1.Factory.viewFromJSON(data.charts[i]);
@@ -55777,6 +55774,7 @@ var ViewService = (function () {
             console.log("New created view is: ", view);
             this._dashboard.views.push(view);
             this.viewSubjects[view.name] = new Subject_1.Subject();
+            this.viewNames.next(this._dashboard.views.map(function (data) { return data.name; }));
             // view.subscribeToSubject(this.viewSubjects[view.name]);
             this.saveDashboard();
         }
