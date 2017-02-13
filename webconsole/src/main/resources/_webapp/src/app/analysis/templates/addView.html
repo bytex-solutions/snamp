@@ -10,10 +10,50 @@
 
     <div class="row" style="margin-top: 30px">
 
-      <div class='container col-md-12' style="min-height: 900px;">
+      <div class='container col-md-6' style="min-height: 900px;">
+        <div class="form">
+          <div class="form-group row">
+            <label class="col-sm-2 col-form-label" for="viewName">
+              1. View name <span class="required">*</span>
+            </label>
+            <div class="col-sm-10">
+              <input type="text" id="viewName" [(ngModel)]="viewName" required="required" class="form-control" placeholder="Input view name"/>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-2 col-form-label" for="viewType">
+              2. Type of view <span class="required">*</span>
+            </label>
+            <div class="col-sm-10">
+              <select class="form-control" [(ngModel)]="viewType" id="viewType">
+                <option *ngFor="let type of types" [ngValue]="type">{{type.name}}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group row" *ngIf="viewType && viewType.id != 'landscape'">
+            <label class="col-sm-2 col-form-label" for="viewType">
+              3. Component to analysis <span class="required">*</span>
+            </label>
+            <div class="col-sm-10">
+              <select class="form-control" [(ngModel)]="chosenComponent" id="component">
+                <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="ln_solid"></div>
+
+          <div class="form-group row">
+            <div class="col-sm-10">
+              <div class="btn btn-primary" (click)="saveView()">Save</div>
+            </div>
+          </div>
+
+        </div>
 
       </div>
-
     </div>
   </div>
 </div>

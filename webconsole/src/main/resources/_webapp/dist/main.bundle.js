@@ -54824,7 +54824,7 @@ var Factory = (function () {
                 _view.rootComponent = rootComponent;
             }
             else {
-                throw new Error("Attempt to set rootComponent for non component specific view");
+                console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
             }
         }
         return _view;
@@ -55713,6 +55713,7 @@ var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
 var dashboard_1 = __webpack_require__("./src/app/analysis/model/dashboard.ts");
 var objectFactory_1 = __webpack_require__("./src/app/analysis/model/objectFactory.ts");
+__webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 var ViewService = (function () {
     function ViewService(localStorageService, _http) {
         this.localStorageService = localStorageService;
@@ -55728,17 +55729,26 @@ var ViewService = (function () {
         return this._dashboard.views;
     };
     ViewService.prototype.getViewNames = function () {
-        return this._dashboard.views.map(function (element) { return element.name; });
+        return this.viewNames;
     };
     ViewService.prototype.loadDashboard = function () {
         var _this = this;
         console.log("Loading some dashboard for views...");
-        this._http.get(app_restClient_1.REST.VIEWS_DASHBOARD)
+        var _res = this._http.get(app_restClient_1.REST.VIEWS_DASHBOARD)
             .map(function (res) {
             console.log("Result of dashboard request is: ", res);
             return res.json();
-        })
-            .subscribe(function (data) {
+        }).publishLast().refCount();
+        this.viewNames = _res.map(function (data) {
+            if (data["views"] == undefined || data["views"].length == 0) {
+                return [];
+            }
+            else {
+                return data["views"].map(function (view) { return view["name"]; });
+            }
+            ;
+        });
+        _res.subscribe(function (data) {
             _this._dashboard = new dashboard_1.Dashboard();
             _this.viewSubjects = {};
             if (data.views.length > 0) {
@@ -58322,7 +58332,9 @@ var Sidebar = (function () {
     }
     Sidebar.prototype.ngOnInit = function () {
         var _this = this;
-        this.views = []; //this._viewService.getViewNames();
+        this._viewService.getViewNames().subscribe(function (data) {
+            _this.views = data;
+        });
         this._chartService.getGroups().subscribe(function (data) {
             _this.groupNames = data;
         });

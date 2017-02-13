@@ -29,7 +29,9 @@ export class Sidebar {
     private groupNames:string[] = [];
 
     ngOnInit() {
-        this.views = [];//this._viewService.getViewNames();
+        this._viewService.getViewNames().subscribe((data:string[]) => {
+            this.views = data;
+        });
 
         this._chartService.getGroups().subscribe((data:string[]) => {
             this.groupNames = data;

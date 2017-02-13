@@ -27,7 +27,7 @@ export class Factory {
             if (_view instanceof AbstractComponentSpecificView) {
                 (<AbstractComponentSpecificView>_view).rootComponent = rootComponent;
              } else {
-                throw new Error("Attempt to set rootComponent for non component specific view");
+                console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
              }
         }
         return _view;

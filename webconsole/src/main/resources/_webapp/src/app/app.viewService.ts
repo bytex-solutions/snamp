@@ -9,11 +9,15 @@ import { Dashboard } from './analysis/model/dashboard';
 import { E2EView } from './analysis/model/abstract.e2e.view';
 import { Factory } from './analysis/model/objectFactory';
 
+import 'rxjs/add/operator/publishLast';
+
 @Injectable()
 export class ViewService {
     private KEY_DATA:string = "snampViewData";
     private _dashboard:Dashboard;
     private viewSubjects:{ [key:string]: Subject<any> } = {};
+
+    private viewNames:Observable<string[]>;
 
     constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
           this.loadDashboard();
@@ -27,30 +31,38 @@ export class ViewService {
     }
 
 
-    public getViewNames():string[] {
-        return this._dashboard.views.map(element => element.name);
+    public getViewNames():Observable<string[]> {
+        return this.viewNames;
     }
 
     private loadDashboard():void {
         console.log("Loading some dashboard for views...");
-        this._http.get(REST.VIEWS_DASHBOARD)
+        let _res:any = this._http.get(REST.VIEWS_DASHBOARD)
             .map((res:Response) => {
                 console.log("Result of dashboard request is: ", res);
                 return res.json();
-            })
-            .subscribe(data => {
-                this._dashboard = new Dashboard();
-                this.viewSubjects = {};
-                if (data.views.length > 0) {
-                    for (let i = 0; i < data.views.length; i++) {
-                        let _currentView:E2EView = Factory.viewFromJSON(data.charts[i]);
-                        this.viewSubjects[_currentView.name] = new Subject<any>();
-                       // _currentView.subscribeToSubject(this.viewSubjects[_currentView.name]);
-                        this._dashboard.views.push(_currentView);
-                    }
+            }).publishLast().refCount();
+
+        this.viewNames = _res.map((data:any) => {
+            if (data["views"] == undefined || data["views"].length == 0) {
+                return [];
+            } else {
+                return data["views"].map(view => { return view["name"]});
+            };
+        });
+        _res.subscribe(data => {
+            this._dashboard = new Dashboard();
+            this.viewSubjects = {};
+            if (data.views.length > 0) {
+                for (let i = 0; i < data.views.length; i++) {
+                    let _currentView:E2EView = Factory.viewFromJSON(data.charts[i]);
+                    this.viewSubjects[_currentView.name] = new Subject<any>();
+                   // _currentView.subscribeToSubject(this.viewSubjects[_currentView.name]);
+                    this._dashboard.views.push(_currentView);
                 }
-                console.log(this._dashboard);
-            });
+            }
+            console.log(this._dashboard);
+        });
     }
 
     public saveDashboard():void {
