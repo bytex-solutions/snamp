@@ -10,5 +10,5 @@ import com.bytex.snamp.moa.DataAnalyzer;
  * @since 2.0
  */
 public interface TopologyAnalyzer extends DataAnalyzer {
-    <E extends Throwable> void forEach(final Acceptor<? super ComponentVertex, E> visitor) throws E;
+    <E extends Throwable> void visitVertices(final Acceptor<? super ComponentVertex, E> visitor) throws E;
 }

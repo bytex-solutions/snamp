@@ -6,10 +6,14 @@ import com.bytex.snamp.Box;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.google.common.collect.ImmutableMap;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -154,5 +158,15 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         final Box<O> result = BoxFactory.create(null);
         readConfiguration(result.changeConsumingType(handler));
         return result.get();
+    }
+
+    @Nonnull
+    @Override
+    public ImmutableMap<String, String> getConfiguration() {
+        try {
+            return transformConfiguration(ImmutableMap::copyOf);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

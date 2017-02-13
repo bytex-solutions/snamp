@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.connector.*;
 import com.bytex.snamp.connector.attributes.AttributeModifiedEvent;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -433,6 +434,11 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 featureModified(eventFactory.createEvent(support, resourceName, feature));
     }
 
+    @MethodStub
+    protected void resourceAdded(final ManagedResourceConnector resourceConnector){
+
+    }
+
     private synchronized void addResource(final ServiceReference<ManagedResourceConnector> resourceRef) {
         final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(resourceRef);
         final BundleContext context = getBundleContext();
@@ -445,9 +451,15 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
                 exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
                 exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
+                resourceAdded(connector);
             } finally {
                 context.ungetService(resourceRef);
             }
+    }
+
+    @MethodStub
+    protected void resourceRemoved(final ManagedResourceConnector resourceConnector){
+
     }
 
     private synchronized void removeResource(final ServiceReference<ManagedResourceConnector> resourceRef){
@@ -458,6 +470,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
             try{
                 connector.removeResourceEventListener(this);
                 removeAllFeaturesImpl(resourceName).forEach(FeatureAccessor::close);
+                resourceRemoved(connector);
             }
             finally {
                 context.ungetService(resourceRef);

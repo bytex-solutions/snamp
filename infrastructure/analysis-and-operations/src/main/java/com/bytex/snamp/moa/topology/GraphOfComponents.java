@@ -53,7 +53,7 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity
         return true;
     }
 
-    public final void handleNotification(final SpanNotification span){
+    public final void accept(final SpanNotification span) {
         accept(span.getMeasurement());
     }
 

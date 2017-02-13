@@ -3,8 +3,12 @@ package com.bytex.snamp.moa.services;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.gateway.Gateway;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.moa.DataAnalyzer;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
+import com.google.common.collect.ImmutableMap;
+import org.osgi.framework.BundleContext;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -16,27 +20,29 @@ import java.util.Map;
  * @since 2.0
  */
 public final class Activator extends AbstractServiceLibrary {
-    private static final class TopologyAnalyzerServiceProvider extends ProvidedService<TopologyAnalyzer, TopologyAnalyzerService> {
-        private TopologyAnalyzerServiceProvider() {
-            super(TopologyAnalyzer.class, simpleDependencies(ConfigurationManager.class), DataAnalyzer.class);
+    private static final class AnalyticsServiceProvider extends ProvidedService<AnalyticalCenter, AnalyticalGateway> {
+        private AnalyticsServiceProvider() {
+            super(AnalyticalCenter.class, simpleDependencies(ConfigurationManager.class), DataAnalyzer.class, TopologyAnalyzer.class);
         }
 
         @Override
-        protected TopologyAnalyzerService activateService(final Map<String, Object> identity) throws IOException {
-            final TopologyAnalyzerService service = new TopologyAnalyzerService(getDependencies().getDependency(ConfigurationManager.class));
-            service.init();
+        protected AnalyticalGateway activateService(final Map<String, Object> identity) throws Exception {
+            final AnalyticalGateway service = new AnalyticalGateway(Utils.getBundleContextOfObject(this));
+            final ConfigurationManager configurationManager = getDependencies().getDependency(ConfigurationManager.class);
+            assert configurationManager != null;
+            service.update(configurationManager.getConfiguration());
             return service;
         }
 
         @Override
-        protected void cleanupService(final TopologyAnalyzerService serviceInstance, final boolean stopBundle) {
-            serviceInstance.close();
+        protected void cleanupService(final AnalyticalGateway service, boolean stopBundle) throws Exception {
+            service.close();
         }
     }
 
     @SpecialUse(SpecialUse.Case.OSGi)
-    public Activator(){
-        super(new TopologyAnalyzerServiceProvider());
+    public Activator() {
+        super(new AnalyticsServiceProvider());
     }
 
     /**

@@ -1,7 +1,9 @@
 package com.bytex.snamp.web.serviceModel.e2e;
 
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.instrumentation.Identifier;
 import com.bytex.snamp.instrumentation.measurements.Span;
+import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.GraphOfComponents;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -17,11 +19,16 @@ import java.util.concurrent.TimeUnit;
  * @since 2.0
  */
 public final class AdjacencyMatrixTest extends Assert {
-    private static final class TopologyAnalyzerMock extends GraphOfComponents implements TopologyAnalyzer{
+    private static final  class TopologyAnalyzerMock extends GraphOfComponents implements TopologyAnalyzer{
         private static final long serialVersionUID = -384175063368082423L;
 
         private TopologyAnalyzerMock() {
             super(100);
+        }
+
+        @Override
+        public <E extends Throwable> void visitVertices(final Acceptor<? super ComponentVertex, E> visitor) throws E {
+            forEach(visitor);
         }
     }
 

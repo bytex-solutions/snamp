@@ -5,7 +5,9 @@ import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -63,6 +65,10 @@ public interface ConfigurationManager extends FrameworkService {
      * @since 1.2
      */
     <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException;
+
+    @Nonnull
+    @Override
+    Map<String, String> getConfiguration();
 
     /**
      * Creates a new instance of entity configuration.

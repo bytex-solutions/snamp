@@ -13,9 +13,9 @@ abstract class MatrixBasedView extends E2EView {
     abstract AdjacencyMatrix createMatrix();
 
     @Override
-    final AdjacencyMatrix build(final TopologyAnalyzer analyzer){
+    final AdjacencyMatrix build(final TopologyAnalyzer analyzer) {
         final AdjacencyMatrix matrix = createMatrix();
-        analyzer.forEach(matrix);
+        analyzer.visitVertices(matrix);
         return matrix;
     }
 }
