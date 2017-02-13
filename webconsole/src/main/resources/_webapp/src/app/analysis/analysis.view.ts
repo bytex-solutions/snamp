@@ -28,6 +28,11 @@ export class MainView implements OnInit {
    }
 
    ngOnInit():void {
+
+    }
+
+
+   ngAfterViewInit():void {
       this.route.params
           .map(params => params['id'])
           .subscribe((id) => {
@@ -38,7 +43,10 @@ export class MainView implements OnInit {
                     console.log(data);
                 });
               }, 3000);
+
+              this.currentView.draw();
           });
-    }
+      }
+
 }
 

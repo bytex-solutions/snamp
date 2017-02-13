@@ -9,6 +9,8 @@ export abstract class E2EView {
     public id:string = "e2eview" + GUID.newGuid();
 
     public abstract toJSON():any;
+
+    public abstract draw():void;
 }
 
 class GUID {

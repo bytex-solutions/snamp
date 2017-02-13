@@ -105,12 +105,13 @@
     "dragula": "3.7.2",
     "angular2-grid": "2.0.1",
     "d3": "3.5.4",
-    "nvd3": "1.8.5"
+    "nvd3": "1.8.5",
+    "cytoscape": "2.7.14"
 
   },
   "devDependencies": {
     "@types/hammerjs": "^2.0.33",
-    "@types/jasmine": "^2.2.34",
+    "@types/jasmine": "2.5.41",
     "@types/node": "^6.0.38",
     "@types/protractor": "^1.5.20",
     "@types/selenium-webdriver": "2.44.29",
