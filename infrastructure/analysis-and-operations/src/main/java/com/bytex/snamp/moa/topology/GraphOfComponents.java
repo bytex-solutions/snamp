@@ -102,7 +102,7 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity
         return get(new ComponentVertexIdentity(componentName, moduleName));
     }
 
-    public final boolean remove(final String componentName) {
+    public boolean remove(final String componentName) {
         final boolean success = keySet().removeIf(id -> id.getComponentName().equals(componentName));
         idToVertexCache.values().removeIf(entry -> entry.getName().equals(componentName));
         spanBuffer.clear();

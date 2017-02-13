@@ -58,14 +58,14 @@ final class ExtractFunction extends AggregationFunction {
     /**
      * Invokes aggregation function.
      *
-     * @param resolver A function used to resolve operands.
+     * @param context A function used to resolve operands.
      * @param args     Arguments of the function.
      * @return Function result.
      * @throws IllegalArgumentException Unsupported input value.
      * @throws IllegalStateException    Unresolved operand.
      */
     @Override
-    public Object invoke(final NameResolver resolver, final Object... args) throws Exception {
+    public Object eval(final EvaluationContext context, final Object... args) throws Exception {
         if (args.length > 0 && !path.isEmpty()) {
             Object arg = args[0];
             arg = arg instanceof CompositeData ? extract((CompositeData) arg, path.iterator()) : arg;

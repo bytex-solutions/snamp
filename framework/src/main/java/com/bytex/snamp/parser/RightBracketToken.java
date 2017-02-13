@@ -9,7 +9,7 @@ import javax.annotation.concurrent.Immutable;
  * @since 2.0
  */
 @Immutable
-public final class RightBracketToken extends PunctuationToken {
+public final class RightBracketToken extends PunctuationToken implements SingleCharacterToken {
     private static final long serialVersionUID = -1210661219600635416L;
     public static final char VALUE = ')';
     public static final RightBracketToken INSTANCE = new RightBracketToken();
@@ -17,5 +17,15 @@ public final class RightBracketToken extends PunctuationToken {
 
     private RightBracketToken() {
         super(VALUE);
+    }
+
+    /**
+     * Gets character wrapped by this token.
+     *
+     * @return Wrapped character.
+     */
+    @Override
+    public char getValue() {
+        return VALUE;
     }
 }

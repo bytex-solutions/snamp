@@ -25,7 +25,7 @@ final class NumericUnaryFunction extends NumericFunction {
     }
 
     @Override
-    double invoke(final NameResolver resolver, final Number input) {
+    double invoke(final EvaluationContext resolver, final Number input) {
         double current, newValue;
         do {
             newValue = operator.applyAsDouble(current = value.get(), input.doubleValue());

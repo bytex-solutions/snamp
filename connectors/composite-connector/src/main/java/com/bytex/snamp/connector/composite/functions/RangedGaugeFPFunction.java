@@ -36,7 +36,7 @@ final class RangedGaugeFPFunction extends AggregationFunction<CompositeData> {
     }
 
     @Override
-    public CompositeData invoke(final NameResolver resolver, final Object... args) {
+    public CompositeData eval(final EvaluationContext context, final Object... args) {
         if(args.length > 0)
             gaugeFP.accept(Convert.toDouble(args[0]));
         return fromRangedFP(gaugeFP);

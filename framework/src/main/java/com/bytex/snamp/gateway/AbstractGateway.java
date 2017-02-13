@@ -435,46 +435,42 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     @MethodStub
-    protected void resourceAdded(final ManagedResourceConnector resourceConnector){
+    protected void addResource(final ManagedResourceConnectorClient resourceConnector){
 
     }
 
     private synchronized void addResource(final ServiceReference<ManagedResourceConnector> resourceRef) {
-        final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(resourceRef);
         final BundleContext context = getBundleContext();
-        final ManagedResourceConnector connector = context.getService(resourceRef);
-        if (connector != null)
-            try {
-                //add gateway as a listener
-                connector.addResourceEventListener(this);
-                //expose all features
-                exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
-                exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
-                exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
-                resourceAdded(connector);
-            } finally {
-                context.ungetService(resourceRef);
-            }
+        final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, resourceRef);
+        try {
+            //add gateway as a listener
+            connector.addResourceEventListener(this);
+            //expose all features
+            final String resourceName = connector.getManagedResourceName();
+            exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
+            exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
+            exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
+            addResource(connector);
+        } finally {
+            context.ungetService(resourceRef);
+        }
     }
 
     @MethodStub
-    protected void resourceRemoved(final ManagedResourceConnector resourceConnector){
+    protected void removeResource(final ManagedResourceConnectorClient resourceConnector){
 
     }
 
-    private synchronized void removeResource(final ServiceReference<ManagedResourceConnector> resourceRef){
-        final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(resourceRef);
+    private synchronized void removeResource(final ServiceReference<ManagedResourceConnector> resourceRef) {
         final BundleContext context = getBundleContext();
-        final ManagedResourceConnector connector = context.getService(resourceRef);
-        if(connector != null)
-            try{
-                connector.removeResourceEventListener(this);
-                removeAllFeaturesImpl(resourceName).forEach(FeatureAccessor::close);
-                resourceRemoved(connector);
-            }
-            finally {
-                context.ungetService(resourceRef);
-            }
+        final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, resourceRef);
+        try {
+            connector.removeResourceEventListener(this);
+            removeAllFeaturesImpl(connector.getManagedResourceName()).forEach(FeatureAccessor::close);
+            removeResource(connector);
+        } finally {
+            connector.release(context);
+        }
     }
 
     private synchronized void doStart(final Map<String, String> params) throws Exception {

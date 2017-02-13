@@ -23,7 +23,7 @@ final class AverageFunction extends NumericFunction {
     }
 
     @Override
-    double invoke(final NameResolver resolver, final Number input) {
+    double invoke(final EvaluationContext resolver, final Number input) {
         return avg.applyAsDouble(input.doubleValue());
     }
 }

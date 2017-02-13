@@ -28,19 +28,19 @@ abstract class NumericFunction extends AggregationFunction<Double> {
 
     abstract double getFallbackValue();
 
-    abstract double invoke(final NameResolver resolver, final Number input) throws Exception;
+    abstract double invoke(final EvaluationContext resolver, final Number input) throws Exception;
 
     /**
      * Invokes aggregation function.
      *
-     * @param resolver A function used to resolve operands.
+     * @param context A function used to resolve operands.
      * @param args     Arguments of the function.
      * @return Function result.
      * @throws IllegalArgumentException Unsupported input value.
      * @throws IllegalStateException    Unresolved operand.
      */
     @Override
-    public Double invoke(final NameResolver resolver, final Object... args) throws Exception {
-        return args.length > 0 && args[0] instanceof Number ? invoke(resolver, (Number) args[0]) : getFallbackValue();
+    public Double eval(final EvaluationContext context, final Object... args) throws Exception {
+        return args.length > 0 && args[0] instanceof Number ? invoke(context, (Number) args[0]) : getFallbackValue();
     }
 }

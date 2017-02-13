@@ -44,7 +44,7 @@ public class Tokenizer implements SafeCloseable {
     }
 
     protected PunctuationToken getPunctuationToken(final char ch){
-        switch (ch){
+        switch (ch) {
             case CommaToken.VALUE:
                 return CommaToken.INSTANCE;
             case SlashToken.VALUE:
@@ -61,7 +61,20 @@ public class Tokenizer implements SafeCloseable {
                 return SemicolonToken.INSTANCE;
             case DotToken.VALUE:
                 return DotToken.INSTANCE;
-            default: return null;
+            case GTToken.VALUE:
+                return GTToken.INSTANCE;
+            case LTToken.VALUE:
+                return LTToken.INSTANCE;
+            case ExclamationToken.VALUE:
+                return ExclamationToken.INSTANCE;
+            case EQToken.VALUE:
+                return EQToken.INSTANCE;
+            case PlusToken.VALUE:
+                return PlusToken.INSTANCE;
+            case MinusToken.VALUE:
+                return MinusToken.INSTANCE;
+            default:
+                return null;
         }
     }
 
@@ -101,7 +114,7 @@ public class Tokenizer implements SafeCloseable {
         }
     }
 
-    private static Predicate<Token> predicateFor(final Class<? extends Token> tokenType){
+    private static Predicate<Token> asPredicate(final Class<? extends Token> tokenType){
         return tokenType::isInstance;
     }
 
@@ -144,7 +157,7 @@ public class Tokenizer implements SafeCloseable {
     }
 
     public final Token skip(final Class<? extends Token> tokenToSkip) throws ParseException{
-        return skip(predicateFor(tokenToSkip));
+        return skip(asPredicate(tokenToSkip));
     }
 
     public final Token nextToken(final Predicate<? super Token> expectedToken) throws ParseException {
@@ -152,7 +165,7 @@ public class Tokenizer implements SafeCloseable {
     }
 
     public final <T extends Token> T nextToken(final Class<T> expectedToken) throws ParseException {
-        return expectedToken.cast(nextToken(predicateFor(expectedToken)));
+        return expectedToken.cast(nextToken(asPredicate(expectedToken)));
     }
 
     /**

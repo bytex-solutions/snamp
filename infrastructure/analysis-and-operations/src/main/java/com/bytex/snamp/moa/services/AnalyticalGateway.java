@@ -1,11 +1,8 @@
 package com.bytex.snamp.moa.services;
 
-import static com.bytex.snamp.MapUtils.getValueAsLong;
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.connector.ClusteredResourceConnector;
-import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.core.DistributedServices;
@@ -17,11 +14,17 @@ import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.GraphOfComponents;
 import org.osgi.framework.BundleContext;
 
-import javax.management.*;
+import javax.management.ListenerNotFoundException;
+import javax.management.MBeanFeatureInfo;
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+
+import static com.bytex.snamp.MapUtils.getValueAsLong;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents analysis service.
@@ -47,17 +50,17 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
             handleNotification(((NotificationContainer) notification).get(), handback);
     }
 
+    private void addNotificationListener(final NotificationSupport support){
+        support.addNotificationListener(this, null, null);
+    }
+
     @Override
-    protected void resourceAdded(final ManagedResourceConnector resourceConnector) {
+    protected void addResource(final ManagedResourceConnectorClient resourceConnector) {
         final TopologyAnalysisModule graph = this.graph;
         if (graph == null)
             return;
-        final ClusteredResourceConnector clusteredResourceConnector = resourceConnector.queryObject(ClusteredResourceConnector.class);
-        if (clusteredResourceConnector != null)
-            graph.addResource(clusteredResourceConnector);
-        final NotificationSupport notificationSupport = resourceConnector.queryObject(NotificationSupport.class);
-        if (notificationSupport != null)
-            notificationSupport.addNotificationListener(this, null, null);
+        graph.add(resourceConnector.getComponentName());
+        Aggregator.queryAndAccept(resourceConnector, NotificationSupport.class, this::addNotificationListener);
     }
 
     @Override
@@ -82,21 +85,22 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
         return LoggerProvider.getLoggerForBundle(getBundleContext());
     }
 
+    private void removeNotificationListener(final NotificationSupport support) {
+        try {
+            support.removeNotificationListener(this);
+        } catch (final ListenerNotFoundException e) {
+            getLogger().log(Level.WARNING, "Unable to remove notification listener", e);
+        }
+    }
+
     @Override
-    protected void resourceRemoved(final ManagedResourceConnector resourceConnector) {
+    protected void removeResource(final ManagedResourceConnectorClient resourceConnector) {
         final TopologyAnalysisModule graph = this.graph;
         if (graph == null)
             return;
-        final ClusteredResourceConnector clusteredResourceConnector = resourceConnector.queryObject(ClusteredResourceConnector.class);
-        if (clusteredResourceConnector != null)
-            graph.removeResource(clusteredResourceConnector);
-        final NotificationSupport notificationSupport = resourceConnector.queryObject(NotificationSupport.class);
-        if (notificationSupport != null)
-            try {
-                notificationSupport.removeNotificationListener(this);
-            } catch (final ListenerNotFoundException e) {
-                getLogger().log(Level.WARNING, "Unable to remove notification listener", e);
-            }
+        graph.remove(resourceConnector.getComponentName());
+        Aggregator.queryAndAccept(resourceConnector, NotificationSupport.class, this::removeNotificationListener);
+
     }
 
     @Override
@@ -106,7 +110,7 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
 
     @Override
     protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
-        return null;
+        return Stream.empty();
     }
 
     @Override

@@ -35,11 +35,11 @@ public abstract class AggregationFunction<T> implements Expression {
 
     /**
      * Invokes aggregation function.
-     * @param resolver A function used to resolve operands.
+     * @param context A function used to resolve operands.
      * @param args Arguments of the function.
      * @return Function result.
      * @throws IllegalArgumentException Unsupported input value.
      * @throws IllegalStateException Unresolved operand.
      */
-    public abstract T invoke(final NameResolver resolver, final Object... args) throws Exception;
+    public abstract T eval(final EvaluationContext context, final Object... args) throws Exception;
 }

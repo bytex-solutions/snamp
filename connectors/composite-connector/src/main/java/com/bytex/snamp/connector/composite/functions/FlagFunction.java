@@ -36,7 +36,7 @@ final class FlagFunction extends AggregationFunction<CompositeData> {
     }
 
     @Override
-    public CompositeData invoke(final NameResolver resolver, final Object... args) {
+    public CompositeData eval(final EvaluationContext context, final Object... args) {
         if(args.length > 0)
             flag.accept(Convert.toBoolean(args[0]));
         return fromFlag(flag);

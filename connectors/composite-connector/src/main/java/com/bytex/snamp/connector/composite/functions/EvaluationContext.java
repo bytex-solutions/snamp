@@ -8,6 +8,6 @@ import javax.management.openmbean.SimpleType;
  * @version 2.0
  * @author Roman Sakno
  */
-public interface NameResolver {
-    <T> T resolveAs(final String name, final SimpleType<T> expectedType) throws Exception;
+public interface EvaluationContext {
+    <T> T resolveName(final String name, final SimpleType<T> expectedType) throws Exception;
 }

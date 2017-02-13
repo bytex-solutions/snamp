@@ -23,8 +23,8 @@ final class CorrelationFunction extends NumericFunction {
     }
 
     @Override
-    double invoke(final NameResolver resolver, final Number input) throws Exception {
-        final double other = resolver.resolveAs(secondSource, SimpleType.DOUBLE);
+    double invoke(final EvaluationContext resolver, final Number input) throws Exception {
+        final double other = resolver.resolveName(secondSource, SimpleType.DOUBLE);
         return correlation.applyAsDouble(input.doubleValue(), other);
     }
 }

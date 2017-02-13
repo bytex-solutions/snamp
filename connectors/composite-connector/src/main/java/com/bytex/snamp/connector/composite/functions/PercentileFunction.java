@@ -24,7 +24,7 @@ final class PercentileFunction extends NumericFunction {
     }
 
     @Override
-    double invoke(final NameResolver resolver, final Number input) {
+    double invoke(final EvaluationContext resolver, final Number input) {
         reservoir.add(input);
         return getFallbackValue();
     }

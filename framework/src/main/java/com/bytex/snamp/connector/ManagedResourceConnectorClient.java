@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents a client of resource connector that can be used by resource consumers.
@@ -283,6 +284,21 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     public String getManagedResourceName(){
         return getManagedResourceName(this);
+    }
+
+    public String getComponentName() {
+        final ClusteredResourceConnector clusteredResource = queryObject(ClusteredResourceConnector.class);
+        String componentName;
+        if (clusteredResource == null)
+            componentName = getConfiguration().getGroupName();
+        else
+            componentName = clusteredResource.getComponentName();
+        return isNullOrEmpty(componentName) ? getManagedResourceName() : componentName;
+    }
+
+    public String getInstanceName() {
+        final ClusteredResourceConnector clusteredResource = queryObject(ClusteredResourceConnector.class);
+        return clusteredResource == null ? getManagedResourceName() : clusteredResource.getInstanceName();
     }
 
     /**

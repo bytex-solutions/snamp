@@ -9,12 +9,22 @@ import javax.annotation.concurrent.Immutable;
  * @since 2.0
  */
 @Immutable
-public final class SemicolonToken extends PunctuationToken {
+public final class SemicolonToken extends PunctuationToken implements SingleCharacterToken {
     private static final long serialVersionUID = 6468759490004875338L;
     public static final char VALUE = ';';
     public static final SemicolonToken INSTANCE = new SemicolonToken();
 
     private SemicolonToken() {
         super(VALUE);
+    }
+
+    /**
+     * Gets character wrapped by this token.
+     *
+     * @return Wrapped character.
+     */
+    @Override
+    public char getValue() {
+        return VALUE;
     }
 }

@@ -5,7 +5,7 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
-import com.bytex.snamp.connector.composite.functions.NameResolver;
+import com.bytex.snamp.connector.composite.functions.EvaluationContext;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.jmx.WellKnownType;
 
@@ -24,7 +24,7 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-final class AttributeComposition extends DistributedAttributeRepository<AbstractCompositeAttribute> implements NameResolver, NotificationListener {
+final class AttributeComposition extends DistributedAttributeRepository<AbstractCompositeAttribute> implements EvaluationContext, NotificationListener {
     private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
     private final AttributeSupportProvider attributeSupportProvider;
     private final ExecutorService threadPool;
@@ -108,7 +108,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     }
 
     @Override
-    public <T> T resolveAs(final String name, final SimpleType<T> expectedType) throws Exception {
+    public <T> T resolveName(final String name, final SimpleType<T> expectedType) throws Exception {
         return Convert.toOpenType(resolveAs(name, WellKnownType.getType(expectedType)), expectedType);
     }
 

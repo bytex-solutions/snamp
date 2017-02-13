@@ -14,9 +14,9 @@ import javax.management.openmbean.SimpleType;
  * @since 2.0
  */
 public final class FunctionParserTest extends Assert {
-    private static final NameResolver EMPTY_RESOLVER = new NameResolver() {
+    private static final EvaluationContext EMPTY_RESOLVER = new EvaluationContext() {
         @Override
-        public <T> T resolveAs(final String name, final SimpleType<T> expectedType) throws UnsupportedOperationException {
+        public <T> T resolveName(final String name, final SimpleType<T> expectedType) throws UnsupportedOperationException {
             throw new UnsupportedOperationException();
         }
     };
@@ -24,71 +24,71 @@ public final class FunctionParserTest extends Assert {
     @Test
     public void parseMaxFunction() throws Exception {
         final AggregationFunction<?> fn = FunctionParser.parse("max()");
-        fn.invoke(EMPTY_RESOLVER, 10);
-        fn.invoke(EMPTY_RESOLVER, 20);
-        assertEquals(20.0, fn.invoke(EMPTY_RESOLVER, 5));
+        fn.eval(EMPTY_RESOLVER, 10);
+        fn.eval(EMPTY_RESOLVER, 20);
+        assertEquals(20.0, fn.eval(EMPTY_RESOLVER, 5));
     }
 
     @Test
     public void parseMinFunction() throws Exception {
         final AggregationFunction<?> fn = FunctionParser.parse("min()");
-        fn.invoke(EMPTY_RESOLVER, 10);
-        fn.invoke(EMPTY_RESOLVER, 5);
-        assertEquals(5.0, fn.invoke(EMPTY_RESOLVER, 20));
+        fn.eval(EMPTY_RESOLVER, 10);
+        fn.eval(EMPTY_RESOLVER, 5);
+        assertEquals(5.0, fn.eval(EMPTY_RESOLVER, 20));
     }
 
     @Test
     public void parseSumFunction() throws Exception {
         final AggregationFunction<?> fn = FunctionParser.parse("sum(10s)");
-        fn.invoke(EMPTY_RESOLVER, 10);
-        fn.invoke(EMPTY_RESOLVER, 5);
-        assertEquals(30.0, fn.invoke(EMPTY_RESOLVER, 15));
+        fn.eval(EMPTY_RESOLVER, 10);
+        fn.eval(EMPTY_RESOLVER, 5);
+        assertEquals(30.0, fn.eval(EMPTY_RESOLVER, 15));
     }
 
     @Test
     public void parseAvgFunction() throws Exception {
         final AggregationFunction<?> fn = FunctionParser.parse("avg(1s)");
-        fn.invoke(EMPTY_RESOLVER, 10);
-        fn.invoke(EMPTY_RESOLVER, 20);
-        fn.invoke(EMPTY_RESOLVER, 30);
-        assertEquals(16.25, fn.invoke(EMPTY_RESOLVER, 5));
+        fn.eval(EMPTY_RESOLVER, 10);
+        fn.eval(EMPTY_RESOLVER, 20);
+        fn.eval(EMPTY_RESOLVER, 30);
+        assertEquals(16.25, fn.eval(EMPTY_RESOLVER, 5));
         Thread.sleep(1001);
-        assertEquals(5.0, fn.invoke(EMPTY_RESOLVER, 5));
+        assertEquals(5.0, fn.eval(EMPTY_RESOLVER, 5));
     }
 
     @Test
     public void parsePercentileFunction() throws Exception {
         final AggregationFunction<?> fn = FunctionParser.parse("percentile(90)");
-        fn.invoke(EMPTY_RESOLVER, 10);
-        fn.invoke(EMPTY_RESOLVER, 20);
-        fn.invoke(EMPTY_RESOLVER, 30);
-        fn.invoke(EMPTY_RESOLVER, 45);
-        fn.invoke(EMPTY_RESOLVER, 22);
-        fn.invoke(EMPTY_RESOLVER, 64);
-        fn.invoke(EMPTY_RESOLVER, 53);
+        fn.eval(EMPTY_RESOLVER, 10);
+        fn.eval(EMPTY_RESOLVER, 20);
+        fn.eval(EMPTY_RESOLVER, 30);
+        fn.eval(EMPTY_RESOLVER, 45);
+        fn.eval(EMPTY_RESOLVER, 22);
+        fn.eval(EMPTY_RESOLVER, 64);
+        fn.eval(EMPTY_RESOLVER, 53);
         final Percentile p = new Percentile(90);
         final double expected = p.evaluate(new double[]{10, 20, 30, 45, 22, 64, 53, 49});
-        assertEquals(expected, fn.invoke(EMPTY_RESOLVER, 49));
+        assertEquals(expected, fn.eval(EMPTY_RESOLVER, 49));
     }
 
     @Test
     public void parseCorrelationFunction() throws Exception {
         final AggregationFunction<?> fn = FunctionParser.parse("correl($other)");
-        final NameResolver resolver = new NameResolver() {
+        final EvaluationContext resolver = new EvaluationContext() {
             private double value = 0;
 
             @SuppressWarnings("unchecked")
             @Override
-            public <T> T resolveAs(final String name, final SimpleType<T> expectedType) throws Exception {
+            public <T> T resolveName(final String name, final SimpleType<T> expectedType) throws Exception {
                 assertEquals("other", name);
                 return (T)WellKnownType.getType(expectedType).cast(value++);
             }
         };
-        fn.invoke(resolver, 0);
-        fn.invoke(resolver, 1);
-        fn.invoke(resolver, 2D);
-        fn.invoke(resolver, 3D);
-        fn.invoke(resolver, 4L);
-        assertEquals(1D, (Double) fn.invoke(resolver, 5D), 0.01D);
+        fn.eval(resolver, 0);
+        fn.eval(resolver, 1);
+        fn.eval(resolver, 2D);
+        fn.eval(resolver, 3D);
+        fn.eval(resolver, 4L);
+        assertEquals(1D, (Double) fn.eval(resolver, 5D), 0.01D);
     }
 }
