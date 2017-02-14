@@ -23,6 +23,21 @@ public interface Timer extends Gauge<Duration> {
      */
     Duration getDeviation();
 
+    @Override
+    Duration getMaxValue();
+
+    @Override
+    Duration getLastMaxValue(final MetricsInterval interval);
+
+    @Override
+    Duration getMinValue();
+
+    @Override
+    Duration getLastMinValue(final MetricsInterval interval);
+
+    @Override
+    Duration getLastValue();
+
     double getMeanNumberOfCompletedTasks(final MetricsInterval scale);
 
     double getMaxNumberOfCompletedTasks(final MetricsInterval scale);
