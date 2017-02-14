@@ -82837,13 +82837,27 @@ var LandscapeView = (function (_super) {
                 {
                     selector: 'node',
                     style: {
-                        shape: 'hexagon',
-                        'background-color': 'red'
+                        'content': 'data(id)',
+                        'text-opacity': 0.5,
+                        'text-valign': 'center',
+                        'text-halign': 'right',
+                        'background-color': '#11479e'
                     }
-                }]
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 4,
+                        'target-arrow-shape': 'triangle',
+                        'line-color': '#9dbaea',
+                        'target-arrow-color': '#9dbaea',
+                        'curve-style': 'bezier'
+                    }
+                }
+            ]
         });
         cy.layout({
-            name: 'circle'
+            name: 'dagre'
         });
     };
     LandscapeView.prototype.getData = function () {

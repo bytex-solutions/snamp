@@ -9,18 +9,34 @@ export class LandscapeView extends E2EView {
        var cy = cytoscape({
          container: document.getElementById('cy'),
          elements: this.getData(),
-           style: [
-               {
-                   selector: 'node',
-                   style: {
-                       shape: 'hexagon',
-                       'background-color': 'red'
-                   }
-               }]
+         style: [
+            {
+                selector: 'node',
+                style: {
+                    'content': 'data(id)',
+                    'text-opacity': 0.8,
+                    'text-valign': 'top',
+                    'font-size': '14px',
+                    'text-halign': 'center',
+                    'font-weight': '700',
+                    'background-color': '#11479e'
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 4,
+                    'target-arrow-shape': 'triangle',
+                    'line-color': '#9dbaea',
+                    'target-arrow-color': '#9dbaea',
+                    'curve-style': 'bezier'
+                }
+            }
+         ]
        });
 
        cy.layout({
-           name: 'circle'
+           name: 'dagre'
        });
     }
 
