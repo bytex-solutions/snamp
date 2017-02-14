@@ -54,7 +54,7 @@ export class ViewService {
             this.viewNames.next(data.views.map(_d => _d.name));
             if (data.views.length > 0) {
                 for (let i = 0; i < data.views.length; i++) {
-                    let _currentView:E2EView = Factory.viewFromJSON(data.charts[i]);
+                    let _currentView:E2EView = Factory.viewFromJSON(data.views[i]);
                     this.viewSubjects[_currentView.name] = new Subject<any>();
                    // _currentView.subscribeToSubject(this.viewSubjects[_currentView.name]);
                     this._dashboard.views.push(_currentView);

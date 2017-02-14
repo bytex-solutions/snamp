@@ -82838,9 +82838,11 @@ var LandscapeView = (function (_super) {
                     selector: 'node',
                     style: {
                         'content': 'data(id)',
-                        'text-opacity': 0.5,
-                        'text-valign': 'center',
-                        'text-halign': 'right',
+                        'text-opacity': 0.8,
+                        'text-valign': 'top',
+                        'font-size': '14px',
+                        'text-halign': 'center',
+                        'font-weight': '700',
                         'background-color': '#11479e'
                     }
                 },
@@ -82857,7 +82859,7 @@ var LandscapeView = (function (_super) {
             ]
         });
         cy.layout({
-            name: 'dagre'
+            name: 'grid'
         });
     };
     LandscapeView.prototype.getData = function () {
@@ -83885,7 +83887,7 @@ var ViewService = (function () {
             _this.viewNames.next(data.views.map(function (_d) { return _d.name; }));
             if (data.views.length > 0) {
                 for (var i = 0; i < data.views.length; i++) {
-                    var _currentView = objectFactory_1.Factory.viewFromJSON(data.charts[i]);
+                    var _currentView = objectFactory_1.Factory.viewFromJSON(data.views[i]);
                     _this.viewSubjects[_currentView.name] = new Subject_1.Subject();
                     // _currentView.subscribeToSubject(this.viewSubjects[_currentView.name]);
                     _this._dashboard.views.push(_currentView);

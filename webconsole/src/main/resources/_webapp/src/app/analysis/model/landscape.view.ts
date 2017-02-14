@@ -36,7 +36,7 @@ export class LandscapeView extends E2EView {
        });
 
        cy.layout({
-           name: 'dagre'
+           name: 'grid'
        });
     }
 
