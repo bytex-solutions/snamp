@@ -53,6 +53,7 @@ import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.IntUnaryOperator;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
@@ -83,6 +84,82 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
             setName(componentName);
             setInstance(instanceName);
         }
+    }
+
+    enum TestTopology{
+        //FOURTH_RESOURCE_NAME => FIFTH_RESOURCE_NAME, FOURTH_RESOURCE_NAME => SIXTH_RESOURCE_NAME
+        ONE_TO_MANY {
+            @Override
+            void sendTestSpans(final MetricRegistry registry, final IntUnaryOperator delay) throws IOException, InterruptedException {
+                TestApplicationInfo.setName(GROUP1_NAME, FOURTH_RESOURCE_NAME);
+                final Identifier parentSpanId;
+                final Identifier correlationID = Identifier.randomID(4);
+                try (final TraceScope scope = registry.tracer(TRACE_NAME).beginTrace(correlationID)) {
+                    Thread.sleep(delay.applyAsInt(200));
+                    parentSpanId = scope.getSpanID();
+                }
+                TestApplicationInfo.setName(GROUP2_NAME, FIFTH_RESOURCE_NAME);
+                try (final TraceScope ignored = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId)) {
+                    Thread.sleep(delay.applyAsInt(100));
+                }
+                TestApplicationInfo.setName(GROUP3_NAME, SIXTH_RESOURCE_NAME);
+                try (final TraceScope ignored = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId)) {
+                    Thread.sleep(delay.applyAsInt(300));
+                }
+            }
+        },
+        //FOURTH_RESOURCE_NAME => FIFTH_RESOURCE_NAME, FIFTH_RESOURCE_NAME => SIXTH_RESOURCE_NAME
+        LINEAR {
+            @Override
+            void sendTestSpans(final MetricRegistry registry, final IntUnaryOperator delay) throws IOException, InterruptedException {
+                TestApplicationInfo.setName(GROUP1_NAME, FOURTH_RESOURCE_NAME);
+                Identifier parentSpanId;
+                final Identifier correlationID = Identifier.randomID(4);
+                try (final TraceScope scope = registry.tracer(TRACE_NAME).beginTrace(correlationID)) {
+                    Thread.sleep(delay.applyAsInt(200));
+                    parentSpanId = scope.getSpanID();
+                }
+                TestApplicationInfo.setName(GROUP2_NAME, FIFTH_RESOURCE_NAME);
+                try (final TraceScope scope = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId)) {
+                    Thread.sleep(delay.applyAsInt(100));
+                    parentSpanId = scope.getSpanID();
+                }
+                TestApplicationInfo.setName(GROUP3_NAME, SIXTH_RESOURCE_NAME);
+                try (final TraceScope ignored = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId)) {
+                    Thread.sleep(delay.applyAsInt(300));
+                }
+            }
+        },
+        //FOURTH_RESOURCE_NAME => FIFTH_RESOURCE_NAME, FIFTH_RESOURCE_NAME => SIXTH_RESOURCE_NAME, SIXTH_RESOURCE_NAME => FOURTH_RESOURCE_NAME
+        LOOP {
+            @Override
+            void sendTestSpans(final MetricRegistry registry, final IntUnaryOperator delay) throws IOException, InterruptedException {
+                TestApplicationInfo.setName(GROUP1_NAME, FOURTH_RESOURCE_NAME);
+                Identifier parentSpanId;
+                final Identifier correlationID = Identifier.randomID(4);
+                try (final TraceScope scope = registry.tracer(TRACE_NAME).beginTrace(correlationID)) {
+                    Thread.sleep(delay.applyAsInt(200));
+                    parentSpanId = scope.getSpanID();
+                }
+                TestApplicationInfo.setName(GROUP2_NAME, FIFTH_RESOURCE_NAME);
+                try (final TraceScope scope = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId)) {
+                    Thread.sleep(delay.applyAsInt(100));
+                    parentSpanId = scope.getSpanID();
+                }
+                TestApplicationInfo.setName(GROUP3_NAME, SIXTH_RESOURCE_NAME);
+                try (final TraceScope scope = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId)) {
+                    Thread.sleep(delay.applyAsInt(300));
+                    parentSpanId = scope.getSpanID();
+                }
+                TestApplicationInfo.setName(GROUP1_NAME, FOURTH_RESOURCE_NAME);
+                try (final TraceScope ignored = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId)) {
+                    Thread.sleep(delay.applyAsInt(150));
+                }
+            }
+        };
+        static final String TRACE_NAME = "myTrace";
+
+        abstract void sendTestSpans(final MetricRegistry registry, final IntUnaryOperator delay) throws IOException, InterruptedException;
     }
 
     private static final ObjectMapper FORMATTER = new ObjectMapper();
@@ -273,21 +350,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final HttpReporter reporter = new HttpReporter("http://localhost:8181/", ImmutableMap.of());
         reporter.setAsynchronous(false);
         try (final MetricRegistry registry = new MetricRegistry(reporter)) {
-            TestApplicationInfo.setName(GROUP1_NAME, FOURTH_RESOURCE_NAME);
-            final Identifier parentSpanId;
-            final Identifier correlationID = Identifier.randomID(4);
-            try (final TraceScope scope = registry.tracer("myTrace").beginTrace(correlationID)) {
-                Thread.sleep(200L);
-                parentSpanId = scope.getSpanID();
-            }
-            TestApplicationInfo.setName(GROUP2_NAME, FIFTH_RESOURCE_NAME);
-            try (final TraceScope ignored = registry.tracer("myTrace").beginTrace(correlationID, parentSpanId)) {
-                Thread.sleep(100L);
-            }
-            TestApplicationInfo.setName(GROUP3_NAME, SIXTH_RESOURCE_NAME);
-            try (final TraceScope ignored = registry.tracer("myTrace").beginTrace(correlationID, parentSpanId)) {
-                Thread.sleep(300L);
-            }
+            TestTopology.ONE_TO_MANY.sendTestSpans(registry, IntUnaryOperator.identity());
         }
         Thread.sleep(2000L);    //wait because span processing is asynchronous operation
         final String landscapeView = "{\n" +
@@ -448,17 +511,21 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
      * @throws InterruptedException the interrupted exception
      */
     @Test
-    public void dummyTest() throws InterruptedException {
+    public void dummyTest() throws InterruptedException, URISyntaxException, IOException {
         final Random rnd = new Random(248284792L);
-        while (true) {
+        final HttpReporter reporter = new HttpReporter("http://localhost:8181/", ImmutableMap.of());
+        reporter.setAsynchronous(false);
+        final MetricRegistry registry = new MetricRegistry(reporter);
+        while (!Thread.interrupted()) {
             beanMap.values().forEach(bean -> {
-                bean.setInt32((int)Math.round(Math.abs(rnd.nextGaussian())) * 100);
+                bean.setInt32((int) Math.round(Math.abs(rnd.nextGaussian())) * 100);
                 bean.setBigInt(BigInteger.valueOf(1000 * rnd.nextInt(1000)));
                 bean.setFloat(rnd.nextFloat() * 100F);
                 // append new int for third attribute changer pls
             });
-            Thread.sleep(500L);
+            TestTopology.ONE_TO_MANY.sendTestSpans(registry, rnd::nextInt);
         }
+        registry.close();
     }
 
 
