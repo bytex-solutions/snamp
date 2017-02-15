@@ -82833,11 +82833,14 @@ var LandscapeView = (function (_super) {
         var cy = cytoscape({
             container: document.getElementById('cy'),
             elements: this.getData(),
+            layout: {
+                name: 'circle'
+            },
             style: [
                 {
                     selector: 'node',
                     style: {
-                        'content': 'data(id)',
+                        'content': 'data(title)',
                         'text-opacity': 0.8,
                         'text-valign': 'top',
                         'font-size': '14px',
@@ -82849,30 +82852,65 @@ var LandscapeView = (function (_super) {
                 {
                     selector: 'edge',
                     style: {
+                        'label': 'data(title)',
                         'width': 4,
                         'target-arrow-shape': 'triangle',
-                        'line-color': '#9dbaea',
+                        'line-color': '#006400',
                         'target-arrow-color': '#9dbaea',
                         'curve-style': 'bezier'
                     }
                 }
             ]
         });
-        cy.layout({
-            name: 'grid'
-        });
+        var _thisReference = this;
+        setInterval(function () {
+            var _d = _thisReference.getRandom();
+            cy.$('#ab').data("title", _d);
+            if (_d > 50) {
+                cy.$('#ab').style({ 'line-color': '#FF6347' });
+            }
+            else {
+                cy.$('#ab').style({ 'line-color': '#9dbaea' });
+            }
+            _d = _thisReference.getRandom();
+            cy.$('#cd').data("title", _d);
+            if (_d > 50) {
+                cy.$('#cd').style({ 'line-color': '#FF6347' });
+            }
+            else {
+                cy.$('#cd').style({ 'line-color': '#9dbaea' });
+            }
+            _d = _thisReference.getRandom();
+            cy.$('#ac').data("title", _d);
+            if (_d > 50) {
+                cy.$('#ac').style({ 'line-color': '#FF6347' });
+            }
+            else {
+                cy.$('#ac').style({ 'line-color': '#9dbaea' });
+            }
+            _d = _thisReference.getRandom();
+            cy.$('#ad').data("title", _d);
+            if (_d > 50) {
+                cy.$('#ad').style({ 'line-color': '#FF6347' });
+            }
+            else {
+                cy.$('#ad').style({ 'line-color': '#9dbaea' });
+            }
+        }, 1500);
+    };
+    LandscapeView.prototype.getRandom = function () {
+        return Math.floor(Math.random() * (100 - 10) + 10);
     };
     LandscapeView.prototype.getData = function () {
         return [
-            { data: { id: 'a' } },
-            { data: { id: 'b' } },
-            { data: { id: 'c' } },
-            { data: { id: 'd' } },
-            { data: { id: 'e' } },
-            { data: { id: 'f' } },
+            { data: { id: 'a', title: 'Mobile app' } },
+            { data: { id: 'b', title: 'Web-server' } },
+            { data: { id: 'c', title: 'Dispatcher' } },
+            { data: { id: 'd', title: 'Payment system' } },
             {
                 data: {
                     id: 'ab',
+                    title: this.getRandom(),
                     source: 'a',
                     target: 'b'
                 }
@@ -82880,29 +82918,25 @@ var LandscapeView = (function (_super) {
             {
                 data: {
                     id: 'cd',
+                    title: this.getRandom(),
                     source: 'c',
                     target: 'd'
                 }
             },
             {
                 data: {
-                    id: 'ef',
-                    source: 'e',
-                    target: 'f'
+                    id: 'ac',
+                    title: this.getRandom(),
+                    source: 'a',
+                    target: 'c'
                 }
             },
             {
                 data: {
-                    id: 'ac',
+                    id: 'ad',
+                    title: this.getRandom(),
                     source: 'a',
                     target: 'd'
-                }
-            },
-            {
-                data: {
-                    id: 'be',
-                    source: 'b',
-                    target: 'e'
                 }
             }
         ];
