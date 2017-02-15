@@ -443,6 +443,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         final BundleContext context = getBundleContext();
         final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, resourceRef);
         try {
+            addResource(connector);
             //add gateway as a listener
             connector.addResourceEventListener(this);
             //expose all features
@@ -450,7 +451,6 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
             exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
             exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
             exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
-            addResource(connector);
         } finally {
             context.ungetService(resourceRef);
         }

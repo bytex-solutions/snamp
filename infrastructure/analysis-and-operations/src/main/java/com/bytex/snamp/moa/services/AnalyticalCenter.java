@@ -1,11 +1,10 @@
 package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
-
-import java.io.Closeable;
+import com.bytex.snamp.moa.watching.AttributeWatcherService;
 
 /**
  * Represents uber interface of all services with analytics.
  */
-interface AnalyticalCenter extends TopologyAnalyzer {
+interface AnalyticalCenter extends TopologyAnalyzer, AttributeWatcherService {
 }

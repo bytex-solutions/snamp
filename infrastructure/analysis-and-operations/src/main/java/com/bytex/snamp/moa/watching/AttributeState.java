@@ -1,5 +1,7 @@
 package com.bytex.snamp.moa.watching;
 
+import com.google.common.collect.ImmutableSortedSet;
+
 /**
  * Represents state of the watching attribute.
  * @author Roman Sakno
@@ -20,5 +22,7 @@ public enum AttributeState {
     /**
      * Attribute value indicates critical state of the managed resource.
      */
-    PANIC
+    PANIC;
+
+    public static final ImmutableSortedSet<AttributeState> ALL_STATES = ImmutableSortedSet.copyOf(values());
 }

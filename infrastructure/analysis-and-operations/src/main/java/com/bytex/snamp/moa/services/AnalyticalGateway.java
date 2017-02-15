@@ -12,12 +12,12 @@ import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.GraphOfComponents;
+import com.bytex.snamp.moa.watching.*;
+import com.bytex.snamp.moa.watching.AttributeWatcher;
 import org.osgi.framework.BundleContext;
 
-import javax.management.ListenerNotFoundException;
-import javax.management.MBeanFeatureInfo;
-import javax.management.Notification;
-import javax.management.NotificationListener;
+import javax.management.*;
+import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,10 +34,22 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
     private static final long DEFAULT_HISTORY_SIZE = 10_000L;
 
     private TopologyAnalysisModule graph;
+    private final WatcherModule watchDog;
 
     AnalyticalGateway(final BundleContext context) {
         super(DistributedServices.getLocalMemberName(context));
+        watchDog = new WatcherModule();
     }
+
+    private BundleContext getBundleContext(){
+        return getBundleContextOfObject(this);
+    }
+
+    private Logger getLogger() {
+        return LoggerProvider.getLoggerForBundle(getBundleContext());
+    }
+
+    //<editor-fold desc="Topology analysis">
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
@@ -61,13 +73,7 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
             return;
         graph.add(resourceConnector.getComponentName());
         Aggregator.queryAndAccept(resourceConnector, NotificationSupport.class, this::addNotificationListener);
-    }
-
-    @Override
-    public void reset() {
-        final TopologyAnalysisModule graph = this.graph;
-        if (graph != null)
-            graph.reset();
+        watchDog.addResource(resourceConnector);
     }
 
     @Override
@@ -75,14 +81,6 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
         final TopologyAnalysisModule graph = this.graph;
         if (graph != null)
             graph.forEach(visitor);
-    }
-
-    private BundleContext getBundleContext(){
-        return getBundleContextOfObject(this);
-    }
-
-    private Logger getLogger() {
-        return LoggerProvider.getLoggerForBundle(getBundleContext());
     }
 
     private void removeNotificationListener(final NotificationSupport support) {
@@ -100,22 +98,57 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
             return;
         graph.remove(resourceConnector.getComponentName());
         Aggregator.queryAndAccept(resourceConnector, NotificationSupport.class, this::removeNotificationListener);
+        watchDog.removeResource(resourceConnector);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="Watchers">
+    @Override
+    public void addWatcher(final AttributeWatcher listener) {
 
     }
 
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) {
+    public void removeWatcher(final AttributeWatcher listener) {
+
+    }
+
+    @Override
+    public Collection<AttributeWatcherSettings> getSettings() {
         return null;
+    }
+
+    //</editor-fold>
+
+    @Override
+    public void reset() {
+        final TopologyAnalysisModule graph = this.graph;
+        if (graph != null)
+            graph.reset();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {
+        if(feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M>) watchDog.addAttribute(resourceName, (MBeanAttributeInfo) feature);
+        else
+            return null;
     }
 
     @Override
     protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
-        return Stream.empty();
+        return watchDog.clear(resourceName).stream();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) {
-        return null;
+        if(feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M>) watchDog.removeAttribute(resourceName, (MBeanAttributeInfo) feature);
+        else
+            return null;
     }
 
     @Override
@@ -127,5 +160,6 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
     protected void stop() {
         reset();
         graph = null;
+        watchDog.clear();
     }
 }
