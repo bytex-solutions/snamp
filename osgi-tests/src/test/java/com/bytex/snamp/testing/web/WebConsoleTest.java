@@ -99,11 +99,11 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                     parentSpanId = scope.getSpanID();
                 }
                 TestApplicationInfo.setName(GROUP2_NAME, FIFTH_RESOURCE_NAME);
-                try (final TraceScope ignored = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId)) {
+                try (final TraceScope ignored = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId, "RESTController")) {
                     Thread.sleep(delay.applyAsInt(100));
                 }
                 TestApplicationInfo.setName(GROUP3_NAME, SIXTH_RESOURCE_NAME);
-                try (final TraceScope ignored = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId)) {
+                try (final TraceScope ignored = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId, "DAO")) {
                     Thread.sleep(delay.applyAsInt(300));
                 }
             }

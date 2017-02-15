@@ -4,21 +4,21 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.AbstractSnampManager;
+import com.bytex.snamp.core.SnampComponentDescriptor;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.management.ManagementUtils;
 import com.bytex.snamp.management.SnampManagerImpl;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +30,11 @@ import java.util.stream.Collectors;
  */
 @Path("/")
 public final class ManagementService extends AbstractManagementService {
+    @FunctionalInterface
+    private interface EntityDescriptorProvider<T extends EntityConfiguration>{
+        ConfigurationEntityDescription<T> getDescriptor(final BundleContext context, final String componentName, final Class<T> entityType);
+    }
+
     private static final String INTERNAL_COMPONENT_TYPE_NAME = "Internal component";
     private final AbstractSnampManager manager = new SnampManagerImpl();
 
@@ -57,6 +62,35 @@ public final class ManagementService extends AbstractManagementService {
                 .build();
     }
 
+    private <T extends SnampComponentDescriptor> void fillInstalledComponents(final Function<? super AbstractSnampManager, Collection<? extends T>> componentInfoProvider,
+                                                                              final Function<? super T, String> typeResolver,
+                                                                              final Collection<Map<String, String>> output) {
+        componentInfoProvider.apply(manager)
+                .stream()
+                .filter(entry -> entry.getName(Locale.getDefault()) != null)
+                .map(entry -> ImmutableMap.<String, String>builder()
+                        .put("name", entry.getName(Locale.getDefault()))
+                        .put("description", entry.toString(Locale.getDefault()))
+                        .put("state", ManagementUtils.getStateString(entry))
+                        .put("version", entry.getVersion().toString())
+                        .put("class", "resource")
+                        .put("type", typeResolver.apply(entry))
+                        .build())
+                .forEach(output::add);
+    }
+
+    private void fillInstalledConnectors(final Collection<Map<String, String>> output) {
+        fillInstalledComponents(AbstractSnampManager::getInstalledResourceConnectors,
+                AbstractSnampManager.ResourceConnectorDescriptor::getType,
+                output);
+    }
+
+    private void fillInstalledGateways(final Collection<Map<String, String>> output) {
+        fillInstalledComponents(AbstractSnampManager::getInstalledGateways,
+                AbstractSnampManager.GatewayDescriptor::getType,
+                output);
+    }
+
     /**
      * Returns all the snamp bundles.
      *
@@ -66,23 +100,14 @@ public final class ManagementService extends AbstractManagementService {
     @Path("/components")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Collection getInstalledComponents() {
-        final Collection<Map<String, String>> collection = manager.getInstalledComponents()
-                .stream()
-                .filter(entry -> entry.getName(Locale.getDefault()) != null)
-                .map(entry -> ImmutableMap.<String, String>builder()
-                        .put("name", entry.getName(Locale.getDefault()))
-                        .put("description", entry.toString(Locale.getDefault()))
-                        .put("state", ManagementUtils.getStateString(entry))
-                        .put("version", entry.getVersion().toString())
-                        .put("class", "internal")
-                        .put("type", INTERNAL_COMPONENT_TYPE_NAME)
-                        .build())
-                .collect(Collectors.toList());
-        collection.addAll(getInstalledGateways());
-        collection.addAll(getInstalledResources());
+    public Collection<Map<String, String>> getInstalledComponents() {
+        final Collection<Map<String, String>> collection = new LinkedList<>();
+        fillInstalledComponents(AbstractSnampManager::getInstalledComponents, c -> INTERNAL_COMPONENT_TYPE_NAME, collection);
+        fillInstalledConnectors(collection);
+        fillInstalledGateways(collection);
         return collection;
     }
+
 
 
     /**
@@ -91,22 +116,13 @@ public final class ManagementService extends AbstractManagementService {
      * @return the installed resources
      */
     @GET
-    @Path("/resource/list")
+    @Path("/components/connectors")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Collection<Map<String, String>> getInstalledResources() {
-        return manager.getInstalledResourceConnectors()
-                .stream()
-                .filter(entry -> entry.getName(Locale.getDefault()) != null)
-                .map(entry -> ImmutableMap.<String,String>builder()
-                        .put("name", entry.getName(Locale.getDefault()))
-                        .put("description", entry.toString(Locale.getDefault()))
-                        .put("state", ManagementUtils.getStateString(entry))
-                        .put("version", entry.getVersion().toString())
-                        .put("class", "resource")
-                        .put("type", entry.getType())
-                        .build())
-                .collect(Collectors.toList());
+    public Collection<Map<String, String>> getInstalledConnectors() {
+        final Collection<Map<String, String>> collection = new LinkedList<>();
+        fillInstalledConnectors(collection);
+        return collection;
     }
 
 
@@ -116,22 +132,13 @@ public final class ManagementService extends AbstractManagementService {
      * @return the installed gateways
      */
     @GET
-    @Path("/gateway/list")
+    @Path("/components/gateways")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getInstalledGateways() {
-        return manager.getInstalledGateways()
-                .stream()
-                .filter(entry -> entry.getName(Locale.getDefault()) != null)
-                .map(entry -> ImmutableMap.<String,String>builder()
-                        .put("name", entry.getName(Locale.getDefault()))
-                        .put("description", entry.toString(Locale.getDefault()))
-                        .put("state", ManagementUtils.getStateString(entry))
-                        .put("version", entry.getVersion().toString())
-                        .put("class", "gateway")
-                        .put("type", entry.getType())
-                        .build())
-                .collect(Collectors.toList());
+        final Collection<Map<String, String>> collection = new LinkedList<>();
+        fillInstalledGateways(collection);
+        return collection;
     }
 
     /**
@@ -155,16 +162,16 @@ public final class ManagementService extends AbstractManagementService {
     /**
      * Stop resource.
      *
-     * @param name the name
+     * @param connectorType the name
      * @return the boolean
      */
     @POST
-    @Path("/resource/{name}/disable")
+    @Path("/components/connector/{type}/disable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public boolean disableConnector(@PathParam("name") final String name)  {
+    public boolean disableConnector(@PathParam("type") final String connectorType)  {
         try {
-            return ManagedResourceActivator.disableConnector(getBundleContext(), name);
+            return ManagedResourceActivator.disableConnector(getBundleContext(), connectorType);
         } catch (final BundleException e) {
             throw new WebApplicationException(e);
         }
@@ -173,16 +180,16 @@ public final class ManagementService extends AbstractManagementService {
     /**
      * Start resource.
      *
-     * @param name the name
+     * @param connectorType the name
      * @return the boolean
      */
     @POST
-    @Path("/resource/{name}/enable")
+    @Path("/components/connector/{type}/enable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public boolean enableConnector(@PathParam("name") final String name)  {
+    public boolean enableConnector(@PathParam("type") final String connectorType)  {
         try {
-            return ManagedResourceActivator.enableConnector(getBundleContext(), name);
+            return ManagedResourceActivator.enableConnector(getBundleContext(), connectorType);
         } catch (final BundleException e) {
             throw new WebApplicationException(e);
         }
@@ -192,16 +199,16 @@ public final class ManagementService extends AbstractManagementService {
     /**
      * Stop gateway.
      *
-     * @param name the name
+     * @param gatewayType the name
      * @return the boolean
      */
     @POST
-    @Path("/gateway/{name}/disable")
+    @Path("/components/gateway/{type}/disable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public boolean disableGateway(@PathParam("name") final String name)  {
+    public boolean disableGateway(@PathParam("type") final String gatewayType)  {
         try {
-            return GatewayActivator.disableGateway(getBundleContext(), name);
+            return GatewayActivator.disableGateway(getBundleContext(), gatewayType);
         } catch (final BundleException e) {
             throw new WebApplicationException(e);
         }
@@ -210,135 +217,104 @@ public final class ManagementService extends AbstractManagementService {
     /**
      * Start gateway.
      *
-     * @param name the name
+     * @param gatewayType the name
      * @return the boolean
      */
     @POST
-    @Path("/gateway/{name}/enable")
+    @Path("/components/gateway/{type}/enable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public boolean enableGateway(@PathParam("name") final String name)  {
+    public boolean enableGateway(@PathParam("type") final String gatewayType)  {
         try {
-            return GatewayActivator.enableGateway(getBundleContext(), name);
+            return GatewayActivator.enableGateway(getBundleContext(), gatewayType);
         } catch (final BundleException e) {
             throw new WebApplicationException(e);
         }
     }
 
+    private <T extends EntityConfiguration> Collection<Map<String, String>> getDescription(final String componentName,
+                                                                                                  final Class<T> entityType,
+                                                                                           final EntityDescriptorProvider<T> descriptionProvider) {
+        Collection<Map<String, String>> result;
+        try {
+            final ConfigurationEntityDescription<?> descriptor = descriptionProvider.getDescriptor(getBundleContext(), componentName, entityType);
+            result = descriptor == null ? Collections.emptyList() : descriptor.stream()
+                    .map(descriptor::getParameterDescriptor)
+                    .map(ManagementService::stringifyDescription)
+                    .collect(Collectors.toList());
+        } catch (final UnsupportedOperationException exception) {
+            result = Collections.emptyList();
+        }
+        return result;
+    }
 
     /**
      * Gets gateway description.
      *
-     * @param name the name
+     * @param gatewayType the name
      * @return the entity description
      */
     @GET
-    @Path("/gateway/{name}/configuration")
+    @Path("/components/gateway/{type}/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Collection<Map<String, String>> getGatewayDescription(@PathParam("name") final String name) {
-        try {
-            final ConfigurationEntityDescription<GatewayConfiguration> descriptor =
-                    GatewayClient.getConfigurationEntityDescriptor(getBundleContext(), name,
-                            GatewayConfiguration.class);
-            return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
-                    .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
-                    .collect(Collectors.toList());
-        } catch (final UnsupportedOperationException exception) {
-            return Collections.emptyList();
-        }
+    public Collection<Map<String, String>> getGatewayDescription(@PathParam("type") final String gatewayType) {
+        return getDescription(gatewayType, GatewayConfiguration.class, GatewayClient::getConfigurationEntityDescriptor);
     }
-
 
     /**
      * Gets managed resource description.
      *
-     * @param name the name
+     * @param connectorType the name
      * @return the entity description
      */
     @GET
-    @Path("/resource/{name}/configuration")
+    @Path("/components/connector/{type}/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Collection<Map<String, String>> getResourceDescription(@PathParam("name") final String name) {
-        try {
-            final ConfigurationEntityDescription<ManagedResourceConfiguration> descriptor =
-                    ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,
-                            ManagedResourceConfiguration.class);
-            return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
-                    .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
-                    .collect(Collectors.toList());
-        } catch (final UnsupportedOperationException exception) {
-            return Collections.emptyList();
-        }
+    public Collection<Map<String, String>> getConnectorDescription(@PathParam("type") final String connectorType) {
+        return getDescription(connectorType, ManagedResourceConfiguration.class, ManagedResourceConnectorClient::getConfigurationEntityDescriptor);
     }
 
     /**
      * Gets resource attribute description.
      *
-     * @param name the name
+     * @param connectorType the name
      * @return the resource attribute description
      */
     @GET
-    @Path("/resource/{name}/attribute/configuration")
+    @Path("/components/connector/{type}/attribute/configuration")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Collection<Map<String, String>> getResourceAttributeDescription(@PathParam("name") final String name) {
-        try {
-            final ConfigurationEntityDescription<AttributeConfiguration> descriptor =
-                    ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,
-                            AttributeConfiguration.class);
-            return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
-                    .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
-                    .collect(Collectors.toList());
-        } catch (final UnsupportedOperationException exception) {
-            return Collections.emptyList();
-        }
+    public Collection<Map<String, String>> getAttributeDescription(@PathParam("type") final String connectorType) {
+        return getDescription(connectorType, AttributeConfiguration.class, ManagedResourceConnectorClient::getConfigurationEntityDescriptor);
     }
 
     /**
      * Gets resource event description.
      *
-     * @param name the name
+     * @param connectorType the name
      * @return the resource event description
      */
     @GET
-    @Path("/resource/{name}/event/configuration")
+    @Path("/components/connector/{type}/event/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Collection<Map<String, String>> getResourceEventDescription(@PathParam("name") final String name) {
-        try {
-            final ConfigurationEntityDescription<EventConfiguration> descriptor =
-                    ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,
-                            EventConfiguration.class);
-            return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
-                    .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
-                    .collect(Collectors.toList());
-        } catch (final UnsupportedOperationException exception) {
-            return Collections.emptyList();
-        }
+    public Collection<Map<String, String>> getResourceEventDescription(@PathParam("type") final String connectorType) {
+        return getDescription(connectorType, EventConfiguration.class, ManagedResourceConnectorClient::getConfigurationEntityDescriptor);
     }
 
     /**
      * Gets resource operation description.
      *
-     * @param name the name
+     * @param connectorType the name
      * @return the resource operation description
      */
     @GET
-    @Path("/resource/{name}/operation/configuration")
+    @Path("/components/connector/{type}/operation/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Collection<Map<String, String>> getResourceOperationDescription(@PathParam("name") final String name) {
-        try {
-            final ConfigurationEntityDescription<OperationConfiguration> descriptor =
-                    ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getBundleContext(), name,
-                            OperationConfiguration.class);
-            return descriptor == null ? Collections.EMPTY_LIST : descriptor.stream()
-                    .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
-                    .collect(Collectors.toList());
-        } catch (final UnsupportedOperationException exception) {
-            return Collections.emptyList();
-        }
+    public Collection<Map<String, String>> getResourceOperationDescription(@PathParam("type") final String connectorType) {
+        return getDescription(connectorType, OperationConfiguration.class, ManagedResourceConnectorClient::getConfigurationEntityDescriptor);
     }
 }

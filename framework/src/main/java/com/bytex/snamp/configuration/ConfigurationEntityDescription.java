@@ -7,14 +7,6 @@ import java.util.Locale;
 
 /**
  * Represents description of the SNAMP plugin configuration model.
- * <p>
- *     This interface provides description of additional configuration properties that can be obtained
- *     via {@link GatewayConfiguration#getParameters()},
- *     {@link ManagedResourceConfiguration#getParameters()},
- *     {@link AttributeConfiguration#getParameters()}
- *     or {@link EventConfiguration#getParameters()}.
- *     Each element of the collection represents parameter name and this collection is read-only.
- * </p>
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
