@@ -82733,7 +82733,10 @@ var ChildComponentsView = (function (_super) {
         _super.apply(this, arguments);
         this.type = abstract_e2e_view_1.E2EView.CHILD_COMPONENT;
     }
-    ChildComponentsView.prototype.draw = function () {
+    ChildComponentsView.prototype.draw = function (initialData) {
+        // do nothing here
+    };
+    ChildComponentsView.prototype.updateData = function (currentData) {
         // do nothing here
     };
     ChildComponentsView.prototype.toJSON = function () {
@@ -82767,7 +82770,10 @@ var ComponentModulesView = (function (_super) {
         _super.apply(this, arguments);
         this.type = abstract_e2e_view_1.E2EView.COMPONENT_MODULES;
     }
-    ComponentModulesView.prototype.draw = function () {
+    ComponentModulesView.prototype.draw = function (initialData) {
+        // do nothing here
+    };
+    ComponentModulesView.prototype.updateData = function (currentData) {
         // do nothing here
     };
     ComponentModulesView.prototype.toJSON = function () {
@@ -82828,11 +82834,12 @@ var LandscapeView = (function (_super) {
     function LandscapeView() {
         _super.apply(this, arguments);
         this.type = abstract_e2e_view_1.E2EView.LANDSCAPE;
+        this._cy = undefined;
     }
-    LandscapeView.prototype.draw = function () {
+    LandscapeView.prototype.draw = function (initialData) {
         var cy = cytoscape({
             container: document.getElementById('cy'),
-            elements: this.getData(),
+            elements: this.getData(initialData),
             layout: {
                 name: 'circle'
             },
@@ -82862,46 +82869,13 @@ var LandscapeView = (function (_super) {
                 }
             ]
         });
-        var _thisReference = this;
-        setInterval(function () {
-            var _d = _thisReference.getRandom();
-            cy.$('#ab').data("title", _d);
-            if (_d > 50) {
-                cy.$('#ab').style({ 'line-color': '#FF6347' });
-            }
-            else {
-                cy.$('#ab').style({ 'line-color': '#9dbaea' });
-            }
-            _d = _thisReference.getRandom();
-            cy.$('#cd').data("title", _d);
-            if (_d > 50) {
-                cy.$('#cd').style({ 'line-color': '#FF6347' });
-            }
-            else {
-                cy.$('#cd').style({ 'line-color': '#9dbaea' });
-            }
-            _d = _thisReference.getRandom();
-            cy.$('#ac').data("title", _d);
-            if (_d > 50) {
-                cy.$('#ac').style({ 'line-color': '#FF6347' });
-            }
-            else {
-                cy.$('#ac').style({ 'line-color': '#9dbaea' });
-            }
-            _d = _thisReference.getRandom();
-            cy.$('#ad').data("title", _d);
-            if (_d > 50) {
-                cy.$('#ad').style({ 'line-color': '#FF6347' });
-            }
-            else {
-                cy.$('#ad').style({ 'line-color': '#9dbaea' });
-            }
-        }, 1500);
+        this._cy = cy;
+        return cy;
     };
-    LandscapeView.prototype.getRandom = function () {
-        return Math.floor(Math.random() * (100 - 10) + 10);
+    LandscapeView.prototype.updateData = function (currentData) {
+        console.log(currentData);
     };
-    LandscapeView.prototype.getData = function () {
+    LandscapeView.prototype.getData = function (currentData) {
         return [
             { data: { id: 'a', title: 'Mobile app' } },
             { data: { id: 'b', title: 'Web-server' } },
@@ -82910,7 +82884,7 @@ var LandscapeView = (function (_super) {
             {
                 data: {
                     id: 'ab',
-                    title: this.getRandom(),
+                    title: 12,
                     source: 'a',
                     target: 'b'
                 }
@@ -82918,7 +82892,7 @@ var LandscapeView = (function (_super) {
             {
                 data: {
                     id: 'cd',
-                    title: this.getRandom(),
+                    title: 14,
                     source: 'c',
                     target: 'd'
                 }
@@ -82926,7 +82900,7 @@ var LandscapeView = (function (_super) {
             {
                 data: {
                     id: 'ac',
-                    title: this.getRandom(),
+                    title: 15,
                     source: 'a',
                     target: 'c'
                 }
@@ -82934,7 +82908,7 @@ var LandscapeView = (function (_super) {
             {
                 data: {
                     id: 'ad',
-                    title: this.getRandom(),
+                    title: 18,
                     source: 'a',
                     target: 'd'
                 }

@@ -37,6 +37,7 @@ exports.push([module.i, " #cy {\r\n    width: 100%;\r\n    height: 100%;\r\n    
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var objectFactory_1 = __webpack_require__("./src/app/analysis/model/objectFactory.ts");
 var abstract_e2e_view_1 = __webpack_require__("./src/app/analysis/model/abstract.e2e.view.ts");
 var app_viewService_1 = __webpack_require__("./src/app/app.viewService.ts");
@@ -46,8 +47,9 @@ __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
 __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
 var AddView = (function () {
-    function AddView(apiClient, _viewService) {
+    function AddView(apiClient, _viewService, _router) {
         this._viewService = _viewService;
+        this._router = _router;
         this.types = ViewType.createViewTypes();
         this.chosenComponent = undefined;
         this.viewType = undefined;
@@ -62,6 +64,7 @@ var AddView = (function () {
     AddView.prototype.saveView = function () {
         var _view = objectFactory_1.Factory.createView(this.viewName, this.viewType.id, this.chosenComponent);
         this._viewService.newView(_view);
+        this._router.navigateByUrl('/view/' + _view.name);
         console.log("New view has been appended successfully");
     };
     AddView = __decorate([
@@ -70,10 +73,10 @@ var AddView = (function () {
             template: __webpack_require__("./src/app/analysis/templates/addView.html"),
             styles: [__webpack_require__("./src/app/analysis/templates/css/addView.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _b) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _b) || Object, (typeof (_c = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _c) || Object])
     ], AddView);
     return AddView;
-    var _a, _b;
+    var _a, _b, _c;
 }());
 exports.AddView = AddView;
 var ViewType = (function () {
@@ -192,24 +195,29 @@ var MainView = (function () {
     function MainView(apiClient, route, _viewService) {
         this.route = route;
         this._viewService = _viewService;
-        this.currentView = undefined;
+        this.currentViewObs = undefined;
         this.http = apiClient;
     }
-    MainView.prototype.ngOnInit = function () {
-    };
+    MainView.prototype.ngOnInit = function () { };
     MainView.prototype.ngAfterViewInit = function () {
         var _this = this;
-        this.route.params
-            .map(function (params) { return params['id']; })
-            .subscribe(function (id) {
-            _this.currentView = _this._viewService.getViewByName(id);
-            var _thisReference = _this;
-            setInterval(function () {
-                _thisReference._viewService.getDataForView(_thisReference.currentView).subscribe(function (data) {
-                    console.log(data);
-                });
-            }, 3000);
-            _this.currentView.draw();
+        this.currentViewObs = this.route.params
+            .map(function (params) {
+            console.log("Retrieving some view from id: ", params['id']);
+            return _this._viewService.getViewByName(params['id']);
+        });
+        this.currentViewObs.publishLast().refCount();
+        this.currentViewObs.subscribe(function (_view) {
+            console.log("trying to receive some data for view: ", _view);
+            _this._viewService.getDataForView(_view).subscribe(function (_data) {
+                _view.draw(_data);
+                var _thisReference = _this;
+                setInterval(function () {
+                    _thisReference._viewService.getDataForView(_view).subscribe(function (updateData) {
+                        _view.updateData(updateData);
+                    });
+                }, 3000);
+            });
         });
     };
     MainView = __decorate([
@@ -275,7 +283,7 @@ module.exports = "<router-outlet></router-outlet>"
 /***/ "./src/app/analysis/templates/view.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>End-to-End landscape view</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <div class='container col-md-12' style=\"min-height: 900px;\">\r\n        <div id=\"cy\"></div>\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>End-to-End {{(currentViewObs | async)?.name}} {{'(' + ((currentViewObs | async)?.type) + ')'}}</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <div class='container col-md-12' style=\"min-height: 900px;\">\r\n        <div id=\"cy\"></div>\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ }
 

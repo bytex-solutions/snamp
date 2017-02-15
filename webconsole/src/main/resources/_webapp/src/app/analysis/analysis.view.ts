@@ -21,32 +21,34 @@ import 'rxjs/add/observable/of';
 export class MainView implements OnInit {
 
     private http:ApiClient;
-    private currentView:E2EView = undefined;
+    currentViewObs:Observable<E2EView> = undefined;
 
     constructor(apiClient: ApiClient, private route: ActivatedRoute, private _viewService:ViewService) {
         this.http = apiClient;
    }
 
-   ngOnInit():void {
-
-    }
-
+   ngOnInit():void {}
 
    ngAfterViewInit():void {
-      this.route.params
-          .map(params => params['id'])
-          .subscribe((id) => {
-             this.currentView = this._viewService.getViewByName(id);
-             var _thisReference = this;
-             setInterval(function() {
-                _thisReference._viewService.getDataForView(_thisReference.currentView).subscribe(data => {
-                    console.log(data);
-                });
-              }, 3000);
-
-              this.currentView.draw();
-          });
-      }
-
+      this.currentViewObs = this.route.params
+               .map(params => {
+                        console.log("Retrieving some view from id: ", params['id']);
+                        return this._viewService.getViewByName(params['id']);
+                    }
+                );
+      this.currentViewObs.publishLast().refCount();
+      this.currentViewObs.subscribe((_view:E2EView) => {
+            console.log("trying to receive some data for view: ", _view);
+            this._viewService.getDataForView(_view).subscribe((_data:any) => {
+                  _view.draw(_data);
+                  var _thisReference = this;
+                  setInterval(function() {
+                     _thisReference._viewService.getDataForView(_view).subscribe(updateData => {
+                         _view.updateData(updateData);
+                     });
+                   }, 3000);
+            });
+      });
+   }
 }
 

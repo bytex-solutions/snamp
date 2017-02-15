@@ -10,7 +10,9 @@ export abstract class E2EView {
 
     public abstract toJSON():any;
 
-    public abstract draw():void;
+    public abstract draw(initialData:any):any;
+
+    public abstract updateData(currentData:any):any;
 }
 
 class GUID {

@@ -4,11 +4,12 @@ const cytoscape = require('cytoscape');
 
 export class LandscapeView extends E2EView {
     public type:string = E2EView.LANDSCAPE;
+    private _cy:any = undefined;
 
-    public draw():void {
+    public draw(initialData:any):any {
        var cy = cytoscape({
          container: document.getElementById('cy'),
-         elements: this.getData(),
+         elements: this.getData(initialData),
          layout: {
              name: 'circle'
            },
@@ -38,50 +39,15 @@ export class LandscapeView extends E2EView {
             }
          ]
        });
-       var _thisReference = this;
-        setInterval(function() {
-             var _d = _thisReference.getRandom();
-             cy.$('#ab').data("title", _d);
-             if (_d > 50) {
-                cy.$('#ab').style({'line-color': '#FF6347'});
-             } else {
-                cy.$('#ab').style({'line-color': '#9dbaea'});
-             }
-
-             _d = _thisReference.getRandom();
-             cy.$('#cd').data("title", _d);
-             if (_d > 50) {
-                cy.$('#cd').style({'line-color': '#FF6347'});
-             } else {
-                cy.$('#cd').style({'line-color': '#9dbaea'});
-             }
-
-             _d = _thisReference.getRandom();
-             cy.$('#ac').data("title", _d);
-             if (_d > 50) {
-                cy.$('#ac').style({'line-color': '#FF6347'});
-             } else {
-                cy.$('#ac').style({'line-color': '#9dbaea'});
-             }
-
-             _d = _thisReference.getRandom();
-             cy.$('#ad').data("title", _d);
-             if (_d > 50) {
-                cy.$('#ad').style({'line-color': '#FF6347'});
-             } else {
-                cy.$('#ad').style({'line-color': '#9dbaea'});
-             }
-
-        }, 1500);
+       this._cy = cy;
+       return cy;
     }
 
-    private getRandom():number {
-      return Math.floor(Math.random() * (100 - 10) + 10);
+    public updateData(currentData:any):any {
+        console.log(currentData);
     }
 
-
-    private getData():any {
-
+    private getData(currentData):any {
         return [
           { data: { id: 'a', title: 'Mobile app' } },
           { data: { id: 'b', title: 'Web-server' } },
@@ -90,7 +56,7 @@ export class LandscapeView extends E2EView {
           {
             data: {
               id: 'ab',
-              title:  this.getRandom(),
+              title:  12,
               source: 'a',
               target: 'b'
             }
@@ -98,7 +64,7 @@ export class LandscapeView extends E2EView {
           {
             data: {
               id: 'cd',
-              title: this.getRandom(),
+              title: 14,
               source: 'c',
               target: 'd'
             }
@@ -106,7 +72,7 @@ export class LandscapeView extends E2EView {
           {
             data: {
               id: 'ac',
-              title: this.getRandom(),
+              title: 15,
               source: 'a',
               target: 'c'
             }
@@ -114,7 +80,7 @@ export class LandscapeView extends E2EView {
           {
             data: {
               id: 'ad',
-              title: this.getRandom(),
+              title: 18,
               source: 'a',
               target: 'd'
             }

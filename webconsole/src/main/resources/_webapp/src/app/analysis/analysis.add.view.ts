@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
+import { Router } from '@angular/router';
 
 import { Factory } from './model/objectFactory';
 import { E2EView } from './model/abstract.e2e.view';
@@ -29,7 +30,7 @@ export class AddView implements OnInit {
     viewType:ViewType = undefined;
     viewName:string = undefined;
 
-    constructor(apiClient: ApiClient, private _viewService:ViewService) {
+    constructor(apiClient: ApiClient, private _viewService:ViewService, private _router: Router) {
         this.http = apiClient;
    }
 
@@ -42,6 +43,7 @@ export class AddView implements OnInit {
    saveView():void {
         let _view:E2EView = Factory.createView(this.viewName, this.viewType.id, this.chosenComponent);
         this._viewService.newView(_view);
+        this._router.navigateByUrl('/view/' + _view.name);
         console.log("New view has been appended successfully");
    }
 }
