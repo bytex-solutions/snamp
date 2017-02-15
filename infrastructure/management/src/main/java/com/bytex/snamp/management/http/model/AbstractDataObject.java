@@ -1,12 +1,16 @@
 package com.bytex.snamp.management.http.model;
 
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * AbstractDTOEntity
@@ -21,7 +25,8 @@ import java.util.Map;
         @JsonSubTypes.Type(AttributeDataObject.class),
         @JsonSubTypes.Type(ManagedResourceDataObject.class),
         @JsonSubTypes.Type(GatewayDataObject.class),
-        @JsonSubTypes.Type(ResourceGroupDataObject.class)
+        @JsonSubTypes.Type(ResourceGroupDataObject.class),
+        @JsonSubTypes.Type(AgentDataObject.class)
 })
 public abstract class AbstractDataObject<E extends EntityConfiguration> {
     @JsonIgnore
@@ -44,6 +49,7 @@ public abstract class AbstractDataObject<E extends EntityConfiguration> {
     }
 
     @JsonProperty
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final Map<String, String> getParameters() {
         return parameters;
     }
@@ -54,5 +60,12 @@ public abstract class AbstractDataObject<E extends EntityConfiguration> {
      */
     public void exportTo(final E entity){
         entity.load(parameters);
+    }
+
+    static <F extends EntityConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> collectEntities(final EntityMap<? extends F> entities,
+                                                      final Function<? super F, DTO> dataObjectFactory) {
+        return entities.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> dataObjectFactory.apply(entry.getValue())));
     }
 }

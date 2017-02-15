@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.http.model;
 
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
@@ -10,6 +11,7 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  */
 @JsonTypeName("gateway")
 public final class GatewayDataObject extends AbstractTypedDataObject<GatewayConfiguration> {
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public GatewayDataObject(){
 
     }

@@ -166,7 +166,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the boolean
      */
     @POST
-    @Path("/components/connector/{type}/disable")
+    @Path("/components/connectors/{type}/disable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public boolean disableConnector(@PathParam("type") final String connectorType)  {
@@ -184,7 +184,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the boolean
      */
     @POST
-    @Path("/components/connector/{type}/enable")
+    @Path("/components/connectors/{type}/enable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public boolean enableConnector(@PathParam("type") final String connectorType)  {
@@ -203,7 +203,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the boolean
      */
     @POST
-    @Path("/components/gateway/{type}/disable")
+    @Path("/components/gateways/{type}/disable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public boolean disableGateway(@PathParam("type") final String gatewayType)  {
@@ -221,7 +221,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the boolean
      */
     @POST
-    @Path("/components/gateway/{type}/enable")
+    @Path("/components/gateways/{type}/enable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public boolean enableGateway(@PathParam("type") final String gatewayType)  {
@@ -255,7 +255,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the entity description
      */
     @GET
-    @Path("/components/gateway/{type}/description")
+    @Path("/components/gateways/{type}/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getGatewayDescription(@PathParam("type") final String gatewayType) {
@@ -269,7 +269,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the entity description
      */
     @GET
-    @Path("/components/connector/{type}/description")
+    @Path("/components/connectors/{type}/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getConnectorDescription(@PathParam("type") final String connectorType) {
@@ -283,7 +283,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the resource attribute description
      */
     @GET
-    @Path("/components/connector/{type}/attribute/configuration")
+    @Path("/components/connectors/{type}/attribute/configuration")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getAttributeDescription(@PathParam("type") final String connectorType) {
@@ -297,7 +297,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the resource event description
      */
     @GET
-    @Path("/components/connector/{type}/event/description")
+    @Path("/components/connectors/{type}/event/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getEventDescription(@PathParam("type") final String connectorType) {
@@ -311,7 +311,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the resource operation description
      */
     @GET
-    @Path("/components/connector/{type}/operation/description")
+    @Path("/components/connectors/{type}/operation/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getOperationDescription(@PathParam("type") final String connectorType) {

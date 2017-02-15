@@ -5,7 +5,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 /**
  * @author Roman Sakno
@@ -23,19 +23,17 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
         this.operations = new HashMap<>();
     }
 
-    TemplateDataObject(final E configuration){
+    TemplateDataObject(final E configuration) {
         super(configuration);
-        attributes = configuration.getFeatures(AttributeConfiguration.class).entrySet()
-                .stream().collect(Collectors.toMap(Map.Entry::getKey,
-                        entry -> new AttributeDataObject(entry.getValue())));
+        attributes = collectFeatures(configuration, AttributeConfiguration.class, AttributeDataObject::new);
+        events = collectFeatures(configuration, EventConfiguration.class, EventDataObject::new);
+        operations = collectFeatures(configuration, OperationConfiguration.class, OperationDataObject::new);
+    }
 
-        events = configuration.getFeatures(EventConfiguration.class).entrySet()
-                .stream().collect(Collectors.toMap(Map.Entry::getKey,
-                        entry -> new EventDataObject(entry.getValue())));
-
-        operations = configuration.getFeatures(OperationConfiguration.class).entrySet()
-                .stream().collect(Collectors.toMap(Map.Entry::getKey,
-                        entry -> new OperationDataObject(entry.getValue())));
+    private static <F extends FeatureConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> collectFeatures(final ManagedResourceTemplate template,
+                                                                                                                        final Class<F> featureType,
+                                                                                                                        final Function<? super F, DTO> dataObjectFactory) {
+        return collectEntities(template.getFeatures(featureType), dataObjectFactory);
     }
 
     /**
