@@ -10,12 +10,28 @@ export class LandscapeView extends E2EView {
        var cy = cytoscape({
          container: document.getElementById('cy'),
          elements: this.getData(initialData),
-         zoomingEnabled: false,
-         userZoomingEnabled: false,
          layout: {
              name: 'circle'
            },
          style: [
+            {
+               "selector":"core",
+               "style":{
+                  "selection-box-color":"#AAD8FF",
+                  "selection-box-border-color":"#8BB0D0",
+                  "selection-box-opacity":"0.5"
+               }
+            },
+            {
+               "selector":"node:selected",
+               "style":{
+                  "border-width":"6px",
+                  "border-color":"#AAD8FF",
+                  "border-opacity":"0.5",
+                  "background-color":"#77828C",
+                  "text-outline-color":"#77828C"
+               }
+            },
             {
                 selector: 'node',
                 style: {
@@ -43,6 +59,7 @@ export class LandscapeView extends E2EView {
             }
          ]
        });
+
        this._cy = cy;
        return cy;
     }
