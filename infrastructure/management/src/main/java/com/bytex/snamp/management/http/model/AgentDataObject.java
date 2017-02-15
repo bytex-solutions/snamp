@@ -29,15 +29,34 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
 
     public AgentDataObject(final AgentConfiguration configuration){
         super(configuration);
-        resources = collectEntities(configuration, ManagedResourceConfiguration.class, ManagedResourceDataObject::new);
-        groups = collectEntities(configuration, ManagedResourceGroupConfiguration.class, ResourceGroupDataObject::new);
-        gateways = collectEntities(configuration, GatewayConfiguration.class, GatewayDataObject::new);
+        resources = importEntities(configuration, ManagedResourceConfiguration.class, ManagedResourceDataObject::new);
+        groups = importEntities(configuration, ManagedResourceGroupConfiguration.class, ResourceGroupDataObject::new);
+        gateways = importEntities(configuration, GatewayConfiguration.class, GatewayDataObject::new);
     }
 
-    private static <F extends EntityConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> collectEntities(final AgentConfiguration template,
-                                                                                                                       final Class<F> entityType,
-                                                                                                                       final Function<? super F, DTO> dataObjectFactory) {
-        return collectEntities(template.getEntities(entityType), dataObjectFactory);
+    private static <F extends EntityConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> importEntities(final AgentConfiguration template,
+                                                                                                                      final Class<F> entityType,
+                                                                                                                      final Function<? super F, DTO> dataObjectFactory) {
+        return importEntities(template.getEntities(entityType), dataObjectFactory);
+    }
+
+    private static <F extends EntityConfiguration> void exportEntities(final Map<String, ? extends AbstractDataObject<F>> source,
+                                                                       final AgentConfiguration destination,
+                                                                       final Class<F> entityType) {
+        exportEntities(source, destination.getEntities(entityType));
+    }
+
+    /**
+     * Exports state of this object into entity configuration.
+     *
+     * @param entity Entity to modify.
+     */
+    @Override
+    public void exportTo(final AgentConfiguration entity) {
+        super.exportTo(entity);
+        exportEntities(resources, entity, ManagedResourceConfiguration.class);
+        exportEntities(groups, entity, ManagedResourceGroupConfiguration.class);
+        exportEntities(gateways, entity, GatewayConfiguration.class);
     }
 
     @JsonProperty("resources")

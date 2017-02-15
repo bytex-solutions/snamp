@@ -4,11 +4,13 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.AbstractSnampManager;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SnampComponentDescriptor;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.management.ManagementUtils;
 import com.bytex.snamp.management.SnampManagerImpl;
+import com.bytex.snamp.management.http.model.AgentDataObject;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleContext;
@@ -17,6 +19,7 @@ import org.osgi.framework.BundleException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -316,5 +319,43 @@ public final class ManagementService extends AbstractManagementService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getOperationDescription(@PathParam("type") final String connectorType) {
         return getDescription(connectorType, OperationConfiguration.class, ManagedResourceConnectorClient::getConfigurationEntityDescriptor);
+    }
+
+    private static WebApplicationException configurationManagerIsNotAvailable(){
+        return new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ConfigurationManager is not available").build());
+    }
+
+    @Path("/configuration")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public AgentDataObject getConfiguration() {
+        final ServiceHolder<ConfigurationManager> configManager = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+        if (configManager != null)
+            try {
+                return configManager.get().transformConfiguration(AgentDataObject::new);
+            } catch (final IOException e) {
+                throw new WebApplicationException(e);
+            }
+        else
+            throw configurationManagerIsNotAvailable();
+    }
+
+    @Path("/configuration")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void setConfiguration(final AgentDataObject newConfig) {
+        final ServiceHolder<ConfigurationManager> configManager = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+        if (configManager != null)
+            try {
+                configManager.get().processConfiguration(existingConfig -> {
+                    existingConfig.clear();
+                    newConfig.exportTo(existingConfig);
+                    return true;
+                });
+            } catch (final IOException e) {
+                throw new WebApplicationException(e);
+            }
+        else
+            throw configurationManagerIsNotAvailable();
     }
 }

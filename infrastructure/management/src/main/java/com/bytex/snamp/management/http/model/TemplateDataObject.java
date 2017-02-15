@@ -25,15 +25,15 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
 
     TemplateDataObject(final E configuration) {
         super(configuration);
-        attributes = collectFeatures(configuration, AttributeConfiguration.class, AttributeDataObject::new);
-        events = collectFeatures(configuration, EventConfiguration.class, EventDataObject::new);
-        operations = collectFeatures(configuration, OperationConfiguration.class, OperationDataObject::new);
+        attributes = importFeatures(configuration, AttributeConfiguration.class, AttributeDataObject::new);
+        events = importFeatures(configuration, EventConfiguration.class, EventDataObject::new);
+        operations = importFeatures(configuration, OperationConfiguration.class, OperationDataObject::new);
     }
 
-    private static <F extends FeatureConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> collectFeatures(final ManagedResourceTemplate template,
-                                                                                                                        final Class<F> featureType,
-                                                                                                                        final Function<? super F, DTO> dataObjectFactory) {
-        return collectEntities(template.getFeatures(featureType), dataObjectFactory);
+    private static <F extends FeatureConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> importFeatures(final ManagedResourceTemplate template,
+                                                                                                                       final Class<F> featureType,
+                                                                                                                       final Function<? super F, DTO> dataObjectFactory) {
+        return importEntities(template.getFeatures(featureType), dataObjectFactory);
     }
 
     /**
@@ -96,18 +96,17 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
         this.operations.putAll(operations);
     }
 
-    private static <F extends FeatureConfiguration> void export(final ManagedResourceTemplate configuration,
-                                                                final Map<String, ? extends AbstractFeatureDataObject<F>> source,
-                                                                final Class<F> featureType){
-        final EntityMap<? extends F> features = configuration.getFeatures(featureType);
-        source.forEach((name, featureObject) -> featureObject.exportTo(features.getOrAdd(name)));
+    private static <F extends FeatureConfiguration> void exportFeatures(final Map<String, ? extends AbstractFeatureDataObject<F>> source,
+                                                                        final ManagedResourceTemplate destination,
+                                                                        final Class<F> featureType){
+        exportEntities(source, destination.getFeatures(featureType));
     }
 
     @Override
     public void exportTo(final E entity) {
         super.exportTo(entity);
-        export(entity, attributes, AttributeConfiguration.class);
-        export(entity, events, EventConfiguration.class);
-        export(entity, operations, OperationConfiguration.class);
+        exportFeatures(attributes, entity, AttributeConfiguration.class);
+        exportFeatures(events, entity, EventConfiguration.class);
+        exportFeatures(operations, entity, OperationConfiguration.class);
     }
 }

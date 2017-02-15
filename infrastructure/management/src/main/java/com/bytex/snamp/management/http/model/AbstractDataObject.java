@@ -62,10 +62,15 @@ public abstract class AbstractDataObject<E extends EntityConfiguration> {
         entity.load(parameters);
     }
 
-    static <F extends EntityConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> collectEntities(final EntityMap<? extends F> entities,
-                                                      final Function<? super F, DTO> dataObjectFactory) {
+    static <F extends EntityConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> importEntities(final EntityMap<? extends F> entities,
+                                                                                                              final Function<? super F, DTO> dataObjectFactory) {
         return entities.entrySet()
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> dataObjectFactory.apply(entry.getValue())));
+    }
+
+    static <F extends EntityConfiguration> void exportEntities(final Map<String, ? extends AbstractDataObject<F>> source,
+                                                               final EntityMap<? extends F> destination) {
+        source.forEach((name, featureObject) -> featureObject.exportTo(destination.getOrAdd(name)));
     }
 }
