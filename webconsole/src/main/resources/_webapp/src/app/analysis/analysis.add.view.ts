@@ -44,7 +44,6 @@ export class AddView implements OnInit {
         let _view:E2EView = Factory.createView(this.viewName, this.viewType.id, this.chosenComponent);
         this._viewService.newView(_view);
         this._router.navigateByUrl('/view/' + _view.name);
-        console.log("New view has been appended successfully");
    }
 }
 

@@ -65,7 +65,6 @@ var AddView = (function () {
         var _view = objectFactory_1.Factory.createView(this.viewName, this.viewType.id, this.chosenComponent);
         this._viewService.newView(_view);
         this._router.navigateByUrl('/view/' + _view.name);
-        console.log("New view has been appended successfully");
     };
     AddView = __decorate([
         core_1.Component({

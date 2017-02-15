@@ -10,6 +10,8 @@ export class LandscapeView extends E2EView {
        var cy = cytoscape({
          container: document.getElementById('cy'),
          elements: this.getData(initialData),
+         zoomingEnabled: false,
+         userZoomingEnabled: false,
          layout: {
              name: 'circle'
            },
@@ -17,23 +19,25 @@ export class LandscapeView extends E2EView {
             {
                 selector: 'node',
                 style: {
-                    'content': 'data(title)',
-                    'text-opacity': 0.8,
-                    'text-valign': 'top',
-                    'font-size': '14px',
+                    'content': 'data(id)',
+                    'text-opacity': 0.9,
+                    'text-valign': 'center',
+                    'font-size': '20px',
                     'text-halign': 'center',
                     'font-weight': '700',
-                    'background-color': '#11479e'
+                    'color': 'white',
+                    'text-outline-width': 2,
+                    'background-color': '#999',
+                    'text-outline-color': '#999'
                 }
             },
             {
                 selector: 'edge',
                 style: {
-                    'label': 'data(title)',
-                    'width': 4,
+                    'width': 2  ,
                     'target-arrow-shape': 'triangle',
-                    'line-color': '#006400',
-                    'target-arrow-color': '#9dbaea',
+                    'line-color': '#999',
+                    'target-arrow-color': '#999',
                     'curve-style': 'bezier'
                 }
             }
@@ -47,45 +51,38 @@ export class LandscapeView extends E2EView {
         console.log(currentData);
     }
 
-    private getData(currentData):any {
-        return [
-          { data: { id: 'a', title: 'Mobile app' } },
-          { data: { id: 'b', title: 'Web-server' } },
-          { data: { id: 'c', title: 'Dispatcher' } },
-          { data: { id: 'd', title: 'Payment system' } },
-          {
-            data: {
-              id: 'ab',
-              title:  12,
-              source: 'a',
-              target: 'b'
+    private getData(currentData:any):any {
+        let result:any = [];
+
+        let vertices:any[] = [];
+        let arrivals:any[] = [];
+        if (currentData["vertices"] != undefined) {
+            vertices = currentData["vertices"];
+        }
+
+        if (currentData["arrivals"] != undefined) {
+            arrivals = currentData["arrivals"];
+        }
+
+        for (let key in vertices) {
+            let _node:any = { data: { id: key}};
+            if (arrivals[key] != undefined) {
+                _node.data.arrival = arrivals[key];
             }
-          },
-          {
-            data: {
-              id: 'cd',
-              title: 14,
-              source: 'c',
-              target: 'd'
+            result.push(_node);
+
+            for (let i = 0; i < vertices[key].length; i++) {
+                result.push({
+                    data: {
+                        id: key + "2" + vertices[key][i],
+                        source: key,
+                        target: vertices[key][i]
+                     }
+                });
             }
-          },
-          {
-            data: {
-              id: 'ac',
-              title: 15,
-              source: 'a',
-              target: 'c'
-            }
-          },
-          {
-            data: {
-              id: 'ad',
-              title: 18,
-              source: 'a',
-              target: 'd'
-            }
-          }
-        ];
+        }
+
+        return result;
     }
 
     public toJSON():any {

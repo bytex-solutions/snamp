@@ -82847,9 +82847,9 @@ var LandscapeView = (function (_super) {
                 {
                     selector: 'node',
                     style: {
-                        'content': 'data(title)',
+                        'content': 'data(id)',
                         'text-opacity': 0.8,
-                        'text-valign': 'top',
+                        'text-valign': 'center',
                         'font-size': '14px',
                         'text-halign': 'center',
                         'font-weight': '700',
@@ -82859,7 +82859,6 @@ var LandscapeView = (function (_super) {
                 {
                     selector: 'edge',
                     style: {
-                        'label': 'data(title)',
                         'width': 4,
                         'target-arrow-shape': 'triangle',
                         'line-color': '#006400',
@@ -82876,44 +82875,32 @@ var LandscapeView = (function (_super) {
         console.log(currentData);
     };
     LandscapeView.prototype.getData = function (currentData) {
-        return [
-            { data: { id: 'a', title: 'Mobile app' } },
-            { data: { id: 'b', title: 'Web-server' } },
-            { data: { id: 'c', title: 'Dispatcher' } },
-            { data: { id: 'd', title: 'Payment system' } },
-            {
-                data: {
-                    id: 'ab',
-                    title: 12,
-                    source: 'a',
-                    target: 'b'
-                }
-            },
-            {
-                data: {
-                    id: 'cd',
-                    title: 14,
-                    source: 'c',
-                    target: 'd'
-                }
-            },
-            {
-                data: {
-                    id: 'ac',
-                    title: 15,
-                    source: 'a',
-                    target: 'c'
-                }
-            },
-            {
-                data: {
-                    id: 'ad',
-                    title: 18,
-                    source: 'a',
-                    target: 'd'
-                }
+        var result = [];
+        var vertices = [];
+        var arrivals = [];
+        if (currentData["vertices"] != undefined) {
+            vertices = currentData["vertices"];
+        }
+        if (currentData["arrivals"] != undefined) {
+            arrivals = currentData["arrivals"];
+        }
+        for (var key in vertices) {
+            var _node = { data: { id: key } };
+            if (arrivals[key] != undefined) {
+                _node.data.arrival = arrivals[key];
             }
-        ];
+            result.push(_node);
+            for (var i = 0; i < vertices[key].length; i++) {
+                result.push({
+                    data: {
+                        id: key + "2" + vertices[key][i],
+                        source: key,
+                        target: vertices[key][i]
+                    }
+                });
+            }
+        }
+        return result;
     };
     LandscapeView.prototype.toJSON = function () {
         var _value = {};
