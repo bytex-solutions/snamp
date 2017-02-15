@@ -300,7 +300,7 @@ public final class ManagementService extends AbstractManagementService {
     @Path("/components/connector/{type}/event/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Collection<Map<String, String>> getResourceEventDescription(@PathParam("type") final String connectorType) {
+    public Collection<Map<String, String>> getEventDescription(@PathParam("type") final String connectorType) {
         return getDescription(connectorType, EventConfiguration.class, ManagedResourceConnectorClient::getConfigurationEntityDescriptor);
     }
 
@@ -314,7 +314,7 @@ public final class ManagementService extends AbstractManagementService {
     @Path("/components/connector/{type}/operation/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Collection<Map<String, String>> getResourceOperationDescription(@PathParam("type") final String connectorType) {
+    public Collection<Map<String, String>> getOperationDescription(@PathParam("type") final String connectorType) {
         return getDescription(connectorType, OperationConfiguration.class, ManagedResourceConnectorClient::getConfigurationEntityDescriptor);
     }
 }
