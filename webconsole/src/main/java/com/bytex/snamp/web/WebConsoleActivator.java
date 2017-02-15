@@ -10,7 +10,6 @@ import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
-import com.bytex.snamp.web.serviceModel.logging.WebConsoleLogService;
 import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
 import org.ops4j.pax.logging.PaxLoggingService;
 import org.ops4j.pax.logging.spi.PaxAppender;
@@ -116,16 +115,15 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class LogNotifierProvider extends ProvidedService<WebConsoleLogService, LogNotifier> {
+    private static final class LogNotifierProvider extends ProvidedService<WebConsoleService, LogNotifier> {
         private LogNotifierProvider() {
-            super(WebConsoleLogService.class, simpleDependencies(WebConsoleEngine.class, ThreadPoolRepository.class), WebConsoleService.class, PaxAppender.class);
+            super(WebConsoleService.class, simpleDependencies(WebConsoleEngine.class, ThreadPoolRepository.class));
         }
 
         @Override
         protected LogNotifier activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, LogNotifier.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, LogNotifier.URL_CONTEXT);
-            identity.put(PaxLoggingService.APPENDER_NAME_PROPERTY, "SnampWebConsoleLogAppender");
             final ThreadPoolRepository repository = getDependencies().getDependency(ThreadPoolRepository.class);
             assert repository != null;
             return new LogNotifier(repository.getThreadPool(THREAD_POOL_NAME, true));

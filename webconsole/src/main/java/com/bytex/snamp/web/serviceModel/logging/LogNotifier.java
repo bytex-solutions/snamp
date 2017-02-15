@@ -2,14 +2,21 @@ package com.bytex.snamp.web.serviceModel.logging;
 
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
+import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
+import org.ops4j.pax.logging.PaxLoggingService;
+import org.ops4j.pax.logging.spi.PaxAppender;
 import org.ops4j.pax.logging.spi.PaxLoggingEvent;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.Path;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Provides notification about logs.
@@ -18,9 +25,10 @@ import java.util.concurrent.ExecutorService;
  * @since 2.0
  */
 @Path("/")
-public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSettings> implements WebConsoleLogService {
+public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSettings> implements WebConsoleService, PaxAppender {
     private final ExecutorService executor;
     private final String wcBundleName;
+    private ServiceRegistration<PaxAppender> appenderRegistration;
 
     /**
      * Represents name of this service.
@@ -34,8 +42,15 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
         wcBundleName = Utils.getBundleContextOfObject(this).getBundle().getSymbolicName();
     }
 
+    private BundleContext getBundleContext(){
+        return getBundleContextOfObject(this);
+    }
+
     @Override
     protected void initialize() {
+        final Hashtable<String, String> identity = new Hashtable<>();
+        identity.put(PaxLoggingService.APPENDER_NAME_PROPERTY, "SnampWebConsoleLogAppender");
+        appenderRegistration = getBundleContext().registerService(PaxAppender.class, this, identity);
     }
 
     private boolean logNotFromWebConsole(final PaxLoggingEvent event) {
@@ -65,5 +80,17 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
     @Nonnull
     protected LoggingSettings createUserData() {
         return new LoggingSettings();
+    }
+
+    @Override
+    public void close() throws Exception {
+        super.close();
+        final ServiceRegistration<?> reg = appenderRegistration;
+        try {
+            if (reg != null)
+                reg.unregister();
+        } finally {
+            appenderRegistration = null;
+        }
     }
 }
