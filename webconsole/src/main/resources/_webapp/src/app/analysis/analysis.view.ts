@@ -30,15 +30,11 @@ export class MainView implements OnInit {
    ngOnInit():void {}
 
    ngAfterViewInit():void {
+      $("#menu_toggle").trigger('click');
       this.currentViewObs = this.route.params
-               .map(params => {
-                        console.log("Retrieving some view from id: ", params['id']);
-                        return this._viewService.getViewByName(params['id']);
-                    }
-                );
+               .map(params => { return this._viewService.getViewByName(params['id']);});
       this.currentViewObs.publishLast().refCount();
       this.currentViewObs.subscribe((_view:E2EView) => {
-            console.log("trying to receive some data for view: ", _view);
             this._viewService.getDataForView(_view).subscribe((_data:any) => {
                   _view.draw(_data);
                   var _thisReference = this;

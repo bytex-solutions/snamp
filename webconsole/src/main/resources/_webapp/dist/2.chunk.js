@@ -180,7 +180,7 @@ exports.TemplateView = TemplateView;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
@@ -200,14 +200,11 @@ var MainView = (function () {
     MainView.prototype.ngOnInit = function () { };
     MainView.prototype.ngAfterViewInit = function () {
         var _this = this;
+        $("#menu_toggle").trigger('click');
         this.currentViewObs = this.route.params
-            .map(function (params) {
-            console.log("Retrieving some view from id: ", params['id']);
-            return _this._viewService.getViewByName(params['id']);
-        });
+            .map(function (params) { return _this._viewService.getViewByName(params['id']); });
         this.currentViewObs.publishLast().refCount();
         this.currentViewObs.subscribe(function (_view) {
-            console.log("trying to receive some data for view: ", _view);
             _this._viewService.getDataForView(_view).subscribe(function (_data) {
                 _view.draw(_data);
                 var _thisReference = _this;
@@ -232,6 +229,7 @@ var MainView = (function () {
 }());
 exports.MainView = MainView;
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
