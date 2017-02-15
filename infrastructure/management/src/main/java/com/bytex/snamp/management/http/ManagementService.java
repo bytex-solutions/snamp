@@ -33,7 +33,7 @@ public final class ManagementService extends AbstractManagementService {
     private static final String INTERNAL_COMPONENT_TYPE_NAME = "Internal component";
     private final AbstractSnampManager manager = new SnampManagerImpl();
 
-    private Map<String, String> stringifyDescription(final ConfigurationEntityDescription.ParameterDescription description) {
+    private static Map<String, String> stringifyDescription(final ConfigurationEntityDescription.ParameterDescription description) {
         return ImmutableMap.<String, String>builder()
                 .put("name", description.getName())
                 .put("required", String.valueOf(description.isRequired()))
@@ -245,7 +245,7 @@ public final class ManagementService extends AbstractManagementService {
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
     }
 
@@ -269,7 +269,7 @@ public final class ManagementService extends AbstractManagementService {
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
     }
 
@@ -292,7 +292,7 @@ public final class ManagementService extends AbstractManagementService {
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
     }
 
@@ -315,7 +315,7 @@ public final class ManagementService extends AbstractManagementService {
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
     }
 
@@ -338,7 +338,7 @@ public final class ManagementService extends AbstractManagementService {
                     .map(entry -> stringifyDescription(descriptor.getParameterDescriptor(entry)))
                     .collect(Collectors.toList());
         } catch (final UnsupportedOperationException exception) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
     }
 }
