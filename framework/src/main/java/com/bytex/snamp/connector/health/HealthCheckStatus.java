@@ -12,13 +12,15 @@ public enum HealthCheckStatus implements Serializable {
     /**
      * Service is online
      */
-    ONLINE,
+    OK,
+
     /**
-     * Service is not available.
+     * Something wrong with component.
      */
-    OFFLINE,
+    SUSPICIOUS,
+
     /**
-     * Service status is unknown.
+     * The component is offline or not working.
      */
-    UNKNOWN
+    MALFUNCTION
 }

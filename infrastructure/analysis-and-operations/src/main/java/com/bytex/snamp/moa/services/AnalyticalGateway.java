@@ -12,12 +12,10 @@ import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.GraphOfComponents;
-import com.bytex.snamp.moa.watching.*;
-import com.bytex.snamp.moa.watching.AttributeWatcher;
+import com.bytex.snamp.moa.watching.ComponentNameToWatcherMap;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
-import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -104,20 +102,12 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
     //</editor-fold>
 
     //<editor-fold desc="Watchers">
-    @Override
-    public void addWatcher(final AttributeWatcher listener) {
-
-    }
 
     @Override
-    public void removeWatcher(final AttributeWatcher listener) {
-
-    }
-
-    @Override
-    public Collection<AttributeWatcherSettings> getSettings() {
+    public ComponentNameToWatcherMap getComponentsWatchers() {
         return null;
     }
+
 
     //</editor-fold>
 

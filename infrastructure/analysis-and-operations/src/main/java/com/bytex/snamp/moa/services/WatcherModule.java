@@ -13,6 +13,7 @@ import javax.management.MBeanAttributeInfo;
  * @since 2.0
  */
 final class WatcherModule extends ModelOfAttributes<AttributeWatcher> {
+
     private final Multimap<String, String> componentToResourceMap;
 
     WatcherModule(){
@@ -24,20 +25,38 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> {
         return new AttributeWatcher(metadata);
     }
 
+    private void clearImpl(){
+        super.clear();
+        componentToResourceMap.clear();
+    }
+
     /**
      * Removes all attributes from this model.
      */
     @Override
     public void clear() {
-        super.clear();
-        componentToResourceMap.clear();
+        writeLock.accept(DEFAULT_RESOURCE_GROUP, this, WatcherModule::clearImpl);
     }
 
-    void addResource(final ManagedResourceConnectorClient resource){
+    private static void addResource(final Multimap<String, String> componentToResourceMap, final ManagedResourceConnectorClient resource){
         componentToResourceMap.put(resource.getComponentName(), resource.getManagedResourceName());
     }
 
-    void removeResource(final ManagedResourceConnectorClient resource) {
+    void addResource(final ManagedResourceConnectorClient resource) {
+        writeLock.accept(DEFAULT_RESOURCE_GROUP,
+                componentToResourceMap,
+                resource,
+                WatcherModule::addResource);
+    }
+
+    private static void removeResource(final Multimap<String, String> componentToResourceMap, final ManagedResourceConnectorClient resource){
         componentToResourceMap.remove(resource.getComponentName(), resource.getManagedResourceName());
+    }
+
+    void removeResource(final ManagedResourceConnectorClient resource) {
+        writeLock.accept(DEFAULT_RESOURCE_GROUP,
+                componentToResourceMap,
+                resource,
+                WatcherModule::removeResource);
     }
 }

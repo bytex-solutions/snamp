@@ -20,12 +20,13 @@ import java.util.function.Predicate;
  */
 @ThreadSafe
 public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> extends ModelOfFeatures<MBeanAttributeInfo, TAccessor, ResourceAttributeList<TAccessor>> implements AttributeSet<TAccessor> {
+    protected static final SingleResourceGroup DEFAULT_RESOURCE_GROUP = SingleResourceGroup.INSTANCE;
 
     /**
      * Initializes a new storage.
      */
     protected ModelOfAttributes(){
-        super(ResourceAttributeList::new, SingleResourceGroup.class, SingleResourceGroup.INSTANCE);
+        super(ResourceAttributeList::new, SingleResourceGroup.class, DEFAULT_RESOURCE_GROUP);
     }
 
     /**
@@ -57,7 +58,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
 
     protected final Object getAttributeValue(final String resourceName,
                                              final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(DEFAULT_RESOURCE_GROUP, null)) {
             final TAccessor accessor = getAccessor(resourceName, attributeName);
             if(accessor == null)
                 throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
@@ -71,7 +72,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     protected final void setAttributeValue(final String resourceName,
                                            final String attributeName,
                                            final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(DEFAULT_RESOURCE_GROUP, null)) {
             final TAccessor accessor = getAccessor(resourceName, attributeName);
             if(accessor == null)
                 throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
