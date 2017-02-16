@@ -5,3 +5,20 @@
     top: 0px;
     left: 0px;
 }
+
+#viewMenu {
+  background: #536980;
+  color: rgba(255,255,255,0.95);
+  max-width: 450px;
+  position: fixed;
+  right: 7px;
+  top: 50%;
+  margin-top: -10em !important;
+  z-index: 3;
+  padding: 9px;
+  border-radius: 5px;
+}
+
+#viewMenu ul.bar_tabs {
+ background-color: inherit !important;
+}

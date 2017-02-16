@@ -18,6 +18,8 @@ export abstract class E2EView {
        var cy = cytoscape({
          container: document.getElementById('cy'),
          elements: this.getData(initialData),
+         zoomingEnabled: false,
+         userZoomingEnabled: false,
          layout: {
              name: 'circle'
            },

@@ -82705,6 +82705,8 @@ var E2EView = (function () {
         var cy = cytoscape({
             container: document.getElementById('cy'),
             elements: this.getData(initialData),
+            zoomingEnabled: false,
+            userZoomingEnabled: false,
             layout: {
                 name: 'circle'
             },

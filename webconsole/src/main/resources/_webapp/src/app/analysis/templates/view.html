@@ -1,3 +1,22 @@
+<div id="viewMenu">
+  <div class="" role="tabpanel" data-example-id="togglable-tabs">
+    <ul id="myTab1" class="nav nav-tabs bar_tabs right" role="tablist">
+      <li role="presentation" class="active"><a href="#tab_content11" id="home-tabb" role="tab" data-toggle="tab" aria-controls="home" aria-expanded="true">Information</a>
+      </li>
+      <li role="presentation" class=""><a href="#tab_content22" role="tab" id="profile-tabb" data-toggle="tab" aria-controls="profile" aria-expanded="false">Settings</a>
+      </li>
+    </ul>
+    <div id="myTabContent2" class="tab-content">
+      <div role="tabpanel" class="tab-pane fade active in" id="tab_content11" aria-labelledby="home-tab">
+        <p *ngIf="metadata">{{metadata}}</p>
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="tab_content22" aria-labelledby="profile-tab">
+        <p>Some setting for the node here</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="right_col" role="main" style="min-height: 949px;">
   <div class="">
     <div class="page-title">

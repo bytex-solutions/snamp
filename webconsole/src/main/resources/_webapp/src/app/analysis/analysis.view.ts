@@ -22,6 +22,8 @@ export class MainView implements OnInit {
 
     private http:ApiClient;
     currentViewObs:Observable<E2EView> = undefined;
+    metadata:any = undefined;
+    _cyObject:any = undefined;
 
     constructor(apiClient: ApiClient, private route: ActivatedRoute, private _viewService:ViewService) {
         this.http = apiClient;
@@ -36,7 +38,8 @@ export class MainView implements OnInit {
       this.currentViewObs.publishLast().refCount();
       this.currentViewObs.subscribe((_view:E2EView) => {
             this._viewService.getDataForView(_view).subscribe((_data:any) => {
-                  _view.draw(_data);
+                  this._cyObject = _view.draw(_data);
+                  this.handleCy(this._cyObject);
                   var _thisReference = this;
                   setInterval(function() {
                      _thisReference._viewService.getDataForView(_view).subscribe(updateData => {
@@ -46,5 +49,23 @@ export class MainView implements OnInit {
             });
       });
    }
+
+   private handleCy(_cy:any):void {
+        var _thisReference = this;
+        _cy.on('tap', function(event){
+              // cyTarget holds a reference to the originator
+              // of the event (core or element)
+              var evtTarget = event.cyTarget;
+
+              if( evtTarget === _cy ){
+                  console.log('tap on background');
+                   _thisReference.metadata = evtTarget;
+              } else {
+                console.log('tap on some element', evtTarget);
+                _thisReference.metadata = evtTarget.data('arrival');
+              }
+            });
+    }
+
 }
 
