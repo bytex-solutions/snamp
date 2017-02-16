@@ -23,7 +23,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, " #cy {\r\n    width: 100%;\r\n    height: 100%;\r\n    position: absolute;\r\n    top: 0px;\r\n    left: 0px;\r\n}\r\n\r\n#viewMenu {\r\n  background: #536980;\r\n  color: rgba(255,255,255,0.95);\r\n  max-width: 450px;\r\n  position: fixed;\r\n  right: 7px;\r\n  top: 50%;\r\n  margin-top: -10em !important;\r\n  z-index: 3;\r\n  padding: 9px;\r\n  border-radius: 5px;\r\n}\r\n\r\n#viewMenu ul.bar_tabs {\r\n background-color: inherit !important;\r\n}", ""]);
+exports.push([module.i, " #cy {\r\n    width: 100%;\r\n    height: 100%;\r\n    position: absolute;\r\n    top: 0px;\r\n    left: 0px;\r\n}\r\n\r\n#viewMenu {\r\n  background: #536980;\r\n  color: rgba(255,255,255,0.95);\r\n  max-width: 550px;\r\n  position: fixed;\r\n  right: 7px;\r\n  top: 50%;\r\n  margin-top: -10em !important;\r\n  z-index: 3;\r\n  padding: 9px;\r\n  border-radius: 5px;\r\n}\r\n\r\n#viewMenu ul.bar_tabs {\r\n background-color: inherit !important;\r\n}", ""]);
 
 // exports
 
@@ -197,6 +197,7 @@ var MainView = (function () {
         this.currentViewObs = undefined;
         this.metadata = undefined;
         this._cyObject = undefined;
+        this.nodeSelected = false;
         this.http = apiClient;
     }
     MainView.prototype.ngOnInit = function () { };
@@ -225,12 +226,14 @@ var MainView = (function () {
             // cyTarget holds a reference to the originator
             // of the event (core or element)
             var evtTarget = event.cyTarget;
+            _thisReference.nodeSelected = (evtTarget != _cy);
             if (evtTarget === _cy) {
                 console.log('tap on background');
+                _thisReference.metadata = evtTarget;
             }
             else {
-                console.log('tap on some element', evtTarget);
-                _thisReference.metadata = evtTarget.data('arrival');
+                console.log('tap on some element', evtTarget.data('arrival'));
+                _thisReference.metadata = _cy.$('#' + evtTarget.data('id')).data('arrival');
             }
         });
     };
@@ -298,7 +301,7 @@ module.exports = "<router-outlet></router-outlet>"
 /***/ "./src/app/analysis/templates/view.html":
 /***/ function(module, exports) {
 
-module.exports = "<div id=\"viewMenu\">\r\n  <div class=\"\" role=\"tabpanel\" data-example-id=\"togglable-tabs\">\r\n    <ul id=\"myTab1\" class=\"nav nav-tabs bar_tabs right\" role=\"tablist\">\r\n      <li role=\"presentation\" class=\"active\"><a href=\"#tab_content11\" id=\"home-tabb\" role=\"tab\" data-toggle=\"tab\" aria-controls=\"home\" aria-expanded=\"true\">Information</a>\r\n      </li>\r\n      <li role=\"presentation\" class=\"\"><a href=\"#tab_content22\" role=\"tab\" id=\"profile-tabb\" data-toggle=\"tab\" aria-controls=\"profile\" aria-expanded=\"false\">Settings</a>\r\n      </li>\r\n    </ul>\r\n    <div id=\"myTabContent2\" class=\"tab-content\">\r\n      <div role=\"tabpanel\" class=\"tab-pane fade active in\" id=\"tab_content11\" aria-labelledby=\"home-tab\">\r\n        <p>{{metadata}}</p>\r\n      </div>\r\n      <div role=\"tabpanel\" class=\"tab-pane fade\" id=\"tab_content22\" aria-labelledby=\"profile-tab\">\r\n        <p>Some setting for the node here</p>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>End-to-End {{(currentViewObs | async)?.name}} {{'(' + ((currentViewObs | async)?.type) + ')'}}</h3>\r\n      </div>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n    <div class=\"row\">\r\n      <div class='container col-md-12' style=\"min-height: 900px;\">\r\n        <div id=\"cy\"></div>\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div id=\"viewMenu\">\r\n  <div class=\"\" role=\"tabpanel\" data-example-id=\"togglable-tabs\">\r\n    <ul id=\"myTab1\" class=\"nav nav-tabs bar_tabs\" role=\"tablist\">\r\n      <li role=\"presentation\" class=\"active\"><a href=\"#tab_content11\" id=\"home-tabb\" role=\"tab\" data-toggle=\"tab\" aria-controls=\"home\" aria-expanded=\"true\">Information</a>\r\n      </li>\r\n      <li role=\"presentation\" class=\"\"><a href=\"#tab_content22\" role=\"tab\" id=\"profile-tabb\" data-toggle=\"tab\" aria-controls=\"profile\" aria-expanded=\"false\">Settings</a>\r\n      </li>\r\n    </ul>\r\n    <div id=\"myTabContent2\" class=\"tab-content\">\r\n      <div role=\"tabpanel\" class=\"tab-pane fade active in\" id=\"tab_content11\" aria-labelledby=\"home-tab\">\r\n        <div *ngIf=\"metadata && nodeSelected\">\r\n\r\n          <div>\r\n            <nav class=\"navbar\">\r\n              <button class=\"navbar-toggler\" type=\"button\" data-toggle=\"collapse\" data-target=\"#navbarToggleExternalContent\" aria-controls=\"navbarToggleExternalContent\" aria-expanded=\"false\" aria-label=\"Toggle navigation\">\r\n                Availability\r\n              </button>\r\n            </nav>\r\n            <div class=\"collapse\" id=\"navbarToggleExternalContent\">\r\n              <div class=\"p-4\">\r\n                <dl class=\"row\">\r\n                  <dt class=\"col-sm-3\">1 second: </dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['Second']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">1 minute: </dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['Minute']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">5 minutes: </dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['5Minutes']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">15 minutes: </dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['15Minutes']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">1 hour</dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['Hour']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">12 hours</dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['12Hours']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">1 day</dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['Day']}}</dd>\r\n                </dl>\r\n              </div>\r\n            </div>\r\n\r\n          </div>\r\n        </div>\r\n        <div *ngIf=\"metadata && !nodeSelected\">{{metadata}}</div>\r\n        <div *ngIf=\"!metadata\">No data is available</div>\r\n      </div>\r\n      <div role=\"tabpanel\" class=\"tab-pane fade\" id=\"tab_content22\" aria-labelledby=\"profile-tab\">\r\n        <p>Some setting for the node here</p>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>End-to-End {{(currentViewObs | async)?.name}} {{'(' + ((currentViewObs | async)?.type) + ')'}}</h3>\r\n      </div>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n    <div class=\"row\">\r\n      <div class='container col-md-12' style=\"min-height: 900px;\">\r\n        <div id=\"cy\"></div>\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ }
 

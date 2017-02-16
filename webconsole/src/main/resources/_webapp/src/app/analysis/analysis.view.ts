@@ -24,6 +24,7 @@ export class MainView implements OnInit {
     currentViewObs:Observable<E2EView> = undefined;
     metadata:any = undefined;
     _cyObject:any = undefined;
+    nodeSelected:boolean = false;
 
     constructor(apiClient: ApiClient, private route: ActivatedRoute, private _viewService:ViewService) {
         this.http = apiClient;
@@ -56,13 +57,13 @@ export class MainView implements OnInit {
               // cyTarget holds a reference to the originator
               // of the event (core or element)
               var evtTarget = event.cyTarget;
-
+              _thisReference.nodeSelected = (evtTarget != _cy);
               if( evtTarget === _cy ){
                   console.log('tap on background');
                    _thisReference.metadata = evtTarget;
               } else {
-                console.log('tap on some element', evtTarget);
-                _thisReference.metadata = evtTarget.data('arrival');
+                console.log('tap on some element', evtTarget.data('arrival'));
+                _thisReference.metadata = _cy.$('#' + evtTarget.data('id')).data('arrival');
               }
             });
     }

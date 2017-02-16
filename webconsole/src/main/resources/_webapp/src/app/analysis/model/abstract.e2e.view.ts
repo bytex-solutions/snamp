@@ -75,7 +75,16 @@ export abstract class E2EView {
     }
 
     public updateData(currentData:any):any {
-        console.log(currentData);
+        let result:any = [];
+        let arrivals:any[] = [];
+
+        if (currentData["arrivals"] != undefined) {
+            arrivals = currentData["arrivals"];
+        }
+
+        for (let key in arrivals) {
+            this._cy.$().data('arrival', arrivals[key]);
+        }
     }
 
     private getData(currentData:any):any {

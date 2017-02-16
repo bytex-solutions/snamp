@@ -82760,7 +82760,14 @@ var E2EView = (function () {
         return cy;
     };
     E2EView.prototype.updateData = function (currentData) {
-        console.log(currentData);
+        var result = [];
+        var arrivals = [];
+        if (currentData["arrivals"] != undefined) {
+            arrivals = currentData["arrivals"];
+        }
+        for (var key in arrivals) {
+            this._cy.$().data('arrival', arrivals[key]);
+        }
     };
     E2EView.prototype.getData = function (currentData) {
         var result = [];

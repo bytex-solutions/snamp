@@ -1,6 +1,6 @@
 <div id="viewMenu">
   <div class="" role="tabpanel" data-example-id="togglable-tabs">
-    <ul id="myTab1" class="nav nav-tabs bar_tabs right" role="tablist">
+    <ul id="myTab1" class="nav nav-tabs bar_tabs" role="tablist">
       <li role="presentation" class="active"><a href="#tab_content11" id="home-tabb" role="tab" data-toggle="tab" aria-controls="home" aria-expanded="true">Information</a>
       </li>
       <li role="presentation" class=""><a href="#tab_content22" role="tab" id="profile-tabb" data-toggle="tab" aria-controls="profile" aria-expanded="false">Settings</a>
@@ -8,7 +8,45 @@
     </ul>
     <div id="myTabContent2" class="tab-content">
       <div role="tabpanel" class="tab-pane fade active in" id="tab_content11" aria-labelledby="home-tab">
-        <p *ngIf="metadata">{{metadata}}</p>
+        <div *ngIf="metadata && nodeSelected">
+
+          <div>
+            <nav class="navbar">
+              <button class="navbar-toggler mynavbar" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="fa fa-chevron-down"></span> Availability
+              </button>
+            </nav>
+            <div class="collapse" id="navbarToggleExternalContent">
+              <div class="p-4">
+                <dl class="row">
+                  <dt class="col-sm-4">1 second: </dt>
+                  <dd class="col-sm-8">{{metadata.availability['Second']}}</dd>
+
+                  <dt class="col-sm-4">1 minute: </dt>
+                  <dd class="col-sm-8">{{metadata.availability['Minute']}}</dd>
+
+                  <dt class="col-sm-4">5 minutes: </dt>
+                  <dd class="col-sm-8">{{metadata.availability['5Minutes']}}</dd>
+
+                  <dt class="col-sm-4">15 minutes: </dt>
+                  <dd class="col-sm-8">{{metadata.availability['15Minutes']}}</dd>
+
+                  <dt class="col-sm-4">1 hour</dt>
+                  <dd class="col-sm-8">{{metadata.availability['Hour']}}</dd>
+
+                  <dt class="col-sm-4">12 hours</dt>
+                  <dd class="col-sm-8">{{metadata.availability['12Hours']}}</dd>
+
+                  <dt class="col-sm-4">1 day</dt>
+                  <dd class="col-sm-8">{{metadata.availability['Day']}}</dd>
+                </dl>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div *ngIf="metadata && !nodeSelected">{{metadata}}</div>
+        <div *ngIf="!metadata">No data is available</div>
       </div>
       <div role="tabpanel" class="tab-pane fade" id="tab_content22" aria-labelledby="profile-tab">
         <p>Some setting for the node here</p>

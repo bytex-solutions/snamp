@@ -9,7 +9,7 @@
 #viewMenu {
   background: #536980;
   color: rgba(255,255,255,0.95);
-  max-width: 450px;
+  max-width: 550px;
   position: fixed;
   right: 7px;
   top: 50%;
@@ -21,4 +21,10 @@
 
 #viewMenu ul.bar_tabs {
  background-color: inherit !important;
+}
+
+.mynavbar {
+    width: 100%;
+    text-align: left;
+    margin-left: -15px;
 }
