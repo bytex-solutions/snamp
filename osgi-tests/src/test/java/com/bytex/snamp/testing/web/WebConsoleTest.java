@@ -560,7 +560,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         beforeCleanupTest(context);
     }
 
-    private void startConnectors(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+    private static void startConnectors(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
         ManagedResourceActivator.enableConnector(context, JMX_CONNECTOR_TYPE);
         ManagedResourceActivator.enableConnector(context, HTTP_ACCEPTOR_TYPE);
         AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), FIRST_RESOURCE_NAME, context);
@@ -571,7 +571,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), SIXTH_RESOURCE_NAME, context);
     }
 
-    private void stopConnectors(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+    private static void stopConnectors(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
         ManagedResourceActivator.disableConnector(context, JMX_CONNECTOR_TYPE);
         ManagedResourceActivator.disableConnector(context, HTTP_ACCEPTOR_TYPE);
         AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), SIXTH_RESOURCE_NAME, context);
