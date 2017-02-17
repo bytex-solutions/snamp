@@ -23,7 +23,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, " #cy {\r\n    width: 100%;\r\n    height: 100%;\r\n    position: absolute;\r\n    top: 0px;\r\n    left: 0px;\r\n}\r\n\r\n#viewMenu {\r\n  background: #536980;\r\n  color: rgba(255,255,255,0.95);\r\n  max-width: 550px;\r\n  position: fixed;\r\n  right: 7px;\r\n  top: 50%;\r\n  margin-top: -10em !important;\r\n  z-index: 3;\r\n  padding: 9px;\r\n  border-radius: 5px;\r\n}\r\n\r\n#viewMenu ul.bar_tabs {\r\n background-color: inherit !important;\r\n}", ""]);
+exports.push([module.i, " #cy {\r\n    width: 100%;\r\n    height: 100%;\r\n    position: absolute;\r\n    top: 0px;\r\n    left: 0px;\r\n}\r\n\r\n#viewMenu {\r\n  background: #fff;\r\n  border: 1px solid #E6E9ED;\r\n  overflow-y: scroll;\r\n  overflow-x: hidden;\r\n  max-height: 500px;\r\n  color: rgb(115, 135, 156);\r\n  width: 450px;\r\n  position: fixed;\r\n  right: 7px;\r\n  top: 35%;\r\n  margin-top: -10em !important;\r\n  z-index: 3;\r\n  padding: 9px;\r\n  border-radius: 5px;\r\n}\r\n\r\n#viewMenu .row {\r\n    margin-left: 10px !important;\r\n}\r\n\r\n#viewMenu ul.bar_tabs {\r\n background-color: inherit !important;\r\n}", ""]);
 
 // exports
 
@@ -118,6 +118,7 @@ var app_module_1 = __webpack_require__("./src/app/app.module.ts");
 var analysis_template_1 = __webpack_require__("./src/app/analysis/analysis.template.ts");
 var analysis_add_view_1 = __webpack_require__("./src/app/analysis/analysis.add.view.ts");
 var analysis_view_1 = __webpack_require__("./src/app/analysis/analysis.view.ts");
+var time_interval_component_1 = __webpack_require__("./src/app/analysis/components/time.interval.component.ts");
 var PROVIDERS = [
     app_restClient_1.ApiClient
 ];
@@ -141,7 +142,7 @@ var AnalysisModule = (function () {
                         ]
                     }])
             ],
-            declarations: [analysis_template_1.TemplateView, analysis_add_view_1.AddView, analysis_view_1.MainView],
+            declarations: [analysis_template_1.TemplateView, analysis_add_view_1.AddView, analysis_view_1.MainView, time_interval_component_1.TimeIntervalsView],
             providers: PROVIDERS
         }), 
         __metadata('design:paramtypes', [])
@@ -196,6 +197,7 @@ var MainView = (function () {
         this._viewService = _viewService;
         this.currentViewObs = undefined;
         this.metadata = undefined;
+        this.currentNodeId = undefined;
         this._cyObject = undefined;
         this.nodeSelected = false;
         this.http = apiClient;
@@ -215,6 +217,9 @@ var MainView = (function () {
                 setInterval(function () {
                     _thisReference._viewService.getDataForView(_view).subscribe(function (updateData) {
                         _view.updateData(updateData);
+                        if (_thisReference.currentNodeId != undefined) {
+                            _thisReference.metadata = _thisReference._cyObject.$('#' + _thisReference.currentNodeId).data('arrival');
+                        }
                     });
                 }, 3000);
             });
@@ -230,9 +235,11 @@ var MainView = (function () {
             if (evtTarget === _cy) {
                 console.log('tap on background');
                 _thisReference.metadata = evtTarget;
+                _thisReference.currentNodeId = undefined;
             }
             else {
                 console.log('tap on some element', evtTarget.data('arrival'));
+                _thisReference.currentNodeId = evtTarget.data('id');
                 _thisReference.metadata = _cy.$('#' + evtTarget.data('id')).data('arrival');
             }
         });
@@ -251,6 +258,53 @@ var MainView = (function () {
 exports.MainView = MainView;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/analysis/components/templates/time.intervals.html":
+/***/ function(module, exports) {
+
+module.exports = "<div>\r\n    <nav class=\"navbar\">\r\n        <button class=\"navbar-toggler flatbar\" type=\"button\" data-toggle=\"collapse\" [attr.data-target]=\"'#' + id\" [attr.aria-controls]=\"id\" aria-expanded=\"false\" aria-label=\"Toggle navigation\">\r\n            <span class=\"fa fa-chevron-down\"></span> {{title}}\r\n        </button>\r\n    </nav>\r\n    <div class=\"collapse\" [attr.id]=\"id\">\r\n        <div class=\"p-4\">\r\n            <dl class=\"row\" style=\"margin-left: 10px;\">\r\n                <dt class=\"col-sm-4\">1 second: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Second']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">1 minute: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Minute']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">5 minutes: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['5Minutes']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">15 minutes: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['15Minutes']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">1 hour</dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Hour']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">12 hours</dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['12Hours']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">1 day</dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Day']}}</dd>\r\n            </dl>\r\n        </div>\r\n    </div>\r\n</div>"
+
+/***/ },
+
+/***/ "./src/app/analysis/components/time.interval.component.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var TimeIntervalsView = (function () {
+    function TimeIntervalsView() {
+        this.jsonObject = {};
+        this.id = "";
+        this.title = "";
+    }
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', Object)
+    ], TimeIntervalsView.prototype, "jsonObject", void 0);
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', String)
+    ], TimeIntervalsView.prototype, "id", void 0);
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', String)
+    ], TimeIntervalsView.prototype, "title", void 0);
+    TimeIntervalsView = __decorate([
+        core_1.Component({
+            moduleId: module.i,
+            selector: 'timeInterval',
+            template: __webpack_require__("./src/app/analysis/components/templates/time.intervals.html"),
+            styles: ['.flatbar { width: 100% !important; text-align: left !important; margin-left: -15px !important; }']
+        }), 
+        __metadata('design:paramtypes', [])
+    ], TimeIntervalsView);
+    return TimeIntervalsView;
+}());
+exports.TimeIntervalsView = TimeIntervalsView;
+
 
 /***/ },
 
@@ -301,7 +355,7 @@ module.exports = "<router-outlet></router-outlet>"
 /***/ "./src/app/analysis/templates/view.html":
 /***/ function(module, exports) {
 
-module.exports = "<div id=\"viewMenu\">\r\n  <div class=\"\" role=\"tabpanel\" data-example-id=\"togglable-tabs\">\r\n    <ul id=\"myTab1\" class=\"nav nav-tabs bar_tabs\" role=\"tablist\">\r\n      <li role=\"presentation\" class=\"active\"><a href=\"#tab_content11\" id=\"home-tabb\" role=\"tab\" data-toggle=\"tab\" aria-controls=\"home\" aria-expanded=\"true\">Information</a>\r\n      </li>\r\n      <li role=\"presentation\" class=\"\"><a href=\"#tab_content22\" role=\"tab\" id=\"profile-tabb\" data-toggle=\"tab\" aria-controls=\"profile\" aria-expanded=\"false\">Settings</a>\r\n      </li>\r\n    </ul>\r\n    <div id=\"myTabContent2\" class=\"tab-content\">\r\n      <div role=\"tabpanel\" class=\"tab-pane fade active in\" id=\"tab_content11\" aria-labelledby=\"home-tab\">\r\n        <div *ngIf=\"metadata && nodeSelected\">\r\n\r\n          <div>\r\n            <nav class=\"navbar\">\r\n              <button class=\"navbar-toggler\" type=\"button\" data-toggle=\"collapse\" data-target=\"#navbarToggleExternalContent\" aria-controls=\"navbarToggleExternalContent\" aria-expanded=\"false\" aria-label=\"Toggle navigation\">\r\n                Availability\r\n              </button>\r\n            </nav>\r\n            <div class=\"collapse\" id=\"navbarToggleExternalContent\">\r\n              <div class=\"p-4\">\r\n                <dl class=\"row\">\r\n                  <dt class=\"col-sm-3\">1 second: </dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['Second']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">1 minute: </dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['Minute']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">5 minutes: </dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['5Minutes']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">15 minutes: </dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['15Minutes']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">1 hour</dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['Hour']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">12 hours</dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['12Hours']}}</dd>\r\n\r\n                  <dt class=\"col-sm-3\">1 day</dt>\r\n                  <dd class=\"col-sm-9\">{{metadata.availability['Day']}}</dd>\r\n                </dl>\r\n              </div>\r\n            </div>\r\n\r\n          </div>\r\n        </div>\r\n        <div *ngIf=\"metadata && !nodeSelected\">{{metadata}}</div>\r\n        <div *ngIf=\"!metadata\">No data is available</div>\r\n      </div>\r\n      <div role=\"tabpanel\" class=\"tab-pane fade\" id=\"tab_content22\" aria-labelledby=\"profile-tab\">\r\n        <p>Some setting for the node here</p>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>End-to-End {{(currentViewObs | async)?.name}} {{'(' + ((currentViewObs | async)?.type) + ')'}}</h3>\r\n      </div>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n    <div class=\"row\">\r\n      <div class='container col-md-12' style=\"min-height: 900px;\">\r\n        <div id=\"cy\"></div>\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div id=\"viewMenu\">\r\n  <div class=\"\" role=\"tabpanel\" data-example-id=\"togglable-tabs\">\r\n    <ul id=\"myTab1\" class=\"nav nav-tabs bar_tabs\" role=\"tablist\">\r\n      <li role=\"presentation\" class=\"active\"><a href=\"#tab_info\" id=\"home-tabb\" role=\"tab\" data-toggle=\"tab\" aria-controls=\"info\" aria-expanded=\"true\">Information</a>\r\n      </li>\r\n      <li role=\"presentation\" class=\"\"><a href=\"#tab_settings\" role=\"tab\" id=\"profile-tabb\" data-toggle=\"tab\" aria-controls=\"settings\" aria-expanded=\"false\">Settings</a>\r\n      </li>\r\n    </ul>\r\n    <div id=\"myTabContent2\" class=\"tab-content\">\r\n      <div role=\"tabpanel\" class=\"tab-pane fade active in\" id=\"tab_info\" aria-labelledby=\"info-tab\">\r\n        <div *ngIf=\"metadata && nodeSelected\">\r\n          <timeInterval [id]=\"'availabilityToggle'\" [jsonObject]=\"metadata.availability\" [title]=\"'Availability'\"></timeInterval>\r\n          <timeInterval [id]=\"'maxRatePerSecondToggle'\" [jsonObject]=\"metadata.maxRatePerSecond\" [title]=\"'Max rate per second'\"></timeInterval>\r\n          <timeInterval [id]=\"'maxResponseTimeToggle'\" [jsonObject]=\"metadata.maxResponseTime\" [title]=\"'Max response time'\"></timeInterval>\r\n          <timeInterval [id]=\"'meanRateToggle'\" [jsonObject]=\"metadata.meanRate\" [title]=\"'Mean rate'\"></timeInterval>\r\n          <timeInterval [id]=\"'meanResponseTimeToggle'\" [jsonObject]=\"metadata.meanResponseTime\" [title]=\"'Mean response time'\"></timeInterval>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Channels: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.channels}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Efficiency: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.efficiency}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Scalability: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.scalability}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time (90): </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTime90}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time (95): </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTime95}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time (98): </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTime98}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time standard deviation: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTimeStdDev}}</dd>\r\n          </div>\r\n        </div>\r\n        <div *ngIf=\"metadata && !nodeSelected\">{{metadata}}</div>\r\n        <div *ngIf=\"!metadata\">No data is available</div>\r\n      </div>\r\n      <div role=\"tabpanel\" class=\"tab-pane fade\" id=\"tab_settings\" aria-labelledby=\"settings-tab\">\r\n        <p>Some setting for the node here</p>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>End-to-End {{(currentViewObs | async)?.name}} {{'(' + ((currentViewObs | async)?.type) + ')'}}</h3>\r\n      </div>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n    <div class=\"row\">\r\n      <div class='container col-md-12' style=\"min-height: 900px;\">\r\n        <div id=\"cy\"></div>\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ }
 

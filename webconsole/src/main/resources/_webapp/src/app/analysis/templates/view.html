@@ -1,54 +1,59 @@
 <div id="viewMenu">
   <div class="" role="tabpanel" data-example-id="togglable-tabs">
     <ul id="myTab1" class="nav nav-tabs bar_tabs" role="tablist">
-      <li role="presentation" class="active"><a href="#tab_content11" id="home-tabb" role="tab" data-toggle="tab" aria-controls="home" aria-expanded="true">Information</a>
+      <li role="presentation" class="active"><a href="#tab_info" id="home-tabb" role="tab" data-toggle="tab" aria-controls="info" aria-expanded="true">Information</a>
       </li>
-      <li role="presentation" class=""><a href="#tab_content22" role="tab" id="profile-tabb" data-toggle="tab" aria-controls="profile" aria-expanded="false">Settings</a>
+      <li role="presentation" class=""><a href="#tab_settings" role="tab" id="profile-tabb" data-toggle="tab" aria-controls="settings" aria-expanded="false">Settings</a>
       </li>
     </ul>
     <div id="myTabContent2" class="tab-content">
-      <div role="tabpanel" class="tab-pane fade active in" id="tab_content11" aria-labelledby="home-tab">
+      <div role="tabpanel" class="tab-pane fade active in" id="tab_info" aria-labelledby="info-tab">
         <div *ngIf="metadata && nodeSelected">
+          <timeInterval [id]="'availabilityToggle'" [jsonObject]="metadata.availability" [title]="'Availability'"></timeInterval>
+          <timeInterval [id]="'maxRatePerSecondToggle'" [jsonObject]="metadata.maxRatePerSecond" [title]="'Max rate per second'"></timeInterval>
+          <timeInterval [id]="'maxResponseTimeToggle'" [jsonObject]="metadata.maxResponseTime" [title]="'Max response time'"></timeInterval>
+          <timeInterval [id]="'meanRateToggle'" [jsonObject]="metadata.meanRate" [title]="'Mean rate'"></timeInterval>
+          <timeInterval [id]="'meanResponseTimeToggle'" [jsonObject]="metadata.meanResponseTime" [title]="'Mean response time'"></timeInterval>
 
-          <div>
-            <nav class="navbar">
-              <button class="navbar-toggler mynavbar" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="fa fa-chevron-down"></span> Availability
-              </button>
-            </nav>
-            <div class="collapse" id="navbarToggleExternalContent">
-              <div class="p-4">
-                <dl class="row">
-                  <dt class="col-sm-4">1 second: </dt>
-                  <dd class="col-sm-8">{{metadata.availability['Second']}}</dd>
+          <div class="row">
+            <dt class="col-sm-4">Channels: </dt>
+            <dd class="col-sm-8">{{metadata.channels}}</dd>
+          </div>
 
-                  <dt class="col-sm-4">1 minute: </dt>
-                  <dd class="col-sm-8">{{metadata.availability['Minute']}}</dd>
+          <div class="row">
+            <dt class="col-sm-4">Efficiency: </dt>
+            <dd class="col-sm-8">{{metadata.efficiency}}</dd>
+          </div>
 
-                  <dt class="col-sm-4">5 minutes: </dt>
-                  <dd class="col-sm-8">{{metadata.availability['5Minutes']}}</dd>
+          <div class="row">
+            <dt class="col-sm-4">Scalability: </dt>
+            <dd class="col-sm-8">{{metadata.scalability}}</dd>
+          </div>
 
-                  <dt class="col-sm-4">15 minutes: </dt>
-                  <dd class="col-sm-8">{{metadata.availability['15Minutes']}}</dd>
+          <div class="row">
+            <dt class="col-sm-4">Response time (90): </dt>
+            <dd class="col-sm-8">{{metadata.responseTime90}}</dd>
+          </div>
 
-                  <dt class="col-sm-4">1 hour</dt>
-                  <dd class="col-sm-8">{{metadata.availability['Hour']}}</dd>
+          <div class="row">
+            <dt class="col-sm-4">Response time (95): </dt>
+            <dd class="col-sm-8">{{metadata.responseTime95}}</dd>
+          </div>
 
-                  <dt class="col-sm-4">12 hours</dt>
-                  <dd class="col-sm-8">{{metadata.availability['12Hours']}}</dd>
+          <div class="row">
+            <dt class="col-sm-4">Response time (98): </dt>
+            <dd class="col-sm-8">{{metadata.responseTime98}}</dd>
+          </div>
 
-                  <dt class="col-sm-4">1 day</dt>
-                  <dd class="col-sm-8">{{metadata.availability['Day']}}</dd>
-                </dl>
-              </div>
-            </div>
-
+          <div class="row">
+            <dt class="col-sm-4">Response time standard deviation: </dt>
+            <dd class="col-sm-8">{{metadata.responseTimeStdDev}}</dd>
           </div>
         </div>
         <div *ngIf="metadata && !nodeSelected">{{metadata}}</div>
         <div *ngIf="!metadata">No data is available</div>
       </div>
-      <div role="tabpanel" class="tab-pane fade" id="tab_content22" aria-labelledby="profile-tab">
+      <div role="tabpanel" class="tab-pane fade" id="tab_settings" aria-labelledby="settings-tab">
         <p>Some setting for the node here</p>
       </div>
     </div>
@@ -67,7 +72,6 @@
       <div class='container col-md-12' style="min-height: 900px;">
         <div id="cy"></div>
       </div>
-
     </div>
   </div>
 </div>

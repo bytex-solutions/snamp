@@ -7,24 +7,26 @@
 }
 
 #viewMenu {
-  background: #536980;
-  color: rgba(255,255,255,0.95);
-  max-width: 550px;
+  background: #fff;
+  border: 1px solid #E6E9ED;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  max-height: 500px;
+  color: rgb(115, 135, 156);
+  width: 450px;
   position: fixed;
   right: 7px;
-  top: 50%;
+  top: 35%;
   margin-top: -10em !important;
   z-index: 3;
   padding: 9px;
   border-radius: 5px;
 }
 
-#viewMenu ul.bar_tabs {
- background-color: inherit !important;
+#viewMenu .row {
+    margin-left: 10px !important;
 }
 
-.mynavbar {
-    width: 100%;
-    text-align: left;
-    margin-left: -15px;
+#viewMenu ul.bar_tabs {
+ background-color: inherit !important;
 }

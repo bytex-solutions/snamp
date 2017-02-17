@@ -23,6 +23,7 @@ export class MainView implements OnInit {
     private http:ApiClient;
     currentViewObs:Observable<E2EView> = undefined;
     metadata:any = undefined;
+    currentNodeId:string = undefined;
     _cyObject:any = undefined;
     nodeSelected:boolean = false;
 
@@ -45,6 +46,9 @@ export class MainView implements OnInit {
                   setInterval(function() {
                      _thisReference._viewService.getDataForView(_view).subscribe(updateData => {
                          _view.updateData(updateData);
+                         if (_thisReference.currentNodeId != undefined) {
+                            _thisReference.metadata = _thisReference._cyObject.$('#' + _thisReference.currentNodeId).data('arrival');
+                         }
                      });
                    }, 3000);
             });
@@ -61,8 +65,10 @@ export class MainView implements OnInit {
               if( evtTarget === _cy ){
                   console.log('tap on background');
                    _thisReference.metadata = evtTarget;
+                   _thisReference.currentNodeId = undefined;
               } else {
                 console.log('tap on some element', evtTarget.data('arrival'));
+                _thisReference.currentNodeId = evtTarget.data('id');
                 _thisReference.metadata = _cy.$('#' + evtTarget.data('id')).data('arrival');
               }
             });

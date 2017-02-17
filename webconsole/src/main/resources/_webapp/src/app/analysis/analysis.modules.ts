@@ -14,6 +14,8 @@ import { TemplateView } from './analysis.template';
 import { AddView } from './analysis.add.view';
 import { MainView } from './analysis.view';
 
+import { TimeIntervalsView } from './components/time.interval.component';
+
 const PROVIDERS:any =  [
   ApiClient
 ];
@@ -34,7 +36,7 @@ const PROVIDERS:any =  [
             ]
       }])
     ],
-    declarations: [ TemplateView, AddView, MainView ],
+    declarations: [ TemplateView, AddView, MainView, TimeIntervalsView ],
     providers:    PROVIDERS
 })
 export class AnalysisModule {}
