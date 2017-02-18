@@ -30,6 +30,7 @@ export class Factory {
                 console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
              }
         }
+        _view.setDisplayedMetadata([]);
         return _view;
     }
 

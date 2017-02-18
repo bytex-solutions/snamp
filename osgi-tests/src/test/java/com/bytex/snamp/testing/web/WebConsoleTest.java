@@ -523,7 +523,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 bean.setFloat(rnd.nextFloat() * 100F);
                 // append new int for third attribute changer pls
             });
-            TestTopology.LOOP .sendTestSpans(registry, rnd::nextInt);
+            TestTopology.LINEAR.sendTestSpans(registry, rnd::nextInt);
         }
         registry.close();
     }

@@ -82702,6 +82702,7 @@ var E2EView = (function () {
         this.id = "e2eview" + GUID.newGuid();
     }
     E2EView.prototype.draw = function (initialData) {
+        console.log(initialData);
         var cy = cytoscape({
             container: document.getElementById('cy'),
             elements: this.getData(initialData),

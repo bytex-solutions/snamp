@@ -12,9 +12,22 @@ export abstract class E2EView {
     public preferences:{ [key: string]: any } = { };
     public id:string = "e2eview" + GUID.newGuid();
 
+    public getDisplayedMetadata():string[] {
+        if (this.preferences && this.preferences["displayedMetadata"] != undefined) {
+            return this.preferences["displayedMetadata"];
+        } else {
+            return [];
+        }
+    }
+
+    public setDisplayedMetadata(metadata:string[]):void {
+        this.preferences["displayedMetadata"] = metadata;
+    }
+
     public abstract toJSON():any;
 
     public draw(initialData:any):any {
+        console.log(initialData);
        var cy = cytoscape({
          container: document.getElementById('cy'),
          elements: this.getData(initialData),
@@ -45,7 +58,7 @@ export abstract class E2EView {
             {
                 selector: 'node',
                 style: {
-                    'content': 'data(id)',
+                    'content': 'data(label)',
                     'text-opacity': 0.9,
                     'text-valign': 'top',
                     'font-size': '23px',
@@ -83,7 +96,7 @@ export abstract class E2EView {
         }
 
         for (let key in arrivals) {
-            this._cy.$().data('arrival', arrivals[key]);
+            this._cy.$("#" + key).data('arrival', arrivals[key]);
         }
     }
 
@@ -100,13 +113,30 @@ export abstract class E2EView {
             arrivals = currentData["arrivals"];
         }
 
+        // add all plain vertices
         for (let key in vertices) {
             let _node:any = { data: { id: key}};
             if (arrivals[key] != undefined) {
                 _node.data.arrival = arrivals[key];
             }
             result.push(_node);
+        }
 
+        // add vertices without outgoing links
+        for (let key in vertices) {
+            for (let i = 0; i < vertices[key].length; i++) {
+                // if our resulting array does not contain element - add it
+                if (result.indexOf(vertices[key][i]) < 0) {
+                    result.push({
+                        id: vertices[key][i],
+                        arrival: arrivals[key]
+                    })
+                }
+            }
+        }
+
+        // append edges for vertices
+        for (let key in vertices) {
             for (let i = 0; i < vertices[key].length; i++) {
                 result.push({
                     data: {
@@ -118,6 +148,24 @@ export abstract class E2EView {
             }
         }
 
+        // create labels according to the rules
+        for (let i = 0; i < result.length; i++) {
+            result[i].label = this.getLabelFromMetadata(result[i]);
+        }
+
+        return result;
+    }
+
+    private getLabelFromMetadata(node:any):string {
+        let result:string = node.id;
+        let _md:string[] = this.getDisplayedMetadata();
+        for (let i = 0; i < _md.length; i++) {
+            if (_md[i].indexOf("/") > 0) {
+                result += node.arrival[_md[i].split("/")[0]][_md[i].split("/")[1]];
+            } else {
+                result += "\n" + node.arrival[_md[i]];
+            }
+        }
         return result;
     }
 }
