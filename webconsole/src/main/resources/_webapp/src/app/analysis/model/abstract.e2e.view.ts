@@ -96,7 +96,9 @@ export abstract class E2EView {
         }
 
         for (let key in arrivals) {
-            this._cy.$("#" + key).data('arrival', arrivals[key]);
+            let _node:any = this._cy.$("#" + key);
+            _node.data('arrival', arrivals[key]);
+            _node.data('label', this.getLabelFromMetadata(_node));
         }
     }
 

@@ -82701,6 +82701,17 @@ var E2EView = (function () {
         this.preferences = {};
         this.id = "e2eview" + GUID.newGuid();
     }
+    E2EView.prototype.getDisplayedMetadata = function () {
+        if (this.preferences && this.preferences["displayedMetadata"] != undefined) {
+            return this.preferences["displayedMetadata"];
+        }
+        else {
+            return [];
+        }
+    };
+    E2EView.prototype.setDisplayedMetadata = function (metadata) {
+        this.preferences["displayedMetadata"] = metadata;
+    };
     E2EView.prototype.draw = function (initialData) {
         console.log(initialData);
         var cy = cytoscape({
@@ -82733,7 +82744,7 @@ var E2EView = (function () {
                 {
                     selector: 'node',
                     style: {
-                        'content': 'data(id)',
+                        'content': 'data(label)',
                         'text-opacity': 0.9,
                         'text-valign': 'top',
                         'font-size': '23px',
@@ -82767,7 +82778,9 @@ var E2EView = (function () {
             arrivals = currentData["arrivals"];
         }
         for (var key in arrivals) {
-            this._cy.$().data('arrival', arrivals[key]);
+            var _node = this._cy.$("#" + key);
+            _node.data('arrival', arrivals[key]);
+            _node.data('label', this.getLabelFromMetadata(_node));
         }
     };
     E2EView.prototype.getData = function (currentData) {
@@ -82780,12 +82793,28 @@ var E2EView = (function () {
         if (currentData["arrivals"] != undefined) {
             arrivals = currentData["arrivals"];
         }
+        // add all plain vertices
         for (var key in vertices) {
             var _node = { data: { id: key } };
             if (arrivals[key] != undefined) {
                 _node.data.arrival = arrivals[key];
             }
             result.push(_node);
+        }
+        // add vertices without outgoing links
+        for (var key in vertices) {
+            for (var i = 0; i < vertices[key].length; i++) {
+                // if our resulting array does not contain element - add it
+                if (result.indexOf(vertices[key][i]) < 0) {
+                    result.push({
+                        id: vertices[key][i],
+                        arrival: arrivals[key]
+                    });
+                }
+            }
+        }
+        // append edges for vertices
+        for (var key in vertices) {
             for (var i = 0; i < vertices[key].length; i++) {
                 result.push({
                     data: {
@@ -82794,6 +82823,23 @@ var E2EView = (function () {
                         target: vertices[key][i]
                     }
                 });
+            }
+        }
+        // create labels according to the rules
+        for (var i = 0; i < result.length; i++) {
+            result[i].label = this.getLabelFromMetadata(result[i]);
+        }
+        return result;
+    };
+    E2EView.prototype.getLabelFromMetadata = function (node) {
+        var result = node.id;
+        var _md = this.getDisplayedMetadata();
+        for (var i = 0; i < _md.length; i++) {
+            if (_md[i].indexOf("/") > 0) {
+                result += node.arrival[_md[i].split("/")[0]][_md[i].split("/")[1]];
+            }
+            else {
+                result += "\n" + node.arrival[_md[i]];
             }
         }
         return result;
@@ -82976,6 +83022,7 @@ var Factory = (function () {
                 console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
             }
         }
+        _view.setDisplayedMetadata([]);
         return _view;
     };
     // method for creating views
