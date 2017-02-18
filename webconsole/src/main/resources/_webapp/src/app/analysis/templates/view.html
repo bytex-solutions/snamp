@@ -56,6 +56,10 @@
       <div role="tabpanel" class="tab-pane fade" id="tab_settings" aria-labelledby="settings-tab">
         <p>Select needful information to display on graph: </p>
           <checkboxGroup [id]="'availabilityCheckboxToggle'" [title]="'Availability'" [formName]="availability"></checkboxGroup>
+          <checkboxGroup [id]="'maxRatePerSecondCheckboxToggle'" [title]="'Max rate per second'" [formName]="maxRatePerSecond"></checkboxGroup>
+          <checkboxGroup [id]="'maxResponseTimeCheckboxToggle'" [title]="'Max response time'" [formName]="maxResponseTime"></checkboxGroup>
+          <checkboxGroup [id]="'meanRateCheckboxToggle'" [title]="'Mean rate'" [formName]="meanRate"></checkboxGroup>
+          <checkboxGroup [id]="'meanResponseTimeCheckboxToggle'" [title]="'Mean response time'" [formName]="meanResponseTime"></checkboxGroup>
       </div>
     </div>
   </div>
