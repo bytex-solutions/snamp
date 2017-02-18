@@ -1,0 +1,62 @@
+<div>
+    <nav class="navbar">
+        <button class="navbar-toggler flatbar" type="button" data-toggle="collapse" [attr.data-target]="'#' + id" [attr.aria-controls]="id" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="fa fa-chevron-down"></span> {{title}}
+        </button>
+    </nav>
+    <div class="collapse" [attr.id]="id">
+        <div class="p-4">
+            <div class="row" style="margin-left: 10px;">
+
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" [attr.name]="formName + '/' + 'Second'">
+                        1 second
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" [attr.name]="formName + '/' + 'Minute'">
+                        1 minute
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" [attr.name]="formName + '/' + '5Minutes'">
+                        5 minutes
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" [attr.name]="formName + '/' + '15Minutes'">
+                        15 minutes
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" [attr.name]="formName + '/' + 'Hour'">
+                        1 hour
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" [attr.name]="formName + '/' + '12Hours'">
+                        12 hours
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" [attr.name]="formName + '/' + 'Day'">
+                        1 day
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

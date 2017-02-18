@@ -54,7 +54,8 @@
         <div *ngIf="!metadata">No data is available</div>
       </div>
       <div role="tabpanel" class="tab-pane fade" id="tab_settings" aria-labelledby="settings-tab">
-        <p>Some setting for the node here</p>
+        <p>Select needful information to display on graph: </p>
+          <checkboxGroup [id]="'availabilityCheckboxToggle'" [title]="'Availability'" [formName]="availability"></checkboxGroup>
       </div>
     </div>
   </div>

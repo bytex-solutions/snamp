@@ -58,7 +58,7 @@ export abstract class E2EView {
             {
                 selector: 'node',
                 style: {
-                    'content': 'data(label)',
+                    'content': 'data(dl)',
                     'text-opacity': 0.9,
                     'text-valign': 'top',
                     'font-size': '23px',
@@ -98,8 +98,19 @@ export abstract class E2EView {
         for (let key in arrivals) {
             let _node:any = this._cy.$("#" + key);
             _node.data('arrival', arrivals[key]);
-            _node.data('label', this.getLabelFromMetadata(_node));
+            console.log(_node, _node.data('id'), _node.data('arrival'), this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
+            _node.data('dl', this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
         }
+    }
+
+    public updateDisplayedMetadata(_md:string[]):void {
+        this.setDisplayedMetadata(_md);
+        var nodes = this._cy.filter('node');
+        for (let i = 0; i < nodes.length; i++) {
+            console.log(this.getLabelFromMetadata(nodes[i].data('id'), nodes[i].data('arrival')));
+            nodes[i].data('dl', this.getLabelFromMetadata(nodes[i].data('id'), nodes[i].data('arrival')));
+        }
+
     }
 
     private getData(currentData:any):any {
@@ -128,13 +139,27 @@ export abstract class E2EView {
         for (let key in vertices) {
             for (let i = 0; i < vertices[key].length; i++) {
                 // if our resulting array does not contain element - add it
-                if (result.indexOf(vertices[key][i]) < 0) {
+                let _found:boolean = false;
+                for (let j = 0; j < result.length; j++) {
+                    if (result[j].id == vertices[key][i]) {
+                        _found = true;
+                        break;
+                    }
+                }
+                if (!_found) {
                     result.push({
-                        id: vertices[key][i],
-                        arrival: arrivals[key]
+                        data: {
+                            id: vertices[key][i],
+                            arrival: arrivals[key]
+                        }
                     })
                 }
             }
+        }
+
+        // create labels according to the rules
+        for (let i = 0; i < result.length; i++) {
+            result[i].data.dl = this.getLabelFromMetadata(result[i].id, result[i].arrival);
         }
 
         // append edges for vertices
@@ -150,22 +175,17 @@ export abstract class E2EView {
             }
         }
 
-        // create labels according to the rules
-        for (let i = 0; i < result.length; i++) {
-            result[i].label = this.getLabelFromMetadata(result[i]);
-        }
-
         return result;
     }
 
-    private getLabelFromMetadata(node:any):string {
-        let result:string = node.id;
+    private getLabelFromMetadata(id:string, data:any):string {
+        let result:string = id;
         let _md:string[] = this.getDisplayedMetadata();
         for (let i = 0; i < _md.length; i++) {
             if (_md[i].indexOf("/") > 0) {
-                result += node.arrival[_md[i].split("/")[0]][_md[i].split("/")[1]];
+                result += data[_md[i].split("/")[0]][_md[i].split("/")[1]];
             } else {
-                result += "\n" + node.arrival[_md[i]];
+                result += "\n" + data[_md[i]];
             }
         }
         return result;

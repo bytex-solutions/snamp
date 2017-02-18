@@ -82744,7 +82744,7 @@ var E2EView = (function () {
                 {
                     selector: 'node',
                     style: {
-                        'content': 'data(label)',
+                        'content': 'data(dl)',
                         'text-opacity': 0.9,
                         'text-valign': 'top',
                         'font-size': '23px',
@@ -82780,7 +82780,16 @@ var E2EView = (function () {
         for (var key in arrivals) {
             var _node = this._cy.$("#" + key);
             _node.data('arrival', arrivals[key]);
-            _node.data('label', this.getLabelFromMetadata(_node));
+            console.log(_node, _node.data('id'), _node.data('arrival'), this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
+            _node.data('dl', this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
+        }
+    };
+    E2EView.prototype.updateDisplayedMetadata = function (_md) {
+        this.setDisplayedMetadata(_md);
+        var nodes = this._cy.filter('node');
+        for (var i = 0; i < nodes.length; i++) {
+            console.log(this.getLabelFromMetadata(nodes[i].data('id'), nodes[i].data('arrival')));
+            nodes[i].data('dl', this.getLabelFromMetadata(nodes[i].data('id'), nodes[i].data('arrival')));
         }
     };
     E2EView.prototype.getData = function (currentData) {
@@ -82805,13 +82814,26 @@ var E2EView = (function () {
         for (var key in vertices) {
             for (var i = 0; i < vertices[key].length; i++) {
                 // if our resulting array does not contain element - add it
-                if (result.indexOf(vertices[key][i]) < 0) {
+                var _found = false;
+                for (var j = 0; j < result.length; j++) {
+                    if (result[j].id == vertices[key][i]) {
+                        _found = true;
+                        break;
+                    }
+                }
+                if (!_found) {
                     result.push({
-                        id: vertices[key][i],
-                        arrival: arrivals[key]
+                        data: {
+                            id: vertices[key][i],
+                            arrival: arrivals[key]
+                        }
                     });
                 }
             }
+        }
+        // create labels according to the rules
+        for (var i = 0; i < result.length; i++) {
+            result[i].data.dl = this.getLabelFromMetadata(result[i].id, result[i].arrival);
         }
         // append edges for vertices
         for (var key in vertices) {
@@ -82825,21 +82847,17 @@ var E2EView = (function () {
                 });
             }
         }
-        // create labels according to the rules
-        for (var i = 0; i < result.length; i++) {
-            result[i].label = this.getLabelFromMetadata(result[i]);
-        }
         return result;
     };
-    E2EView.prototype.getLabelFromMetadata = function (node) {
-        var result = node.id;
+    E2EView.prototype.getLabelFromMetadata = function (id, data) {
+        var result = id;
         var _md = this.getDisplayedMetadata();
         for (var i = 0; i < _md.length; i++) {
             if (_md[i].indexOf("/") > 0) {
-                result += node.arrival[_md[i].split("/")[0]][_md[i].split("/")[1]];
+                result += data[_md[i].split("/")[0]][_md[i].split("/")[1]];
             }
             else {
-                result += "\n" + node.arrival[_md[i]];
+                result += "\n" + data[_md[i]];
             }
         }
         return result;

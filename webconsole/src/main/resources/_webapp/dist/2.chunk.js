@@ -119,6 +119,7 @@ var analysis_template_1 = __webpack_require__("./src/app/analysis/analysis.templ
 var analysis_add_view_1 = __webpack_require__("./src/app/analysis/analysis.add.view.ts");
 var analysis_view_1 = __webpack_require__("./src/app/analysis/analysis.view.ts");
 var time_interval_component_1 = __webpack_require__("./src/app/analysis/components/time.interval.component.ts");
+var checkbox_group_component_1 = __webpack_require__("./src/app/analysis/components/checkbox.group.component.ts");
 var PROVIDERS = [
     app_restClient_1.ApiClient
 ];
@@ -142,7 +143,7 @@ var AnalysisModule = (function () {
                         ]
                     }])
             ],
-            declarations: [analysis_template_1.TemplateView, analysis_add_view_1.AddView, analysis_view_1.MainView, time_interval_component_1.TimeIntervalsView],
+            declarations: [analysis_template_1.TemplateView, analysis_add_view_1.AddView, analysis_view_1.MainView, time_interval_component_1.TimeIntervalsView, checkbox_group_component_1.CheckboxGroupView],
             providers: PROVIDERS
         }), 
         __metadata('design:paramtypes', [])
@@ -221,7 +222,7 @@ var MainView = (function () {
                             _thisReference.metadata = _thisReference._cyObject.$('#' + _thisReference.currentNodeId).data('arrival');
                         }
                     });
-                }, 3000);
+                }, 1000);
             });
         });
     };
@@ -261,10 +262,57 @@ exports.MainView = MainView;
 
 /***/ },
 
+/***/ "./src/app/analysis/components/checkbox.group.component.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var CheckboxGroupView = (function () {
+    function CheckboxGroupView() {
+        this.formName = "";
+        this.id = "";
+        this.title = "";
+    }
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', String)
+    ], CheckboxGroupView.prototype, "formName", void 0);
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', String)
+    ], CheckboxGroupView.prototype, "id", void 0);
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', String)
+    ], CheckboxGroupView.prototype, "title", void 0);
+    CheckboxGroupView = __decorate([
+        core_1.Component({
+            moduleId: module.i,
+            selector: 'checkboxGroup',
+            template: __webpack_require__("./src/app/analysis/components/templates/checkbox.group.html"),
+            styles: ['.flatbar { width: 100% !important; text-align: left !important; margin-left: -15px !important; }']
+        }), 
+        __metadata('design:paramtypes', [])
+    ], CheckboxGroupView);
+    return CheckboxGroupView;
+}());
+exports.CheckboxGroupView = CheckboxGroupView;
+
+
+/***/ },
+
+/***/ "./src/app/analysis/components/templates/checkbox.group.html":
+/***/ function(module, exports) {
+
+module.exports = "<div>\r\n    <nav class=\"navbar\">\r\n        <button class=\"navbar-toggler flatbar\" type=\"button\" data-toggle=\"collapse\" [attr.data-target]=\"'#' + id\" [attr.aria-controls]=\"id\" aria-expanded=\"false\" aria-label=\"Toggle navigation\">\r\n            <span class=\"fa fa-chevron-down\"></span> {{title}}\r\n        </button>\r\n    </nav>\r\n    <div class=\"collapse\" [attr.id]=\"id\">\r\n        <div class=\"p-4\">\r\n            <div class=\"row\" style=\"margin-left: 10px;\">\r\n\r\n                <div class=\"form-check\">\r\n                    <label class=\"form-check-label\">\r\n                        <input class=\"form-check-input\" type=\"checkbox\" [attr.name]=\"formName + '/' + 'Second'\">\r\n                        1 second\r\n                    </label>\r\n                </div>\r\n\r\n                <div class=\"form-check\">\r\n                    <label class=\"form-check-label\">\r\n                        <input class=\"form-check-input\" type=\"checkbox\" [attr.name]=\"formName + '/' + 'Minute'\">\r\n                        1 minute\r\n                    </label>\r\n                </div>\r\n\r\n                <div class=\"form-check\">\r\n                    <label class=\"form-check-label\">\r\n                        <input class=\"form-check-input\" type=\"checkbox\" [attr.name]=\"formName + '/' + '5Minutes'\">\r\n                        5 minutes\r\n                    </label>\r\n                </div>\r\n\r\n                <div class=\"form-check\">\r\n                    <label class=\"form-check-label\">\r\n                        <input class=\"form-check-input\" type=\"checkbox\" [attr.name]=\"formName + '/' + '15Minutes'\">\r\n                        15 minutes\r\n                    </label>\r\n                </div>\r\n\r\n                <div class=\"form-check\">\r\n                    <label class=\"form-check-label\">\r\n                        <input class=\"form-check-input\" type=\"checkbox\" [attr.name]=\"formName + '/' + 'Hour'\">\r\n                        1 hour\r\n                    </label>\r\n                </div>\r\n\r\n                <div class=\"form-check\">\r\n                    <label class=\"form-check-label\">\r\n                        <input class=\"form-check-input\" type=\"checkbox\" [attr.name]=\"formName + '/' + '12Hours'\">\r\n                        12 hours\r\n                    </label>\r\n                </div>\r\n\r\n                <div class=\"form-check\">\r\n                    <label class=\"form-check-label\">\r\n                        <input class=\"form-check-input\" type=\"checkbox\" [attr.name]=\"formName + '/' + 'Day'\">\r\n                        1 day\r\n                    </label>\r\n                </div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>"
+
+/***/ },
+
 /***/ "./src/app/analysis/components/templates/time.intervals.html":
 /***/ function(module, exports) {
 
-module.exports = "<div>\r\n    <nav class=\"navbar\">\r\n        <button class=\"navbar-toggler flatbar\" type=\"button\" data-toggle=\"collapse\" [attr.data-target]=\"'#' + id\" [attr.aria-controls]=\"id\" aria-expanded=\"false\" aria-label=\"Toggle navigation\">\r\n            <span class=\"fa fa-chevron-down\"></span> {{title}}\r\n        </button>\r\n    </nav>\r\n    <div class=\"collapse\" [attr.id]=\"id\">\r\n        <div class=\"p-4\">\r\n            <dl class=\"row\" style=\"margin-left: 10px;\">\r\n                <dt class=\"col-sm-4\">1 second: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Second']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">1 minute: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Minute']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">5 minutes: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['5Minutes']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">15 minutes: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['15Minutes']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">1 hour</dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Hour']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">12 hours</dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['12Hours']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">1 day</dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Day']}}</dd>\r\n            </dl>\r\n        </div>\r\n    </div>\r\n</div>"
+module.exports = "<div>\r\n    <nav class=\"navbar\">\r\n        <button class=\"navbar-toggler flatbar\" type=\"button\" data-toggle=\"collapse\" [attr.data-target]=\"'#' + id\" [attr.aria-controls]=\"id\" aria-expanded=\"false\" aria-label=\"Toggle navigation\">\r\n            <span class=\"fa fa-chevron-down\"></span> {{title}}\r\n        </button>\r\n    </nav>\r\n    <div class=\"collapse\" [attr.id]=\"id\">\r\n        <div class=\"p-4\">\r\n            <dl class=\"row\" style=\"margin-left: 10px;\">\r\n                <dt class=\"col-sm-4\">1 second: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Second']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">1 minute: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Minute']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">5 minutes: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['5Minutes']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">15 minutes: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['15Minutes']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">1 hour: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Hour']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">12 hours: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['12Hours']}}</dd>\r\n\r\n                <dt class=\"col-sm-4\">1 day: </dt>\r\n                <dd class=\"col-sm-8\">{{jsonObject['Day']}}</dd>\r\n            </dl>\r\n        </div>\r\n    </div>\r\n</div>"
 
 /***/ },
 
@@ -355,7 +403,7 @@ module.exports = "<router-outlet></router-outlet>"
 /***/ "./src/app/analysis/templates/view.html":
 /***/ function(module, exports) {
 
-module.exports = "<div id=\"viewMenu\">\r\n  <div class=\"\" role=\"tabpanel\" data-example-id=\"togglable-tabs\">\r\n    <ul id=\"myTab1\" class=\"nav nav-tabs bar_tabs\" role=\"tablist\">\r\n      <li role=\"presentation\" class=\"active\"><a href=\"#tab_info\" id=\"home-tabb\" role=\"tab\" data-toggle=\"tab\" aria-controls=\"info\" aria-expanded=\"true\">Information</a>\r\n      </li>\r\n      <li role=\"presentation\" class=\"\"><a href=\"#tab_settings\" role=\"tab\" id=\"profile-tabb\" data-toggle=\"tab\" aria-controls=\"settings\" aria-expanded=\"false\">Settings</a>\r\n      </li>\r\n    </ul>\r\n    <div id=\"myTabContent2\" class=\"tab-content\">\r\n      <div role=\"tabpanel\" class=\"tab-pane fade active in\" id=\"tab_info\" aria-labelledby=\"info-tab\">\r\n        <div *ngIf=\"metadata && nodeSelected\">\r\n          <timeInterval [id]=\"'availabilityToggle'\" [jsonObject]=\"metadata.availability\" [title]=\"'Availability'\"></timeInterval>\r\n          <timeInterval [id]=\"'maxRatePerSecondToggle'\" [jsonObject]=\"metadata.maxRatePerSecond\" [title]=\"'Max rate per second'\"></timeInterval>\r\n          <timeInterval [id]=\"'maxResponseTimeToggle'\" [jsonObject]=\"metadata.maxResponseTime\" [title]=\"'Max response time'\"></timeInterval>\r\n          <timeInterval [id]=\"'meanRateToggle'\" [jsonObject]=\"metadata.meanRate\" [title]=\"'Mean rate'\"></timeInterval>\r\n          <timeInterval [id]=\"'meanResponseTimeToggle'\" [jsonObject]=\"metadata.meanResponseTime\" [title]=\"'Mean response time'\"></timeInterval>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Channels: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.channels}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Efficiency: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.efficiency}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Scalability: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.scalability}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time (90): </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTime90}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time (95): </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTime95}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time (98): </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTime98}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time standard deviation: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTimeStdDev}}</dd>\r\n          </div>\r\n        </div>\r\n        <div *ngIf=\"metadata && !nodeSelected\">{{metadata}}</div>\r\n        <div *ngIf=\"!metadata\">No data is available</div>\r\n      </div>\r\n      <div role=\"tabpanel\" class=\"tab-pane fade\" id=\"tab_settings\" aria-labelledby=\"settings-tab\">\r\n        <p>Some setting for the node here</p>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>End-to-End {{(currentViewObs | async)?.name}} {{'(' + ((currentViewObs | async)?.type) + ')'}}</h3>\r\n      </div>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n    <div class=\"row\">\r\n      <div class='container col-md-12' style=\"min-height: 900px;\">\r\n        <div id=\"cy\"></div>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div id=\"viewMenu\">\r\n  <div class=\"\" role=\"tabpanel\" data-example-id=\"togglable-tabs\">\r\n    <ul id=\"myTab1\" class=\"nav nav-tabs bar_tabs\" role=\"tablist\">\r\n      <li role=\"presentation\" class=\"active\"><a href=\"#tab_info\" id=\"home-tabb\" role=\"tab\" data-toggle=\"tab\" aria-controls=\"info\" aria-expanded=\"true\">Information</a>\r\n      </li>\r\n      <li role=\"presentation\" class=\"\"><a href=\"#tab_settings\" role=\"tab\" id=\"profile-tabb\" data-toggle=\"tab\" aria-controls=\"settings\" aria-expanded=\"false\">Settings</a>\r\n      </li>\r\n    </ul>\r\n    <div id=\"myTabContent2\" class=\"tab-content\">\r\n      <div role=\"tabpanel\" class=\"tab-pane fade active in\" id=\"tab_info\" aria-labelledby=\"info-tab\">\r\n        <div *ngIf=\"metadata && nodeSelected\">\r\n          <timeInterval [id]=\"'availabilityToggle'\" [jsonObject]=\"metadata.availability\" [title]=\"'Availability'\"></timeInterval>\r\n          <timeInterval [id]=\"'maxRatePerSecondToggle'\" [jsonObject]=\"metadata.maxRatePerSecond\" [title]=\"'Max rate per second'\"></timeInterval>\r\n          <timeInterval [id]=\"'maxResponseTimeToggle'\" [jsonObject]=\"metadata.maxResponseTime\" [title]=\"'Max response time'\"></timeInterval>\r\n          <timeInterval [id]=\"'meanRateToggle'\" [jsonObject]=\"metadata.meanRate\" [title]=\"'Mean rate'\"></timeInterval>\r\n          <timeInterval [id]=\"'meanResponseTimeToggle'\" [jsonObject]=\"metadata.meanResponseTime\" [title]=\"'Mean response time'\"></timeInterval>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Channels: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.channels}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Efficiency: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.efficiency}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Scalability: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.scalability}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time (90): </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTime90}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time (95): </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTime95}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time (98): </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTime98}}</dd>\r\n          </div>\r\n\r\n          <div class=\"row\">\r\n            <dt class=\"col-sm-4\">Response time standard deviation: </dt>\r\n            <dd class=\"col-sm-8\">{{metadata.responseTimeStdDev}}</dd>\r\n          </div>\r\n        </div>\r\n        <div *ngIf=\"metadata && !nodeSelected\">{{metadata}}</div>\r\n        <div *ngIf=\"!metadata\">No data is available</div>\r\n      </div>\r\n      <div role=\"tabpanel\" class=\"tab-pane fade\" id=\"tab_settings\" aria-labelledby=\"settings-tab\">\r\n        <p>Select needful information to display on graph: </p>\r\n          <checkboxGroup [id]=\"'availabilityCheckboxToggle'\" [title]=\"'Availability'\" [formName]=\"availability\"></checkboxGroup>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>End-to-End {{(currentViewObs | async)?.name}} {{'(' + ((currentViewObs | async)?.type) + ')'}}</h3>\r\n      </div>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n    <div class=\"row\">\r\n      <div class='container col-md-12' style=\"min-height: 900px;\">\r\n        <div id=\"cy\"></div>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ }
 

@@ -15,6 +15,7 @@ import { AddView } from './analysis.add.view';
 import { MainView } from './analysis.view';
 
 import { TimeIntervalsView } from './components/time.interval.component';
+import { CheckboxGroupView } from './components/checkbox.group.component';
 
 const PROVIDERS:any =  [
   ApiClient
@@ -36,7 +37,7 @@ const PROVIDERS:any =  [
             ]
       }])
     ],
-    declarations: [ TemplateView, AddView, MainView, TimeIntervalsView ],
+    declarations: [ TemplateView, AddView, MainView, TimeIntervalsView, CheckboxGroupView ],
     providers:    PROVIDERS
 })
 export class AnalysisModule {}
