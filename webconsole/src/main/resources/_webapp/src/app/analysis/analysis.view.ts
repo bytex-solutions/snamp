@@ -55,6 +55,8 @@ export class MainView implements OnInit {
       });
    }
 
+   public saveCheckboxStatus():void {}
+
    private handleCy(_cy:any):void {
         var _thisReference = this;
         _cy.on('tap', function(event){

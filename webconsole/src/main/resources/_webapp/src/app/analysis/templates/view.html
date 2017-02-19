@@ -60,6 +60,79 @@
           <checkboxGroup [id]="'maxResponseTimeCheckboxToggle'" [title]="'Max response time'" [formName]="maxResponseTime"></checkboxGroup>
           <checkboxGroup [id]="'meanRateCheckboxToggle'" [title]="'Mean rate'" [formName]="meanRate"></checkboxGroup>
           <checkboxGroup [id]="'meanResponseTimeCheckboxToggle'" [title]="'Mean response time'" [formName]="meanResponseTime"></checkboxGroup>
+
+          <div class="row">
+            <div class="form-check">
+              <label class="form-check-label">
+                <input class="form-check-input" type="checkbox" [attr.name]="'channels'">
+                Channels
+              </label>
+            </div>
+          </div>
+
+        <div class="row">
+          <div class="form-check">
+            <label class="form-check-label">
+              <input class="form-check-input" type="checkbox" [attr.name]="'efficiency'">
+              Efficiency
+            </label>
+          </div>
+        </div>
+
+
+        <div class="row">
+          <div class="form-check">
+            <label class="form-check-label">
+              <input class="form-check-input" type="checkbox" [attr.name]="'scalability'">
+              Scalability
+            </label>
+          </div>
+        </div>
+
+
+        <div class="row">
+          <div class="form-check">
+            <label class="form-check-label">
+              <input class="form-check-input" type="checkbox" [attr.name]="'responseTime90'">
+              Response time (90)
+            </label>
+          </div>
+        </div>
+
+
+        <div class="row">
+          <div class="form-check">
+            <label class="form-check-label">
+              <input class="form-check-input" type="checkbox" [attr.name]="'responseTime95'">
+              Response time (95)
+            </label>
+          </div>
+        </div>
+
+
+        <div class="row">
+          <div class="form-check">
+            <label class="form-check-label">
+              <input class="form-check-input" type="checkbox" [attr.name]="'responseTime98'">
+              Response time (98)
+            </label>
+          </div>
+        </div>
+
+
+        <div class="row">
+          <div class="form-check">
+            <label class="form-check-label">
+              <input class="form-check-input" type="checkbox" [attr.name]="'responseTimeStdDev'">
+              Response time standard deviation
+            </label>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="btn btn-primary" (click)="saveCheckboxStatus()">Apply</button>
+        </div>
+
       </div>
     </div>
   </div>
