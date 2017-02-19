@@ -20,4 +20,8 @@ public interface ComponentWatcher {
      * @return Mutable map of attribute checkers.
      */
     Map<String, AttributeChecker> getAttributeCheckers();
+
+    void addStatusEventListener(final ComponentStatusEventListener listener);
+
+    void removeStatusEventListener(final ComponentStatusEventListener listener);
 }

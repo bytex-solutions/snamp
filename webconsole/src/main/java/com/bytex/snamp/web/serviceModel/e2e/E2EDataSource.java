@@ -9,6 +9,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -32,6 +33,12 @@ public final class E2EDataSource extends ComputingService<E2EView, Object, Dashb
     @Override
     protected void initialize() {
         //nothing to do
+    }
+
+    @POST
+    public Response reset() {
+        analyzer.reset();
+        return Response.noContent().build();
     }
 
     /**
