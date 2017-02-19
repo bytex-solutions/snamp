@@ -44,12 +44,8 @@ final class InfluxModelOfNotifications extends ModelOfNotifications<Notification
         };
     }
 
-    /**
-     * Removes all attributes from this model.
-     */
     @Override
-    public void clear() {
-        super.clear();
+    protected void cleared() {
         reporter = null;
     }
 }

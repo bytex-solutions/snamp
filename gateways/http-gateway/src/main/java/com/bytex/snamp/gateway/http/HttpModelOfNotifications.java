@@ -122,8 +122,7 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
     }
 
     @Override
-    public void clear() {
+    protected void cleared() {
         webSocketListeners.clear();
-        super.clear();
     }
 }

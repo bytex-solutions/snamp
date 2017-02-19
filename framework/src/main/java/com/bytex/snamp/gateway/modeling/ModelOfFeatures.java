@@ -136,11 +136,16 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
         return readLock.apply(listGroup, resourceName, features, ModelOfFeatures::getFeatures);
     }
 
-    private static <TAccessor extends FeatureAccessor<?>> Collection<TAccessor> clearImpl(final String resourceName,
-                                                                                  final Map<String, ? extends KeyedObjects<String, TAccessor>> features){
-        return features.containsKey(resourceName) ?
-                features.remove(resourceName).values():
+    protected void cleared(final String resourceName, final Collection<TAccessor> accessors){
+
+    }
+
+    private Collection<TAccessor> clearImpl(final String resourceName) {
+        final Collection<TAccessor> removedFeatures = features.containsKey(resourceName) ?
+                features.remove(resourceName).values() :
                 ImmutableList.of();
+        cleared(resourceName, removedFeatures);
+        return removedFeatures;
     }
 
     /**
@@ -148,8 +153,8 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
      * @param resourceName The name of the managed resource.
      * @return The read-only collection of removed attributes.
      */
-    public Collection<TAccessor> clear(final String resourceName) {
-        return writeLock.apply(listGroup, resourceName, features, ModelOfFeatures::clearImpl);
+    public final Collection<TAccessor> clear(final String resourceName) {
+        return writeLock.apply(listGroup, this, resourceName, ModelOfFeatures::clearImpl);
     }
 
     private <E extends Throwable> void forEachFeatureImpl(final EntryReader<String, ? super TAccessor, E> featureReader) throws E {
@@ -162,16 +167,21 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
         readLock.accept(listGroup, featureReader, this::forEachFeatureImpl);
     }
 
-    private static void clearImpl(final Map<String, ? extends ResourceFeatureList<?, ?>> attributes){
-        attributes.values().forEach(ResourceFeatureList::clear);
-        attributes.clear();
+    protected void cleared(){
+
+    }
+
+    private void clearImpl(){
+        features.values().forEach(ResourceFeatureList::clear);
+        features.clear();
+        cleared();
     }
 
     /**
      * Removes all attributes from this model.
      */
-    public void clear(){
-        writeLock.accept(SingleResourceGroup.INSTANCE, features, ModelOfFeatures::clearImpl);
+    public final void clear() {
+        writeLock.accept(listGroup, this, ModelOfFeatures::clearImpl);
     }
 
     protected abstract TAccessor createAccessor(final String resourceName, final M metadata) throws Exception;

@@ -40,9 +40,6 @@ public class RepeaterTest extends Assert {
             }
         }
 
-        /**
-         * Provides some periodical action.
-         */
         @Override
         protected void doAction() {
             c.incrementAndGet();

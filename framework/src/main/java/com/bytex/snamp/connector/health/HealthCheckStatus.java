@@ -22,5 +22,13 @@ public enum HealthCheckStatus implements Serializable {
     /**
      * The component is offline or not working.
      */
-    MALFUNCTION
+    MALFUNCTION;
+
+    public final HealthCheckStatus max(final HealthCheckStatus other){
+        return compareTo(other) >= 0 ? this : other;
+    }
+
+    public final HealthCheckStatus min(final HealthCheckStatus other){
+        return compareTo(other) <= 0 ? this : other;
+    }
 }

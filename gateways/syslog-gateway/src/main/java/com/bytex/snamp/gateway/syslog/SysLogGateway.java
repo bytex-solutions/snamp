@@ -68,7 +68,7 @@ final class SysLogGateway extends AbstractGateway {
         }
 
         @Override
-        public void clear() {
+        protected void cleared() {
             final ConcurrentSyslogMessageSender sender = checkSender;
             if (sender != null)
                 sender.close();

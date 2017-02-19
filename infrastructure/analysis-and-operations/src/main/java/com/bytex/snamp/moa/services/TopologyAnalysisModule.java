@@ -1,8 +1,11 @@
 package com.bytex.snamp.moa.services;
 
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.instrumentation.measurements.Span;
+import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.GraphOfComponents;
+import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +16,7 @@ import java.util.Map;
  * @since 2.0
  * @version 2.0
  */
-final class TopologyAnalysisModule extends GraphOfComponents {
+final class TopologyAnalysisModule extends GraphOfComponents implements TopologyAnalyzer {
     private static final long serialVersionUID = -2367174795240931165L;
     private final ConcurrentResourceAccessor<Map<String, Long>> allowedComponents;//key - component name, value - number of components with the same name
 
@@ -54,5 +57,10 @@ final class TopologyAnalysisModule extends GraphOfComponents {
     public boolean remove(final String componentName) {
         allowedComponents.write(components -> remove(components, componentName));
         return super.remove(componentName);
+    }
+
+    @Override
+    public <E extends Throwable> void visitVertices(final Acceptor<? super ComponentVertex, E> visitor) throws E {
+        forEach(visitor);
     }
 }

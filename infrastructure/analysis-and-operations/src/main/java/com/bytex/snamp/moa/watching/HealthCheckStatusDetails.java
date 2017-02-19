@@ -22,9 +22,10 @@ public interface HealthCheckStatusDetails {
 
     /**
      * Gets root cause of the current status.
-     * @return Root cause of the current status; or {@literal null} status is {@link HealthCheckStatus#OK}.
+     * @return Root cause of the current status; or {@link NoRootCause} if status is {@link HealthCheckStatus#OK}.
      * @see CausedByAttribute
      * @see ResourceUnavailable
+     * @see NoRootCause
      */
     RootCause getRootCause();
 }

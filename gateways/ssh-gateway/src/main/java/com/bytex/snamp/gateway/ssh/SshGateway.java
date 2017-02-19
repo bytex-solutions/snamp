@@ -56,8 +56,7 @@ final class SshGateway extends AbstractGateway implements GatewayController {
         }
 
         @Override
-        public void clear(){
-            super.clear();
+        protected void cleared(){
             mailbox.clear();
         }
 

@@ -64,8 +64,7 @@ final class NRDPGateway extends AbstractGateway {
         }
 
         @Override
-        public void clear() {
-            super.clear();
+        protected void cleared() {
             checkSender = null;
         }
     }

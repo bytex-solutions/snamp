@@ -9,5 +9,5 @@ import com.bytex.snamp.moa.DataAnalyzer;
  * @since 2.0
  */
 public interface WatcherService extends DataAnalyzer {
-    ComponentNameToWatcherMap<?> getComponentsWatchers();
+    ComponentWatchersRepository<?> getComponentsWatchers();
 }

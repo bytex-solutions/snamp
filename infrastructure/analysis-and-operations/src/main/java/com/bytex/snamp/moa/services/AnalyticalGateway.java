@@ -1,6 +1,5 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
@@ -10,13 +9,16 @@ import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
-import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.GraphOfComponents;
-import com.bytex.snamp.moa.watching.ComponentNameToWatcherMap;
+import com.bytex.snamp.moa.topology.TopologyAnalyzer;
+import com.bytex.snamp.moa.watching.WatcherService;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
+import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -29,14 +31,16 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  */
 final class AnalyticalGateway extends AbstractGateway implements NotificationListener, AnalyticalCenter {
     private static final String HISTORY_SIZE_PARAM = "topologyAnalyzerHistorySize";
-    private static final long DEFAULT_HISTORY_SIZE = 10_000L;
+    private static final String WATCH_PERIOD_PARAM = "watchPeriod";
+    private static final long DEFAULT_HISTORY_SIZE = 5_000L;
+    private static final long DEFAULT_WATCH_PERIOD = 1000L;
 
     private TopologyAnalysisModule graph;
     private final WatcherModule watchDog;
 
-    AnalyticalGateway(final BundleContext context) {
+    AnalyticalGateway(final BundleContext context, final ExecutorService threadPool) {
         super(DistributedServices.getLocalMemberName(context));
-        watchDog = new WatcherModule();
+        watchDog = new WatcherModule(threadPool);
     }
 
     private BundleContext getBundleContext(){
@@ -66,19 +70,9 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
 
     @Override
     protected void addResource(final ManagedResourceConnectorClient resourceConnector) {
-        final TopologyAnalysisModule graph = this.graph;
-        if (graph == null)
-            return;
-        graph.add(resourceConnector.getComponentName());
+        Optional.ofNullable(graph).ifPresent(graph -> graph.add(resourceConnector.getComponentName()));
         Aggregator.queryAndAccept(resourceConnector, NotificationSupport.class, this::addNotificationListener);
         watchDog.addResource(resourceConnector);
-    }
-
-    @Override
-    public <E extends Throwable> void visitVertices(final Acceptor<? super ComponentVertex, E> visitor) throws E {
-        final TopologyAnalysisModule graph = this.graph;
-        if (graph != null)
-            graph.forEach(visitor);
     }
 
     private void removeNotificationListener(final NotificationSupport support) {
@@ -91,10 +85,7 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
 
     @Override
     protected void removeResource(final ManagedResourceConnectorClient resourceConnector) {
-        final TopologyAnalysisModule graph = this.graph;
-        if (graph == null)
-            return;
-        graph.remove(resourceConnector.getComponentName());
+        Optional.ofNullable(graph).ifPresent(graph -> graph.remove(resourceConnector.getComponentName()));
         Aggregator.queryAndAccept(resourceConnector, NotificationSupport.class, this::removeNotificationListener);
         watchDog.removeResource(resourceConnector);
     }
@@ -103,20 +94,8 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
 
     //<editor-fold desc="Watchers">
 
-    @Override
-    public ComponentNameToWatcherMap getComponentsWatchers() {
-        return null;
-    }
-
 
     //</editor-fold>
-
-    @Override
-    public void reset() {
-        final TopologyAnalysisModule graph = this.graph;
-        if (graph != null)
-            graph.reset();
-    }
 
     @SuppressWarnings("unchecked")
     @Override
@@ -143,13 +122,28 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
 
     @Override
     protected void start(final Map<String, String> parameters) {
-        graph = new TopologyAnalysisModule(getValueAsLong(parameters, HISTORY_SIZE_PARAM, Long::parseLong).orElse(DEFAULT_HISTORY_SIZE));
+        long param = getValueAsLong(parameters, HISTORY_SIZE_PARAM, Long::parseLong).orElse(DEFAULT_HISTORY_SIZE);
+        graph = new TopologyAnalysisModule(param);
+        param = getValueAsLong(parameters, WATCH_PERIOD_PARAM, Long::parseLong).orElse(DEFAULT_WATCH_PERIOD);
+        watchDog.startWatching(Duration.ofMillis(param));
     }
 
     @Override
-    protected void stop() {
-        reset();
+    protected void stop() throws InterruptedException {
+        Optional.ofNullable(graph).ifPresent(TopologyAnalyzer::reset);
         graph = null;
-        watchDog.clear();
+        watchDog.stopWatching();
+    }
+
+    @Override
+    @Aggregation
+    public TopologyAnalysisModule getTopologyAnalyzer() {
+        return graph;
+    }
+
+    @Override
+    @Aggregation
+    public WatcherService getWatcherService() {
+        return watchDog;
     }
 }

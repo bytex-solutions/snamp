@@ -11,7 +11,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
@@ -60,7 +59,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     private RepeaterState state;
     private Throwable exception;
     private final Duration period;
-    private RepeaterThread repeatThread;
+    private Thread repeatThread;
     private final Lock monitor;
 
     /**
@@ -138,89 +137,69 @@ public abstract class Repeater implements AutoCloseable, Runnable {
 
     }
 
-    private void fault(final Throwable e) {
-        monitor.lock();
-        try {
-            switch (state) {
-                case STARTED:
-                    if (repeatThread != null && repeatThread.getId() == Thread.currentThread().getId()) {
-                        exception = e;
-                        stateChanged(state = RepeaterState.FAILED);
-                        repeatThread.interrupt();
-                        repeatThread = null;
-                    } else throw new IllegalStateException("This method should be called from the timer action.");
-                    break;
-                default:
-                    throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", RepeaterState.STARTED, state));
-            }
-        } finally {
-            monitor.unlock();
-        }
-    }
-
     /**
      * Provides some periodical action.
      * @throws Exception Action is failed.
      */
     protected abstract void doAction() throws Exception;
 
-    private interface RepeaterThread extends Runnable{
-        void start();
-        void interrupt();
-        long getId();
-        void join(final long timeout) throws InterruptedException;
-        boolean isAlive();
-    }
+    private void runImpl() {
+        final class RepeaterThread extends Thread implements Thread.UncaughtExceptionHandler, Callable<Void> {
+            private RepeaterThread() {
+                super(generateThreadName());
+                setDaemon(true);
+                setPriority(getPriority());
+                setUncaughtExceptionHandler(this);
+            }
 
-    private final class RepeaterThreadImpl extends Thread implements RepeaterThread, Thread.UncaughtExceptionHandler, Callable<Void> {
-        private final Supplier<Duration> period;
+            @Override
+            public void uncaughtException(final Thread t, final Throwable e) {
+                if (monitor.tryLock())    //to avoid deadlock
+                    try {
+                        switch (state) {
+                            case STARTED:
+                                exception = e;
+                                stateChanged(state = RepeaterState.FAILED);
+                                t.interrupt();
+                                break;
+                            default:
+                                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", RepeaterState.STARTED, state));
+                        }
+                    } finally {
+                        monitor.unlock();
+                    }
+            }
 
-        private RepeaterThreadImpl(final String threadName,
-                                   final int priority,
-                                   final Supplier<Duration> period) {
-            super(threadName);
-            this.period = period;
-            setDaemon(true);
-            setPriority(priority);
-            setUncaughtExceptionHandler(this);
-        }
+            @Override
+            public Void call() throws Exception {
+                doAction();
+                return null;
+            }
 
-        @Override
-        public void uncaughtException(final Thread t, final Throwable e) {
-            fault(e);
-        }
-
-        @Override
-        public Void call() throws Exception {
-            doAction();
-            return null;
-        }
-
-        @Override
-        public void run() {
-            while (!isInterrupted()) {
-                //sleep for a specified time
-                try {
-                    Thread.sleep(period.get().toMillis());
-                } catch (final InterruptedException e) {
-                    return;
+            @Override
+            public void run() {
+                while (!isInterrupted()) {
+                    //sleep for a specified time
+                    try {
+                        Thread.sleep(getPeriod().toMillis());
+                    } catch (final InterruptedException e) {
+                        return;
+                    }
+                    callUnchecked(this);
                 }
-                callUnchecked(this);
+            }
+
+            @Override
+            public String toString() {
+                return getName();
             }
         }
 
-        @Override
-        public String toString() {
-            return getName();
-        }
-    }
-
-    private void runImpl(){
-        switch (state){
+        switch (state) {
             case STOPPED:
             case FAILED:
                 exception = null;
-                repeatThread = new RepeaterThreadImpl(generateThreadName(), getPriority(), this::getPeriod);
+                repeatThread = new RepeaterThread();
                 //execute periodic thread
                 repeatThread.start();
                 stateChanged(state = RepeaterState.STARTED);
@@ -246,40 +225,34 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         }
     }
 
-    private static void join(final RepeaterThread th, final long timeout) throws InterruptedException, TimeoutException {
-        if (timeout > 0L) th.join(timeout);
-        if (th.isAlive())
-            throw new TimeoutException(String.format("Thread %s is alive", th));
-    }
-
-    private boolean tryStop(final long timeoutMillis) throws TimeoutException, InterruptedException {
+    private void tryStop(final long timeoutMillis) throws TimeoutException, InterruptedException {
         switch (state) {
             default:
-                return false;
+                return;  //already stopped
             case STARTED:
                 repeatThread.interrupt();
                 stateChanged(state = RepeaterState.STOPPING);
             case STOPPING:
-                join(repeatThread, timeoutMillis);
+                if (timeoutMillis > 0L)
+                    repeatThread.join(timeoutMillis);
+                if (repeatThread.isAlive())
+                    throw new TimeoutException(String.format("Thread %s still alive", repeatThread));
         }
-        stateChanged(state = RepeaterState.STOPPED);
         repeatThread = null;
-        return true;
+        stateChanged(state = RepeaterState.STOPPED);
     }
 
     private void stop(final long millis) throws TimeoutException, InterruptedException {
         long duration = System.currentTimeMillis();
         if (monitor.tryLock(millis, TimeUnit.MILLISECONDS)) {
             duration -= System.currentTimeMillis();
-            final boolean stopped;
             try {
-                stopped = tryStop(millis - duration);
+                tryStop(millis - duration);
             } finally {
                 monitor.unlock();
             }
-            if (!stopped)
-                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", RepeaterState.STARTED, state));
-        } else throw new TimeoutException("Too small timeout " + millis);
+        } else
+            throw new TimeoutException("Too small timeout " + millis);
     }
 
     /**
@@ -293,8 +266,8 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     }
 
     private void closeImpl() {
-        stateChanged(state = RepeaterState.CLOSED);
         exception = null;
+        stateChanged(state = RepeaterState.CLOSED);
     }
 
     /**

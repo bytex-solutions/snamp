@@ -1,5 +1,7 @@
 package com.bytex.snamp.moa.watching;
 
+import com.bytex.snamp.Stateful;
+
 import java.util.Map;
 
 /**
@@ -8,7 +10,7 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-public interface ComponentWatcher {
+public interface ComponentWatcher extends Stateful {
     /**
      * Gets status of the component.
      * @return Status of the component.
