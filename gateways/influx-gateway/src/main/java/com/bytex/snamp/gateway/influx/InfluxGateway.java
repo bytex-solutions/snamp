@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.influx;
 
 import com.bytex.snamp.concurrent.Repeater;
+import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.AbstractGateway;
@@ -17,7 +18,6 @@ import javax.management.MBeanNotificationInfo;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -29,48 +29,37 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 2.0
  */
 final class InfluxGateway extends AbstractGateway {
-    private final class PointsUploader extends Repeater{
-        private PointsUploader(final Duration period){
-            super(period);
+    private static final class PointsUploader extends WeakRepeater<InfluxGateway>{
+        private final String threadName;
+
+        private PointsUploader(final Duration period, final InfluxGateway gateway){
+            super(period, gateway);
+            threadName = "PointsUploader-".concat(gateway.instanceName);
         }
 
         @Override
-        protected void doAction() throws JMException {
+        protected void doAction() throws JMException, InterruptedException {
+            final InfluxGateway gateway = getReferenceOrTerminate();
             //only active cluster node is responsible for reporting
-            if(DistributedServices.isActiveNode(getBundleContextOfObject(InfluxGateway.this))) {
-                attributes.dumpPoints(reporter);
-            }
+            if (DistributedServices.isActiveNode(getBundleContextOfObject(gateway)))
+                gateway.dumpAttributes();
         }
 
         @Override
         protected String generateThreadName() {
-            return "PointsUploader-".concat(instanceName);
-        }
-
-        @Override
-        protected void stateChanged(final RepeaterState s) {
-            switch (s){
-                case STARTED:
-                    getLogger().fine(String.format("Points uploader for '%s' instance is started", instanceName));
-                return;
-                case FAILED:
-                    getLogger().log(Level.SEVERE, String.format("Points uploader for '%s' instance is broken", instanceName), getException());
-                return;
-                case CLOSED:
-                    getLogger().fine(String.format("Points uploader for '%s' instance is closed", instanceName));
-                return;
-                case STOPPED:
-                    getLogger().fine(String.format("Points uploader for '%s' instance is stopped", instanceName));
-                return;
-                case STOPPING:
-                    getLogger().fine(String.format("Points uploader for '%s' instance is stopping", instanceName));
-            }
+            return threadName;
         }
     }
     private Reporter reporter;
     private final InfluxModelOfAttributes attributes;
     private Repeater pointsUploader;
     private final InfluxModelOfNotifications notifications;
+
+    void dumpAttributes() throws JMException {
+        final Reporter reporter = this.reporter;
+        if (reporter != null)
+            attributes.dumpPoints(reporter);
+    }
 
     /**
      * Initializes a new instance of gateway.
@@ -153,7 +142,7 @@ final class InfluxGateway extends AbstractGateway {
         //initialize uploader as periodic task
         {
             final Duration uploadPeriod = parser.getUploadPeriod(parameters);
-            pointsUploader = new PointsUploader(uploadPeriod);
+            pointsUploader = new PointsUploader(uploadPeriod, this);
             pointsUploader.run();
         }
     }

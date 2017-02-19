@@ -4,6 +4,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents lightweight timer that is used to repeat processing of the specified object using weak reference to it.
@@ -49,19 +50,15 @@ public abstract class WeakRepeater<I> extends Repeater {
             ref.clear();
     }
 
-    protected abstract void doAction(final I input) throws Exception;
-
-    /**
-     * Provides some periodical action.
-     *
-     * @throws Exception Action is failed.
-     */
-    @Override
-    protected final void doAction() throws Exception {
+    protected final I getReferenceOrTerminate() throws InterruptedException {
         final I input = ref.get();
         if (input == null)
-            Thread.currentThread().interrupt();
+            throw new InterruptedException("Reference is no longer available");
         else
-            doAction(input);
+            return input;
+    }
+
+    protected final Optional<I> getReference(){
+        return Optional.ofNullable(ref.get());
     }
 }

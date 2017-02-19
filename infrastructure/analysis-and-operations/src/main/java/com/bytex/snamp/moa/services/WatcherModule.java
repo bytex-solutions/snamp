@@ -55,8 +55,8 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements
         }
 
         @Override
-        protected void doAction(final WatcherModule input) throws Exception {
-            input.updateWatchers();
+        protected void doAction() throws Exception {
+            getReference().ifPresent(WatcherModule::updateWatchers);
         }
 
         @Override

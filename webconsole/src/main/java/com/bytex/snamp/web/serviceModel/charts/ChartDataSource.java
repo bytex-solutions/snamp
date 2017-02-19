@@ -1,7 +1,7 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
 import com.bytex.snamp.MapUtils;
-import com.bytex.snamp.concurrent.Repeater;
+import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
@@ -19,18 +19,15 @@ import javax.management.AttributeList;
 import javax.management.JMException;
 import javax.ws.rs.Path;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-import static com.bytex.snamp.internal.Utils.parallelForEach;
 
 /**
  * Represents source of charts data.
@@ -60,13 +57,23 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         }
     }
 
-    private static final class AttributeSupplierThread extends Repeater {
-        private final WeakReference<ChartDataSource> serviceRef;
+    private static final class AttributeSupplierThread extends WeakRepeater<ChartDataSource> {
+        private volatile boolean terminated;
 
         private AttributeSupplierThread(final ChartDataSource service, final Duration period) {
-            super(period);
-            assert service != null;
-            serviceRef = new WeakReference<>(service);
+            super(period, service);
+        }
+
+        @Override
+        protected void stateChanged(final RepeaterState s) {
+            switch (s) {
+                case FAILED:
+                case STOPPED:
+                case CLOSED:
+                    terminated = true;
+                default:
+                    super.stateChanged(s);
+            }
         }
 
         @Override
@@ -82,10 +89,10 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             return getBundleContextOfObject(this);
         }
 
-        private void processConnector(final Map.Entry<String, ServiceReference<ManagedResourceConnector>> connector,
-                                      final Thread actionThread) {
-            if (actionThread.isInterrupted()) return;
-            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connector.getValue());
+        private void processConnector(final ChartDataSource source,
+                                      final ServiceReference<ManagedResourceConnector> connector) {
+            if (terminated) return;
+            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connector);
             final AttributeList attributes;
             final String resourceName = client.getManagedResourceName();
             try {
@@ -96,19 +103,13 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             } finally {
                 client.release(getBundleContext()); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
             }
-            final ChartDataSource service = serviceRef.get();
-            if (service == null) return;
-            service.forEachSession(session -> service.processAttributes(session, resourceName, attributes));
+            source.forEachSession(session -> source.processAttributes(session, resourceName, attributes));
         }
 
         @Override
-        protected void doAction() {
-            final Thread actionThread = Thread.currentThread();
-            final Set<Map.Entry<String, ServiceReference<ManagedResourceConnector>>> connectors =
-                    ManagedResourceConnectorClient.getConnectors(getBundleContext()).entrySet();
-            final ChartDataSource service = serviceRef.get();
-            if (service == null) return;
-            parallelForEach(connectors, entry -> processConnector(entry, actionThread), service.threadPool);
+        protected void doAction() throws InterruptedException {
+            final ChartDataSource source = getReferenceOrTerminate();
+            ManagedResourceConnectorClient.getConnectors(getBundleContext()).forEach(connector -> processConnector(source, connector));
         }
     }
 
@@ -159,7 +160,6 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         try {
             attributeSupplier.close();
         } finally {
-            attributeSupplier.serviceRef.clear();
             attributeSupplier = null;
         }
     }

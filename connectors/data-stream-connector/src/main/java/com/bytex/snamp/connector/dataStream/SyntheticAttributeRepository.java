@@ -80,16 +80,6 @@ public class SyntheticAttributeRepository extends DistributedAttributeRepository
     }
 
     /**
-     * Gets thread pool used to synchronize attribute states across cluster.
-     *
-     * @return Thread pool instance.
-     */
-    @Override
-    protected final ExecutorService getThreadPool() {
-        return threadPool;
-    }
-
-    /**
      * Takes snapshot of the attribute to distribute it across cluster.
      *
      * @param attribute The attribute that should be synchronized across cluster.
@@ -135,14 +125,14 @@ public class SyntheticAttributeRepository extends DistributedAttributeRepository
     }
 
     public final void handleNotification(final Notification notification, final BiConsumer<? super SyntheticAttribute, ? super SyntheticAttribute.NotificationProcessingResult> callback) {
-        parallelForEach(attribute -> callback.accept(attribute, attribute.dispatch(notification)), getThreadPool());
+        forEach(attribute -> callback.accept(attribute, attribute.dispatch(notification)));
     }
 
-    final void resetAllMetrics(){
-        parallelForEach(attribute -> {
-            if(attribute instanceof MetricHolderAttribute<?, ?>)
+    final void resetAllMetrics() {
+        forEach(attribute -> {
+            if (attribute instanceof MetricHolderAttribute<?, ?>)
                 ((MetricHolderAttribute<?, ?>) attribute).reset();
-        }, threadPool);
+        });
     }
 
     @Override

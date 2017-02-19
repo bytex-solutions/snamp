@@ -186,9 +186,8 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     }
 
     @Test
-    public void operationTest() throws ReflectionException, MBeanException {
-        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext())
-                .queryObject(OperationSupport.class);
+    public void operationTest() throws JMException {
+        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class);
         try{
             final Object result = operationSupport.invoke("rev", new Object[]{new byte[]{1, 2, 3}}, new String[0]);
             assertTrue(result instanceof byte[]);
@@ -201,8 +200,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Test
     public void notificationTest() throws JMException, InterruptedException {
-        final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext())
-                .queryObject(NotificationSupport.class);
+        final NotificationSupport notificationSupport = getManagementConnector().queryObject(NotificationSupport.class);
         try{
             final Mailbox mailbox = MailboxFactory.newMailbox();
             notificationSupport.addNotificationListener(mailbox, null, null);

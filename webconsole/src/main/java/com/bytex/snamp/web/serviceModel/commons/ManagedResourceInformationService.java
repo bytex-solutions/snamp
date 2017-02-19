@@ -49,7 +49,7 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
      */
     @Override
     protected void initialize() {
-        for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(getBundleContext()).values()) {
+        for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(getBundleContext())) {
             final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connectorRef);
             try {
                 connectorChanged(client, ServiceEvent.REGISTERED);

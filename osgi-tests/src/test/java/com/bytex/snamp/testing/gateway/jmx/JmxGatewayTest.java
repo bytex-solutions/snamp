@@ -216,7 +216,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Test
-    public void metricsTest(){
+    public void metricsTest() throws InstanceNotFoundException {
         final ManagedResourceConnector connector = getManagementConnector();
         try{
             assertNotNull(connector.queryObject(MetricsSupport.class));

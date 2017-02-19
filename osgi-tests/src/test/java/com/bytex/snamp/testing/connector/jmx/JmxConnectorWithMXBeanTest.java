@@ -8,10 +8,7 @@ import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
-import javax.management.MBeanException;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-import javax.management.ReflectionException;
+import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -64,9 +61,8 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
     }
 
     @Test
-    public void operationTest() throws ReflectionException, MBeanException {
-        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext())
-                .queryObject(OperationSupport.class);
+    public void operationTest() throws JMException {
+        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class);
         try{
             final Object result = operationSupport.invoke("forceGC", new Object[0], new String[0]);
             assertNull(result);

@@ -13,10 +13,7 @@ import javax.management.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -241,17 +238,18 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      *          a name of the management target.
      */
     @SuppressWarnings("unchecked")
-    public static Map<String, ServiceReference<ManagedResourceConnector>> getConnectors(final BundleContext context){
-        if(context == null) return Collections.emptyMap();
+    public static Collection<ServiceReference<ManagedResourceConnector>> getConnectors(final BundleContext context){
+        if(context == null) return Collections.emptyList();
         else try {
-            ServiceReference<?>[] connectors = context.getAllServiceReferences(ManagedResourceConnector.class.getName(), null);
-            if(connectors == null) connectors = emptyArray(ServiceReference[].class);
-            return Arrays.stream(connectors)
-                    .map(ref -> (ServiceReference<ManagedResourceConnector>)ref)
-                    .collect(Collectors.toMap(ManagedResourceConnectorClient::getManagedResourceName, Function.identity()));
+            final ServiceReference<?>[] connectors =
+                    context.getAllServiceReferences(ManagedResourceConnector.class.getName(), null);
+            if(connectors == null)
+                return Collections.emptyList();
+            final Collection result = Arrays.asList(connectors);
+            return (Collection<ServiceReference<ManagedResourceConnector>>) result;
         }
         catch (final InvalidSyntaxException ignored) {
-            return Collections.emptyMap();
+            return Collections.emptyList();
         }
     }
 

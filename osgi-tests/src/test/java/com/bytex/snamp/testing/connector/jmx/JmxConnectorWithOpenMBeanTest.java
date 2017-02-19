@@ -113,27 +113,32 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public void notificationTest() throws Exception {
-        final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
-        final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
-        assertNotNull(notificationSupport);
-        assertNotNull(attributeSupport);
-        assertEquals(2, notificationSupport.getNotificationInfo().length);
-        final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
-        final Mailbox listener2 = MailboxFactory.newMailbox("20.1");
-        notificationSupport.addNotificationListener(listener1, listener1, null);
-        notificationSupport.addNotificationListener(listener2, listener2, null);
-        //force property changing
-        attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
-        final Notification notif1 = listener1.poll(5, TimeUnit.SECONDS);
-        assertNotNull(notif1);
-        assertEquals("Property string is changed", notif1.getMessage());
-        assertTrue(notif1.getUserData() instanceof CompositeData);
-        final CompositeData attachment = (CompositeData)notif1.getUserData();
-        assertEquals("string", attachment.get("attributeName"));
-        assertEquals(String.class.getName(), attachment.get("attributeType"));
-        final Notification notif2 = listener2.poll(5, TimeUnit.SECONDS);
-        assertNotNull(notif2);
-        assertEquals("Property changed", notif2.getMessage());
+        final ManagedResourceConnector resourceConnector = getManagementConnector();
+        final NotificationSupport notificationSupport = resourceConnector.queryObject(NotificationSupport.class);
+        final AttributeSupport attributeSupport = resourceConnector.queryObject(AttributeSupport.class);
+        try {
+            assertNotNull(notificationSupport);
+            assertNotNull(attributeSupport);
+            assertEquals(2, notificationSupport.getNotificationInfo().length);
+            final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
+            final Mailbox listener2 = MailboxFactory.newMailbox("20.1");
+            notificationSupport.addNotificationListener(listener1, listener1, null);
+            notificationSupport.addNotificationListener(listener2, listener2, null);
+            //force property changing
+            attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
+            final Notification notif1 = listener1.poll(5, TimeUnit.SECONDS);
+            assertNotNull(notif1);
+            assertEquals("Property string is changed", notif1.getMessage());
+            assertTrue(notif1.getUserData() instanceof CompositeData);
+            final CompositeData attachment = (CompositeData) notif1.getUserData();
+            assertEquals("string", attachment.get("attributeName"));
+            assertEquals(String.class.getName(), attachment.get("attributeType"));
+            final Notification notif2 = listener2.poll(5, TimeUnit.SECONDS);
+            assertNotNull(notif2);
+            assertEquals("Property changed", notif2.getMessage());
+        } finally {
+            releaseManagementConnector();
+        }
     }
 
     @Override
@@ -146,35 +151,40 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
             InterruptedException,
             ExecutionException,
             JMException {
-        final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
-        final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
-        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext()).queryObject(OperationSupport.class);
-        assertNotNull(notificationSupport);
-        assertNotNull(attributeSupport);
-        assertEquals(2, notificationSupport.getNotificationInfo().length);
-        final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
-        final Mailbox listener2 = MailboxFactory.newMailbox("20.1");
-        notificationSupport.addNotificationListener(listener1, listener1, null);
-        notificationSupport.addNotificationListener(listener2, listener2, null);
-        //simulate connection abort
-        operationSupport.invoke("connectionAbort", ArrayUtils.emptyArray(Object[].class), ArrayUtils.emptyArray(String[].class));
-        //force property changing
-        attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
-        final Notification notif1 = listener1.poll(5, TimeUnit.SECONDS);
-        assertNotNull(notif1);
-        assertEquals("Property string is changed", notif1.getMessage());
-        assertTrue(notif1.getUserData() instanceof CompositeData);
-        final CompositeData attachment = (CompositeData)notif1.getUserData();
-        assertEquals("string", attachment.get("attributeName"));
-        assertEquals(String.class.getName(), attachment.get("attributeType"));
-        final Notification notif2 = listener2.poll(5, TimeUnit.SECONDS);
-        assertNotNull(notif2);
-        assertEquals("Property changed", notif2.getMessage());
+        final ManagedResourceConnector resourceConnector = getManagementConnector();
+        final NotificationSupport notificationSupport = resourceConnector.queryObject(NotificationSupport.class);
+        final AttributeSupport attributeSupport = resourceConnector.queryObject(AttributeSupport.class);
+        final OperationSupport operationSupport = resourceConnector.queryObject(OperationSupport.class);
+        try {
+            assertNotNull(notificationSupport);
+            assertNotNull(attributeSupport);
+            assertEquals(2, notificationSupport.getNotificationInfo().length);
+            final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
+            final Mailbox listener2 = MailboxFactory.newMailbox("20.1");
+            notificationSupport.addNotificationListener(listener1, listener1, null);
+            notificationSupport.addNotificationListener(listener2, listener2, null);
+            //simulate connection abort
+            operationSupport.invoke("connectionAbort", ArrayUtils.emptyArray(Object[].class), ArrayUtils.emptyArray(String[].class));
+            //force property changing
+            attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
+            final Notification notif1 = listener1.poll(5, TimeUnit.SECONDS);
+            assertNotNull(notif1);
+            assertEquals("Property string is changed", notif1.getMessage());
+            assertTrue(notif1.getUserData() instanceof CompositeData);
+            final CompositeData attachment = (CompositeData) notif1.getUserData();
+            assertEquals("string", attachment.get("attributeName"));
+            assertEquals(String.class.getName(), attachment.get("attributeType"));
+            final Notification notif2 = listener2.poll(5, TimeUnit.SECONDS);
+            assertNotNull(notif2);
+            assertEquals("Property changed", notif2.getMessage());
+        } finally {
+            releaseManagementConnector();
+        }
     }
 
     @Test
     public void operationTest() throws Exception{
-        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext()).queryObject(OperationSupport.class);
+        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class);
         try{
             final byte[] array = new byte[]{1, 4, 9};
             final Object result = operationSupport.invoke("res", new Object[]{array}, new String[]{byte[].class.getName()});

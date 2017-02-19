@@ -11,8 +11,7 @@ import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
-import javax.management.MBeanException;
-import javax.management.ReflectionException;
+import javax.management.JMException;
 
 /**
  * Test for composition of JMX and Groovy connector.
@@ -44,8 +43,8 @@ public final class GroovyWithJmxCompositionTest extends AbstractCompositeConnect
     }
 
     @Test
-    public void operationTest() throws ReflectionException, MBeanException {
-        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext()).queryObject(OperationSupport.class);
+    public void operationTest() throws JMException {
+        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class);
         try{
             final Object result = operationSupport.invoke("groovyOp", new Long[]{12L, 2L}, new String[0]);
             assertTrue(result instanceof Long);

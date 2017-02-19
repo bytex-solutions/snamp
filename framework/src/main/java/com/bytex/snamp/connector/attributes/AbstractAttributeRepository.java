@@ -7,8 +7,8 @@ import com.bytex.snamp.connector.metrics.AttributeMetricRecorder;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import javax.management.*;
@@ -542,16 +542,12 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     @Override
     public final Iterator<M> iterator() {
-        return readLock.apply(SingleResourceGroup.INSTANCE, attributes.values(), Collection::iterator);
+        return readLock.apply(SingleResourceGroup.INSTANCE, attributes, attributes -> ImmutableList.copyOf(attributes.values()).iterator());
     }
 
     @Override
     public final void forEach(final Consumer<? super M> action) {
-        readLock.accept(SingleResourceGroup.INSTANCE, attributes.values(), action, Iterable::forEach);
-    }
-
-    protected final void parallelForEach(final Consumer<? super M> action, final ExecutorService threadPool) {
-        readLock.accept(SingleResourceGroup.INSTANCE, attributes.values(), attributes -> Utils.parallelForEach(attributes, action, threadPool));
+        readLock.accept(SingleResourceGroup.INSTANCE, attributes, action, (attributes, act) -> attributes.values().forEach(act));
     }
 
     /**

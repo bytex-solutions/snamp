@@ -16,7 +16,6 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularType;
-import java.util.Map;
 
 import static com.bytex.snamp.jmx.OpenMBean.OpenAttribute;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -54,13 +53,13 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
     public TabularData getValue() throws InstanceNotFoundException, OpenDataException {
         final BundleContext context = Utils.getBundleContextOfObject(this);
         final TabularDataBuilderRowFill rows = new TabularDataBuilderRowFill(TYPE);
-        for (final Map.Entry<String, ServiceReference<ManagedResourceConnector>> connectorRef : ManagedResourceConnectorClient.getConnectors(context).entrySet()) {
-            final ServiceHolder<ManagedResourceConnector> connector = new ServiceHolder<>(context, connectorRef.getValue());
+        for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(context)) {
+            final ServiceHolder<ManagedResourceConnector> connector = new ServiceHolder<>(context, connectorRef);
             try {
                 final MetricsSupport metrics = connector.get().queryObject(MetricsSupport.class);
                 if (metrics == null) continue;
                 rows.newRow()
-                        .cell(RESOURCE_NAME_CELL, connectorRef.getKey())
+                        .cell(RESOURCE_NAME_CELL, ManagedResourceConnectorClient.getManagedResourceName(connectorRef))
                         .cell(METRICS_CELL, SummaryMetricsAttribute.collectMetrics(metrics))
                         .flush();
             } finally {

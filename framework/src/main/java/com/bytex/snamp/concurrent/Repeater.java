@@ -52,7 +52,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         /**
          * The timer is closed.
          */
-        CLOSED,
+        CLOSED;
     }
 
     private static final AtomicLong THREAD_COUNTER = new AtomicLong(0L);
@@ -158,8 +158,11 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                     try {
                         switch (state) {
                             case STARTED:
+                                final RepeaterState newState = e instanceof InterruptedException ?
+                                        RepeaterState.STOPPED :
+                                        RepeaterState.FAILED;
                                 exception = e;
-                                stateChanged(state = RepeaterState.FAILED);
+                                stateChanged(state = newState);
                                 t.interrupt();
                                 break;
                             default:

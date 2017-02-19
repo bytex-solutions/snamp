@@ -41,16 +41,6 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
         this.scriptLoader = Objects.requireNonNull(loader);
     }
 
-    /**
-     * Gets thread pool used to synchronize attribute states across cluster.
-     *
-     * @return Thread pool instance.
-     */
-    @Override
-    protected ExecutorService getThreadPool() {
-        return threadPool;
-    }
-
     private Object resolveAs(final String operand, final WellKnownType expectedType) throws Exception{
         return expectedType.convert(getAttribute(operand));
     }
@@ -155,10 +145,10 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        parallelForEach(attribute -> {
+        forEach(attribute -> {
             if (attribute instanceof NotificationListener)
                 ((NotificationListener) attribute).handleNotification(notification, handback);
-        }, getThreadPool());
+        });
     }
 
     @Override

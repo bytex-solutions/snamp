@@ -17,12 +17,8 @@ import com.google.common.reflect.TypeToken;
 import org.junit.rules.TestName;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceReference;
 
-import javax.management.Attribute;
-import javax.management.DynamicMBean;
-import javax.management.JMException;
-import javax.management.Notification;
+import javax.management.*;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
@@ -69,6 +65,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     protected final String connectionString;
     protected static final String TEST_RESOURCE_NAME = "test-target";
     private final Map<String, String> connectorParameters;
+    private ManagedResourceConnectorClient managedResourceConnector;
 
     protected AbstractResourceConnectorTest(final String connectorType,
                                             final String connectionString){
@@ -95,27 +92,16 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         SpinWait.spinUntil(() -> ManagedResourceConnectorClient.getResourceConnector(context, resourceName) != null, timeout);
     }
 
-    protected final ManagedResourceConnector getManagementConnector(final BundleContext context){
-        final ServiceReference<ManagedResourceConnector> connectorRef =
-                ManagedResourceConnectorClient.getConnectors(context).get(TEST_RESOURCE_NAME);
-        return connectorRef != null ? getTestBundleContext().getService(connectorRef) : null;
+    protected final ManagedResourceConnector getManagementConnector() throws InstanceNotFoundException {
+        assertNull(managedResourceConnector);
+        return managedResourceConnector = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
     }
 
-    protected final ManagedResourceConnector getManagementConnector(){
-        return getManagementConnector(getTestBundleContext());
+    protected final void releaseManagementConnector(){
+        assertNotNull(managedResourceConnector);
+        managedResourceConnector.release(getTestBundleContext());
+        managedResourceConnector = null;
     }
-
-    protected final boolean releaseManagementConnector(){
-        return releaseManagementConnector(getTestBundleContext());
-    }
-
-    protected final boolean releaseManagementConnector(final BundleContext context){
-        final ServiceReference<ManagedResourceConnector> connectorRef =
-                ManagedResourceConnectorClient.getConnectors(context).get(TEST_RESOURCE_NAME);
-        return connectorRef != null && context.ungetService(connectorRef);
-    }
-
-
 
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes){
 
@@ -275,7 +261,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final <E extends Throwable> Notification waitForNotification(final String listID,
                                                      final Acceptor<ManagedResourceConnector, E> sender,
-                                                                           final Duration timeout) throws E, InterruptedException, ExecutionException, TimeoutException {
+                                                                           final Duration timeout) throws E, InterruptedException, ExecutionException, TimeoutException, InstanceNotFoundException {
         final Mailbox listener = MailboxFactory.newMailbox(listID);
         final ManagedResourceConnector connector = getManagementConnector();
         try {

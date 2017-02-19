@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.attributes;
 
-import com.bytex.snamp.concurrent.Repeater;
+import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.core.KeyValueStorage;
 import org.osgi.framework.BundleContext;
 
@@ -8,7 +8,6 @@ import javax.management.MBeanAttributeInfo;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
 import static com.bytex.snamp.core.DistributedServices.getDistributedStorage;
 import static com.bytex.snamp.core.DistributedServices.isActiveNode;
@@ -26,13 +25,12 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
     private static final double ACTIVE_SYNC_TIME_FACTOR = Math.sqrt(2);
     private static final int SYNC_THREAD_PRIORITY = Thread.MIN_PRIORITY;
 
-    private final class SynchronizationJob extends Repeater{
-        private final KeyValueStorage storage;
+    private static final class SynchronizationJob<M extends MBeanAttributeInfo> extends WeakRepeater<DistributedAttributeRepository<M>>{
+        private final String threadName;
 
-        private SynchronizationJob(final Duration syncPeriod) {
-            super(syncPeriod);
-            storage = getDistributedStorage(getBundleContext(), getResourceName().concat(STORAGE_NAME_POSTFIX));
-            assert storage.isViewSupported(KeyValueStorage.SerializableRecordView.class);
+        private SynchronizationJob(final Duration syncPeriod, final DistributedAttributeRepository<M> repository) {
+            super(syncPeriod, repository);
+            threadName = "SyncThread-".concat(repository.getResourceName());
         }
 
         @Override
@@ -42,11 +40,11 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
 
         @Override
         protected String generateThreadName() {
-            return "SyncThread-".concat(getResourceName());
+            return threadName;
         }
 
         private BundleContext getBundleContext() {
-            return getBundleContextOfObject(DistributedAttributeRepository.this);
+            return getBundleContextOfObject(this);
         }
 
         @Override
@@ -60,34 +58,45 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
             return period;
         }
 
-        private void sync(final String storageKey, final M attribute) {
-            if (isActiveNode(getBundleContext())) {   //save snapshot of the active node into cluster-wide storage
-                final Serializable snapshot = takeSnapshot(attribute);
-                if (snapshot != null)
-                    storage.updateOrCreateRecord(storageKey, KeyValueStorage.SerializableRecordView.class, record -> record.setValue(snapshot));
-            } else     //passive node should reload its state from the storage
-                storage.getRecord(storageKey, KeyValueStorage.SerializableRecordView.class).ifPresent(record -> loadFromSnapshot(attribute, record.getValue()));
-        }
-
-        private void sync(final M attribute) {
-            getStorageKey(attribute).ifPresent(storageKey -> sync(storageKey, attribute));
-        }
-
         @Override
-        protected void doAction() {
-            parallelForEach(this::sync, getThreadPool());
+        protected void doAction() throws InterruptedException {
+            getReferenceOrTerminate().sync();
         }
     }
 
     private final SynchronizationJob syncThread;
+    private final KeyValueStorage storage;
 
     protected DistributedAttributeRepository(final String resourceName,
                                              final Class<M> attributeMetadataType,
                                              final boolean expandable,
                                              final Duration syncPeriod) {
         super(resourceName, attributeMetadataType, expandable);
-        syncThread = new SynchronizationJob(syncPeriod);
+        syncThread = new SynchronizationJob<>(syncPeriod, this);
         syncThread.run();
+        storage = getDistributedStorage(getBundleContext(), getResourceName().concat(STORAGE_NAME_POSTFIX));
+        assert storage.isViewSupported(KeyValueStorage.SerializableRecordView.class);
+    }
+
+    final void sync(){
+        forEach(this::sync);
+    }
+
+    private BundleContext getBundleContext() {
+        return getBundleContextOfObject(this);
+    }
+
+    private void sync(final String storageKey, final M attribute) {
+        if (isActiveNode(getBundleContext())) {   //save snapshot of the active node into cluster-wide storage
+            final Serializable snapshot = takeSnapshot(attribute);
+            if (snapshot != null)
+                storage.updateOrCreateRecord(storageKey, KeyValueStorage.SerializableRecordView.class, record -> record.setValue(snapshot));
+        } else     //passive node should reload its state from the storage
+            storage.getRecord(storageKey, KeyValueStorage.SerializableRecordView.class).ifPresent(record -> loadFromSnapshot(attribute, record.getValue()));
+    }
+
+    private void sync(final M attribute) {
+        getStorageKey(attribute).ifPresent(storageKey -> sync(storageKey, attribute));
     }
 
     /**
@@ -97,15 +106,9 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
      */
     @Override
     protected void disconnectAttribute(final M attributeInfo) {
-        getStorageKey(attributeInfo).ifPresent(syncThread.storage::delete);
+        getStorageKey(attributeInfo).ifPresent(storage::delete);
         super.disconnectAttribute(attributeInfo);
     }
-
-    /**
-     * Gets thread pool used to synchronize attribute states across cluster.
-     * @return Thread pool instance.
-     */
-    protected abstract ExecutorService getThreadPool();
 
     /**
      * Takes snapshot of the attribute to distribute it across cluster.
