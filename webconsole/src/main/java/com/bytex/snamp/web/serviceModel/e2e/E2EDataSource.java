@@ -36,6 +36,7 @@ public final class E2EDataSource extends ComputingService<E2EView, Object, Dashb
     }
 
     @POST
+    @Path("/reset")
     public Response reset() {
         analyzer.reset();
         return Response.noContent().build();
