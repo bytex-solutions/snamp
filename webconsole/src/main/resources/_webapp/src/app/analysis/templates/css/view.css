@@ -11,7 +11,7 @@
   border: 1px solid #E6E9ED;
   overflow-y: scroll;
   overflow-x: hidden;
-  max-height: 500px;
+  height: 500px;
   color: rgb(115, 135, 156);
   width: 450px;
   position: fixed;

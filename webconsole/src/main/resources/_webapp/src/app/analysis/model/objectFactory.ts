@@ -30,8 +30,10 @@ export class Factory {
                 console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
              }
         }
+        // default values for the view
         _view.setDisplayedMetadata([]);
         _view.setLayout('circle');
+        _view.setTextSize('20');
         return _view;
     }
 

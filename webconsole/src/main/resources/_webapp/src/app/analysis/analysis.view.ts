@@ -27,6 +27,8 @@ export class MainView implements OnInit {
     currentNodeId:string = undefined;
     _cyObject:any = undefined;
     nodeSelected:boolean = false;
+    selectedLayout:string = "";
+    textSize:string = "";
 
     constructor(apiClient: ApiClient, private route: ActivatedRoute, private _viewService:ViewService) {
         this.http = apiClient;
@@ -41,6 +43,8 @@ export class MainView implements OnInit {
       this.currentViewObs.publishLast().refCount();
       this.currentViewObs.subscribe((_view:E2EView) => {
             this.currentView = _view;
+            this.selectedLayout = _view.getLayout();
+            this.textSize = _view.getTextSize();
             this._viewService.getDataForView(_view).subscribe((_data:any) => {
                   this._cyObject = _view.draw(_data);
                   this.handleCy(this._cyObject);
@@ -66,28 +70,31 @@ export class MainView implements OnInit {
         }
    }
 
-   public onChange(event:any):void {
+   public onChangeLayout(event:any):void {
         this.currentView.changeLayout(event);
+        this._viewService.saveDashboard();
+   }
+
+   public onChangeTextSize(event:any):void {
+        this.currentView.changeTextSize(event);
         this._viewService.saveDashboard();
    }
 
    private handleCy(_cy:any):void {
         var _thisReference = this;
         _cy.on('tap', function(event){
-              // cyTarget holds a reference to the originator
-              // of the event (core or element)
-              var evtTarget = event.cyTarget;
-              _thisReference.nodeSelected = (evtTarget != _cy);
-              if( evtTarget === _cy ){
-                  console.log('tap on background');
-                   _thisReference.metadata = evtTarget;
-                   _thisReference.currentNodeId = undefined;
-              } else {
-                console.log('tap on some element', evtTarget.data('arrival'));
-                _thisReference.currentNodeId = evtTarget.data('id');
-                _thisReference.metadata = _cy.$('#' + evtTarget.data('id')).data('arrival');
-              }
-            });
+          // cyTarget holds a reference to the originator
+          // of the event (core or element)
+          var evtTarget = event.cyTarget;
+          _thisReference.nodeSelected = (evtTarget != _cy);
+          if( evtTarget === _cy ){
+               _thisReference.metadata = evtTarget;
+               _thisReference.currentNodeId = undefined;
+          } else {
+            _thisReference.currentNodeId = evtTarget.data('id');
+            _thisReference.metadata = _cy.$('#' + evtTarget.data('id')).data('arrival');
+          }
+        });
     }
 
 }

@@ -82718,6 +82718,12 @@ var E2EView = (function () {
     E2EView.prototype.setLayout = function (layout) {
         this.preferences["layout"] = layout;
     };
+    E2EView.prototype.getTextSize = function () {
+        return this.preferences["textsize"];
+    };
+    E2EView.prototype.setTextSize = function (size) {
+        this.preferences["textsize"] = size;
+    };
     E2EView.prototype.draw = function (initialData) {
         var _layout = this.getLayout();
         var cy = cytoscape({
@@ -82759,7 +82765,7 @@ var E2EView = (function () {
                         'content': 'data(dl)',
                         'text-opacity': 0.9,
                         'text-valign': 'top',
-                        'font-size': '23px',
+                        'font-size': this.getTextSize() + 'px',
                         'text-halign': 'center',
                         'font-weight': '700',
                         'color': 'white',
@@ -82792,7 +82798,6 @@ var E2EView = (function () {
         for (var key in arrivals) {
             var _node = this._cy.$("#" + key);
             _node.data('arrival', arrivals[key]);
-            // console.log(_node, _node.data('id'), _node.data('arrival'), this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
             _node.data('dl', this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
         }
     };
@@ -82800,7 +82805,6 @@ var E2EView = (function () {
         this.setDisplayedMetadata(_md);
         var nodes = this._cy.filter('node');
         for (var i = 0; i < nodes.length; i++) {
-            console.log(this.getLabelFromMetadata(nodes[i].data('id'), nodes[i].data('arrival')));
             nodes[i].data('dl', this.getLabelFromMetadata(nodes[i].data('id'), nodes[i].data('arrival')));
         }
     };
@@ -82865,6 +82869,10 @@ var E2EView = (function () {
     E2EView.prototype.changeLayout = function (layout) {
         this.setLayout(layout);
         this._cy.makeLayout({ name: layout }).run();
+    };
+    E2EView.prototype.changeTextSize = function (textSize) {
+        this.setTextSize(textSize);
+        this._cy.style().selector('node').style({ 'font-size': this.getTextSize() + 'px' }).update();
     };
     E2EView.prototype.getLabelFromMetadata = function (id, data) {
         var result = id;
@@ -83060,8 +83068,10 @@ var Factory = (function () {
                 console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
             }
         }
+        // default values for the view
         _view.setDisplayedMetadata([]);
         _view.setLayout('circle');
+        _view.setTextSize('20');
         return _view;
     };
     // method for creating views

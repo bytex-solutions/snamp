@@ -29,8 +29,17 @@ export abstract class E2EView {
     }
 
 
-    public setLayout(layout:string):void{
+    public setLayout(layout:string):void {
         this.preferences["layout"] = layout;
+    }
+
+    public getTextSize():string {
+        return this.preferences["textsize"];
+    }
+
+
+    public setTextSize(size:string):void {
+        this.preferences["textsize"] = size;
     }
 
     public abstract toJSON():any;
@@ -76,7 +85,7 @@ export abstract class E2EView {
                     'content': 'data(dl)',
                     'text-opacity': 0.9,
                     'text-valign': 'top',
-                    'font-size': '23px',
+                    'font-size': this.getTextSize() + 'px',
                     'text-halign': 'center',
                     'font-weight': '700',
                     'color': 'white',
@@ -113,7 +122,6 @@ export abstract class E2EView {
         for (let key in arrivals) {
             let _node:any = this._cy.$("#" + key);
             _node.data('arrival', arrivals[key]);
-            // console.log(_node, _node.data('id'), _node.data('arrival'), this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
             _node.data('dl', this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
         }
     }
@@ -122,7 +130,6 @@ export abstract class E2EView {
         this.setDisplayedMetadata(_md);
         var nodes = this._cy.filter('node');
         for (let i = 0; i < nodes.length; i++) {
-            console.log(this.getLabelFromMetadata(nodes[i].data('id'), nodes[i].data('arrival')));
             nodes[i].data('dl', this.getLabelFromMetadata(nodes[i].data('id'), nodes[i].data('arrival')));
         }
 
@@ -197,6 +204,11 @@ export abstract class E2EView {
     public changeLayout(layout:string):void {
         this.setLayout(layout);
         this._cy.makeLayout({ name: layout }).run();
+    }
+
+    public changeTextSize(textSize:string):void {
+        this.setTextSize(textSize);
+        this._cy.style().selector('node').style({'font-size': this.getTextSize() + 'px'}).update();
     }
 
     private getLabelFromMetadata(id:string, data:any):string {

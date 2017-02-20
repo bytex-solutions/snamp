@@ -136,9 +136,9 @@
       <div role="tabpanel" class="tab-pane fade" id="tab_cy" aria-labelledby="cy-tab">
 
         <div class="form-group">
-          <label class="control-label col-md-3 col-sm-3 col-xs-12 middleVertical">Layout</label>
+          <label class="control-label col-md-3 col-sm-3 col-xs-12 middleVertical" for="layout-select">Layout</label>
           <div class="col-md-9 col-sm-9 col-xs-12">
-            <select class="form-control" [(ngModel)]="selectedLayout" (ngModelChange)="onChange($event)">
+            <select class="form-control" [(ngModel)]="selectedLayout" (ngModelChange)="onChangeLayout($event)" id="layout-select">
               <option value="random">Random</option>
               <option value="grid">Grid</option>
               <option value="circle">Circle</option>
@@ -146,6 +146,13 @@
               <option value="breadthfirst">Breadthfirst</option>
               <option value="cose">Cose</option>
             </select>
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="text-size-input" class="col-md-3 col-sm-3 col-xs-12">Text size (px)</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <input class="form-control" type="number" [(ngModel)]="textSize" id="text-size-input" placeholder="Input text size" (ngModelChange)="onChangeTextSize($event)">
           </div>
         </div>
 
