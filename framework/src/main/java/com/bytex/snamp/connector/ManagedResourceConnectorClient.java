@@ -233,7 +233,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                 return Collections.emptySet();
             final Set<String> result = Sets.newHashSetWithExpectedSize(resources.length);
             for (final ServiceReference<?> reference : resources)
-                result.add(getManagedResourceName((ServiceReference<ManagedResourceConnector>) reference));
+                result.add(ManagedResourceActivator.getManagedResourceName((ServiceReference<ManagedResourceConnector>) reference));
             return result;
         } catch (final InvalidSyntaxException ignored) {
             return Collections.emptySet();
@@ -246,29 +246,19 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     /**
      * Gets connection string used by management connector by its reference.
-     * @param connectorRef The reference to the management connector.
      * @return The connection string used by management connector.
      */
-    public static String getConnectionString(final ServiceReference<ManagedResourceConnector> connectorRef){
-        return ManagedResourceActivator.getConnectionString(connectorRef);
-    }
-
     public String getConnectionString(){
-        return getConnectionString(this);
+        return ManagedResourceActivator.getConnectionString(this);
     }
 
     /**
      * Gets name of the management target that is represented by the specified management
      * connector reference.
-     * @param connectorRef The reference to the management connector.
      * @return The name of the management target.
      */
-    public static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef){
-        return ManagedResourceActivator.getManagedResourceName(connectorRef);
-    }
-
     public String getManagedResourceName(){
-        return getManagedResourceName(this);
+        return ManagedResourceActivator.getManagedResourceName(this);
     }
 
     public String getComponentName() {
@@ -361,7 +351,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
 
     }
 
@@ -382,12 +372,12 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     @Override
     public boolean canExpand(final Class<? extends MBeanFeatureInfo> featureType) {
-        return false;
+        return Optional.ofNullable(getService()).map(connector -> connector.canExpand(featureType)).orElse(false);
     }
 
     @Override
     public Collection<? extends MBeanFeatureInfo> expandAll() {
-        return null;
+        return Optional.ofNullable(getService()).map(ManagedResourceConnector::expandAll).orElse(Collections.emptyList());
     }
 
     /**
@@ -482,6 +472,6 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public String toString() {
-        return getManagedResourceName(this);
+        return getManagedResourceName();
     }
 }

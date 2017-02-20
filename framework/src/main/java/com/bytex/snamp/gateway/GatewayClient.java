@@ -11,13 +11,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.*;
 
-import javax.management.InstanceNotFoundException;
 import javax.management.MBeanFeatureInfo;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
@@ -32,31 +30,26 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 1.0
  */
 public final class GatewayClient extends ServiceHolder<Gateway> {
-
     /**
-     * Initializes a new client of the gateway instance.
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param instanceName The name of the gateway instance. Cannot be {@literal null} or empty.
-     * @throws InstanceNotFoundException The specified instance doesn't exist.
+     * Initializes a new gateway client.
+     *
+     * @param context    The context of the bundle which holds this reference. Cannot be {@literal null}.
+     * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
      */
-    public GatewayClient(final BundleContext context,
-                         final String instanceName) throws InstanceNotFoundException {
-        super(context, getGatewayInstanceAndCheck(context, instanceName));
+    public GatewayClient(final BundleContext context, final ServiceReference<Gateway> serviceRef) {
+        super(context, serviceRef);
     }
 
-    public GatewayClient(final BundleContext context,
-                         final String instanceName,
-                         final Duration instanceTimeout) throws TimeoutException, InterruptedException, ExecutionException {
-        super(context, spinUntilNull(context, instanceName, GatewayClient::getGatewayInstance, instanceTimeout));
+    public static GatewayClient tryCreate(final BundleContext context,
+                                          final String instanceName,
+                                          final Duration instanceTimeout) throws TimeoutException, InterruptedException{
+        final ServiceReference<Gateway> ref = spinUntilNull(context, instanceName, GatewayClient::getGatewayInstance, instanceTimeout);
+        return new GatewayClient(context, ref);
     }
 
-    private static ServiceReference<Gateway> getGatewayInstanceAndCheck(final BundleContext context,
-                                                                        final String instanceName) throws InstanceNotFoundException {
-        final ServiceReference<Gateway> result =
-                getGatewayInstance(context, instanceName);
-        if(result == null)
-            throw new InstanceNotFoundException(String.format("Gateway instance '%s' doesn't exist", instanceName));
-        else return result;
+    public static GatewayClient tryCreate(final BundleContext context, final String instanceName) {
+        final ServiceReference<Gateway> ref = getGatewayInstance(context, instanceName);
+        return ref == null ? null : new GatewayClient(context, ref);
     }
 
     /**
@@ -203,16 +196,12 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
         return getGatewayBundleHeader(context, gatewayType, Constants.BUNDLE_NAME, loc);
     }
 
-    public static String getInstanceName(final ServiceReference<Gateway> gatewayInstance){
-        return GatewayActivator.getGatewayInstance(gatewayInstance);
-    }
-
     /**
      * Gets name of the gateway instance.
      * @return The name of the gateway instance.
      */
-    public String getInstanceName(){
-        return getInstanceName(this);
+    public String getInstanceName() {
+        return GatewayActivator.getGatewayInstance(this);
     }
 
     public <M extends MBeanFeatureInfo, E extends Exception> boolean forEachFeature(final Class<M> featureType,

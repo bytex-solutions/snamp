@@ -131,21 +131,24 @@ public enum FeatureType {
                                                                                                       final Class<F> featureType,
                                                                                                   final Function<? super F, String[]> nameMapper) {
         final Map<String, Map<String, FeatureBindingDataObject>> result = new HashMap<>();
-        try {
-            final GatewayClient client = new GatewayClient(context, gatewayInstance);
-            client.forEachFeature(featureType, (resourceName, bindingInfo) -> {
-                final Map<String, FeatureBindingDataObject> bindingsMap;
-                if(result.containsKey(resourceName))
-                    bindingsMap = result.get(resourceName);
-                else
-                    result.put(resourceName, bindingsMap = new HashMap<>());
-                for(final String name: nameMapper.apply(bindingInfo.getMetadata()))
-                    bindingsMap.put(name, new FeatureBindingDataObject(bindingInfo));
-                return true;
-            });
-        } catch (final InstanceNotFoundException e) {
+        final GatewayClient client = GatewayClient.tryCreate(context, gatewayInstance);
+        if (client == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-        }
+        else
+            try {
+                client.forEachFeature(featureType, (resourceName, bindingInfo) -> {
+                    final Map<String, FeatureBindingDataObject> bindingsMap;
+                    if (result.containsKey(resourceName))
+                        bindingsMap = result.get(resourceName);
+                    else
+                        result.put(resourceName, bindingsMap = new HashMap<>());
+                    for (final String name : nameMapper.apply(bindingInfo.getMetadata()))
+                        bindingsMap.put(name, new FeatureBindingDataObject(bindingInfo));
+                    return true;
+                });
+            } finally {
+                client.release(context);
+            }
         return result;
     }
 

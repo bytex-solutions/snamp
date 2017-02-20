@@ -69,7 +69,7 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
     }
 
     @Override
-    protected void addResource(final ManagedResourceConnectorClient resourceConnector) {
+    protected void resourceAdded(final ManagedResourceConnectorClient resourceConnector) {
         Optional.ofNullable(graph).ifPresent(graph -> graph.add(resourceConnector.getComponentName()));
         Aggregator.queryAndAccept(resourceConnector, NotificationSupport.class, this::addNotificationListener);
         watchDog.addResource(resourceConnector);
@@ -84,7 +84,7 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
     }
 
     @Override
-    protected void removeResource(final ManagedResourceConnectorClient resourceConnector) {
+    protected void resourceRemoved(final ManagedResourceConnectorClient resourceConnector) {
         Optional.ofNullable(graph).ifPresent(graph -> graph.remove(resourceConnector.getComponentName()));
         Aggregator.queryAndAccept(resourceConnector, NotificationSupport.class, this::removeNotificationListener);
         watchDog.removeResource(resourceConnector);

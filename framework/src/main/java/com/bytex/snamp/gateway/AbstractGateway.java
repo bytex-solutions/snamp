@@ -27,7 +27,6 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -435,42 +434,30 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     @MethodStub
-    protected void addResource(final ManagedResourceConnectorClient resourceConnector){
+    protected void resourceAdded(final ManagedResourceConnectorClient resourceConnector){
 
     }
 
-    private synchronized void addResource(final ServiceReference<ManagedResourceConnector> resourceRef) {
-        final BundleContext context = getBundleContext();
-        final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, resourceRef);
-        try {
-            addResource(connector);
-            //add gateway as a listener
-            connector.addResourceEventListener(this);
-            //expose all features
-            final String resourceName = connector.getManagedResourceName();
-            exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
-            exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
-            exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
-        } finally {
-            context.ungetService(resourceRef);
-        }
+    private synchronized void addResource(final ManagedResourceConnectorClient connector) {
+        resourceAdded(connector);
+        //add gateway as a listener
+        connector.addResourceEventListener(this);
+        //expose all features
+        final String resourceName = connector.getManagedResourceName();
+        exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
+        exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
+        exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
     }
 
     @MethodStub
-    protected void removeResource(final ManagedResourceConnectorClient resourceConnector){
+    protected void resourceRemoved(final ManagedResourceConnectorClient resourceConnector){
 
     }
 
-    private synchronized void removeResource(final ServiceReference<ManagedResourceConnector> resourceRef) {
-        final BundleContext context = getBundleContext();
-        final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, resourceRef);
-        try {
-            connector.removeResourceEventListener(this);
-            removeAllFeaturesImpl(connector.getManagedResourceName()).forEach(FeatureAccessor::close);
-            removeResource(connector);
-        } finally {
-            connector.release(context);
-        }
+    private synchronized void removeResource(final ManagedResourceConnectorClient connector) {
+        connector.removeResourceEventListener(this);
+        removeAllFeaturesImpl(connector.getManagedResourceName()).forEach(FeatureAccessor::close);
+        resourceRemoved(connector);
     }
 
     private synchronized void doStart(final Map<String, String> params) throws Exception {
@@ -479,9 +466,16 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
             case CREATED:
             case STOPPED:
                 //explore all available resources
-                final Collection<ServiceReference<ManagedResourceConnector>> resources =
-                        getBundleContext().getServiceReferences(ManagedResourceConnector.class, null);
-                resources.forEach(this::addResource);
+                final BundleContext context = getBundleContext();
+                for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+                    final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+                    if (client != null)
+                        try {
+                            addResource(client);
+                        } finally {
+                            client.release(context);
+                        }
+                }
                 InternalState newState = currentState.setParameters(params);
                 start(newState.parameters);
                 mutableState = newState.transition(GatewayState.STARTED);
@@ -497,9 +491,15 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 try {
                     stop();
                     final BundleContext context = getBundleContext();
-                    final Collection<ServiceReference<ManagedResourceConnector>> resources =
-                            context.getServiceReferences(ManagedResourceConnector.class, null);
-                    resources.forEach(this::removeResource);
+                    for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+                        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+                        if (client != null)
+                            try {
+                                removeResource(client);
+                            } finally {
+                                client.release(context);
+                            }
+                    }
                 } finally {
                     getBundleContext().removeServiceListener(this);
                     mutableState = currentState.transition(GatewayState.STOPPED);
@@ -524,26 +524,29 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      */
     @Override
     public final void serviceChanged(final ServiceEvent event) {
-        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()))
+        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference())) {
+            final BundleContext context = getBundleContext();
+            @SuppressWarnings("unchecked")
+            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, (ServiceReference<ManagedResourceConnector>) event.getServiceReference());
             try (final LoggingScope logger = GatewayLoggingScope.connectorChangesDetected(this)) {
-                @SuppressWarnings("unchecked")
-                final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>) event.getServiceReference();
-                final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(connectorRef);
                 switch (event.getType()) {
                     case ServiceEvent.MODIFIED_ENDMATCH:
                     case ServiceEvent.UNREGISTERING:
-                        removeResource(connectorRef);
+                        removeResource(client);
                         return;
                     case ServiceEvent.REGISTERED:
-                        addResource(connectorRef);
+                        addResource(client);
                         return;
                     default:
                         logger.info(String.format("Unexpected event %s captured by gateway %s for resource %s",
                                 event.getType(),
                                 instanceName,
-                                        resourceName));
+                                client.getManagedResourceName()));
                 }
+            } finally {
+                client.release(context);
             }
+        }
     }
 
     /**

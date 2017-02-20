@@ -82,7 +82,7 @@ public final class SyslogGatewayTest extends AbstractJmxConnectorTest<TestOpenMB
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final GatewayClient client = new GatewayClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
+        final GatewayClient client = GatewayClient.tryCreate(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("messageID") instanceof String &&
                     bindingInfo.getProperty("facility") instanceof Enum<?>));
