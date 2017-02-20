@@ -31,6 +31,10 @@
  background-color: inherit !important;
 }
 
+#viewMenu .navbar {
+    min-height: 0 !important;
+}
+
 .tab-pane {
     margin-left: 20px !important;
 }
