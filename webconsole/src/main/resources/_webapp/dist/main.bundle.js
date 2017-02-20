@@ -82712,14 +82712,21 @@ var E2EView = (function () {
     E2EView.prototype.setDisplayedMetadata = function (metadata) {
         this.preferences["displayedMetadata"] = metadata;
     };
+    E2EView.prototype.getLayout = function () {
+        return this.preferences["layout"];
+    };
+    E2EView.prototype.setLayout = function (layout) {
+        this.preferences["layout"] = layout;
+    };
     E2EView.prototype.draw = function (initialData) {
+        var _layout = this.getLayout();
         var cy = cytoscape({
             container: document.getElementById('cy'),
             elements: this.getData(initialData),
             zoomingEnabled: false,
             userZoomingEnabled: false,
             layout: {
-                name: 'circle'
+                name: _layout
             },
             style: [
                 {
@@ -82854,6 +82861,10 @@ var E2EView = (function () {
             }
         }
         return result;
+    };
+    E2EView.prototype.changeLayout = function (layout) {
+        this.setLayout(layout);
+        this._cy.makeLayout({ name: layout }).run();
     };
     E2EView.prototype.getLabelFromMetadata = function (id, data) {
         var result = id;
@@ -83050,6 +83061,7 @@ var Factory = (function () {
             }
         }
         _view.setDisplayedMetadata([]);
+        _view.setLayout('circle');
         return _view;
     };
     // method for creating views

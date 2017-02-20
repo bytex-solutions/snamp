@@ -31,6 +31,7 @@ export class Factory {
              }
         }
         _view.setDisplayedMetadata([]);
+        _view.setLayout('circle');
         return _view;
     }
 

@@ -64,7 +64,11 @@ export class MainView implements OnInit {
             this.currentView.setDisplayedMetadata(_array);
             this._viewService.saveDashboard();
         }
-        console.log(_array);
+   }
+
+   public onChange(event:any):void {
+        this.currentView.changeLayout(event);
+        this._viewService.saveDashboard();
    }
 
    private handleCy(_cy:any):void {

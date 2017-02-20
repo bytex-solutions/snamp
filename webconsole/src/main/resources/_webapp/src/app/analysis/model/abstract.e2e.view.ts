@@ -24,16 +24,26 @@ export abstract class E2EView {
         this.preferences["displayedMetadata"] = metadata;
     }
 
+    public getLayout():string {
+        return this.preferences["layout"];
+    }
+
+
+    public setLayout(layout:string):void{
+        this.preferences["layout"] = layout;
+    }
+
     public abstract toJSON():any;
 
     public draw(initialData:any):any {
+       let _layout:string = this.getLayout();
        var cy = cytoscape({
          container: document.getElementById('cy'),
          elements: this.getData(initialData),
          zoomingEnabled: false,
          userZoomingEnabled: false,
          layout: {
-             name: 'circle'
+             name: _layout
            },
          style: [
             {
@@ -182,6 +192,11 @@ export abstract class E2EView {
         }
 
         return result;
+    }
+
+    public changeLayout(layout:string):void {
+        this.setLayout(layout);
+        this._cy.makeLayout({ name: layout }).run();
     }
 
     private getLabelFromMetadata(id:string, data:any):string {

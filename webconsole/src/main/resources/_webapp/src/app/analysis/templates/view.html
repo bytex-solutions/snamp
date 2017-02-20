@@ -1,10 +1,9 @@
 <div id="viewMenu">
   <div class="" role="tabpanel" data-example-id="togglable-tabs">
     <ul id="myTab1" class="nav nav-tabs bar_tabs" role="tablist">
-      <li role="presentation" class="active"><a href="#tab_info" id="home-tabb" role="tab" data-toggle="tab" aria-controls="info" aria-expanded="true" *ngIf="metadata && nodeSelected">Information</a>
-      </li>
-      <li role="presentation" class=""><a href="#tab_settings" role="tab" id="profile-tabb" data-toggle="tab" aria-controls="settings" aria-expanded="false">Nodes settings</a>
-      </li>
+      <li role="presentation" class="active"><a href="#tab_info" id="home-tabb" role="tab" data-toggle="tab" aria-controls="info" aria-expanded="true" *ngIf="metadata && nodeSelected">Information</a></li>
+      <li role="presentation" class=""><a href="#tab_settings" role="tab" id="profile-tabb" data-toggle="tab" aria-controls="settings" aria-expanded="false">Nodes settings</a></li>
+      <li role="presentation" class=""><a href="#tab_cy" role="tab" id="cy-tabb" data-toggle="tab" aria-controls="cy" aria-expanded="false">Graph settings</a></li>
     </ul>
     <div id="myTabContent2" class="tab-content">
       <div role="tabpanel" class="tab-pane fade active in" id="tab_info" aria-labelledby="info-tab" *ngIf="metadata && nodeSelected">
@@ -131,6 +130,23 @@
 
         <div class="row">
           <button class="btn btn-primary" (click)="saveCheckboxStatus()">Apply</button>
+        </div>
+
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="tab_cy" aria-labelledby="cy-tab">
+
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12 middleVertical">Layout</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <select class="form-control" [(ngModel)]="selectedLayout" (ngModelChange)="onChange($event)">
+              <option value="random">Random</option>
+              <option value="grid">Grid</option>
+              <option value="circle">Circle</option>
+              <option value="concentric">Concentric</option>
+              <option value="breadthfirst">Breadthfirst</option>
+              <option value="cose">Cose</option>
+            </select>
+          </div>
         </div>
 
       </div>
