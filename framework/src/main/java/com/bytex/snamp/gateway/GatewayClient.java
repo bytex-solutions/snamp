@@ -66,8 +66,8 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
      * @return A reference to the instance of gateway; or {@literal null} if instance doesn't exist.
      */
     @SuppressWarnings("unchecked")
-    public static ServiceReference<Gateway> getGatewayInstance(final BundleContext context,
-                                                               final String instanceName) {
+    private static ServiceReference<Gateway> getGatewayInstance(final BundleContext context,
+                                                                final String instanceName) {
         return callUnchecked(() -> Iterables.<ServiceReference>getFirst(context.getServiceReferences(Gateway.class, GatewayActivator.createFilter(instanceName)), null));
     }
 
