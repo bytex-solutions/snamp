@@ -30,3 +30,7 @@
 #viewMenu ul.bar_tabs {
  background-color: inherit !important;
 }
+
+.tab-pane {
+    margin-left: 20px !important;
+}

@@ -23,7 +23,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, " #cy {\r\n    width: 100%;\r\n    height: 100%;\r\n    position: absolute;\r\n    top: 0px;\r\n    left: 0px;\r\n}\r\n\r\n#viewMenu {\r\n  background: #fff;\r\n  border: 1px solid #E6E9ED;\r\n  overflow-y: scroll;\r\n  overflow-x: hidden;\r\n  max-height: 500px;\r\n  color: rgb(115, 135, 156);\r\n  width: 450px;\r\n  position: fixed;\r\n  right: 7px;\r\n  top: 35%;\r\n  margin-top: -10em !important;\r\n  z-index: 3;\r\n  padding: 9px;\r\n  border-radius: 5px;\r\n}\r\n\r\n#viewMenu .row {\r\n    margin-left: 10px !important;\r\n}\r\n\r\n#viewMenu ul.bar_tabs {\r\n background-color: inherit !important;\r\n}", ""]);
+exports.push([module.i, " #cy {\r\n    width: 100%;\r\n    height: 100%;\r\n    position: absolute;\r\n    top: 0px;\r\n    left: 0px;\r\n}\r\n\r\n#viewMenu {\r\n  background: #fff;\r\n  border: 1px solid #E6E9ED;\r\n  overflow-y: scroll;\r\n  overflow-x: hidden;\r\n  max-height: 500px;\r\n  color: rgb(115, 135, 156);\r\n  width: 450px;\r\n  position: fixed;\r\n  right: 7px;\r\n  top: 35%;\r\n  margin-top: -10em !important;\r\n  z-index: 3;\r\n  padding: 9px;\r\n  border-radius: 5px;\r\n}\r\n\r\n#viewMenu .row {\r\n    margin-left: 10px !important;\r\n}\r\n\r\n#viewMenu ul.bar_tabs {\r\n background-color: inherit !important;\r\n}\r\n\r\n.tab-pane {\r\n    margin-left: 20px !important;\r\n}", ""]);
 
 // exports
 

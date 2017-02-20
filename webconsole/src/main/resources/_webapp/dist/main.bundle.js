@@ -82859,12 +82859,14 @@ var E2EView = (function () {
         var result = id;
         var _md = this.getDisplayedMetadata();
         for (var i = 0; i < _md.length; i++) {
-            if (_md[i].indexOf("/") > 0) {
-                result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
-                    + data[_md[i].split("/")[0]][_md[i].split("/")[1]];
-            }
-            else {
-                result += "\n" + _md[i] + ": " + data[_md[i]];
+            if (data != undefined && data[_md[i]] != undefined) {
+                if (_md[i].indexOf("/") > 0) {
+                    result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
+                        + data[_md[i].split("/")[0]][_md[i].split("/")[1]];
+                }
+                else {
+                    result += "\n" + _md[i] + ": " + data[_md[i]];
+                }
             }
         }
         return result;
