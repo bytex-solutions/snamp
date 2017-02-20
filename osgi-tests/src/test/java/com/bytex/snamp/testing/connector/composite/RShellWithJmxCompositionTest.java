@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connector.composite;
 
 import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.metrics.AttributeMetric;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
@@ -169,8 +169,8 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Test
     public void testForMetrics() throws Exception {
-        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
-        try{
+        final ManagedResourceConnector client = getManagementConnector();
+        try {
             final MetricsSupport metrics = client.queryObject(MetricsSupport.class);
             assertNotNull(metrics);
             assertTrue(metrics.getMetrics(AttributeMetric.class).iterator().hasNext());
@@ -181,7 +181,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
             assertTrue(attrMetrics.reads().getLastRate(MetricsInterval.HOUR) > 0);
             assertTrue(attrMetrics.reads().getTotalRate() > 0);
         } finally {
-            client.release(getTestBundleContext());
+            releaseManagementConnector();
         }
     }
 

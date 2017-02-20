@@ -225,8 +225,8 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public void testForMetrics() throws Exception {
-        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
-        try{
+        final ManagedResourceConnector client = getManagementConnector();
+        try {
             final MetricsSupport metrics = client.queryObject(MetricsSupport.class);
             assertNotNull(metrics);
             assertTrue(metrics.getMetrics(AttributeMetric.class).iterator().hasNext());
@@ -241,7 +241,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
             assertTrue(attrMetrics.reads().getTotalRate() > 0);
             assertTrue(attrMetrics.writes().getTotalRate() > 0);
         } finally {
-            client.release(getTestBundleContext());
+            releaseManagementConnector();
         }
     }
 

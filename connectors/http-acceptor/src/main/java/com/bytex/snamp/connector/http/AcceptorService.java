@@ -11,11 +11,9 @@ import com.bytex.snamp.scripting.groovy.xml.XmlSlurperSlim;
 import com.sun.jersey.spi.resource.Singleton;
 import groovy.json.JsonSlurper;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
-import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.io.StringReader;
@@ -78,10 +76,15 @@ public final class AcceptorService {
         final Version version = getBundleContextOfObject(this).getBundle().getVersion();
         final String httpAcceptorType = ManagedResourceConnector.getConnectorType(HttpAcceptor.class);
         final Set<String> sources = new HashSet<>();
-        for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(getBundleContext())) {
-            final String connectorType = ManagedResourceConnector.getConnectorType(connectorRef.getBundle());
-            if (Objects.equals(httpAcceptorType, connectorType))
-                sources.add(ManagedResourceConnectorClient.getManagedResourceName(connectorRef));
+        final BundleContext context = getBundleContext();
+        for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+            if (client != null) {
+                final String connectorType = client.getConnectorType();
+                if (Objects.equals(httpAcceptorType, connectorType))
+                    sources.add(resourceName);
+                client.release(context);
+            }
         }
         final String responseBody = String.format("HTTP Acceptor, version=%s, sources=%s", version, sources);
         return Response.ok()
@@ -113,22 +116,22 @@ public final class AcceptorService {
     @Path("/measurement")
     public Response acceptMeasurement(@Context final HttpHeaders headers, final Measurement measurement) {
         //find the appropriate connector and redirect
-        ManagedResourceConnectorClient client = null;
-        final Response response;
-        try {
-            client = new ManagedResourceConnectorClient(getBundleContext(), measurement.getInstanceName());
-            if (Aggregator.queryAndAccept(client, DataStreamConnector.class, acceptor -> acceptor.dispatch(wrapHeaders(headers), measurement)))
-                response = Response.noContent().build();
-            else
-                response = Response.status(Response.Status.BAD_REQUEST).entity("Resource %s is not data stream processor").build();
-        } catch (final InstanceNotFoundException e) {
-            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
-        } catch (final Exception e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-        } finally {
-            if (client != null)
+        final BundleContext context = getBundleContext();
+        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, measurement.getInstanceName());
+        Response response;
+        if (client == null)
+            response = Response.status(Response.Status.NOT_FOUND).build();
+        else
+            try {
+                if (Aggregator.queryAndAccept(client, DataStreamConnector.class, acceptor -> acceptor.dispatch(wrapHeaders(headers), measurement)))
+                    response = Response.noContent().build();
+                else
+                    response = Response.status(Response.Status.BAD_REQUEST).entity("Resource %s is not data stream processor").build();
+            } catch (final Exception e) {
+                response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString()).build();
+            } finally {
                 client.release(getBundleContext());
-        }
+            }
         return response;
     }
 

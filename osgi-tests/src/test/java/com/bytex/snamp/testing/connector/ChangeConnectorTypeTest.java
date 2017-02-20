@@ -41,7 +41,7 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
             connector.getFeatures(AttributeConfiguration.class).getOrAdd("DummyAttribute").put("configParam", "value");
             return true;
         });
-        ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2));
+        ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2));
         try{
             final Object attribute = client.getAttribute("DummyAttribute");
             assertTrue(attribute instanceof Integer);
@@ -67,7 +67,7 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
                     });
             return true;
         });
-        client = new ManagedResourceConnectorClient(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2));
+        client = ManagedResourceConnectorClient.tryCreate(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2));
         try{
             final IntegerMeasurement measurement = StandardMeasurements.freeRam(42L);
             measurement.setInstanceName(INSTANCE_NAME);

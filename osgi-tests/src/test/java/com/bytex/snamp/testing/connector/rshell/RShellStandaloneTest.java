@@ -5,7 +5,6 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.metrics.AttributeMetric;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
@@ -91,7 +90,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Test
     public void testForMetrics() throws Exception {
-        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
+        final ManagedResourceConnector client = getManagementConnector();
         try{
             final MetricsSupport metrics = client.queryObject(MetricsSupport.class);
             assertNotNull(metrics);
@@ -103,7 +102,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
             assertTrue(attrMetrics.reads().getLastRate(MetricsInterval.HOUR) > 0);
             assertTrue(attrMetrics.reads().getTotalRate() > 0);
         } finally {
-            client.release(getTestBundleContext());
+            releaseManagementConnector();
         }
     }
 

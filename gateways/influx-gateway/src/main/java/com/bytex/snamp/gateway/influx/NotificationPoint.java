@@ -37,7 +37,7 @@ abstract class NotificationPoint extends NotificationAccessor {
 
     abstract AttributeSet<AttributePoint> getAttributes();
 
-    private Map<String, String> extractTags() throws InstanceNotFoundException {
+    private Map<String, String> extractTags() {
         return Helpers.extractTags(getBundleContextOfObject(this), getResourceName());
     }
 
@@ -49,10 +49,10 @@ abstract class NotificationPoint extends NotificationAccessor {
         return null;
     }
 
-    private Void handleNotification(final MeasurementNotification<?> notification) throws JMException {
+    private void handleNotification(final MeasurementNotification<?> notification) {
         final String measurementName = notification.getMeasurement().getName();
         if (isNullOrEmpty(measurementName))
-            return null;
+            return;
         final Map<String, Object> fields;
         final Map<String, String> tags = extractTags();
         final Measurement measurement = notification.getMeasurement();
@@ -69,7 +69,7 @@ abstract class NotificationPoint extends NotificationAccessor {
         } else if (measurement instanceof TimeMeasurement)
             fields = Helpers.toScalar(((TimeMeasurement) measurement).getDuration(TimeUnit.NANOSECONDS));
         else
-            return null;
+            return;
         final Point p = Point.measurement(measurementName)
                 .fields(fields)
                 .time(notification.getTimeStamp(), TimeUnit.MILLISECONDS)
@@ -78,7 +78,6 @@ abstract class NotificationPoint extends NotificationAccessor {
         final Reporter reporter = getReporter();
         if (reporter != null)
             reporter.report(p);
-        return null;
     }
 
     @Override
@@ -90,7 +89,7 @@ abstract class NotificationPoint extends NotificationAccessor {
             if (notification instanceof AttributeChangeNotification)
                 callUnchecked(() -> handleNotification((AttributeChangeNotification) notification));
             else if (notification instanceof MeasurementNotification<?>)
-                callUnchecked(() -> handleNotification((MeasurementNotification<?>) notification));
+                handleNotification((MeasurementNotification<?>) notification);
         }
     }
 }

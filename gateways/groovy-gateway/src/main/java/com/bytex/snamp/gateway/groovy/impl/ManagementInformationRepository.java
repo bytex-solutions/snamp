@@ -144,16 +144,15 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
 
     @Override
     public Map<String, ?> getResourceParameters(final String resourceName) {
-        ManagedResourceConnectorClient client = null;
-        try {
-            client = new ManagedResourceConnectorClient(context, resourceName);
-            return client.getConfiguration();
-        } catch (final InstanceNotFoundException e) {
+        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+        if (client == null)
             return ManagedResourceConnectorClient.EMPTY_CONFIGURATION;
-        } finally {
-            if (client != null)
+        else
+            try {
+                return client.getConfiguration();
+            } finally {
                 client.release(context);
-        }
+            }
     }
 
     @Override

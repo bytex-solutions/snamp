@@ -6,6 +6,7 @@ import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
@@ -26,36 +27,21 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector {
-
-    /**
-     * Initializes a new client of the specified managed resource.
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param resourceName The name of the managed resource. Cannot be {@literal null} or empty.
-     * @throws InstanceNotFoundException The specified resource doesn't exist.
-     */
-    public ManagedResourceConnectorClient(final BundleContext context,
-                                          final String resourceName) throws InstanceNotFoundException {
-        this(context, getResourceConnectorAndCheck(context, resourceName));
-    }
-
-    public ManagedResourceConnectorClient(final BundleContext context,
-                                          final String resourceName,
-                                          final Duration instanceTimeout) throws TimeoutException, InterruptedException {
-        this(context, spinUntilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, instanceTimeout));
-    }
-
     public ManagedResourceConnectorClient(final BundleContext context,
                                           final ServiceReference<ManagedResourceConnector> reference){
         super(context, reference);
     }
 
-    private static ServiceReference<ManagedResourceConnector> getResourceConnectorAndCheck(final BundleContext context,
-                                                                                           final String resourceName) throws InstanceNotFoundException {
-        final ServiceReference<ManagedResourceConnector> result =
-                getResourceConnector(context, resourceName);
-        if (result == null)
-            throw new InstanceNotFoundException(String.format("Managed resource '%s' doesn't exist", resourceName));
-        else return result;
+    public static ManagedResourceConnectorClient tryCreate(final BundleContext context,
+                                                           final String resourceName,
+                                                           final Duration instanceTimeout) throws TimeoutException, InterruptedException{
+        final ServiceReference<ManagedResourceConnector> ref = spinUntilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, instanceTimeout);
+        return new ManagedResourceConnectorClient(context, ref);
+    }
+
+    public static ManagedResourceConnectorClient tryCreate(final BundleContext context, final String resourceName) {
+        final ServiceReference<ManagedResourceConnector> ref = getResourceConnector(context, resourceName);
+        return ref == null ? null : new ManagedResourceConnectorClient(context, ref);
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String connectorType,
@@ -88,10 +74,6 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         filter = ManagedResourceActivator.createFilter(connectorType, filter);
         final Collection<ServiceReference<S>> refs = context.getServiceReferences(serviceType, filter);
         return refs.isEmpty() ? null : refs.iterator().next();
-    }
-
-    public static boolean isActivated(final BundleContext context, final String resourceName){
-        return getResourceConnector(context, resourceName) != null;
     }
 
     /**
@@ -242,18 +224,19 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      *          a name of the management target.
      */
     @SuppressWarnings("unchecked")
-    public static Collection<ServiceReference<ManagedResourceConnector>> getConnectors(final BundleContext context){
-        if(context == null) return Collections.emptyList();
+    public static Set<String> getResources(final BundleContext context) {
+        if (context == null) return Collections.emptySet();
         else try {
-            final ServiceReference<?>[] connectors =
+            final ServiceReference<?>[] resources =
                     context.getAllServiceReferences(ManagedResourceConnector.class.getName(), null);
-            if(connectors == null)
-                return Collections.emptyList();
-            final Collection result = Arrays.asList(connectors);
-            return (Collection<ServiceReference<ManagedResourceConnector>>) result;
-        }
-        catch (final InvalidSyntaxException ignored) {
-            return Collections.emptyList();
+            if (resources == null)
+                return Collections.emptySet();
+            final Set<String> result = Sets.newHashSetWithExpectedSize(resources.length);
+            for (final ServiceReference<?> reference : resources)
+                result.add(getManagedResourceName((ServiceReference<ManagedResourceConnector>) reference));
+            return result;
+        } catch (final InvalidSyntaxException ignored) {
+            return Collections.emptySet();
         }
     }
 

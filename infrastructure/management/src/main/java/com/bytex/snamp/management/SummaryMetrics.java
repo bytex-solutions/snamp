@@ -36,17 +36,21 @@ public final class SummaryMetrics extends ImmutableMetrics {
         public abstract SummaryMetric<M> clone();
 
         final <O> Stream<O> toStream(final Function<? super M, ? extends O> reader) {
-            return ManagedResourceConnectorClient.getConnectors(context).stream()
-                    .flatMap(connectorRef -> {
-                        final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, connectorRef);
-                        try {
-                            final MetricsSupport metrics = connector.queryObject(MetricsSupport.class);
-                            return metrics == null ?
-                                    Stream.empty() :
-                                    StreamSupport.stream(metrics.getMetrics(metricsType).spliterator(), false).map(reader);
-                        } finally {
-                            connector.release(context);
-                        }
+            return ManagedResourceConnectorClient.getResources(context).stream()
+                    .flatMap(resourceName -> {
+                        final ManagedResourceConnectorClient connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+                        MetricsSupport metrics;
+                        if (connector == null)
+                            metrics = null;
+                        else
+                            try {
+                                metrics = connector.queryObject(MetricsSupport.class);
+                            } finally {
+                                connector.release(context);
+                            }
+                        return metrics == null ?
+                                Stream.empty() :
+                                StreamSupport.stream(metrics.getMetrics(metricsType).spliterator(), false).map(reader);
                     });
         }
 

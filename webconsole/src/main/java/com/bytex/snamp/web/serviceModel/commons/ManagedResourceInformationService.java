@@ -15,7 +15,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.*;
 
-import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -49,13 +48,15 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
      */
     @Override
     protected void initialize() {
-        for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(getBundleContext())) {
-            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connectorRef);
-            try {
-                connectorChanged(client, ServiceEvent.REGISTERED);
-            } finally {
-                client.release(getBundleContext());
-            }
+        final BundleContext context = getBundleContext();
+        for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+            if (client != null)
+                try {
+                    connectorChanged(client, ServiceEvent.REGISTERED);
+                } finally {
+                    client.release(context);
+                }
         }
     }
 
@@ -63,16 +64,16 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{instanceName}/attributes")
     public AttributeInformation[] getInstanceAttributes(@PathParam("instanceName") final String instanceName) {
-        ManagedResourceConnectorClient client = null;
-        try {
-            client = new ManagedResourceConnectorClient(getBundleContext(), instanceName);
-            return ArrayUtils.transform(client.getMBeanInfo().getAttributes(), AttributeInformation.class, AttributeInformation::new);
-        } catch (final InstanceNotFoundException e) {
-            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
-        } finally {
-            if (client != null)
+        final BundleContext context = getBundleContext();
+        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, instanceName);
+        if (client == null)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        else
+            try {
+                return ArrayUtils.transform(client.getMBeanInfo().getAttributes(), AttributeInformation.class, AttributeInformation::new);
+            } finally {
                 client.release(getBundleContext());
-        }
+            }
     }
 
     @GET

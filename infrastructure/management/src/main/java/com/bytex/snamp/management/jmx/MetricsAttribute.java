@@ -1,15 +1,12 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.management.SummaryMetrics;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.openmbean.OpenDataException;
@@ -40,31 +37,35 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
         if (isNullOrEmpty(resourceName))
             return new SummaryMetrics(context);
         else {
-            final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, resourceName);
-            try {
-                return connector.queryObject(MetricsSupport.class);
-            } finally {
-                connector.release(context);
-            }
+            final ManagedResourceConnectorClient connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+            if (connector == null)
+                throw new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName));
+            else
+                try {
+                    return connector.queryObject(MetricsSupport.class);
+                } finally {
+                    connector.release(context);
+                }
         }
     }
 
     @Override
-    public TabularData getValue() throws InstanceNotFoundException, OpenDataException {
+    public TabularData getValue() throws OpenDataException {
         final BundleContext context = Utils.getBundleContextOfObject(this);
         final TabularDataBuilderRowFill rows = new TabularDataBuilderRowFill(TYPE);
-        for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(context)) {
-            final ServiceHolder<ManagedResourceConnector> connector = new ServiceHolder<>(context, connectorRef);
-            try {
-                final MetricsSupport metrics = connector.get().queryObject(MetricsSupport.class);
-                if (metrics == null) continue;
-                rows.newRow()
-                        .cell(RESOURCE_NAME_CELL, ManagedResourceConnectorClient.getManagedResourceName(connectorRef))
-                        .cell(METRICS_CELL, SummaryMetricsAttribute.collectMetrics(metrics))
-                        .flush();
-            } finally {
-                connector.release(context);
-            }
+        for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+            final ManagedResourceConnectorClient connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+            if (connector != null)
+                try {
+                    final MetricsSupport metrics = connector.queryObject(MetricsSupport.class);
+                    if (metrics == null) continue;
+                    rows.newRow()
+                            .cell(RESOURCE_NAME_CELL, resourceName)
+                            .cell(METRICS_CELL, SummaryMetricsAttribute.collectMetrics(metrics))
+                            .flush();
+                } finally {
+                    connector.release(context);
+                }
         }
         return rows.build();
     }

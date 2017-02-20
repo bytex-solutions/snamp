@@ -1,11 +1,9 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import com.google.common.collect.Maps;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
 import javax.management.AttributeList;
@@ -43,8 +41,10 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
     public Map<String, ChartData> getChartData(final Chart[] charts) throws WebApplicationException {
         final BundleContext context = getBundleContext();
         final Map<String, ChartData> result = Maps.newHashMapWithExpectedSize(charts.length);
-        for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(context)) {
-            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, connectorRef);
+        for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+            if (client == null)
+                continue;
             final AttributeList attributes;
             final String instanceName = client.getInstanceName();
             try {

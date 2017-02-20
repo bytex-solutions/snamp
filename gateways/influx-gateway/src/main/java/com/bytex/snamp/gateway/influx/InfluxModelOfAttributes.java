@@ -4,7 +4,6 @@ import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.BatchPoints;
 
-import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.util.Map;
@@ -22,7 +21,7 @@ final class InfluxModelOfAttributes extends ModelOfAttributes<AttributePoint> {
         return new AttributePoint(metadata);
     }
 
-    private Map<String, String> extractTags(final String resourceName) throws InstanceNotFoundException {
+    private Map<String, String> extractTags(final String resourceName) {
         return Helpers.extractTags(getBundleContextOfObject(this), resourceName);
     }
 

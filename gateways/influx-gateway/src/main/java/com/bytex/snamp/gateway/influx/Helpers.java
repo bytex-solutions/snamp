@@ -6,7 +6,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 
-import javax.management.InstanceNotFoundException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -31,13 +31,16 @@ final class Helpers {
         }
     }
 
-    static Map<String, String> extractTags(final BundleContext context, final String resourceName) throws InstanceNotFoundException {
-        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, resourceName);
-        try{
-            return client.getProperties(Helpers::propertyFilter, Objects::toString);
-        } finally {
-            client.release(context);
-        }
+    static Map<String, String> extractTags(final BundleContext context, final String resourceName) {
+        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+        if (client == null)
+            return new HashMap<>();
+        else
+            try {
+                return client.getProperties(Helpers::propertyFilter, Objects::toString);
+            } finally {
+                client.release(context);
+            }
     }
 
     static Map<String, Object> toScalar(final Object value){

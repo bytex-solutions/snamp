@@ -15,7 +15,7 @@ abstract class EventManagementCommand extends SnampShellCommand  {
 
     @Override
     public final CharSequence execute() throws InstanceNotFoundException {
-        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), getResourceName());
+        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), getResourceName());
         try{
             return doExecute(client.queryObject(NotificationSupport.class));
         }
