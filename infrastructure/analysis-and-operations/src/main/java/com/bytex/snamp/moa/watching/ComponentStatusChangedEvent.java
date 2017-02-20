@@ -1,7 +1,5 @@
 package com.bytex.snamp.moa.watching;
 
-import com.bytex.snamp.connector.health.HealthCheckStatus;
-
 import java.util.EventObject;
 
 /**
@@ -9,7 +7,7 @@ import java.util.EventObject;
  * @version 2.0
  * @since 2.0
  */
-public abstract class ComponentStatusChangedEvent extends EventObject implements HealthCheckStatusDetails {
+public abstract class ComponentStatusChangedEvent extends EventObject {
     private static final long serialVersionUID = 2442700408424867171L;
 
     /**
@@ -18,9 +16,11 @@ public abstract class ComponentStatusChangedEvent extends EventObject implements
      * @param source The object on which the Event initially occurred.
      * @throws IllegalArgumentException if source is null.
      */
-    protected ComponentStatusChangedEvent(final Object source) {
+    protected ComponentStatusChangedEvent(final ComponentWatcher source) {
         super(source);
     }
 
-    public abstract HealthCheckStatus getInitialStatus();
+    public abstract HealthCheckStatusDetails getStatusDetails();
+
+    public abstract HealthCheckStatusDetails getPreviousStatusDetails();
 }

@@ -92,11 +92,6 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
 
     //</editor-fold>
 
-    //<editor-fold desc="Watchers">
-
-
-    //</editor-fold>
-
     @SuppressWarnings("unchecked")
     @Override
     protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {

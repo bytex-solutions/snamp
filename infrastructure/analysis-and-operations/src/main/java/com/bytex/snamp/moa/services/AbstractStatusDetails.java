@@ -1,7 +1,6 @@
 package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.moa.watching.HealthCheckStatusDetails;
-import com.bytex.snamp.moa.watching.RootCause;
 
 import java.util.Objects;
 
@@ -10,14 +9,11 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-abstract class AbstractStatusDetails<R extends RootCause> implements HealthCheckStatusDetails {
+abstract class AbstractStatusDetails implements HealthCheckStatusDetails {
     private final String resourceName;
-    private final R rootCause;
 
-    AbstractStatusDetails(final String resourceName,
-                          final R rootCause){
+    AbstractStatusDetails(final String resourceName){
         this.resourceName = Objects.requireNonNull(resourceName);
-        this.rootCause = rootCause;
     }
 
     @Override
@@ -25,12 +21,7 @@ abstract class AbstractStatusDetails<R extends RootCause> implements HealthCheck
         return resourceName;
     }
 
-    @Override
-    public final R getRootCause() {
-        return rootCause;
-    }
-
-    final AbstractStatusDetails<?> replaceWith(final AbstractStatusDetails<?> other){
+    final AbstractStatusDetails replaceWith(final AbstractStatusDetails other) {
         /*
             This status can be replaced with new status only when:
                 1. When new status is greater than previous

@@ -5,7 +5,6 @@ import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.bytex.snamp.moa.watching.ComponentWatcher;
 import com.bytex.snamp.moa.watching.ComponentWatchersRepository;
@@ -19,10 +18,8 @@ import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -68,10 +65,8 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements
         }
 
         @Override
-        protected void doAction() throws TimeoutException, InterruptedException {
-            final Optional<WatcherModule> moduleRef = getReference();
-            if (moduleRef.isPresent())
-                moduleRef.get().updateWatchers();
+        protected void doAction() throws InterruptedException {
+            getReferenceOrTerminate().updateWatchers();
         }
 
         @Override

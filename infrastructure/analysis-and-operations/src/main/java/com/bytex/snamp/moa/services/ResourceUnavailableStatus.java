@@ -10,7 +10,7 @@ import javax.management.JMException;
  * @version 2.0
  * @since 2.0
  */
-final class ResourceUnavailableStatus extends AbstractStatusDetails<ResourceUnavailable> {
+final class ResourceUnavailableStatus extends TypedStatusDetails<ResourceUnavailable> {
     ResourceUnavailableStatus(final String resourceName, final JMException error){
         super(resourceName, new ResourceUnavailable(error));
     }

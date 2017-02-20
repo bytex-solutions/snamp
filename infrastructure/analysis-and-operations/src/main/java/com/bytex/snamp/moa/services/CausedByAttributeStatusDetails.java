@@ -11,7 +11,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-final class CausedByAttributeStatusDetails extends AbstractStatusDetails<CausedByAttribute> {
+final class CausedByAttributeStatusDetails extends TypedStatusDetails<CausedByAttribute> {
     private final HealthCheckStatus status;
 
     CausedByAttributeStatusDetails(final String resourceName,
