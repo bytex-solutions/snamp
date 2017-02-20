@@ -27,7 +27,6 @@ export abstract class E2EView {
     public abstract toJSON():any;
 
     public draw(initialData:any):any {
-        console.log(initialData);
        var cy = cytoscape({
          container: document.getElementById('cy'),
          elements: this.getData(initialData),
@@ -44,6 +43,12 @@ export abstract class E2EView {
                   "selection-box-border-color":"#8BB0D0",
                   "selection-box-opacity":"0.5"
                }
+            },
+            {
+              selector: '.multiline-manual',
+              style: {
+                'text-wrap': 'wrap'
+              }
             },
             {
                "selector":"node:selected",
@@ -160,6 +165,7 @@ export abstract class E2EView {
         // create labels according to the rules
         for (let i = 0; i < result.length; i++) {
             result[i].data.dl = this.getLabelFromMetadata(result[i].id, result[i].arrival);
+            result[i].classes = "multiline-manual";
         }
 
         // append edges for vertices
@@ -183,9 +189,10 @@ export abstract class E2EView {
         let _md:string[] = this.getDisplayedMetadata();
         for (let i = 0; i < _md.length; i++) {
             if (_md[i].indexOf("/") > 0) {
-                result += data[_md[i].split("/")[0]][_md[i].split("/")[1]];
+                result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
+                        + data[_md[i].split("/")[0]][_md[i].split("/")[1]];
             } else {
-                result += "\n" + data[_md[i]];
+                result += "\n" + _md[i] + ": " + data[_md[i]];
             }
         }
         return result;

@@ -82713,7 +82713,6 @@ var E2EView = (function () {
         this.preferences["displayedMetadata"] = metadata;
     };
     E2EView.prototype.draw = function (initialData) {
-        console.log(initialData);
         var cy = cytoscape({
             container: document.getElementById('cy'),
             elements: this.getData(initialData),
@@ -82729,6 +82728,12 @@ var E2EView = (function () {
                         "selection-box-color": "#AAD8FF",
                         "selection-box-border-color": "#8BB0D0",
                         "selection-box-opacity": "0.5"
+                    }
+                },
+                {
+                    selector: '.multiline-manual',
+                    style: {
+                        'text-wrap': 'wrap'
                     }
                 },
                 {
@@ -82834,6 +82839,7 @@ var E2EView = (function () {
         // create labels according to the rules
         for (var i = 0; i < result.length; i++) {
             result[i].data.dl = this.getLabelFromMetadata(result[i].id, result[i].arrival);
+            result[i].classes = "multiline-manual";
         }
         // append edges for vertices
         for (var key in vertices) {
@@ -82854,10 +82860,11 @@ var E2EView = (function () {
         var _md = this.getDisplayedMetadata();
         for (var i = 0; i < _md.length; i++) {
             if (_md[i].indexOf("/") > 0) {
-                result += data[_md[i].split("/")[0]][_md[i].split("/")[1]];
+                result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
+                    + data[_md[i].split("/")[0]][_md[i].split("/")[1]];
             }
             else {
-                result += "\n" + data[_md[i]];
+                result += "\n" + _md[i] + ": " + data[_md[i]];
             }
         }
         return result;

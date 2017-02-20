@@ -56813,6 +56813,7 @@ __webpack_require__ ("./node_modules/bootstrap-sass/assets/javascripts/bootstrap
 /***/ "./node_modules/bootstrap-loader/loader.js":
 /***/ function(module, exports, __webpack_require__) {
 
+// eslint-disable-next-line import/no-webpack-loader-syntax
 module.exports = __webpack_require__("./node_modules/bootstrap-loader/lib/bootstrap.loader.js!./node_modules/bootstrap-loader/no-op.js");
 
 
