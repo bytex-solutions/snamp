@@ -98,7 +98,7 @@ export abstract class E2EView {
         for (let key in arrivals) {
             let _node:any = this._cy.$("#" + key);
             _node.data('arrival', arrivals[key]);
-            console.log(_node, _node.data('id'), _node.data('arrival'), this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
+            // console.log(_node, _node.data('id'), _node.data('arrival'), this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
             _node.data('dl', this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
         }
     }

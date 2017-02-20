@@ -22,6 +22,7 @@ export class MainView implements OnInit {
 
     private http:ApiClient;
     currentViewObs:Observable<E2EView> = undefined;
+    currentView:E2EView = undefined;
     metadata:any = undefined;
     currentNodeId:string = undefined;
     _cyObject:any = undefined;
@@ -39,6 +40,7 @@ export class MainView implements OnInit {
                .map(params => { return this._viewService.getViewByName(params['id']);});
       this.currentViewObs.publishLast().refCount();
       this.currentViewObs.subscribe((_view:E2EView) => {
+            this.currentView = _view;
             this._viewService.getDataForView(_view).subscribe((_data:any) => {
                   this._cyObject = _view.draw(_data);
                   this.handleCy(this._cyObject);
@@ -55,7 +57,15 @@ export class MainView implements OnInit {
       });
    }
 
-   public saveCheckboxStatus():void {}
+   public saveCheckboxStatus():void {
+        var _cb = $("#myTabContent2 input[type=checkbox]:checked");
+        let _array:string[] = $.map(_cb, function(element){return $(element).attr("name")});
+        if (this.currentView != undefined) {
+            this.currentView.setDisplayedMetadata(_array);
+            this._viewService.saveDashboard();
+        }
+        console.log(_array);
+   }
 
    private handleCy(_cy:any):void {
         var _thisReference = this;

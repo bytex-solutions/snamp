@@ -82780,7 +82780,7 @@ var E2EView = (function () {
         for (var key in arrivals) {
             var _node = this._cy.$("#" + key);
             _node.data('arrival', arrivals[key]);
-            console.log(_node, _node.data('id'), _node.data('arrival'), this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
+            // console.log(_node, _node.data('id'), _node.data('arrival'), this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
             _node.data('dl', this.getLabelFromMetadata(_node.data('id'), _node.data('arrival')));
         }
     };
