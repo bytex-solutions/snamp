@@ -2,17 +2,14 @@ package com.bytex.snamp.web;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
-import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
+import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
-import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
-import org.ops4j.pax.logging.PaxLoggingService;
-import org.ops4j.pax.logging.spi.PaxAppender;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.http.HttpService;
 
@@ -66,16 +63,14 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
     private static final class ChartDataSourceProvider extends ProvidedService<WebConsoleService, ChartDataSource>{
         private ChartDataSourceProvider(){
-            super(WebConsoleService.class, simpleDependencies(ConfigurationManager.class, ThreadPoolRepository.class));
+            super(WebConsoleService.class);
         }
 
         @Override
         protected ChartDataSource activateService(final Map<String, Object> identity) throws IOException {
             identity.put(WebConsoleService.NAME, ChartDataSource.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, ChartDataSource.URL_CONTEXT);
-            final ThreadPoolRepository repository = getDependencies().getDependency(ThreadPoolRepository.class);
-            assert repository != null;
-            return new ChartDataSource(getDependencies().getDependency(ConfigurationManager.class), repository.getThreadPool(THREAD_POOL_NAME, true));
+            return new ChartDataSource();
         }
 
         @Override

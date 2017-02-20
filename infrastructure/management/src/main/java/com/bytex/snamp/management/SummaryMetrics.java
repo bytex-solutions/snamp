@@ -1,9 +1,7 @@
 package com.bytex.snamp.management;
 
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.metrics.*;
-import com.bytex.snamp.core.ServiceHolder;
 import org.osgi.framework.BundleContext;
 
 import java.util.Objects;
@@ -40,9 +38,9 @@ public final class SummaryMetrics extends ImmutableMetrics {
         final <O> Stream<O> toStream(final Function<? super M, ? extends O> reader) {
             return ManagedResourceConnectorClient.getConnectors(context).stream()
                     .flatMap(connectorRef -> {
-                        final ServiceHolder<ManagedResourceConnector> connector = new ServiceHolder<>(context, connectorRef);
+                        final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, connectorRef);
                         try {
-                            final MetricsSupport metrics = connector.get().queryObject(MetricsSupport.class);
+                            final MetricsSupport metrics = connector.queryObject(MetricsSupport.class);
                             return metrics == null ?
                                     Stream.empty() :
                                     StreamSupport.stream(metrics.getMetrics(metricsType).spliterator(), false).map(reader);

@@ -1,31 +1,19 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
-import com.bytex.snamp.MapUtils;
-import com.bytex.snamp.concurrent.WeakRepeater;
-import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
-import com.bytex.snamp.web.serviceModel.WebConsoleSession;
-import com.bytex.snamp.web.serviceModel.WebMessage;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonTypeName;
+import com.google.common.collect.Maps;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
 import javax.management.AttributeList;
 import javax.management.JMException;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -37,107 +25,40 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  */
 @Path("/")
 public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashboard> {
-    private static final String CHART_DATA_REFRESH_TIME_PARAM = "chartDataRefreshTime";
     public static final String NAME = "charts";
     public static final String URL_CONTEXT = "/charts";
 
-    @JsonTypeName("chartData")
-    public static final class ChartDataMessage extends WebMessage {
-        private static final long serialVersionUID = 2810215967189225444L;
-        private final Map<String, ChartData> chartData;
-
-        private ChartDataMessage(final ChartDataSource source) {
-            super(source);
-            chartData = new HashMap<>();
-        }
-
-        @JsonProperty("dataForCharts")
-        public Map<String, ChartData> getChartData(){
-            return chartData;
-        }
+    public ChartDataSource() throws IOException {
+        super(Dashboard.class);
     }
 
-    private static final class AttributeSupplierThread extends WeakRepeater<ChartDataSource> {
-        private volatile boolean terminated;
+    private BundleContext getBundleContext(){
+        return getBundleContextOfObject(this);
+    }
 
-        private AttributeSupplierThread(final ChartDataSource service, final Duration period) {
-            super(period, service);
-        }
-
-        @Override
-        protected void stateChanged(final RepeaterState s) {
-            switch (s) {
-                case FAILED:
-                case STOPPED:
-                case CLOSED:
-                    terminated = true;
-                default:
-                    super.stateChanged(s);
-            }
-        }
-
-        @Override
-        protected String generateThreadName() {
-            return getClass().getSimpleName();
-        }
-
-        private Logger getLogger(){
-            return LoggerProvider.getLoggerForBundle(getBundleContext());
-        }
-
-        private BundleContext getBundleContext(){
-            return getBundleContextOfObject(this);
-        }
-
-        private void processConnector(final ChartDataSource source,
-                                      final ServiceReference<ManagedResourceConnector> connector) {
-            if (terminated) return;
-            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), connector);
+    @POST
+    @Path("/compute")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Map<String, ChartData> getChartData(final Chart[] charts) throws WebApplicationException {
+        final BundleContext context = getBundleContext();
+        final Map<String, ChartData> result = Maps.newHashMapWithExpectedSize(charts.length);
+        for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(context)) {
+            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, connectorRef);
             final AttributeList attributes;
-            final String resourceName = client.getManagedResourceName();
+            final String instanceName = client.getInstanceName();
             try {
                 attributes = client.getAttributes();
             } catch (final JMException e) {
-                getLogger().log(Level.WARNING, String.format("Unable to read attributes of resource %s", resourceName), e);
-                return;
+                throw new WebApplicationException(e);
             } finally {
-                client.release(getBundleContext()); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
+                client.release(context); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
             }
-            source.forEachSession(session -> source.processAttributes(session, resourceName, attributes));
+            for (final Chart chart : charts)
+                if (chart instanceof ChartOfAttributeValues)
+                    ((ChartOfAttributeValues) chart).fillCharData(instanceName, attributes, result);
         }
-
-        @Override
-        protected void doAction() throws InterruptedException {
-            final ChartDataSource source = getReferenceOrTerminate();
-            ManagedResourceConnectorClient.getConnectors(getBundleContext()).forEach(connector -> processConnector(source, connector));
-        }
-    }
-
-    private final ExecutorService threadPool;
-    private AttributeSupplierThread attributeSupplier;
-
-    public ChartDataSource(final ConfigurationManager manager, final ExecutorService threadPool) throws IOException {
-        super(Dashboard.class);
-        this.threadPool = Objects.requireNonNull(threadPool);
-        attributeSupplier = new AttributeSupplierThread(this, getRefreshTime(manager));
-    }
-
-    private static Duration getRefreshTime(final ConfigurationManager manager) throws IOException {
-        return manager.transformConfiguration(config -> {
-            final long renewTime = MapUtils.getValue(config, CHART_DATA_REFRESH_TIME_PARAM, Long::parseLong).orElse(1500L);
-            return Duration.ofMillis(renewTime);
-        });
-    }
-
-    private void processAttributes(final WebConsoleSession session,
-                                          final String resourceName,
-                                          final AttributeList attributes) {
-        final Dashboard dashboard = getUserData(session);
-        final ChartDataMessage message = new ChartDataMessage(this);
-        dashboard.getCharts().stream()
-                .filter(chart -> chart instanceof ChartOfAttributeValues)
-                .forEach(chart -> ((ChartOfAttributeValues) chart).fillCharData(resourceName, attributes, message.getChartData()));
-        session.sendMessage(message);
+        return result;
     }
 
     /**
@@ -145,22 +66,11 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
      */
     @Override
     protected void initialize() {
-        attributeSupplier.run();
     }
 
     @Nonnull
     @Override
     protected Dashboard createUserData() {
         return new Dashboard();
-    }
-
-    @Override
-    public void close() throws Exception {
-        super.close();
-        try {
-            attributeSupplier.close();
-        } finally {
-            attributeSupplier = null;
-        }
     }
 }
