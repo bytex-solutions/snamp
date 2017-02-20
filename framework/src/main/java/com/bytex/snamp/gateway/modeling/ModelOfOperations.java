@@ -48,7 +48,7 @@ public abstract class ModelOfOperations<TAccessor extends OperationAccessor> ext
 
     public final <E extends Throwable> boolean processOperation(final String resourceName,
                                                                    final String operationName,
-                                                                   final Acceptor<? super TAccessor, E> processor) throws E {
+                                                                   final Acceptor<? super TAccessor, E> processor) throws E, InterruptedException {
         return processFeature(resourceName, operationName, processor);
     }
 }

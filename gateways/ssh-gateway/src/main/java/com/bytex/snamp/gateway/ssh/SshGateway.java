@@ -405,7 +405,11 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     public <E extends Exception> boolean processAttribute(final String resourceName,
                                                           final String attributeID,
                                                           final Acceptor<? super SshAttributeMapping, E> handler) throws E {
-        return attributes.processAttribute(resourceName, attributeID, handler);
+        try {
+            return attributes.processAttribute(resourceName, attributeID, handler);
+        } catch (final InterruptedException ignored) {
+            return false;
+        }
     }
 
     @Override

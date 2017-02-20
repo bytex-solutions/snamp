@@ -26,6 +26,11 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
     }
 
     @Override
+    public void reset() {
+        getDistributedObject().clear();
+    }
+
+    @Override
     public void set(final Object value) {
         getDistributedObject().set(value);
     }

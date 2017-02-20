@@ -320,13 +320,21 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
                                final AttributeValueFormat format,
                                final Collection<ExtensionElement> extras) throws JMException{
         final Reader reader = new Reader(format, extras);
-        processAttribute(resourceName, attributeID, reader);
+        try {
+            processAttribute(resourceName, attributeID, reader);
+        } catch (final InterruptedException e) {
+            throw new ReflectionException(e);
+        }
         return reader.toString();
     }
 
     @Override
     public void setAttribute(final String resourceName, final String attributeID, final String value) throws JMException {
-        processAttribute(resourceName, attributeID, new Writer(value));
+        try {
+            processAttribute(resourceName, attributeID, new Writer(value));
+        } catch (final InterruptedException e) {
+            throw new ReflectionException(e);
+        }
     }
 
     @Override
@@ -335,7 +343,11 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
                                final boolean withNames,
                                final boolean details) {
         final OptionsPrinter printer = new OptionsPrinter(withNames, details);
-        processAttribute(resourceName, attributeID, printer);
+        try {
+            processAttribute(resourceName, attributeID, printer);
+        } catch (final InterruptedException ignored) {
+            return "";
+        }
         return printer.toString();
     }
 }

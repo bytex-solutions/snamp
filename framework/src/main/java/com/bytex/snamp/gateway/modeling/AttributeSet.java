@@ -24,13 +24,13 @@ public interface AttributeSet<TAccessor extends AttributeAccessor> {
 
     default <E extends Throwable> boolean processAttribute(final String resourceName,
                                                                 final String attributeName,
-                                                                final Acceptor<? super TAccessor, E> processor) throws E {
+                                                                final Acceptor<? super TAccessor, E> processor) throws E, InterruptedException {
         return processAttribute(resourceName, accessor -> accessor.getName().equals(attributeName), processor);
     }
 
     default <E extends Throwable> boolean processAttribute(final String resourceName,
                                                                  final Predicate<? super TAccessor> filter,
-                                                                 final Acceptor<? super TAccessor, E> processor) throws E {
+                                                                 final Acceptor<? super TAccessor, E> processor) throws E, InterruptedException {
         final BooleanBox result = BoxFactory.createForBoolean(false);
         forEachAttribute((resource, accessor) -> {
             if(resource.equals(resourceName) && filter.test(accessor)){

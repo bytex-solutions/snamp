@@ -28,7 +28,11 @@ public final class NagiosActiveCheckService extends ModelOfAttributes<NagiosAttr
     public String getAttribute(@PathParam(NagiosAttributeAccessor.RESOURCE_URL_PARAM)final String resourceName,
                                @PathParam(NagiosAttributeAccessor.ATTRIBUTE_URL_PARAM)final String attributeName) throws WebApplicationException{
         final AttributeRequestProcessor processor = new AttributeRequestProcessor();
-        processAttribute(resourceName, attributeName, processor);
+        try {
+            processAttribute(resourceName, attributeName, processor);
+        } catch (final InterruptedException e) {
+            throw new WebApplicationException(e);
+        }
         final NagiosPluginOutput result = processor.get();
         if(result == null)
             throw new WebApplicationException(new IllegalArgumentException(String.format("Attribute %s/%s doesn't exist", resourceName, attributeName)),

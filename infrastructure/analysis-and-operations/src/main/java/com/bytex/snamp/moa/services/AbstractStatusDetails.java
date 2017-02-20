@@ -36,6 +36,6 @@ abstract class AbstractStatusDetails<R extends RootCause> implements HealthCheck
                 1. When new status is greater than previous
                 2. When the status is upgraded for the same resource
          */
-        return other.getStatus().compareTo(getStatus()) > 0 || other.getResourceName().equals(resourceName) ? other : this;
+        return other.getStatus().compareTo(getStatus()) >= 0 || other.getResourceName().equals(resourceName) ? other : this;
     }
 }

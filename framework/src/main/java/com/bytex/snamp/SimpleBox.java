@@ -27,6 +27,11 @@ final class SimpleBox<T> implements Box<T>, Supplier<T>, Consumer<T>, Acceptor<T
     }
 
     @Override
+    public void reset() {
+        value = null;
+    }
+
+    @Override
     public T setIfAbsent(final Supplier<? extends T> valueProvider) {
         if(value == null)
             value = valueProvider.get();

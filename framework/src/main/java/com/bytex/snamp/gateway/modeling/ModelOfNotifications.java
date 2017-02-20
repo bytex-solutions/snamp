@@ -48,7 +48,7 @@ public abstract class ModelOfNotifications<TAccessor extends NotificationAccesso
 
     public final <E extends Throwable> boolean processNotification(final String resourceName,
                                                                 final String notificationType,
-                                                                final Acceptor<? super TAccessor, E> processor) throws E {
+                                                                final Acceptor<? super TAccessor, E> processor) throws E, InterruptedException {
         return processFeature(resourceName, notificationType, processor);
     }
 

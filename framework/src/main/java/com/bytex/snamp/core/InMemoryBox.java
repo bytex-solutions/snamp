@@ -33,6 +33,11 @@ final class InMemoryBox extends AtomicReference<Object> implements Box<Object>, 
     }
 
     @Override
+    public void reset() {
+        set(null);
+    }
+
+    @Override
     public Object getOrDefault(final Supplier<?> defaultProvider) {
         final Object current = get();
         return current == null ? defaultProvider.get() : current;

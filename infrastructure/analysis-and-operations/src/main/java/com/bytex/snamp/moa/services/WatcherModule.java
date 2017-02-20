@@ -1,19 +1,32 @@
 package com.bytex.snamp.moa.services;
 
+import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.bytex.snamp.moa.watching.ComponentWatcher;
 import com.bytex.snamp.moa.watching.ComponentWatchersRepository;
 import com.bytex.snamp.moa.watching.WatcherService;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
+import javax.management.Attribute;
+import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
+import java.lang.ref.WeakReference;
 import java.time.Duration;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -55,8 +68,10 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements
         }
 
         @Override
-        protected void doAction() throws Exception {
-            getReference().ifPresent(WatcherModule::updateWatchers);
+        protected void doAction() throws TimeoutException, InterruptedException {
+            final Optional<WatcherModule> moduleRef = getReference();
+            if (moduleRef.isPresent())
+                moduleRef.get().updateWatchers();
         }
 
         @Override
@@ -65,18 +80,57 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements
         }
     }
 
+    private static final class WatcherUpdaterTask extends WeakReference<WatcherModule> implements Callable<Void>{
+        private final String componentName;
+        private final UpdatableComponentWatcher watcher;
+
+        private WatcherUpdaterTask(final WatcherModule module, final String componentName, final UpdatableComponentWatcher watcher){
+            super(module);
+            this.componentName = componentName;
+            this.watcher = watcher;
+        }
+
+        @Override
+        public Void call() throws Exception {
+            final WatcherModule module = get();
+            if (module != null)
+                module.updateWatcher(componentName, watcher);
+            return null;
+        }
+    }
+
     private final Multimap<String, String> componentToResourceMap;
     private StatusUpdater statusUpdater;
     private final ConcurrentWatchersRepository watchers;
+    private final ExecutorService threadPool;
 
     WatcherModule(final ExecutorService threadPool) {
         componentToResourceMap = HashMultimap.create();
         watchers = new ConcurrentWatchersRepository();
-
+        this.threadPool = Objects.requireNonNull(threadPool);
     }
 
-    void updateWatchers(){
+    private void updateWatcher(final String componentName, final UpdatableComponentWatcher watcher) throws TimeoutException, InterruptedException {
+        final ImmutableSet<String> resources = readLock.apply(DEFAULT_RESOURCE_GROUP, componentToResourceMap, componentName, (m, n) -> ImmutableSet.copyOf(m.get(n)), null);
+        final Box<Attribute> attribute = BoxFactory.create(null);   //avoid redundant creation of the box in every iteration inside of the loop
+        for (final String resourceName : resources) {
+            attribute.reset();
+            try {
+                processAttribute(resourceName, w -> true, w -> attribute.set(w.getRawValue()));
+            } catch (final JMException error) {
+                watcher.updateStatus(resourceName, error);
+                continue;
+            }
+            if (attribute.hasValue())
+                watcher.updateStatus(resourceName, attribute.get());
+        }
+    }
 
+    private void updateWatchers() {
+        for (final Map.Entry<String, UpdatableComponentWatcher> entry : watchers.entrySet()) {
+            final WatcherUpdaterTask task = new WatcherUpdaterTask(this, entry.getKey(), entry.getValue());
+            threadPool.submit(task);
+        }
     }
 
     @Override

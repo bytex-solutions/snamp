@@ -41,7 +41,7 @@ abstract class NotificationPoint extends NotificationAccessor {
         return Helpers.extractTags(getBundleContextOfObject(this), getResourceName());
     }
 
-    private Void handleNotification(final AttributeChangeNotification notification) throws JMException {
+    private Void handleNotification(final AttributeChangeNotification notification) throws JMException, InterruptedException {
         final Map<String, String> tags = extractTags();
         final Reporter reporter = getReporter();
         if (reporter != null)

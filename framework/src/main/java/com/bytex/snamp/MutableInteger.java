@@ -21,6 +21,11 @@ final class MutableInteger extends Number implements IntBox {
     }
 
     @Override
+    public void reset() {
+        value = 0;
+    }
+
+    @Override
     public Integer setIfAbsent(final Supplier<? extends Integer> valueProvider) {
         return value;
     }

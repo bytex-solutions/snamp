@@ -7,9 +7,11 @@ import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
 
 import javax.management.MBeanFeatureInfo;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -54,14 +56,17 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
     }
 
     private TAccessor removeFeatureImpl(final String resourceName,
-                                          final M metadata){
-        final L list;
-        if(features.containsKey(resourceName))
+                                          final M metadata) {
+        L list;
+        if (features.containsKey(resourceName))
             list = features.get(resourceName);
-        else return null;
+        else
+            return null;
         final TAccessor accessor = list.remove(metadata);
-        if(list.isEmpty())
-            list.remove(resourceName);
+        if (list.isEmpty()) {
+            list = features.remove(resourceName);
+            cleared(resourceName, list.values());
+        }
         return accessor;
     }
 
@@ -77,21 +82,23 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
 
     final <E extends Throwable> boolean processFeature(final String resourceName,
                                                                 final String featureName,
-                                                                final Acceptor<? super TAccessor, E> processor) throws E {
-        try (final SafeCloseable ignored = readLock.acquireLock(listGroup)) {
+                                                                final Acceptor<? super TAccessor, E> processor) throws E, InterruptedException {
+        try (final SafeCloseable ignored = readLock.acquireLock(listGroup, null)) {
             final TAccessor accessor = getAccessor(resourceName, featureName);
             if (accessor != null) {
                 processor.accept(accessor);
                 return true;
             } else
                 return false;
+        } catch (final TimeoutException e) {
+            throw new UncheckedTimeoutException(e);
         }
     }
 
     final <E extends Throwable> boolean processFeature(final String resourceName,
                                                        final Predicate<? super TAccessor> filter,
-                                                       final Acceptor<? super TAccessor, E> processor) throws E {
-        try (final SafeCloseable ignored = readLock.acquireLock(listGroup)) {
+                                                       final Acceptor<? super TAccessor, E> processor) throws E, InterruptedException {
+        try (final SafeCloseable ignored = readLock.acquireLock(listGroup, null)) {
             final L f = features.get(resourceName);
             final Optional<TAccessor> accessor = f != null ? f.find(filter) : Optional.empty();
             if (accessor.isPresent()) {
@@ -99,6 +106,8 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
                 return true;
             } else
                 return false;
+        } catch (final TimeoutException e){
+            throw new UncheckedTimeoutException(e);
         }
     }
 

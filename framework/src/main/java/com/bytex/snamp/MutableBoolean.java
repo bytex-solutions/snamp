@@ -28,6 +28,11 @@ final class MutableBoolean implements BooleanBox {
         return value;
     }
 
+    @Override
+    public void reset() {
+        value = false;
+    }
+
     /**
      * Gets value stored in this container.
      *

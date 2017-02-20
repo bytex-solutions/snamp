@@ -34,6 +34,7 @@ final class UpdatableComponentWatcher extends AtomicReference<AbstractStatusDeta
         synchronized (attributesStatusMap){
             attributesStatusMap.clear();
         }
+        attributeCheckers.clear();
         reset();
     }
 
@@ -79,29 +80,25 @@ final class UpdatableComponentWatcher extends AtomicReference<AbstractStatusDeta
         updateAndGet(existing -> existing.replaceWith(newStatus));
     }
 
-    private HealthCheckStatus reduceStatus(){
-        return attributesStatusMap.values().stream().reduce(HealthCheckStatus.OK, HealthCheckStatus::max);
-    }
-
     void updateStatus(final String resourceName, final Attribute attribute) {
-        final AttributeChecker checker = attributeCheckers.getOrDefault(attribute.getName(), AttributeChecker.OK);
-        final HealthCheckStatus attributeStatus = checker.getStatus(attribute);
-        final HealthCheckStatus newStatus;
-        synchronized (attributesStatusMap) {
-            attributesStatusMap.put(attribute.getName(), attributeStatus);
-            newStatus = reduceStatus();
+        final AttributeChecker checker = attributeCheckers.get(attribute.getName());
+        if (checker != null) {
+            final HealthCheckStatus attributeStatus = checker.getStatus(attribute);
+            final HealthCheckStatus newStatus;
+            synchronized (attributesStatusMap) {
+                attributesStatusMap.put(attribute.getName(), attributeStatus);
+                newStatus = attributesStatusMap.values().stream().reduce(HealthCheckStatus.OK, HealthCheckStatus::max);
+            }
+            updateStatus(new CausedByAttributeStatusDetails(resourceName, attribute, newStatus));
         }
-        updateStatus(new CausedByAttributeStatusDetails(resourceName, attribute, newStatus));
     }
 
     void updateStatus(final String resourceName, final JMException error) {
-        updateStatus(new ResourceUnavailableStatus(resourceName, error));
-    }
-
-    void removeAttribute(final String resourceName, final String attributeName) {
+        //failed
         synchronized (attributesStatusMap) {
-            attributesStatusMap.remove(attributeName);
+            attributesStatusMap.replaceAll((attribute, old) -> HealthCheckStatus.OK);
         }
+        updateStatus(new ResourceUnavailableStatus(resourceName, error));
     }
 
     void removeResource(final String resourceName){
