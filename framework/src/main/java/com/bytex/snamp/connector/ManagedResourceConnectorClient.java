@@ -90,6 +90,10 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         return refs.isEmpty() ? null : refs.iterator().next();
     }
 
+    public static boolean isActivated(final BundleContext context, final String resourceName){
+        return getResourceConnector(context, resourceName) != null;
+    }
+
     /**
      * Gets bundle state of the specified connector.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
@@ -299,14 +303,8 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         return clusteredResource == null ? getManagedResourceName() : clusteredResource.getInstanceName();
     }
 
-    /**
-     * Gets a reference to the managed resource connector.
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param resourceName The name of the managed resource.
-     * @return A reference to the managed resource connector that serves the specified resource; or {@literal null}, if connector doesn't exist.
-     */
     @SuppressWarnings("unchecked")
-    public static ServiceReference<ManagedResourceConnector> getResourceConnector(final BundleContext context,
+    private static ServiceReference<ManagedResourceConnector> getResourceConnector(final BundleContext context,
                                                                           final String resourceName) {
         return callUnchecked(() -> Iterables.<ServiceReference>getFirst(context.getServiceReferences(ManagedResourceConnector.class, ManagedResourceActivator.createFilter(resourceName)), null));
     }

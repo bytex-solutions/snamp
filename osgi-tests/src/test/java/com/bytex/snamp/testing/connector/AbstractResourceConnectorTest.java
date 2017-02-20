@@ -83,13 +83,13 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     public static void waitForConnector(final Duration timeout,
                                   final String resourceName,
                                   final BundleContext context) throws TimeoutException, InterruptedException {
-        SpinWait.spinUntilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, timeout);
+        new ManagedResourceConnectorClient(context, resourceName, timeout).release(context);
     }
 
     public static void waitForNoConnector(final Duration timeout,
                                            final String resourceName,
                                            final BundleContext context) throws TimeoutException, InterruptedException {
-        SpinWait.spinUntil(() -> ManagedResourceConnectorClient.getResourceConnector(context, resourceName) != null, timeout);
+        SpinWait.spinUntil(() -> ManagedResourceConnectorClient.isActivated(context, resourceName), timeout);
     }
 
     protected final ManagedResourceConnector getManagementConnector() throws InstanceNotFoundException {
