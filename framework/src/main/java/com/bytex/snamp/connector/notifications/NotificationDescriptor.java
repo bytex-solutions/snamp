@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.notifications;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.EventConfiguration;
-import com.bytex.snamp.connector.ConfigurationEntityRuntimeMetadata;
+import com.bytex.snamp.connector.RuntimeFeatureConfiguration;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.ImmutableMap;
 
@@ -23,7 +23,7 @@ import static com.bytex.snamp.connector.notifications.NotificationSupport.*;
  * @version 2.0
  * @since 1.0
  */
-public class NotificationDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<EventConfiguration> {
+public class NotificationDescriptor extends ImmutableDescriptor implements RuntimeFeatureConfiguration<EventConfiguration> {
     /**
      * Gets name of the parameter in {@link EventConfiguration}
      * which describes the notification severity.

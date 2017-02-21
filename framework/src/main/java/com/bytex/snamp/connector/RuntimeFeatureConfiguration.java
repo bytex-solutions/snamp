@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.jmx.CopyOnWriteDescriptor;
 
@@ -13,7 +12,7 @@ import java.util.Map;
  * @version 2.0
  * @since 1.0
  */
-public interface ConfigurationEntityRuntimeMetadata<E extends EntityConfiguration> extends CopyOnWriteDescriptor {
+public interface RuntimeFeatureConfiguration<E extends FeatureConfiguration> extends CopyOnWriteDescriptor {
 
     /**
      * The type of the configuration entity.
@@ -34,7 +33,7 @@ public interface ConfigurationEntityRuntimeMetadata<E extends EntityConfiguratio
      * @return A new descriptor with modified fields.
      */
     @Override
-    ConfigurationEntityRuntimeMetadata<E> setFields(final Map<String, ?> values);
+    RuntimeFeatureConfiguration<E> setFields(final Map<String, ?> values);
 
     /**
      * Returns cloned descriptor with modified fields.
@@ -43,7 +42,7 @@ public interface ConfigurationEntityRuntimeMetadata<E extends EntityConfiguratio
      * @return A new descriptor with modified fields.
      */
     @Override
-    ConfigurationEntityRuntimeMetadata<E> setFields(final Descriptor values);
+    RuntimeFeatureConfiguration<E> setFields(final Descriptor values);
 
     /**
      * Gets alternative name of the feature.

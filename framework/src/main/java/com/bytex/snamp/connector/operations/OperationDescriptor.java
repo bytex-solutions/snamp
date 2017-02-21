@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.operations;
 
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.configuration.OperationConfiguration;
-import com.bytex.snamp.connector.ConfigurationEntityRuntimeMetadata;
+import com.bytex.snamp.connector.RuntimeFeatureConfiguration;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.collect.ImmutableMap;
@@ -25,7 +25,7 @@ import static com.bytex.snamp.connector.operations.OperationSupport.*;
  * @version 2.0
  * @since 1.0
  */
-public class OperationDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<OperationConfiguration> {
+public class OperationDescriptor extends ImmutableDescriptor implements RuntimeFeatureConfiguration<OperationConfiguration> {
     private static final long serialVersionUID = -6350507145892936614L;
     public static final OperationDescriptor EMPTY_DESCRIPTOR = new OperationDescriptor(ImmutableMap.<String, String>of());
 
