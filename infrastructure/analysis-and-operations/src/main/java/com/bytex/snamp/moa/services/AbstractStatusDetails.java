@@ -1,6 +1,6 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.supervision.GroupStatusDetails;
+import com.bytex.snamp.connector.supervision.GroupStatusDetails;
 
 import java.util.Objects;
 

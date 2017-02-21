@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.watching;
 
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.supervision.GroupStatusDetails;
+import com.bytex.snamp.connector.supervision.GroupStatusDetails;
 
 import java.util.Map;
 

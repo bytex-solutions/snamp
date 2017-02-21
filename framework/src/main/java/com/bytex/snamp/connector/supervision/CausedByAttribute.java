@@ -1,4 +1,4 @@
-package com.bytex.snamp.connector.health;
+package com.bytex.snamp.connector.supervision;
 
 import javax.management.Attribute;
 import java.util.Objects;

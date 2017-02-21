@@ -1,4 +1,4 @@
-package com.bytex.snamp.supervision;
+package com.bytex.snamp.connector.supervision;
 
 import java.util.EventListener;
 

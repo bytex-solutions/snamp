@@ -1,6 +1,6 @@
-package com.bytex.snamp.supervision;
+package com.bytex.snamp.connector.supervision;
 
-import com.bytex.snamp.connector.health.*;
+import com.bytex.snamp.connector.supervision.*;
 
 /**
  * @author Roman Sakno

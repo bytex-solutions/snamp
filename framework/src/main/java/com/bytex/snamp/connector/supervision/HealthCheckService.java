@@ -1,4 +1,4 @@
-package com.bytex.snamp.supervision;
+package com.bytex.snamp.connector.supervision;
 
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.core.FrameworkService;
