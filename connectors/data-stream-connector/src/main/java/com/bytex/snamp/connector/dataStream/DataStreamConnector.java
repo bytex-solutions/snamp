@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.dataStream;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
-import com.bytex.snamp.connector.ClusteredResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
@@ -13,7 +12,8 @@ import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SharedCounter;
 
-import javax.management.*;
+import javax.management.AttributeChangeNotification;
+import javax.management.Notification;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.time.Duration;
@@ -38,7 +38,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  * @version 2.0
  */
-public abstract class DataStreamConnector extends AbstractManagedResourceConnector implements ClusteredResourceConnector {
+public abstract class DataStreamConnector extends AbstractManagedResourceConnector {
     @Aggregation(cached = true)
     protected final SyntheticAttributeRepository attributes;
     @Aggregation(cached = true)
@@ -78,13 +78,11 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         sequenceNumberProvider = DistributedServices.getDistributedCounter(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName));
     }
 
-    @Override
-    public String getInstanceName(){
+    protected final String getInstanceName(){
         return instanceName;
     }
 
-    @Override
-    public String getComponentName() {
+    protected final String getGroupName() {
         final String groupName = getConfiguration().getGroupName();
         return isNullOrEmpty(groupName) ? getInstanceName() : groupName;
     }

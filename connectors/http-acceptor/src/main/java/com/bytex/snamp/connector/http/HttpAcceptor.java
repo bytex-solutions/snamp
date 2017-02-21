@@ -38,7 +38,7 @@ final class HttpAcceptor extends DataStreamConnector {
             if (!isNullOrEmpty(scriptFile))   //user-defined parser as fallback parser
                 mainParser.setFallbackParser(loader.createScript(scriptFile, new Binding()));
             mainParser.setInstanceName(getInstanceName());
-            mainParser.setComponentName(getComponentName());
+            mainParser.setComponentName(getGroupName());
             return mainParser;
         });
     }

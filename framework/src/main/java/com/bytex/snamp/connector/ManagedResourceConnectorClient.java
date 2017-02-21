@@ -261,19 +261,9 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         return ManagedResourceActivator.getManagedResourceName(this);
     }
 
-    public String getComponentName() {
-        final ClusteredResourceConnector clusteredResource = queryObject(ClusteredResourceConnector.class);
-        String componentName;
-        if (clusteredResource == null)
-            componentName = getConfiguration().getGroupName();
-        else
-            componentName = clusteredResource.getComponentName();
-        return isNullOrEmpty(componentName) ? getManagedResourceName() : componentName;
-    }
-
-    public String getInstanceName() {
-        final ClusteredResourceConnector clusteredResource = queryObject(ClusteredResourceConnector.class);
-        return clusteredResource == null ? getManagedResourceName() : clusteredResource.getInstanceName();
+    public String getGroupName() {
+        final String groupName = getConfiguration().getGroupName();
+        return isNullOrEmpty(groupName) ? getManagedResourceName() : groupName;
     }
 
     @SuppressWarnings("unchecked")

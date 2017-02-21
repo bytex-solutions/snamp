@@ -124,11 +124,11 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     private void connectorChanged(final ManagedResourceConnectorClient client, final int type) {
         switch (type) {
             case ServiceEvent.REGISTERED:
-                resources.write(resources -> resources.put(client.getComponentName(), client.getInstanceName()));
+                resources.write(resources -> resources.put(client.getGroupName(), client.getManagedResourceName()));
                 return;
             case ServiceEvent.UNREGISTERING:
             case ServiceEvent.MODIFIED_ENDMATCH:
-                resources.write(resources -> resources.remove(client.getComponentName(), client.getInstanceName()));
+                resources.write(resources -> resources.remove(client.getGroupName(), client.getManagedResourceName()));
         }
     }
 

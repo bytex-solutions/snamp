@@ -3,8 +3,6 @@ package com.bytex.snamp.moa.services;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.health.HealthStatus;
-import com.bytex.snamp.health.HealthStatusChangedEvent;
-import com.bytex.snamp.health.HealthStatusEventListener;
 import com.bytex.snamp.moa.watching.*;
 
 import javax.annotation.Nonnull;
@@ -25,7 +23,7 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
     private static final AtomicReferenceFieldUpdater<UpdatableComponentWatcher, AbstractStatusDetails> STATUS_UPDATER =
             AtomicReferenceFieldUpdater.newUpdater(UpdatableComponentWatcher.class, AbstractStatusDetails.class, "status");
 
-    private static final class StatusChangedEvent extends HealthStatusChangedEvent {
+    private static final class StatusChangedEvent extends ComponentStatusChangedEvent {
         private static final long serialVersionUID = -6608026114593286031L;
         private final AbstractStatusDetails previousStatus;
         private final AbstractStatusDetails newStatus;
@@ -53,13 +51,13 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
     private volatile AbstractStatusDetails status;
 
     private final ConcurrentMap<String, HealthStatus> attributesStatusMap;
-    private final WeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent> listeners;
+    private final WeakEventListenerList<ComponentStatusEventListener, ComponentStatusChangedEvent> listeners;
 
     UpdatableComponentWatcher() {
         super(15);
         status = OkStatusDetails.INSTANCE;
         attributesStatusMap = new ConcurrentHashMap<>(15);
-        listeners = WeakEventListenerList.create(HealthStatusEventListener::statusChanged);
+        listeners = WeakEventListenerList.create(ComponentStatusEventListener::statusChanged);
     }
 
     @Override
@@ -105,12 +103,12 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
     }
 
     @Override
-    public void addStatusEventListener(final HealthStatusEventListener listener) {
+    public void addStatusEventListener(final ComponentStatusEventListener listener) {
         listeners.add(listener);
     }
 
     @Override
-    public void removeStatusEventListener(final HealthStatusEventListener listener) {
+    public void removeStatusEventListener(final ComponentStatusEventListener listener) {
         listeners.remove(listener);
     }
 

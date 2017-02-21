@@ -141,7 +141,7 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements
     }
 
     private static void addResource(final Multimap<String, String> componentToResourceMap, final ManagedResourceConnectorClient resource){
-        componentToResourceMap.put(resource.getComponentName(), resource.getManagedResourceName());
+        componentToResourceMap.put(resource.getGroupName(), resource.getManagedResourceName());
     }
 
     void addResource(final ManagedResourceConnectorClient resource) {
@@ -154,7 +154,7 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements
     void removeResource(final ManagedResourceConnectorClient resource) {
         final String resourceName = resource.getManagedResourceName();
         try (final SafeCloseable ignored = writeLock.acquireLock(DEFAULT_RESOURCE_GROUP)) {
-            componentToResourceMap.remove(resource.getComponentName(), resourceName);
+            componentToResourceMap.remove(resource.getGroupName(), resourceName);
         }
         watchers.values().forEach(watcher -> watcher.removeResource(resourceName));
     }

@@ -46,7 +46,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             if (client == null)
                 continue;
             final AttributeList attributes;
-            final String instanceName = client.getInstanceName();
+            final String instanceName = client.getManagedResourceName();
             try {
                 attributes = client.getAttributes();
             } catch (final JMException e) {

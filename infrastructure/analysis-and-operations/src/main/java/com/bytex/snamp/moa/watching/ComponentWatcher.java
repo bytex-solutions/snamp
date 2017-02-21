@@ -2,7 +2,6 @@ package com.bytex.snamp.moa.watching;
 
 import com.bytex.snamp.Stateful;
 import com.bytex.snamp.health.HealthStatusDetails;
-import com.bytex.snamp.health.HealthStatusEventListener;
 
 import java.util.Map;
 
@@ -25,7 +24,7 @@ public interface ComponentWatcher extends Stateful {
      */
     Map<String, AttributeChecker> getAttributeCheckers();
 
-    void addStatusEventListener(final HealthStatusEventListener listener);
+    void addStatusEventListener(final ComponentStatusEventListener listener);
 
-    void removeStatusEventListener(final HealthStatusEventListener listener);
+    void removeStatusEventListener(final ComponentStatusEventListener listener);
 }
