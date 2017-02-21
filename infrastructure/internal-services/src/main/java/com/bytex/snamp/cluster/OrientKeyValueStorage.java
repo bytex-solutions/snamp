@@ -8,6 +8,9 @@ import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.id.ORID;
+import com.orientechnologies.orient.core.index.OCompositeKey;
+import com.orientechnologies.orient.core.index.OIndex;
+import com.orientechnologies.orient.core.index.OIndexKeyCursor;
 import com.orientechnologies.orient.core.iterator.ORecordIteratorClass;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OSchema;
@@ -18,8 +21,7 @@ import com.orientechnologies.orient.core.tx.OTransactionOptimistic;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -44,7 +46,9 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     OrientKeyValueStorage(final ODatabaseDocumentTx database,
                           final String collectionName,
                           final boolean forceCreate) {
-        ODatabaseRecordThreadLocal.INSTANCE.set(this.database = Objects.requireNonNull(database));
+        if (!database.isActiveOnCurrentThread())
+            database.activateOnCurrentThread();
+        this.database = database;
         indexName = collectionName + "Index";
         //init class
         final OSchema schema = database.getMetadata().getSchema();
@@ -224,19 +228,12 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         return true;
     }
 
-    /**
-     * Iterates over records.
-     *
-     * @param recordType Type of the record representation.
-     * @param filter     Query filter. Cannot be {@literal null}.
-     * @param reader     Record reader. Cannot be {@literal null}.
-     * @throws E Reading failed.
-     */
-    @Override
-    public <R extends Record, E extends Throwable> void forEachRecord(final Class<R> recordType, final Predicate<? super Comparable<?>> filter, final EntryReader<? super Comparable<?>, ? super R, E> reader) throws E {
-        if (!database.isActiveOnCurrentThread())
-            database.activateOnCurrentThread();
-        final ORecordIteratorClass<ODocument> records = database.browseClass(getDocumentClass().getName());
+    private static <R extends Record, E extends Throwable> void forEachRecord(final ODatabaseDocumentTx database,
+                                                                               final OClass documentClass,
+                                                                               final Class<R> recordType,
+                                                                               final Predicate<? super Comparable<?>> filter,
+                                                                               final EntryReader<? super Comparable<?>, ? super R, E> reader) throws E{
+        final ORecordIteratorClass<ODocument> records = database.browseClass(documentClass.getName());
         while (records.hasNext()){
             final ODocument document = records.next();
             final PersistentRecord record;
@@ -256,6 +253,49 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
                 record.unlock();
             }
         }
+    }
+
+    /**
+     * Iterates over records.
+     *
+     * @param recordType Type of the record representation.
+     * @param filter     Query filter. Cannot be {@literal null}.
+     * @param reader     Record reader. Cannot be {@literal null}.
+     * @throws E Reading failed.
+     */
+    @Override
+    public <R extends Record, E extends Throwable> void forEachRecord(final Class<R> recordType,
+                                                                      final Predicate<? super Comparable<?>> filter,
+                                                                      final EntryReader<? super Comparable<?>, ? super R, E> reader) throws E {
+        final OClass documentClass = getDocumentClass();
+        DBUtils.acceptWithDatabase(database, database -> forEachRecord(database, documentClass, recordType, filter, reader));
+    }
+
+    private static Set<? extends Comparable<?>> keySet(final OClass documentClass, final String indexName){
+        final OIndex<?> index = documentClass.getClassIndex(indexName);
+        final OIndexKeyCursor cursor = index.keyCursor();
+        Object key;
+        final Set<Comparable<?>> result = new HashSet<>(15);
+        while ((key = cursor.next(5)) instanceof OCompositeKey) {
+            final OCompositeKey compositeKey = (OCompositeKey) key;
+            compositeKey.getKeys().stream()
+                    .filter(k -> k instanceof Comparable<?>)
+                    .map(k -> (Comparable<?>) k)
+                    .findFirst()
+                    .ifPresent(result::add);
+        }
+        return result;
+    }
+
+    /**
+     * Gets all keys in this storage.
+     *
+     * @return All keys in this storage.
+     */
+    @Override
+    public Set<? extends Comparable<?>> keySet() {
+        final OClass documentClass = getDocumentClass();
+        return DBUtils.supplyWithDatabase(database, () -> keySet(documentClass, indexName));
     }
 
     /**

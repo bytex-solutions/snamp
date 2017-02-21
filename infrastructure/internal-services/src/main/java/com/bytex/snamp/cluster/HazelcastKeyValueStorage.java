@@ -10,10 +10,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -216,6 +213,16 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
     @Override
     public boolean delete(final Comparable<?> key) {
         return getDistributedObject().remove(key) != null;
+    }
+
+    /**
+     * Gets all keys in this storage.
+     *
+     * @return All keys in this storage.
+     */
+    @Override
+    public Set<? extends Comparable<?>> keySet() {
+        return getDistributedObject().keySet();
     }
 
     /**

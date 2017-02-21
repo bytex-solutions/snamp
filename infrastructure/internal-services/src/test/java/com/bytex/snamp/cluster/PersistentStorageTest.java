@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import java.io.StringReader;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -40,6 +41,21 @@ public final class PersistentStorageTest extends Assert {
         instance1.destroyLocalServices();
         instance1.close();
         instance1 = null;
+    }
+
+    @Test
+    public void indexTest() {
+        final KeyValueStorage storage = instance1.getService("$testStorage", ClusterMember.PERSISTENT_KV_STORAGE);
+        assertNotNull(storage);
+        assertTrue(storage.isPersistent());
+        for(int i = 0; i < 100; i++) {
+            assertNotNull(storage.getOrCreateRecord(i, KeyValueStorage.TextRecordView.class, record -> record.setAsText("Hello, world")));
+        }
+        final Set<? extends Comparable<?>> keys = storage.keySet();
+        assertFalse(keys.isEmpty());
+        assertEquals(100, keys.size());
+        keys.contains(1);
+        keys.contains(99);
     }
 
     @Test

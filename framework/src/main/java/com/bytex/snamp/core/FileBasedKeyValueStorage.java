@@ -15,10 +15,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
@@ -373,6 +370,16 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
                     if (!reader.accept(record.getName(), recordType.cast(record)))
                         return;
         }
+    }
+
+    /**
+     * Gets all keys in this storage.
+     *
+     * @return All keys in this storage.
+     */
+    @Override
+    public Set<String> keySet() {
+        return records.keySet();
     }
 
     /**

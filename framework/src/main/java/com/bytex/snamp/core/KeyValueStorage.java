@@ -10,6 +10,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.*;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.*;
 
 /**
@@ -200,6 +201,12 @@ public interface KeyValueStorage extends SharedObject {
      * @return {@literal true} if transactions are supported; otherwise, {@literal false}.
      */
     boolean isTransactional();
+
+    /**
+     * Gets all keys in this storage.
+     * @return All keys in this storage.
+     */
+    Set<? extends Comparable<?>> keySet();
 
     /**
      * Starts transaction.
