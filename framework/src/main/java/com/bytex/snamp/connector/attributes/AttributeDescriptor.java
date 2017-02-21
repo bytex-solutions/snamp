@@ -5,7 +5,7 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.connector.RuntimeFeatureConfiguration;
+import com.bytex.snamp.connector.FeatureDescriptor;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.collect.ImmutableMap;
@@ -30,7 +30,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 1.0
  */
-public class AttributeDescriptor extends ImmutableDescriptor implements RuntimeFeatureConfiguration<AttributeConfiguration> {
+public class AttributeDescriptor extends ImmutableDescriptor implements FeatureDescriptor<AttributeConfiguration> {
     private static final long serialVersionUID = -516459089021572254L;
     public static final AttributeDescriptor EMPTY_DESCRIPTOR = new AttributeDescriptor(ImmutableMap.<String, String>of());
 

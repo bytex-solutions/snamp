@@ -12,7 +12,7 @@ import java.util.Map;
  * @version 2.0
  * @since 1.0
  */
-public interface RuntimeFeatureConfiguration<E extends FeatureConfiguration> extends CopyOnWriteDescriptor {
+public interface FeatureDescriptor<E extends FeatureConfiguration> extends CopyOnWriteDescriptor {
 
     /**
      * The type of the configuration entity.
@@ -33,7 +33,7 @@ public interface RuntimeFeatureConfiguration<E extends FeatureConfiguration> ext
      * @return A new descriptor with modified fields.
      */
     @Override
-    RuntimeFeatureConfiguration<E> setFields(final Map<String, ?> values);
+    FeatureDescriptor<E> setFields(final Map<String, ?> values);
 
     /**
      * Returns cloned descriptor with modified fields.
@@ -42,7 +42,7 @@ public interface RuntimeFeatureConfiguration<E extends FeatureConfiguration> ext
      * @return A new descriptor with modified fields.
      */
     @Override
-    RuntimeFeatureConfiguration<E> setFields(final Descriptor values);
+    FeatureDescriptor<E> setFields(final Descriptor values);
 
     /**
      * Gets alternative name of the feature.
