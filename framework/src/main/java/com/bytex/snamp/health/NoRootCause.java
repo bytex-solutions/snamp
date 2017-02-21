@@ -1,12 +1,12 @@
-package com.bytex.snamp.moa.watching;
+package com.bytex.snamp.health;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public final class NoRootCause extends com.bytex.snamp.health.RootCause {
-    public static final com.bytex.snamp.health.NoRootCause INSTANCE = new com.bytex.snamp.health.NoRootCause();
+public final class NoRootCause extends RootCause {
+    public static final NoRootCause INSTANCE = new NoRootCause();
 
     private NoRootCause(){
 
@@ -20,7 +20,7 @@ public final class NoRootCause extends com.bytex.snamp.health.RootCause {
 
     @Override
     public boolean equals(final Object other) {
-        return other instanceof com.bytex.snamp.health.NoRootCause;
+        return other instanceof NoRootCause;
     }
 
     @Override

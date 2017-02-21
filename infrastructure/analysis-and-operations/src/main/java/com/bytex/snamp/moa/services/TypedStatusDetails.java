@@ -1,6 +1,6 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.moa.watching.RootCause;
+import com.bytex.snamp.health.RootCause;
 
 /**
  * @author Roman Sakno

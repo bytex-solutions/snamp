@@ -11,6 +11,7 @@ import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -312,6 +313,15 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
         final WeakEventListener<L, E>[] snapshot = this.listeners;
         for (final WeakEventListener<L, E> listenerRef : snapshot)
             listenerRef.invoke(event);
+    }
+
+    public final void fire(final Supplier<? extends E> eventSupplier){
+        final WeakEventListener<L, E>[] snapshot = this.listeners;
+        if(snapshot.length > 0) {
+            final E event = eventSupplier.get();
+            for (final WeakEventListener<L, E> listenerRef : snapshot)
+                listenerRef.invoke(event);
+        }
     }
 
     /**

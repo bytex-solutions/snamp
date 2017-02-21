@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.connector.health.HealthCheckStatus;
-import com.bytex.snamp.moa.watching.ResourceUnavailable;
+import com.bytex.snamp.health.HealthStatus;
+import com.bytex.snamp.health.ResourceUnavailable;
 
 import javax.management.JMException;
 
@@ -16,7 +16,7 @@ final class ResourceUnavailableStatus extends TypedStatusDetails<ResourceUnavail
     }
 
     @Override
-    public HealthCheckStatus getStatus() {
-        return HealthCheckStatus.MALFUNCTION;
+    public HealthStatus getStatus() {
+        return HealthStatus.MALFUNCTION;
     }
 }

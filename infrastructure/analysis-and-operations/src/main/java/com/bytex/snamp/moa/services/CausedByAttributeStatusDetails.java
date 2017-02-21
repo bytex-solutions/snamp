@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.connector.health.HealthCheckStatus;
-import com.bytex.snamp.moa.watching.CausedByAttribute;
+import com.bytex.snamp.health.HealthStatus;
+import com.bytex.snamp.health.CausedByAttribute;
 
 import javax.management.Attribute;
 import java.util.Objects;
@@ -12,17 +12,17 @@ import java.util.Objects;
  * @since 2.0
  */
 final class CausedByAttributeStatusDetails extends TypedStatusDetails<CausedByAttribute> {
-    private final HealthCheckStatus status;
+    private final HealthStatus status;
 
     CausedByAttributeStatusDetails(final String resourceName,
                                    final Attribute attribute,
-                                   final HealthCheckStatus status){
+                                   final HealthStatus status){
         super(resourceName, new CausedByAttribute(attribute));
         this.status = Objects.requireNonNull(status);
     }
 
     @Override
-    public HealthCheckStatus getStatus() {
+    public HealthStatus getStatus() {
         return status;
     }
 }

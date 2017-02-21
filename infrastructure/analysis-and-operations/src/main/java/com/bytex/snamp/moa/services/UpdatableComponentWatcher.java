@@ -2,7 +2,9 @@ package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.WeakEventListenerList;
-import com.bytex.snamp.connector.health.HealthCheckStatus;
+import com.bytex.snamp.health.HealthStatus;
+import com.bytex.snamp.health.HealthStatusChangedEvent;
+import com.bytex.snamp.health.HealthStatusEventListener;
 import com.bytex.snamp.moa.watching.*;
 
 import javax.annotation.Nonnull;
@@ -23,7 +25,7 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
     private static final AtomicReferenceFieldUpdater<UpdatableComponentWatcher, AbstractStatusDetails> STATUS_UPDATER =
             AtomicReferenceFieldUpdater.newUpdater(UpdatableComponentWatcher.class, AbstractStatusDetails.class, "status");
 
-    private static final class StatusChangedEvent extends ComponentStatusChangedEvent {
+    private static final class StatusChangedEvent extends HealthStatusChangedEvent {
         private static final long serialVersionUID = -6608026114593286031L;
         private final AbstractStatusDetails previousStatus;
         private final AbstractStatusDetails newStatus;
@@ -50,14 +52,14 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
     @SpecialUse(SpecialUse.Case.JVM)
     private volatile AbstractStatusDetails status;
 
-    private final ConcurrentMap<String, HealthCheckStatus> attributesStatusMap;
-    private final WeakEventListenerList<ComponentStatusEventListener, ComponentStatusChangedEvent> listeners;
+    private final ConcurrentMap<String, HealthStatus> attributesStatusMap;
+    private final WeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent> listeners;
 
     UpdatableComponentWatcher() {
         super(15);
         status = OkStatusDetails.INSTANCE;
         attributesStatusMap = new ConcurrentHashMap<>(15);
-        listeners = WeakEventListenerList.create(ComponentStatusEventListener::statusChanged);
+        listeners = WeakEventListenerList.create(HealthStatusEventListener::statusChanged);
     }
 
     @Override
@@ -103,12 +105,12 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
     }
 
     @Override
-    public void addStatusEventListener(final ComponentStatusEventListener listener) {
+    public void addStatusEventListener(final HealthStatusEventListener listener) {
         listeners.add(listener);
     }
 
     @Override
-    public void removeStatusEventListener(final ComponentStatusEventListener listener) {
+    public void removeStatusEventListener(final HealthStatusEventListener listener) {
         listeners.remove(listener);
     }
 
@@ -127,16 +129,16 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
     void updateStatus(final String resourceName, final Attribute attribute) {
         final AttributeChecker checker = get(attribute.getName());
         if (checker != null) {
-            final HealthCheckStatus attributeStatus = checker.getStatus(attribute);
+            final HealthStatus attributeStatus = checker.getStatus(attribute);
             attributesStatusMap.put(attribute.getName(), attributeStatus);
-            final HealthCheckStatus newStatus = attributesStatusMap.values().stream().reduce(HealthCheckStatus.OK, HealthCheckStatus::max);
+            final HealthStatus newStatus = attributesStatusMap.values().stream().reduce(HealthStatus.OK, HealthStatus::max);
             updateStatus(new CausedByAttributeStatusDetails(resourceName, attribute, newStatus));
         }
     }
 
     void updateStatus(final String resourceName, final JMException error) {
         //reset state of all attributes
-        attributesStatusMap.replaceAll((attribute, old) -> HealthCheckStatus.OK);
+        attributesStatusMap.replaceAll((attribute, old) -> HealthStatus.OK);
         updateStatus(new ResourceUnavailableStatus(resourceName, error));
     }
 

@@ -1,6 +1,4 @@
-package com.bytex.snamp.moa.watching;
-
-import com.bytex.snamp.health.HealthStatusChangedEvent;
+package com.bytex.snamp.health;
 
 import java.util.EventListener;
 
@@ -11,6 +9,6 @@ import java.util.EventListener;
  * @since 2.0
  */
 @FunctionalInterface
-public interface ComponentStatusEventListener extends EventListener {
+public interface HealthStatusEventListener extends EventListener {
     void statusChanged(final HealthStatusChangedEvent event);
 }

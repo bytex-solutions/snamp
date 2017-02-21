@@ -1,4 +1,4 @@
-package com.bytex.snamp.moa.watching;
+package com.bytex.snamp.health;
 
 import javax.management.JMException;
 import java.util.Objects;
@@ -9,7 +9,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class ResourceUnavailable extends com.bytex.snamp.health.RootCause {
+public final class ResourceUnavailable extends RootCause {
     private final JMException error;
 
     public ResourceUnavailable(final JMException e){
@@ -25,13 +25,13 @@ public final class ResourceUnavailable extends com.bytex.snamp.health.RootCause 
         return error.hashCode();
     }
 
-    private boolean equals(final com.bytex.snamp.health.ResourceUnavailable other){
+    private boolean equals(final ResourceUnavailable other){
         return Objects.equals(error, other.error);
     }
 
     @Override
     public boolean equals(final Object other) {
-        return other instanceof com.bytex.snamp.health.ResourceUnavailable && equals((com.bytex.snamp.health.ResourceUnavailable) other);
+        return other instanceof ResourceUnavailable && equals((ResourceUnavailable) other);
     }
 
     @Override

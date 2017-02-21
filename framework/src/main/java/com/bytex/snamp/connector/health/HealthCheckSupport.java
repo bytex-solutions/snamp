@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.health;
 
+import com.bytex.snamp.health.HealthStatus;
+
 import java.time.Duration;
 
 /**
@@ -14,5 +16,5 @@ public interface HealthCheckSupport {
      * @param timeout Timeout required to identify health status.
      * @return Status of the remove managed resource.
      */
-    HealthCheckStatus getStatus(final Duration timeout);
+    HealthStatus getStatus(final Duration timeout);
 }

@@ -1,4 +1,4 @@
-package com.bytex.snamp.connector.health;
+package com.bytex.snamp.health;
 
 import java.io.Serializable;
 
@@ -8,7 +8,7 @@ import java.io.Serializable;
  * @version 2.0
  * @since 2.0
  */
-public enum HealthCheckStatus implements Serializable {
+public enum HealthStatus implements Serializable {
     /**
      * Service is online
      */
@@ -24,11 +24,11 @@ public enum HealthCheckStatus implements Serializable {
      */
     MALFUNCTION;
 
-    public final HealthCheckStatus max(final HealthCheckStatus other){
+    public final HealthStatus max(final HealthStatus other){
         return compareTo(other) >= 0 ? this : other;
     }
 
-    public final HealthCheckStatus min(final HealthCheckStatus other){
+    public final HealthStatus min(final HealthStatus other){
         return compareTo(other) <= 0 ? this : other;
     }
 }

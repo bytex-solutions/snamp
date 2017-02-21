@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.connector.health.HealthCheckStatus;
-import com.bytex.snamp.moa.watching.NoRootCause;
+import com.bytex.snamp.health.HealthStatus;
+import com.bytex.snamp.health.NoRootCause;
 
 /**
  * @author Roman Sakno
@@ -16,8 +16,8 @@ final class OkStatusDetails extends AbstractStatusDetails {
     }
 
     @Override
-    public HealthCheckStatus getStatus() {
-        return HealthCheckStatus.OK;
+    public HealthStatus getStatus() {
+        return HealthStatus.OK;
     }
 
     @Override

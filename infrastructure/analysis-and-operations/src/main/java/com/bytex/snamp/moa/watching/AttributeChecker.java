@@ -1,6 +1,6 @@
 package com.bytex.snamp.moa.watching;
 
-import com.bytex.snamp.connector.health.HealthCheckStatus;
+import com.bytex.snamp.health.HealthStatus;
 
 import javax.management.Attribute;
 
@@ -12,12 +12,12 @@ import javax.management.Attribute;
  */
 @FunctionalInterface
 public interface AttributeChecker {
-    AttributeChecker OK = a -> HealthCheckStatus.OK;
+    AttributeChecker OK = a -> HealthStatus.OK;
 
     /**
      * Checks attribute value.
      * @param attribute Attribute value.
      * @return {@literal true}, if attribute satisfies to this condition; otherwise, {@literal false}.
      */
-    HealthCheckStatus getStatus(final Attribute attribute);
+    HealthStatus getStatus(final Attribute attribute);
 }

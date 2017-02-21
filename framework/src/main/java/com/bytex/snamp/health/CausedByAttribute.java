@@ -1,4 +1,4 @@
-package com.bytex.snamp.moa.watching;
+package com.bytex.snamp.health;
 
 import javax.management.Attribute;
 import java.util.Objects;
@@ -10,7 +10,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class CausedByAttribute extends com.bytex.snamp.health.RootCause {
+public final class CausedByAttribute extends RootCause {
     private final Attribute attribute;
 
     public CausedByAttribute(final Attribute attribute){
@@ -26,13 +26,13 @@ public final class CausedByAttribute extends com.bytex.snamp.health.RootCause {
         return attribute.hashCode();
     }
 
-    private boolean equals(final com.bytex.snamp.health.CausedByAttribute other){
+    private boolean equals(final CausedByAttribute other){
         return Objects.equals(attribute, other.attribute);
     }
 
     @Override
     public boolean equals(final Object other) {
-        return other instanceof com.bytex.snamp.health.CausedByAttribute && equals((com.bytex.snamp.health.CausedByAttribute) other);
+        return other instanceof CausedByAttribute && equals((CausedByAttribute) other);
     }
 
     @Override
