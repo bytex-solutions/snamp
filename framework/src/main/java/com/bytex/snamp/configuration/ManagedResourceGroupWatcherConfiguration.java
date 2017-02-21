@@ -8,7 +8,7 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-public interface WatcherConfiguration extends EntityConfiguration {
+public interface ManagedResourceGroupWatcherConfiguration extends EntityConfiguration {
 
     /**
      * Gets map of attribute checkers where key is attribute name.
