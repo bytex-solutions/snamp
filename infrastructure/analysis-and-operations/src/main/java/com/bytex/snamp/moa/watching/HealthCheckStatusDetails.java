@@ -1,9 +1,9 @@
 package com.bytex.snamp.moa.watching;
 
-import com.bytex.snamp.health.*;
-import com.bytex.snamp.health.NoRootCause;
-import com.bytex.snamp.health.ResourceUnavailable;
-import com.bytex.snamp.health.RootCause;
+import com.bytex.snamp.connector.health.*;
+import com.bytex.snamp.connector.health.RootCause;
+import com.bytex.snamp.connector.health.NoRootCause;
+import com.bytex.snamp.connector.health.ResourceUnavailable;
 
 /**
  * @author Roman Sakno
@@ -25,8 +25,8 @@ public interface HealthCheckStatusDetails {
 
     /**
      * Gets root cause of the current status.
-     * @return Root cause of the current status; or {@link com.bytex.snamp.health.NoRootCause} if status is {@link HealthStatus#OK}.
-     * @see com.bytex.snamp.health.CausedByAttribute
+     * @return Root cause of the current status; or {@link NoRootCause} if status is {@link HealthStatus#OK}.
+     * @see com.bytex.snamp.connector.health.CausedByAttribute
      * @see ResourceUnavailable
      * @see NoRootCause
      */

@@ -1,4 +1,4 @@
-package com.bytex.snamp.health;
+package com.bytex.snamp.connector.health;
 
 /**
  * @author Roman Sakno

@@ -1,6 +1,6 @@
 package com.bytex.snamp.moa.watching;
 
-import com.bytex.snamp.health.HealthStatusDetails;
+import com.bytex.snamp.supervision.GroupStatusDetails;
 
 import java.util.EventObject;
 
@@ -22,7 +22,7 @@ public abstract class ComponentStatusChangedEvent extends EventObject {
         super(source);
     }
 
-    public abstract HealthStatusDetails getStatusDetails();
+    public abstract GroupStatusDetails getStatusDetails();
 
-    public abstract HealthStatusDetails getPreviousStatusDetails();
+    public abstract GroupStatusDetails getPreviousStatusDetails();
 }

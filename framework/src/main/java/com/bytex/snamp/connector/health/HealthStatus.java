@@ -1,4 +1,4 @@
-package com.bytex.snamp.health;
+package com.bytex.snamp.connector.health;
 
 import java.io.Serializable;
 

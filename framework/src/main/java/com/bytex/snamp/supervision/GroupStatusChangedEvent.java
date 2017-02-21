@@ -1,4 +1,4 @@
-package com.bytex.snamp.health;
+package com.bytex.snamp.supervision;
 
 import com.bytex.snamp.connector.ManagedResourceConnector;
 
@@ -9,7 +9,7 @@ import java.util.EventObject;
  * @version 2.0
  * @since 2.0
  */
-public abstract class HealthStatusChangedEvent extends EventObject {
+public abstract class GroupStatusChangedEvent extends EventObject {
     private static final long serialVersionUID = 2442700408424867171L;
 
     /**
@@ -18,11 +18,11 @@ public abstract class HealthStatusChangedEvent extends EventObject {
      * @param source The object on which the Event initially occurred.
      * @throws IllegalArgumentException if source is null.
      */
-    protected HealthStatusChangedEvent(final ManagedResourceConnector source) {
+    protected GroupStatusChangedEvent(final ManagedResourceConnector source) {
         super(source);
     }
 
-    public abstract HealthStatusDetails getStatusDetails();
+    public abstract GroupStatusDetails getNewStatus();
 
-    public abstract HealthStatusDetails getPreviousStatusDetails();
+    public abstract GroupStatusDetails getPreviousStatus();
 }

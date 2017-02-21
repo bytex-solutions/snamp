@@ -1,6 +1,6 @@
 package com.bytex.snamp.moa.watching;
 
-import com.bytex.snamp.health.HealthStatus;
+import com.bytex.snamp.connector.health.HealthStatus;
 
 import javax.management.Attribute;
 

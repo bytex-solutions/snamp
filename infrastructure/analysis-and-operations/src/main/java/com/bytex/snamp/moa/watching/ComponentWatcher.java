@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.watching;
 
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.health.HealthStatusDetails;
+import com.bytex.snamp.supervision.GroupStatusDetails;
 
 import java.util.Map;
 
@@ -16,7 +16,7 @@ public interface ComponentWatcher extends Stateful {
      * Gets status of the component.
      * @return Status of the component.
      */
-    HealthStatusDetails getStatus();
+    GroupStatusDetails getStatus();
 
     /**
      * Gets map of attribute checkers where key represents attribute name.

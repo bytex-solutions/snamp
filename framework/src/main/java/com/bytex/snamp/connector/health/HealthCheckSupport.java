@@ -1,7 +1,5 @@
 package com.bytex.snamp.connector.health;
 
-import com.bytex.snamp.health.HealthStatus;
-
 import java.time.Duration;
 
 /**

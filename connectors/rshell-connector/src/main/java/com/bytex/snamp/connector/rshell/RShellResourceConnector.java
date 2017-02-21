@@ -208,7 +208,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
 
         private static String getDescription(final AttributeDescriptor descriptor){
             final String result = descriptor.getDescription();
-            return result == null || result.isEmpty() ? "RShell Attribute" : result;
+            return result.isEmpty() ? "RShell Attribute" : result;
         }
 
         private static AttributeSpecifier getSpecifier(final XmlCommandLineToolProfile commandProfile){

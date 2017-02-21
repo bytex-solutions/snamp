@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.health.HealthStatus;
-import com.bytex.snamp.health.NoRootCause;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.NoRootCause;
 
 /**
  * @author Roman Sakno

@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.health.HealthStatus;
-import com.bytex.snamp.health.CausedByAttribute;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.CausedByAttribute;
 
 import javax.management.Attribute;
 import java.util.Objects;

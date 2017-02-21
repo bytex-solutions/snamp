@@ -1,6 +1,6 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.health.HealthStatusDetails;
+import com.bytex.snamp.supervision.GroupStatusDetails;
 
 import java.util.Objects;
 
@@ -9,7 +9,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-abstract class AbstractStatusDetails implements HealthStatusDetails {
+abstract class AbstractStatusDetails implements GroupStatusDetails {
     private final String resourceName;
 
     AbstractStatusDetails(final String resourceName){

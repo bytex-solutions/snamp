@@ -20,7 +20,7 @@ public final class NoRootCause extends RootCause {
 
     @Override
     public boolean equals(final Object other) {
-        return other instanceof com.bytex.snamp.health.NoRootCause;
+        return other instanceof com.bytex.snamp.connector.health.NoRootCause;
     }
 
     @Override
