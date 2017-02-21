@@ -83795,7 +83795,7 @@ var REST = (function () {
     function REST() {
     }
     REST.AVAILABLE_ENTITIES_BY_TYPE = function (entityType) {
-        return REST.ROOT_PATH + "/" + encodeURIComponent(entityType) + "/list";
+        return REST.ROOT_PATH + "/" + "components/" + encodeURIComponent(entityType) + "s";
     };
     REST.ENABLE_COMPONENT = function (componentClass, componentType) {
         return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/enable";
@@ -83816,10 +83816,10 @@ var REST = (function () {
         return REST.RESOURCE_BY_NAME(name) + "/type";
     };
     REST.ENTITY_PARAMETERS_DESCRIPTION = function (entityClass, entityType) {
-        return REST.ROOT_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityType) + "/configuration";
+        return REST.ROOT_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityType) + "/description";
     };
     REST.SUBENTITY_PARAMETERS_DESCRIPTION = function (entityType, entityClass) {
-        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/configuration";
+        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/description";
     };
     REST.BINDINGS = function (gatewayName, bindingEntityType) {
         return REST.GATEWAY_BY_NAME(gatewayName) + "/" + encodeURIComponent(bindingEntityType) + "/bindings";
@@ -83853,8 +83853,8 @@ var REST = (function () {
     REST.GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";
     REST.RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
     REST.RGROUP_CONFIG = REST.CFG_PATH + "/resourceGroup";
-    REST.AVAILABLE_GATEWAY_LIST = REST.ROOT_PATH + "/gateway/list";
-    REST.AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/resource/list";
+    REST.AVAILABLE_GATEWAY_LIST = REST.ROOT_PATH + "/components/gateways";
+    REST.AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/components/connectors";
     REST.AVAILABLE_COMPONENT_LIST = REST.ROOT_PATH + "/components";
     REST.RGROUP_LIST = REST.RGROUP_CONFIG + "/list";
     // web console api (chart related and others)

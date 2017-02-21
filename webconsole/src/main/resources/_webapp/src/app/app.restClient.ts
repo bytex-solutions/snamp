@@ -71,14 +71,14 @@ export class REST {
 
     public static RGROUP_CONFIG = REST.CFG_PATH + "/resourceGroup";
 
-    public static AVAILABLE_GATEWAY_LIST = REST.ROOT_PATH + "/gateway/list";
+    public static AVAILABLE_GATEWAY_LIST = REST.ROOT_PATH + "/components/gateways";
 
-    public static AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/resource/list";
+    public static AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/components/connectors";
 
     public static AVAILABLE_COMPONENT_LIST = REST.ROOT_PATH + "/components";
 
     public static AVAILABLE_ENTITIES_BY_TYPE(entityType:string):string {
-        return REST.ROOT_PATH + "/" + encodeURIComponent(entityType) + "/list";
+        return REST.ROOT_PATH + "/" + "components/" + encodeURIComponent(entityType) + "s";
     }
 
     public static ENABLE_COMPONENT(componentClass:string, componentType:string):string {
@@ -108,11 +108,11 @@ export class REST {
     }
 
     public static ENTITY_PARAMETERS_DESCRIPTION(entityClass:string, entityType:string):string {
-        return REST.ROOT_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityType) + "/configuration";
+        return REST.ROOT_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityType) + "/description";
     }
 
     public static SUBENTITY_PARAMETERS_DESCRIPTION(entityType:string, entityClass:string ):string {
-        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/configuration";
+        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/description";
     }
 
     public static BINDINGS(gatewayName:string, bindingEntityType:string):string {
