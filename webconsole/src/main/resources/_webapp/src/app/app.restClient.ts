@@ -108,11 +108,11 @@ export class REST {
     }
 
     public static ENTITY_PARAMETERS_DESCRIPTION(entityClass:string, entityType:string):string {
-        return REST.ROOT_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityType) + "/description";
+        return REST.ROOT_PATH + "/components/" + encodeURIComponent(entityClass) + "s/" + encodeURIComponent(entityType) + "/description";
     }
 
     public static SUBENTITY_PARAMETERS_DESCRIPTION(entityType:string, entityClass:string ):string {
-        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/description";
+        return REST.ROOT_PATH + "/components/" + encodeURIComponent(entityType) + "s/" + encodeURIComponent(entityClass) + "/description";
     }
 
     public static BINDINGS(gatewayName:string, bindingEntityType:string):string {

@@ -83816,10 +83816,10 @@ var REST = (function () {
         return REST.RESOURCE_BY_NAME(name) + "/type";
     };
     REST.ENTITY_PARAMETERS_DESCRIPTION = function (entityClass, entityType) {
-        return REST.ROOT_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityType) + "/description";
+        return REST.ROOT_PATH + "/components/" + encodeURIComponent(entityClass) + "s/" + encodeURIComponent(entityType) + "/description";
     };
     REST.SUBENTITY_PARAMETERS_DESCRIPTION = function (entityType, entityClass) {
-        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/description";
+        return REST.ROOT_PATH + "/components/" + encodeURIComponent(entityType) + "s/" + encodeURIComponent(entityClass) + "/description";
     };
     REST.BINDINGS = function (gatewayName, bindingEntityType) {
         return REST.GATEWAY_BY_NAME(gatewayName) + "/" + encodeURIComponent(bindingEntityType) + "/bindings";
