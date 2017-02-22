@@ -116,6 +116,11 @@ export class ViewService {
             .map((data:Response) => data.json());
     }
 
+    resetView(view:E2EView):Observable<any> {
+        return this._http.post(REST.RESET_VIEW, view.toJSON())
+            .map((data:Response) => data.text());
+    }
+
     getViewByName(name:string):E2EView {
         let result:E2EView = undefined;
         for (let i = 0; i < this._dashboard.views.length; i++) {

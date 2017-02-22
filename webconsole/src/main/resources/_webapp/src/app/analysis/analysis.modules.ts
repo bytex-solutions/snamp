@@ -7,7 +7,10 @@ import { HttpModule } from '@angular/http';
 import { PanelComponent } from '../panel.component';
 import { Routes, RouterModule } from '@angular/router';
 import { ModalModule } from 'angular2-modal';
-import { VexModalModule } from 'angular2-modal/plugins/vex';
+import {
+  VexModalModule,
+  providers
+} from 'angular2-modal/plugins/vex';
 import { CommonSnampUtilsModule } from '../app.module';
 
 import { TemplateView } from './analysis.template';
@@ -18,7 +21,8 @@ import { TimeIntervalsView } from './components/time.interval.component';
 import { CheckboxGroupView } from './components/checkbox.group.component';
 
 const PROVIDERS:any =  [
-  ApiClient
+  ApiClient,
+  providers
 ];
 
 @NgModule({

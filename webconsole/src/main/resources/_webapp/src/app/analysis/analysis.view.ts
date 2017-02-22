@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -13,10 +13,22 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
 
+import { overlayConfigFactory, Overlay } from "angular2-modal";
+import {
+  VEXBuiltInThemes,
+  Modal,
+  DialogFormModal
+} from 'angular2-modal/plugins/vex';
+
+
 @Component({
   moduleId: module.id,
   templateUrl: './templates/view.html',
-  styleUrls: [ './templates/css/view.css' ]
+  styleUrls: [ './templates/css/view.css' ],
+  encapsulation: ViewEncapsulation.None,
+  entryComponents: [
+    DialogFormModal
+  ]
 })
 export class MainView implements OnInit {
 
@@ -30,8 +42,10 @@ export class MainView implements OnInit {
     selectedLayout:string = "";
     textSize:string = "";
 
-    constructor(apiClient: ApiClient, private route: ActivatedRoute, private _viewService:ViewService) {
+    constructor(apiClient: ApiClient, private route: ActivatedRoute, overlay: Overlay,
+            private _viewService:ViewService,  private modal: Modal, vcRef: ViewContainerRef) {
         this.http = apiClient;
+        overlay.defaultViewContainer = vcRef;
    }
 
    ngOnInit():void {}
@@ -78,6 +92,25 @@ export class MainView implements OnInit {
    public onChangeTextSize(event:any):void {
         this.currentView.changeTextSize(event);
         this._viewService.saveDashboard();
+   }
+
+   public resetView():void {
+     this.modal.confirm()
+        .className(<VEXBuiltInThemes>'default')
+        .message('View will be reset to all users. Proceed?')
+        .open()
+         .then((resultPromise) => {
+            return (<Promise<boolean>>resultPromise.result)
+              .then((response) => {
+                 this._viewService.resetView(this.currentView).subscribe(data => {
+                    console.log("view has been reset: ", data);
+                 });
+                 return response;
+              })
+              .catch(() => {
+                console.log("user prefered to decline view reset");
+              });
+          });
    }
 
    private handleCy(_cy:any):void {

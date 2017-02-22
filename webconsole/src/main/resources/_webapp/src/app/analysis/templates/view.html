@@ -1,12 +1,12 @@
 <div id="viewMenu">
   <div class="" role="tabpanel" data-example-id="togglable-tabs">
     <ul id="myTab1" class="nav nav-tabs bar_tabs" role="tablist">
-      <li role="presentation" class="active"><a href="#tab_info" id="home-tabb" role="tab" data-toggle="tab" aria-controls="info" aria-expanded="true" *ngIf="metadata && nodeSelected">Information</a></li>
-      <li role="presentation" class=""><a href="#tab_settings" role="tab" id="profile-tabb" data-toggle="tab" aria-controls="settings" aria-expanded="false">Nodes settings</a></li>
+      <li role="presentation" class=""><a href="#tab_info" id="home-tabb" role="tab" data-toggle="tab" aria-controls="info" aria-expanded="false" *ngIf="metadata && nodeSelected">Information</a></li>
+      <li role="presentation" class="active"><a href="#tab_settings" role="tab" id="profile-tabb" data-toggle="tab" aria-controls="settings" aria-expanded="true">Nodes settings</a></li>
       <li role="presentation" class=""><a href="#tab_cy" role="tab" id="cy-tabb" data-toggle="tab" aria-controls="cy" aria-expanded="false">Graph settings</a></li>
     </ul>
     <div id="myTabContent2" class="tab-content">
-      <div role="tabpanel" class="tab-pane fade active in" id="tab_info" aria-labelledby="info-tab" *ngIf="metadata && nodeSelected">
+      <div role="tabpanel" class="tab-pane fade " id="tab_info" aria-labelledby="info-tab" *ngIf="metadata && nodeSelected">
         <div>
           <timeInterval [id]="'availabilityToggle'" [jsonObject]="metadata.availability" [title]="'Availability'"></timeInterval>
           <timeInterval [id]="'maxRatePerSecondToggle'" [jsonObject]="metadata.maxRatePerSecond" [title]="'Max rate per second'"></timeInterval>
@@ -52,7 +52,7 @@
         <div *ngIf="metadata && !nodeSelected">{{metadata}}</div>
         <div *ngIf="!metadata">No data is available</div>
       </div>
-      <div role="tabpanel" class="tab-pane fade" id="tab_settings" aria-labelledby="settings-tab">
+      <div role="tabpanel" class="tab-pane fade active in" id="tab_settings" aria-labelledby="settings-tab">
         <p>Select needful information to display on graph: </p>
           <checkboxGroup [id]="'availabilityCheckboxToggle'" [title]="'Availability'" [formName]="'availability'"></checkboxGroup>
           <checkboxGroup [id]="'maxRatePerSecondCheckboxToggle'" [title]="'Max rate per second'" [formName]="'maxRatePerSecond'"></checkboxGroup>
@@ -135,7 +135,7 @@
       </div>
       <div role="tabpanel" class="tab-pane fade" id="tab_cy" aria-labelledby="cy-tab">
 
-        <div class="form-group">
+        <div class="form-group row">
           <label class="control-label col-md-3 col-sm-3 col-xs-12 middleVertical" for="layout-select">Layout</label>
           <div class="col-md-9 col-sm-9 col-xs-12">
             <select class="form-control" [(ngModel)]="selectedLayout" (ngModelChange)="onChangeLayout($event)" id="layout-select">
@@ -154,6 +154,10 @@
           <div class="col-md-9 col-sm-9 col-xs-12">
             <input class="form-control" type="number" [(ngModel)]="textSize" id="text-size-input" placeholder="Input text size" (ngModelChange)="onChangeTextSize($event)">
           </div>
+        </div>
+
+        <div class="row">
+          <button class="btn btn-primary" (click)="resetView()">Reset view</button>
         </div>
 
       </div>

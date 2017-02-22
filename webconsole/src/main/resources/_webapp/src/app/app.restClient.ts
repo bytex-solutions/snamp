@@ -97,8 +97,6 @@ export class REST {
         return REST.RESOURCE_CONFIG + "/" + encodeURIComponent(name);
     }
 
-    public static ENTITY
-
     public static GATEWAY_TYPE(name:string):string {
         return REST.GATEWAY_BY_NAME(name) + "/type";
     }
@@ -163,4 +161,7 @@ export class REST {
 
     // compute e2e view
     public static COMPUTE_VIEW:string = "/snamp/web/api/e2e/compute";
+
+    // reset e2e view
+    public static RESET_VIEW:string = "/snamp/web/api/e2e/reset";
 }

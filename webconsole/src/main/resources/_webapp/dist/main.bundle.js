@@ -83864,6 +83864,8 @@ var REST = (function () {
     REST.VIEWS_DASHBOARD = "/snamp/web/api/e2e/settings";
     // compute e2e view
     REST.COMPUTE_VIEW = "/snamp/web/api/e2e/compute";
+    // reset e2e view
+    REST.RESET_VIEW = "/snamp/web/api/e2e/reset";
     return REST;
 }());
 exports.REST = REST;
@@ -84051,6 +84053,10 @@ var ViewService = (function () {
     ViewService.prototype.getDataForView = function (view) {
         return this._http.post(app_restClient_1.REST.COMPUTE_VIEW, view.toJSON())
             .map(function (data) { return data.json(); });
+    };
+    ViewService.prototype.resetView = function (view) {
+        return this._http.post(app_restClient_1.REST.RESET_VIEW, view.toJSON())
+            .map(function (data) { return data.text(); });
     };
     ViewService.prototype.getViewByName = function (name) {
         var result = undefined;
