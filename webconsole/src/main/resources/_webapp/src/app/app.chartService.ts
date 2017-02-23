@@ -57,6 +57,22 @@ export class ChartService {
         this.saveDashboard();
     }
 
+    public receiveChartDataForCharts(_chs:AbstractChart[]):void {
+         let _chArrJson:any[] = [];
+         for (let i = 0; i < _chs.length; i++) {
+            _chArrJson.push(_chs[i].toJSON());
+         }
+         this._http.post(REST.CHART_DASHBOARD, _chArrJson)
+            .map((res:Response) => res.json())
+            .subscribe(data => {
+                console.log("received chart data is: ", data);
+            });
+    }
+
+    public receiveChartDataForGroupName(gn:string):void {
+         this.receiveChartDataForCharts(this.getChartsByGroupName(gn));
+    }
+
     public setDefaultDashboard(ws:$WebSocket):void {
         ws.send(JSON.stringify(this._dashboard.toJSON())).publish().connect();
     }

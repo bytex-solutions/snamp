@@ -83164,6 +83164,20 @@ var ChartService = (function () {
         this._dashboard.groups.push(groupName);
         this.saveDashboard();
     };
+    ChartService.prototype.receiveChartDataForCharts = function (_chs) {
+        var _chArrJson = [];
+        for (var i = 0; i < _chs.length; i++) {
+            _chArrJson.push(_chs[i].toJSON());
+        }
+        this._http.post(app_restClient_1.REST.CHART_DASHBOARD, _chArrJson)
+            .map(function (res) { return res.json(); })
+            .subscribe(function (data) {
+            console.log("received chart data is: ", data);
+        });
+    };
+    ChartService.prototype.receiveChartDataForGroupName = function (gn) {
+        this.receiveChartDataForCharts(this.getChartsByGroupName(gn));
+    };
     ChartService.prototype.setDefaultDashboard = function (ws) {
         ws.send(JSON.stringify(this._dashboard.toJSON())).publish().connect();
     };
@@ -83859,6 +83873,8 @@ var REST = (function () {
     REST.RGROUP_LIST = REST.RGROUP_CONFIG + "/list";
     // web console api (chart related and others)
     REST.CHART_DASHBOARD = "/snamp/web/api/charts/settings";
+    // web console api (chart related and others)
+    REST.CHARTS_COMPUTE = "/snamp/web/api/charts/compute";
     REST.CHART_COMPONENTS = "/snamp/web/api/managedResources/components";
     // web console api (view related and others)
     REST.VIEWS_DASHBOARD = "/snamp/web/api/e2e/settings";

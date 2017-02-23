@@ -140,6 +140,9 @@ var Dashboard = (function () {
             for (var i = 0; i < _this._charts.length; i++) {
                 _this._charts[i].draw();
             }
+            setInterval(function () {
+                _thisReference._chartService.receiveChartDataForGroupName(gn);
+            }, 1000);
         });
         $(document).ready(function () {
             _thisReference.initWizard();
@@ -154,7 +157,6 @@ var Dashboard = (function () {
         });
         var _thisReference = this;
         $(this.getSmartWizardIdentifier()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
-            console.log("step direction: ", stepDirection);
             if (stepNumber == 3) {
                 _thisReference.updateChartName();
             }

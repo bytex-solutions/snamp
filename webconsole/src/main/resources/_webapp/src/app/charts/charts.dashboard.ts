@@ -160,7 +160,10 @@ export class Dashboard {
                 this._charts = this._chartService.getChartsByGroupName(this.groupName);
                 for (let i = 0; i < this._charts.length; i++) {
                     this._charts[i].draw();
-                 }
+                }
+                setInterval(function(){
+                    _thisReference._chartService.receiveChartDataForGroupName(gn);
+                }, 1000);
              });
         $(document).ready(function(){
              _thisReference.initWizard();
@@ -178,7 +181,6 @@ export class Dashboard {
         var _thisReference = this;
 
         $(this.getSmartWizardIdentifier()).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
-            console.log("step direction: ", stepDirection);
             if (stepNumber == 3) {
                 _thisReference.updateChartName();
             } else if (stepNumber == 2) {
