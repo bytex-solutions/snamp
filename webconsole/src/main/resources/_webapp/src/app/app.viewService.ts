@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Response } from '@angular/http';
-import { LocalStorageService } from 'angular-2-local-storage';
 import { Subject } from 'rxjs/Subject';
 import { ApiClient, REST } from './app.restClient';
 
@@ -18,17 +17,11 @@ import 'rxjs/add/observable/of';
 
 @Injectable()
 export class ViewService {
-    private KEY_DATA:string = "snampViewData";
     private _dashboard:Dashboard;
-    private viewSubjects:{ [key:string]: Subject<any> } = {};
-
     private viewNames:Subject<string[]> = new Subject();
 
-    constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
+    constructor(private _http:ApiClient) {
           this.loadDashboard();
-          if (this.localStorageService.get(this.KEY_DATA) == undefined) {
-               this.localStorageService.set(this.KEY_DATA, {});
-          }
     }
 
     public getViews():E2EView[] {
@@ -50,13 +43,10 @@ export class ViewService {
 
         _res.subscribe(data => {
             this._dashboard = new Dashboard();
-            this.viewSubjects = {};
             this.viewNames.next(data.views.map(_d => _d.name));
             if (data.views.length > 0) {
                 for (let i = 0; i < data.views.length; i++) {
                     let _currentView:E2EView = Factory.viewFromJSON(data.views[i]);
-                    this.viewSubjects[_currentView.name] = new Subject<any>();
-                   // _currentView.subscribeToSubject(this.viewSubjects[_currentView.name]);
                     this._dashboard.views.push(_currentView);
                 }
             }
@@ -78,9 +68,7 @@ export class ViewService {
         } else {
             console.log("New created view is: ", view);
             this._dashboard.views.push(view);
-            this.viewSubjects[view.name] = new Subject<any>();
             this.viewNames.next(this._dashboard.views.map(data => data.name));
-           // view.subscribeToSubject(this.viewSubjects[view.name]);
             this.saveDashboard();
         }
     }
@@ -92,23 +80,12 @@ export class ViewService {
                 // remove the view from the dashboard
                 this._dashboard.views.splice(i, 1);
 
-                // nullify the corresponding subject
-                this.viewSubjects[viewName] = undefined;
-
                 // save the dashboard
                 this.saveDashboard();
                 return;
             }
         }
         throw new Error("Could not find a view " + viewName);
-    }
-
-    getObservableForView(name:string):Observable<any> {
-        if (this.viewSubjects[name] != undefined) {
-            return this.viewSubjects[name].asObservable().share();
-        } else {
-            throw new Error("Cannot find any subject for view " + name);
-        }
     }
 
     getDataForView(view:E2EView):Observable<any> {

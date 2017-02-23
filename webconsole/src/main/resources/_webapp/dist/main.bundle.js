@@ -83957,7 +83957,6 @@ exports.UsernameComponent = UsernameComponent;
 "use strict";
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
 var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
 var dashboard_1 = __webpack_require__("./src/app/analysis/model/dashboard.ts");
@@ -83968,16 +83967,10 @@ __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
 __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
 var ViewService = (function () {
-    function ViewService(localStorageService, _http) {
-        this.localStorageService = localStorageService;
+    function ViewService(_http) {
         this._http = _http;
-        this.KEY_DATA = "snampViewData";
-        this.viewSubjects = {};
         this.viewNames = new Subject_1.Subject();
         this.loadDashboard();
-        if (this.localStorageService.get(this.KEY_DATA) == undefined) {
-            this.localStorageService.set(this.KEY_DATA, {});
-        }
     }
     ViewService.prototype.getViews = function () {
         return this._dashboard.views;
@@ -83995,13 +83988,10 @@ var ViewService = (function () {
         }).publishLast().refCount();
         _res.subscribe(function (data) {
             _this._dashboard = new dashboard_1.Dashboard();
-            _this.viewSubjects = {};
             _this.viewNames.next(data.views.map(function (_d) { return _d.name; }));
             if (data.views.length > 0) {
                 for (var i = 0; i < data.views.length; i++) {
                     var _currentView = objectFactory_1.Factory.viewFromJSON(data.views[i]);
-                    _this.viewSubjects[_currentView.name] = new Subject_1.Subject();
-                    // _currentView.subscribeToSubject(this.viewSubjects[_currentView.name]);
                     _this._dashboard.views.push(_currentView);
                 }
             }
@@ -84022,9 +84012,7 @@ var ViewService = (function () {
         else {
             console.log("New created view is: ", view);
             this._dashboard.views.push(view);
-            this.viewSubjects[view.name] = new Subject_1.Subject();
             this.viewNames.next(this._dashboard.views.map(function (data) { return data.name; }));
-            // view.subscribeToSubject(this.viewSubjects[view.name]);
             this.saveDashboard();
         }
     };
@@ -84033,22 +84021,12 @@ var ViewService = (function () {
             if (this._dashboard.views[i].name == viewName) {
                 // remove the view from the dashboard
                 this._dashboard.views.splice(i, 1);
-                // nullify the corresponding subject
-                this.viewSubjects[viewName] = undefined;
                 // save the dashboard
                 this.saveDashboard();
                 return;
             }
         }
         throw new Error("Could not find a view " + viewName);
-    };
-    ViewService.prototype.getObservableForView = function (name) {
-        if (this.viewSubjects[name] != undefined) {
-            return this.viewSubjects[name].asObservable().share();
-        }
-        else {
-            throw new Error("Cannot find any subject for view " + name);
-        }
     };
     ViewService.prototype.getDataForView = function (view) {
         return this._http.post(app_restClient_1.REST.COMPUTE_VIEW, view.toJSON())
@@ -84085,10 +84063,10 @@ var ViewService = (function () {
     };
     ViewService = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object, (typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
     ], ViewService);
     return ViewService;
-    var _a, _b;
+    var _a;
 }());
 exports.ViewService = ViewService;
 
