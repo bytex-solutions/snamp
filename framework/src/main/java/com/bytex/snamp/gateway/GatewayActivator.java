@@ -88,7 +88,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
         }
 
         @Override
-        protected String getFactoryPID(final RequiredService<?>[] dependencies) {
+        protected String getFactoryPID() {
             return getParser().getFactoryPersistentID(gatewayType);
         }
 
@@ -97,7 +97,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
                            final Dictionary<String, ?> configuration) throws Exception {
             final CMGatewayParser parser = getParser();
             final String instanceName = parser.getInstanceName(configuration);
-            final GatewayConfiguration newConfig = parser.parse(configuration);
+            final GatewayConfiguration newConfig = parser.parse(configuration).get();
             if (newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be updated. Configuration not found.", instanceName));
             newConfig.setType(gatewayType);
@@ -123,7 +123,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
                                   final Dictionary<String, ?> configuration) throws Exception {
             final CMGatewayParser parser = getParser();
             final String instanceName = parser.getInstanceName(configuration);
-            final GatewayConfiguration newConfig = parser.parse(configuration);
+            final GatewayConfiguration newConfig = parser.parse(configuration).get();
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be created. Configuration not found.", instanceName));
             newConfig.setType(gatewayType);

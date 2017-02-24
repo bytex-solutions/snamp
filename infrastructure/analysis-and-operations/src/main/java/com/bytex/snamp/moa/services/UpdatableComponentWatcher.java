@@ -2,7 +2,8 @@ package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.WeakEventListenerList;
-import com.bytex.snamp.connector.supervision.HealthStatus;
+import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
+import com.bytex.snamp.connector.supervision.HealthStatusCore;
 import com.bytex.snamp.moa.watching.*;
 
 import javax.annotation.Nonnull;
@@ -50,10 +51,10 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
     @SpecialUse(SpecialUse.Case.JVM)
     private volatile AbstractStatusDetails status;
 
-    private final ConcurrentMap<String, HealthStatus> attributesStatusMap;
+    private final ConcurrentMap<String, HealthStatusCore> attributesStatusMap;
     private final WeakEventListenerList<ComponentStatusEventListener, ComponentStatusChangedEvent> listeners;
 
-    UpdatableComponentWatcher() {
+    UpdatableComponentWatcher(final ManagedResourceGroupWatcherConfiguration configuration) {
         super(15);
         status = OkStatusDetails.INSTANCE;
         attributesStatusMap = new ConcurrentHashMap<>(15);
@@ -127,16 +128,16 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
     void updateStatus(final String resourceName, final Attribute attribute) {
         final AttributeChecker checker = get(attribute.getName());
         if (checker != null) {
-            final HealthStatus attributeStatus = checker.getStatus(attribute);
+            final HealthStatusCore attributeStatus = checker.getStatus(attribute);
             attributesStatusMap.put(attribute.getName(), attributeStatus);
-            final HealthStatus newStatus = attributesStatusMap.values().stream().reduce(HealthStatus.OK, HealthStatus::max);
+            final HealthStatusCore newStatus = attributesStatusMap.values().stream().reduce(HealthStatusCore.OK, HealthStatusCore::max);
             updateStatus(new CausedByAttributeStatusDetails(resourceName, attribute, newStatus));
         }
     }
 
     void updateStatus(final String resourceName, final JMException error) {
         //reset state of all attributes
-        attributesStatusMap.replaceAll((attribute, old) -> HealthStatus.OK);
+        attributesStatusMap.replaceAll((attribute, old) -> HealthStatusCore.OK);
         updateStatus(new ResourceUnavailableStatus(resourceName, error));
     }
 

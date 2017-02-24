@@ -22,7 +22,7 @@ public abstract class GroupStatusChangedEvent extends EventObject {
         super(source);
     }
 
-    public abstract GroupStatusDetails getNewStatus();
+    public abstract GroupStatus getNewStatus();
 
-    public abstract GroupStatusDetails getPreviousStatus();
+    public abstract GroupStatus getPreviousStatus();
 }

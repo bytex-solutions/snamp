@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.connector.supervision.HealthStatus;
-import com.bytex.snamp.connector.supervision.CausedByAttribute;
+import com.bytex.snamp.connector.supervision.HealthStatusCore;
+import com.bytex.snamp.connector.supervision.InvalidAttributeValue;
 
 import javax.management.Attribute;
 import java.util.Objects;
@@ -11,18 +11,18 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-final class CausedByAttributeStatusDetails extends TypedStatusDetails<CausedByAttribute> {
-    private final HealthStatus status;
+final class CausedByAttributeStatusDetails extends TypedStatusDetails<InvalidAttributeValue> {
+    private final HealthStatusCore status;
 
     CausedByAttributeStatusDetails(final String resourceName,
                                    final Attribute attribute,
-                                   final HealthStatus status){
-        super(resourceName, new CausedByAttribute(attribute));
+                                   final HealthStatusCore status){
+        super(resourceName, new InvalidAttributeValue(attribute));
         this.status = Objects.requireNonNull(status);
     }
 
     @Override
-    public HealthStatus getStatus() {
+    public HealthStatusCore getStatus() {
         return status;
     }
 }

@@ -1,5 +1,6 @@
 package com.bytex.snamp.configuration.internal;
 
+import com.bytex.snamp.SingletonCollection;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 
 import java.util.Dictionary;
@@ -21,7 +22,8 @@ public interface CMGatewayParser extends CMConfigurationParser<GatewayConfigurat
      */
     String getFactoryPersistentID(final String gatewayType);
 
-    GatewayConfiguration parse(final Dictionary<String, ?> configuration);
+    @Override
+    SingletonCollection<? extends GatewayConfiguration> parse(final Dictionary<String, ?> configuration);
 
     /**
      * Extracts the name of the gateway instance from its configuration.

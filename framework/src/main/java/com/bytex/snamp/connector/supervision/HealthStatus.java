@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.supervision;
 
+import com.bytex.snamp.Localizable;
+
 import java.io.Serializable;
 
 /**
@@ -8,27 +10,22 @@ import java.io.Serializable;
  * @version 2.0
  * @since 2.0
  */
-public enum HealthStatus implements Serializable {
+public interface HealthStatus extends Serializable, Comparable<HealthStatus>, Localizable {
     /**
-     * Service is online
+     * Indicates that managed resource is in critical state (potentially unavailable).
+     *
+     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
      */
-    OK,
-
-    /**
-     * Something wrong with component.
-     */
-    SUSPICIOUS,
+    boolean isCritical();
 
     /**
-     * The component is offline or not working.
+     * Gets status code that uniquely identifies this type of status.
+     *
+     * @return Status code.
      */
-    MALFUNCTION;
+    int getStatusCode();
 
-    public final HealthStatus max(final HealthStatus other){
-        return compareTo(other) >= 0 ? this : other;
-    }
-
-    public final HealthStatus min(final HealthStatus other){
-        return compareTo(other) <= 0 ? this : other;
+    static <S extends HealthStatus> S max(final S left, final S right) {
+        return left.compareTo(right) >= 0 ? left : right;
     }
 }

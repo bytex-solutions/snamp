@@ -4,58 +4,36 @@ import com.bytex.snamp.Box;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.WeakRepeater;
+import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.supervision.GroupStatus;
+import com.bytex.snamp.connector.supervision.GroupStatusEventListener;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
-import com.bytex.snamp.moa.watching.ComponentWatcher;
-import com.bytex.snamp.moa.watching.ComponentWatchersRepository;
-import com.bytex.snamp.moa.watching.WatcherService;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import org.osgi.service.cm.ConfigurationException;
 
+import javax.annotation.Nonnull;
 import javax.management.Attribute;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
-
-import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements WatcherService {
-    private static final class ConcurrentWatchersRepository extends ConcurrentHashMap<String, UpdatableComponentWatcher> implements ComponentWatchersRepository<UpdatableComponentWatcher> {
-        private static final long serialVersionUID = -8757794702136258515L;
-
-        @Override
-        public boolean addAndConsume(final String key, final Consumer<? super UpdatableComponentWatcher> handler) {
-            final UpdatableComponentWatcher newWatcher = new UpdatableComponentWatcher();
-            final UpdatableComponentWatcher oldWatcher = putIfAbsent(key, newWatcher);
-            if (oldWatcher == null) {
-                handler.accept(newWatcher);
-                return true;
-            } else {
-                handler.accept(oldWatcher);
-                return false;
-            }
-        }
-
-        @Override
-        public UpdatableComponentWatcher getOrAdd(final String componentName) {
-            UpdatableComponentWatcher watcher = new UpdatableComponentWatcher();
-            watcher = firstNonNull(putIfAbsent(componentName, watcher), watcher);
-            return watcher;
-        }
+final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements HealthAnalyzer {
+    private enum ResourceGroup{
+        ATTRIBUTES,
+        WATCHERS
     }
 
     private static final class StatusUpdater extends WeakRepeater<WatcherModule> {
@@ -95,14 +73,23 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements
     }
 
     private final Multimap<String, String> componentToResourceMap;
+    private final Map<String, UpdatableComponentWatcher> watchers;
     private StatusUpdater statusUpdater;
-    private final ConcurrentWatchersRepository watchers;
     private final ExecutorService threadPool;
+    private final CMManagedResourceGroupWatcherParser watcherParser;
 
-    WatcherModule(final ExecutorService threadPool) {
+
+    WatcherModule(final ExecutorService threadPool, final CMManagedResourceGroupWatcherParser watcherParser) {
+        super(ResourceGroup.class, ResourceGroup.ATTRIBUTES);
         componentToResourceMap = HashMultimap.create();
-        watchers = new ConcurrentWatchersRepository();
         this.threadPool = Objects.requireNonNull(threadPool);
+        this.watcherParser = Objects.requireNonNull(watcherParser);
+        watchers = new HashMap<>();
+    }
+
+    String getPersistentID(){
+        return watcherParser.getPersistentID();
+                
     }
 
     private void updateWatcher(final String componentName, final UpdatableComponentWatcher watcher) throws TimeoutException, InterruptedException {
@@ -164,12 +151,67 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements
      */
     @Override
     public void reset() {
-        watchers.values().forEach(ComponentWatcher::reset);
+        readLock.accept(ResourceGroup.WATCHERS, watchers, watchers -> watchers.values().forEach(UpdatableComponentWatcher::reset));
+    }
+
+    /**
+     * Gets immutable set of groups configured for health check.
+     *
+     * @return Immutable set of groups configured for health check.
+     */
+    @Override
+    public Set<String> getWatchingGroups() {
+        return readLock.apply(ResourceGroup.WATCHERS, watchers, watchers -> ImmutableSet.copyOf(watchers.keySet()));
+    }
+
+    /**
+     * Gets health status of the specified group.
+     *
+     * @param groupName Group of managed resources.
+     * @return Health status of the group; or {@literal null}, if group is not configured for watching.
+     */
+    @Override
+    public GroupStatus getHealthStatus(final String groupName) {
+        return readLock.apply(ResourceGroup.WATCHERS, watchers, watchers -> {
+            final UpdatableComponentWatcher watcher = watchers.get(groupName);
+            return watcher == null ? null : watcher.getStatus();
+        });
+    }
+
+    /**
+     * Adds listener of health status.
+     *
+     * @param listener Listener of health status to add.
+     */
+    @Override
+    public void addHealthStatusEventListener(final GroupStatusEventListener listener) {
+
+    }
+
+    /**
+     * Removes listener of health status.
+     *
+     * @param listener Listener of health status to remove.
+     */
+    @Override
+    public void removeHealthStatusEventListener(final GroupStatusEventListener listener) {
+
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the requested object.
+     * @return An instance of the aggregated object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(@Nonnull final Class<T> objectType) {
+        return objectType.isInstance(this) ? objectType.cast(this) : null;
     }
 
     @Override
-    public ComponentWatchersRepository<?> getComponentsWatchers() {
-        return watchers;
+    public void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
+        
     }
 
     void startWatching(final Duration updatePeriod){

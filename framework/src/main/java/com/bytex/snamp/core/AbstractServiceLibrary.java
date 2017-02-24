@@ -352,20 +352,15 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             factoryPID = new LazyStrongReference<>();
         }
 
-        final String getCachedFactoryPID(){
-            return factoryPID.lazyGet(this, DynamicServiceManager::discoverFactoryPID);
-        }
-
-        private String discoverFactoryPID(){
-            return getFactoryPID(super.ownDependencies.stream().toArray(RequiredService<?>[]::new));
+        private String getCachedFactoryPID() {
+            return factoryPID.lazyGet(this, DynamicServiceManager::getFactoryPID);
         }
 
         /**
          * Gets the base persistent identifier used as a prefix for individual dynamic services configuration.
-         * @param dependencies A set of dependencies required by this service manager.
          * @return The base persistent identifier. Cannot be {@literal null} or empty string.
          */
-        protected abstract String getFactoryPID(final RequiredService<?>[] dependencies);
+        protected abstract String getFactoryPID();
 
         /**
          * Automatically invokes by SNAMP when the dynamic service should be updated with

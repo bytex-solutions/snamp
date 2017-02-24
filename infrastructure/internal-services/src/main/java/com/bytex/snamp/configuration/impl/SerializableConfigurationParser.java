@@ -1,32 +1,52 @@
 package com.bytex.snamp.configuration.impl;
 
+import com.bytex.snamp.Stateful;
 import com.google.common.collect.ImmutableSet;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-abstract class SerializableConfigurationParser<E extends AbstractEntityConfiguration> extends AbstractConfigurationParser<E> {
-    private final String persistenceID;
+abstract class SerializableConfigurationParser<E extends SerializableEntityConfiguration & Stateful> extends AbstractConfigurationParser<E> {
+    final String persistentID;
     private final Class<E> entityType;
     private final ImmutableSet<String> excludeConfigKeys;
 
     SerializableConfigurationParser(final String pid,
                                     final Class<E> entityType,
-                                    final String... excludeConfigKeys){
-        this.persistenceID = Objects.requireNonNull(pid);
+                                    final String... excludeConfigKeys) {
+        this.persistentID = Objects.requireNonNull(pid);
         this.entityType = Objects.requireNonNull(entityType);
-        this.excludeConfigKeys = ImmutableSet.copyOf(excludeConfigKeys);
+        this.excludeConfigKeys = ImmutableSet.<String>builder()
+                .add(excludeConfigKeys)
+                .add(SERVICE_PID)
+                .add(OBJECTCLASS)
+                .build();
+    }
+
+    /**
+     * Converts {@link Configuration} into SNAMP-specific configuration section.
+     *
+     * @param config Configuration to convert.
+     * @return Converted SNAMP configuration section.
+     * @throws IOException Unable to parse persistent configuration.
+     */
+    @Override
+    public final Collection<E> parse(final Dictionary<String, ?> config) throws IOException {
+        final List<E> result = new LinkedList<>();
+        readItems(config, (key, value) -> result.add(value));
+        return result;
     }
 
     private Configuration getConfig(final ConfigurationAdmin admin) throws IOException{
-        return admin.getConfiguration(persistenceID);
+        return admin.getConfiguration(persistentID);
     }
 
     private E deserialize(final String itemName, final Dictionary<String, ?> properties) throws IOException {
@@ -38,26 +58,19 @@ abstract class SerializableConfigurationParser<E extends AbstractEntityConfigura
         getConfig(admin).delete();
     }
 
-    private void readItems(final Dictionary<String, ?> items, final Enumeration<String> keys, final Map<String, E> output) throws IOException {
+    private void readItems(final Dictionary<String, ?> items, final BiConsumer<? super String, ? super E> output) throws IOException {
+        final Enumeration<String> keys = items.keys();
         while (keys.hasMoreElements()) {
             final String itemName = keys.nextElement();
             if (!excludeConfigKeys.contains(itemName))
-                switch (itemName) {
-                    case SERVICE_PID:
-                    case OBJECTCLASS:
-                        continue;
-                    default:
-                        if (!excludeConfigKeys.contains(itemName))
-                            output.put(itemName, deserialize(itemName, items));
-                }
+                output.accept(itemName, deserialize(itemName, items));
         }
     }
 
     private void readItems(final Configuration input, final Map<String, E> output) throws IOException {
         final Dictionary<String, ?> items = input.getProperties();
-        final Optional<Enumeration<String>> names = Optional.ofNullable(items).map(Dictionary::keys);
-        if (names.isPresent())
-            readItems(items, names.get(), output);
+        if (items != null)
+            readItems(items, output::put);
     }
 
     @Override

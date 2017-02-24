@@ -16,7 +16,7 @@ final class ThreadPoolList extends ConfigurationEntityList<SerializableThreadPoo
     }
 
     @Override
-    protected SerializableThreadPoolConfiguration createEntity() {
+    protected SerializableThreadPoolConfiguration createValue() {
         final SerializableThreadPoolConfiguration result = new SerializableThreadPoolConfiguration();
         result.markAsModified();
         return result;

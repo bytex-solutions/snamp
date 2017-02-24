@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.connector.supervision.HealthStatus;
-import com.bytex.snamp.connector.supervision.ResourceUnavailable;
+import com.bytex.snamp.connector.supervision.HealthStatusCore;
+import com.bytex.snamp.connector.supervision.ResourceInGroupIsNotUnavailable;
 
 import javax.management.JMException;
 
@@ -10,13 +10,13 @@ import javax.management.JMException;
  * @version 2.0
  * @since 2.0
  */
-final class ResourceUnavailableStatus extends TypedStatusDetails<ResourceUnavailable> {
+final class ResourceUnavailableStatus extends TypedStatusDetails<ResourceInGroupIsNotUnavailable> {
     ResourceUnavailableStatus(final String resourceName, final JMException error){
-        super(resourceName, new ResourceUnavailable(error));
+        super(resourceName, new ResourceInGroupIsNotUnavailable(error));
     }
 
     @Override
-    public HealthStatus getStatus() {
-        return HealthStatus.MALFUNCTION;
+    public HealthStatusCore getStatus() {
+        return HealthStatusCore.MALFUNCTION;
     }
 }

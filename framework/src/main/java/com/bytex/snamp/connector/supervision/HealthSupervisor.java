@@ -12,7 +12,7 @@ import java.util.Set;
  * @version 2.0
  * @since 2.0
  */
-public interface HealthCheckService extends FrameworkService, DataAnalyzer {
+public interface HealthSupervisor extends FrameworkService, DataAnalyzer {
     /**
      * Gets immutable set of groups configured for health check.
      * @return Immutable set of groups configured for health check.
@@ -25,17 +25,17 @@ public interface HealthCheckService extends FrameworkService, DataAnalyzer {
      * @param groupName Group of managed resources.
      * @return Health status of the group; or {@literal null}, if group is not configured for watching.
      */
-    GroupStatusDetails getHealthStatus(final String groupName);
+    GroupStatus getHealthStatus(final String groupName);
 
     /**
      * Adds listener of health status.
-     * @param listener Listener of health status.
+     * @param listener Listener of health status to add.
      */
     void addHealthStatusEventListener(final GroupStatusEventListener listener);
 
     /**
      * Removes listener of health status.
-     * @param listener
+     * @param listener Listener of health status to remove.
      */
     void removeHealthStatusEventListener(final GroupStatusEventListener listener);
 }

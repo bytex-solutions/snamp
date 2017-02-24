@@ -13,7 +13,7 @@ final class GatewayList extends ConfigurationEntityList<SerializableGatewayConfi
     }
 
     @Override
-    protected SerializableGatewayConfiguration createEntity() {
+    protected SerializableGatewayConfiguration createValue() {
         final SerializableGatewayConfiguration result = new SerializableGatewayConfiguration();
         result.markAsModified();
         return result;

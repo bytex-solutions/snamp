@@ -113,7 +113,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         @Override
-        protected String getFactoryPID(final RequiredService<?>[] dependencies) {
+        protected String getFactoryPID() {
             return getParser().getFactoryPersistentID(connectorType);
         }
 
@@ -217,7 +217,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                     final Dictionary<String, ?> configuration) throws Exception {
             final CMManagedResourceParser parser = getParser();
             final String resourceName = parser.getResourceName(configuration);
-            final ManagedResourceConfiguration newConfig = parser.parse(configuration);
+            final ManagedResourceConfiguration newConfig = parser.parse(configuration).get();
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Managed resource %s cannot be updated. Configuration not found.", resourceName));
             newConfig.expandParameters();
@@ -279,7 +279,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                            final Dictionary<String, ?> configuration) throws Exception {
             final CMManagedResourceParser parser = getParser();
             final String resourceName = parser.getResourceName(configuration);
-            final ManagedResourceConfiguration newConfig = parser.parse(configuration);
+            final ManagedResourceConfiguration newConfig = parser.parse(configuration).get();
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Managed resource %s cannot be created. Configuration not found.", resourceName));
             newConfig.setType(connectorType);

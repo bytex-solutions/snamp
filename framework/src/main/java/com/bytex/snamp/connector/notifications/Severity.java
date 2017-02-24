@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.notifications;
 
 import com.google.common.collect.ImmutableSortedSet;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -12,7 +11,7 @@ import java.util.Objects;
  * @since 1.0
  * @see <a href="https://en.wikipedia.org/wiki/Syslog">Syslog severity levels</a>
  */
-public enum Severity implements Serializable, Comparable<Severity> {
+public enum Severity {
     /**
      * Severity is unknown.
      */

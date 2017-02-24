@@ -31,7 +31,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
 
         @Override
-        protected SerializableOperationConfiguration createEntity() {
+        protected SerializableOperationConfiguration createValue() {
             final SerializableOperationConfiguration result = new SerializableOperationConfiguration();
             result.markAsModified();
             return result;
@@ -46,7 +46,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
 
         @Override
-        protected SerializableAttributeConfiguration createEntity() {
+        protected SerializableAttributeConfiguration createValue() {
             final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
             result.markAsModified();
             return result;
@@ -61,7 +61,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
 
         @Override
-        protected SerializableEventConfiguration createEntity() {
+        protected SerializableEventConfiguration createValue() {
             final SerializableEventConfiguration result = new SerializableEventConfiguration();
             result.markAsModified();
             return result;
@@ -396,11 +396,11 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         putAll(parameters);
     }
 
-    private void load(final ManagedResourceTemplate template){
+    private void load(final ManagedResourceTemplate template) {
         type = template.getType();
-        AbstractEntityConfiguration.<AttributeConfiguration>copyEntities(template.getFeatures(AttributeConfiguration.class), attributes);
-        AbstractEntityConfiguration.<EventConfiguration>copyEntities(template.getFeatures(EventConfiguration.class), events);
-        AbstractEntityConfiguration.<OperationConfiguration>copyEntities(template.getFeatures(OperationConfiguration.class), operations);
+        attributes.load(template.getFeatures(AttributeConfiguration.class));
+        events.load(template.getFeatures(EventConfiguration.class));
+        operations.load(template.getFeatures(OperationConfiguration.class));
         loadParameters(template);
     }
 

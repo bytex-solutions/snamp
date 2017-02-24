@@ -15,9 +15,9 @@ public interface ScriptletConfiguration {
 
     /**
      * Sets scripting language.
-     * @param language Scripting language name.
+     * @param value Scripting language name.
      */
-    void setLanguage(final String language);
+    void setLanguage(final String value);
 
     /**
      * Gets script body.
@@ -27,9 +27,9 @@ public interface ScriptletConfiguration {
 
     /**
      * Sets script body.
-     * @param script Script body.
+     * @param value Script body.
      */
-    void setScript(final String script);
+    void setScript(final String value);
 
     /**
      * Determines whether the script body is just a URL-based location of script file.

@@ -1,9 +1,10 @@
 package com.bytex.snamp.configuration.internal;
 
 import com.bytex.snamp.configuration.EntityConfiguration;
-import org.osgi.service.cm.Configuration;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Dictionary;
 
 /**
  * Provides parsing of SNAMP configuration from data provided by {@link org.osgi.service.cm.Configuration}.
@@ -17,12 +18,10 @@ import java.io.IOException;
  */
 public interface CMConfigurationParser<E extends EntityConfiguration> {
     /**
-     * Converts {@link Configuration} into SNAMP-specific configuration section.
+     * Converts {@link Dictionary} into SNAMP-specific configuration section.
      * @param config Configuration to convert.
      * @return Converted SNAMP configuration section.
      * @throws IOException Unable to parse persistent configuration.
      */
-    E parse(final Configuration config) throws IOException;
-
-    void serialize(final E input, final Configuration output) throws IOException;
+    Collection<? extends E> parse(final Dictionary<String, ?> config) throws IOException;
 }

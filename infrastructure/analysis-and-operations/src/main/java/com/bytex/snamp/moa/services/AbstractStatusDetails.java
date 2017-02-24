@@ -1,6 +1,6 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.connector.supervision.GroupStatusDetails;
+import com.bytex.snamp.connector.supervision.GroupStatus;
 
 import java.util.Objects;
 
@@ -9,7 +9,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-abstract class AbstractStatusDetails implements GroupStatusDetails {
+abstract class AbstractStatusDetails implements GroupStatus {
     private final String resourceName;
 
     AbstractStatusDetails(final String resourceName){

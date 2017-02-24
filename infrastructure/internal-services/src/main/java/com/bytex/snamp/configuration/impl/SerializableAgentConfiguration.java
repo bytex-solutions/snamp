@@ -26,6 +26,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
     private final ConfigurationEntityList<SerializableThreadPoolConfiguration> threadPools;
     private final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups;
     private final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources;
+    private final ConfigurationEntityList<SerializableManagedResourceGroupWatcherConfiguration> watchers;
 
     /**
      * Initializes a new empty agent configuration.
@@ -36,6 +37,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         threadPools = new ThreadPoolList();
         groups = new ResourceGroupList();
         resources = new ManagedResourceList();
+        watchers = new WatcherList();
     }
 
     /**
@@ -48,6 +50,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         threadPools.clear();
         groups.clear();
         resources.clear();
+        watchers.clear();
     }
 
     /**
@@ -69,10 +72,11 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
     }
 
     private void load(final AgentConfiguration configuration) {
-        AbstractEntityConfiguration.<ManagedResourceConfiguration>copyEntities(configuration.getEntities(ManagedResourceConfiguration.class), resources);
-        AbstractEntityConfiguration.<ThreadPoolConfiguration>copyEntities(configuration.getEntities(ThreadPoolConfiguration.class), threadPools);
-        AbstractEntityConfiguration.<GatewayConfiguration>copyEntities(configuration.getEntities(GatewayConfiguration.class), gateways);
-        AbstractEntityConfiguration.<ManagedResourceGroupConfiguration>copyEntities(configuration.getEntities(ManagedResourceGroupConfiguration.class), groups);
+        resources.load(configuration.getEntities(ManagedResourceConfiguration.class));
+        threadPools.load(configuration.getEntities(ThreadPoolConfiguration.class));
+        gateways.load(configuration.getEntities(GatewayConfiguration.class));
+        groups.load(configuration.getEntities(ManagedResourceGroupConfiguration.class));
+        watchers.load(configuration.getEntities(ManagedResourceGroupWatcherConfiguration.class));
         loadParameters(configuration);
     }
 
@@ -86,7 +90,12 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
 
     @Override
     public boolean isModified() {
-        return gateways.isModified() || threadPools.isModified() || groups.isModified() || resources.isModified() || super.isModified();
+        return gateways.isModified() ||
+                threadPools.isModified() ||
+                groups.isModified() ||
+                resources.isModified() ||
+                watchers.isModified() ||
+                super.isModified();
     }
 
     @Override
@@ -96,6 +105,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         threadPools.reset();
         groups.reset();
         resources.reset();
+        watchers.reset();
     }
 
     /**
@@ -122,6 +132,8 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         groups.writeExternal(out);
         //write thread pools
         threadPools.writeExternal(out);
+        //write watchers
+        watchers.writeExternal(out);
     }
 
     /**
@@ -146,6 +158,8 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         groups.readExternal(in);
         //read thread pools
         threadPools.readExternal(in);
+        //read watchers
+        watchers.readExternal(in);
     }
 
     /**
@@ -153,7 +167,12 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
      * @return {@literal true}, if this configuration is empty; otherwise, {@literal false}.
      */
     boolean hasNoInnerItems(){
-        return gateways.isEmpty() && resources.isEmpty() && groups.isEmpty() && threadPools.isEmpty() && super.isEmpty();
+        return gateways.isEmpty() &&
+                resources.isEmpty() &&
+                groups.isEmpty() &&
+                threadPools.isEmpty() &&
+                watchers.isEmpty() &&
+                super.isEmpty();
     }
 
     @SuppressWarnings("unchecked")
@@ -171,6 +190,10 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         else
             result = null;
         return result;
+    }
+
+    ConfigurationEntityList<SerializableManagedResourceGroupWatcherConfiguration> getWatchers(){
+        return watchers;
     }
 
     ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> getManagedResourceGroups(){
@@ -225,6 +248,8 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
             result = new SerializableThreadPoolConfiguration();
         else if (entityType.isAssignableFrom(SerializableManagedResourceGroupConfiguration.class))
             result = new SerializableManagedResourceGroupConfiguration();
+        else if (entityType.isAssignableFrom(SerializableManagedResourceGroupWatcherConfiguration.class))
+            result = new SerializableManagedResourceGroupWatcherConfiguration();
         else
             return null;
         return entityType.cast(result);
@@ -235,6 +260,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
                 resources.equals(other.getEntities(ManagedResourceConfiguration.class)) &&
                 threadPools.equals(other.getEntities(ThreadPoolConfiguration.class)) &&
                 groups.equals(other.getEntities(ManagedResourceGroupConfiguration.class)) &&
+                watchers.equals(other.getEntities(ManagedResourceGroupWatcherConfiguration.class)) &&
                 super.equals(other);
     }
 
@@ -245,6 +271,6 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ Objects.hash(gateways, groups, resources, threadPools);
+        return super.hashCode() ^ Objects.hash(gateways, groups, resources, threadPools, watchers);
     }
 }
