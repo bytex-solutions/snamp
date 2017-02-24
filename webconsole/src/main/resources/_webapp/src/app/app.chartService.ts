@@ -62,19 +62,16 @@ export class ChartService {
          for (let i = 0; i < _chs.length; i++) {
             _chArrJson.push(_chs[i].toJSON());
          }
-         this._http.post(REST.CHART_DASHBOARD, _chArrJson)
+         this._http.post(REST.CHARTS_COMPUTE, _chArrJson)
             .map((res:Response) => res.json())
             .subscribe(data => {
-                console.log("received chart data is: ", data);
+                console.log(data);
+                this.pushNewChartData(data);
             });
     }
 
     public receiveChartDataForGroupName(gn:string):void {
          this.receiveChartDataForCharts(this.getChartsByGroupName(gn));
-    }
-
-    public setDefaultDashboard(ws:$WebSocket):void {
-        ws.send(JSON.stringify(this._dashboard.toJSON())).publish().connect();
     }
 
     private loadDashboard():void {

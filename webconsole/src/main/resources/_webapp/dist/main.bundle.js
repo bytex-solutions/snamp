@@ -83165,21 +83165,20 @@ var ChartService = (function () {
         this.saveDashboard();
     };
     ChartService.prototype.receiveChartDataForCharts = function (_chs) {
+        var _this = this;
         var _chArrJson = [];
         for (var i = 0; i < _chs.length; i++) {
             _chArrJson.push(_chs[i].toJSON());
         }
-        this._http.post(app_restClient_1.REST.CHART_DASHBOARD, _chArrJson)
+        this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, _chArrJson)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
-            console.log("received chart data is: ", data);
+            console.log(data);
+            _this.pushNewChartData(data);
         });
     };
     ChartService.prototype.receiveChartDataForGroupName = function (gn) {
         this.receiveChartDataForCharts(this.getChartsByGroupName(gn));
-    };
-    ChartService.prototype.setDefaultDashboard = function (ws) {
-        ws.send(JSON.stringify(this._dashboard.toJSON())).publish().connect();
     };
     ChartService.prototype.loadDashboard = function () {
         var _this = this;
