@@ -89,7 +89,6 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements
 
     String getPersistentID(){
         return watcherParser.getPersistentID();
-                
     }
 
     private void updateWatcher(final String componentName, final UpdatableComponentWatcher watcher) throws TimeoutException, InterruptedException {
@@ -160,7 +159,7 @@ final class WatcherModule extends ModelOfAttributes<AttributeWatcher> implements
      * @return Immutable set of groups configured for health check.
      */
     @Override
-    public Set<String> getWatchingGroups() {
+    public ImmutableSet<String> getWatchingGroups() {
         return readLock.apply(ResourceGroup.WATCHERS, watchers, watchers -> ImmutableSet.copyOf(watchers.keySet()));
     }
 

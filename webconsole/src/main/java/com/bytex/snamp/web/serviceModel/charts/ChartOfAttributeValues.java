@@ -7,7 +7,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * @author Roman Sakno
@@ -53,10 +53,8 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
 
     abstract Optional<? extends AttributeChartData> createChartData(final String instanceName, final Attribute attribute);
 
-    final void fillCharData(final String instanceName, final AttributeList attributes, final BiConsumer<? super String, ? super ChartData> output) {
-        final String chartName = getName();
+    final void fillCharData(final String instanceName, final AttributeList attributes, final Consumer<? super ChartData> output) {
         for (final Attribute attribute : attributes.asList())
-            createChartData(instanceName, attribute)
-                    .ifPresent(chartData -> output.accept(chartName, chartData));
+            createChartData(instanceName, attribute).ifPresent(output);
     }
 }
