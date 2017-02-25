@@ -7,6 +7,7 @@ import { ResourcesComponent }  from './configuration.resources';
 import { RGroupsComponent }  from './configuration.rgroups';
 import { SnampCfgComponent }  from './configuration.snampcfg';
 import { SnampLogViewComponent }  from './configuration.logview';
+import { FullSaveComponent }  from './configuration.fullsave';
 import { HttpModule } from '@angular/http';
 import { CookieService } from 'angular2-cookie/core';
 
@@ -74,4 +75,11 @@ export class SnampCFGModule { }
   declarations: [ SnampLogViewComponent ],
   providers:    PROVIDERS
 })
-export class SnampLogViewModile { }
+export class SnampLogViewModule { }
+
+@NgModule({
+  imports:      IMPORTS.concat([RouterModule.forChild([{ path: '', component: FullSaveComponent }])]),
+  declarations: [ FullSaveComponent ],
+  providers:    PROVIDERS
+})
+export class FullSaveModule { }

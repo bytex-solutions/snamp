@@ -37358,6 +37358,36 @@ module.exports = "<table class=\"table\">\r\n    <thead>\r\n    <tr>\r\n        
 
 /***/ },
 
+/***/ "./src/app/configuration/configuration.fullsave.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var FullSaveComponent = (function () {
+    function FullSaveComponent(apiClient) {
+        this.http = apiClient;
+    }
+    FullSaveComponent.prototype.ngOnInit = function () {
+        this.currentConfiguration = this.http.get(app_restClient_1.REST.CURRENT_CONFIG)
+            .map(function (data) { return JSON.stringify(data.json(), null, 4); });
+    };
+    FullSaveComponent = __decorate([
+        core_1.Component({
+            moduleId: module.i,
+            template: __webpack_require__("./src/app/configuration/templates/fullsave.html")
+        }), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
+    ], FullSaveComponent);
+    return FullSaveComponent;
+    var _a;
+}());
+exports.FullSaveComponent = FullSaveComponent;
+
+
+/***/ },
+
 /***/ "./src/app/configuration/configuration.gateways.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -37547,6 +37577,7 @@ var configuration_resources_1 = __webpack_require__("./src/app/configuration/con
 var configuration_rgroups_1 = __webpack_require__("./src/app/configuration/configuration.rgroups.ts");
 var configuration_snampcfg_1 = __webpack_require__("./src/app/configuration/configuration.snampcfg.ts");
 var configuration_logview_1 = __webpack_require__("./src/app/configuration/configuration.logview.ts");
+var configuration_fullsave_1 = __webpack_require__("./src/app/configuration/configuration.fullsave.ts");
 var http_1 = __webpack_require__("./node_modules/@angular/http/index.js");
 var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
 var binding_table_component_1 = __webpack_require__("./src/app/configuration/components/binding-table.component.ts");
@@ -37628,20 +37659,34 @@ var SnampCFGModule = (function () {
     return SnampCFGModule;
 }());
 exports.SnampCFGModule = SnampCFGModule;
-var SnampLogViewModile = (function () {
-    function SnampLogViewModile() {
+var SnampLogViewModule = (function () {
+    function SnampLogViewModule() {
     }
-    SnampLogViewModile = __decorate([
+    SnampLogViewModule = __decorate([
         core_1.NgModule({
             imports: IMPORTS.concat([router_1.RouterModule.forChild([{ path: '', component: configuration_logview_1.SnampLogViewComponent }])]),
             declarations: [configuration_logview_1.SnampLogViewComponent],
             providers: PROVIDERS
         }), 
         __metadata('design:paramtypes', [])
-    ], SnampLogViewModile);
-    return SnampLogViewModile;
+    ], SnampLogViewModule);
+    return SnampLogViewModule;
 }());
-exports.SnampLogViewModile = SnampLogViewModile;
+exports.SnampLogViewModule = SnampLogViewModule;
+var FullSaveModule = (function () {
+    function FullSaveModule() {
+    }
+    FullSaveModule = __decorate([
+        core_1.NgModule({
+            imports: IMPORTS.concat([router_1.RouterModule.forChild([{ path: '', component: configuration_fullsave_1.FullSaveComponent }])]),
+            declarations: [configuration_fullsave_1.FullSaveComponent],
+            providers: PROVIDERS
+        }), 
+        __metadata('design:paramtypes', [])
+    ], FullSaveModule);
+    return FullSaveModule;
+}());
+exports.FullSaveModule = FullSaveModule;
 
 
 /***/ },
@@ -38195,6 +38240,13 @@ exports.ResourceGroup = ResourceGroup;
             module.exports = result.toString();
         }
     
+
+/***/ },
+
+/***/ "./src/app/configuration/templates/fullsave.html":
+/***/ function(module, exports) {
+
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Save/restore configuration</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Configuration'\" [column]=\"'12'\">\r\n          <pre>\r\n            <code>\r\n              {{currentConfiguration | async}}\r\n            </code>\r\n          </pre>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
