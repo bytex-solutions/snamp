@@ -2,7 +2,10 @@ package com.bytex.snamp.connector.supervision;
 
 import com.bytex.snamp.Localizable;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Represents health check status.
@@ -10,22 +13,37 @@ import java.io.Serializable;
  * @version 2.0
  * @since 2.0
  */
-public interface HealthStatus extends Serializable, Comparable<HealthStatus>, Localizable {
-    /**
-     * Indicates that managed resource is in critical state (potentially unavailable).
-     *
-     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
-     */
-    boolean isCritical();
+public abstract class HealthStatus implements Serializable, Comparable<HealthStatus>, Localizable {
+    private static final long serialVersionUID = -8700097915541124870L;
+    private final int code;
+    private final String resourceName;
+
+    HealthStatus(final String resourceName, final int statusCode) {
+        code = statusCode;
+        this.resourceName = Objects.requireNonNull(resourceName);
+    }
 
     /**
-     * Gets status code that uniquely identifies this type of status.
+     * Gets the most problematic resource.
      *
-     * @return Status code.
+     * @return The most problematic resource. Can be empty if status is {@link OkStatus}.
      */
-    int getStatusCode();
+    public final String getResourceName() {
+        return resourceName;
+    }
 
-    static <S extends HealthStatus> S max(final S left, final S right) {
-        return left.compareTo(right) >= 0 ? left : right;
+    public abstract boolean isCritical();
+
+    public final int getStatusCode() {
+        return code;
+    }
+
+    @Override
+    public String toString() {
+        return toString(Locale.getDefault());
+    }
+
+    public HealthStatus combine(@Nonnull final HealthStatus newStatus) {
+        return newStatus.compareTo(this) >= 0 || newStatus.getResourceName().equals(getResourceName()) ? newStatus : this;
     }
 }

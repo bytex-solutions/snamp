@@ -9,4 +9,5 @@ import org.osgi.service.cm.ManagedService;
  * @since 2.0
  */
 interface HealthAnalyzer extends HealthSupervisor, ManagedService {
+    String getPersistentID();
 }

@@ -1,71 +1,136 @@
 package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.WeakEventListenerList;
+import com.bytex.snamp.Stateful;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
-import com.bytex.snamp.connector.supervision.HealthStatusCore;
-import com.bytex.snamp.moa.watching.*;
+import com.bytex.snamp.configuration.ScriptletConfiguration;
+import com.bytex.snamp.connector.attributes.checkers.*;
+import com.bytex.snamp.connector.supervision.*;
+import com.bytex.snamp.core.LoggerProvider;
+import com.google.common.collect.ImmutableMap;
 
-import javax.annotation.Nonnull;
 import javax.management.Attribute;
 import javax.management.JMException;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-final class UpdatableComponentWatcher extends ConcurrentHashMap<String, AttributeChecker> implements ComponentWatcher {
-    private static final long serialVersionUID = 6719849642864993362L;
-    private static final AtomicReferenceFieldUpdater<UpdatableComponentWatcher, AbstractStatusDetails> STATUS_UPDATER =
-            AtomicReferenceFieldUpdater.newUpdater(UpdatableComponentWatcher.class, AbstractStatusDetails.class, "status");
+final class UpdatableComponentWatcher extends WeakReference<GroupStatusEventListener> implements Stateful {
 
-    private static final class StatusChangedEvent extends ComponentStatusChangedEvent {
+    private static final class InvalidAttributeCheckerException extends Exception{
+        private static final long serialVersionUID = -2754906759778952794L;
+
+        InvalidAttributeCheckerException(final IOException e){
+            super("Unable to download script", e);
+        }
+
+        InvalidAttributeCheckerException(final String language){
+            super("Unsupported language " + language);
+        }
+
+        InvalidAttributeCheckerException(final String scriptBody, final Exception e){
+            super("Script has invalid syntax: " + scriptBody, e);
+        }
+    }
+
+    private static final AtomicReferenceFieldUpdater<UpdatableComponentWatcher, HealthStatus> STATUS_UPDATER =
+            AtomicReferenceFieldUpdater.newUpdater(UpdatableComponentWatcher.class, HealthStatus.class, "status");
+    private static final LazySoftReference<GroovyAttributeCheckerFactory> GROOVY_CHECKER_FACTORY = new LazySoftReference<>();
+
+    private static final class StatusChangedEvent extends GroupStatusChangedEvent {
         private static final long serialVersionUID = -6608026114593286031L;
-        private final AbstractStatusDetails previousStatus;
-        private final AbstractStatusDetails newStatus;
+        private final HealthStatus previousStatus;
+        private final HealthStatus newStatus;
 
         private StatusChangedEvent(final UpdatableComponentWatcher source,
-                                   final AbstractStatusDetails newStatus,
-                                   final AbstractStatusDetails previousStatus) {
+                                   final HealthStatus newStatus,
+                                   final HealthStatus previousStatus) {
             super(source);
             this.previousStatus = Objects.requireNonNull(previousStatus);
             this.newStatus = Objects.requireNonNull(newStatus);
         }
 
         @Override
-        public AbstractStatusDetails getStatusDetails() {
+        public HealthStatus getNewStatus() {
             return newStatus;
         }
 
         @Override
-        public AbstractStatusDetails getPreviousStatusDetails() {
+        public HealthStatus getPreviousStatus() {
             return previousStatus;
         }
     }
 
     @SpecialUse(SpecialUse.Case.JVM)
-    private volatile AbstractStatusDetails status;
+    private volatile HealthStatus status;
 
-    private final ConcurrentMap<String, HealthStatusCore> attributesStatusMap;
-    private final WeakEventListenerList<ComponentStatusEventListener, ComponentStatusChangedEvent> listeners;
+    private final ConcurrentMap<String, AttributeCheckStatus> attributesStatusMap;
+    private final ImmutableMap<String, AttributeChecker> attributeCheckers;
 
-    UpdatableComponentWatcher(final ManagedResourceGroupWatcherConfiguration configuration) {
-        super(15);
-        status = OkStatusDetails.INSTANCE;
+    UpdatableComponentWatcher(final ManagedResourceGroupWatcherConfiguration configuration,
+                              final GroupStatusEventListener statusListener) {
+        super(Objects.requireNonNull(statusListener));
+        status = OkStatus.INSTANCE;
         attributesStatusMap = new ConcurrentHashMap<>(15);
-        listeners = WeakEventListenerList.create(ComponentStatusEventListener::statusChanged);
+        final ImmutableMap.Builder<String, AttributeChecker> attributeCheckers = ImmutableMap.builder();
+        final Logger logger = getLogger();
+        final ClassLoader loader = getClass().getClassLoader();
+        configuration.getAttributeCheckers().forEach((attributeName, checkerCode) -> {
+            final AttributeChecker checker;
+            try {
+                checker = createChecker(checkerCode, loader);
+            } catch (final InvalidAttributeCheckerException e) {
+                logger.log(Level.WARNING, "Unable to parse checker for attribute " + attributeName, e);
+                return;
+            }
+            attributeCheckers.put(attributeName, checker);
+        });
+        this.attributeCheckers = attributeCheckers.build();
+    }
+
+    private static GroovyAttributeChecker createGroovyChecker(final String scriptBody, final ClassLoader loader) throws IOException {
+        return GROOVY_CHECKER_FACTORY.lazyGet(consumer -> consumer.accept(new GroovyAttributeCheckerFactory(loader))).create(scriptBody);
+    }
+
+    private static AttributeChecker createChecker(final ScriptletConfiguration checker, final ClassLoader loader) throws InvalidAttributeCheckerException {
+        final String scriptBody;
+        try {
+            scriptBody = checker.resolveScriptBody();
+        } catch (final IOException e) {
+            throw new InvalidAttributeCheckerException(e);
+        }
+        final Function<? super Exception, InvalidAttributeCheckerException> exceptionFactory = e -> new InvalidAttributeCheckerException(scriptBody, e);
+        switch (checker.getLanguage()) {
+            case ScriptletConfiguration.GROOVY_LANGUAGE:
+                return callAndWrapException(() -> createGroovyChecker(scriptBody, loader), exceptionFactory);
+            case "Simple":
+                return callAndWrapException(() -> ColoredAttributeChecker.parse(scriptBody), exceptionFactory);
+            default:
+                throw new InvalidAttributeCheckerException(checker.getLanguage());
+        }
+    }
+
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     @Override
     public void clear(){
-        attributesStatusMap.clear();
         super.clear();
-        listeners.clear();
+        attributesStatusMap.clear();
         reset();
     }
 
@@ -74,7 +139,7 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
      */
     @Override
     public void reset() {
-        STATUS_UPDATER.set(this, OkStatusDetails.INSTANCE);
+        STATUS_UPDATER.set(this, OkStatus.INSTANCE);
     }
 
     /**
@@ -82,66 +147,40 @@ final class UpdatableComponentWatcher extends ConcurrentHashMap<String, Attribut
      *
      * @return Status of the component.
      */
-    @Override
-    public AbstractStatusDetails getStatus() {
+    HealthStatus getStatus() {
         return STATUS_UPDATER.get(this);
     }
 
-    /**
-     * Gets map of attribute checkers where key represents attribute name.
-     *
-     * @return Mutable map of attribute checkers.
-     */
-    @Override
-    public ConcurrentMap<String, AttributeChecker> getAttributeCheckers() {
-        return this;
-    }
-
-    @Override
-    public AttributeChecker remove(@Nonnull final Object key) {
-        attributesStatusMap.remove(key);
-        return super.remove(key);
-    }
-
-    @Override
-    public void addStatusEventListener(final ComponentStatusEventListener listener) {
-        listeners.add(listener);
-    }
-
-    @Override
-    public void removeStatusEventListener(final ComponentStatusEventListener listener) {
-        listeners.remove(listener);
-    }
-
-    private void updateStatus(final AbstractStatusDetails newStatus) {
-        AbstractStatusDetails prev, next;
+    private void updateStatus(final HealthStatus newStatus) {
+        HealthStatus prev, next;
         do {
             prev = STATUS_UPDATER.get(this);
-            next = prev.replaceWith(newStatus);
+            next = prev.combine(newStatus);
             if (prev == next)   //status was not changed
                 return;
         } while (!STATUS_UPDATER.compareAndSet(this, prev, next));
-
-        listeners.fire(new StatusChangedEvent(this, next, prev));
+        final GroupStatusEventListener listener = get();
+        if (listener != null)
+            listener.statusChanged(new StatusChangedEvent(this, next, prev));
     }
 
     void updateStatus(final String resourceName, final Attribute attribute) {
-        final AttributeChecker checker = get(attribute.getName());
+        final AttributeChecker checker = attributeCheckers.get(attribute.getName());
         if (checker != null) {
-            final HealthStatusCore attributeStatus = checker.getStatus(attribute);
+            final AttributeCheckStatus attributeStatus = checker.getStatus(attribute);
             attributesStatusMap.put(attribute.getName(), attributeStatus);
-            final HealthStatusCore newStatus = attributesStatusMap.values().stream().reduce(HealthStatusCore.OK, HealthStatusCore::max);
-            updateStatus(new CausedByAttributeStatusDetails(resourceName, attribute, newStatus));
+            final AttributeCheckStatus newStatus = attributesStatusMap.values().stream().reduce(AttributeCheckStatus.OK, AttributeCheckStatus::max);
+            updateStatus(newStatus.createStatus(resourceName, attribute));
         }
     }
 
     void updateStatus(final String resourceName, final JMException error) {
         //reset state of all attributes
-        attributesStatusMap.replaceAll((attribute, old) -> HealthStatusCore.OK);
-        updateStatus(new ResourceUnavailableStatus(resourceName, error));
+        attributesStatusMap.replaceAll((attribute, old) -> AttributeCheckStatus.OK);
+        updateStatus(new ResourceInGroupIsNotUnavailable(resourceName, error));
     }
 
     void removeResource(final String resourceName) {
-        STATUS_UPDATER.updateAndGet(this, existing -> existing.getResourceName().equals(resourceName) ? OkStatusDetails.INSTANCE : existing);
+        STATUS_UPDATER.updateAndGet(this, existing -> existing.getResourceName().equals(resourceName) ? OkStatus.INSTANCE : existing);
     }
 }

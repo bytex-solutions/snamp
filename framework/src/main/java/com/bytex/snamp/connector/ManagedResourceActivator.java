@@ -217,7 +217,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                     final Dictionary<String, ?> configuration) throws Exception {
             final CMManagedResourceParser parser = getParser();
             final String resourceName = parser.getResourceName(configuration);
-            final ManagedResourceConfiguration newConfig = parser.parse(configuration).get();
+            final ManagedResourceConfiguration newConfig = parser.parse(configuration).getValue();
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Managed resource %s cannot be updated. Configuration not found.", resourceName));
             newConfig.expandParameters();
@@ -279,7 +279,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                            final Dictionary<String, ?> configuration) throws Exception {
             final CMManagedResourceParser parser = getParser();
             final String resourceName = parser.getResourceName(configuration);
-            final ManagedResourceConfiguration newConfig = parser.parse(configuration).get();
+            final ManagedResourceConfiguration newConfig = parser.parse(configuration).getValue();
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Managed resource %s cannot be created. Configuration not found.", resourceName));
             newConfig.setType(connectorType);

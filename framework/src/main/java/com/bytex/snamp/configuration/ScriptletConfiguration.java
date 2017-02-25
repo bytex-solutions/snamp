@@ -1,5 +1,12 @@
 package com.bytex.snamp.configuration;
 
+import com.bytex.snamp.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+
 /**
  * Represents scriptlet.
  * @author Roman Sakno
@@ -7,6 +14,9 @@ package com.bytex.snamp.configuration;
  * @since 2.0
  */
 public interface ScriptletConfiguration {
+    String GROOVY_LANGUAGE = "Groovy";
+    String JS_LANGUAGE = "JavaScript";
+
     /**
      * Gets scripting language.
      * @return Scripting language name.
@@ -42,4 +52,19 @@ public interface ScriptletConfiguration {
      * @param value {@literal true} if {@link #getScript()} returns URL to the script body.
      */
     void setURL(final boolean value);
+
+    default String resolveScriptBody() throws IOException {
+        final String result;
+        if (isURL()) {
+            final URL url = new URL(getScript());
+            final URLConnection connection = url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            try (final InputStream is = connection.getInputStream()) {
+                return IOUtils.toString(is);
+            }
+        } else
+            result = getScript();
+        return result;
+    }
 }

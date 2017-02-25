@@ -8,11 +8,12 @@ package com.bytex.snamp.parser;
  */
 public final class MinusToken extends PunctuationToken implements SingleCharacterToken {
     public static final char VALUE = '-';
+    public static final int TYPE = VALUE;
     public static final MinusToken INSTANCE = new MinusToken();
     private static final long serialVersionUID = -160107926339929295L;
 
     private MinusToken(){
-        super(VALUE);
+        super(TYPE, VALUE);
     }
 
     /**

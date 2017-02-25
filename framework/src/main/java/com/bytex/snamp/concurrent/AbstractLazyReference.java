@@ -63,11 +63,10 @@ abstract class AbstractLazyReference<V> extends AtomicReference<Reference<V>> im
         if (softRef == null || (result = softRef.get()) == null) {
             final Box<V> valueHolder = BoxFactory.create(null);
             initializer.accept(valueHolder);
-            accept(valueHolder.get());
-            return valueHolder.get();
+            accept(result = valueHolder.get());
+            valueHolder.reset();    //help GC
         }
-        else
-            return result;
+        return result;
     }
 
     @Override

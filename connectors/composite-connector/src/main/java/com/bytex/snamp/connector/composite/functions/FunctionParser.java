@@ -104,10 +104,10 @@ public final class FunctionParser extends Tokenizer {
     private RangedGaugeFPFunction parseRangedGaugeFP() throws ParseException {
         nextToken(LeftBracketToken.class);
         //parse range start
-        final double rangeStart = Double.parseDouble(readTo(CommaToken.VALUE).toString());
+        final double rangeStart = parseDouble(readTo(CommaToken.VALUE));
         nextToken(CommaToken.class);
         //parse range end
-        final double rangeEnd = Double.parseDouble(readTo(RightBracketToken.VALUE).toString());
+        final double rangeEnd = parseDouble(readTo(RightBracketToken.VALUE));
         nextToken(RightBracketToken.class);
         return new RangedGaugeFPFunction(rangeStart, rangeEnd);
     }

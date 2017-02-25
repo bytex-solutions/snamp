@@ -12,10 +12,11 @@ import javax.annotation.concurrent.Immutable;
 public final class DotToken extends PunctuationToken implements SingleCharacterToken {
     private static final long serialVersionUID = 1016754921413287342L;
     public static final char VALUE = '.';
+    public static final int TYPE = VALUE;
     public static final DotToken INSTANCE = new DotToken();
 
     private DotToken() {
-        super(VALUE);
+        super(TYPE, VALUE);
     }
 
     /**

@@ -97,7 +97,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
                            final Dictionary<String, ?> configuration) throws Exception {
             final CMGatewayParser parser = getParser();
             final String instanceName = parser.getInstanceName(configuration);
-            final GatewayConfiguration newConfig = parser.parse(configuration).get();
+            final GatewayConfiguration newConfig = parser.parse(configuration).getValue();
             if (newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be updated. Configuration not found.", instanceName));
             newConfig.setType(gatewayType);
@@ -123,7 +123,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
                                   final Dictionary<String, ?> configuration) throws Exception {
             final CMGatewayParser parser = getParser();
             final String instanceName = parser.getInstanceName(configuration);
-            final GatewayConfiguration newConfig = parser.parse(configuration).get();
+            final GatewayConfiguration newConfig = parser.parse(configuration).getValue();
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be created. Configuration not found.", instanceName));
             newConfig.setType(gatewayType);

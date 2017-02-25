@@ -139,12 +139,16 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         forEachResource(admin, ALL_CONNECTORS_QUERY, Configuration::delete);
     }
 
-    private void fill(final Configuration config, final Map<String, SerializableManagedResourceConfiguration> output) throws IOException{
-        final String resourceName = getResourceName(config.getProperties());
-        final SerializableManagedResourceConfiguration resource = parse(config.getProperties()).get();
-        resource.setType(getConnectorType(config.getFactoryPid()));
-        resource.reset();
-        output.put(resourceName, resource);
+    private void fill(final Configuration config, final Map<String, SerializableManagedResourceConfiguration> output) throws IOException {
+        final SingletonMap<String, SerializableManagedResourceConfiguration> resource;
+        final Dictionary<String, ?> properties = config.getProperties();
+        if (properties == null)
+            return;
+        else
+            resource = parse(properties);
+        resource.getValue().setType(getConnectorType(config.getFactoryPid()));
+        resource.getValue().reset();
+        output.putAll(resource);
     }
 
     @Override
@@ -154,7 +158,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
     }
 
     @Override
-    public SingletonCollection<SerializableManagedResourceConfiguration> parse(final Dictionary<String, ?> configuration) throws IOException {
+    public SingletonMap<String, SerializableManagedResourceConfiguration> parse(final Dictionary<String, ?> configuration) throws IOException {
         final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
         result.setConnectionString(getConnectionString(configuration));
         //deserialize attributes
@@ -166,7 +170,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         //deserialize parameters
         fillConnectionOptions(configuration, result);
         result.reset();
-        return SingletonCollection.of(result);
+        return new SingletonMap<>(getResourceName(configuration), result);
     }
 
     private static void serialize(final String resourceName,

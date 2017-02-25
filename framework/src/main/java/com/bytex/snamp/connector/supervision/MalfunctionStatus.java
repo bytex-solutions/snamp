@@ -8,12 +8,14 @@ import javax.annotation.Nonnull;
  * @version 2.0
  * @since 2.0
  */
-public abstract class MalfunctionStatus extends WellKnownHealthStatus {
+public abstract class MalfunctionStatus extends HealthStatus {
     private static final long serialVersionUID = -1766747580186741189L;
     private final boolean critical;
 
-    protected MalfunctionStatus(final int statusCode, final boolean critical) {
-        super(statusCode);
+    protected MalfunctionStatus(final String resourceName,
+                                final int statusCode,
+                                final boolean critical) {
+        super(resourceName, statusCode);
         this.critical = critical;
     }
 

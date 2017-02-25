@@ -2,6 +2,7 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Stateful;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -39,9 +40,9 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
      * @throws IOException Unable to parse persistent configuration.
      */
     @Override
-    public final Collection<E> parse(final Dictionary<String, ?> config) throws IOException {
-        final List<E> result = new LinkedList<>();
-        readItems(config, (key, value) -> result.add(value));
+    public final Map<String, E> parse(final Dictionary<String, ?> config) throws IOException {
+        final Map<String, E> result = Maps.newHashMapWithExpectedSize(config.size());
+        readItems(config, result::put);
         return result;
     }
 
@@ -67,15 +68,11 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
         }
     }
 
-    private void readItems(final Configuration input, final Map<String, E> output) throws IOException {
-        final Dictionary<String, ?> items = input.getProperties();
-        if (items != null)
-            readItems(items, output::put);
-    }
-
     @Override
     final void fill(final ConfigurationAdmin source, final Map<String, E> dest) throws IOException {
-        readItems(getConfig(source), dest);
+        final Dictionary<String, ?> config = getConfig(source).getProperties();
+        if (config != null)
+            dest.putAll(parse(config));
     }
 
     private void saveChanges(final SerializableAgentConfiguration source, final Dictionary<String, Object> dest) throws IOException {

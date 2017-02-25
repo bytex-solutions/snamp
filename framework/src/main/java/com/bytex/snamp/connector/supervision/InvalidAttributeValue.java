@@ -15,28 +15,18 @@ public class InvalidAttributeValue extends MalfunctionStatus {
     public static final int CODE = 3;
     private static final long serialVersionUID = -84085262684742050L;
     private final Attribute attribute;
+    private final String resourceName;
 
-    public InvalidAttributeValue(final Attribute attribute, final boolean critical){
-        super(CODE, critical);
+    public InvalidAttributeValue(final String resourceName,
+                                 final Attribute attribute,
+                                 final boolean critical){
+        super(resourceName, CODE, critical);
         this.attribute = Objects.requireNonNull(attribute);
+        this.resourceName = resourceName;
     }
 
     public Attribute getAttribute(){
         return attribute;
-    }
-
-    @Override
-    public int hashCode() {
-        return attribute.hashCode();
-    }
-
-    private boolean equals(final InvalidAttributeValue other){
-        return Objects.equals(attribute, other.attribute);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return other instanceof InvalidAttributeValue && equals((InvalidAttributeValue) other);
     }
 
     /**

@@ -37,6 +37,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private final CMGatewayParserImpl gatewayInstanceParser;
     private final CMThreadPoolParser threadPoolParser;
     private final CMManagedResourceGroupParser groupParser;
+    @Aggregation(cached = true)
     private final CMManagedResourceGroupWatcherParserImpl watcherParser;
 
     /**

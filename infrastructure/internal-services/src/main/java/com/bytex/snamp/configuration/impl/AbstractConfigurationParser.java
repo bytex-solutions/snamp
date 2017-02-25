@@ -8,7 +8,6 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
 
@@ -28,7 +27,7 @@ abstract class AbstractConfigurationParser<E extends SerializableEntityConfigura
 
     abstract void saveChanges(final SerializableAgentConfiguration source, final ConfigurationAdmin dest) throws IOException;
 
-    abstract Collection<E> parse(final Dictionary<String, ?> config) throws IOException;
+    abstract Map<String, E> parse(final Dictionary<String, ?> config) throws IOException;
 
     static <E extends SerializableEntityConfiguration> E deserialize(final String itemName,
                                                                         final Class<E> entityType,

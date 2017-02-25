@@ -9,14 +9,13 @@ import java.util.Locale;
  * @version 2.0
  * @since 2.0
  */
-public final class OkStatus extends WellKnownHealthStatus implements GroupStatus {
+public final class OkStatus extends HealthStatus {
     public static final int CODE = 0;
     public static final OkStatus INSTANCE = new OkStatus();
-
     private static final long serialVersionUID = 5391122005596632004L;
 
-    private OkStatus(){
-        super(CODE);
+    private OkStatus() {
+        super("", CODE);
     }
 
     @Override
@@ -25,12 +24,7 @@ public final class OkStatus extends WellKnownHealthStatus implements GroupStatus
     }
 
     @Override
-    public String getResourceName() {
-        return "";
-    }
-
-    @Override
-    public GroupStatus combine(@Nonnull final GroupStatus newStatus) {
+    public HealthStatus combine(@Nonnull final HealthStatus newStatus) {
         return newStatus;
     }
 

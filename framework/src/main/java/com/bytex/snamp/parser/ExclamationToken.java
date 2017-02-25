@@ -8,11 +8,12 @@ package com.bytex.snamp.parser;
  */
 public final class ExclamationToken extends PunctuationToken implements SingleCharacterToken {
     public static final char VALUE = '!';
+    public static final int TYPE = VALUE;
     public static final ExclamationToken INSTANCE = new ExclamationToken();
     private static final long serialVersionUID = -834707990777932840L;
 
     private ExclamationToken(){
-        super(VALUE);
+        super(TYPE, VALUE);
     }
 
     /**

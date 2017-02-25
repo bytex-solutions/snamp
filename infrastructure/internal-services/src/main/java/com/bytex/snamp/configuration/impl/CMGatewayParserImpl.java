@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.BooleanBox;
 import com.bytex.snamp.BoxFactory;
-import com.bytex.snamp.SingletonCollection;
+import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import org.osgi.framework.Constants;
@@ -86,12 +86,16 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
                 reader.accept(config);
     }
 
-    private void fill(final Configuration config, final Map<String, SerializableGatewayConfiguration> output) throws IOException{
-        final String gatewayInstanceName = getInstanceName(config.getProperties());
-        final SerializableGatewayConfiguration gatewayInstance = parse(config.getProperties()).get();
-        gatewayInstance.setType(getGatewayType(config.getFactoryPid()));
-        gatewayInstance.reset();
-        output.put(gatewayInstanceName, gatewayInstance);
+    private void fill(final Configuration config, final Map<String, SerializableGatewayConfiguration> output) throws IOException {
+        final Dictionary<String, ?> properties = config.getProperties();
+        final SingletonMap<String, SerializableGatewayConfiguration> gatewayInstance;
+        if (properties == null)
+            return;
+        else
+            gatewayInstance = parse(properties);
+        gatewayInstance.getValue().setType(getGatewayType(config.getFactoryPid()));
+        gatewayInstance.getValue().reset();
+        output.putAll(gatewayInstance);
     }
 
     @Override
@@ -106,12 +110,12 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     }
 
     @Override
-    public SingletonCollection<SerializableGatewayConfiguration> parse(final Dictionary<String, ?> configuration) {
+    public SingletonMap<String, SerializableGatewayConfiguration> parse(final Dictionary<String, ?> configuration) {
         final SerializableGatewayConfiguration result = new SerializableGatewayConfiguration();
         //deserialize parameters
         fillGatewayInstanceParameters(configuration, result);
         result.reset();
-        return SingletonCollection.of(result);
+        return new SingletonMap<>(getInstanceName(configuration), result);
     }
 
     private static void serialize(final String gatewayInstanceName,

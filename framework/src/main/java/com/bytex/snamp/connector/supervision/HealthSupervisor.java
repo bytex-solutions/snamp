@@ -25,7 +25,7 @@ public interface HealthSupervisor extends FrameworkService, DataAnalyzer {
      * @param groupName Group of managed resources.
      * @return Health status of the group; or {@literal null}, if group is not configured for watching.
      */
-    GroupStatus getHealthStatus(final String groupName);
+    HealthStatus getHealthStatus(final String groupName);
 
     /**
      * Adds listener of health status.

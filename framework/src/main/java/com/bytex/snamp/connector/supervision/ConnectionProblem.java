@@ -15,8 +15,8 @@ public class ConnectionProblem extends MalfunctionStatus {
     private static final long serialVersionUID = -3765564303828054111L;
     private final IOException error;
 
-    public ConnectionProblem(final IOException error) {
-        super(CODE, true);
+    public ConnectionProblem(final String resourceName, final IOException error) {
+        super(resourceName, CODE, true);
         this.error = Objects.requireNonNull(error);
     }
 

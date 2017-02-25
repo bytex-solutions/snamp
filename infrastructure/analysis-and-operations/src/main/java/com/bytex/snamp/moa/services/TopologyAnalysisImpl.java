@@ -16,11 +16,11 @@ import java.util.Map;
  * @since 2.0
  * @version 2.0
  */
-final class TopologyAnalysisModule extends GraphOfComponents implements TopologyAnalyzer {
+final class TopologyAnalysisImpl extends GraphOfComponents implements TopologyAnalyzer {
     private static final long serialVersionUID = -2367174795240931165L;
     private final ConcurrentResourceAccessor<Map<String, Long>> allowedComponents;//key - component name, value - number of components with the same name
 
-    TopologyAnalysisModule(long historySize) {
+    TopologyAnalysisImpl(long historySize) {
         super(historySize);
         allowedComponents = new ConcurrentResourceAccessor<>(new HashMap<>(20));
     }

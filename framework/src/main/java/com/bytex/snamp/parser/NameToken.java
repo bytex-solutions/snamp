@@ -9,18 +9,19 @@ import java.io.IOException;
  * @since 2.0
  */
 public class NameToken extends Token {
+    public static final int TYPE = 482053860;
     private static final long serialVersionUID = 4820538603021200807L;
 
     NameToken(final CharReader reader) throws IOException {
-        this(parse(reader));
+        this(TYPE, parse(reader));
     }
 
-    protected NameToken(final CharSequence name){
-        super(name);
+    public NameToken(final String name){
+        this(TYPE, name);
     }
 
-    public NameToken(final String name) {
-        this((CharSequence) name);
+    protected NameToken(final int type, final CharSequence name){
+        super(type, name);
     }
 
     private static boolean isValidCharacter(final char ch, final boolean notFirstChar){

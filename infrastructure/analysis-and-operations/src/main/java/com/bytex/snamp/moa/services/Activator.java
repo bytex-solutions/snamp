@@ -3,15 +3,18 @@ package com.bytex.snamp.moa.services;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
+import com.bytex.snamp.connector.supervision.HealthSupervisor;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.moa.DataAnalyzer;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
+import org.osgi.framework.Constants;
+import org.osgi.service.cm.ManagedService;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * @author Roman Sakno
@@ -32,9 +35,12 @@ public final class Activator extends AbstractServiceLibrary {
             assert configurationManager != null;
             final ThreadPoolRepository repository = getDependencies().getDependency(ThreadPoolRepository.class);
             assert repository != null;
+            final CMManagedResourceGroupWatcherParser watcherParser = configurationManager.queryObject(CMManagedResourceGroupWatcherParser.class);
+            assert watcherParser != null;
             final AnalyticalGateway service = new AnalyticalGateway(
                     Utils.getBundleContextOfObject(this),
-                    repository.getThreadPool(ANALYTICAL_THREAD_POOL, true)
+                    repository.getThreadPool(ANALYTICAL_THREAD_POOL, true),
+                    watcherParser
             );
             service.update(configurationManager.getConfiguration());
             return service;
@@ -46,21 +52,21 @@ public final class Activator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class AnalyticalServiceProvider<S extends DataAnalyzer> extends ProvidedService<S, S>{
-        private final Function<AnalyticalCenter, S> serviceProvider;
+    private static abstract class AnalyticalServiceProvider<S extends DataAnalyzer> extends ProvidedService<S, S>{
 
-        private AnalyticalServiceProvider(final Class<S> serviceType, final Function<AnalyticalCenter, S> serviceProvider){
-            super(serviceType, simpleDependencies(AnalyticalCenter.class));
-            this.serviceProvider = Objects.requireNonNull(serviceProvider);
+        @SafeVarargs
+        AnalyticalServiceProvider(final Class<S> serviceType, final Class<? super S>... subInterfaces){
+            super(serviceType, simpleDependencies(AnalyticalCenter.class), subInterfaces);
         }
 
+        @Nonnull
+        abstract S activateService(final AnalyticalCenter service, final Map<String, Object> identity);
+
         @Override
-        protected S activateService(final Map<String, Object> identity) throws Exception {
+        protected final S activateService(final Map<String, Object> identity) throws Exception {
             final AnalyticalCenter center = getDependencies().getDependency(AnalyticalCenter.class);
             assert center != null;
-            final S service = serviceProvider.apply(center);
-            assert service != null;
-            return service;
+            return activateService(center, identity);
         }
 
         @Override
@@ -69,10 +75,36 @@ public final class Activator extends AbstractServiceLibrary {
         }
     }
 
+    private static final class TopologyAnalyzerProvider extends AnalyticalServiceProvider<TopologyAnalyzer>{
+        TopologyAnalyzerProvider(){
+            super(TopologyAnalyzer.class);
+        }
+
+        @Nonnull
+        @Override
+        TopologyAnalyzer activateService(final AnalyticalCenter service, final Map<String, Object> identity) {
+            return service.getTopologyAnalyzer();
+        }
+    }
+
+    private static final class HealthAnalyzerProvider extends AnalyticalServiceProvider<HealthAnalyzer>{
+        HealthAnalyzerProvider(){
+            super(HealthAnalyzer.class, ManagedService.class, HealthSupervisor.class);
+        }
+
+        @Nonnull
+        @Override
+        HealthAnalyzer activateService(final AnalyticalCenter service, final Map<String, Object> identity) {
+            final HealthAnalyzer analyzer = service.getHealthAnalyzer();
+            identity.put(Constants.SERVICE_PID, analyzer.getPersistentID());
+            return analyzer;
+        }
+    }
+
     @SpecialUse(SpecialUse.Case.OSGi)
     public Activator() {
         super(new AnalyticalCenterProvider(),
-                new AnalyticalServiceProvider<>(TopologyAnalyzer.class, AnalyticalCenter::getTopologyAnalyzer));
+                new TopologyAnalyzerProvider());
     }
 
     /**
