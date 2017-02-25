@@ -83231,33 +83231,37 @@ var ChartService = (function () {
         }
         // loop through all the data we have received
         for (var _currentChartName in _data) {
-            // create a chart
-            var _chartData = chart_data_1.ChartData.fromJSON(_data[_currentChartName]);
-            // notify all the components that something has changed
-            if (this.chartSubjects[_currentChartName] != undefined) {
-                this.chartSubjects[_currentChartName].next(_chartData);
-            }
-            // check if our localStorage contains the data for this chart
-            if (_dataNow[_currentChartName] == undefined) {
-                _dataNow[_currentChartName] = [];
-            }
-            // append this data for this data array
-            if (_chartData.chartType == abstract_chart_1.AbstractChart.LINE) {
-                // in case of line - we just push the value
-                _dataNow[_currentChartName].push(_chartData);
-            }
-            else {
-                // otherwise - we replace existent value or append it if nothing exists
-                var _found = false;
-                for (var j = 0; j < _dataNow[_currentChartName].length; j++) {
-                    if (_dataNow[_currentChartName][j].instanceName == _chartData.instanceName) {
-                        _found = true;
-                        _dataNow[_currentChartName][j] = _chartData;
-                        break;
-                    }
+            // create a chart data instances
+            console.log(_data[_currentChartName], "data for chart at push");
+            var _d = _data[_currentChartName];
+            for (var i = 0; i < _d.length; i++) {
+                var _chartData = chart_data_1.ChartData.fromJSON(_d[i]);
+                // notify all the components that something has changed
+                if (this.chartSubjects[_currentChartName] != undefined) {
+                    this.chartSubjects[_currentChartName].next(_chartData);
                 }
-                if (!_found) {
+                // check if our localStorage contains the data for this chart
+                if (_dataNow[_currentChartName] == undefined) {
+                    _dataNow[_currentChartName] = [];
+                }
+                // append this data for this data array
+                if (_chartData.chartType == abstract_chart_1.AbstractChart.LINE) {
+                    // in case of line - we just push the value
                     _dataNow[_currentChartName].push(_chartData);
+                }
+                else {
+                    // otherwise - we replace existent value or append it if nothing exists
+                    var _found = false;
+                    for (var j = 0; j < _dataNow[_currentChartName].length; j++) {
+                        if (_dataNow[_currentChartName][j].instanceName == _chartData.instanceName) {
+                            _found = true;
+                            _dataNow[_currentChartName][j] = _chartData;
+                            break;
+                        }
+                    }
+                    if (!_found) {
+                        _dataNow[_currentChartName].push(_chartData);
+                    }
                 }
             }
         }
@@ -84607,6 +84611,7 @@ var LineChartOfAttributeValues = (function (_super) {
         return _value;
     };
     LineChartOfAttributeValues.prototype.newValue = function (_data) {
+        console.log("data for line chart is: ", _data);
         this.chartData.push(_data);
         var _index = this.chartData.length - 1;
         if (this._chartObject != undefined) {
