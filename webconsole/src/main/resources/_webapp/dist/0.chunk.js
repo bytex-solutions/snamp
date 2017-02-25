@@ -1935,6 +1935,21 @@ exports.push([module.i, "@charset \"UTF-8\";\r\n/*\r\n* CSS TOGGLE SWITCH\r\n*\r
 
 /***/ },
 
+/***/ "./node_modules/css-loader/index.js!./src/app/configuration/templates/css/fullsave.css":
+/***/ function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
+// imports
+
+
+// module
+exports.push([module.i, ".limitedCodeBlock {\r\n    overflow-y: scroll;\r\n    max-height: 200px;\r\n}\r\n\r\n.btn-file {\r\n    position: relative;\r\n    overflow: hidden;\r\n}\r\n.btn-file input[type=file] {\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n    min-width: 100%;\r\n    min-height: 100%;\r\n    font-size: 100px;\r\n    text-align: right;\r\n    filter: alpha(opacity=0);\r\n    opacity: 0;\r\n    outline: none;\r\n    background: white;\r\n    cursor: inherit;\r\n    display: block;\r\n}", ""]);
+
+// exports
+
+
+/***/ },
+
 /***/ "./node_modules/css-loader/index.js!./src/app/configuration/templates/css/snampcfg.css":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -37365,18 +37380,53 @@ module.exports = "<table class=\"table\">\r\n    <thead>\r\n    <tr>\r\n        
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+__webpack_require__("./node_modules/rxjs/Rx.js");
 var FullSaveComponent = (function () {
     function FullSaveComponent(apiClient) {
         this.http = apiClient;
     }
     FullSaveComponent.prototype.ngOnInit = function () {
-        this.currentConfiguration = this.http.get(app_restClient_1.REST.CURRENT_CONFIG)
-            .map(function (data) { return JSON.stringify(data.json(), null, 4); });
+        var _this = this;
+        this.http.get(app_restClient_1.REST.CURRENT_CONFIG)
+            .map(function (data) { return JSON.stringify(data.json(), null, 4); })
+            .subscribe(function (data) {
+            _this.currentConfiguration = data;
+        });
+    };
+    FullSaveComponent.prototype.save = function () {
+        var blob = new Blob([this.currentConfiguration], { type: 'application/json' });
+        var url = window.URL.createObjectURL(blob);
+        window.open(url);
+    };
+    FullSaveComponent.prototype.load = function (event) {
+        var fileList = event.target.files;
+        if (fileList.length > 0) {
+            var file = fileList[0];
+            var reader = new FileReader();
+            // Read file into memory as UTF-8
+            reader.readAsText(file, "UTF-8");
+            // Handle progress, success, and errors
+            reader.onload = this.loaded;
+            reader.onerror = this.errorHandler;
+        }
+    };
+    FullSaveComponent.prototype.loaded = function (evt) {
+        var fileString = evt.target.result;
+        this.http.post(app_restClient_1.REST.CURRENT_CONFIG, fileString)
+            .map(function (response) { return response.text(); })
+            .subscribe(function (data) {
+            console.log("configuration has been upload successfully", data);
+            location.reload();
+        });
+    };
+    FullSaveComponent.prototype.errorHandler = function (evt) {
+        console.log("Error occured while loading file: ", evt);
     };
     FullSaveComponent = __decorate([
         core_1.Component({
             moduleId: module.i,
-            template: __webpack_require__("./src/app/configuration/templates/fullsave.html")
+            template: __webpack_require__("./src/app/configuration/templates/fullsave.html"),
+            styles: [__webpack_require__("./src/app/configuration/templates/css/fullsave.css")]
         }), 
         __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
     ], FullSaveComponent);
@@ -38228,6 +38278,21 @@ exports.ResourceGroup = ResourceGroup;
 
 /***/ },
 
+/***/ "./src/app/configuration/templates/css/fullsave.css":
+/***/ function(module, exports, __webpack_require__) {
+
+
+        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/configuration/templates/css/fullsave.css");
+
+        if (typeof result === "string") {
+            module.exports = result;
+        } else {
+            module.exports = result.toString();
+        }
+    
+
+/***/ },
+
 /***/ "./src/app/configuration/templates/css/snampcfg.css":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -38246,7 +38311,7 @@ exports.ResourceGroup = ResourceGroup;
 /***/ "./src/app/configuration/templates/fullsave.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Save/restore configuration</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Configuration'\" [column]=\"'12'\">\r\n          <pre>\r\n            <code>\r\n              {{currentConfiguration | async}}\r\n            </code>\r\n          </pre>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Save/restore configuration</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Configuration'\" [column]=\"'12'\">\r\n          <pre class=\"row limitedCodeBlock\"><code>{{currentConfiguration}}</code></pre>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <button class=\"btn\" (click)=\"save()\">Download current configuration as JSON file</button>\r\n          </div>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <label class=\"btn btn-default btn-file\">\r\n              Upload configuration from your JSON file<input type=\"file\" (change)=\"load($event)\" style=\"display: none;\">\r\n            </label>\r\n          </div>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 

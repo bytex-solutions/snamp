@@ -18,7 +18,7 @@ import 'rxjs/add/observable/of';
 @Injectable()
 export class ViewService {
     private _dashboard:Dashboard;
-    private viewNames:Subject<string[]> = new Subject();
+    private viewNames:Subject<string[]> = new Subject<string[]>();
 
     constructor(private _http:ApiClient) {
           this.loadDashboard();
