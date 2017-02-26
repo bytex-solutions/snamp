@@ -71,7 +71,7 @@ public final class Activator extends AbstractServiceLibrary {
 
         @Override
         protected void cleanupService(final S serviceInstance, final boolean stopBundle) {
-            //nothing to do
+            serviceInstance.reset();
         }
     }
 
@@ -104,7 +104,8 @@ public final class Activator extends AbstractServiceLibrary {
     @SpecialUse(SpecialUse.Case.OSGi)
     public Activator() {
         super(new AnalyticalCenterProvider(),
-                new TopologyAnalyzerProvider());
+                new TopologyAnalyzerProvider(),
+                new HealthAnalyzerProvider());
     }
 
     /**

@@ -11,11 +11,14 @@ import java.util.Locale;
  */
 public final class OkStatus extends HealthStatus {
     public static final int CODE = 0;
-    public static final OkStatus INSTANCE = new OkStatus();
     private static final long serialVersionUID = 5391122005596632004L;
 
-    private OkStatus() {
-        super("", CODE);
+    public OkStatus(final String resourceName) {
+        super(resourceName, CODE);
+    }
+
+    public OkStatus(){
+        this("");
     }
 
     @Override

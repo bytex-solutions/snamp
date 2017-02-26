@@ -49,6 +49,7 @@ final class UpdatableComponentWatcher extends WeakReference<GroupStatusEventList
     private static final AtomicReferenceFieldUpdater<UpdatableComponentWatcher, HealthStatus> STATUS_UPDATER =
             AtomicReferenceFieldUpdater.newUpdater(UpdatableComponentWatcher.class, HealthStatus.class, "status");
     private static final LazySoftReference<GroovyAttributeCheckerFactory> GROOVY_CHECKER_FACTORY = new LazySoftReference<>();
+    private static final OkStatus OK_STATUS = new OkStatus();
 
     private static final class StatusChangedEvent extends GroupStatusChangedEvent {
         private static final long serialVersionUID = -6608026114593286031L;
@@ -83,7 +84,7 @@ final class UpdatableComponentWatcher extends WeakReference<GroupStatusEventList
     UpdatableComponentWatcher(final ManagedResourceGroupWatcherConfiguration configuration,
                               final GroupStatusEventListener statusListener) {
         super(Objects.requireNonNull(statusListener));
-        status = OkStatus.INSTANCE;
+        status = OK_STATUS;
         attributesStatusMap = new ConcurrentHashMap<>(15);
         final ImmutableMap.Builder<String, AttributeChecker> attributeCheckers = ImmutableMap.builder();
         final Logger logger = getLogger();
@@ -139,7 +140,7 @@ final class UpdatableComponentWatcher extends WeakReference<GroupStatusEventList
      */
     @Override
     public void reset() {
-        STATUS_UPDATER.set(this, OkStatus.INSTANCE);
+        STATUS_UPDATER.set(this, OK_STATUS);
     }
 
     /**
@@ -181,6 +182,6 @@ final class UpdatableComponentWatcher extends WeakReference<GroupStatusEventList
     }
 
     void removeResource(final String resourceName) {
-        STATUS_UPDATER.updateAndGet(this, existing -> existing.getResourceName().equals(resourceName) ? OkStatus.INSTANCE : existing);
+        STATUS_UPDATER.updateAndGet(this, existing -> existing.getResourceName().equals(resourceName) ? OK_STATUS : existing);
     }
 }

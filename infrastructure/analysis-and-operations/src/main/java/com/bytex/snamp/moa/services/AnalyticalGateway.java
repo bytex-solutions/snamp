@@ -128,6 +128,7 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
         Optional.ofNullable(graph).ifPresent(TopologyAnalyzer::reset);
         graph = null;
         watchDog.stopWatching();
+        watchDog.reset();
     }
 
     @Override

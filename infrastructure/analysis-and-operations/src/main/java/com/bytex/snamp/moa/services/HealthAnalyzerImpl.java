@@ -72,7 +72,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         }
 
         @Override
-        public Void call() throws Exception {
+        public Void call() throws TimeoutException, InterruptedException {
             final HealthAnalyzerImpl module = get();
             if (module != null)
                 module.updateWatcher(componentName, watcher);

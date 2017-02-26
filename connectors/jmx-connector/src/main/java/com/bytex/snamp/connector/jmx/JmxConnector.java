@@ -15,6 +15,7 @@ import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptorRead;
+import com.bytex.snamp.connector.supervision.*;
 import com.bytex.snamp.core.LoggerProvider;
 
 import javax.management.*;
@@ -22,6 +23,7 @@ import javax.management.openmbean.*;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -38,7 +40,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * Represents JMX connector.
  * @author Roman Sakno
  */
-final class JmxConnector extends AbstractManagedResourceConnector {
+final class JmxConnector extends AbstractManagedResourceConnector implements HealthCheckSupport {
     private interface JmxFeatureMetadata extends Serializable, DescriptorRead {
         ObjectName getOwner();
         String getName();
@@ -677,9 +679,11 @@ final class JmxConnector extends AbstractManagedResourceConnector {
     private final JmxConnectionManager connectionManager;
     @Aggregation(cached = true)
     private final JmxOperationRepository operations;
+    private final String resourceName;
 
     private JmxConnector(final String resourceName,
                  final JmxConnectionOptions connectionOptions) {
+        this.resourceName = resourceName;
         this.connectionManager = connectionOptions.createConnectionManager(getLogger());
         //SmartMode can be enabled if
         final boolean smartMode;
@@ -709,6 +713,29 @@ final class JmxConnector extends AbstractManagedResourceConnector {
 
     void init() throws IOException {
         connectionManager.connect();
+    }
+
+    /**
+     * Determines whether the connected managed resource is alive.
+     *
+     * @param timeout Timeout required to identify health status.
+     * @return Status of the remove managed resource.
+     */
+    @Override
+    public HealthStatus getStatus(final Duration timeout) {
+        final String resourceName = this.resourceName;
+        try {
+            return connectionManager.handleConnection(connection -> {
+                connection.getMBeanCount();      //call method using RMI
+                return new OkStatus(resourceName);
+            });
+        } catch (final InterruptedException e) {
+            return new ResourceInGroupIsNotUnavailable(resourceName, new ReflectionException(e));
+        } catch (final JMException e) {
+            return new ResourceInGroupIsNotUnavailable(resourceName, e);
+        } catch (final IOException e) {
+            return new ConnectionProblem(resourceName, e);
+        }
     }
 
     private Logger getLogger(){
