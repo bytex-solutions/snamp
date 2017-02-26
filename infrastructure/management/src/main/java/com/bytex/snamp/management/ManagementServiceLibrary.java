@@ -1,7 +1,6 @@
 package com.bytex.snamp.management;
 
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.core.SnampManager;
@@ -10,6 +9,7 @@ import com.bytex.snamp.jmx.OpenMBeanServiceProvider;
 import com.bytex.snamp.management.http.ManagementServlet;
 import com.bytex.snamp.management.jmx.SnampClusterNodeMBean;
 import com.bytex.snamp.management.jmx.SnampCoreMBean;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
@@ -18,7 +18,10 @@ import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
 import javax.management.JMException;
-import java.util.*;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Objects;
 
 import static com.bytex.snamp.internal.Utils.acceptWithContextClassLoader;
 
@@ -159,26 +162,23 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     }
 
     /**
-     * Starts the service library.
+     * Starts the bundle and instantiate runtime state of the bundle.
      *
-     * @param bundleLevelDependencies A collection of library-level dependencies to be required for this library.
+     * @param context                 The execution context of the bundle being started.
+     * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
+     * @throws Exception An exception occurred during starting.
      */
     @Override
-    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
         bundleLevelDependencies.add(new LogReaderServiceDependency(listener));
-        bundleLevelDependencies.add(new SimpleDependency<>(HttpService.class));
+        bundleLevelDependencies.add(HttpService.class);
     }
 
-    /**
-     * Activates this service library.
-     *
-     * @param activationProperties A collection of library activation properties to fill.
-     */
     @Override
-    @MethodStub
-    protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
+    protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
+        super.activate(context, activationProperties, dependencies);
         activationProperties.publish(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
-        final HttpService httpService = getDependencies().getDependency(HttpService.class);
+        final HttpService httpService = dependencies.getDependency(HttpService.class);
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
                 (publisher) -> publisher.registerServlet(ManagementServlet.CONTEXT, new ManagementServlet(), new Hashtable<>(), null));
@@ -187,13 +187,20 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
 
     /**
      * Deactivates this library.
+     * <p>
+     * This method will be invoked when at least one dependency was lost.
+     * </p>
      *
+     * @param context              The execution context of the library being deactivated.
      * @param activationProperties A collection of library activation properties to read.
+     * @throws Exception Deactivation error.
      */
     @Override
-    @MethodStub
-    protected void deactivate(final ActivationPropertyReader activationProperties) {
-        final HttpService httpService = activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY);
-        httpService.unregister(ManagementServlet.CONTEXT);
+    protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
+        try {
+            activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY).unregister(ManagementServlet.CONTEXT);
+        } finally {
+            super.deactivate(context, activationProperties);
+        }
     }
 }

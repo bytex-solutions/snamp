@@ -3,7 +3,6 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -22,9 +21,9 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanOperationInfo;
@@ -94,7 +93,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         private ManagedResourceConnectorRegistry(final String connectorType,
                                                  final ManagedResourceConnectorFactory<TConnector> controller,
                                                  final RequiredService<?>... dependencies) {
-            super(ManagedResourceConnector.class, ObjectArrays.<RequiredService>concat(dependencies, new SimpleDependency<>(ConfigurationManager.class)));
+            super(ManagedResourceConnector.class, dependencies);
+            this.dependencies.add(ConfigurationManager.class);
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             this.connectorType = connectorType;
         }
@@ -105,7 +105,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         private CMManagedResourceParser getParser(){
-            final ConfigurationManager configManager = getDependencies().getDependency(ConfigurationManager.class);
+            final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class);
             assert configManager != null;
             final CMManagedResourceParser parser = configManager.queryObject(CMManagedResourceParser.class);
             assert parser != null;
@@ -195,7 +195,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored) {
                     //Update operation is not supported -> force recreation
                     connector.close();
-                    connector = controller.createConnector(resourceName, newConfig, getDependencies());
+                    connector = controller.createConnector(resourceName, newConfig, dependencies);
                 }
             }
             //but we should always update resource features
@@ -260,7 +260,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             identity.put(ManagedResourceConnector.TYPE_CAPABILITY_ATTRIBUTE, connectorType);
             identity.put(ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY);
             identity.put(CONNECTION_STRING_PROPERTY, configuration.getConnectionString());
-            final TConnector result = controller.createConnector(resourceName, configuration, getDependencies());
+            final TConnector result = controller.createConnector(resourceName, configuration, dependencies);
             updateFeatures(result, configuration);
             return result;
         }
@@ -366,7 +366,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             return new SupportConnectorServiceManager<S, T>(contract, dependencies) {
                 @Override
                 T activateService() throws Exception {
-                    return activator.activateService(getDependencies());
+                    return activator.activateService(super.dependencies);
                 }
             };
         }
@@ -403,7 +403,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return new SupportConnectorServiceManager<ManagedResourceConnectorFactoryService, ManagedResourceConnectorFactoryServiceImpl<TConnector>>(ManagedResourceConnectorFactoryService.class, dependencies) {
             @Override
             ManagedResourceConnectorFactoryServiceImpl<TConnector> activateService() {
-                return new ManagedResourceConnectorFactoryServiceImpl<>(factory, getDependencies());
+                return new ManagedResourceConnectorFactoryServiceImpl<>(factory, dependencies);
             }
         };
     }
@@ -429,34 +429,22 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     /**
-     * Adds global dependencies.
-     * <p>
-     *     In the default implementation this method does nothing.
-     * </p>
-     * @param dependencies A collection of connector's global dependencies.
-     */
-    @MethodStub
-    protected void addDependencies(final Collection<RequiredService<?>> dependencies){
-
-    }
-
-    /**
-     * Initializes the library.
-     * @param bundleLevelDependencies A collection of library-level dependencies to fill.
+     * Starts the bundle and instantiate runtime state of the bundle.
+     *
+     * @param context                 The execution context of the bundle being started.
+     * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
+     * @throws Exception An exception occurred during starting.
      */
     @Override
-    protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
-        addDependencies(bundleLevelDependencies);
+    @OverridingMethodsMustInvokeSuper
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
+        bundleLevelDependencies.add(ConfigurationManager.class);
     }
 
-    /**
-     * Activates this service library.
-     * @param activationProperties A collection of library activation properties to fill.
-     * @throws Exception Unable to activate this library.
-     */
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
+    @OverridingMethodsMustInvokeSuper
+    protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
+        super.activate(context, activationProperties, dependencies);
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
         getLogger().info(String.format("Activating resource connector of type %s", getConnectorType()));
@@ -467,13 +455,13 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     /**
-     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.bytex.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher)}  method.
+     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, ActivationPropertyPublisher, DependencyManager)}  method.
      *
      * @param e                    An exception to handle.
      * @param activationProperties A collection of activation properties to read.
      */
     @Override
-    protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
+    protected final void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
         getLogger().log(Level.SEVERE, String.format("Unable to instantiate %s connector",
                 getConnectorType()), e);
     }
@@ -493,12 +481,17 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     /**
      * Deactivates this library.
+     * <p>
+     * This method will be invoked when at least one dependency was lost.
+     * </p>
      *
+     * @param context              The execution context of the library being deactivated.
      * @param activationProperties A collection of library activation properties to read.
+     * @throws Exception Deactivation error.
      */
     @Override
-    @MethodStub
-    protected void deactivate(final ActivationPropertyReader activationProperties) {
+    protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
+        super.deactivate(context, activationProperties);
         getLogger().info(String.format("Unloading connector of type %s", getConnectorType()));
     }
 

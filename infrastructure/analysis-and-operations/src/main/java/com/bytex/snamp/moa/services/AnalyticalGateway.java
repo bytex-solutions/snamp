@@ -29,7 +29,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 /**
  * Represents analysis service.
  */
-final class AnalyticalGateway extends AbstractGateway implements NotificationListener, AnalyticalCenter {
+final class AnalyticalGateway extends AbstractGateway implements NotificationListener {
     private static final String HISTORY_SIZE_PARAM = "topologyAnalyzerHistorySize";
     private static final String WATCH_PERIOD_PARAM = "watchPeriod";
     private static final long DEFAULT_HISTORY_SIZE = 5_000L;
@@ -131,15 +131,11 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
         watchDog.reset();
     }
 
-    @Override
-    @Aggregation
-    public TopologyAnalysisImpl getTopologyAnalyzer() {
+    TopologyAnalysisImpl getTopologyAnalyzer() {
         return graph;
     }
 
-    @Override
-    @Aggregation
-    public HealthAnalyzer getHealthAnalyzer() {
+    HealthAnalyzerImpl getHealthAnalyzer() {
         return watchDog;
     }
 }

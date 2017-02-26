@@ -6,12 +6,9 @@ import com.bytex.snamp.MethodStub;
 import com.google.common.reflect.TypeToken;
 import org.osgi.framework.*;
 
-import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
@@ -420,21 +417,17 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
     /**
      * Represents simple dependency descriptor.
-     * <p>
-     *     This class describes service dependency based on service contract only.
-     *     No additional filters supplied.
-     * </p>
      * @param <S> Type of the required service contract.
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
      */
-    protected static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
+    private static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
         /**
          * Initializes a new simple dependency descriptor.
          * @param serviceContract The type of the service contract.
          */
-        public SimpleDependency(final Class<S> serviceContract){
+        SimpleDependency(final Class<S> serviceContract){
             super(serviceContract);
         }
 
@@ -584,7 +577,12 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 2.0
      * @version 2.0
      */
-    protected abstract static class DependencyManager implements Collection<RequiredService<?>>{
+    protected static final class DependencyManager extends LinkedList<RequiredService<?>>{
+        private static final long serialVersionUID = -41349119870370641L;
+
+        DependencyManager(final RequiredService<?>... dependencies) {
+            super(Arrays.asList(dependencies));
+        }
 
         /**
          * Finds dependency by its required service contract.
@@ -593,7 +591,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @return Search result; or {@literal null} if dependency not found.
          */
         @SuppressWarnings("unchecked")
-        public final <S> RequiredService<S> getDependency(final Class<S> serviceContract,
+        public <S> RequiredService<S> getDependency(final Class<S> serviceContract,
                                                     final Predicate<? super RequiredService<S>> filter){
             for(final RequiredService<?> dependency: this)
                 if(Objects.equals(dependency.dependencyContract, serviceContract) && filter.test((RequiredService<S>) dependency))
@@ -607,149 +605,21 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @param <S> Type of the service contract.
          * @return The resolved service; or {@literal null} if it is not available.
          */
-        public final <S> S getDependency(final Class<S> serviceContract){
+        public <S> S getDependency(final Class<S> serviceContract){
             final RequiredService<S> found = getDependency(serviceContract, rs -> rs instanceof RequiredServiceAccessor<?>);
             return found instanceof RequiredServiceAccessor<?> ? serviceContract.cast(((RequiredServiceAccessor<?>) found).serviceInstance) : null;
         }
 
-        /**
-         * Gets number of dependencies.
-         * @return Number of dependencies.
-         */
-        @Override
-        public abstract int size();
+        public <S> boolean add(final Class<S> serviceType) {
+            return add(new SimpleDependency<>(serviceType));
+        }
 
-        @Override
-        public abstract void forEach(final Consumer<? super RequiredService<?>> action);
-
-        @Override
-        public abstract Spliterator<RequiredService<?>> spliterator();
-
-        final void unbind(final BundleContext context){
+        void unbind(final BundleContext context){
             forEach(dependency -> dependency.unbind(context));
         }
-
-        @Override
-        public boolean add(final RequiredService<?> requiredService) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean remove(final Object o) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean addAll(@Nonnull final Collection<? extends RequiredService<?>> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean removeAll(@Nonnull final Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean retainAll(@Nonnull final Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void clear() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean removeIf(final Predicate<? super RequiredService<?>> filter) {
-            throw new UnsupportedOperationException();
-        }
     }
 
-    static class ForwardingDependencyManager<L extends Collection<RequiredService<?>>> extends DependencyManager{
-        final L delegate;
-
-        ForwardingDependencyManager(final L services){
-            this.delegate = Objects.requireNonNull(services);
-        }
-
-        @Override
-        public final int size() {
-            return delegate.size();
-        }
-
-        @Override
-        public final boolean isEmpty() {
-            return delegate.isEmpty();
-        }
-
-        @Override
-        public final boolean contains(final Object o) {
-            return delegate.contains(o);
-        }
-
-        @Override
-        public final Object[] toArray() {
-            return delegate.toArray();
-        }
-
-        @Override
-        public final <T> T[] toArray(final T[] a) {
-            return delegate.toArray(a);
-        }
-
-        @Override
-        public final boolean containsAll(final Collection<?> c) {
-            return delegate.containsAll(c);
-        }
-
-        @Override
-        public final void forEach(final Consumer<? super RequiredService<?>> action) {
-            delegate.forEach(action);
-        }
-
-        @Override
-        public final Spliterator<RequiredService<?>> spliterator() {
-            return delegate.spliterator();
-        }
-
-        @Override
-        public final Iterator<RequiredService<?>> iterator() {
-            return delegate.iterator();
-        }
-
-        @Override
-        public final Stream<RequiredService<?>> stream() {
-            return delegate.stream();
-        }
-
-        @Override
-        public final Stream<RequiredService<?>> parallelStream() {
-            return delegate.parallelStream();
-        }
-    }
-
-    private static final class BundleLevelDependencyManager extends ForwardingDependencyManager<Collection<RequiredService<?>>>{
-        private BundleLevelDependencyManager(){
-            super(new LinkedList<>());
-        }
-
-        @Override
-        public boolean add(final RequiredService<?> requiredService) {
-            return delegate.add(requiredService);
-        }
-
-        @Override
-        public boolean addAll(@Nonnull final Collection<? extends RequiredService<?>> c) {
-            return delegate.addAll(c);
-        }
-
-        @Override
-        public void clear() {
-            delegate.clear();
-        }
-    }
-
-    private final BundleLevelDependencyManager bundleLevelDependencies;
+    private final DependencyManager bundleLevelDependencies;
     private final ActivationProperties properties;
     private volatile ActivationState state;
 
@@ -757,17 +627,9 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * Initializes a new bundle activator in {@link com.bytex.snamp.core.AbstractBundleActivator.ActivationState#NOT_ACTIVATED} state.
      */
     protected AbstractBundleActivator(){
-        bundleLevelDependencies = new BundleLevelDependencyManager();
+        bundleLevelDependencies = new DependencyManager();
         state = ActivationState.NOT_ACTIVATED;
         properties = new ActivationProperties();
-    }
-
-    /**
-     * Gets dependencies declared by this bundle.
-     * @return A collection of dependencies declared by this bundle.
-     */
-    protected final DependencyManager getDependencies(){
-        return bundleLevelDependencies;
     }
 
     /**
@@ -804,7 +666,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
                 if(resolvedDependencies == bundleLevelDependencies.size())
                     try {
                         state = ActivationState.ACTIVATING;
-                        activate(context, properties);
+                        activate(context, properties, bundleLevelDependencies);
                         state = ActivationState.ACTIVATED;
                     }
                     catch (final Exception e) {
@@ -833,7 +695,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @throws Exception An exception occurred during bundle starting.
      */
     @Override
-    public void start(final BundleContext context) throws Exception {
+    public final void start(final BundleContext context) throws Exception {
         try (final LoggingScope ignored = BundleLoggingScope.startBundle(this)) {
             start(context, bundleLevelDependencies);
             final DependencyListeningFilterBuilder filter = new DependencyListeningFilterBuilder();
@@ -882,7 +744,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
      * @throws Exception An exception occurred during starting.
      */
-    protected abstract void start(final BundleContext context, final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception;
+    protected abstract void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception;
 
     /**
      * Activates the bundle.
@@ -891,12 +753,15 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @param context The execution context of the bundle being activated.
      * @param activationProperties A collection of bundle's activation properties to fill.
+     * @param dependencies A set of dependencies resolved by this activator.
      * @throws Exception An exception occurred during activation.
      */
-    protected abstract void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties) throws Exception;
+    protected abstract void activate(final BundleContext context,
+                                     final ActivationPropertyPublisher activationProperties,
+                                     final DependencyManager dependencies) throws Exception;
 
     /**
-     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.bytex.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher)}  method.
+     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, ActivationPropertyPublisher, DependencyManager)}  method.
      * @param e An exception to handle.
      * @param activationProperties A collection of activation properties to read.
      */
