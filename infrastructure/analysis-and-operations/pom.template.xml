@@ -103,5 +103,11 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>internal-services</artifactId>
+            <version>${snamp.services.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

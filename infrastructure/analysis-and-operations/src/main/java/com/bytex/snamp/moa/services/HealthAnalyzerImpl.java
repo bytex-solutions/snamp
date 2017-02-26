@@ -63,9 +63,9 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
 
     private static final class WatcherUpdaterTask extends WeakReference<HealthAnalyzerImpl> implements Callable<Void>{
         private final String componentName;
-        private final UpdatableComponentWatcher watcher;
+        private final UpdatableGroupWatcher watcher;
 
-        private WatcherUpdaterTask(final HealthAnalyzerImpl module, final String componentName, final UpdatableComponentWatcher watcher){
+        private WatcherUpdaterTask(final HealthAnalyzerImpl module, final String componentName, final UpdatableGroupWatcher watcher){
             super(module);
             this.componentName = componentName;
             this.watcher = watcher;
@@ -81,7 +81,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
     }
 
     private final Multimap<String, String> componentToResourceMap;
-    private final Map<String, UpdatableComponentWatcher> watchers;
+    private final Map<String, UpdatableGroupWatcher> watchers;
     private StatusUpdater statusUpdater;
     private final ExecutorService threadPool;
     private final CMManagedResourceGroupWatcherParser watcherParser;
@@ -101,7 +101,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         return watcherParser.getPersistentID();
     }
 
-    private void updateWatcher(final String componentName, final UpdatableComponentWatcher watcher) throws TimeoutException, InterruptedException {
+    private void updateWatcher(final String componentName, final UpdatableGroupWatcher watcher) throws TimeoutException, InterruptedException {
         final ImmutableSet<String> resources = readLock.apply(ResourceGroup.RESOURCE_MAP, componentToResourceMap, componentName, (m, n) -> ImmutableSet.copyOf(m.get(n)), null);
         final Box<Attribute> attribute = BoxFactory.create(null);   //avoid redundant creation of the box in every iteration inside of the loop
         for (final String resourceName : resources) {
@@ -118,7 +118,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
     }
 
     private void updateWatchers() {
-        for (final Map.Entry<String, UpdatableComponentWatcher> entry : watchers.entrySet()) {
+        for (final Map.Entry<String, UpdatableGroupWatcher> entry : watchers.entrySet()) {
             final WatcherUpdaterTask task = new WatcherUpdaterTask(this, entry.getKey(), entry.getValue());
             threadPool.submit(task);
         }
@@ -129,8 +129,8 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         return new AttributeWatcher(metadata);
     }
 
-    private static void removeAllWatchers(final Map<String, UpdatableComponentWatcher> watchers){
-        watchers.values().forEach(UpdatableComponentWatcher::clear);
+    private static void removeAllWatchers(final Map<String, UpdatableGroupWatcher> watchers){
+        watchers.values().forEach(UpdatableGroupWatcher::clear);
         watchers.clear();
     }
 
@@ -165,7 +165,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
      */
     @Override
     public void reset() {
-        readLock.accept(ResourceGroup.WATCHERS, watchers, watchers -> watchers.values().forEach(UpdatableComponentWatcher::reset));
+        readLock.accept(ResourceGroup.WATCHERS, watchers, watchers -> watchers.values().forEach(UpdatableGroupWatcher::reset));
     }
 
     /**
@@ -187,7 +187,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
     @Override
     public HealthStatus getHealthStatus(final String groupName) {
         return readLock.apply(ResourceGroup.WATCHERS, watchers, watchers -> {
-            final UpdatableComponentWatcher watcher = watchers.get(groupName);
+            final UpdatableGroupWatcher watcher = watchers.get(groupName);
             return watcher == null ? null : watcher.getStatus();
         });
     }
@@ -229,7 +229,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
     }
 
     private void addWatcher(final String groupName, final ManagedResourceGroupWatcherConfiguration watcherConfig) {
-        watchers.put(groupName, new UpdatableComponentWatcher(watcherConfig, this));
+        watchers.put(groupName, new UpdatableGroupWatcher(watcherConfig, this));
     }
 
     private void addWatchers(final Map<String, ? extends ManagedResourceGroupWatcherConfiguration> configuration) {

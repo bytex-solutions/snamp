@@ -28,7 +28,7 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @version 2.0
  * @since 2.0
  */
-final class UpdatableComponentWatcher extends WeakReference<GroupStatusEventListener> implements Stateful {
+final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener> implements Stateful {
 
     private static final class InvalidAttributeCheckerException extends Exception{
         private static final long serialVersionUID = -2754906759778952794L;
@@ -46,8 +46,8 @@ final class UpdatableComponentWatcher extends WeakReference<GroupStatusEventList
         }
     }
 
-    private static final AtomicReferenceFieldUpdater<UpdatableComponentWatcher, HealthStatus> STATUS_UPDATER =
-            AtomicReferenceFieldUpdater.newUpdater(UpdatableComponentWatcher.class, HealthStatus.class, "status");
+    private static final AtomicReferenceFieldUpdater<UpdatableGroupWatcher, HealthStatus> STATUS_UPDATER =
+            AtomicReferenceFieldUpdater.newUpdater(UpdatableGroupWatcher.class, HealthStatus.class, "status");
     private static final LazySoftReference<GroovyAttributeCheckerFactory> GROOVY_CHECKER_FACTORY = new LazySoftReference<>();
     private static final OkStatus OK_STATUS = new OkStatus();
 
@@ -56,7 +56,7 @@ final class UpdatableComponentWatcher extends WeakReference<GroupStatusEventList
         private final HealthStatus previousStatus;
         private final HealthStatus newStatus;
 
-        private StatusChangedEvent(final UpdatableComponentWatcher source,
+        private StatusChangedEvent(final UpdatableGroupWatcher source,
                                    final HealthStatus newStatus,
                                    final HealthStatus previousStatus) {
             super(source);
@@ -81,9 +81,9 @@ final class UpdatableComponentWatcher extends WeakReference<GroupStatusEventList
     private final ConcurrentMap<String, AttributeCheckStatus> attributesStatusMap;
     private final ImmutableMap<String, AttributeChecker> attributeCheckers;
 
-    UpdatableComponentWatcher(final ManagedResourceGroupWatcherConfiguration configuration,
-                              final GroupStatusEventListener statusListener) {
-        super(Objects.requireNonNull(statusListener));
+    UpdatableGroupWatcher(final ManagedResourceGroupWatcherConfiguration configuration,
+                          final GroupStatusEventListener statusListener) {
+        super(statusListener);
         status = OK_STATUS;
         attributesStatusMap = new ConcurrentHashMap<>(15);
         final ImmutableMap.Builder<String, AttributeChecker> attributeCheckers = ImmutableMap.builder();
@@ -117,7 +117,7 @@ final class UpdatableComponentWatcher extends WeakReference<GroupStatusEventList
         switch (checker.getLanguage()) {
             case ScriptletConfiguration.GROOVY_LANGUAGE:
                 return callAndWrapException(() -> createGroovyChecker(scriptBody, loader), exceptionFactory);
-            case "Simple":
+            case ColoredAttributeChecker.LANGUAGE_NAME:
                 return callAndWrapException(() -> ColoredAttributeChecker.parse(scriptBody), exceptionFactory);
             default:
                 throw new InvalidAttributeCheckerException(checker.getLanguage());

@@ -1,11 +1,13 @@
 package com.bytex.snamp.connector.attributes.checkers;
 
+import com.bytex.snamp.configuration.ScriptletConfiguration;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.annotation.Nonnull;
 import javax.management.Attribute;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 /**
  * Represents simple attribute checker based on
@@ -14,6 +16,7 @@ import java.io.IOException;
  * @since 2.0
  */
 public final class ColoredAttributeChecker implements AttributeChecker {
+    public static final String LANGUAGE_NAME = "ColoredAttributeChecker";
     private ColoredAttributePredicate green;
     private ColoredAttributePredicate yellow;
 
@@ -25,6 +28,19 @@ public final class ColoredAttributeChecker implements AttributeChecker {
     public static ColoredAttributeChecker parse(final String scriptBody) throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(scriptBody, ColoredAttributeChecker.class);
+    }
+
+    public void configureScriptlet(final ScriptletConfiguration scriptlet) {
+        final ObjectMapper mapper = new ObjectMapper();
+        scriptlet.setLanguage(LANGUAGE_NAME);
+        scriptlet.setURL(false);
+        final String json;
+        try {
+            json = mapper.writeValueAsString(this);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        scriptlet.setScript(json);
     }
 
     @JsonProperty("green")

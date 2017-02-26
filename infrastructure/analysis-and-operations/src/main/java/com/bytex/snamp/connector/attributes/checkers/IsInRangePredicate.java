@@ -14,10 +14,21 @@ import static com.bytex.snamp.Convert.toDouble;
  */
 @JsonTypeName("isInRange")
 public final class IsInRangePredicate implements ColoredAttributePredicate {
-    private double from = Double.NaN;
+    private double from;
     private boolean fromInclusive;
-    private double to = Double.NaN;
+    private double to;
     private boolean toInclusive;
+
+    public IsInRangePredicate(final double from, final boolean fromInclusive, final double to, final boolean toInclusive){
+        this.from = from;
+        this.fromInclusive = fromInclusive;
+        this.to = to;
+        this.toInclusive = toInclusive;
+    }
+
+    public IsInRangePredicate(){
+        this(Double.NaN, false, Double.NaN, false);
+    }
 
     @Override
     public boolean test(final Attribute attribute) {

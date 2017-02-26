@@ -62,8 +62,17 @@ public final class NumberComparatorPredicate implements ColoredAttributePredicat
         }
     }
 
-    private Operator operator = Operator.EQUAL;
-    private double value = Double.NaN;
+    private Operator operator;
+    private double value;
+
+    public NumberComparatorPredicate(@Nonnull final Operator operator, final double value){
+        this.operator = operator;
+        this.value = value;
+    }
+
+    public NumberComparatorPredicate(){
+        this(Operator.EQUAL, Double.NaN);
+    }
 
     @Override
     public boolean test(final Attribute attribute) {
