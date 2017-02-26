@@ -215,25 +215,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     ProvidedServiceState.PUBLISHED;
         }
 
-        @MethodStub
-        protected void activated(final T service) throws Exception{
-
-        }
-
         private synchronized void activateAndRegisterService(final BundleContext context) throws Exception {
             final Hashtable<String, Object> identity = new Hashtable<>(3);
             registration = new ServiceRegistrationHolder<>(serviceContracts,
                     activateService(identity),
                     identity,
                     context);
-            try {
-                activated(registration.get());
-            } catch (final Exception e) {
-                //cancel registration
-                registration.unregister();
-                registration = null;
-                throw e;
-            }
         }
 
         private synchronized void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
@@ -496,20 +483,20 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         private final ServiceRegistration<?> registration;
         private T serviceInstance;
 
-        private ServiceRegistrationHolder(final Class<? super S>[] serviceContracts,
-                                          final T service,
-                                          final Dictionary<String, ?> identity,
-                                          final BundleContext context) {
+        ServiceRegistrationHolder(final Class<? super S>[] serviceContracts,
+                                  final T service,
+                                  final Dictionary<String, ?> identity,
+                                  final BundleContext context) {
             serviceInstance = Objects.requireNonNull(service);
             final String[] serviceContractNames = Arrays.stream(serviceContracts).map(Class::getName).toArray(String[]::new);
             registration = context.registerService(serviceContractNames, service, identity);
         }
 
         @SuppressWarnings("unchecked")
-        private ServiceRegistrationHolder(final Class<S> serviceContract,
-                                          final T service,
-                                          final Dictionary<String, ?> identity,
-                                          final BundleContext context){
+        ServiceRegistrationHolder(final Class<S> serviceContract,
+                                  final T service,
+                                  final Dictionary<String, ?> identity,
+                                  final BundleContext context){
             this(new Class[]{serviceContract}, service, identity, context);
         }
 
@@ -518,7 +505,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             registration.setProperties(properties);
         }
 
-        private Hashtable<String, ?> dumpProperties(){
+        Hashtable<String, ?> dumpProperties(){
             final String[] propertyNames = registration.getReference().getPropertyKeys();
             final Hashtable<String, Object> result = new Hashtable<>(propertyNames.length * 2);
             for(final String propertyName: propertyNames)
@@ -552,7 +539,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             return registration.toString();
         }
 
-        private boolean isUnregistered() {
+        boolean isUnregistered() {
             return registration == null;
         }
     }

@@ -4,22 +4,81 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
-import com.bytex.snamp.core.AbstractBundleActivator;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.connector.supervision.HealthSupervisor;
+import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.moa.DataAnalyzer;
+import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.service.cm.ManagedService;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public final class Activator extends AbstractBundleActivator {
+public final class Activator extends AbstractServiceLibrary {
     private static final String ANALYTICAL_THREAD_POOL = "analyticalThreadPool";
     private static final ActivationProperty<AnalyticalGateway> GATEWAY_PROPERTY = defineActivationProperty(AnalyticalGateway.class);
 
+    private static abstract class AnalyticalServiceProvider<S extends DataAnalyzer, T extends S> extends ProvidedService<S, T>{
+        @SafeVarargs
+        AnalyticalServiceProvider(final Class<S> contract, final RequiredService<?>[] dependencies, final Class<? super S>... subInterfaces) {
+            super(contract, dependencies, subInterfaces);
+        }
+
+        abstract T activateService(final AnalyticalGateway gateway, final Map<String, Object> identity);
+
+        @Override
+        protected T activateService(final Map<String, Object> identity) {
+            final AnalyticalGateway gateway = getActivationPropertyValue(GATEWAY_PROPERTY);
+            assert gateway != null;
+            return activateService(gateway, identity);
+        }
+
+        @Override
+        protected void cleanupService(final T serviceInstance, final boolean stopBundle) {
+            serviceInstance.reset();
+        }
+    }
+
+    private static final class TopologyAnalyzerProvider extends AnalyticalServiceProvider<TopologyAnalyzer, TopologyAnalysisImpl>{
+        TopologyAnalyzerProvider(){
+            super(TopologyAnalyzer.class, new RequiredService<?>[0]);
+        }
+
+        @Override
+        TopologyAnalysisImpl activateService(final AnalyticalGateway gateway, final Map<String, Object> identity) {
+            return gateway.getTopologyAnalyzer();
+        }
+    }
+
+    private static final class HealthAnalyzerProvider extends AnalyticalServiceProvider<HealthAnalyzer, HealthAnalyzerImpl>{
+        HealthAnalyzerProvider(){
+            super(HealthAnalyzer.class, new RequiredService<?>[0], HealthSupervisor.class, ManagedService.class);
+        }
+
+        @Override
+        HealthAnalyzerImpl activateService(final AnalyticalGateway gateway, final Map<String, Object> identity) {
+            final HealthAnalyzerImpl healthAnalyzer = gateway.getHealthAnalyzer();
+            identity.put(Constants.SERVICE_PID, healthAnalyzer.getPersistentID());
+            return healthAnalyzer;
+        }
+    }
 
     @SpecialUse(SpecialUse.Case.OSGi)
     public Activator() {
+        super(Activator::provideAnalyticalServices);
+    }
+
+    private static void provideAnalyticalServices(final Collection<ProvidedService<?, ?>> services,
+                                                  final ActivationPropertyReader activationProperties,
+                                                      final DependencyManager bundleLevelDependencies) {
+        services.add(new HealthAnalyzerProvider());
+        services.add(new TopologyAnalyzerProvider());
     }
 
     /**
@@ -44,12 +103,13 @@ public final class Activator extends AbstractBundleActivator {
         final CMManagedResourceGroupWatcherParser watcherParser = configurationManager.queryObject(CMManagedResourceGroupWatcherParser.class);
         assert watcherParser != null;
         final AnalyticalGateway service = new AnalyticalGateway(
-                Utils.getBundleContextOfObject(this),
+                context,
                 repository.getThreadPool(ANALYTICAL_THREAD_POOL, true),
                 watcherParser
         );
         service.update(configurationManager.getConfiguration());
         activationProperties.publish(GATEWAY_PROPERTY, service);
+        super.activate(context, activationProperties, dependencies);  //at this point number of analytical services will be instantiated
     }
 
     /**
@@ -64,17 +124,10 @@ public final class Activator extends AbstractBundleActivator {
      */
     @Override
     protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        activationProperties.getProperty(GATEWAY_PROPERTY).close();
-    }
-
-    /**
-     * Stops the bundle.
-     *
-     * @param context The execution context of the bundle being stopped.
-     * @throws Exception An exception occurred during bundle stopping.
-     */
-    @Override
-    protected void shutdown(final BundleContext context) throws Exception {
-
+        try {
+            activationProperties.getProperty(GATEWAY_PROPERTY).close();
+        } finally {
+            super.deactivate(context, activationProperties);
+        }
     }
 }
