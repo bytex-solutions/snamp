@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.attributes.checkers;
 
 
 import com.bytex.snamp.SpecialUse;
-import groovy.lang.Script;
+import com.bytex.snamp.scripting.groovy.Scriptlet;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import javax.management.Attribute;
@@ -14,7 +14,7 @@ import java.util.function.Function;
  * @version 2.0
  * @since 2.0
  */
-public abstract class GroovyAttributeChecker extends Script implements AttributeChecker {
+public abstract class GroovyAttributeChecker extends Scriptlet implements AttributeChecker {
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     public static final AttributeCheckStatus OK = AttributeCheckStatus.OK;
     @SpecialUse(SpecialUse.Case.SCRIPTING)
