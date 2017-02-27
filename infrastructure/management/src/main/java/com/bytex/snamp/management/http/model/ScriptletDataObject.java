@@ -21,7 +21,7 @@ public final class ScriptletDataObject implements ScriptletConfiguration, Export
         language = script = "";
     }
 
-    public ScriptletDataObject(final ScriptletConfiguration configuration){
+    ScriptletDataObject(final ScriptletConfiguration configuration){
         language = configuration.getLanguage();
         script = configuration.getScript();
         isURL = configuration.isURL();

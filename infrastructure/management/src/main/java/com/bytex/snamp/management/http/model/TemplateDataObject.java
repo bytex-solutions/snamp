@@ -9,8 +9,8 @@ import java.util.function.Function;
 
 /**
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
 public abstract class TemplateDataObject<E extends ManagedResourceTemplate> extends AbstractTypedDataObject<E> {
     private final Map<String, AttributeDataObject> attributes;

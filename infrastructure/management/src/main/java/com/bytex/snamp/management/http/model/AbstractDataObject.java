@@ -20,14 +20,15 @@ import java.util.Map;
         @JsonSubTypes.Type(EventDataObject.class),
         @JsonSubTypes.Type(OperationDataObject.class),
         @JsonSubTypes.Type(AttributeDataObject.class),
-        @JsonSubTypes.Type(ManagedResourceDataObject.class),
+        @JsonSubTypes.Type(ResourceDataObject.class),
         @JsonSubTypes.Type(GatewayDataObject.class),
         @JsonSubTypes.Type(ResourceGroupDataObject.class),
-        @JsonSubTypes.Type(AgentDataObject.class)
+        @JsonSubTypes.Type(AgentDataObject.class),
+        @JsonSubTypes.Type(ResourceGroupWatcherDataObject.class)
 })
 public abstract class AbstractDataObject<E extends EntityConfiguration> implements Exportable<E> {
     @JsonIgnore
-    protected final Map<String, String> parameters;
+    private final Map<String, String> parameters;
 
     /**
      * Instantiates a new Abstract dto entity.

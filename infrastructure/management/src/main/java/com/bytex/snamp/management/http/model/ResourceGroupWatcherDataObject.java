@@ -13,16 +13,16 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class ManagedResourceGroupWatcherDataObject extends AbstractDataObject<ManagedResourceGroupWatcherConfiguration> {
+public final class ResourceGroupWatcherDataObject extends AbstractDataObject<ManagedResourceGroupWatcherConfiguration> {
     private final Map<String, ScriptletDataObject> attributeCheckers;
     private ScriptletDataObject trigger;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
-    public ManagedResourceGroupWatcherDataObject(){
+    public ResourceGroupWatcherDataObject(){
         attributeCheckers = new HashMap<>();
     }
 
-    public ManagedResourceGroupWatcherDataObject(final ManagedResourceGroupWatcherConfiguration configuration){
+    public ResourceGroupWatcherDataObject(final ManagedResourceGroupWatcherConfiguration configuration){
         super(configuration);
         attributeCheckers = Exportable.importEntities(configuration.getAttributeCheckers(), ScriptletDataObject::new);
         trigger = new ScriptletDataObject(configuration.getTrigger());

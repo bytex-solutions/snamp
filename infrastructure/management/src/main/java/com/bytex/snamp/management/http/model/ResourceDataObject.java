@@ -13,7 +13,7 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  * @since 2.0
  */
 @JsonTypeName("managedResource")
-public final class ManagedResourceDataObject extends TemplateDataObject<ManagedResourceConfiguration> {
+public final class ResourceDataObject extends TemplateDataObject<ManagedResourceConfiguration> {
     private String connectionString;
     private String groupName;
 
@@ -21,11 +21,11 @@ public final class ManagedResourceDataObject extends TemplateDataObject<ManagedR
      * Default constructor.
      */
     @SpecialUse(SpecialUse.Case.SERIALIZATION) //used for Jackson deserialization
-    public ManagedResourceDataObject() {
+    public ResourceDataObject() {
 
     }
 
-    public ManagedResourceDataObject(final ManagedResourceConfiguration configuration) {
+    public ResourceDataObject(final ManagedResourceConfiguration configuration) {
         super(configuration);
         connectionString = configuration.getConnectionString();
         groupName = configuration.getGroupName();
