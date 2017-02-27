@@ -156,6 +156,82 @@
           </div>
         </div>
 
+        <div class="form-group row">
+          <label for="text-size-input" class="col-md-3 col-sm-3 col-xs-12">Text color</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <input class="form-control" type="color" [(ngModel)]="textColor" id="text-color-input" placeholder="Input text color" (ngModelChange)="onChangeTextColor($event)">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="text-size-input" class="col-md-3 col-sm-3 col-xs-12">Background color</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <input class="form-control" type="color" [(ngModel)]="backgroundColor" id="background-color-input" placeholder="Input background color" (ngModelChange)="onChangeBackgroundColor($event)">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="text-size-input" class="col-md-3 col-sm-3 col-xs-12">Text outline color</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <input class="form-control" type="color" [(ngModel)]="textOutlineColor" id="text-outline-color-input" placeholder="Input text outline color" (ngModelChange)="onChangeTextOutlineColor($event)">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="text-size-input" class="col-md-3 col-sm-3 col-xs-12">Text outline width</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <input class="form-control" type="number" [(ngModel)]="textOutlineWidth" id="text-outline-width-input" placeholder="Input text outline width" (ngModelChange)="onChangeTextOutlineWidth($event)">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="text-size-input" class="col-md-3 col-sm-3 col-xs-12">Text weight</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <input class="form-control" type="number" [(ngModel)]="textWeight" id="text-weight-input" placeholder="Input text weight" (ngModelChange)="onChangeTextWeight($event)" step="100" min="100" max="1000">
+          </div>
+        </div>
+
+        <div class="row">
+          <h5>Edge settings</h5>
+        </div>
+
+        <div class="form-group row">
+          <label for="text-size-input" class="col-md-3 col-sm-3 col-xs-12">Edge line width</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <input class="form-control" type="number" [(ngModel)]="edgeWidth" id="edge-width-input" placeholder="Input edge line width" (ngModelChange)="onChangeEdgeWidth($event)">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="text-size-input" class="col-md-3 col-sm-3 col-xs-12">Edge line color</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <input class="form-control" type="color" [(ngModel)]="edgeLineColor" id="edge-line-color-input" placeholder="Input edge line color" (ngModelChange)="onChangeEdgeLineColor($event)">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="text-size-input" class="col-md-3 col-sm-3 col-xs-12">Edge arrow color</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <input class="form-control" type="color" [(ngModel)]="edgeArrowColor" id="edge-arrow-color-input" placeholder="Input edge arrow color" (ngModelChange)="onChangeEdgeArrowColor($event)">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12 middleVertical" for="edge-shape-select">Edge arrow shape</label>
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <select class="form-control" [(ngModel)]="edgeArrowShape" (ngModelChange)="onChangeEdgeArrowShape($event)" id="edge-shape-select">
+              <option value="tee">Tee</option>
+              <option value="triangle">Triangle</option>
+              <option value="triangle-tee">Triangle tee</option>
+              <option value="triangle-backcurve">Triangle backcurve</option>
+              <option value="square">Square</option>
+              <option value="circle">Circle</option>
+              <option value="diamond">Diamond</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+        </div>
+
         <div class="row">
           <button class="btn btn-primary" (click)="resetView()">Reset view</button>
         </div>

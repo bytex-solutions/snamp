@@ -81,11 +81,11 @@ export abstract class E2EView {
     }
 
     // text weight
-    public setTextWeight(weight:string):void {
+    public setTextWeight(weight:number):void {
         this.preferences["textweight"] = weight;
     }
 
-    public getTextWeight():string {
+    public getTextWeight():number {
         return this.preferences["textweight"];
     }
 
@@ -315,7 +315,7 @@ export abstract class E2EView {
         this._cy.style().selector('node').style({'text-outline-width': this.getTextOutlineWidth()}).update();
     }
 
-    public changeTextWeight(weight:string):void {
+    public changeTextWeight(weight:number):void {
         this.setTextWeight(weight);
         this._cy.style().selector('node').style({'font-weight': this.getTextWeight()}).update();
     }

@@ -83178,7 +83178,7 @@ var Factory = (function () {
         _view.setBackgroundColor('#999');
         _view.setTextOutlineColor('#999');
         _view.setTextOutlineWidth(2);
-        _view.setTextWeight('700');
+        _view.setTextWeight(700);
         _view.setEdgeWidth(2);
         _view.setEdgeLineColor('#999');
         _view.setEdgeArrowColor('#999');
