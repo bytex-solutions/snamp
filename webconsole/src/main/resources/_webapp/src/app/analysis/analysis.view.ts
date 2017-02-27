@@ -59,6 +59,13 @@ export class MainView implements OnInit {
             this.currentView = _view;
             this.selectedLayout = _view.getLayout();
             this.textSize = _view.getTextSize();
+
+            // set checkboxes according to preferences
+            let _chbx:string[] = _view.getDisplayedMetadata();
+            for (let ij = 0; ij < _chbx.length; ij++) {
+                $("#myTabContent2 input[name='" + _chbx[ij] + "']").prop('checked', true);
+            }
+
             this._viewService.getDataForView(_view).subscribe((_data:any) => {
                   this._cyObject = _view.draw(_data);
                   this.handleCy(this._cyObject);

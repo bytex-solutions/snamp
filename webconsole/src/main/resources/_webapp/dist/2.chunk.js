@@ -222,6 +222,11 @@ var MainView = (function () {
             _this.currentView = _view;
             _this.selectedLayout = _view.getLayout();
             _this.textSize = _view.getTextSize();
+            // set checkboxes according to preferences
+            var _chbx = _view.getDisplayedMetadata();
+            for (var ij = 0; ij < _chbx.length; ij++) {
+                $("#myTabContent2 input[name='" + _chbx[ij] + "']").prop('checked', true);
+            }
             _this._viewService.getDataForView(_view).subscribe(function (_data) {
                 _this._cyObject = _view.draw(_data);
                 _this.handleCy(_this._cyObject);

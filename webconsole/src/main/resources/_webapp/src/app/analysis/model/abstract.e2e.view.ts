@@ -215,7 +215,7 @@ export abstract class E2EView {
         let result:string = id;
         let _md:string[] = this.getDisplayedMetadata();
         for (let i = 0; i < _md.length; i++) {
-            if (data != undefined && data[_md[i]] != undefined) {
+            if (data != undefined) {
                 if (_md[i].indexOf("/") > 0) {
                     result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
                             + data[_md[i].split("/")[0]][_md[i].split("/")[1]];
