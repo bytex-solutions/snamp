@@ -13,7 +13,7 @@
     <description>Basic set of features required to support SNAMP platform</description>
     <artifactId>core-features</artifactId>
     <packaging>kar</packaging>
-    <version>2.0.0</version>
+    <version>${snamp.version}</version>
     <build>
         <resources>
             <resource>

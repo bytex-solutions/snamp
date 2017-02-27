@@ -112,6 +112,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         managedResourceConnectors.pop().release(getTestBundleContext());
     }
 
+    protected String getGroupName(){
+        return "";
+    }
+
+    protected void fillWatchers(final EntityMap<? extends ManagedResourceGroupWatcherConfiguration> watchers){
+        
+    }
+
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes){
 
     }
@@ -183,12 +191,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         final ManagedResourceConfiguration targetConfig =
                 config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME);
         targetConfig.putAll(connectorParameters);
+        targetConfig.setGroupName(getGroupName());
         fillGateways(config.getEntities(GatewayConfiguration.class));
         targetConfig.setConnectionString(connectionString);
         targetConfig.setType(connectorType);
         fillAttributes(targetConfig.getFeatures(AttributeConfiguration.class));
         fillEvents(targetConfig.getFeatures(EventConfiguration.class));
         fillOperations(targetConfig.getFeatures(OperationConfiguration.class));
+        fillWatchers(config.getEntities(ManagedResourceGroupWatcherConfiguration.class));
     }
 
     protected final <T> void testAttribute(final String attributeName,

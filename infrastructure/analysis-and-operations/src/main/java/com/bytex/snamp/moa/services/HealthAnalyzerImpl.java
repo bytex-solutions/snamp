@@ -1,7 +1,5 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.WeakRepeater;
@@ -18,8 +16,6 @@ import com.google.common.collect.Multimap;
 import org.osgi.service.cm.ConfigurationException;
 
 import javax.annotation.Nonnull;
-import javax.management.Attribute;
-import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -101,23 +97,16 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         return watcherParser.getPersistentID();
     }
 
-    private void updateWatcher(final String componentName, final UpdatableGroupWatcher watcher) throws TimeoutException, InterruptedException {
+    void updateWatcher(final String componentName, final UpdatableGroupWatcher watcher) throws TimeoutException, InterruptedException {
         final ImmutableSet<String> resources = readLock.apply(ResourceGroup.RESOURCE_MAP, componentToResourceMap, componentName, (m, n) -> ImmutableSet.copyOf(m.get(n)), null);
-        final Box<Attribute> attribute = BoxFactory.create(null);   //avoid redundant creation of the box in every iteration inside of the loop
-        for (final String resourceName : resources) {
-            attribute.reset();
-            try {
-                processAttribute(resourceName, w -> true, w -> attribute.set(w.getRawValue()));
-            } catch (final JMException error) {
-                watcher.updateStatus(resourceName, error);
-                continue;
-            }
-            if (attribute.hasValue())
-                watcher.updateStatus(resourceName, attribute.get());
-        }
+        for (final String resourceName : resources)
+            forEachAttribute((attributeName, attributeWatcher) -> {
+                attributeWatcher.checkAttribute(resourceName, watcher);
+                return !Thread.interrupted();
+            });
     }
 
-    private void updateWatchers() {
+    void updateWatchers() {
         for (final Map.Entry<String, UpdatableGroupWatcher> entry : watchers.entrySet()) {
             final WatcherUpdaterTask task = new WatcherUpdaterTask(this, entry.getKey(), entry.getValue());
             threadPool.submit(task);
@@ -239,13 +228,17 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
 
     @Override
     public void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
-        final Map<String, ? extends ManagedResourceGroupWatcherConfiguration> watchersConfiguration;
-        try{
-            watchersConfiguration = watcherParser.parse(properties);
-        } catch (final IOException e){
-            throw new ConfigurationException("ALL", "Invalid structure of the dictionary", e);
+        if (properties == null)  //remove all watchers
+            writeLock.accept(ResourceGroup.WATCHERS, watchers, HealthAnalyzerImpl::removeAllWatchers);
+        else {
+            final Map<String, ? extends ManagedResourceGroupWatcherConfiguration> watchersConfiguration;
+            try {
+                watchersConfiguration = watcherParser.parse(properties);
+            } catch (final IOException e) {
+                throw new ConfigurationException("ALL", "Invalid structure of the dictionary", e);
+            }
+            writeLock.accept(ResourceGroup.WATCHERS, watchersConfiguration, this::addWatchers);
         }
-        writeLock.accept(ResourceGroup.WATCHERS, watchersConfiguration, this::addWatchers);
     }
 
     void startWatching(final Duration updatePeriod){

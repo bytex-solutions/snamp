@@ -444,10 +444,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     @OverridingMethodsMustInvokeSuper
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
-        super.activate(context, activationProperties, dependencies);
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
         getLogger().info(String.format("Activating resource connector of type %s", getConnectorType()));
+        super.activate(context, activationProperties, dependencies);
     }
 
     private Logger getLogger(){

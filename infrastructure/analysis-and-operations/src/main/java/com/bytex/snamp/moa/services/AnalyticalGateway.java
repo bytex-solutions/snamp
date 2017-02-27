@@ -33,7 +33,7 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
     private static final String HISTORY_SIZE_PARAM = "topologyAnalyzerHistorySize";
     private static final String WATCH_PERIOD_PARAM = "watchPeriod";
     private static final long DEFAULT_HISTORY_SIZE = 5_000L;
-    private static final long DEFAULT_WATCH_PERIOD = 1000L;
+    private static final long DEFAULT_WATCH_PERIOD = 800L;
 
     private TopologyAnalysisImpl graph;
     private final HealthAnalyzerImpl watchDog;

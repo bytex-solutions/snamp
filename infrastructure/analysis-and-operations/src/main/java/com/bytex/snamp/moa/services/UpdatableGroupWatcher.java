@@ -29,7 +29,6 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @since 2.0
  */
 final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener> implements Stateful {
-
     private static final class InvalidAttributeCheckerException extends Exception{
         private static final long serialVersionUID = -2754906759778952794L;
 
@@ -183,5 +182,10 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
 
     void removeResource(final String resourceName) {
         STATUS_UPDATER.updateAndGet(this, existing -> existing.getResourceName().equals(resourceName) ? OK_STATUS : existing);
+    }
+
+    void removeAttribute(final String attributeName) {
+        attributesStatusMap.remove(attributeName);
+        STATUS_UPDATER.updateAndGet(this, existing -> existing instanceof InvalidAttributeValue && ((InvalidAttributeValue) existing).getAttribute().getName().equals(attributeName) ? OK_STATUS : existing);
     }
 }

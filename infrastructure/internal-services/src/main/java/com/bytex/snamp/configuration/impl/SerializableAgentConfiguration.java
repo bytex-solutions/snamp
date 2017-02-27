@@ -187,6 +187,8 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
             result = threadPools;
         else if(entityType.isAssignableFrom(SerializableManagedResourceGroupConfiguration.class))
             result = groups;
+        else if(entityType.isAssignableFrom(SerializableManagedResourceGroupWatcherConfiguration.class))
+            result = watchers;
         else
             result = null;
         return result;

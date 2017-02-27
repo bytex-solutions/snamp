@@ -256,10 +256,10 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
 
     @Override
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
-        super.activate(context, activationProperties, dependencies);
         activationProperties.publish(GATEWAY_TYPE_HOLDER, getGatewayType());
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         getLogger().info(String.format("Activating gateway of type %s", getGatewayType()));
+        super.activate(context, activationProperties, dependencies);
     }
 
     private Logger getLogger(){

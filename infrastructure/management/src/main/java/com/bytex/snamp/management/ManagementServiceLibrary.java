@@ -176,13 +176,13 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
 
     @Override
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
-        super.activate(context, activationProperties, dependencies);
         activationProperties.publish(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
         final HttpService httpService = dependencies.getDependency(HttpService.class);
         acceptWithContextClassLoader(getClass().getClassLoader(),
                 httpService,
                 (publisher) -> publisher.registerServlet(ManagementServlet.CONTEXT, new ManagementServlet(), new Hashtable<>(), null));
         activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, httpService);
+        super.activate(context, activationProperties, dependencies);
     }
 
     /**

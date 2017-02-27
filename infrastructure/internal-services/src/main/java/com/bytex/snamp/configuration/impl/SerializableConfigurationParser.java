@@ -47,7 +47,7 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
     }
 
     private Configuration getConfig(final ConfigurationAdmin admin) throws IOException{
-        return admin.getConfiguration(persistentID);
+        return admin.getConfiguration(persistentID, null);
     }
 
     private E deserialize(final String itemName, final Dictionary<String, ?> properties) throws IOException {
