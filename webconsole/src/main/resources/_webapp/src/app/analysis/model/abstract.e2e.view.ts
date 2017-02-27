@@ -12,6 +12,7 @@ export abstract class E2EView {
     public preferences:{ [key: string]: any } = { };
     public id:string = "e2eview" + GUID.newGuid();
 
+    // checkboxes for setting which data aspects to display
     public getDisplayedMetadata():string[] {
         if (this.preferences && this.preferences["displayedMetadata"] != undefined) {
             return this.preferences["displayedMetadata"];
@@ -24,6 +25,7 @@ export abstract class E2EView {
         this.preferences["displayedMetadata"] = metadata;
     }
 
+    // layout
     public getLayout():string {
         return this.preferences["layout"];
     }
@@ -33,14 +35,96 @@ export abstract class E2EView {
         this.preferences["layout"] = layout;
     }
 
+    // text size
     public getTextSize():string {
         return this.preferences["textsize"];
     }
 
-
     public setTextSize(size:string):void {
         this.preferences["textsize"] = size;
     }
+
+    // text color
+    public setTextColor(color:string):void {
+        this.preferences["textcolor"] = color;
+    }
+
+    public getTextColor():string {
+        return this.preferences["textcolor"];
+    }
+
+    // background color
+    public setBackgroundColor(color:string):void {
+        this.preferences["backgroundcolor"] = color;
+    }
+
+    public getBackgroundColor():string {
+        return this.preferences["backgroundcolor"];
+    }
+
+    // text outline color
+    public setTextOutlineColor(color:string):void {
+        this.preferences["textoutlinecolor"] = color;
+    }
+
+    public getTextOutlineColor():string {
+        return this.preferences["textoutlinecolor"];
+    }
+
+    // text outline width
+    public setTextOutlineWidth(width:number):void {
+        this.preferences["textoutlinewidth"] = width;
+    }
+
+    public getTextOutlineWidth():number {
+        return this.preferences["textoutlinewidth"];
+    }
+
+    // text weight
+    public setTextWeight(weight:string):void {
+        this.preferences["textweight"] = weight;
+    }
+
+    public getTextWeight():string {
+        return this.preferences["textweight"];
+    }
+
+    // edge width
+    public setEdgeWidth(width:number):void {
+        this.preferences["edgewidth"] = width;
+    }
+
+    public getEdgeWidth():number {
+        return this.preferences["edgewidth"];
+    }
+
+    // edge line color
+    public setEdgeLineColor(color:string):void {
+        this.preferences["edgelinecolor"] = color;
+    }
+
+    public getEdgeLineColor():string {
+        return this.preferences["edgelinecolor"];
+    }
+
+    // edge arrow color
+    public setEdgeArrowColor(color:string):void {
+        this.preferences["edgearrowcolor"] = color;
+    }
+
+    public getEdgeArrowColor():string {
+        return this.preferences["edgearrowcolor"];
+    }
+
+    // edge arrow shape
+    public setEdgeArrowShape(shape:string):void {
+        this.preferences["edgearrowshape"] = shape;
+    }
+
+    public getEdgeArrowShape():string {
+        return this.preferences["edgearrowshape"];
+    }
+
 
     public abstract toJSON():any;
 
@@ -87,20 +171,20 @@ export abstract class E2EView {
                     'text-valign': 'top',
                     'font-size': this.getTextSize() + 'px',
                     'text-halign': 'center',
-                    'font-weight': '700',
-                    'color': 'white',
-                    'text-outline-width': 2,
-                    'background-color': '#999',
-                    'text-outline-color': '#999'
+                    'font-weight': this.getTextWeight(),
+                    'color': this.getTextSize(),
+                    'text-outline-width': this.getTextOutlineWidth(),
+                    'background-color': this.getBackgroundColor(),
+                    'text-outline-color': this.getTextOutlineColor()
                 }
             },
             {
                 selector: 'edge',
                 style: {
-                    'width': 2  ,
-                    'target-arrow-shape': 'triangle',
-                    'line-color': '#999',
-                    'target-arrow-color': '#999',
+                    'width': this.getEdgeWidth(),
+                    'target-arrow-shape': this.getEdgeArrowShape(),
+                    'line-color': this.getEdgeLineColor(),
+                    'target-arrow-color': this.getEdgeArrowColor(),
                     'curve-style': 'bezier'
                 }
             }
@@ -209,6 +293,51 @@ export abstract class E2EView {
     public changeTextSize(textSize:string):void {
         this.setTextSize(textSize);
         this._cy.style().selector('node').style({'font-size': this.getTextSize() + 'px'}).update();
+    }
+
+    public changeTextColor(color:string):void {
+        this.setTextColor(color);
+        this._cy.style().selector('node').style({'color': this.getTextColor()}).update();
+    }
+
+    public changeBackgroundColor(color:string):void {
+        this.setBackgroundColor(color);
+        this._cy.style().selector('node').style({'background-color': this.getBackgroundColor()}).update();
+    }
+
+    public changeTextOutlineColor(color:string):void {
+        this.setTextOutlineColor(color);
+        this._cy.style().selector('node').style({'text-outline-color': this.getTextOutlineColor()}).update();
+    }
+
+    public changeTextOutlineWidth(width:number):void {
+        this.setTextOutlineWidth(width);
+        this._cy.style().selector('node').style({'text-outline-width': this.getTextOutlineWidth()}).update();
+    }
+
+    public changeTextWeight(weight:string):void {
+        this.setTextWeight(weight);
+        this._cy.style().selector('node').style({'font-weight': this.getTextWeight()}).update();
+    }
+
+    public changeEdgeWidth(width:number):void {
+        this.setEdgeWidth(width);
+        this._cy.style().selector('edge').style({'width': this.getEdgeWidth()}).update();
+    }
+
+    public changeEdgeLineColor(color:string):void {
+        this.setEdgeLineColor(color);
+        this._cy.style().selector('edge').style({'line-color': this.getEdgeLineColor()}).update();
+    }
+
+    public changeEdgeArrowColor(color:string):void {
+        this.setEdgeArrowColor(color);
+        this._cy.style().selector('edge').style({'target-arrow-color': this.getEdgeArrowColor()}).update();
+    }
+
+    public changeEdgeArrowShape(shape:string):void {
+        this.setEdgeArrowShape(shape);
+        this._cy.style().selector('edge').style({'target-arrow-shape': this.getEdgeArrowShape()}).update();
     }
 
     private getLabelFromMetadata(id:string, data:any):string {

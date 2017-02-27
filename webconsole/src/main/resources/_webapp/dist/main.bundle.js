@@ -82701,6 +82701,7 @@ var E2EView = (function () {
         this.preferences = {};
         this.id = "e2eview" + GUID.newGuid();
     }
+    // checkboxes for setting which data aspects to display
     E2EView.prototype.getDisplayedMetadata = function () {
         if (this.preferences && this.preferences["displayedMetadata"] != undefined) {
             return this.preferences["displayedMetadata"];
@@ -82712,17 +82713,82 @@ var E2EView = (function () {
     E2EView.prototype.setDisplayedMetadata = function (metadata) {
         this.preferences["displayedMetadata"] = metadata;
     };
+    // layout
     E2EView.prototype.getLayout = function () {
         return this.preferences["layout"];
     };
     E2EView.prototype.setLayout = function (layout) {
         this.preferences["layout"] = layout;
     };
+    // text size
     E2EView.prototype.getTextSize = function () {
         return this.preferences["textsize"];
     };
     E2EView.prototype.setTextSize = function (size) {
         this.preferences["textsize"] = size;
+    };
+    // text color
+    E2EView.prototype.setTextColor = function (color) {
+        this.preferences["textcolor"] = color;
+    };
+    E2EView.prototype.getTextColor = function () {
+        return this.preferences["textcolor"];
+    };
+    // background color
+    E2EView.prototype.setBackgroundColor = function (color) {
+        this.preferences["backgroundcolor"] = color;
+    };
+    E2EView.prototype.getBackgroundColor = function () {
+        return this.preferences["backgroundcolor"];
+    };
+    // text outline color
+    E2EView.prototype.setTextOutlineColor = function (color) {
+        this.preferences["textoutlinecolor"] = color;
+    };
+    E2EView.prototype.getTextOutlineColor = function () {
+        return this.preferences["textoutlinecolor"];
+    };
+    // text outline width
+    E2EView.prototype.setTextOutlineWidth = function (width) {
+        this.preferences["textoutlinewidth"] = width;
+    };
+    E2EView.prototype.getTextOutlineWidth = function () {
+        return this.preferences["textoutlinewidth"];
+    };
+    // text weight
+    E2EView.prototype.setTextWeight = function (weight) {
+        this.preferences["textweight"] = weight;
+    };
+    E2EView.prototype.getTextWeight = function () {
+        return this.preferences["textweight"];
+    };
+    // edge width
+    E2EView.prototype.setEdgeWidth = function (width) {
+        this.preferences["edgewidth"] = width;
+    };
+    E2EView.prototype.getEdgeWidth = function () {
+        return this.preferences["edgewidth"];
+    };
+    // edge line color
+    E2EView.prototype.setEdgeLineColor = function (color) {
+        this.preferences["edgelinecolor"] = color;
+    };
+    E2EView.prototype.getEdgeLineColor = function () {
+        return this.preferences["edgelinecolor"];
+    };
+    // edge arrow color
+    E2EView.prototype.setEdgeArrowColor = function (color) {
+        this.preferences["edgearrowcolor"] = color;
+    };
+    E2EView.prototype.getEdgeArrowColor = function () {
+        return this.preferences["edgearrowcolor"];
+    };
+    // edge arrow shape
+    E2EView.prototype.setEdgeArrowShape = function (shape) {
+        this.preferences["edgearrowshape"] = shape;
+    };
+    E2EView.prototype.getEdgeArrowShape = function () {
+        return this.preferences["edgearrowshape"];
     };
     E2EView.prototype.draw = function (initialData) {
         var _layout = this.getLayout();
@@ -82767,20 +82833,20 @@ var E2EView = (function () {
                         'text-valign': 'top',
                         'font-size': this.getTextSize() + 'px',
                         'text-halign': 'center',
-                        'font-weight': '700',
-                        'color': 'white',
-                        'text-outline-width': 2,
-                        'background-color': '#999',
-                        'text-outline-color': '#999'
+                        'font-weight': this.getTextWeight(),
+                        'color': this.getTextSize(),
+                        'text-outline-width': this.getTextOutlineWidth(),
+                        'background-color': this.getBackgroundColor(),
+                        'text-outline-color': this.getTextOutlineColor()
                     }
                 },
                 {
                     selector: 'edge',
                     style: {
-                        'width': 2,
-                        'target-arrow-shape': 'triangle',
-                        'line-color': '#999',
-                        'target-arrow-color': '#999',
+                        'width': this.getEdgeWidth(),
+                        'target-arrow-shape': this.getEdgeArrowShape(),
+                        'line-color': this.getEdgeLineColor(),
+                        'target-arrow-color': this.getEdgeArrowColor(),
                         'curve-style': 'bezier'
                     }
                 }
@@ -82873,6 +82939,42 @@ var E2EView = (function () {
     E2EView.prototype.changeTextSize = function (textSize) {
         this.setTextSize(textSize);
         this._cy.style().selector('node').style({ 'font-size': this.getTextSize() + 'px' }).update();
+    };
+    E2EView.prototype.changeTextColor = function (color) {
+        this.setTextColor(color);
+        this._cy.style().selector('node').style({ 'color': this.getTextColor() }).update();
+    };
+    E2EView.prototype.changeBackgroundColor = function (color) {
+        this.setBackgroundColor(color);
+        this._cy.style().selector('node').style({ 'background-color': this.getBackgroundColor() }).update();
+    };
+    E2EView.prototype.changeTextOutlineColor = function (color) {
+        this.setTextOutlineColor(color);
+        this._cy.style().selector('node').style({ 'text-outline-color': this.getTextOutlineColor() }).update();
+    };
+    E2EView.prototype.changeTextOutlineWidth = function (width) {
+        this.setTextOutlineWidth(width);
+        this._cy.style().selector('node').style({ 'text-outline-width': this.getTextOutlineWidth() }).update();
+    };
+    E2EView.prototype.changeTextWeight = function (weight) {
+        this.setTextWeight(weight);
+        this._cy.style().selector('node').style({ 'font-weight': this.getTextWeight() }).update();
+    };
+    E2EView.prototype.changeEdgeWidth = function (width) {
+        this.setEdgeWidth(width);
+        this._cy.style().selector('edge').style({ 'width': this.getEdgeWidth() }).update();
+    };
+    E2EView.prototype.changeEdgeLineColor = function (color) {
+        this.setEdgeLineColor(color);
+        this._cy.style().selector('edge').style({ 'line-color': this.getEdgeLineColor() }).update();
+    };
+    E2EView.prototype.changeEdgeArrowColor = function (color) {
+        this.setEdgeArrowColor(color);
+        this._cy.style().selector('edge').style({ 'target-arrow-color': this.getEdgeArrowColor() }).update();
+    };
+    E2EView.prototype.changeEdgeArrowShape = function (shape) {
+        this.setEdgeArrowShape(shape);
+        this._cy.style().selector('edge').style({ 'target-arrow-shape': this.getEdgeArrowShape() }).update();
     };
     E2EView.prototype.getLabelFromMetadata = function (id, data) {
         var result = id;
@@ -83072,6 +83174,15 @@ var Factory = (function () {
         _view.setDisplayedMetadata([]);
         _view.setLayout('circle');
         _view.setTextSize('20');
+        _view.setTextColor('white');
+        _view.setBackgroundColor('#999');
+        _view.setTextOutlineColor('#999');
+        _view.setTextOutlineWidth(2);
+        _view.setTextWeight('700');
+        _view.setEdgeWidth(2);
+        _view.setEdgeLineColor('#999');
+        _view.setEdgeArrowColor('#999');
+        _view.setEdgeArrowShape('triangle');
         return _view;
     };
     // method for creating views
