@@ -2,15 +2,12 @@ package com.bytex.snamp.management.http.model;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityConfiguration;
-import com.bytex.snamp.configuration.EntityMap;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * AbstractDTOEntity
@@ -28,7 +25,7 @@ import java.util.stream.Collectors;
         @JsonSubTypes.Type(ResourceGroupDataObject.class),
         @JsonSubTypes.Type(AgentDataObject.class)
 })
-public abstract class AbstractDataObject<E extends EntityConfiguration> {
+public abstract class AbstractDataObject<E extends EntityConfiguration> implements Exportable<E> {
     @JsonIgnore
     protected final Map<String, String> parameters;
 
@@ -58,19 +55,8 @@ public abstract class AbstractDataObject<E extends EntityConfiguration> {
      * Exports state of this object into entity configuration.
      * @param entity Entity to modify.
      */
+    @Override
     public void exportTo(final E entity){
         entity.load(parameters);
-    }
-
-    static <F extends EntityConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> importEntities(final EntityMap<? extends F> entities,
-                                                                                                              final Function<? super F, DTO> dataObjectFactory) {
-        return entities.entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> dataObjectFactory.apply(entry.getValue())));
-    }
-
-    static <F extends EntityConfiguration> void exportEntities(final Map<String, ? extends AbstractDataObject<F>> source,
-                                                               final EntityMap<? extends F> destination) {
-        source.forEach((name, featureObject) -> featureObject.exportTo(destination.getOrAdd(name)));
     }
 }

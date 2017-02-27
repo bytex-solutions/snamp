@@ -2,9 +2,9 @@ package com.bytex.snamp.management.http;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.TypedEntityConfiguration;
+import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.core.ServiceHolder;
-import com.bytex.snamp.management.http.model.AbstractTypedDataObject;
+import com.bytex.snamp.management.http.model.AbstractDataObject;
 import org.osgi.framework.BundleContext;
 
 import javax.ws.rs.*;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @version 2.0
  * @since 2.0
  */
-public abstract class AbstractEntityConfigurationService<E extends TypedEntityConfiguration, DTO extends AbstractTypedDataObject<E>> extends AbstractManagementService {
+public abstract class AbstractEntityConfigurationService<E extends EntityConfiguration, DTO extends AbstractDataObject<E>> extends AbstractManagementService {
     final Class<E> entityType;
 
     AbstractEntityConfigurationService(final Class<E> entityType){
@@ -271,29 +271,11 @@ public abstract class AbstractEntityConfigurationService<E extends TypedEntityCo
     public final Response removeParameterByName(@PathParam("name") final String name,
                                           @PathParam("paramName") final String paramName) {
         return changingActions(getBundleContext(), config -> {
-            final TypedEntityConfiguration mrc = config.getEntities(entityType).get(name);
+            final EntityConfiguration mrc = config.getEntities(entityType).get(name);
             if (mrc == null || mrc.remove(paramName) == null) {
                 throw notFound();
             } else
                 return true;
         });
-    }
-
-    /**
-     * Change gateway type response.
-     *
-     * @param name    the name
-     * @param newType the new type
-     * @return the response
-     */
-    @PUT
-    @Path("/{name}/type")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response changeEntityType(@PathParam("name") final String name, final String newType) {
-        return setConfigurationByName(name, config -> {
-            config.setType(newType);
-        });
-
     }
 }

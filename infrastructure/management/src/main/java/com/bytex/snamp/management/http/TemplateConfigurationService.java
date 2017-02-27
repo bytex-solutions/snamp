@@ -17,7 +17,7 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-public abstract class TemplateConfigurationService<E extends ManagedResourceTemplate, DTO extends TemplateDataObject<E>> extends AbstractEntityConfigurationService<E, DTO> {
+public abstract class TemplateConfigurationService<E extends ManagedResourceTemplate, DTO extends TemplateDataObject<E>> extends AbstractTypedEntityConfigurationService<E, DTO> {
 
 
     /**

@@ -37,13 +37,13 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
     private static <F extends EntityConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> importEntities(final AgentConfiguration template,
                                                                                                                       final Class<F> entityType,
                                                                                                                       final Function<? super F, DTO> dataObjectFactory) {
-        return importEntities(template.getEntities(entityType), dataObjectFactory);
+        return Exportable.importEntities(template.getEntities(entityType), dataObjectFactory);
     }
 
     private static <F extends EntityConfiguration> void exportEntities(final Map<String, ? extends AbstractDataObject<F>> source,
                                                                        final AgentConfiguration destination,
                                                                        final Class<F> entityType) {
-        exportEntities(source, destination.getEntities(entityType));
+        Exportable.exportEntities(source, destination.getEntities(entityType));
     }
 
     /**

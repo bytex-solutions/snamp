@@ -16,7 +16,7 @@ import java.util.Map;
  * @since 2.0
  */
 @Path("/configuration/gateway")
-public final class GatewayConfigurationService extends AbstractEntityConfigurationService<GatewayConfiguration, GatewayDataObject> {
+public final class GatewayConfigurationService extends AbstractTypedEntityConfigurationService<GatewayConfiguration, GatewayDataObject> {
 
     /**
      * Instantiates a new Gateway configuration service.
