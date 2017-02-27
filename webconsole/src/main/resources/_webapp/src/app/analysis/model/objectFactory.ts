@@ -38,7 +38,7 @@ export class Factory {
         _view.setBackgroundColor('#999');
         _view.setTextOutlineColor('#999');
         _view.setTextOutlineWidth(1);
-        _view.setTextWeight(500);
+        _view.setTextWeight(400);
 
         _view.setEdgeWidth(2);
         _view.setEdgeLineColor('#999');
