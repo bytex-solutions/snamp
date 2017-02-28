@@ -414,5 +414,11 @@
             <version>${snamp.connector.zipkin.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>webconsole</artifactId>
+            <version>${snamp.webconsole.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

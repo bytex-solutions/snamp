@@ -21,6 +21,9 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
+import com.bytex.snamp.web.serviceModel.e2e.ChildComponentsView;
+import com.bytex.snamp.web.serviceModel.e2e.ComponentModulesView;
+import com.bytex.snamp.web.serviceModel.e2e.LandscapeView;
 import com.google.common.collect.ImmutableMap;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -223,7 +226,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
@@ -346,20 +349,49 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void endToEndTest() throws URISyntaxException, InterruptedException, IOException {
+    public void landscapeViewTest() throws URISyntaxException, InterruptedException, IOException {
         final HttpReporter reporter = new HttpReporter("http://localhost:8181/", ImmutableMap.of());
         reporter.setAsynchronous(false);
         try (final MetricRegistry registry = new MetricRegistry(reporter)) {
             TestTopology.ONE_TO_MANY.sendTestSpans(registry, IntUnaryOperator.identity());
         }
         Thread.sleep(2000L);    //wait because span processing is asynchronous operation
-        final String landscapeView = "{\n" +
-                "  \"@type\" : \"landscape\",\n" +
-                "  \"preferences\" : { },\n" +
-                "  \"name\" : \"myLandscape\"\n" +
-                "}";
+        final LandscapeView landscapeView = new LandscapeView();
+        landscapeView.setName("myLandscapeView");
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode graph = httpPost("/e2e/compute", authenticationToken, FORMATTER.readTree(landscapeView));
+        final JsonNode graph = httpPost("/e2e/compute", authenticationToken, FORMATTER.valueToTree(landscapeView));
+        assertNotNull(graph);
+    }
+
+    @Test
+    public void childComponentsViewTest() throws URISyntaxException, InterruptedException, IOException {
+        final HttpReporter reporter = new HttpReporter("http://localhost:8181/", ImmutableMap.of());
+        reporter.setAsynchronous(false);
+        try (final MetricRegistry registry = new MetricRegistry(reporter)) {
+            TestTopology.LINEAR.sendTestSpans(registry, IntUnaryOperator.identity());
+        }
+        Thread.sleep(2000L);    //wait because span processing is asynchronous operation
+        final ChildComponentsView landscapeView = new ChildComponentsView();
+        landscapeView.setName("myView");
+        landscapeView.setTargetComponent(GROUP2_NAME);
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode graph = httpPost("/e2e/compute", authenticationToken, FORMATTER.valueToTree(landscapeView));
+        assertNotNull(graph);
+    }
+
+    @Test
+    public void modulesViewTest() throws URISyntaxException, InterruptedException, IOException {
+        final HttpReporter reporter = new HttpReporter("http://localhost:8181/", ImmutableMap.of());
+        reporter.setAsynchronous(false);
+        try (final MetricRegistry registry = new MetricRegistry(reporter)) {
+            TestTopology.ONE_TO_MANY.sendTestSpans(registry, IntUnaryOperator.identity());
+        }
+        Thread.sleep(2000L);    //wait because span processing is asynchronous operation
+        final ComponentModulesView landscapeView = new ComponentModulesView();
+        landscapeView.setName("myModules");
+        landscapeView.setTargetComponent(GROUP2_NAME);
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode graph = httpPost("/e2e/compute", authenticationToken, FORMATTER.valueToTree(landscapeView));
         assertNotNull(graph);
     }
 
