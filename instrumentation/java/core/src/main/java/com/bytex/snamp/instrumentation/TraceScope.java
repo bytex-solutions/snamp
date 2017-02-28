@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Represents trace scope.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -29,11 +30,15 @@ public abstract class TraceScope implements MeasurementScope {
         startTime = System.nanoTime();
         //push scope
         parent = parentSpanID.isEmpty() ? CURRENT_SCOPE.get() : ephemeralScope(correlationID, parentSpanID);
-        CURRENT_SCOPE.set(this);
+        pushScope();
     }
 
     protected TraceScope(final Identifier correlationID, final Identifier parentSpanID, final String moduleName) {
         this(correlationID, Identifier.randomID(), parentSpanID, moduleName);
+    }
+
+    boolean isEphemeral(){
+        return false;
     }
 
     private static TraceScope ephemeralScope(final Identifier correlationID, final Identifier spanID){
@@ -42,7 +47,25 @@ public abstract class TraceScope implements MeasurementScope {
             protected void report(final Span s) {
                 //ephemeral scope cannot report anything
             }
+
+            @Override
+            boolean isEphemeral() {
+                return true;
+            }
         };
+    }
+
+    private void pushScope(){
+        CURRENT_SCOPE.set(this);
+    }
+
+    private void popScope() {
+        if (parent == null)
+            CURRENT_SCOPE.remove();
+        else if (parent.isEphemeral())
+            parent.popScope();
+        else
+            CURRENT_SCOPE.set(parent);
     }
 
     /**
@@ -115,7 +138,7 @@ public abstract class TraceScope implements MeasurementScope {
         s.setCorrelationID(getCorrelationID());
         s.setDuration(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
         //pop scope
-        CURRENT_SCOPE.set(parent);
+        popScope();
         report(s);
     }
 }

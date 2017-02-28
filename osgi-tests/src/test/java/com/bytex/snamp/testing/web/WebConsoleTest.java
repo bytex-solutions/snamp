@@ -21,6 +21,7 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
+import com.bytex.snamp.web.serviceModel.charts.Dashboard;
 import com.bytex.snamp.web.serviceModel.e2e.ChildComponentsView;
 import com.bytex.snamp.web.serviceModel.e2e.ComponentModulesView;
 import com.bytex.snamp.web.serviceModel.e2e.LandscapeView;
@@ -354,6 +355,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         reporter.setAsynchronous(false);
         try (final MetricRegistry registry = new MetricRegistry(reporter)) {
             TestTopology.ONE_TO_MANY.sendTestSpans(registry, IntUnaryOperator.identity());
+            TestTopology.ONE_TO_MANY.sendTestSpans(registry, IntUnaryOperator.identity());
         }
         Thread.sleep(2000L);    //wait because span processing is asynchronous operation
         final LandscapeView landscapeView = new LandscapeView();
@@ -397,6 +399,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void dashboardWithChartsTest() throws Exception {
+        final Dashboard dashboard = new Dashboard();
+
         final String dashboardDefinition = String.format("{\n" +
                 "  \"@type\" : \"dashboardOfCharts\",\n" +
                 "  \"charts\" : [ {\n" +
