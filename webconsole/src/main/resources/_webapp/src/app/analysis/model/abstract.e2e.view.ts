@@ -174,7 +174,7 @@ export abstract class E2EView {
                     'text-opacity': 0.9,
                     'text-valign': 'top',
                     'font-size': this.getTextSize() + 'px',
-                    'text-halign': 'center',
+                    'text-halign': 'right',
                     'font-weight': this.getTextWeight(),
                     'color': this.getTextSize(),
                     'text-outline-width': this.getTextOutlineWidth(),
@@ -197,6 +197,11 @@ export abstract class E2EView {
         console.log(cy);
        this._cy = cy;
        return cy;
+    }
+
+    private toFixed(value:any, precision:number):string {
+        var power = Math.pow(10, precision || 0);
+        return String(Math.round(value * power) / power);
     }
 
     public updateData(currentData:any):any {
@@ -357,9 +362,9 @@ export abstract class E2EView {
             if (data != undefined) {
                 if (_md[i].indexOf("/") > 0) {
                     result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
-                            + data[_md[i].split("/")[0]][_md[i].split("/")[1]];
+                            + this.toFixed(data[_md[i].split("/")[0]][_md[i].split("/")[1]], 5);
                 } else {
-                    result += "\n" + _md[i] + ": " + data[_md[i]];
+                    result += "\n" + _md[i] + ": " + this.toFixed(data[_md[i]], 5);
                 }
             }
         }

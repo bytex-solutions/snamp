@@ -100,7 +100,7 @@ export class MainView implements OnInit {
                             _thisReference.metadata = _thisReference._cyObject.$('#' + _thisReference.currentNodeId).data('arrival');
                          }
                      });
-                   }, 1000);
+                   }, 2000);
             });
       });
    }

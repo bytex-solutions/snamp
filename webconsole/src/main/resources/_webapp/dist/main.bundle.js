@@ -82834,7 +82834,7 @@ var E2EView = (function () {
                         'text-opacity': 0.9,
                         'text-valign': 'top',
                         'font-size': this.getTextSize() + 'px',
-                        'text-halign': 'center',
+                        'text-halign': 'right',
                         'font-weight': this.getTextWeight(),
                         'color': this.getTextSize(),
                         'text-outline-width': this.getTextOutlineWidth(),
@@ -82857,6 +82857,10 @@ var E2EView = (function () {
         console.log(cy);
         this._cy = cy;
         return cy;
+    };
+    E2EView.prototype.toFixed = function (value, precision) {
+        var power = Math.pow(10, precision || 0);
+        return String(Math.round(value * power) / power);
     };
     E2EView.prototype.updateData = function (currentData) {
         currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
@@ -82992,10 +82996,10 @@ var E2EView = (function () {
             if (data != undefined) {
                 if (_md[i].indexOf("/") > 0) {
                     result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
-                        + data[_md[i].split("/")[0]][_md[i].split("/")[1]];
+                        + this.toFixed(data[_md[i].split("/")[0]][_md[i].split("/")[1]], 5);
                 }
                 else {
-                    result += "\n" + _md[i] + ": " + data[_md[i]];
+                    result += "\n" + _md[i] + ": " + this.toFixed(data[_md[i]], 5);
                 }
             }
         }
