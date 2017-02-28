@@ -8,8 +8,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -43,11 +43,11 @@ public final class ResourceGroupConfigurationService extends TemplateConfigurati
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Collection<String> getResourceGroupNames() {
+    public Set<String> getResourceGroupNames() {
         return readOnlyActions(getBundleContext(), config -> config.getEntities(entityType)
                 .entrySet()
                 .stream()
                 .map(Map.Entry::getKey)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
     }
 }

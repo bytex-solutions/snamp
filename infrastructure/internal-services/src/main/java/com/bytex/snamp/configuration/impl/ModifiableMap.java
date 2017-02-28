@@ -47,7 +47,7 @@ abstract class ModifiableMap<K, V> extends HashMap<K, V> implements Externalizab
 
     @Override
     public final void putAll(@Nonnull final Map<? extends K, ? extends V> map) {
-        if (map.size() > 0) {
+        if (!map.isEmpty()) {
             markAsModified();
             super.putAll(map);
         }

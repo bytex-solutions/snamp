@@ -8,11 +8,12 @@ package com.bytex.snamp.parser;
  */
 public final class LTToken extends PunctuationToken implements SingleCharacterToken {
     public static final char VALUE = '<';
+    public static final int TYPE = VALUE;
     public static final LTToken INSTANCE = new LTToken();
     private static final long serialVersionUID = -2013614842119652153L;
 
     private LTToken(){
-        super(VALUE);
+        super(TYPE, VALUE);
     }
 
     /**

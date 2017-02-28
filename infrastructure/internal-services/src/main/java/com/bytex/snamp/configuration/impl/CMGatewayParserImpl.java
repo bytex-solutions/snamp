@@ -3,6 +3,7 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.BooleanBox;
 import com.bytex.snamp.BoxFactory;
+import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import org.osgi.framework.Constants;
@@ -15,7 +16,6 @@ import java.util.*;
 
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.gateway.Gateway.CAPABILITY_NAMESPACE;
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -74,49 +74,48 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
 
     private static <E extends Exception> void forEachGatewayInstance(final ConfigurationAdmin admin,
                                                                      final String filter,
-                                                                     final Acceptor<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
-        final Configuration[] configs = admin.listConfigurations(filter);
-        if(configs != null)
-            for(final Configuration config: configs)
+                                                                     final Acceptor<Configuration, E> reader) throws E, IOException {
+        final Configuration[] configs;
+        try {
+            configs = admin.listConfigurations(filter);
+        } catch (final InvalidSyntaxException e) {
+            throw new IOException(e);
+        }
+        if (configs != null)
+            for (final Configuration config : configs)
                 reader.accept(config);
+    }
+
+    private void fill(final Configuration config, final Map<String, SerializableGatewayConfiguration> output) throws IOException {
+        final Dictionary<String, ?> properties = config.getProperties();
+        final SingletonMap<String, SerializableGatewayConfiguration> gatewayInstance;
+        if (properties == null)
+            return;
+        else
+            gatewayInstance = parse(properties);
+        gatewayInstance.getValue().setType(getGatewayType(config.getFactoryPid()));
+        gatewayInstance.getValue().reset();
+        output.putAll(gatewayInstance);
     }
 
     @Override
     void fill(final ConfigurationAdmin admin,
                                      final Map<String, SerializableGatewayConfiguration> output) throws IOException {
-        callAndWrapException(() -> {
-            forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, config -> {
-                final String gatewayInstanceName = getInstanceName(config.getProperties());
-                final SerializableGatewayConfiguration gatewayInstance = parse(config);
-                output.put(gatewayInstanceName, gatewayInstance);
-            });
-            return null;
-        }, IOException::new);
+        forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, config -> fill(config, output));
     }
 
     @Override
     void removeAll(final ConfigurationAdmin admin) throws IOException {
-        callAndWrapException(() -> {
-            forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, Configuration::delete);
-            return null;
-        }, IOException::new);
+        forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, Configuration::delete);
     }
 
     @Override
-    public SerializableGatewayConfiguration parse(final Dictionary<String, ?> configuration) {
+    public SingletonMap<String, SerializableGatewayConfiguration> parse(final Dictionary<String, ?> configuration) {
         final SerializableGatewayConfiguration result = new SerializableGatewayConfiguration();
         //deserialize parameters
         fillGatewayInstanceParameters(configuration, result);
         result.reset();
-        return result;
-    }
-
-    @Override
-    public SerializableGatewayConfiguration parse(final Configuration config) {
-        final SerializableGatewayConfiguration result = parse(config.getProperties());
-        result.setType(getGatewayType(config.getFactoryPid()));
-        result.reset();
-        return result;
+        return new SingletonMap<>(getInstanceName(configuration), result);
     }
 
     private static void serialize(final String gatewayInstanceName,
@@ -140,12 +139,6 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
         return result;
     }
 
-    @Override
-    public void serialize(final GatewayConfiguration input, final Configuration output) throws IOException {
-        assert input instanceof SerializableGatewayConfiguration;
-        output.update(serialize((SerializableGatewayConfiguration) input));
-    }
-
     private void serialize(final String gatewayInstanceName,
                              final SerializableGatewayConfiguration gatewayInstance,
                              final ConfigurationAdmin admin) throws GatewayConfigurationException {
@@ -161,7 +154,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
                 serialize(gatewayInstanceName,
                         gatewayInstance,
                         admin.createFactoryConfiguration(getFactoryPersistentID(gatewayInstance.getType()), null));
-        } catch (final IOException | InvalidSyntaxException e) {
+        } catch (final IOException e) {
             throw new GatewayConfigurationException(gatewayInstanceName, e);
         }
     }
@@ -171,16 +164,13 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
               final ConfigurationAdmin admin) throws IOException {
         final ConfigurationEntityList<? extends SerializableGatewayConfiguration> instances = config.getEntities(SerializableGatewayConfiguration.class);
         //remove all unnecessary gateway
-        callAndWrapException(() -> {
-            forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, output -> {
-                final String gatewayType = getGatewayType(output.getFactoryPid());
-                final GatewayConfiguration gateway = instances.get(getInstanceName(output.getProperties()));
-                //delete resource if its type was changed
-                if (gateway == null || !Objects.equals(gatewayType, gateway.getType()))
-                    output.delete();
-            });
-            return null;
-        }, IOException::new);
+        forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, output -> {
+            final String gatewayType = getGatewayType(output.getFactoryPid());
+            final GatewayConfiguration gateway = instances.get(getInstanceName(output.getProperties()));
+            //delete resource if its type was changed
+            if (gateway == null || !Objects.equals(gatewayType, gateway.getType()))
+                output.delete();
+        });
         //save each modified gateway instance
         config.getEntities(SerializableGatewayConfiguration.class).modifiedEntries((gatewayInstanceName, gatewayInstanceConfig) -> {
             serialize(gatewayInstanceName, gatewayInstanceConfig, admin);

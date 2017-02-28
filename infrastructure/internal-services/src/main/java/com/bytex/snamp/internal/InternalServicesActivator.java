@@ -10,6 +10,7 @@ import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.security.web.impl.SecurityServlet;
 import com.hazelcast.core.HazelcastInstance;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ManagedService;
@@ -19,7 +20,6 @@ import javax.management.JMException;
 import javax.servlet.Servlet;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -39,7 +39,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         @SuppressWarnings("unchecked")
         @Override
         protected PersistentConfigurationManager activateService(final Map<String, Object> identity) {
-            return new PersistentConfigurationManager(getDependencies().getDependency(ConfigurationAdmin.class));
+            return new PersistentConfigurationManager(dependencies.getDependency(ConfigurationAdmin.class));
         }
     }
 
@@ -51,7 +51,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         @SuppressWarnings("unchecked")
         @Override
         protected GridMember activateService(final Map<String, Object> identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
-            final HazelcastInstance hazelcast = getDependencies().getDependency(HazelcastInstance.class);
+            final HazelcastInstance hazelcast = dependencies.getDependency(HazelcastInstance.class);
             final GridMember member = new GridMember(hazelcast);
             member.start();
             return member;
@@ -107,20 +107,15 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
                 new SecurityServletProvider());
     }
 
+    /**
+     * Starts the bundle and instantiate runtime state of the bundle.
+     *
+     * @param context                 The execution context of the bundle being started.
+     * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
+     * @throws Exception An exception occurred during starting.
+     */
     @Override
-    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
-    }
-
-    @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties) {
-    }
-
-    @Override
-    protected void deactivate(final ActivationPropertyReader activationProperties) {
-    }
-
-    @Override
-    protected void shutdown() {
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
 
     }
 }

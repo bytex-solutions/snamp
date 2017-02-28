@@ -13,15 +13,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import java.util.logging.Logger;
-
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents SNAMP configuration manager that uses {@link ConfigurationAdmin}
@@ -34,7 +30,6 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
 @ThreadSafe
 public final class PersistentConfigurationManager extends AbstractAggregator implements ConfigurationManager {
     private final ConfigurationAdmin admin;
-    private final Logger logger;
     private final ReadWriteLock configurationLock;
     @Aggregation(cached = true)
     private final CMManagedResourceParserImpl resourceParser;
@@ -42,6 +37,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private final CMGatewayParserImpl gatewayInstanceParser;
     private final CMThreadPoolParser threadPoolParser;
     private final CMManagedResourceGroupParser groupParser;
+    @Aggregation(cached = true)
+    private final CMManagedResourceGroupWatcherParserImpl watcherParser;
 
     /**
      * Initializes a new configuration manager.
@@ -49,12 +46,12 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      */
     public PersistentConfigurationManager(final ConfigurationAdmin configAdmin){
         admin = Objects.requireNonNull(configAdmin, "configAdmin is null.");
-        logger = Logger.getLogger(getClass().getName());
         configurationLock = new ReentrantReadWriteLock();
         resourceParser = new CMManagedResourceParserImpl();
         gatewayInstanceParser = new CMGatewayParserImpl();
         threadPoolParser = new CMThreadPoolParser();
         groupParser = new CMManagedResourceGroupParser();
+        watcherParser = new CMManagedResourceGroupWatcherParserImpl();
     }
 
     private void mergeResourcesWithGroups(final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources,
@@ -83,23 +80,27 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             gatewayInstanceParser.removeAll(admin);
             threadPoolParser.removeAll(admin);
             groupParser.removeAll(admin);
+            watcherParser.removeAll(admin);
         } else {
             mergeResourcesWithGroups(config.getManagedResources(), config.getManagedResourceGroups());
             gatewayInstanceParser.saveChanges(config, admin);
             resourceParser.saveChanges(config, admin);
             threadPoolParser.saveChanges(config, admin);
             groupParser.saveChanges(config, admin);
+            watcherParser.saveChanges(config, admin);
         }
         //save SNAMP config
         CMAgentParserImpl.saveParameters(admin, config);
     }
 
     private <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler, final Lock synchronizer) throws E, IOException {
+        //TODO: Write lock on configuration should be distributed across cluster nodes
         //obtain lock on configuration
-        callAndWrapException(() -> {
+        try {
             synchronizer.lockInterruptibly();
-            return null;
-        }, IOException::new);
+        } catch (final InterruptedException e) {
+            throw new IOException(e);
+        }
         //Process configuration protected by lock.
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
@@ -107,8 +108,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             resourceParser.fill(admin, config.getManagedResources());
             threadPoolParser.fill(admin, config.getThreadPools());
             groupParser.fill(admin, config.getManagedResourceGroups());
+            watcherParser.fill(admin, config.getWatchers());
             CMAgentParserImpl.loadParameters(admin, config);
-            if(handler.process(config))
+            if (handler.process(config))
                 save(config);
         } finally {
             synchronizer.unlock();

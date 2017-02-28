@@ -1,8 +1,5 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.configuration.EntityConfiguration;
-import com.bytex.snamp.configuration.EntityMap;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -35,13 +32,5 @@ abstract class AbstractEntityConfiguration extends ModifiableMap<String, String>
     @Override
     protected final String readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
         return out.readUTF();
-    }
-
-    static <T extends EntityConfiguration> void copyEntities(final Map<String, ? extends T> input,
-                                                                     final EntityMap<? extends T> output) {
-        output.clear();
-        for (final Map.Entry<String, ? extends T> entry : input.entrySet()) {
-            output.addAndConsume(entry.getValue(), entry.getKey(), (i, o) -> o.load(i));
-        }
     }
 }

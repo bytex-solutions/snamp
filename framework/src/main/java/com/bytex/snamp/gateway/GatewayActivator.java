@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway;
 
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.GatewayConfiguration;
@@ -68,8 +67,8 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
         private GatewayInstances(final String gatewayType,
                                  final GatewayFactory<G> factory,
                                  final RequiredService<?>... dependencies) {
-            super(Gateway.class,
-                    ObjectArrays.<RequiredService>concat(dependencies, new SimpleDependency<>(ConfigurationManager.class)));
+            super(Gateway.class, dependencies);
+            this.dependencies.add(ConfigurationManager.class);
             this.gatewayInstanceFactory = Objects.requireNonNull(factory, "factory is null.");
             this.gatewayType = gatewayType;
         }
@@ -80,7 +79,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
         }
 
         private CMGatewayParser getParser(){
-            final ConfigurationManager configManager = getDependencies().getDependency(ConfigurationManager.class);
+            final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class);
             assert configManager != null;
             final CMGatewayParser parser = configManager.queryObject(CMGatewayParser.class);
             assert parser != null;
@@ -88,7 +87,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
         }
 
         @Override
-        protected String getFactoryPID(final RequiredService<?>[] dependencies) {
+        protected String getFactoryPID() {
             return getParser().getFactoryPersistentID(gatewayType);
         }
 
@@ -97,7 +96,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
                            final Dictionary<String, ?> configuration) throws Exception {
             final CMGatewayParser parser = getParser();
             final String instanceName = parser.getInstanceName(configuration);
-            final GatewayConfiguration newConfig = parser.parse(configuration);
+            final GatewayConfiguration newConfig = parser.parse(configuration).getValue();
             if (newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be updated. Configuration not found.", instanceName));
             newConfig.setType(gatewayType);
@@ -113,7 +112,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
             identity.put(Gateway.TYPE_CAPABILITY_ATTRIBUTE, gatewayType);
             identity.put(Gateway.NAME_PROPERTY, instanceName);
             identity.put(Gateway.CATEGORY_PROPERTY, CATEGORY);
-            final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, getDependencies());
+            final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, dependencies);
             gatewayInstance.update(configuration);
             return gatewayInstance;
         }
@@ -123,7 +122,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
                                   final Dictionary<String, ?> configuration) throws Exception {
             final CMGatewayParser parser = getParser();
             final String instanceName = parser.getInstanceName(configuration);
-            final GatewayConfiguration newConfig = parser.parse(configuration);
+            final GatewayConfiguration newConfig = parser.parse(configuration).getValue();
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be created. Configuration not found.", instanceName));
             newConfig.setType(gatewayType);
@@ -191,7 +190,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
         protected T activateService(final Map<String, Object> identity) throws Exception {
             identity.put(Gateway.TYPE_CAPABILITY_ATTRIBUTE, getGatewayType());
             identity.put(Gateway.CATEGORY_PROPERTY, CATEGORY);
-            return activator.activateService(getDependencies());
+            return activator.activateService(dependencies);
         }
 
         /**
@@ -244,68 +243,37 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
     }
 
     /**
-     * Exposes additional gateway dependencies.
-     * <p>
-     *     In the default implementation this method does nothing.
-     * </p>
-     * @param dependencies A collection of dependencies to fill.
-     */
-    @MethodStub
-    protected void addDependencies(final Collection<RequiredService<?>> dependencies){
-
-    }
-
-    /**
-     * Initializes the library.
+     * Starts the bundle and instantiate runtime state of the bundle.
      *
-     * @param bundleLevelDependencies A collection of library-level dependencies to fill.
+     * @param context                 The execution context of the bundle being started.
+     * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
+     * @throws Exception An exception occurred during starting.
      */
     @Override
-    protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
-        bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
-        addDependencies(bundleLevelDependencies);
-        start();
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
+        bundleLevelDependencies.add(ConfigurationAdmin.class);
     }
 
-    @MethodStub
-    protected void start(){
-
-    }
-
-    /**
-     * Activates this service library.
-     * <p>
-     * You should override this method and call this implementation at the first line using
-     * <b>super</b> keyword.
-     * </p>
-     *
-     * @param activationProperties A collection of library activation properties to fill.
-     * @throws Exception Unable to activate this library.
-     */
     @Override
-    protected final void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
+    protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
         activationProperties.publish(GATEWAY_TYPE_HOLDER, getGatewayType());
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         getLogger().info(String.format("Activating gateway of type %s", getGatewayType()));
+        super.activate(context, activationProperties, dependencies);
     }
 
     private Logger getLogger(){
         return LoggerProvider.getLoggerForObject(this);
     }
 
-    /**
-     * Deactivates this library.
-     *
-     * @param activationProperties A collection of library activation properties to read.
-     * @throws Exception Unable to deactivate this library.
-     */
     @Override
-    protected final void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
+    protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
+        super.deactivate(context, activationProperties);
         getLogger().info(String.format("Unloading gateway of type %s", getGatewayType()));
     }
 
     /**
-     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.bytex.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher)}  method.
+     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, ActivationPropertyPublisher, DependencyManager)}  method.
      *
      * @param e                    An exception to handle.
      * @param activationProperties A collection of activation properties to read.
@@ -313,7 +281,7 @@ public class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary 
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
         getLogger().log(Level.SEVERE, String.format("Unable to activate %s gateway instance",
-                        getGatewayType()),
+                getGatewayType()),
                 e);
     }
 

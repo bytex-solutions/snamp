@@ -29,6 +29,10 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
         super(ResourceAttributeList::new, SingleResourceGroup.class, DEFAULT_RESOURCE_GROUP);
     }
 
+    protected <G extends Enum<G>> ModelOfAttributes(final Class<G> resourceGroups, final G listGroup) {
+        super(ResourceAttributeList::new, resourceGroups, listGroup);
+    }
+
     /**
      * Creates a new instance of the attribute accessor.
      * @param resourceName

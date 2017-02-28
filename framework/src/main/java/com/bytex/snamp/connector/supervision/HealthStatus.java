@@ -1,6 +1,11 @@
 package com.bytex.snamp.connector.supervision;
 
+import com.bytex.snamp.Localizable;
+
+import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Represents health check status.
@@ -8,27 +13,37 @@ import java.io.Serializable;
  * @version 2.0
  * @since 2.0
  */
-public enum HealthStatus implements Serializable {
-    /**
-     * Service is online
-     */
-    OK,
+public abstract class HealthStatus implements Serializable, Comparable<HealthStatus>, Localizable {
+    private static final long serialVersionUID = -8700097915541124870L;
+    private final int code;
+    private final String resourceName;
 
-    /**
-     * Something wrong with component.
-     */
-    SUSPICIOUS,
-
-    /**
-     * The component is offline or not working.
-     */
-    MALFUNCTION;
-
-    public final HealthStatus max(final HealthStatus other){
-        return compareTo(other) >= 0 ? this : other;
+    HealthStatus(final String resourceName, final int statusCode) {
+        code = statusCode;
+        this.resourceName = Objects.requireNonNull(resourceName);
     }
 
-    public final HealthStatus min(final HealthStatus other){
-        return compareTo(other) <= 0 ? this : other;
+    /**
+     * Gets the most problematic resource.
+     *
+     * @return The most problematic resource. Can be empty if status is {@link OkStatus}.
+     */
+    public final String getResourceName() {
+        return resourceName;
+    }
+
+    public abstract boolean isCritical();
+
+    public final int getStatusCode() {
+        return code;
+    }
+
+    @Override
+    public String toString() {
+        return toString(Locale.getDefault());
+    }
+
+    public HealthStatus combine(@Nonnull final HealthStatus newStatus) {
+        return newStatus.compareTo(this) >= 0 || newStatus.getResourceName().equals(getResourceName()) ? newStatus : this;
     }
 }

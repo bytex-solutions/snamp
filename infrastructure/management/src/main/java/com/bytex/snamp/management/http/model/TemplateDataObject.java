@@ -9,8 +9,8 @@ import java.util.function.Function;
 
 /**
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
 public abstract class TemplateDataObject<E extends ManagedResourceTemplate> extends AbstractTypedDataObject<E> {
     private final Map<String, AttributeDataObject> attributes;
@@ -33,7 +33,7 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
     private static <F extends FeatureConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> importFeatures(final ManagedResourceTemplate template,
                                                                                                                        final Class<F> featureType,
                                                                                                                        final Function<? super F, DTO> dataObjectFactory) {
-        return importEntities(template.getFeatures(featureType), dataObjectFactory);
+        return Exportable.importEntities(template.getFeatures(featureType), dataObjectFactory);
     }
 
     /**
@@ -99,7 +99,7 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
     private static <F extends FeatureConfiguration> void exportFeatures(final Map<String, ? extends AbstractFeatureDataObject<F>> source,
                                                                         final ManagedResourceTemplate destination,
                                                                         final Class<F> featureType){
-        exportEntities(source, destination.getFeatures(featureType));
+        Exportable.exportEntities(source, destination.getFeatures(featureType));
     }
 
     @Override

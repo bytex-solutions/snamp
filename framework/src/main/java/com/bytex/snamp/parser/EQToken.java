@@ -8,11 +8,12 @@ package com.bytex.snamp.parser;
  */
 public final class EQToken extends PunctuationToken implements SingleCharacterToken {
     public static final char VALUE = '=';
+    public static final int TYPE = VALUE;
     public static final EQToken INSTANCE = new EQToken();
     private static final long serialVersionUID = -8494050017099826260L;
 
     private EQToken(){
-        super(VALUE);
+        super(TYPE, VALUE);
     }
 
     /**

@@ -13,13 +13,14 @@ import java.util.function.LongSupplier;
 @Immutable
 public class IntegerToken extends Token implements LongSupplier {
     private static final long serialVersionUID = 5296717972150866303L;
+    public static final int TYPE = 529671;
 
-    protected IntegerToken(final CharSequence value){
-        super(value);
+    protected IntegerToken(final int type, final CharSequence value){
+        super(type, value);
     }
 
     IntegerToken(final CharReader reader) throws IOException {
-        this(parse(reader));
+        this(TYPE, parse(reader));
     }
 
     @Override

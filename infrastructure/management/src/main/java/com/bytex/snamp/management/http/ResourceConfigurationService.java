@@ -1,7 +1,7 @@
 package com.bytex.snamp.management.http;
 
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.management.http.model.ManagedResourceDataObject;
+import com.bytex.snamp.management.http.model.ResourceDataObject;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -15,7 +15,7 @@ import javax.ws.rs.core.Response;
  * @since 2.0
  */
 @Path("/configuration/resource")
-public final class ResourceConfigurationService extends TemplateConfigurationService<ManagedResourceConfiguration, ManagedResourceDataObject> {
+public final class ResourceConfigurationService extends TemplateConfigurationService<ManagedResourceConfiguration, ResourceDataObject> {
     /**
      * Instantiates a new Resource configuration service.
      */
@@ -24,8 +24,8 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
     }
 
     @Override
-    protected ManagedResourceDataObject toDataTransferObject(final ManagedResourceConfiguration entity) {
-        return new ManagedResourceDataObject(entity);
+    protected ResourceDataObject toDataTransferObject(final ManagedResourceConfiguration entity) {
+        return new ResourceDataObject(entity);
     }
 
     /**

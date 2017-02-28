@@ -13,7 +13,7 @@ final class ManagedResourceList extends ConfigurationEntityList<SerializableMana
     }
 
     @Override
-    protected SerializableManagedResourceConfiguration createEntity() {
+    protected SerializableManagedResourceConfiguration createValue() {
         final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
         result.markAsModified();
         return result;

@@ -3,10 +3,10 @@ package com.bytex.snamp.connector.zipkin;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
 
 import java.net.URISyntaxException;
-import java.util.Collection;
 import java.util.Hashtable;
 
 /**
@@ -29,38 +29,46 @@ public final class ZipkinConnectorActivator extends ManagedResourceActivator<Zip
         return new ZipkinConnector(resourceName, configuration);
     }
 
-    @Override
-    protected void addDependencies(final Collection<RequiredService<?>> dependencies) {
-        dependencies.add(new SimpleDependency<>(HttpService.class));
-    }
-
     /**
-     * Activates this service library.
+     * Starts the bundle and instantiate runtime state of the bundle.
      *
-     * @param activationProperties A collection of library activation properties to fill.
-     * @throws Exception Unable to activate this library.
+     * @param context                 The execution context of the bundle being started.
+     * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
+     * @throws Exception An exception occurred during starting.
      */
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties) throws Exception {
-        super.activate(activationProperties);
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
+        super.start(context, bundleLevelDependencies);
+        bundleLevelDependencies.add(HttpService.class);
+    }
+
+    @Override
+    protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
         @SuppressWarnings("unchecked")
-        final HttpService publisher = getDependencies().getDependency(HttpService.class);
+        final HttpService publisher = dependencies.getDependency(HttpService.class);
         assert publisher != null;
         activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, publisher);
         //register servlet
         publisher.registerServlet(ZipkinServlet.CONTEXT, new ZipkinServlet(), new Hashtable<>(), null);
+        super.activate(context, activationProperties, dependencies);
     }
 
     /**
      * Deactivates this library.
+     * <p>
+     * This method will be invoked when at least one dependency was lost.
+     * </p>
      *
+     * @param context              The execution context of the library being deactivated.
      * @param activationProperties A collection of library activation properties to read.
+     * @throws Exception Deactivation error.
      */
     @Override
-    protected void deactivate(final ActivationPropertyReader activationProperties) {
-        final HttpService publisher = activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY);
-        publisher.unregister(ZipkinServlet.CONTEXT);
+    protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
+        try {
+            activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY).unregister(ZipkinServlet.CONTEXT);
+        } finally {
+            super.deactivate(context, activationProperties);
+        }
     }
-
-
 }

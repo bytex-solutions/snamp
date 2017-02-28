@@ -1,6 +1,7 @@
 package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
@@ -11,7 +12,6 @@ import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.moa.topology.GraphOfComponents;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
-import com.bytex.snamp.moa.watching.WatcherService;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
@@ -29,18 +29,18 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 /**
  * Represents analysis service.
  */
-final class AnalyticalGateway extends AbstractGateway implements NotificationListener, AnalyticalCenter {
+final class AnalyticalGateway extends AbstractGateway implements NotificationListener {
     private static final String HISTORY_SIZE_PARAM = "topologyAnalyzerHistorySize";
     private static final String WATCH_PERIOD_PARAM = "watchPeriod";
     private static final long DEFAULT_HISTORY_SIZE = 5_000L;
-    private static final long DEFAULT_WATCH_PERIOD = 1000L;
+    private static final long DEFAULT_WATCH_PERIOD = 800L;
 
-    private TopologyAnalysisModule graph;
-    private final WatcherModule watchDog;
+    private TopologyAnalysisImpl graph;
+    private final HealthAnalyzerImpl watchDog;
 
-    AnalyticalGateway(final BundleContext context, final ExecutorService threadPool) {
+    AnalyticalGateway(final BundleContext context, final ExecutorService threadPool, final CMManagedResourceGroupWatcherParser watcherParser) {
         super(DistributedServices.getLocalMemberName(context));
-        watchDog = new WatcherModule(threadPool);
+        watchDog = new HealthAnalyzerImpl(threadPool, watcherParser);
     }
 
     private BundleContext getBundleContext(){
@@ -118,7 +118,7 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
     @Override
     protected void start(final Map<String, String> parameters) {
         long param = getValueAsLong(parameters, HISTORY_SIZE_PARAM, Long::parseLong).orElse(DEFAULT_HISTORY_SIZE);
-        graph = new TopologyAnalysisModule(param);
+        graph = new TopologyAnalysisImpl(param);
         param = getValueAsLong(parameters, WATCH_PERIOD_PARAM, Long::parseLong).orElse(DEFAULT_WATCH_PERIOD);
         watchDog.startWatching(Duration.ofMillis(param));
     }
@@ -128,17 +128,14 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
         Optional.ofNullable(graph).ifPresent(TopologyAnalyzer::reset);
         graph = null;
         watchDog.stopWatching();
+        watchDog.reset();
     }
 
-    @Override
-    @Aggregation
-    public TopologyAnalysisModule getTopologyAnalyzer() {
+    TopologyAnalysisImpl getTopologyAnalyzer() {
         return graph;
     }
 
-    @Override
-    @Aggregation
-    public WatcherService getWatcherService() {
+    HealthAnalyzerImpl getHealthAnalyzer() {
         return watchDog;
     }
 }

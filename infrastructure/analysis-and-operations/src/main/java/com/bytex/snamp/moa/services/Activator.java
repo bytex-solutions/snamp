@@ -3,15 +3,17 @@ package com.bytex.snamp.moa.services;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
+import com.bytex.snamp.connector.supervision.HealthSupervisor;
 import com.bytex.snamp.core.AbstractServiceLibrary;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.moa.DataAnalyzer;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.service.cm.ManagedService;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * @author Roman Sakno
@@ -19,86 +21,113 @@ import java.util.function.Function;
  * @since 2.0
  */
 public final class Activator extends AbstractServiceLibrary {
-    private static final class AnalyticalCenterProvider extends ProvidedService<AnalyticalCenter, AnalyticalGateway> {
-        private static final String ANALYTICAL_THREAD_POOL = "analyticalThreadPool";
+    private static final String ANALYTICAL_THREAD_POOL = "analyticalThreadPool";
+    private static final ActivationProperty<AnalyticalGateway> GATEWAY_PROPERTY = defineActivationProperty(AnalyticalGateway.class);
 
-        private AnalyticalCenterProvider() {
-            super(AnalyticalCenter.class, simpleDependencies(ConfigurationManager.class, ThreadPoolRepository.class));
+    private static abstract class AnalyticalServiceProvider<S extends DataAnalyzer, T extends S> extends ProvidedService<S, T>{
+        @SafeVarargs
+        AnalyticalServiceProvider(final Class<S> contract, final RequiredService<?>[] dependencies, final Class<? super S>... subInterfaces) {
+            super(contract, dependencies, subInterfaces);
+        }
+
+        abstract T activateService(final AnalyticalGateway gateway, final Map<String, Object> identity);
+
+        @Override
+        protected T activateService(final Map<String, Object> identity) {
+            final AnalyticalGateway gateway = getActivationPropertyValue(GATEWAY_PROPERTY);
+            assert gateway != null;
+            return activateService(gateway, identity);
         }
 
         @Override
-        protected AnalyticalGateway activateService(final Map<String, Object> identity) throws Exception {
-            final ConfigurationManager configurationManager = getDependencies().getDependency(ConfigurationManager.class);
-            assert configurationManager != null;
-            final ThreadPoolRepository repository = getDependencies().getDependency(ThreadPoolRepository.class);
-            assert repository != null;
-            final AnalyticalGateway service = new AnalyticalGateway(
-                    Utils.getBundleContextOfObject(this),
-                    repository.getThreadPool(ANALYTICAL_THREAD_POOL, true)
-            );
-            service.update(configurationManager.getConfiguration());
-            return service;
-        }
-
-        @Override
-        protected void cleanupService(final AnalyticalGateway service, boolean stopBundle) throws Exception {
-            service.close();
+        protected void cleanupService(final T serviceInstance, final boolean stopBundle) {
+            serviceInstance.reset();
         }
     }
 
-    private static final class AnalyticalServiceProvider<S extends DataAnalyzer> extends ProvidedService<S, S>{
-        private final Function<AnalyticalCenter, S> serviceProvider;
-
-        private AnalyticalServiceProvider(final Class<S> serviceType, final Function<AnalyticalCenter, S> serviceProvider){
-            super(serviceType, simpleDependencies(AnalyticalCenter.class));
-            this.serviceProvider = Objects.requireNonNull(serviceProvider);
+    private static final class TopologyAnalyzerProvider extends AnalyticalServiceProvider<TopologyAnalyzer, TopologyAnalysisImpl>{
+        TopologyAnalyzerProvider(){
+            super(TopologyAnalyzer.class, new RequiredService<?>[0]);
         }
 
         @Override
-        protected S activateService(final Map<String, Object> identity) throws Exception {
-            final AnalyticalCenter center = getDependencies().getDependency(AnalyticalCenter.class);
-            assert center != null;
-            final S service = serviceProvider.apply(center);
-            assert service != null;
-            return service;
+        TopologyAnalysisImpl activateService(final AnalyticalGateway gateway, final Map<String, Object> identity) {
+            return gateway.getTopologyAnalyzer();
+        }
+    }
+
+    private static final class HealthAnalyzerProvider extends AnalyticalServiceProvider<HealthAnalyzer, HealthAnalyzerImpl>{
+        HealthAnalyzerProvider(){
+            super(HealthAnalyzer.class, new RequiredService<?>[0], HealthSupervisor.class, ManagedService.class);
         }
 
         @Override
-        protected void cleanupService(final S serviceInstance, final boolean stopBundle) {
-            //nothing to do
+        HealthAnalyzerImpl activateService(final AnalyticalGateway gateway, final Map<String, Object> identity) {
+            final HealthAnalyzerImpl healthAnalyzer = gateway.getHealthAnalyzer();
+            identity.put(Constants.SERVICE_PID, healthAnalyzer.getPersistentID());
+            return healthAnalyzer;
         }
     }
 
     @SpecialUse(SpecialUse.Case.OSGi)
     public Activator() {
-        super(new AnalyticalCenterProvider(),
-                new AnalyticalServiceProvider<>(TopologyAnalyzer.class, AnalyticalCenter::getTopologyAnalyzer));
+        super(Activator::provideAnalyticalServices);
+    }
+
+    private static void provideAnalyticalServices(final Collection<ProvidedService<?, ?>> services,
+                                                  final ActivationPropertyReader activationProperties,
+                                                      final DependencyManager bundleLevelDependencies) {
+        services.add(new HealthAnalyzerProvider());
+        services.add(new TopologyAnalyzerProvider());
     }
 
     /**
-     * Starts the service library.
+     * Starts the bundle and instantiate runtime state of the bundle.
      *
-     * @param bundleLevelDependencies A collection of library-level dependencies to be required for this library.
+     * @param context                 The execution context of the bundle being started.
+     * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
+     * @throws Exception An exception occurred during starting.
      */
     @Override
-    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
+        bundleLevelDependencies.add(ConfigurationManager.class);
+        bundleLevelDependencies.add(ThreadPoolRepository.class);
+    }
+
+    @Override
+    protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
+        final ConfigurationManager configurationManager = dependencies.getDependency(ConfigurationManager.class);
+        assert configurationManager != null;
+        final ThreadPoolRepository repository = dependencies.getDependency(ThreadPoolRepository.class);
+        assert repository != null;
+        final CMManagedResourceGroupWatcherParser watcherParser = configurationManager.queryObject(CMManagedResourceGroupWatcherParser.class);
+        assert watcherParser != null;
+        final AnalyticalGateway service = new AnalyticalGateway(
+                context,
+                repository.getThreadPool(ANALYTICAL_THREAD_POOL, true),
+                watcherParser
+        );
+        service.update(configurationManager.getConfiguration());
+        activationProperties.publish(GATEWAY_PROPERTY, service);
+        super.activate(context, activationProperties, dependencies);  //at this point number of analytical services will be instantiated
     }
 
     /**
-     * Activates this service library.
+     * Deactivates the bundle.
+     * <p>
+     * This method will be called when at least one bundle-level dependency will be lost.
+     * </p>
      *
-     * @param activationProperties A collection of library activation properties to fill.
+     * @param context              The execution context of the bundle being deactivated.
+     * @param activationProperties A collection of activation properties to read.
+     * @throws Exception An exception occurred during bundle deactivation.
      */
     @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties) {
-    }
-
-    /**
-     * Deactivates this library.
-     *
-     * @param activationProperties A collection of library activation properties to read.
-     */
-    @Override
-    protected void deactivate(final ActivationPropertyReader activationProperties) {
+    protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
+        try {
+            activationProperties.getProperty(GATEWAY_PROPERTY).close();
+        } finally {
+            super.deactivate(context, activationProperties);
+        }
     }
 }

@@ -15,9 +15,11 @@ import static com.bytex.snamp.io.IOUtils.contentAreEqual;
 public abstract class Token implements CharSequence, Serializable {
     private static final long serialVersionUID = -3845708480333446910L;
     private final CharSequence value;
+    private final int type;
 
-    protected Token(final CharSequence value){
+    protected Token(final int type, final CharSequence value){
         this.value = Objects.requireNonNull(value);
+        this.type = type;
     }
 
     @Override
@@ -52,6 +54,10 @@ public abstract class Token implements CharSequence, Serializable {
 
     private boolean equals(final Token other) {
         return getClass().isInstance(other) && contentAreEqual(value, other.value);
+    }
+
+    public final int getType(){
+        return type;
     }
 
     @Override

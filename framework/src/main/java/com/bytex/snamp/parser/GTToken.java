@@ -8,12 +8,12 @@ package com.bytex.snamp.parser;
  */
 public final class GTToken extends PunctuationToken implements SingleCharacterToken {
     public static final char VALUE = '>';
-    public static final long TYPE = VALUE;
+    public static final int TYPE = VALUE;
     public static final GTToken INSTANCE = new GTToken();
     private static final long serialVersionUID = -2025336613779082837L;
 
     private GTToken(){
-        super(VALUE);
+        super(TYPE, VALUE);
     }
 
     /**

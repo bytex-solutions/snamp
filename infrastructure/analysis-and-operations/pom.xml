@@ -50,12 +50,22 @@
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy</artifactId>
+      <classifier>indy</classifier>
+    </dependency>
+    <dependency>
+      <groupId>com.bytex.snamp</groupId>
+      <artifactId>scripting</artifactId>
+      <version>2.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
     </dependency>
     <dependency>
       <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
@@ -64,6 +74,12 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.bytex.snamp</groupId>
+      <artifactId>internal-services</artifactId>
+      <version>2.0.0</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
@@ -85,8 +101,9 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-            <Export-Package>com.bytex.snamp.moa.topology</Export-Package>
+            <Export-Package>com.bytex.snamp.moa.topology, com.bytex.snamp.connector.attributes.checkers</Export-Package>
             <Bundle-Activator>com.bytex.snamp.moa.services.Activator</Bundle-Activator>
+            <DynamicImport-Package>*</DynamicImport-Package>
           </instructions>
         </configuration>
       </plugin>

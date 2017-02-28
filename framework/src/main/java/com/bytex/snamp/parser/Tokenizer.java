@@ -189,6 +189,14 @@ public class Tokenizer implements SafeCloseable {
         }
     }
 
+    protected static double parseDouble(final CharSequence value) throws ParseException {
+        try {
+            return Double.parseDouble(value.toString());
+        } catch (final NumberFormatException e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
     @Override
     public final void close() {
         reader.close();

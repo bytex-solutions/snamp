@@ -111,10 +111,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
 
     }
 
-    /**
-     * Saves SNAMP configuration into the output stream.
-     * @throws IOException
-     */
     @Before
     public final void prepare() throws Exception {
         beforeStartTest(getTestBundleContext());

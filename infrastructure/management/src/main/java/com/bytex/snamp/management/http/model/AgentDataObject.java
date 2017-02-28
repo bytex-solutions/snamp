@@ -16,7 +16,7 @@ import java.util.function.Function;
  */
 @JsonTypeName("snamp-configuration")
 public final class AgentDataObject extends AbstractDataObject<AgentConfiguration> {
-    private final Map<String, ManagedResourceDataObject> resources;
+    private final Map<String, ResourceDataObject> resources;
     private final Map<String, ResourceGroupDataObject> groups;
     private final Map<String, GatewayDataObject> gateways;
 
@@ -29,7 +29,7 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
 
     public AgentDataObject(final AgentConfiguration configuration){
         super(configuration);
-        resources = importEntities(configuration, ManagedResourceConfiguration.class, ManagedResourceDataObject::new);
+        resources = importEntities(configuration, ManagedResourceConfiguration.class, ResourceDataObject::new);
         groups = importEntities(configuration, ManagedResourceGroupConfiguration.class, ResourceGroupDataObject::new);
         gateways = importEntities(configuration, GatewayConfiguration.class, GatewayDataObject::new);
     }
@@ -37,13 +37,13 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
     private static <F extends EntityConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> importEntities(final AgentConfiguration template,
                                                                                                                       final Class<F> entityType,
                                                                                                                       final Function<? super F, DTO> dataObjectFactory) {
-        return importEntities(template.getEntities(entityType), dataObjectFactory);
+        return Exportable.importEntities(template.getEntities(entityType), dataObjectFactory);
     }
 
     private static <F extends EntityConfiguration> void exportEntities(final Map<String, ? extends AbstractDataObject<F>> source,
                                                                        final AgentConfiguration destination,
                                                                        final Class<F> entityType) {
-        exportEntities(source, destination.getEntities(entityType));
+        Exportable.exportEntities(source, destination.getEntities(entityType));
     }
 
     /**
@@ -60,7 +60,7 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
     }
 
     @JsonProperty("resources")
-    public Map<String, ManagedResourceDataObject> getResources(){
+    public Map<String, ResourceDataObject> getResources(){
         return resources;
     }
 

@@ -17,7 +17,7 @@ final class ResourceGroupList extends ConfigurationEntityList<SerializableManage
     }
 
     @Override
-    protected SerializableManagedResourceGroupConfiguration createEntity() {
+    protected SerializableManagedResourceGroupConfiguration createValue() {
         final SerializableManagedResourceGroupConfiguration result = new SerializableManagedResourceGroupConfiguration();
         result.markAsModified();
         return result;

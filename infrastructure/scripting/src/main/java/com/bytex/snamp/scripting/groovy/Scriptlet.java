@@ -31,7 +31,6 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 public abstract class Scriptlet extends Script implements ScriptingAPI {
-    private static final String LOGGER_VAR = "logger";
     private static final String BUNDLE_CONTEXT_VAR = "bundleContext";
 
     private static abstract class AttributeOperation<E extends JMException> implements Acceptor<ManagedResourceConnector, E> {

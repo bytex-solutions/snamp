@@ -318,6 +318,12 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
+            <artifactId>analysis-and-operations</artifactId>
+            <version>${snamp.ops.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>rshell-connector</artifactId>
             <version>${snamp.connector.rshell.version}</version>
             <scope>test</scope>

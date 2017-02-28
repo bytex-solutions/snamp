@@ -9,7 +9,7 @@ package com.bytex.snamp.parser;
 public abstract class PunctuationToken extends Token {
     private static final long serialVersionUID = 559010308937454029L;
 
-    protected PunctuationToken(final char... value) {
-        super(String.valueOf(value));
+    protected PunctuationToken(final int type, final char... value) {
+        super(type, String.valueOf(value));
     }
 }

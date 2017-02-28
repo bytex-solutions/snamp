@@ -10,12 +10,12 @@ import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationServic
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.http.HttpService;
 
 import javax.servlet.Servlet;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -52,7 +52,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         protected E2EDataSource activateService(final Map<String, Object> identity) throws IOException {
             identity.put(WebConsoleService.NAME, E2EDataSource.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, E2EDataSource.URL_CONTEXT);
-            return new E2EDataSource(getDependencies().getDependency(TopologyAnalyzer.class));
+            return new E2EDataSource(dependencies.getDependency(TopologyAnalyzer.class));
         }
 
         @Override
@@ -119,7 +119,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         protected LogNotifier activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, LogNotifier.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, LogNotifier.URL_CONTEXT);
-            final ThreadPoolRepository repository = getDependencies().getDependency(ThreadPoolRepository.class);
+            final ThreadPoolRepository repository = dependencies.getDependency(ThreadPoolRepository.class);
             assert repository != null;
             return new LogNotifier(repository.getThreadPool(THREAD_POOL_NAME, true));
         }
@@ -141,21 +141,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     @Override
-    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
-        bundleLevelDependencies.add(new SimpleDependency<>(HttpService.class));
-    }
-
-    @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties) {
-    }
-
-    @Override
-    protected void deactivate(final ActivationPropertyReader activationProperties) {
-
-    }
-
-    @Override
-    protected void shutdown() {
-
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
+        bundleLevelDependencies.add(HttpService.class);
     }
 }
