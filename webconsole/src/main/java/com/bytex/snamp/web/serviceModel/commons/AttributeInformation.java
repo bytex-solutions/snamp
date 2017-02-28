@@ -7,10 +7,11 @@ import com.bytex.snamp.jmx.WellKnownType;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import static com.google.common.base.MoreObjects.firstNonNull;
 
 import javax.management.MBeanAttributeInfo;
 import java.util.Objects;
+
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Represents information about attribute.
@@ -29,14 +30,14 @@ public final class AttributeInformation {
         name = attributeInfo.getName();
         type = AttributeDescriptor.getType(attributeInfo);
         unitOfMeasurement = DescriptorUtils.getUOM(attributeInfo.getDescriptor());
-        description = firstNonNull(attributeInfo.getDescription(), "");
+        description = nullToEmpty(attributeInfo.getDescription());
     }
 
     public AttributeInformation(final String name, final AttributeConfiguration attributeInfo) {
         this.name = name;
         type = WellKnownType.BIG_DECIMAL;
-        unitOfMeasurement = firstNonNull(attributeInfo.getUnitOfMeasurement(), "");
-        description = firstNonNull(attributeInfo.getDescription(), "");
+        unitOfMeasurement = nullToEmpty(attributeInfo.getUnitOfMeasurement());
+        description = nullToEmpty(attributeInfo.getDescription());
     }
 
     public AttributeInformation(){
@@ -48,6 +49,7 @@ public final class AttributeInformation {
         this.name = Objects.requireNonNull(name);
         this.unitOfMeasurement = Objects.requireNonNull(uom);
         this.type = Objects.requireNonNull(type);
+        this.description = "";
     }
 
     @JsonProperty("name")

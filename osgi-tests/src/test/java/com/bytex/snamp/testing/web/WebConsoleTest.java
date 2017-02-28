@@ -15,13 +15,15 @@ import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.instrumentation.reporters.http.HttpReporter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
+import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
-import com.bytex.snamp.web.serviceModel.charts.Dashboard;
+import com.bytex.snamp.web.serviceModel.charts.*;
+import com.bytex.snamp.web.serviceModel.commons.AttributeInformation;
 import com.bytex.snamp.web.serviceModel.e2e.ChildComponentsView;
 import com.bytex.snamp.web.serviceModel.e2e.ComponentModulesView;
 import com.bytex.snamp.web.serviceModel.e2e.LandscapeView;
@@ -399,57 +401,22 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void dashboardWithChartsTest() throws Exception {
-        final Dashboard dashboard = new Dashboard();
+        final LineChartOfAttributeValues lineChart = new LineChartOfAttributeValues();
+        lineChart.addInstance(FIRST_RESOURCE_NAME);
+        lineChart.setName("lineChart");
+        lineChart.setGroupName(GROUP_NAME);
+        lineChart.setAxisX(new ChronoAxis());
+        lineChart.setAxisY(new AttributeValueAxis(new AttributeInformation("requestsPerSecond", WellKnownType.LONG, "rps")));
 
-        final String dashboardDefinition = String.format("{\n" +
-                "  \"@type\" : \"dashboardOfCharts\",\n" +
-                "  \"charts\" : [ {\n" +
-                "    \"@type\" : \"lineChartOfAttributeValues\",\n" +
-                "    \"instances\" : [ \"%s\" ],\n" +
-                "    \"name\" : \"attributes\",\n" +
-                "    \"component\" : \"%s\",\n" +
-                "    \"X\" : {\n" +
-                "      \"@type\" : \"chrono\",\n" +
-                "      \"name\" : \"\"\n" +
-                "    },\n" +
-                "    \"Y\" : {\n" +
-                "      \"@type\" : \"attributeValue\",\n" +
-                "      \"name\" : \"\",\n" +
-                "      \"sourceAttribute\" : {\n" +
-                "        \"name\" : \"%s\",\n" +
-                "        \"type\" : \"int64\",\n" +
-                "        \"unitOfMeasurement\" : \"bytes\"\n" +
-                "      }\n" +
-                "    }\n" +
-                "  }, {\n" +
-                "    \"@type\" : \"panelOfAttributeValues\",\n" +
-                "    \"instances\" : [],\n" +
-                "    \"name\" : \"myPanel\",\n" +
-                "    \"component\" : \"%s\",\n" +
-                "    \"X\" : {\n" +
-                "      \"@type\" : \"instance\",\n" +
-                "      \"name\" : \"instances\"\n" +
-                "    },\n" +
-                "    \"Y\" : {\n" +
-                "      \"@type\" : \"attributeValue\",\n" +
-                "      \"name\" : \"\",\n" +
-                "      \"sourceAttribute\" : {\n" +
-                "        \"name\" : \"%s\",\n" +
-                "        \"type\" : \"int32\",\n" +
-                "        \"unitOfMeasurement\" : \"units\"\n" +
-                "      }\n" +
-                "    }\n" +
-                "  } ]\n" +
-                "}", FIRST_RESOURCE_NAME, GROUP_NAME, "requestsPerSecond", GROUP_NAME, "requestsPerSecond");
+        final PanelOfAttributeValues panelChart = new PanelOfAttributeValues();
+        panelChart.setName("panel");
+        panelChart.setGroupName(GROUP_NAME);
+        panelChart.setAxisX(new InstanceNameAxis());
+        panelChart.setAxisY(new AttributeValueAxis(new AttributeInformation("requestsPerSecond", WellKnownType.LONG, "rps")));
+
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        httpPut("/charts/settings", authenticationToken, FORMATTER.readTree(dashboardDefinition));
-        runWebSocketTest(new EventReceiver(), authenticationToken, events -> {
-            LoggerProvider.getLoggerForBundle(getTestBundleContext()).log(Level.SEVERE, "Test log", new Exception());
-            final JsonNode element = events.poll(3L, TimeUnit.SECONDS);
-            assertNotNull(element);
-            assertEquals("Test log", element.get("message").asText());
-            assertEquals("error", element.get("level").asText());
-        }, Duration.ofSeconds(3));
+        final JsonNode node = httpPost("/charts/compute", authenticationToken, FORMATTER.valueToTree(new Chart[]{ lineChart, panelChart }));
+        assertNotNull(node);
     }
 
     /**

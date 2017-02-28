@@ -24,11 +24,11 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
     }
 
     @JsonProperty("component")
-    public final String getComponentType() {
+    public final String getGroupName() {
         return componentType;
     }
 
-    public final void setComponentType(final String value) {
+    public final void setGroupName(final String value) {
         componentType = Objects.requireNonNull(value);
     }
 
