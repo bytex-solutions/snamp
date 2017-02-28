@@ -33,6 +33,7 @@ public final class ManagementServlet extends ServletContainer {
         result.getSingletons().add(new GatewayConfigurationService());
         result.getSingletons().add(new ResourceGroupConfigurationService());
         result.getSingletons().add(new ResourceGroupWatcherConfigurationService());
+        result.getSingletons().add(new ThreadPoolConfigurationService());
         return result;
     }
 }
