@@ -82701,6 +82701,7 @@ var E2EView = (function () {
         this.preferences = {};
         this.id = "e2eview" + GUID.newGuid();
     }
+    // checkboxes for setting which data aspects to display
     E2EView.prototype.getDisplayedMetadata = function () {
         if (this.preferences && this.preferences["displayedMetadata"] != undefined) {
             return this.preferences["displayedMetadata"];
@@ -82712,17 +82713,82 @@ var E2EView = (function () {
     E2EView.prototype.setDisplayedMetadata = function (metadata) {
         this.preferences["displayedMetadata"] = metadata;
     };
+    // layout
     E2EView.prototype.getLayout = function () {
         return this.preferences["layout"];
     };
     E2EView.prototype.setLayout = function (layout) {
         this.preferences["layout"] = layout;
     };
+    // text size
     E2EView.prototype.getTextSize = function () {
         return this.preferences["textsize"];
     };
     E2EView.prototype.setTextSize = function (size) {
         this.preferences["textsize"] = size;
+    };
+    // text color
+    E2EView.prototype.setTextColor = function (color) {
+        this.preferences["textcolor"] = color;
+    };
+    E2EView.prototype.getTextColor = function () {
+        return this.preferences["textcolor"];
+    };
+    // background color
+    E2EView.prototype.setBackgroundColor = function (color) {
+        this.preferences["backgroundcolor"] = color;
+    };
+    E2EView.prototype.getBackgroundColor = function () {
+        return this.preferences["backgroundcolor"];
+    };
+    // text outline color
+    E2EView.prototype.setTextOutlineColor = function (color) {
+        this.preferences["textoutlinecolor"] = color;
+    };
+    E2EView.prototype.getTextOutlineColor = function () {
+        return this.preferences["textoutlinecolor"];
+    };
+    // text outline width
+    E2EView.prototype.setTextOutlineWidth = function (width) {
+        this.preferences["textoutlinewidth"] = width;
+    };
+    E2EView.prototype.getTextOutlineWidth = function () {
+        return this.preferences["textoutlinewidth"];
+    };
+    // text weight
+    E2EView.prototype.setTextWeight = function (weight) {
+        this.preferences["textweight"] = weight;
+    };
+    E2EView.prototype.getTextWeight = function () {
+        return this.preferences["textweight"];
+    };
+    // edge width
+    E2EView.prototype.setEdgeWidth = function (width) {
+        this.preferences["edgewidth"] = width;
+    };
+    E2EView.prototype.getEdgeWidth = function () {
+        return this.preferences["edgewidth"];
+    };
+    // edge line color
+    E2EView.prototype.setEdgeLineColor = function (color) {
+        this.preferences["edgelinecolor"] = color;
+    };
+    E2EView.prototype.getEdgeLineColor = function () {
+        return this.preferences["edgelinecolor"];
+    };
+    // edge arrow color
+    E2EView.prototype.setEdgeArrowColor = function (color) {
+        this.preferences["edgearrowcolor"] = color;
+    };
+    E2EView.prototype.getEdgeArrowColor = function () {
+        return this.preferences["edgearrowcolor"];
+    };
+    // edge arrow shape
+    E2EView.prototype.setEdgeArrowShape = function (shape) {
+        this.preferences["edgearrowshape"] = shape;
+    };
+    E2EView.prototype.getEdgeArrowShape = function () {
+        return this.preferences["edgearrowshape"];
     };
     E2EView.prototype.draw = function (initialData) {
         var _layout = this.getLayout();
@@ -82767,20 +82833,20 @@ var E2EView = (function () {
                         'text-valign': 'top',
                         'font-size': this.getTextSize() + 'px',
                         'text-halign': 'center',
-                        'font-weight': '700',
-                        'color': 'white',
-                        'text-outline-width': 2,
-                        'background-color': '#999',
-                        'text-outline-color': '#999'
+                        'font-weight': this.getTextWeight(),
+                        'color': this.getTextSize(),
+                        'text-outline-width': this.getTextOutlineWidth(),
+                        'background-color': this.getBackgroundColor(),
+                        'text-outline-color': this.getTextOutlineColor()
                     }
                 },
                 {
                     selector: 'edge',
                     style: {
-                        'width': 2,
-                        'target-arrow-shape': 'triangle',
-                        'line-color': '#999',
-                        'target-arrow-color': '#999',
+                        'width': this.getEdgeWidth(),
+                        'target-arrow-shape': this.getEdgeArrowShape(),
+                        'line-color': this.getEdgeLineColor(),
+                        'target-arrow-color': this.getEdgeArrowColor(),
                         'curve-style': 'bezier'
                     }
                 }
@@ -82874,11 +82940,47 @@ var E2EView = (function () {
         this.setTextSize(textSize);
         this._cy.style().selector('node').style({ 'font-size': this.getTextSize() + 'px' }).update();
     };
+    E2EView.prototype.changeTextColor = function (color) {
+        this.setTextColor(color);
+        this._cy.style().selector('node').style({ 'color': this.getTextColor() }).update();
+    };
+    E2EView.prototype.changeBackgroundColor = function (color) {
+        this.setBackgroundColor(color);
+        this._cy.style().selector('node').style({ 'background-color': this.getBackgroundColor() }).update();
+    };
+    E2EView.prototype.changeTextOutlineColor = function (color) {
+        this.setTextOutlineColor(color);
+        this._cy.style().selector('node').style({ 'text-outline-color': this.getTextOutlineColor() }).update();
+    };
+    E2EView.prototype.changeTextOutlineWidth = function (width) {
+        this.setTextOutlineWidth(width);
+        this._cy.style().selector('node').style({ 'text-outline-width': this.getTextOutlineWidth() }).update();
+    };
+    E2EView.prototype.changeTextWeight = function (weight) {
+        this.setTextWeight(weight);
+        this._cy.style().selector('node').style({ 'font-weight': this.getTextWeight() }).update();
+    };
+    E2EView.prototype.changeEdgeWidth = function (width) {
+        this.setEdgeWidth(width);
+        this._cy.style().selector('edge').style({ 'width': this.getEdgeWidth() }).update();
+    };
+    E2EView.prototype.changeEdgeLineColor = function (color) {
+        this.setEdgeLineColor(color);
+        this._cy.style().selector('edge').style({ 'line-color': this.getEdgeLineColor() }).update();
+    };
+    E2EView.prototype.changeEdgeArrowColor = function (color) {
+        this.setEdgeArrowColor(color);
+        this._cy.style().selector('edge').style({ 'target-arrow-color': this.getEdgeArrowColor() }).update();
+    };
+    E2EView.prototype.changeEdgeArrowShape = function (shape) {
+        this.setEdgeArrowShape(shape);
+        this._cy.style().selector('edge').style({ 'target-arrow-shape': this.getEdgeArrowShape() }).update();
+    };
     E2EView.prototype.getLabelFromMetadata = function (id, data) {
         var result = id;
         var _md = this.getDisplayedMetadata();
         for (var i = 0; i < _md.length; i++) {
-            if (data != undefined && data[_md[i]] != undefined) {
+            if (data != undefined) {
                 if (_md[i].indexOf("/") > 0) {
                     result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
                         + data[_md[i].split("/")[0]][_md[i].split("/")[1]];
@@ -83072,6 +83174,15 @@ var Factory = (function () {
         _view.setDisplayedMetadata([]);
         _view.setLayout('circle');
         _view.setTextSize('20');
+        _view.setTextColor('white');
+        _view.setBackgroundColor('#999');
+        _view.setTextOutlineColor('#999');
+        _view.setTextOutlineWidth(1);
+        _view.setTextWeight(400);
+        _view.setEdgeWidth(2);
+        _view.setEdgeLineColor('#999');
+        _view.setEdgeArrowColor('#999');
+        _view.setEdgeArrowShape('triangle');
         return _view;
     };
     // method for creating views
@@ -83231,33 +83342,36 @@ var ChartService = (function () {
         }
         // loop through all the data we have received
         for (var _currentChartName in _data) {
-            // create a chart
-            var _chartData = chart_data_1.ChartData.fromJSON(_data[_currentChartName]);
-            // notify all the components that something has changed
-            if (this.chartSubjects[_currentChartName] != undefined) {
-                this.chartSubjects[_currentChartName].next(_chartData);
-            }
-            // check if our localStorage contains the data for this chart
-            if (_dataNow[_currentChartName] == undefined) {
-                _dataNow[_currentChartName] = [];
-            }
-            // append this data for this data array
-            if (_chartData.chartType == abstract_chart_1.AbstractChart.LINE) {
-                // in case of line - we just push the value
-                _dataNow[_currentChartName].push(_chartData);
-            }
-            else {
-                // otherwise - we replace existent value or append it if nothing exists
-                var _found = false;
-                for (var j = 0; j < _dataNow[_currentChartName].length; j++) {
-                    if (_dataNow[_currentChartName][j].instanceName == _chartData.instanceName) {
-                        _found = true;
-                        _dataNow[_currentChartName][j] = _chartData;
-                        break;
-                    }
+            // create a chart data instances
+            var _d = _data[_currentChartName];
+            for (var i = 0; i < _d.length; i++) {
+                var _chartData = chart_data_1.ChartData.fromJSON(_d[i]);
+                // notify all the components that something has changed
+                if (this.chartSubjects[_currentChartName] != undefined) {
+                    this.chartSubjects[_currentChartName].next(_chartData);
                 }
-                if (!_found) {
+                // check if our localStorage contains the data for this chart
+                if (_dataNow[_currentChartName] == undefined) {
+                    _dataNow[_currentChartName] = [];
+                }
+                // append this data for this data array
+                if (_chartData.chartType == abstract_chart_1.AbstractChart.LINE) {
+                    // in case of line - we just push the value
                     _dataNow[_currentChartName].push(_chartData);
+                }
+                else {
+                    // otherwise - we replace existent value or append it if nothing exists
+                    var _found = false;
+                    for (var j = 0; j < _dataNow[_currentChartName].length; j++) {
+                        if (_dataNow[_currentChartName][j].instanceName == _chartData.instanceName) {
+                            _found = true;
+                            _dataNow[_currentChartName][j] = _chartData;
+                            break;
+                        }
+                    }
+                    if (!_found) {
+                        _dataNow[_currentChartName].push(_chartData);
+                    }
                 }
             }
         }
@@ -83881,6 +83995,7 @@ var REST = (function () {
     REST.COMPUTE_VIEW = "/snamp/web/api/e2e/compute";
     // reset e2e view
     REST.RESET_VIEW = "/snamp/web/api/e2e/reset";
+    REST.CURRENT_CONFIG = REST.ROOT_PATH + "/configuration";
     return REST;
 }());
 exports.REST = REST;
@@ -83900,7 +84015,8 @@ exports.ROUTES = [
     { path: 'resources', loadChildren: function () { return __webpack_require__.e/* System.import */(0/* duplicate */).then(__webpack_require__.bind(null, "./src/app/configuration/configuration.modules.ts")).then(function (m) { return m.ResourcesModule; }).then(function (mod) { return (mod.__esModule && mod.default) ? mod.default : mod; }); } },
     { path: 'rgroups', loadChildren: function () { return __webpack_require__.e/* System.import */(0/* duplicate */).then(__webpack_require__.bind(null, "./src/app/configuration/configuration.modules.ts")).then(function (m) { return m.RGroupsModule; }).then(function (mod) { return (mod.__esModule && mod.default) ? mod.default : mod; }); } },
     { path: 'snampcfg', loadChildren: function () { return __webpack_require__.e/* System.import */(0/* duplicate */).then(__webpack_require__.bind(null, "./src/app/configuration/configuration.modules.ts")).then(function (m) { return m.SnampCFGModule; }).then(function (mod) { return (mod.__esModule && mod.default) ? mod.default : mod; }); } },
-    { path: 'logview', loadChildren: function () { return __webpack_require__.e/* System.import */(0/* duplicate */).then(__webpack_require__.bind(null, "./src/app/configuration/configuration.modules.ts")).then(function (m) { return m.SnampLogViewModile; }).then(function (mod) { return (mod.__esModule && mod.default) ? mod.default : mod; }); } },
+    { path: 'logview', loadChildren: function () { return __webpack_require__.e/* System.import */(0/* duplicate */).then(__webpack_require__.bind(null, "./src/app/configuration/configuration.modules.ts")).then(function (m) { return m.SnampLogViewModule; }).then(function (mod) { return (mod.__esModule && mod.default) ? mod.default : mod; }); } },
+    { path: 'configuration', loadChildren: function () { return __webpack_require__.e/* System.import */(0/* duplicate */).then(__webpack_require__.bind(null, "./src/app/configuration/configuration.modules.ts")).then(function (m) { return m.FullSaveModule; }).then(function (mod) { return (mod.__esModule && mod.default) ? mod.default : mod; }); } },
     { path: 'charts', loadChildren: function () { return __webpack_require__.e/* System.import */(1).then(__webpack_require__.bind(null, "./src/app/charts/charts.modules.ts")).then(function (m) { return m.DashboardModule; }).then(function (mod) { return (mod.__esModule && mod.default) ? mod.default : mod; }); } },
     { path: 'view', loadChildren: function () { return __webpack_require__.e/* System.import */(2).then(__webpack_require__.bind(null, "./src/app/analysis/analysis.modules.ts")).then(function (m) { return m.AnalysisModule; }).then(function (mod) { return (mod.__esModule && mod.default) ? mod.default : mod; }); } }
 ];
@@ -86569,7 +86685,7 @@ __export(__webpack_require__("./src/app/app.module.ts"));
 /***/ "./src/app/menu/sidebar.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <!-- menu profile quick info -->\r\n    <div class=\"profile\">\r\n      <div class=\"profile_pic\">\r\n        <img src=\"assets/img/anyUser.png\" alt=\"...\" class=\"img-circle profile_img\">\r\n      </div>\r\n      <div class=\"profile_info\">\r\n        <span>Welcome,</span>\r\n        <h2><username></username></h2>\r\n      </div>\r\n    </div>\r\n    <!-- /menu profile quick info -->\r\n\r\n    <br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let _view of views\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n      <div class=\"menu_section\">\r\n        <h3>Live On</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"additionalli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-bug\"></i> Additional Pages <span id=\"additionalchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li><a href=\"e_commerce.html\">E-commerce</a></li>\r\n              <li><a href=\"projects.html\">Projects</a></li>\r\n              <li><a href=\"project_detail.html\">Project Detail</a></li>\r\n              <li><a href=\"contacts.html\">Contacts</a></li>\r\n              <li><a href=\"profile.html\">Profile</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"extrasli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-windows\"></i> Extras <span id=\"extraschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li><a href=\"page_403.html\">403 Error</a></li>\r\n              <li><a href=\"page_404.html\">404 Error</a></li>\r\n              <li><a href=\"page_500.html\">500 Error</a></li>\r\n              <li><a href=\"plain_page.html\">Plain Page</a></li>\r\n              <li><a href=\"login.html\">Login Page</a></li>\r\n              <li><a href=\"pricing_tables.html\">Pricing Tables</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"multilevelli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-sitemap\"></i> Multilevel Menu <span id=\"multilevelchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n                <li><a href=\"#level1_1\">Level One</a>\r\n                <li><a>Level One<span class=\"fa fa-chevron-down\"></span></a>\r\n                  <ul class=\"nav child_menu\">\r\n                    <li class=\"sub_menu\"><a href=\"level2.html\">Level Two</a>\r\n                    </li>\r\n                    <li><a href=\"#level2_1\">Level Two</a>\r\n                    </li>\r\n                    <li><a href=\"#level2_2\">Level Two</a>\r\n                    </li>\r\n                  </ul>\r\n                </li>\r\n                <li><a href=\"#level1_2\">Level One</a>\r\n                </li>\r\n            </ul>\r\n          </li>\r\n          <li><a href=\"javascript:void(0)\"><i class=\"fa fa-laptop\"></i> Landing Page <span class=\"label label-success pull-right\">Coming Soon</span></a></li>\r\n        </ul>\r\n      </div>\r\n\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <!-- menu profile quick info -->\r\n    <div class=\"profile\">\r\n      <div class=\"profile_pic\">\r\n        <img src=\"assets/img/anyUser.png\" alt=\"...\" class=\"img-circle profile_img\">\r\n      </div>\r\n      <div class=\"profile_info\">\r\n        <span>Welcome,</span>\r\n        <h2><username></username></h2>\r\n      </div>\r\n    </div>\r\n    <!-- /menu profile quick info -->\r\n\r\n    <br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let _view of views\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n      <div class=\"menu_section\">\r\n        <h3>Live On</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"additionalli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-bug\"></i> Additional Pages <span id=\"additionalchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li><a href=\"e_commerce.html\">E-commerce</a></li>\r\n              <li><a href=\"projects.html\">Projects</a></li>\r\n              <li><a href=\"project_detail.html\">Project Detail</a></li>\r\n              <li><a href=\"contacts.html\">Contacts</a></li>\r\n              <li><a href=\"profile.html\">Profile</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"extrasli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-windows\"></i> Extras <span id=\"extraschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li><a href=\"page_403.html\">403 Error</a></li>\r\n              <li><a href=\"page_404.html\">404 Error</a></li>\r\n              <li><a href=\"page_500.html\">500 Error</a></li>\r\n              <li><a href=\"plain_page.html\">Plain Page</a></li>\r\n              <li><a href=\"login.html\">Login Page</a></li>\r\n              <li><a href=\"pricing_tables.html\">Pricing Tables</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"multilevelli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-sitemap\"></i> Multilevel Menu <span id=\"multilevelchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n                <li><a href=\"#level1_1\">Level One</a>\r\n                <li><a>Level One<span class=\"fa fa-chevron-down\"></span></a>\r\n                  <ul class=\"nav child_menu\">\r\n                    <li class=\"sub_menu\"><a href=\"level2.html\">Level Two</a>\r\n                    </li>\r\n                    <li><a href=\"#level2_1\">Level Two</a>\r\n                    </li>\r\n                    <li><a href=\"#level2_2\">Level Two</a>\r\n                    </li>\r\n                  </ul>\r\n                </li>\r\n                <li><a href=\"#level1_2\">Level One</a>\r\n                </li>\r\n            </ul>\r\n          </li>\r\n          <li><a href=\"javascript:void(0)\"><i class=\"fa fa-laptop\"></i> Landing Page <span class=\"label label-success pull-right\">Coming Soon</span></a></li>\r\n        </ul>\r\n      </div>\r\n\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 

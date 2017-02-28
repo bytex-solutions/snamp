@@ -41,6 +41,15 @@ export class MainView implements OnInit {
     nodeSelected:boolean = false;
     selectedLayout:string = "";
     textSize:string = "";
+    textColor:string = "";
+    backgroundColor:string = "";
+    textOutlineColor:string = "";
+    textOutlineWidth:number = 0;
+    textWeight:number = 0;
+    edgeWidth:number = 0;
+    edgeLineColor:string = "";
+    edgeArrowColor:string = "";
+    edgeArrowShape:string = "";
 
     constructor(apiClient: ApiClient, private route: ActivatedRoute, overlay: Overlay,
             private _viewService:ViewService,  private modal: Modal, vcRef: ViewContainerRef) {
@@ -59,6 +68,24 @@ export class MainView implements OnInit {
             this.currentView = _view;
             this.selectedLayout = _view.getLayout();
             this.textSize = _view.getTextSize();
+            this.textColor = _view.getTextColor();
+            this.backgroundColor = _view.getBackgroundColor();
+            this.textOutlineColor = _view.getTextOutlineColor();
+            this.textOutlineWidth = _view.getTextOutlineWidth();
+            this.textWeight = _view.getTextWeight();
+
+            this.edgeWidth = _view.getEdgeWidth();
+            this.edgeLineColor = _view.getEdgeLineColor();
+            this.edgeArrowColor = _view.getEdgeArrowColor();
+            this.edgeArrowShape = _view.getEdgeArrowShape();
+
+
+            // set checkboxes according to preferences
+            let _chbx:string[] = _view.getDisplayedMetadata();
+            for (let ij = 0; ij < _chbx.length; ij++) {
+                $("#myTabContent2 input[name='" + _chbx[ij] + "']").prop('checked', true);
+            }
+
             this._viewService.getDataForView(_view).subscribe((_data:any) => {
                   this._cyObject = _view.draw(_data);
                   this.handleCy(this._cyObject);
@@ -94,6 +121,51 @@ export class MainView implements OnInit {
         this._viewService.saveDashboard();
    }
 
+   public onChangeTextColor(event:any):void {
+        this.currentView.changeTextColor(event);
+        this._viewService.saveDashboard();
+   }
+
+   public onChangeBackgroundColor(event:any):void {
+        this.currentView.changeBackgroundColor(event);
+        this._viewService.saveDashboard();
+   }
+
+   public onChangeTextOutlineColor(event:any):void {
+        this.currentView.changeTextOutlineColor(event);
+        this._viewService.saveDashboard();
+   }
+
+   public onChangeTextOutlineWidth(event:any):void {
+        this.currentView.changeTextOutlineWidth(event);
+        this._viewService.saveDashboard();
+   }
+
+   public onChangeTextWeight(event:any):void {
+        this.currentView.changeTextWeight(event);
+        this._viewService.saveDashboard();
+   }
+
+   public onChangeEdgeWidth(event:any):void {
+        this.currentView.changeEdgeWidth(event);
+        this._viewService.saveDashboard();
+   }
+
+   public onChangeEdgeLineColor(event:any):void {
+        this.currentView.changeEdgeLineColor(event);
+        this._viewService.saveDashboard();
+   }
+
+   public onChangeEdgeArrowColor(event:any):void {
+        this.currentView.changeEdgeArrowColor(event);
+        this._viewService.saveDashboard();
+   }
+
+   public onChangeEdgeArrowShape(event:any):void {
+        this.currentView.changeEdgeArrowShape(event);
+        this._viewService.saveDashboard();
+   }
+
    public resetView():void {
      this.modal.confirm()
         .className(<VEXBuiltInThemes>'default')
@@ -108,7 +180,7 @@ export class MainView implements OnInit {
                  return response;
               })
               .catch(() => {
-                console.log("user prefered to decline view reset");
+                console.log("user preferred to decline view reset");
               });
           });
    }

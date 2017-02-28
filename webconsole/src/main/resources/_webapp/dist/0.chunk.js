@@ -1935,6 +1935,21 @@ exports.push([module.i, "@charset \"UTF-8\";\r\n/*\r\n* CSS TOGGLE SWITCH\r\n*\r
 
 /***/ },
 
+/***/ "./node_modules/css-loader/index.js!./src/app/configuration/templates/css/fullsave.css":
+/***/ function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
+// imports
+
+
+// module
+exports.push([module.i, ".limitedCodeBlock {\r\n    overflow-y: scroll;\r\n    max-height: 200px;\r\n}\r\n\r\n.btn-file {\r\n    position: relative;\r\n    overflow: hidden;\r\n}\r\n.btn-file input[type=file] {\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n    min-width: 100%;\r\n    min-height: 100%;\r\n    font-size: 100px;\r\n    text-align: right;\r\n    filter: alpha(opacity=0);\r\n    opacity: 0;\r\n    outline: none;\r\n    background: white;\r\n    cursor: inherit;\r\n    display: block;\r\n}", ""]);
+
+// exports
+
+
+/***/ },
+
 /***/ "./node_modules/css-loader/index.js!./src/app/configuration/templates/css/snampcfg.css":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -37358,6 +37373,71 @@ module.exports = "<table class=\"table\">\r\n    <thead>\r\n    <tr>\r\n        
 
 /***/ },
 
+/***/ "./src/app/configuration/configuration.fullsave.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+__webpack_require__("./node_modules/rxjs/Rx.js");
+var FullSaveComponent = (function () {
+    function FullSaveComponent(apiClient) {
+        this.http = apiClient;
+    }
+    FullSaveComponent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.http.get(app_restClient_1.REST.CURRENT_CONFIG)
+            .map(function (data) { return JSON.stringify(data.json(), null, 4); })
+            .subscribe(function (data) {
+            _this.currentConfiguration = data;
+        });
+    };
+    FullSaveComponent.prototype.save = function () {
+        var blob = new Blob([this.currentConfiguration], { type: 'application/json' });
+        var url = window.URL.createObjectURL(blob);
+        window.open(url);
+    };
+    FullSaveComponent.prototype.load = function (event) {
+        var fileList = event.target.files;
+        if (fileList.length > 0) {
+            var file = fileList[0];
+            var reader = new FileReader();
+            // Read file into memory as UTF-8
+            reader.readAsText(file, "UTF-8");
+            // Handle progress, success, and errors
+            reader.onload = this.loaded;
+            reader.onerror = this.errorHandler;
+        }
+    };
+    FullSaveComponent.prototype.loaded = function (evt) {
+        var fileString = evt.target.result;
+        this.http.post(app_restClient_1.REST.CURRENT_CONFIG, fileString)
+            .map(function (response) { return response.text(); })
+            .subscribe(function (data) {
+            console.log("configuration has been upload successfully", data);
+            location.reload();
+        });
+    };
+    FullSaveComponent.prototype.errorHandler = function (evt) {
+        console.log("Error occured while loading file: ", evt);
+    };
+    FullSaveComponent = __decorate([
+        core_1.Component({
+            moduleId: module.i,
+            template: __webpack_require__("./src/app/configuration/templates/fullsave.html"),
+            styles: [__webpack_require__("./src/app/configuration/templates/css/fullsave.css")]
+        }), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
+    ], FullSaveComponent);
+    return FullSaveComponent;
+    var _a;
+}());
+exports.FullSaveComponent = FullSaveComponent;
+
+
+/***/ },
+
 /***/ "./src/app/configuration/configuration.gateways.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -37547,6 +37627,7 @@ var configuration_resources_1 = __webpack_require__("./src/app/configuration/con
 var configuration_rgroups_1 = __webpack_require__("./src/app/configuration/configuration.rgroups.ts");
 var configuration_snampcfg_1 = __webpack_require__("./src/app/configuration/configuration.snampcfg.ts");
 var configuration_logview_1 = __webpack_require__("./src/app/configuration/configuration.logview.ts");
+var configuration_fullsave_1 = __webpack_require__("./src/app/configuration/configuration.fullsave.ts");
 var http_1 = __webpack_require__("./node_modules/@angular/http/index.js");
 var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
 var binding_table_component_1 = __webpack_require__("./src/app/configuration/components/binding-table.component.ts");
@@ -37628,20 +37709,34 @@ var SnampCFGModule = (function () {
     return SnampCFGModule;
 }());
 exports.SnampCFGModule = SnampCFGModule;
-var SnampLogViewModile = (function () {
-    function SnampLogViewModile() {
+var SnampLogViewModule = (function () {
+    function SnampLogViewModule() {
     }
-    SnampLogViewModile = __decorate([
+    SnampLogViewModule = __decorate([
         core_1.NgModule({
             imports: IMPORTS.concat([router_1.RouterModule.forChild([{ path: '', component: configuration_logview_1.SnampLogViewComponent }])]),
             declarations: [configuration_logview_1.SnampLogViewComponent],
             providers: PROVIDERS
         }), 
         __metadata('design:paramtypes', [])
-    ], SnampLogViewModile);
-    return SnampLogViewModile;
+    ], SnampLogViewModule);
+    return SnampLogViewModule;
 }());
-exports.SnampLogViewModile = SnampLogViewModile;
+exports.SnampLogViewModule = SnampLogViewModule;
+var FullSaveModule = (function () {
+    function FullSaveModule() {
+    }
+    FullSaveModule = __decorate([
+        core_1.NgModule({
+            imports: IMPORTS.concat([router_1.RouterModule.forChild([{ path: '', component: configuration_fullsave_1.FullSaveComponent }])]),
+            declarations: [configuration_fullsave_1.FullSaveComponent],
+            providers: PROVIDERS
+        }), 
+        __metadata('design:paramtypes', [])
+    ], FullSaveModule);
+    return FullSaveModule;
+}());
+exports.FullSaveModule = FullSaveModule;
 
 
 /***/ },
@@ -38183,6 +38278,21 @@ exports.ResourceGroup = ResourceGroup;
 
 /***/ },
 
+/***/ "./src/app/configuration/templates/css/fullsave.css":
+/***/ function(module, exports, __webpack_require__) {
+
+
+        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/configuration/templates/css/fullsave.css");
+
+        if (typeof result === "string") {
+            module.exports = result;
+        } else {
+            module.exports = result.toString();
+        }
+    
+
+/***/ },
+
 /***/ "./src/app/configuration/templates/css/snampcfg.css":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -38195,6 +38305,13 @@ exports.ResourceGroup = ResourceGroup;
             module.exports = result.toString();
         }
     
+
+/***/ },
+
+/***/ "./src/app/configuration/templates/fullsave.html":
+/***/ function(module, exports) {
+
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Save/restore configuration</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Configuration'\" [column]=\"'12'\">\r\n          <pre class=\"row limitedCodeBlock\"><code>{{currentConfiguration}}</code></pre>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <button class=\"btn\" (click)=\"save()\">Download current configuration as JSON file</button>\r\n          </div>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <label class=\"btn btn-default btn-file\">\r\n              Upload configuration from your JSON file<input type=\"file\" (change)=\"load($event)\" style=\"display: none;\">\r\n            </label>\r\n          </div>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 

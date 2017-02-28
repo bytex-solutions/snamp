@@ -126,35 +126,38 @@ export class ChartService {
         }
         // loop through all the data we have received
         for (var _currentChartName in _data) {
-            // create a chart
-            let _chartData:ChartData = ChartData.fromJSON(_data[_currentChartName]);
+            // create a chart data instances
+            let _d:any[] = _data[_currentChartName];
+            for (let i = 0; i < _d.length; i++) {
+                let _chartData:ChartData = ChartData.fromJSON(_d[i]);
 
-            // notify all the components that something has changed
-            if (this.chartSubjects[_currentChartName] != undefined) {
-                this.chartSubjects[_currentChartName].next(_chartData);
-            }
-
-            // check if our localStorage contains the data for this chart
-            if (_dataNow[_currentChartName] == undefined) {
-                _dataNow[_currentChartName] = [];
-            }
-
-            // append this data for this data array
-            if (_chartData.chartType == AbstractChart.LINE) {
-                // in case of line - we just push the value
-                _dataNow[_currentChartName].push(_chartData)
-            } else {
-                // otherwise - we replace existent value or append it if nothing exists
-                let _found:boolean = false;
-                for (let j = 0; j < _dataNow[_currentChartName].length; j++) {
-                    if (_dataNow[_currentChartName][j].instanceName == _chartData.instanceName) {
-                        _found = true;
-                        _dataNow[_currentChartName][j] = _chartData;
-                        break;
-                    }
+                // notify all the components that something has changed
+                if (this.chartSubjects[_currentChartName] != undefined) {
+                    this.chartSubjects[_currentChartName].next(_chartData);
                 }
-                if (!_found) {
-                    _dataNow[_currentChartName].push(_chartData);
+
+                // check if our localStorage contains the data for this chart
+                if (_dataNow[_currentChartName] == undefined) {
+                    _dataNow[_currentChartName] = [];
+                }
+
+                // append this data for this data array
+                if (_chartData.chartType == AbstractChart.LINE) {
+                    // in case of line - we just push the value
+                    _dataNow[_currentChartName].push(_chartData)
+                } else {
+                    // otherwise - we replace existent value or append it if nothing exists
+                    let _found:boolean = false;
+                    for (let j = 0; j < _dataNow[_currentChartName].length; j++) {
+                        if (_dataNow[_currentChartName][j].instanceName == _chartData.instanceName) {
+                            _found = true;
+                            _dataNow[_currentChartName][j] = _chartData;
+                            break;
+                        }
+                    }
+                    if (!_found) {
+                        _dataNow[_currentChartName].push(_chartData);
+                    }
                 }
             }
         }
