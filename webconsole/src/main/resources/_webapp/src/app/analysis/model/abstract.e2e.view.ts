@@ -130,11 +130,13 @@ export abstract class E2EView {
 
     public draw(initialData:any):any {
        let _layout:string = this.getLayout();
+       console.log("id element for find: ", document.getElementById(this.id));
        var cy = cytoscape({
-         container: document.getElementById('cy'),
+         container: document.getElementById(this.id),
          elements: this.getData(initialData),
-         zoomingEnabled: false,
-         userZoomingEnabled: false,
+         zoomingEnabled: true,
+         userZoomingEnabled: true,
+         wheelSensitivity: 0.15,
          layout: {
              name: _layout
            },
@@ -190,12 +192,13 @@ export abstract class E2EView {
             }
          ]
        });
-
+        console.log(cy);
        this._cy = cy;
        return cy;
     }
 
     public updateData(currentData:any):any {
+        console.log(currentData);
         let result:any = [];
         let arrivals:any[] = [];
 

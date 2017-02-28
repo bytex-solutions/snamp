@@ -91,7 +91,7 @@ export class ChartService {
         _res.subscribe(data => {
             this._dashboard = new Dashboard();
             this.chartSubjects = {};
-            let _chartData:{ [key:string]: ChartData[] } = this.getEntireChartData();
+            let _chartData:{ [key:string]: ChartData[] } = {};//this.getEntireChartData();
             if (data.charts.length > 0) {
                 for (let i = 0; i < data.charts.length; i++) {
                     let _currentChart:AbstractChart = Factory.chartFromJSON(data.charts[i]);

@@ -34,15 +34,15 @@ export class Factory {
         _view.setDisplayedMetadata([]);
         _view.setLayout('circle');
         _view.setTextSize('20');
-        _view.setTextColor('white');
-        _view.setBackgroundColor('#999');
-        _view.setTextOutlineColor('#999');
+        _view.setTextColor('#999999');
+        _view.setBackgroundColor('#999999');
+        _view.setTextOutlineColor('#999999');
         _view.setTextOutlineWidth(1);
         _view.setTextWeight(400);
 
         _view.setEdgeWidth(2);
-        _view.setEdgeLineColor('#999');
-        _view.setEdgeArrowColor('#999');
+        _view.setEdgeLineColor('#999999');
+        _view.setEdgeArrowColor('#999999');
         _view.setEdgeArrowShape('triangle');
         return _view;
     }

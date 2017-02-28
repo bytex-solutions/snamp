@@ -79,11 +79,14 @@ export class MainView implements OnInit {
             this.edgeArrowColor = _view.getEdgeArrowColor();
             this.edgeArrowShape = _view.getEdgeArrowShape();
 
+            console.log(this.selectedLayout, this.textSize, this.textColor, this.backgroundColor, this.textOutlineColor,
+                this.textOutlineWidth, this.textWeight, this.edgeWidth, this.edgeLineColor, this.edgeArrowColor, this.edgeArrowShape);
+
 
             // set checkboxes according to preferences
             let _chbx:string[] = _view.getDisplayedMetadata();
             for (let ij = 0; ij < _chbx.length; ij++) {
-                $("#myTabContent2 input[name='" + _chbx[ij] + "']").prop('checked', true);
+                $("#myTabContent2 input[type='checkbox'][name='" + _chbx[ij] + "']").prop('checked', true);
             }
 
             this._viewService.getDataForView(_view).subscribe((_data:any) => {

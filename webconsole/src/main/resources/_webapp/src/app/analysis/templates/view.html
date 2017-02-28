@@ -251,7 +251,7 @@
     <div class="clearfix"></div>
     <div class="row">
       <div class='container col-md-12' style="min-height: 900px;">
-        <div id="cy"></div>
+        <div [attr.id]="(currentViewObs | async)?.id" class="cyObject"></div>
       </div>
     </div>
   </div>

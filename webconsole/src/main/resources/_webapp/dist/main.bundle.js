@@ -82792,11 +82792,13 @@ var E2EView = (function () {
     };
     E2EView.prototype.draw = function (initialData) {
         var _layout = this.getLayout();
+        console.log("id element for find: ", document.getElementById(this.id));
         var cy = cytoscape({
-            container: document.getElementById('cy'),
+            container: document.getElementById(this.id),
             elements: this.getData(initialData),
-            zoomingEnabled: false,
-            userZoomingEnabled: false,
+            zoomingEnabled: true,
+            userZoomingEnabled: true,
+            wheelSensitivity: 0.15,
             layout: {
                 name: _layout
             },
@@ -82852,10 +82854,12 @@ var E2EView = (function () {
                 }
             ]
         });
+        console.log(cy);
         this._cy = cy;
         return cy;
     };
     E2EView.prototype.updateData = function (currentData) {
+        console.log(currentData);
         var result = [];
         var arrivals = [];
         if (currentData["arrivals"] != undefined) {
@@ -83174,14 +83178,14 @@ var Factory = (function () {
         _view.setDisplayedMetadata([]);
         _view.setLayout('circle');
         _view.setTextSize('20');
-        _view.setTextColor('white');
-        _view.setBackgroundColor('#999');
-        _view.setTextOutlineColor('#999');
+        _view.setTextColor('#999999');
+        _view.setBackgroundColor('#999999');
+        _view.setTextOutlineColor('#999999');
         _view.setTextOutlineWidth(1);
         _view.setTextWeight(400);
         _view.setEdgeWidth(2);
-        _view.setEdgeLineColor('#999');
-        _view.setEdgeArrowColor('#999');
+        _view.setEdgeLineColor('#999999');
+        _view.setEdgeArrowColor('#999999');
         _view.setEdgeArrowShape('triangle');
         return _view;
     };
@@ -83311,7 +83315,7 @@ var ChartService = (function () {
         _res.subscribe(function (data) {
             _this._dashboard = new dashboard_1.Dashboard();
             _this.chartSubjects = {};
-            var _chartData = _this.getEntireChartData();
+            var _chartData = {}; //this.getEntireChartData();
             if (data.charts.length > 0) {
                 for (var i = 0; i < data.charts.length; i++) {
                     var _currentChart = objectFactory_1.Factory.chartFromJSON(data.charts[i]);
