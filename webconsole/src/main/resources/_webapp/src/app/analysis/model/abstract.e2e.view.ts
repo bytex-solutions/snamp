@@ -2,6 +2,8 @@ const cytoscape = require('cytoscape');
 
 export abstract class E2EView {
 
+    private static DELIMITER:string = "---";
+
     public static CHILD_COMPONENT:string = "childComponents";
     public static COMPONENT_MODULES:string = "componentModules";
     public static LANDSCAPE:string = "landscape";
@@ -198,6 +200,7 @@ export abstract class E2EView {
     }
 
     public updateData(currentData:any):any {
+        currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
         console.log(currentData);
         let result:any = [];
         let arrivals:any[] = [];
@@ -223,6 +226,7 @@ export abstract class E2EView {
     }
 
     private getData(currentData:any):any {
+        currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
         let result:any = [];
 
         let vertices:any[] = [];
@@ -345,6 +349,9 @@ export abstract class E2EView {
 
     private getLabelFromMetadata(id:string, data:any):string {
         let result:string = id;
+        if (result != undefined && result.indexOf(E2EView.DELIMITER) > 0) {
+            result = result.split(E2EView.DELIMITER)[0] + " (module: " + result.split(E2EView.DELIMITER)[1] + ")";
+        }
         let _md:string[] = this.getDisplayedMetadata();
         for (let i = 0; i < _md.length; i++) {
             if (data != undefined) {

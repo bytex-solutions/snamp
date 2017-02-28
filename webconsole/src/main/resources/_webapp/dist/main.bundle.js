@@ -82859,6 +82859,7 @@ var E2EView = (function () {
         return cy;
     };
     E2EView.prototype.updateData = function (currentData) {
+        currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
         console.log(currentData);
         var result = [];
         var arrivals = [];
@@ -82879,6 +82880,7 @@ var E2EView = (function () {
         }
     };
     E2EView.prototype.getData = function (currentData) {
+        currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
         var result = [];
         var vertices = [];
         var arrivals = [];
@@ -82982,6 +82984,9 @@ var E2EView = (function () {
     };
     E2EView.prototype.getLabelFromMetadata = function (id, data) {
         var result = id;
+        if (result != undefined && result.indexOf(E2EView.DELIMITER) > 0) {
+            result = result.split(E2EView.DELIMITER)[0] + " (module: " + result.split(E2EView.DELIMITER)[1] + ")";
+        }
         var _md = this.getDisplayedMetadata();
         for (var i = 0; i < _md.length; i++) {
             if (data != undefined) {
@@ -82996,6 +83001,7 @@ var E2EView = (function () {
         }
         return result;
     };
+    E2EView.DELIMITER = "---";
     E2EView.CHILD_COMPONENT = "childComponents";
     E2EView.COMPONENT_MODULES = "componentModules";
     E2EView.LANDSCAPE = "landscape";
