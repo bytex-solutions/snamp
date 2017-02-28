@@ -14,7 +14,7 @@ import java.util.Optional;
  * @version 2.0
  * @since 2.0
  */
-@Path("/configuration/watchers")
+@Path("/configuration/watcher")
 public final class ResourceGroupWatcherConfigurationService extends AbstractEntityConfigurationService<ManagedResourceGroupWatcherConfiguration, ResourceGroupWatcherDataObject> {
     ResourceGroupWatcherConfigurationService(){
         super(ManagedResourceGroupWatcherConfiguration.class);
@@ -39,7 +39,7 @@ public final class ResourceGroupWatcherConfigurationService extends AbstractEnti
         setConfigurationByName(groupName, config -> trigger.exportTo(config.getTrigger()));
     }
 
-    @Path("/{groupName}/attributeCheckers/{attributeName}")
+    @Path("/{groupName}/attributeChecker/{attributeName}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ScriptletDataObject getAttributeChecker(@PathParam("groupName") final String groupName, @PathParam("attributeName") final String attributeName){
@@ -51,7 +51,7 @@ public final class ResourceGroupWatcherConfigurationService extends AbstractEnti
             throw new WebApplicationException(Response.Status.NOT_FOUND);
     }
 
-    @Path("/{groupName}/attributeCheckers/{attributeName}")
+    @Path("/{groupName}/attributeChecker/{attributeName}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void setAttributeChecker(@PathParam("groupName") final String groupName, @PathParam("attributeName") final String attributeName, final ScriptletDataObject checker){
