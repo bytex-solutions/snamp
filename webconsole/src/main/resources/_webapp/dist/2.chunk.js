@@ -217,13 +217,13 @@ var MainView = (function () {
         this.edgeLineColor = "";
         this.edgeArrowColor = "";
         this.edgeArrowShape = "";
+        this.timerId = undefined;
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
     }
     MainView.prototype.ngOnInit = function () { };
     MainView.prototype.ngAfterViewInit = function () {
         var _this = this;
-        $("#menu_toggle").trigger('click');
         this.currentViewObs = this.route.params
             .map(function (params) { return _this._viewService.getViewByName(params['id']); });
         this.currentViewObs.publishLast().refCount();
@@ -250,14 +250,14 @@ var MainView = (function () {
                 _this._cyObject = _view.draw(_data);
                 _this.handleCy(_this._cyObject);
                 var _thisReference = _this;
-                setInterval(function () {
+                _this.timerId = setInterval(function () {
                     _thisReference._viewService.getDataForView(_view).subscribe(function (updateData) {
                         _view.updateData(updateData);
                         if (_thisReference.currentNodeId != undefined) {
                             _thisReference.metadata = _thisReference._cyObject.$('#' + _thisReference.currentNodeId).data('arrival');
                         }
                     });
-                }, 2000);
+                }, 3000);
             });
         });
     };
@@ -348,6 +348,9 @@ var MainView = (function () {
                 _thisReference.metadata = _cy.$('#' + evtTarget.data('id')).data('arrival');
             }
         });
+    };
+    MainView.prototype.ngOnDestroy = function () {
+        clearInterval(this.timerId);
     };
     MainView = __decorate([
         core_1.Component({

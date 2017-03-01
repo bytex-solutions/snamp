@@ -51,6 +51,8 @@ export class MainView implements OnInit {
     edgeArrowColor:string = "";
     edgeArrowShape:string = "";
 
+    timerId:any = undefined;
+
     constructor(apiClient: ApiClient, private route: ActivatedRoute, overlay: Overlay,
             private _viewService:ViewService,  private modal: Modal, vcRef: ViewContainerRef) {
         this.http = apiClient;
@@ -60,7 +62,6 @@ export class MainView implements OnInit {
    ngOnInit():void {}
 
    ngAfterViewInit():void {
-      $("#menu_toggle").trigger('click');
       this.currentViewObs = this.route.params
                .map(params => { return this._viewService.getViewByName(params['id']);});
       this.currentViewObs.publishLast().refCount();
@@ -93,14 +94,14 @@ export class MainView implements OnInit {
                   this._cyObject = _view.draw(_data);
                   this.handleCy(this._cyObject);
                   var _thisReference = this;
-                  setInterval(function() {
+                  this.timerId = setInterval(function() {
                      _thisReference._viewService.getDataForView(_view).subscribe(updateData => {
                          _view.updateData(updateData);
                          if (_thisReference.currentNodeId != undefined) {
                             _thisReference.metadata = _thisReference._cyObject.$('#' + _thisReference.currentNodeId).data('arrival');
                          }
                      });
-                   }, 2000);
+                   }, 3000);
             });
       });
    }
@@ -204,6 +205,10 @@ export class MainView implements OnInit {
           }
         });
     }
+
+   ngOnDestroy() {
+        clearInterval(this.timerId);
+   }
 
 }
 

@@ -33,6 +33,8 @@ export class Dashboard {
 
     private http:ApiClient;
 
+    timerId:any = undefined;
+
     components:Observable<string[]>;
     selectedComponent:string = "";
 
@@ -161,7 +163,7 @@ export class Dashboard {
                 for (let i = 0; i < this._charts.length; i++) {
                     this._charts[i].draw();
                 }
-                setInterval(function(){
+                this.timerId = setInterval(function(){
                     _thisReference._chartService.receiveChartDataForGroupName(gn);
                 }, 1000);
              });
@@ -315,6 +317,10 @@ export class Dashboard {
    	    this._chartService.removeChart(chartName);
    	    this._charts = this._chartService.getChartsByGroupName(this.groupName);
    	}
+
+    ngOnDestroy() {
+        clearInterval(this.timerId);
+    }
 }
 
 class TimeInterval {

@@ -41,6 +41,7 @@ var Dashboard = (function () {
         this.modal = modal;
         this._chartService = _chartService;
         this.route = route;
+        this.timerId = undefined;
         this.selectedComponent = "";
         this.selectedInstances = [];
         this.allInstances = [];
@@ -140,7 +141,7 @@ var Dashboard = (function () {
             for (var i = 0; i < _this._charts.length; i++) {
                 _this._charts[i].draw();
             }
-            setInterval(function () {
+            _this.timerId = setInterval(function () {
                 _thisReference._chartService.receiveChartDataForGroupName(gn);
             }, 1000);
         });
@@ -279,6 +280,9 @@ var Dashboard = (function () {
     Dashboard.prototype.removeChart = function (chartName) {
         this._chartService.removeChart(chartName);
         this._charts = this._chartService.getChartsByGroupName(this.groupName);
+    };
+    Dashboard.prototype.ngOnDestroy = function () {
+        clearInterval(this.timerId);
     };
     Dashboard = __decorate([
         core_1.Component({
