@@ -82895,33 +82895,8 @@ var E2EView = (function () {
             arrivals = currentData["arrivals"];
         }
         // add all plain vertices
-        for (var key in vertices) {
-            var _node = { data: { id: key } };
-            if (arrivals[key] != undefined) {
-                _node.data.arrival = arrivals[key];
-            }
-            result.push(_node);
-        }
-        // add vertices without outgoing links
-        for (var key in vertices) {
-            for (var i = 0; i < vertices[key].length; i++) {
-                // if our resulting array does not contain element - add it
-                var _found = false;
-                for (var j = 0; j < result.length; j++) {
-                    if (result[j].id == vertices[key][i]) {
-                        _found = true;
-                        break;
-                    }
-                }
-                if (!_found) {
-                    result.push({
-                        data: {
-                            id: vertices[key][i],
-                            arrival: arrivals[key]
-                        }
-                    });
-                }
-            }
+        for (var key in arrivals) {
+            result.push({ data: { id: key, arrival: arrivals[key] } });
         }
         // create labels according to the rules
         for (var i = 0; i < result.length; i++) {

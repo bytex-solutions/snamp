@@ -245,34 +245,8 @@ export abstract class E2EView {
         }
 
         // add all plain vertices
-        for (let key in vertices) {
-            let _node:any = { data: { id: key}};
-            if (arrivals[key] != undefined) {
-                _node.data.arrival = arrivals[key];
-            }
-            result.push(_node);
-        }
-
-        // add vertices without outgoing links
-        for (let key in vertices) {
-            for (let i = 0; i < vertices[key].length; i++) {
-                // if our resulting array does not contain element - add it
-                let _found:boolean = false;
-                for (let j = 0; j < result.length; j++) {
-                    if (result[j].id == vertices[key][i]) {
-                        _found = true;
-                        break;
-                    }
-                }
-                if (!_found) {
-                    result.push({
-                        data: {
-                            id: vertices[key][i],
-                            arrival: arrivals[key]
-                        }
-                    })
-                }
-            }
+        for (let key in arrivals) {
+            result.push({ data: { id: key, arrival: arrivals[key]}});
         }
 
         // create labels according to the rules
