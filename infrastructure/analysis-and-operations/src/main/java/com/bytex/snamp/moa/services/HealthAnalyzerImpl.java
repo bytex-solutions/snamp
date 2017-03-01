@@ -76,7 +76,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         }
     }
 
-    private final Multimap<String, String> componentToResourceMap;
+    private final Multimap<String, String> groupToResourceMap;
     private final Map<String, UpdatableGroupWatcher> watchers;
     private StatusUpdater statusUpdater;
     private final ExecutorService threadPool;
@@ -85,7 +85,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
 
     HealthAnalyzerImpl(final ExecutorService threadPool, final CMManagedResourceGroupWatcherParser watcherParser) {
         super(ResourceGroup.class, ResourceGroup.ATTRIBUTES);
-        componentToResourceMap = HashMultimap.create();
+        groupToResourceMap = HashMultimap.create();
         this.threadPool = Objects.requireNonNull(threadPool);
         this.watcherParser = Objects.requireNonNull(watcherParser);
         watchers = new HashMap<>();
@@ -98,7 +98,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
     }
 
     private void updateWatcher(final String componentName, final UpdatableGroupWatcher watcher) throws TimeoutException, InterruptedException {
-        final ImmutableSet<String> resources = readLock.apply(ResourceGroup.RESOURCE_MAP, componentToResourceMap, componentName, (m, n) -> ImmutableSet.copyOf(m.get(n)), null);
+        final ImmutableSet<String> resources = readLock.apply(ResourceGroup.RESOURCE_MAP, groupToResourceMap, componentName, (m, n) -> ImmutableSet.copyOf(m.get(n)), null);
         for (final String resourceName : resources)
             forEachAttribute((attributeName, attributeWatcher) -> {
                 attributeWatcher.checkAttribute(resourceName, watcher);
@@ -125,18 +125,18 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
 
     @Override
     protected void cleared() {
-        writeLock.accept(ResourceGroup.RESOURCE_MAP, componentToResourceMap, Multimap::clear);
+        writeLock.accept(ResourceGroup.RESOURCE_MAP, groupToResourceMap, Multimap::clear);
         writeLock.accept(ResourceGroup.WATCHERS, watchers, HealthAnalyzerImpl::removeAllWatchers);
         statusListeners.clear();
     }
 
-    private static void addResource(final Multimap<String, String> componentToResourceMap, final ManagedResourceConnectorClient resource){
-        componentToResourceMap.put(resource.getGroupName(), resource.getManagedResourceName());
+    private static void addResource(final Multimap<String, String> groupToResourceMap, final ManagedResourceConnectorClient resource){
+        groupToResourceMap.put(resource.getGroupName(), resource.getManagedResourceName());
     }
 
     void addResource(final ManagedResourceConnectorClient resource) {
         writeLock.accept(ResourceGroup.RESOURCE_MAP,
-                componentToResourceMap,
+                groupToResourceMap,
                 resource,
                 HealthAnalyzerImpl::addResource);
     }
@@ -144,7 +144,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
     void removeResource(final ManagedResourceConnectorClient resource) {
         final String resourceName = resource.getManagedResourceName();
         try (final SafeCloseable ignored = writeLock.acquireLock(ResourceGroup.RESOURCE_MAP)) {
-            componentToResourceMap.remove(resource.getGroupName(), resourceName);
+            groupToResourceMap.remove(resource.getGroupName(), resourceName);
         }
         readLock.accept(ResourceGroup.WATCHERS, watchers, watchers -> watchers.values().forEach(watcher -> watcher.removeResource(resourceName)));
     }
@@ -204,6 +204,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
     @Override
     public void statusChanged(final GroupStatusChangedEvent event) {
         statusListeners.fire(event);
+
     }
 
     /**

@@ -11,12 +11,12 @@ import java.util.Properties;
  * @version 2.0
  * @since 2.0
  */
-public final class GroovyAttributeCheckerFactory extends OSGiGroovyScriptEngine<GroovyAttributeChecker> {
-    public GroovyAttributeCheckerFactory(final ClassLoader rootClassLoader) throws IOException {
+final class GroovyAttributeCheckerFactory extends OSGiGroovyScriptEngine<GroovyAttributeChecker> {
+    GroovyAttributeCheckerFactory(final ClassLoader rootClassLoader) throws IOException {
         super(rootClassLoader, new Properties(), GroovyAttributeChecker.class);
     }
 
-    public GroovyAttributeChecker create(final String text) {
+    GroovyAttributeChecker create(final String text) {
         return parseScript(text, getGlobalVariables());
     }
 }

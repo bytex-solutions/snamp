@@ -26,7 +26,10 @@ public final class ColoredAttributeChecker implements AttributeChecker {
     }
 
     public static ColoredAttributeChecker parse(final String scriptBody) throws IOException {
-        final ObjectMapper mapper = new ObjectMapper();
+        return parse(scriptBody, new ObjectMapper());
+    }
+
+    public static ColoredAttributeChecker parse(final String scriptBody, final ObjectMapper mapper) throws IOException {
         return mapper.readValue(scriptBody, ColoredAttributeChecker.class);
     }
 

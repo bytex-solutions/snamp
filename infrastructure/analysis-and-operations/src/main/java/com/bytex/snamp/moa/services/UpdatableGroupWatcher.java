@@ -2,26 +2,25 @@ package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
-import com.bytex.snamp.configuration.ScriptletConfiguration;
-import com.bytex.snamp.connector.attributes.checkers.*;
+import com.bytex.snamp.connector.attributes.checkers.AttributeCheckStatus;
+import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
+import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
+import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
 import com.bytex.snamp.connector.supervision.*;
+import com.bytex.snamp.connector.supervision.triggers.TriggerFactory;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableMap;
 
 import javax.management.Attribute;
 import javax.management.JMException;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -29,26 +28,11 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @since 2.0
  */
 final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener> implements Stateful {
-    private static final class InvalidAttributeCheckerException extends Exception{
-        private static final long serialVersionUID = -2754906759778952794L;
-
-        InvalidAttributeCheckerException(final IOException e){
-            super("Unable to download script", e);
-        }
-
-        InvalidAttributeCheckerException(final String language){
-            super("Unsupported language " + language);
-        }
-
-        InvalidAttributeCheckerException(final String scriptBody, final Exception e){
-            super("Script has invalid syntax: " + scriptBody, e);
-        }
-    }
-
     private static final AtomicReferenceFieldUpdater<UpdatableGroupWatcher, HealthStatus> STATUS_UPDATER =
             AtomicReferenceFieldUpdater.newUpdater(UpdatableGroupWatcher.class, HealthStatus.class, "status");
-    private static final LazySoftReference<GroovyAttributeCheckerFactory> GROOVY_CHECKER_FACTORY = new LazySoftReference<>();
     private static final OkStatus OK_STATUS = new OkStatus();
+    private static final AttributeCheckerFactory CHECKER_FACTORY = new AttributeCheckerFactory();
+    private static final TriggerFactory TRIGGER_FACTORY = new TriggerFactory();
 
     private static final class StatusChangedEvent extends GroupStatusChangedEvent {
         private static final long serialVersionUID = -6608026114593286031L;
@@ -61,6 +45,11 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
             super(source);
             this.previousStatus = Objects.requireNonNull(previousStatus);
             this.newStatus = Objects.requireNonNull(newStatus);
+        }
+
+        @Override
+        public StatusChangedEvent getSource() {
+            return (StatusChangedEvent) super.getSource();
         }
 
         @Override
@@ -87,11 +76,10 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
         attributesStatusMap = new ConcurrentHashMap<>(15);
         final ImmutableMap.Builder<String, AttributeChecker> attributeCheckers = ImmutableMap.builder();
         final Logger logger = getLogger();
-        final ClassLoader loader = getClass().getClassLoader();
         configuration.getAttributeCheckers().forEach((attributeName, checkerCode) -> {
             final AttributeChecker checker;
             try {
-                checker = createChecker(checkerCode, loader);
+                checker = CHECKER_FACTORY.createChecker(checkerCode);
             } catch (final InvalidAttributeCheckerException e) {
                 logger.log(Level.WARNING, "Unable to parse checker for attribute " + attributeName, e);
                 return;
@@ -99,28 +87,6 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
             attributeCheckers.put(attributeName, checker);
         });
         this.attributeCheckers = attributeCheckers.build();
-    }
-
-    private static GroovyAttributeChecker createGroovyChecker(final String scriptBody, final ClassLoader loader) throws IOException {
-        return GROOVY_CHECKER_FACTORY.lazyGet(consumer -> consumer.accept(new GroovyAttributeCheckerFactory(loader))).create(scriptBody);
-    }
-
-    private static AttributeChecker createChecker(final ScriptletConfiguration checker, final ClassLoader loader) throws InvalidAttributeCheckerException {
-        final String scriptBody;
-        try {
-            scriptBody = checker.resolveScriptBody();
-        } catch (final IOException e) {
-            throw new InvalidAttributeCheckerException(e);
-        }
-        final Function<? super Exception, InvalidAttributeCheckerException> exceptionFactory = e -> new InvalidAttributeCheckerException(scriptBody, e);
-        switch (checker.getLanguage()) {
-            case ScriptletConfiguration.GROOVY_LANGUAGE:
-                return callAndWrapException(() -> createGroovyChecker(scriptBody, loader), exceptionFactory);
-            case ColoredAttributeChecker.LANGUAGE_NAME:
-                return callAndWrapException(() -> ColoredAttributeChecker.parse(scriptBody), exceptionFactory);
-            default:
-                throw new InvalidAttributeCheckerException(checker.getLanguage());
-        }
     }
 
     private Logger getLogger(){
