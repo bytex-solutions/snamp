@@ -97,7 +97,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         return watcherParser.getPersistentID();
     }
 
-    void updateWatcher(final String componentName, final UpdatableGroupWatcher watcher) throws TimeoutException, InterruptedException {
+    private void updateWatcher(final String componentName, final UpdatableGroupWatcher watcher) throws TimeoutException, InterruptedException {
         final ImmutableSet<String> resources = readLock.apply(ResourceGroup.RESOURCE_MAP, componentToResourceMap, componentName, (m, n) -> ImmutableSet.copyOf(m.get(n)), null);
         for (final String resourceName : resources)
             forEachAttribute((attributeName, attributeWatcher) -> {
@@ -106,7 +106,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
             });
     }
 
-    void updateWatchers() {
+    private void updateWatchers() {
         for (final Map.Entry<String, UpdatableGroupWatcher> entry : watchers.entrySet()) {
             final WatcherUpdaterTask task = new WatcherUpdaterTask(this, entry.getKey(), entry.getValue());
             threadPool.submit(task);
