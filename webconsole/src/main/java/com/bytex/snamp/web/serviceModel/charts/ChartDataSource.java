@@ -28,7 +28,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
     public static final String NAME = "charts";
     public static final String URL_CONTEXT = "/charts";
 
-    public ChartDataSource() throws IOException {
+    public ChartDataSource() {
         super(Dashboard.class);
     }
 

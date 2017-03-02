@@ -14,6 +14,7 @@ import com.bytex.snamp.connector.supervision.triggers.InvalidTriggerException;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.osgi.service.cm.ConfigurationException;
@@ -95,6 +96,12 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         this.watcherParser = Objects.requireNonNull(watcherParser);
         watchers = new HashMap<>();
         statusListeners = WeakEventListenerList.create(GroupStatusEventListener::statusChanged);
+    }
+
+    @Nonnull
+    @Override
+    public ImmutableMap<String, UpdatableGroupWatcher> getConfiguration() {
+        return readLock.apply(ResourceGroup.WATCHERS, watchers, ImmutableMap::copyOf);
     }
 
     @Override
@@ -245,7 +252,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
 
     @Override
     public void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
-        if (properties == null)  //remove all watchers
+        if (properties == null)   //remove all watchers
             writeLock.accept(ResourceGroup.WATCHERS, watchers, HealthAnalyzerImpl::removeAllWatchers);
         else {
             final Map<String, ? extends ManagedResourceGroupWatcherConfiguration> watchersConfiguration;

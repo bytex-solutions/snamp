@@ -13,8 +13,11 @@ import com.bytex.snamp.connector.supervision.*;
 import com.bytex.snamp.connector.supervision.triggers.HealthStatusTrigger;
 import com.bytex.snamp.connector.supervision.triggers.InvalidTriggerException;
 import com.bytex.snamp.connector.supervision.triggers.TriggerFactory;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LoggerProvider;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableMap;
+import org.osgi.framework.BundleContext;
 
 import javax.management.Attribute;
 import javax.management.JMException;
@@ -111,12 +114,21 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
         return status;
     }
 
+    private BundleContext getBundleContext(){
+        return Utils.getBundleContextOfObject(this);
+    }
+
+    private HealthStatus invokeTrigger(final HealthStatus prev, final HealthStatus next){
+        //trigger can be executed on active node only
+        return DistributedServices.isActiveNode(getBundleContext()) ? trigger.statusChanged(prev, next) : next;
+    }
+
     private void updateStatus(final Function<? super HealthStatus, ? extends HealthStatus> statusUpdater) {
         final HealthStatus newStatus, prevStatus;
         synchronized (this) {   //calling of the trigger should be enqueued
             final HealthStatus tempNewStatus = statusUpdater.apply(prevStatus = status);
             if (tempNewStatus.equals(prevStatus)) return;
-            newStatus = trigger.statusChanged(prevStatus, tempNewStatus);
+            newStatus = invokeTrigger(prevStatus, tempNewStatus);
             if (newStatus.equals(prevStatus)) return;
             status = newStatus;
         }

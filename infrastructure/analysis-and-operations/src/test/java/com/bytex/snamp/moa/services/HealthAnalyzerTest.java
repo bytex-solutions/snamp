@@ -3,11 +3,13 @@ package com.bytex.snamp.moa.services;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
 import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
+import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
 import com.bytex.snamp.connector.attributes.checkers.NumberComparatorPredicate;
 import com.bytex.snamp.connector.supervision.InvalidAttributeValue;
 import com.bytex.snamp.connector.supervision.OkStatus;
 import com.bytex.snamp.connector.supervision.ResourceInGroupIsNotUnavailable;
+import com.bytex.snamp.connector.supervision.triggers.InvalidTriggerException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,7 +23,7 @@ import javax.management.JMException;
  */
 public final class HealthAnalyzerTest extends Assert {
     @Test
-    public void updateComponentWatcherTest(){
+    public void updateComponentWatcherTest() throws InvalidAttributeCheckerException, InvalidTriggerException {
         final String RESOURCE_NAME = "myResource";
         final String ATTRIBUTE_NAME = "memory";
         final ManagedResourceGroupWatcherConfiguration watcherConfiguration = ConfigurationManager.createEntityConfiguration(getClass().getClassLoader(), ManagedResourceGroupWatcherConfiguration.class);

@@ -2,6 +2,7 @@ package com.bytex.snamp.web;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
+import com.bytex.snamp.connector.supervision.HealthSupervisor;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
@@ -10,6 +11,7 @@ import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationServic
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
+import com.bytex.snamp.web.serviceModel.watcher.GroupWatcherService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.http.HttpService;
@@ -43,6 +45,25 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     //=============Predefined services for WebConsole======
+    private static final class NotificationServiceProvider extends ProvidedService<WebConsoleService, GroupWatcherService>{
+        private NotificationServiceProvider(){
+            super(WebConsoleService.class, simpleDependencies(HealthSupervisor.class));
+        }
+
+        @Override
+        protected GroupWatcherService activateService(final Map<String, Object> identity) {
+            identity.put(WebConsoleService.NAME, GroupWatcherService.NAME);
+            identity.put(WebConsoleService.URL_CONTEXT, GroupWatcherService.URL_CONTEXT);
+            final HealthSupervisor supervisor = dependencies.getDependency(HealthSupervisor.class);
+            return new GroupWatcherService(supervisor);
+        }
+
+        @Override
+        protected void cleanupService(final GroupWatcherService serviceInstance, final boolean stopBundle) throws Exception {
+            serviceInstance.close();
+        }
+    }
+
     private static final class E2EDataSourceProvider extends ProvidedService<WebConsoleService, E2EDataSource>{
         private E2EDataSourceProvider(){
             super(WebConsoleService.class, simpleDependencies(TopologyAnalyzer.class));
@@ -67,7 +88,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
-        protected ChartDataSource activateService(final Map<String, Object> identity) throws IOException {
+        protected ChartDataSource activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, ChartDataSource.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, ChartDataSource.URL_CONTEXT);
             return new ChartDataSource();
