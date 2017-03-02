@@ -12,6 +12,7 @@ import com.bytex.snamp.connector.supervision.HealthSupervisor;
 import com.bytex.snamp.connector.supervision.InvalidAttributeValue;
 import com.bytex.snamp.connector.supervision.OkStatus;
 import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
@@ -22,6 +23,8 @@ import org.junit.Test;
 import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 /**
  * @author Roman Sakno
@@ -101,6 +104,12 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
 
     @Override
     protected void fillWatchers(final EntityMap<? extends ManagedResourceGroupWatcherConfiguration> watchers) {
+        final String groovyTrigger;
+        try {
+            groovyTrigger = IOUtils.toString(getClass().getResourceAsStream("GroovyTrigger.groovy"));
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
         watchers.addAndConsume(GROUP_NAME, watcher -> {
             watcher.getAttributeCheckers().addAndConsume("3.0", scriptlet -> {
                 final ColoredAttributeChecker checker = new ColoredAttributeChecker();
@@ -112,6 +121,8 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
                 scriptlet.setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
                 scriptlet.setScript("attributeValue < 42 ? OK : MALFUNCTION");
             });
+            watcher.getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
+            watcher.getTrigger().setScript(groovyTrigger);
         });
     }
 
