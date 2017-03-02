@@ -113,9 +113,12 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
         final HealthStatus newStatus, prevStatus;
         synchronized (this) {   //calling of the trigger should be enqueued
             final HealthStatus tempNewStatus = statusUpdater.apply(prevStatus = status);
-            if (tempNewStatus.equals(prevStatus)) return;
+            if (tempNewStatus.compareTo(prevStatus) == 0)
+                return;
             newStatus = invokeTrigger(prevStatus, tempNewStatus);
-            if (newStatus.equals(prevStatus)) return;
+            if (newStatus.compareTo(prevStatus) == 0)
+
+                return;
             status = newStatus;
         }
         final GroupStatusEventListener listener = get();
@@ -145,3 +148,4 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
         updateStatus(existing -> existing.getResourceName().equals(resourceName) ? new OkStatus(resourceName) : existing);
     }
 }
+

@@ -4,6 +4,9 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
+import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
+import com.bytex.snamp.connector.attributes.checkers.NumberComparatorPredicate;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayActivator;
@@ -22,6 +25,7 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
+import com.bytex.snamp.testing.connector.supervision.HealthAnalyzerTest;
 import com.bytex.snamp.web.serviceModel.charts.*;
 import com.bytex.snamp.web.serviceModel.commons.AttributeInformation;
 import com.bytex.snamp.web.serviceModel.e2e.ChildComponentsView;
@@ -46,6 +50,7 @@ import javax.ws.rs.core.HttpHeaders;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
 import java.net.*;
@@ -636,6 +641,30 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     protected void setupTestConfiguration(final AgentConfiguration config) {
         fillManagedResources(config.getEntities(ManagedResourceConfiguration.class));
         fillGateways(config.getEntities(GatewayConfiguration.class));
+        fillWatchers(config.getEntities(ManagedResourceGroupWatcherConfiguration.class));
+    }
+
+    private void fillWatchers(final EntityMap<? extends ManagedResourceGroupWatcherConfiguration> watchers){
+        final String groovyTrigger;
+        try {
+            groovyTrigger = IOUtils.toString(HealthAnalyzerTest.class.getResourceAsStream("GroovyTrigger.groovy"));
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        watchers.addAndConsume(GROUP_NAME, watcher -> {
+            watcher.getAttributeCheckers().addAndConsume("requestsPerSecond", scriptlet -> {
+                final ColoredAttributeChecker checker = new ColoredAttributeChecker();
+                checker.setGreenPredicate(new NumberComparatorPredicate(NumberComparatorPredicate.Operator.LESS_THAN, 1000D));
+                checker.setYellowPredicate(new IsInRangePredicate(1000D, true, 2000D, true));
+                checker.configureScriptlet(scriptlet);
+            });
+            watcher.getAttributeCheckers().addAndConsume("CPU", scriptlet -> {
+                scriptlet.setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
+                scriptlet.setScript("attributeValue < 42 ? OK : MALFUNCTION");
+            });
+            watcher.getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
+            watcher.getTrigger().setScript(groovyTrigger);
+        });
     }
 
     private void fillManagedResources(final EntityMap<? extends ManagedResourceConfiguration> resources){
