@@ -33,7 +33,7 @@ public class TriggerFactory {
             case ScriptletConfiguration.GROOVY_LANGUAGE:
                 return callAndWrapException(() -> createGroovyTrigger(scriptBody), exceptionFactory);
             default:
-                return HealthStatusTrigger.NO_OP;
+                return HealthStatusTrigger.IDENTITY;
         }
     }
 }

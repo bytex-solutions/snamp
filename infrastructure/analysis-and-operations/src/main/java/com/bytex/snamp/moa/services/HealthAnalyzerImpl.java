@@ -6,9 +6,12 @@ import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
 import com.bytex.snamp.connector.supervision.GroupStatusChangedEvent;
 import com.bytex.snamp.connector.supervision.GroupStatusEventListener;
 import com.bytex.snamp.connector.supervision.HealthStatus;
+import com.bytex.snamp.connector.supervision.triggers.InvalidTriggerException;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -27,6 +30,8 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -119,7 +124,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
     }
 
     private static void removeAllWatchers(final Map<String, UpdatableGroupWatcher> watchers){
-        watchers.values().forEach(UpdatableGroupWatcher::clear);
+        watchers.values().forEach(UpdatableGroupWatcher::close);
         watchers.clear();
     }
 
@@ -218,8 +223,19 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         return objectType.isInstance(this) ? objectType.cast(this) : null;
     }
 
+    private Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
+    }
+
     private void addWatcher(final String groupName, final ManagedResourceGroupWatcherConfiguration watcherConfig) {
-        watchers.put(groupName, new UpdatableGroupWatcher(watcherConfig, this));
+        final UpdatableGroupWatcher watcher;
+        try {
+            watcher = new UpdatableGroupWatcher(watcherConfig, this);
+        } catch (final InvalidTriggerException | InvalidAttributeCheckerException e) {
+            getLogger().log(Level.SEVERE, "Unable to instantiate group watcher for group " + groupName, e);
+            return;
+        }
+        watchers.put(groupName, watcher);
     }
 
     private void addWatchers(final Map<String, ? extends ManagedResourceGroupWatcherConfiguration> configuration) {

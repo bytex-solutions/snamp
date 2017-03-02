@@ -10,7 +10,7 @@ import com.bytex.snamp.connector.supervision.HealthStatus;
  */
 @FunctionalInterface
 public interface HealthStatusTrigger {
-    HealthStatusTrigger NO_OP = (p, n) -> n;
+    HealthStatusTrigger IDENTITY = (p, n) -> n;
 
     HealthStatus statusChanged(final HealthStatus previousStatus, final HealthStatus newStatus);
 }
