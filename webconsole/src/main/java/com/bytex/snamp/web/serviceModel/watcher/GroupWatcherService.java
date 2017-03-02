@@ -17,7 +17,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -34,6 +33,7 @@ public final class GroupWatcherService extends AbstractPrincipalBoundedService<W
 
     @JsonTypeName("groupStatusChanged")
     public static final class GroupStatusChangedMessage extends WebMessage{
+        private static final long serialVersionUID = -9201166624972276258L;
         private final HealthStatus previousStatus;
         private final HealthStatus newStatus;
 
@@ -58,7 +58,7 @@ public final class GroupWatcherService extends AbstractPrincipalBoundedService<W
 
     @JsonSerialize(contentUsing = HealthStatusSerializer.class)
     public static final class StatusOfGroups extends HashMap<String, HealthStatus>{
-
+        private static final long serialVersionUID = 2645921325913575632L;
     }
 
     private final HealthSupervisor supervisor;

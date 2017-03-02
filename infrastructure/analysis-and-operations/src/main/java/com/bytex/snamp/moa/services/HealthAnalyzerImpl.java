@@ -12,6 +12,7 @@ import com.bytex.snamp.connector.supervision.GroupStatusEventListener;
 import com.bytex.snamp.connector.supervision.HealthStatus;
 import com.bytex.snamp.connector.supervision.triggers.InvalidTriggerException;
 import com.bytex.snamp.core.LoggerProvider;
+import com.bytex.snamp.gateway.modeling.AttributeValue;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -20,14 +21,13 @@ import com.google.common.collect.Multimap;
 import org.osgi.service.cm.ConfigurationException;
 
 import javax.annotation.Nonnull;
+import javax.management.AttributeNotFoundException;
+import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
@@ -109,13 +109,24 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         return watcherParser.getPersistentID();
     }
 
-    private void updateWatcher(final String componentName, final UpdatableGroupWatcher watcher) throws TimeoutException, InterruptedException {
-        final ImmutableSet<String> resources = readLock.apply(ResourceGroup.RESOURCE_MAP, groupToResourceMap, componentName, (m, n) -> ImmutableSet.copyOf(m.get(n)), null);
-        for (final String resourceName : resources)
-            forEachAttribute((attributeName, attributeWatcher) -> {
-                attributeWatcher.checkAttribute(resourceName, watcher);
+    private void updateWatcher(final String groupName, final UpdatableGroupWatcher watcher) throws TimeoutException, InterruptedException {
+        final ImmutableSet<String> resources = readLock.apply(ResourceGroup.RESOURCE_MAP, groupToResourceMap, groupName, (m, n) -> ImmutableSet.copyOf(m.get(n)), null);
+        final Collection<AttributeValue> attributes = new LinkedList<>();
+        for (final String resourceName : resources) {
+            final boolean threadAlive = forEachAttribute((attributeName, attributeWatcher) -> {
+                try {
+                    attributeWatcher.readAttribute(attributes);
+                } catch (final AttributeNotFoundException ignored) {
+                    //do not add attribute to the attribute list
+                } catch (final JMException e) {
+                    watcher.updateStatus(resourceName, e);
+                }
                 return !Thread.interrupted();
             });
+            if (threadAlive)
+                watcher.updateStatus(resourceName, attributes);
+            attributes.clear(); //help GC
+        }
     }
 
     private void updateWatchers() {

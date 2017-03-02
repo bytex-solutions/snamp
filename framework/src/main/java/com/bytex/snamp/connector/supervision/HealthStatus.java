@@ -44,6 +44,11 @@ public abstract class HealthStatus implements Serializable, Comparable<HealthSta
     }
 
     public HealthStatus combine(@Nonnull final HealthStatus newStatus) {
-        return newStatus.compareTo(this) >= 0 || newStatus.getResourceName().equals(getResourceName()) ? newStatus : this;
+        if (compareTo(newStatus) < 0)
+            return newStatus;
+        else if (newStatus.getResourceName().equals(resourceName))
+            return compareTo(newStatus) < 0 ? newStatus : this;
+        else
+            return this;
     }
 }

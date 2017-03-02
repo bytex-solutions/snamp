@@ -14,7 +14,8 @@ public interface NotificationSet<TAccessor extends NotificationAccessor> {
      * Iterates over all notifications in this set.
      * @param notificationReader Notification reader.
      * @param <E> Type of the exception that can be thrown by the reader.
+     * @return {@literal false}, if iteration was aborted.
      * @throws E Unable to process notification.
      */
-    <E extends Throwable> void forEachNotification(final EntryReader<String, ? super TAccessor, E> notificationReader) throws E;
+    <E extends Throwable> boolean forEachNotification(final EntryReader<String, ? super TAccessor, E> notificationReader) throws E;
 }

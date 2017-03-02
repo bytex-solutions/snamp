@@ -15,14 +15,12 @@ public class InvalidAttributeValue extends MalfunctionStatus {
     public static final int CODE = 3;
     private static final long serialVersionUID = -84085262684742050L;
     private final Attribute attribute;
-    private final String resourceName;
 
     public InvalidAttributeValue(final String resourceName,
                                  final Attribute attribute,
                                  final boolean critical){
         super(resourceName, CODE, critical);
         this.attribute = Objects.requireNonNull(attribute);
-        this.resourceName = resourceName;
     }
 
     public Attribute getAttribute(){

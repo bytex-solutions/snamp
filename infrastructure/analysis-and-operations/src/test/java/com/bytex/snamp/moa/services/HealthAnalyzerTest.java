@@ -16,12 +16,15 @@ import org.junit.Test;
 import javax.management.Attribute;
 import javax.management.JMException;
 
+import static java.util.Collections.singleton;
+
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
 public final class HealthAnalyzerTest extends Assert {
+
     @Test
     public void updateComponentWatcherTest() throws InvalidAttributeCheckerException, InvalidTriggerException {
         final String RESOURCE_NAME = "myResource";
@@ -35,13 +38,13 @@ public final class HealthAnalyzerTest extends Assert {
             checker.configureScriptlet(scriptlet);
         });
         final UpdatableGroupWatcher watcher = new UpdatableGroupWatcher(watcherConfiguration, null);
-        watcher.updateStatus(RESOURCE_NAME, new Attribute(ATTRIBUTE_NAME, 500));
+        watcher.updateStatus(RESOURCE_NAME, singleton(new Attribute(ATTRIBUTE_NAME, 500)));
         assertTrue(watcher.getStatus() instanceof OkStatus);
-        watcher.updateStatus(RESOURCE_NAME, new Attribute("invalidAttributeName", 100500)); //attribute without checker should be ignored
+        watcher.updateStatus(RESOURCE_NAME, singleton(new Attribute("invalidAttributeName", 100500))); //attribute without checker should be ignored
         assertTrue(watcher.getStatus() instanceof OkStatus);
-        watcher.updateStatus(RESOURCE_NAME, new Attribute(ATTRIBUTE_NAME, 1000));
+        watcher.updateStatus(RESOURCE_NAME, singleton(new Attribute(ATTRIBUTE_NAME, 1000)));
         assertTrue(watcher.getStatus() instanceof InvalidAttributeValue);
-        watcher.updateStatus(RESOURCE_NAME,  new Attribute(ATTRIBUTE_NAME, 50));
+        watcher.updateStatus(RESOURCE_NAME, singleton(new Attribute(ATTRIBUTE_NAME, 50)));
         assertTrue(watcher.getStatus() instanceof OkStatus);
         watcher.updateStatus(RESOURCE_NAME, new JMException());
         assertTrue(watcher.getStatus() instanceof ResourceInGroupIsNotUnavailable);

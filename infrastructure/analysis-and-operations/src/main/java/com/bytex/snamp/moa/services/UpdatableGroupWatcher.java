@@ -1,11 +1,9 @@
 package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.Stateful;
 import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
-import com.bytex.snamp.connector.attributes.checkers.AttributeCheckStatus;
 import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
 import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
@@ -14,24 +12,17 @@ import com.bytex.snamp.connector.supervision.triggers.HealthStatusTrigger;
 import com.bytex.snamp.connector.supervision.triggers.InvalidTriggerException;
 import com.bytex.snamp.connector.supervision.triggers.TriggerFactory;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleContext;
 
 import javax.management.Attribute;
 import javax.management.JMException;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -39,7 +30,6 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener> implements Stateful, SafeCloseable {
-    private static final OkStatus OK_STATUS = new OkStatus();
     private static final AttributeCheckerFactory CHECKER_FACTORY = new AttributeCheckerFactory();
     private static final TriggerFactory TRIGGER_FACTORY = new TriggerFactory();
 
@@ -73,15 +63,13 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
     }
 
     private volatile HealthStatus status;
-    private final ConcurrentMap<String, AttributeCheckStatus> attributesStatusMap;
     private final ConcurrentMap<String, AttributeChecker> attributeCheckers;
     private final HealthStatusTrigger trigger;
 
     UpdatableGroupWatcher(final ManagedResourceGroupWatcherConfiguration configuration,
                           final GroupStatusEventListener statusListener) throws InvalidAttributeCheckerException, InvalidTriggerException {
         super(statusListener);
-        status = OK_STATUS;
-        attributesStatusMap = new ConcurrentHashMap<>(15);
+        status = new OkStatus();
         this.attributeCheckers = new ConcurrentHashMap<>(15);
         for (final Map.Entry<String, ? extends ScriptletConfiguration> checker : configuration.getAttributeCheckers().entrySet()) {
             attributeCheckers.put(checker.getKey(), CHECKER_FACTORY.createChecker(checker.getValue()));
@@ -93,16 +81,14 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
     public void close() {
         clear();
         attributeCheckers.clear();
-        attributesStatusMap.clear();
-        reset();
     }
 
     /**
      * Resets internal state of the object.
      */
     @Override
-    public void reset() {
-        updateStatus(existing -> OK_STATUS);
+    public synchronized void reset() {
+        status = new OkStatus();
     }
 
     /**
@@ -137,28 +123,25 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
             listener.statusChanged(new StatusChangedEvent(this, newStatus, prevStatus));
     }
 
-    void updateStatus(final String resourceName, final Attribute attribute) {
-        final AttributeChecker checker = attributeCheckers.get(attribute.getName());
-        if (checker != null) {
-            final AttributeCheckStatus attributeStatus = checker.getStatus(attribute);
-            attributesStatusMap.put(attribute.getName(), attributeStatus);
-            final AttributeCheckStatus newStatus = attributesStatusMap.values().stream().reduce(AttributeCheckStatus.OK, AttributeCheckStatus::max);
-            updateStatus(existing -> newStatus.createStatus(resourceName, attribute));
+    private void updateStatus(final HealthStatus newStatus) {
+        updateStatus(existing -> newStatus);
+    }
+
+    void updateStatus(final String resourceName, final Iterable<? extends Attribute> attributes) {
+        HealthStatus newStatus = new OkStatus(resourceName);
+        for (final Attribute attribute : attributes) {
+            final AttributeChecker checker = attributeCheckers.get(attribute.getName());
+            if (checker != null)
+                newStatus = checker.getStatus(attribute).createStatus(resourceName, attribute).combine(newStatus);
         }
+        updateStatus(newStatus);
     }
 
     void updateStatus(final String resourceName, final JMException error) {
-        //reset state of all attributes
-        attributesStatusMap.replaceAll((attribute, old) -> AttributeCheckStatus.OK);
-        updateStatus(existing -> new ResourceInGroupIsNotUnavailable(resourceName, error));
+        updateStatus(new ResourceInGroupIsNotUnavailable(resourceName, error));
     }
 
     void removeResource(final String resourceName) {
-        updateStatus(existing -> existing.getResourceName().equals(resourceName) ? OK_STATUS : existing);
-    }
-
-    void removeAttribute(final String attributeName) {
-        attributesStatusMap.remove(attributeName);
-        updateStatus(existing -> existing instanceof InvalidAttributeValue && ((InvalidAttributeValue) existing).getAttribute().getName().equals(attributeName) ? OK_STATUS : existing);
+        updateStatus(existing -> existing.getResourceName().equals(resourceName) ? new OkStatus(resourceName) : existing);
     }
 }

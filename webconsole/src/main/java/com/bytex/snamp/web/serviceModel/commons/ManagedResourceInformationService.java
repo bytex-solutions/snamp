@@ -79,7 +79,7 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/components/{componentName}/attributes")
-    public AttributeInformation[] getComponentAttributes(@PathParam("componentName") final String componentName) {
+    public AttributeInformation[] getGroupAttributes(@PathParam("componentName") final String componentName) {
         final ServiceHolder<ConfigurationManager> configurationManager = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
         if (configurationManager != null)
             try {
@@ -105,7 +105,7 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/components")
-    public String[] getComponents() {
+    public String[] getGroups() {
         return resources.read(resources -> resources.keySet().stream().toArray(String[]::new));
     }
 

@@ -116,21 +116,14 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
             });
         }
 
-        private <E extends Throwable> void forEachNotificationImpl(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E{
-            for (final ResourceNotificationList<ScriptNotificationAccessor> notifs : notifications.values())
-                for (final ScriptNotificationAccessor accessor : notifs.values())
-                    if(!notificationReader.accept(accessor.getResourceName(), accessor)) return;
-        }
-
-        /**
-         * Iterates over all registered notifications.
-         *
-         * @param notificationReader
-         * @throws E
-         */
         @Override
-        public <E extends Throwable> void forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
-            readLock.accept(SingleResourceGroup.INSTANCE, notificationReader, this::forEachNotificationImpl);
+        public <E extends Throwable> boolean forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
+            try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+                for (final ResourceNotificationList<ScriptNotificationAccessor> notifs : notifications.values())
+                    for (final ScriptNotificationAccessor accessor : notifs.values())
+                        if (!notificationReader.accept(accessor.getResourceName(), accessor)) return false;
+            }
+            return true;
         }
     }
 
@@ -242,12 +235,12 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     }
 
     @Override
-    public <E extends Throwable> void forEachAttribute(final EntryReader<String, ? super ScriptAttributeAccessor, E> attributeReader) throws E {
-        attributes.forEachAttribute(attributeReader);
+    public <E extends Throwable> boolean forEachAttribute(final EntryReader<String, ? super ScriptAttributeAccessor, E> attributeReader) throws E {
+        return attributes.forEachAttribute(attributeReader);
     }
 
     @Override
-    public <E extends Throwable> void forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
-        notifications.forEachNotification(notificationReader);
+    public <E extends Throwable> boolean forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
+        return notifications.forEachNotification(notificationReader);
     }
 }

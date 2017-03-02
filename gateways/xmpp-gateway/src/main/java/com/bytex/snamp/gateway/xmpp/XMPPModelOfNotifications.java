@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
@@ -87,15 +88,16 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
         }, Function.identity());
     }
 
-    private  <E extends Throwable> void forEachNotificationImpl(final EntryReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
-        for (final ResourceNotificationList<XMPPNotificationAccessor> list : notifications.values())
-            for (final XMPPNotificationAccessor accessor : list.values())
-                if (!notificationReader.accept(accessor.resourceName, accessor)) return;
-
-    }
-
     @Override
-    public <E extends Throwable> void forEachNotification(final EntryReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
-        lockAndAccept(lock.readLock(), notificationReader, this::forEachNotificationImpl);
+    public <E extends Throwable> boolean forEachNotification(final EntryReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
+        final Lock readLock = lock.readLock();
+        try {
+            for (final ResourceNotificationList<XMPPNotificationAccessor> list : notifications.values())
+                for (final XMPPNotificationAccessor accessor : list.values())
+                    if (!notificationReader.accept(accessor.resourceName, accessor)) return false;
+        } finally {
+            readLock.unlock();
+        }
+        return true;
     }
 }

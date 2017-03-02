@@ -113,11 +113,12 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      * Reads all attributes sequentially.
      * @param attributeReader An object that accepts attribute and its resource.
      * @param <E> Type of the exception that may be produced by reader.
+     * @return {@literal false}, if iteration was aborted.
      * @throws E Unable to process attribute.
      */
     @Override
-    public final <E extends Throwable> void forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E {
-        forEachFeature(attributeReader);
+    public final <E extends Throwable> boolean forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E {
+        return forEachFeature(attributeReader);
     }
 
 

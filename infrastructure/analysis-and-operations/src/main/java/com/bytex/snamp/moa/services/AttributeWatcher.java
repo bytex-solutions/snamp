@@ -1,8 +1,10 @@
 package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
+import com.bytex.snamp.gateway.modeling.AttributeValue;
 
 import javax.management.*;
+import java.util.Collection;
 
 /**
  * @author Roman Sakno
@@ -15,17 +17,7 @@ final class AttributeWatcher extends AttributeAccessor {
         super(metadata);
     }
 
-    void checkAttribute(final String resourceName, final UpdatableGroupWatcher watcher) {
-        final Attribute attribute;
-        try {
-            attribute = getRawValue();
-        } catch (final AttributeNotFoundException e) {
-            watcher.removeAttribute(getName());
-            return;
-        } catch (final ReflectionException | MBeanException e) {
-            watcher.updateStatus(resourceName, e);
-            return;
-        }
-        watcher.updateStatus(resourceName, attribute);
+    void readAttribute(final Collection<AttributeValue> attributes) throws MBeanException, AttributeNotFoundException, ReflectionException {
+        attributes.add(getRawValue());
     }
 }

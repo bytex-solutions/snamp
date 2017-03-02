@@ -32,14 +32,8 @@ public abstract class ModelOfOperations<TAccessor extends OperationAccessor> ext
     @Override
     protected abstract TAccessor createAccessor(final String resourceName, final MBeanOperationInfo metadata) throws Exception;
 
-    /**
-     * Iterates over all registered operations.
-     * @param operationReader
-     * @param <E>
-     * @throws E
-     */
-    public final <E extends Throwable> void forEachOperation(final EntryReader<String, ? super TAccessor, E> operationReader) throws E{
-        forEachFeature(operationReader);
+    public final <E extends Throwable> boolean forEachOperation(final EntryReader<String, ? super TAccessor, E> operationReader) throws E{
+        return forEachFeature(operationReader);
     }
 
     public final Collection<MBeanOperationInfo> getResourceOperationsMetadata(final String resourceName){

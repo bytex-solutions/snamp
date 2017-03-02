@@ -42,8 +42,8 @@ public abstract class ModelOfNotifications<TAccessor extends NotificationAccesso
     @Override
     protected abstract TAccessor createAccessor(final String resourceName, final MBeanNotificationInfo metadata) throws Exception;
 
-    public final <E extends Throwable> void forEachNotification(final EntryReader<String, ? super TAccessor, E> notificationReader) throws E{
-        forEachFeature(notificationReader);
+    public final <E extends Throwable> boolean forEachNotification(final EntryReader<String, ? super TAccessor, E> notificationReader) throws E{
+        return forEachFeature(notificationReader);
     }
 
     public final <E extends Throwable> boolean processNotification(final String resourceName,

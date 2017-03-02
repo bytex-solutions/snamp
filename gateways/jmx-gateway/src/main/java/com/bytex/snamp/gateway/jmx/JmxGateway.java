@@ -36,21 +36,24 @@ final class JmxGateway extends AbstractGateway {
         }
 
         @Override
-        public <E extends Throwable> void forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
+        public <E extends Throwable> boolean forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
             for (final ProxyMBean bean : values())
-                if (!bean.forEachAttribute(attributeReader)) return;
+                if (!bean.forEachAttribute(attributeReader)) return false;
+            return true;
         }
 
         @Override
-        public <E extends Throwable> void forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
+        public <E extends Throwable> boolean forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
             for(final ProxyMBean bean: values())
-                if(!bean.forEachNotification(notificationReader)) return;
+                if(!bean.forEachNotification(notificationReader)) return false;
+            return true;
         }
 
         @Override
-        public <E extends Throwable> void forEachOperation(EntryReader<String, ? super JmxOperationAccessor, E> operationReader) throws E {
+        public <E extends Throwable> boolean forEachOperation(EntryReader<String, ? super JmxOperationAccessor, E> operationReader) throws E {
             for(final ProxyMBean bean: values())
-                if(!bean.forEachOperation(operationReader)) return;
+                if(!bean.forEachOperation(operationReader)) return false;
+            return true;
         }
     }
 
