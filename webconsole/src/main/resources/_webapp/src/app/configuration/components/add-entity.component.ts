@@ -40,7 +40,7 @@ export class AddEntity implements OnInit {
 
     ngOnInit() {
          if (this.type == "resourceGroup") {
-            this._innerType = "resource";
+            this._innerType = "connectors";
           } else {
               this._innerType = this.type;
           }

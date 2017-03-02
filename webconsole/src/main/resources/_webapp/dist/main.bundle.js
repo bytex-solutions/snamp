@@ -83935,7 +83935,7 @@ var REST = (function () {
         return REST.ROOT_PATH + "/components/" + encodeURIComponent(entityClass) + "s/" + encodeURIComponent(entityType) + "/description";
     };
     REST.SUBENTITY_PARAMETERS_DESCRIPTION = function (entityType, entityClass) {
-        return REST.ROOT_PATH + "/components/" + encodeURIComponent(entityType) + "s/" + encodeURIComponent(entityClass) + "/description";
+        return REST.ROOT_PATH + "/components/connectors/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/description";
     };
     REST.BINDINGS = function (gatewayName, bindingEntityType) {
         return REST.GATEWAY_BY_NAME(gatewayName) + "/" + encodeURIComponent(bindingEntityType) + "/bindings";
@@ -83953,7 +83953,7 @@ var REST = (function () {
         return REST.RESOURCE_BY_NAME(name) + "/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityName);
     };
     REST.RESOURCE_SUBENTITY = function (resourceName, entityType) {
-        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/configuration";
+        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/description";
     };
     REST.CHART_INSTANCES = function (componentName) {
         return "/snamp/web/api/managedResources?component=" + encodeURIComponent(componentName);
@@ -85255,7 +85255,7 @@ var AddEntity = (function () {
     AddEntity.prototype.ngOnInit = function () {
         var _this = this;
         if (this.type == "resourceGroup") {
-            this._innerType = "resource";
+            this._innerType = "connectors";
         }
         else {
             this._innerType = this.type;
@@ -86332,6 +86332,9 @@ var Resource = (function (_super) {
             }
         }
     }
+    Resource.prototype.getName = function () {
+        return "connector";
+    };
     Resource.stringify = function (type, cstring, params) {
         var returnValue = {};
         returnValue["type"] = type;
@@ -86421,7 +86424,7 @@ var TypedEntity = (function (_super) {
             for (var obj in data) {
                 var newDescriptor = new model_paramDescriptor_1.ParamDescriptor(data[obj]);
                 // remove group and smart mode descriptors because they are processed another way
-                if ((_this.getName() == "resource" || _this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
+                if ((_this.getName() == "connectors" || _this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
                     var k = false;
                 }
                 else

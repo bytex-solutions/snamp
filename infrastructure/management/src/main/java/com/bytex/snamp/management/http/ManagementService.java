@@ -286,7 +286,7 @@ public final class ManagementService extends AbstractManagementService {
      * @return the resource attribute description
      */
     @GET
-    @Path("/components/connectors/{type}/attribute/configuration")
+    @Path("/components/connectors/{type}/attribute/description")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getAttributeDescription(@PathParam("type") final String connectorType) {

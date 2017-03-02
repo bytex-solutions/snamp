@@ -67,6 +67,10 @@ export class Resource extends TypedEntity {
         }
     }
 
+    public getName():string {
+        return "connector";
+    }
+
     public static stringify(type:string, cstring:string, params: KeyValue[]):any {
         let returnValue:any = {};
         returnValue["type"] = type;

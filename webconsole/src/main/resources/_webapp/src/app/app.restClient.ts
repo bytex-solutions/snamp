@@ -110,7 +110,7 @@ export class REST {
     }
 
     public static SUBENTITY_PARAMETERS_DESCRIPTION(entityType:string, entityClass:string ):string {
-        return REST.ROOT_PATH + "/components/" + encodeURIComponent(entityType) + "s/" + encodeURIComponent(entityClass) + "/description";
+        return REST.ROOT_PATH + "/components/connectors/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/description";
     }
 
     public static BINDINGS(gatewayName:string, bindingEntityType:string):string {
@@ -136,7 +136,7 @@ export class REST {
     }
 
     public static RESOURCE_SUBENTITY(resourceName:string, entityType:string):string {
-        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/configuration";
+        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/description";
     }
 
     // web console api (chart related and others)
