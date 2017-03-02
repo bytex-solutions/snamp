@@ -8,5 +8,5 @@ import com.bytex.snamp.scripting.groovy.Scriptlet;
  * @version 2.0
  * @since 2.0
  */
-public abstract class GroovyTrigger extends Scriptlet implements GroupStatusTrigger {
+public abstract class GroovyTrigger extends Scriptlet implements HealthStatusTrigger {
 }

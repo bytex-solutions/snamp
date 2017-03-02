@@ -21,7 +21,7 @@ public class TriggerFactory {
         return groovyTriggerFactory.lazyGet(consumer -> consumer.accept(new GroovyTriggerFactory(loader))).create(scriptBody);
     }
 
-    public GroupStatusTrigger createTrigger(final ScriptletConfiguration trigger) throws InvalidTriggerException {
+    public HealthStatusTrigger createTrigger(final ScriptletConfiguration trigger) throws InvalidTriggerException {
         final String scriptBody;
         try {
             scriptBody = trigger.resolveScriptBody();
@@ -33,7 +33,7 @@ public class TriggerFactory {
             case ScriptletConfiguration.GROOVY_LANGUAGE:
                 return callAndWrapException(() -> createGroovyTrigger(scriptBody), exceptionFactory);
             default:
-                return GroupStatusTrigger.NO_OP;
+                return HealthStatusTrigger.NO_OP;
         }
     }
 }
