@@ -35,6 +35,11 @@
               <li><a (click)="newDashboard()">+ New dashboard</a></li>
             </ul>
           </li>
+          <li><a id="watchersli" (click)="anchorClicked($event)"><i class="fa fa-eye"></i> Watchers<span id="watcherschevron" class="fa fa-chevron-down"></span></a>
+            <ul class="nav child_menu">
+              <li routerLinkActive="activeLi"><a routerLink="watchers" routerLinkActive="active">Setup</a></li>
+            </ul>
+          </li>
           <li><a id="homeli" (click)="anchorClicked($event)"><i class="fa fa-home"></i> Configure<span id="homechevron" class="fa fa-chevron-down"></span></a>
             <ul class="nav child_menu">
               <li routerLinkActive="activeLi"><a routerLink="gateways" routerLinkActive="active">Gateways</a></li>
