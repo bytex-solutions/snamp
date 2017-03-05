@@ -19,6 +19,11 @@ export class MainComponent implements OnInit {
    }
 
    ngOnInit():void {
+        this.http.get(REST.WATCHERS_LIST)
+            .map((res:Response) => res.json())
+            .subscribe((data) => {
+                console.log("Watchers list is: ", data);
+            });
 
    }
 

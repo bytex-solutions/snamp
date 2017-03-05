@@ -133,6 +133,11 @@ var MainComponent = (function () {
         this.http = apiClient;
     }
     MainComponent.prototype.ngOnInit = function () {
+        this.http.get(app_restClient_1.REST.WATCHERS_LIST)
+            .map(function (res) { return res.json(); })
+            .subscribe(function (data) {
+            console.log("Watchers list is: ", data);
+        });
     };
     MainComponent = __decorate([
         core_1.Component({

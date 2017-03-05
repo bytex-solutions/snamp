@@ -169,4 +169,6 @@ export class REST {
     public static RESET_VIEW:string = "/snamp/web/api/e2e/reset";
 
     public static CURRENT_CONFIG:string = REST.ROOT_PATH + "/configuration";
+
+    public static WATCHERS_LIST:string = REST.CFG_PATH + "/watcher";
 }

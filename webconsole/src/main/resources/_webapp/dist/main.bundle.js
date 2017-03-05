@@ -83985,6 +83985,7 @@ var REST = (function () {
     // reset e2e view
     REST.RESET_VIEW = "/snamp/web/api/e2e/reset";
     REST.CURRENT_CONFIG = REST.ROOT_PATH + "/configuration";
+    REST.WATCHERS_LIST = REST.CFG_PATH + "/watcher";
     return REST;
 }());
 exports.REST = REST;
