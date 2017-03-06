@@ -386,7 +386,6 @@ var Watcher = (function (_super) {
     __extends(Watcher, _super);
     function Watcher() {
         _super.apply(this, arguments);
-        this.name = "";
         this.attributeCheckers = {};
         this.trigger = undefined;
     }

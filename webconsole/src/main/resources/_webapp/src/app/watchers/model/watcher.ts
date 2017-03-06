@@ -2,7 +2,6 @@ import { Entity } from './entity';
 import { ScriptletDataObject } from './scriptlet.data.object';
 
 export class Watcher extends Entity {
-    public name:string = "";
     public attributeCheckers:{ [key:string]:ScriptletDataObject; } = {};
     public trigger:ScriptletDataObject = undefined;
 
