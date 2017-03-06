@@ -4,8 +4,11 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
 import { Factory } from './model/factory';
+import { Watcher } from './model/watcher';
 
 import { Router } from '@angular/router';
+
+import 'rxjs/add/operator/publishLast';
 
 @Component({
   moduleId: module.id,
@@ -15,6 +18,8 @@ import { Router } from '@angular/router';
 export class MainComponent implements OnInit {
 
     private http:ApiClient;
+    components:Observable<string[]>;
+    private watchers:Watcher[] = [];
 
     constructor(apiClient: ApiClient, private _router: Router) {
         this.http = apiClient;
@@ -24,8 +29,13 @@ export class MainComponent implements OnInit {
         this.http.get(REST.WATCHERS_LIST)
             .map((res:Response) => res.json())
             .subscribe((data) => {
-                console.log("Watchers list is: ", data, Factory.watchersArrayFromJSON(data));
+                this.watchers = Factory.watchersArrayFromJSON(data);
+                console.log("Watchers list is: ", data, this.watchers);
             });
+
+        this.components = this.http.get(REST.CHART_COMPONENTS)
+            .map((res:Response) => { return <string[]>res.json()})
+            .publishLast().refCount();
 
    }
 

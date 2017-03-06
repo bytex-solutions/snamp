@@ -10,14 +10,29 @@
 
     <div class="row" style="margin-top: 30px">
 
-      <panel [header]="'Main tab'" [column]="'8'">
+      <panel [header]="'List of watchers'" [column]="'12'">
+        <table class="table">
+          <thead class="thead-inverse">
+          <tr>
+            <th>Name</th>
+            <th>Url</th>
+            <th>Script</th>
+            <th>Trigger</th>
+            <th>Checkers</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let watcher of watchers">
+            <th scope="row">{{watcher.name}}</th>
+            <td>{{watcher.isUrl}}</td>
+            <td>{{watcher.script}}</td>
+            <td>{{watcher.trigger}}</td>
+            <td>{{watcher.attributeCheckers}}</td>
+          </tr>
+          </tbody>
+        </table>
 
       </panel>
-
-      <panel [header]="'Some second tab'" [column]="'4'">
-
-      </panel>
-
     </div>
   </div>
 </div>

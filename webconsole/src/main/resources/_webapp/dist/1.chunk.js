@@ -424,7 +424,7 @@ exports.Watcher = Watcher;
 /***/ "./src/app/watchers/templates/main.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'Main tab'\" [column]=\"'8'\">\r\n\r\n      </panel>\r\n\r\n      <panel [header]=\"'Some second tab'\" [column]=\"'4'\">\r\n\r\n      </panel>\r\n\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Name</th>\r\n            <th>Url</th>\r\n            <th>Script</th>\r\n            <th>Trigger</th>\r\n            <th>Checkers</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>{{watcher.isUrl}}</td>\r\n            <td>{{watcher.script}}</td>\r\n            <td>{{watcher.trigger}}</td>\r\n            <td>{{watcher.attributeCheckers}}</td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 
@@ -519,17 +519,24 @@ var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
 var factory_1 = __webpack_require__("./src/app/watchers/model/factory.ts");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
+__webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 var MainComponent = (function () {
     function MainComponent(apiClient, _router) {
         this._router = _router;
+        this.watchers = [];
         this.http = apiClient;
     }
     MainComponent.prototype.ngOnInit = function () {
+        var _this = this;
         this.http.get(app_restClient_1.REST.WATCHERS_LIST)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
-            console.log("Watchers list is: ", data, factory_1.Factory.watchersArrayFromJSON(data));
+            _this.watchers = factory_1.Factory.watchersArrayFromJSON(data);
+            console.log("Watchers list is: ", data, _this.watchers);
         });
+        this.components = this.http.get(app_restClient_1.REST.CHART_COMPONENTS)
+            .map(function (res) { return res.json(); })
+            .publishLast().refCount();
     };
     MainComponent = __decorate([
         core_1.Component({
