@@ -3,6 +3,8 @@ import { ApiClient, REST } from '../app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
+import { Factory } from './model/factory';
+
 import { Router } from '@angular/router';
 
 @Component({
@@ -22,7 +24,7 @@ export class MainComponent implements OnInit {
         this.http.get(REST.WATCHERS_LIST)
             .map((res:Response) => res.json())
             .subscribe((data) => {
-                console.log("Watchers list is: ", data);
+                console.log("Watchers list is: ", data, Factory.watchersArrayFromJSON(data));
             });
 
    }
