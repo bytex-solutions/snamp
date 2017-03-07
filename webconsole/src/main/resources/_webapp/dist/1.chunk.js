@@ -15,6 +15,82 @@ exports.push([module.i, "", ""]);
 
 /***/ },
 
+/***/ "./src/app/watchers/components/checkers.component.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var CheckersComponent = (function () {
+    function CheckersComponent() {
+        this.entity = {};
+    }
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', Object)
+    ], CheckersComponent.prototype, "entity", void 0);
+    CheckersComponent = __decorate([
+        core_1.Component({
+            moduleId: module.i,
+            selector: 'checkers',
+            template: __webpack_require__("./src/app/watchers/components/templates/checkers.html"),
+            styles: ['.flatbar { width: 100% !important; text-align: left !important; margin-left: -15px !important; }']
+        }), 
+        __metadata('design:paramtypes', [])
+    ], CheckersComponent);
+    return CheckersComponent;
+}());
+exports.CheckersComponent = CheckersComponent;
+
+
+/***/ },
+
+/***/ "./src/app/watchers/components/templates/checkers.html":
+/***/ function(module, exports) {
+
+module.exports = "<div>\r\n\r\n</div>"
+
+/***/ },
+
+/***/ "./src/app/watchers/components/templates/trigger.html":
+/***/ function(module, exports) {
+
+module.exports = "<div>\r\n\r\n</div>"
+
+/***/ },
+
+/***/ "./src/app/watchers/components/trigger.component.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var scriptlet_data_object_1 = __webpack_require__("./src/app/watchers/model/scriptlet.data.object.ts");
+var TriggerComponent = (function () {
+    function TriggerComponent() {
+        this.entity = undefined;
+    }
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', (typeof (_a = typeof scriptlet_data_object_1.ScriptletDataObject !== 'undefined' && scriptlet_data_object_1.ScriptletDataObject) === 'function' && _a) || Object)
+    ], TriggerComponent.prototype, "entity", void 0);
+    TriggerComponent = __decorate([
+        core_1.Component({
+            moduleId: module.i,
+            selector: 'trigger',
+            template: __webpack_require__("./src/app/watchers/components/templates/trigger.html"),
+            styles: ['.flatbar { width: 100% !important; text-align: left !important; margin-left: -15px !important; }']
+        }), 
+        __metadata('design:paramtypes', [])
+    ], TriggerComponent);
+    return TriggerComponent;
+    var _a;
+}());
+exports.TriggerComponent = TriggerComponent;
+
+
+/***/ },
+
 /***/ "./src/app/watchers/model/colored.checker.ts":
 /***/ function(module, exports) {
 
@@ -424,7 +500,7 @@ exports.Watcher = Watcher;
 /***/ "./src/app/watchers/templates/main.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Name</th>\r\n            <th>Url</th>\r\n            <th>Script</th>\r\n            <th>Trigger</th>\r\n            <th>Checkers</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>{{watcher.isUrl}}</td>\r\n            <td>{{watcher.script}}</td>\r\n            <td>{{watcher.trigger}}</td>\r\n            <td>{{watcher.attributeCheckers}}</td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Name</th>\r\n            <th>Trigger</th>\r\n            <th>Checkers</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 
@@ -452,6 +528,8 @@ var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index
 var app_module_1 = __webpack_require__("./src/app/app.module.ts");
 var watchers_template_1 = __webpack_require__("./src/app/watchers/watchers.template.ts");
 var watchers_view_1 = __webpack_require__("./src/app/watchers/watchers.view.ts");
+var checkers_component_1 = __webpack_require__("./src/app/watchers/components/checkers.component.ts");
+var trigger_component_1 = __webpack_require__("./src/app/watchers/components/trigger.component.ts");
 var PROVIDERS = [
     app_restClient_1.ApiClient,
     vex_1.providers
@@ -475,7 +553,7 @@ var WatchersModule = (function () {
                         ]
                     }])
             ],
-            declarations: [watchers_template_1.TemplateComponent, watchers_view_1.MainComponent],
+            declarations: [watchers_template_1.TemplateComponent, watchers_view_1.MainComponent, checkers_component_1.CheckersComponent, trigger_component_1.TriggerComponent],
             providers: PROVIDERS
         }), 
         __metadata('design:paramtypes', [])

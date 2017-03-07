@@ -16,6 +16,9 @@ import { CommonSnampUtilsModule } from '../app.module';
 import { TemplateComponent } from './watchers.template';
 import { MainComponent } from './watchers.view';
 
+import { CheckersComponent } from './components/checkers.component';
+import { TriggerComponent } from './components/trigger.component';
+
 const PROVIDERS:any =  [
   ApiClient,
   providers
@@ -36,7 +39,7 @@ const PROVIDERS:any =  [
             ]
       }])
     ],
-    declarations: [ TemplateComponent, MainComponent ],
+    declarations: [ TemplateComponent, MainComponent, CheckersComponent, TriggerComponent ],
     providers:    PROVIDERS
 })
 export class WatchersModule {}
