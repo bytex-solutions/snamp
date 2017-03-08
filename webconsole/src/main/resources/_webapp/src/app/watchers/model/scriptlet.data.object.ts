@@ -18,6 +18,10 @@ export class ScriptletDataObject {
         this.object = undefined;
     }
 
+    public shortScript():string {
+        return ((this.script.length > 30) ? this.script.substring(0, 30) : this.script);
+    }
+
     public static fromJSON(json:string):ScriptletDataObject {
         let instance:ScriptletDataObject = new ScriptletDataObject();
         if (json["language"] != undefined) {

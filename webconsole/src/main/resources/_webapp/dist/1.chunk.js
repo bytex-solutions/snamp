@@ -48,14 +48,14 @@ exports.CheckersComponent = CheckersComponent;
 /***/ "./src/app/watchers/components/templates/checkers.html":
 /***/ function(module, exports) {
 
-module.exports = "<div>\r\n\r\n</div>"
+module.exports = "<div>\r\n    <dl class=\"row\">\r\n        <dt class=\"col-sm-3\">Description lists</dt>\r\n        <dd class=\"col-sm-9\">A description list is perfect for defining terms.</dd>\r\n\r\n        <dt class=\"col-sm-3\">Euismod</dt>\r\n        <dd class=\"col-sm-9\">Vestibulum id ligula porta felis euismod semper eget lacinia odio sem nec elit.</dd>\r\n        <dd class=\"col-sm-9 offset-sm-3\">Donec id elit non mi porta gravida at eget metus.</dd>\r\n\r\n        <dt class=\"col-sm-3\">Malesuada porta</dt>\r\n        <dd class=\"col-sm-9\">Etiam porta sem malesuada magna mollis euismod.</dd>\r\n\r\n        <dt class=\"col-sm-3 text-truncate\">Truncated term is truncated</dt>\r\n        <dd class=\"col-sm-9\">Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</dd>\r\n\r\n    </dl>\r\n</div>"
 
 /***/ },
 
 /***/ "./src/app/watchers/components/templates/trigger.html":
 /***/ function(module, exports) {
 
-module.exports = "<div>\r\n\r\n</div>"
+module.exports = "<div>\r\n    <dl class=\"row\">\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"entity.script\">{{entity.shortScript()}}</dd>\r\n    </dl>\r\n</div>"
 
 /***/ },
 
@@ -368,6 +368,9 @@ var ScriptletDataObject = (function () {
         this.isURL = false;
         this.object = undefined;
     }
+    ScriptletDataObject.prototype.shortScript = function () {
+        return ((this.script.length > 30) ? this.script.substring(0, 30) : this.script);
+    };
     ScriptletDataObject.fromJSON = function (json) {
         var instance = new ScriptletDataObject();
         if (json["language"] != undefined) {
