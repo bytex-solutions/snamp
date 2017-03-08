@@ -7,9 +7,7 @@
             </div>
             <br/>
             <div class="modal-body">
-                <pre>
-                    <code [innerHTML]="entity.script"></code>
-                </pre>
+                <pre class="normalspaces"><code [innerHTML]="entity.script"></code></pre>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -30,7 +28,7 @@
         <dt class="col-sm-3">Script:</dt>
         <dd class="col-sm-9" [tooltip]="'Click for details'">{{entity.shortScript()}}<br/>
             <button
-                    class="center-block btn"
+                    class="center-block btn btn-inline"
                     data-toggle="modal"
                     [attr.data-target]="'#details_' + entity.id">
                 <i class="fa fa-search"></i> Details

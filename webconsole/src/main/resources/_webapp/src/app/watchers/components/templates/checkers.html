@@ -1,17 +1,39 @@
 <div>
-    <dl class="row">
-        <dt class="col-sm-3">Description lists</dt>
-        <dd class="col-sm-9">A description list is perfect for defining terms.</dd>
+    <dl class="row" *ngFor="let entry of entity | keys">
 
-        <dt class="col-sm-3">Euismod</dt>
-        <dd class="col-sm-9">Vestibulum id ligula porta felis euismod semper eget lacinia odio sem nec elit.</dd>
-        <dd class="col-sm-9 offset-sm-3">Donec id elit non mi porta gravida at eget metus.</dd>
+        <div class="modal fade" [attr.id]="'details_' + entry.value.id" tabindex="-1" role="dialog" aria-labelledby="detailsLabel">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title leftAlign" id="detailsLabel">Entity {{entry.value.name}} details</h4>
+                    </div>
+                    <br/>
+                    <div class="modal-body">
+                        <pre class="normalspaces"><code [innerHTML]="entry.value.script"></code></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <dt class="col-sm-3">Malesuada porta</dt>
-        <dd class="col-sm-9">Etiam porta sem malesuada magna mollis euismod.</dd>
 
-        <dt class="col-sm-3 text-truncate">Truncated term is truncated</dt>
-        <dd class="col-sm-9">Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</dd>
+        <dt class="col-sm-3">Language:</dt>
+        <dd class="col-sm-9">{{entry.value.language}}</dd>
 
+        <dt class="col-sm-3">Is url:</dt>
+        <dd class="col-sm-9">{{entry.value.isURL}}</dd>
+
+        <dt class="col-sm-3">Script:</dt>
+        <dd class="col-sm-9" [tooltip]="'Click for details'">{{entry.value.shortScript()}}
+            <button
+                    class="center-block btn btn-inline"
+                    data-toggle="modal"
+                    [attr.data-target]="'#details_' + entry.value.id">
+                <i class="fa fa-search"></i> Details
+            </button>
+        </dd>
     </dl>
 </div>

@@ -34,7 +34,7 @@ var CheckersComponent = (function () {
             moduleId: module.i,
             selector: 'checkers',
             template: __webpack_require__("./src/app/watchers/components/templates/checkers.html"),
-            styles: ['.flatbar { width: 100% !important; text-align: left !important; margin-left: -15px !important; }']
+            styles: ['.btn-inline { display: inline-block; margin-left: 15px; } .normalspaces {  white-space: normal; }']
         }), 
         __metadata('design:paramtypes', [])
     ], CheckersComponent);
@@ -48,14 +48,14 @@ exports.CheckersComponent = CheckersComponent;
 /***/ "./src/app/watchers/components/templates/checkers.html":
 /***/ function(module, exports) {
 
-module.exports = "<div>\r\n    <dl class=\"row\">\r\n        <dt class=\"col-sm-3\">Description lists</dt>\r\n        <dd class=\"col-sm-9\">A description list is perfect for defining terms.</dd>\r\n\r\n        <dt class=\"col-sm-3\">Euismod</dt>\r\n        <dd class=\"col-sm-9\">Vestibulum id ligula porta felis euismod semper eget lacinia odio sem nec elit.</dd>\r\n        <dd class=\"col-sm-9 offset-sm-3\">Donec id elit non mi porta gravida at eget metus.</dd>\r\n\r\n        <dt class=\"col-sm-3\">Malesuada porta</dt>\r\n        <dd class=\"col-sm-9\">Etiam porta sem malesuada magna mollis euismod.</dd>\r\n\r\n        <dt class=\"col-sm-3 text-truncate\">Truncated term is truncated</dt>\r\n        <dd class=\"col-sm-9\">Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</dd>\r\n\r\n    </dl>\r\n</div>"
+module.exports = "<div>\r\n    <dl class=\"row\" *ngFor=\"let entry of entity | keys\">\r\n\r\n        <div class=\"modal fade\" [attr.id]=\"'details_' + entry.value.id\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"detailsLabel\">\r\n            <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n                <div class=\"modal-content\">\r\n                    <div class=\"modal-header\">\r\n                        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                        <h4 class=\"modal-title leftAlign\" id=\"detailsLabel\">Entity {{entry.value.name}} details</h4>\r\n                    </div>\r\n                    <br/>\r\n                    <div class=\"modal-body\">\r\n                        <pre class=\"normalspaces\"><code [innerHTML]=\"entry.value.script\"></code></pre>\r\n                    </div>\r\n                    <div class=\"modal-footer\">\r\n                        <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n\r\n\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.value.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.value.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"'Click for details'\">{{entry.value.shortScript()}}\r\n            <button\r\n                    class=\"center-block btn btn-inline\"\r\n                    data-toggle=\"modal\"\r\n                    [attr.data-target]=\"'#details_' + entry.value.id\">\r\n                <i class=\"fa fa-search\"></i> Details\r\n            </button>\r\n        </dd>\r\n    </dl>\r\n</div>"
 
 /***/ },
 
 /***/ "./src/app/watchers/components/templates/trigger.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"modal fade\" [attr.id]=\"'details_' + entity.id\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Entity {{entity.name}} details</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n                <pre>\r\n                    <code>\r\n                        {{entity.script}}\r\n                    </code>\r\n                </pre>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n\r\n<div>\r\n    <dl class=\"row\">\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"'Click for details'\">{{entity.shortScript()}}<br/>\r\n            <button\r\n                    class=\"center-block btn\"\r\n                    data-toggle=\"modal\"\r\n                    [attr.data-target]=\"'#details_' + entity.id\">\r\n                <i class=\"fa fa-search\"></i> Details\r\n            </button>\r\n        </dd>\r\n    </dl>\r\n</div>"
+module.exports = "<div class=\"modal fade\" [attr.id]=\"'details_' + entity.id\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Entity {{entity.name}} details</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n                <pre class=\"normalspaces\"><code [innerHTML]=\"entity.script\"></code></pre>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n\r\n<div>\r\n    <dl class=\"row\">\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"'Click for details'\">{{entity.shortScript()}}<br/>\r\n            <button\r\n                    class=\"center-block btn btn-inline\"\r\n                    data-toggle=\"modal\"\r\n                    [attr.data-target]=\"'#details_' + entity.id\">\r\n                <i class=\"fa fa-search\"></i> Details\r\n            </button>\r\n        </dd>\r\n    </dl>\r\n</div>"
 
 /***/ },
 
@@ -79,7 +79,7 @@ var TriggerComponent = (function () {
             moduleId: module.i,
             selector: 'trigger',
             template: __webpack_require__("./src/app/watchers/components/templates/trigger.html"),
-            styles: ['.flatbar { width: 100% !important; text-align: left !important; margin-left: -15px !important; }']
+            styles: ['.btn-inline { display: inline-block; margin-left: 15px; } .normalspaces {  white-space: normal; }']
         }), 
         __metadata('design:paramtypes', [])
     ], TriggerComponent);
@@ -506,7 +506,7 @@ exports.Watcher = Watcher;
 /***/ "./src/app/watchers/templates/main.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Name</th>\r\n            <th>Trigger</th>\r\n            <th>Checkers</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table table-hover table-bordered\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Name</th>\r\n            <th>Trigger</th>\r\n            <th>Checkers</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 
@@ -536,6 +536,7 @@ var watchers_template_1 = __webpack_require__("./src/app/watchers/watchers.templ
 var watchers_view_1 = __webpack_require__("./src/app/watchers/watchers.view.ts");
 var checkers_component_1 = __webpack_require__("./src/app/watchers/components/checkers.component.ts");
 var trigger_component_1 = __webpack_require__("./src/app/watchers/components/trigger.component.ts");
+var watchers_pipes_1 = __webpack_require__("./src/app/watchers/watchers.pipes.ts");
 var PROVIDERS = [
     app_restClient_1.ApiClient,
     vex_1.providers
@@ -559,7 +560,7 @@ var WatchersModule = (function () {
                         ]
                     }])
             ],
-            declarations: [watchers_template_1.TemplateComponent, watchers_view_1.MainComponent, checkers_component_1.CheckersComponent, trigger_component_1.TriggerComponent],
+            declarations: [watchers_template_1.TemplateComponent, watchers_view_1.MainComponent, checkers_component_1.CheckersComponent, trigger_component_1.TriggerComponent, watchers_pipes_1.KeysPipe],
             providers: PROVIDERS
         }), 
         __metadata('design:paramtypes', [])
@@ -567,6 +568,33 @@ var WatchersModule = (function () {
     return WatchersModule;
 }());
 exports.WatchersModule = WatchersModule;
+
+
+/***/ },
+
+/***/ "./src/app/watchers/watchers.pipes.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var KeysPipe = (function () {
+    function KeysPipe() {
+    }
+    KeysPipe.prototype.transform = function (value, args) {
+        var keys = [];
+        for (var key in value) {
+            keys.push({ key: key, value: value[key] });
+        }
+        return keys;
+    };
+    KeysPipe = __decorate([
+        core_1.Pipe({ name: 'keys' }), 
+        __metadata('design:paramtypes', [])
+    ], KeysPipe);
+    return KeysPipe;
+}());
+exports.KeysPipe = KeysPipe;
 
 
 /***/ },

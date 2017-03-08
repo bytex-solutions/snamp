@@ -19,6 +19,8 @@ import { MainComponent } from './watchers.view';
 import { CheckersComponent } from './components/checkers.component';
 import { TriggerComponent } from './components/trigger.component';
 
+import { KeysPipe } from './watchers.pipes';
+
 const PROVIDERS:any =  [
   ApiClient,
   providers
@@ -39,7 +41,7 @@ const PROVIDERS:any =  [
             ]
       }])
     ],
-    declarations: [ TemplateComponent, MainComponent, CheckersComponent, TriggerComponent ],
+    declarations: [ TemplateComponent, MainComponent, CheckersComponent, TriggerComponent, KeysPipe ],
     providers:    PROVIDERS
 })
 export class WatchersModule {}

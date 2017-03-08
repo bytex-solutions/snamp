@@ -5,7 +5,7 @@ import { ScriptletDataObject } from '../model/scriptlet.data.object';
   moduleId: module.id,
   selector: 'checkers',
   templateUrl: './templates/checkers.html',
-  styles: ['.flatbar { width: 100% !important; text-align: left !important; margin-left: -15px !important; }']
+  styles: ['.btn-inline { display: inline-block; margin-left: 15px; } .normalspaces {  white-space: normal; }']
 })
 export class CheckersComponent {
     @Input() entity:{ [key:string]:ScriptletDataObject; } = {};
