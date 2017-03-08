@@ -2,6 +2,7 @@ import { ColoredAttributePredicate } from './colored.predicate';
 import { ConstantAttributePredicate } from './constant.attribute.predicate';
 import { NumberComparatorPredicate } from './number.comparator.predicate';
 import { IsInRangePredicate } from './range.comparator';
+import { Guid } from './entity';
 
 import { ColoredAttributeChecker } from './colored.checker';
 
@@ -10,6 +11,7 @@ export class ScriptletDataObject {
     public script:string;
     public isURL:boolean;
     public object:ColoredAttributeChecker;
+    public id:string = Guid.newGuid();
 
     constructor(){
         this.language = "n/a";
@@ -19,7 +21,7 @@ export class ScriptletDataObject {
     }
 
     public shortScript():string {
-        return ((this.script.length > 30) ? this.script.substring(0, 30) : this.script);
+        return ((this.script.length > 60) ? this.script.substring(0, 60) + '...' : this.script);
     }
 
     public static fromJSON(json:string):ScriptletDataObject {

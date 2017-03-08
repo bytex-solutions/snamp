@@ -55,7 +55,7 @@ module.exports = "<div>\r\n    <dl class=\"row\">\r\n        <dt class=\"col-sm-
 /***/ "./src/app/watchers/components/templates/trigger.html":
 /***/ function(module, exports) {
 
-module.exports = "<div>\r\n    <dl class=\"row\">\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"entity.script\">{{entity.shortScript()}}</dd>\r\n    </dl>\r\n</div>"
+module.exports = "<div class=\"modal fade\" [attr.id]=\"'details_' + entity.id\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Entity {{entity.name}} details</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n                <pre>\r\n                    <code>\r\n                        {{entity.script}}\r\n                    </code>\r\n                </pre>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n\r\n<div>\r\n    <dl class=\"row\">\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"'Click for details'\">{{entity.shortScript()}}<br/>\r\n            <button\r\n                    class=\"center-block btn\"\r\n                    data-toggle=\"modal\"\r\n                    [attr.data-target]=\"'#details_' + entity.id\">\r\n                <i class=\"fa fa-search\"></i> Details\r\n            </button>\r\n        </dd>\r\n    </dl>\r\n</div>"
 
 /***/ },
 
@@ -257,6 +257,7 @@ var Guid = (function () {
     };
     return Guid;
 }());
+exports.Guid = Guid;
 
 
 /***/ },
@@ -360,16 +361,18 @@ var colored_predicate_1 = __webpack_require__("./src/app/watchers/model/colored.
 var constant_attribute_predicate_1 = __webpack_require__("./src/app/watchers/model/constant.attribute.predicate.ts");
 var number_comparator_predicate_1 = __webpack_require__("./src/app/watchers/model/number.comparator.predicate.ts");
 var range_comparator_1 = __webpack_require__("./src/app/watchers/model/range.comparator.ts");
+var entity_1 = __webpack_require__("./src/app/watchers/model/entity.ts");
 var colored_checker_1 = __webpack_require__("./src/app/watchers/model/colored.checker.ts");
 var ScriptletDataObject = (function () {
     function ScriptletDataObject() {
+        this.id = entity_1.Guid.newGuid();
         this.language = "n/a";
         this.script = "empty";
         this.isURL = false;
         this.object = undefined;
     }
     ScriptletDataObject.prototype.shortScript = function () {
-        return ((this.script.length > 30) ? this.script.substring(0, 30) : this.script);
+        return ((this.script.length > 60) ? this.script.substring(0, 60) + '...' : this.script);
     };
     ScriptletDataObject.fromJSON = function (json) {
         var instance = new ScriptletDataObject();
