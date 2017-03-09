@@ -9,8 +9,35 @@
                         <h4 class="modal-title leftAlign" id="detailsLabel">Entity {{entry.value.name}} details</h4>
                     </div>
                     <br/>
-                    <div class="modal-body">
+                    <div class="modal-body" *ngIf="entry.value.object == undefined">
                         <pre class="normalspaces"><code [innerHTML]="entry.value.script"></code></pre>
+                    </div>
+                    <div class="modal-body" *ngIf="entry.value.object != undefined">
+                        <div class="alert alert-success">
+                            <strong>Green condition: </strong>
+                            <div *ngIf="isConstantType(entry.value.object.green)">
+                                <strong>{{entry.value.object.green.represent()}}</strong>
+                            </div>
+                            <div *ngIf="isOperatorType(entry.value.object.green)">
+                                <strong>{{entry.value.object.green.represent()}}</strong>
+                            </div>
+                            <div *ngIf="isRangeType(entry.value.object.green)">
+                                <strong>{{entry.value.object.green.represent()}}</strong>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>Green condition: </strong>
+                            <div *ngIf="isConstantType(entry.value.object.yellow)">
+                                <strong>{{entry.value.object.yellow.represent()}}</strong>
+                            </div>
+                            <div *ngIf="isOperatorType(entry.value.object.yellow)">
+                                <strong>{{entry.value.object.yellow.represent()}}</strong>
+                            </div>
+                            <div *ngIf="isRangeType(entry.value.object.yellow)">
+                                <strong>{{entry.value.object.yellow.represent()}}</strong>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

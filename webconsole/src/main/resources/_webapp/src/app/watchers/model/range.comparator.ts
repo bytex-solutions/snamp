@@ -17,4 +17,10 @@ export class IsInRangePredicate extends ColoredAttributePredicate {
         return _value;
     }
 
+    public represent():string {
+        let _value:string = "";
+        _value += this.rangeEnd + " " + (this.isRangeEndInclusive ? "≥": ">")
+            +  " value " + (this.isRangeStartInclusive ? "≥": ">") + " " + this.rangeStart;
+        return _value;
+    }
 }

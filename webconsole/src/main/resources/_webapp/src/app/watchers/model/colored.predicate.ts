@@ -4,4 +4,5 @@ export abstract class ColoredAttributePredicate {
     public static RANGE:string = "isInRange";
 
     public abstract toJSON():any;
+    public abstract represent():string;
 }

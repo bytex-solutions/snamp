@@ -21,10 +21,22 @@ exports.push([module.i, "", ""]);
 "use strict";
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var constant_attribute_predicate_1 = __webpack_require__("./src/app/watchers/model/constant.attribute.predicate.ts");
+var number_comparator_predicate_1 = __webpack_require__("./src/app/watchers/model/number.comparator.predicate.ts");
+var range_comparator_1 = __webpack_require__("./src/app/watchers/model/range.comparator.ts");
 var CheckersComponent = (function () {
     function CheckersComponent() {
         this.entity = {};
     }
+    CheckersComponent.prototype.isConstantType = function (predicate) {
+        return (predicate instanceof constant_attribute_predicate_1.ConstantAttributePredicate);
+    };
+    CheckersComponent.prototype.isOperatorType = function (predicate) {
+        return (predicate instanceof number_comparator_predicate_1.NumberComparatorPredicate);
+    };
+    CheckersComponent.prototype.isRangeType = function (predicate) {
+        return (predicate instanceof range_comparator_1.IsInRangePredicate);
+    };
     __decorate([
         core_1.Input(), 
         __metadata('design:type', Object)
@@ -48,7 +60,7 @@ exports.CheckersComponent = CheckersComponent;
 /***/ "./src/app/watchers/components/templates/checkers.html":
 /***/ function(module, exports) {
 
-module.exports = "<div>\r\n    <dl class=\"row\" *ngFor=\"let entry of entity | keys\">\r\n\r\n        <div class=\"modal fade\" [attr.id]=\"'details_' + entry.value.id\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"detailsLabel\">\r\n            <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n                <div class=\"modal-content\">\r\n                    <div class=\"modal-header\">\r\n                        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                        <h4 class=\"modal-title leftAlign\" id=\"detailsLabel\">Entity {{entry.value.name}} details</h4>\r\n                    </div>\r\n                    <br/>\r\n                    <div class=\"modal-body\">\r\n                        <pre class=\"normalspaces\"><code [innerHTML]=\"entry.value.script\"></code></pre>\r\n                    </div>\r\n                    <div class=\"modal-footer\">\r\n                        <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n\r\n\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.value.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.value.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"'Click for details'\">{{entry.value.shortScript()}}\r\n            <button\r\n                    class=\"center-block btn btn-inline btn-sm\"\r\n                    data-toggle=\"modal\"\r\n                    [attr.data-target]=\"'#details_' + entry.value.id\">\r\n                <i class=\"fa fa-search\"></i> Details\r\n            </button>\r\n        </dd>\r\n    </dl>\r\n</div>"
+module.exports = "<div>\r\n    <dl class=\"row\" *ngFor=\"let entry of entity | keys\">\r\n\r\n        <div class=\"modal fade\" [attr.id]=\"'details_' + entry.value.id\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"detailsLabel\">\r\n            <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n                <div class=\"modal-content\">\r\n                    <div class=\"modal-header\">\r\n                        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                        <h4 class=\"modal-title leftAlign\" id=\"detailsLabel\">Entity {{entry.value.name}} details</h4>\r\n                    </div>\r\n                    <br/>\r\n                    <div class=\"modal-body\" *ngIf=\"entry.value.object == undefined\">\r\n                        <pre class=\"normalspaces\"><code [innerHTML]=\"entry.value.script\"></code></pre>\r\n                    </div>\r\n                    <div class=\"modal-body\" *ngIf=\"entry.value.object != undefined\">\r\n                        <div class=\"alert alert-success\">\r\n                            <strong>Green condition: </strong>\r\n                            <div *ngIf=\"isConstantType(entry.value.object.green)\">\r\n                                <strong>{{entry.value.object.green.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isOperatorType(entry.value.object.green)\">\r\n                                <strong>{{entry.value.object.green.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isRangeType(entry.value.object.green)\">\r\n                                <strong>{{entry.value.object.green.represent()}}</strong>\r\n                            </div>\r\n                        </div>\r\n\r\n                        <div class=\"alert alert-warning\">\r\n                            <strong>Green condition: </strong>\r\n                            <div *ngIf=\"isConstantType(entry.value.object.yellow)\">\r\n                                <strong>{{entry.value.object.yellow.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isOperatorType(entry.value.object.yellow)\">\r\n                                <strong>{{entry.value.object.yellow.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isRangeType(entry.value.object.yellow)\">\r\n                                <strong>{{entry.value.object.yellow.represent()}}</strong>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"modal-footer\">\r\n                        <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n\r\n\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.value.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.value.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"'Click for details'\">{{entry.value.shortScript()}}\r\n            <button\r\n                    class=\"center-block btn btn-inline btn-sm\"\r\n                    data-toggle=\"modal\"\r\n                    [attr.data-target]=\"'#details_' + entry.value.id\">\r\n                <i class=\"fa fa-search\"></i> Details\r\n            </button>\r\n        </dd>\r\n    </dl>\r\n</div>"
 
 /***/ },
 
@@ -149,6 +161,9 @@ var ConstantAttributePredicate = (function (_super) {
         _value["@type"] = this.type;
         _value["value"] = this.value;
         return _value;
+    };
+    ConstantAttributePredicate.prototype.represent = function () {
+        return (new Boolean(this.value)).toString();
     };
     return ConstantAttributePredicate;
 }(colored_predicate_1.ColoredAttributePredicate));
@@ -317,6 +332,33 @@ var NumberComparatorPredicate = (function (_super) {
         _value["value"] = this.value;
         return _value;
     };
+    NumberComparatorPredicate.prototype.represent = function () {
+        var _value = "";
+        switch (this.operator) {
+            case "GREATER_THAN":
+                _value += ">";
+                break;
+            case "GREATER_THAN_OR_EQUAL":
+                _value += "≥";
+                break;
+            case "LESS_THAN":
+                _value += "<";
+                break;
+            case "LESS_THAN_OR_EQUAL":
+                _value += "≤";
+                break;
+            case "EQUAL":
+                _value += ">";
+                break;
+            case "NOT_EQUAL":
+                _value += "≠";
+                break;
+            default:
+                throw new Error("Operator " + this.operator + "cannot be recognized");
+        }
+        _value += " " + this.value;
+        return _value;
+    };
     return NumberComparatorPredicate;
 }(colored_predicate_1.ColoredAttributePredicate));
 exports.NumberComparatorPredicate = NumberComparatorPredicate;
@@ -343,6 +385,12 @@ var IsInRangePredicate = (function (_super) {
         _value["rangeEnd"] = this.rangeEnd;
         _value["isRangeStartInclusive"] = this.rangeStart;
         _value["isRangeEndInclusive"] = this.rangeEnd;
+        return _value;
+    };
+    IsInRangePredicate.prototype.represent = function () {
+        var _value = "";
+        _value += this.rangeEnd + " " + (this.isRangeEndInclusive ? "≥" : ">")
+            + " value " + (this.isRangeStartInclusive ? "≥" : ">") + " " + this.rangeStart;
         return _value;
     };
     return IsInRangePredicate;

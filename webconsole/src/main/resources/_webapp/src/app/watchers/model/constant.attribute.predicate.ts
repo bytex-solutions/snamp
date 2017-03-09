@@ -10,4 +10,8 @@ export class ConstantAttributePredicate extends ColoredAttributePredicate {
         _value["value"] = this.value;
         return _value;
     }
+
+    public represent():string {
+        return (new Boolean(this.value)).toString();
+    }
 }
