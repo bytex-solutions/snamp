@@ -9,7 +9,12 @@
     <div class="clearfix"></div>
 
     <div class="row" style="margin-top: 30px">
+      <panel [header]="getPanelHeader()" [column]="'12'">
 
+      </panel>
+    </div>
+
+    <div class="row" style="margin-top: 10px">
       <panel [header]="'List of watchers'" [column]="'12'">
         <table class="table table-hover table-bordered">
           <thead class="thead-inverse">
@@ -34,6 +39,8 @@
 
       </panel>
     </div>
+
+
   </div>
 </div>
 

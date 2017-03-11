@@ -14,6 +14,7 @@ import { IsInRangePredicate } from '../model/range.comparator';
 })
 export class CheckersComponent {
     @Input() entity:{ [key:string]:ScriptletDataObject; } = {};
+    @Input() hideDetails:boolean = false;
 
     public isConstantType(predicate:ColoredAttributePredicate):boolean {
         return (predicate instanceof ConstantAttributePredicate);

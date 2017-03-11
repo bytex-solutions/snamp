@@ -20,6 +20,8 @@ export class MainComponent implements OnInit {
     private http:ApiClient;
     components:Observable<string[]>;
     private watchers:Watcher[] = [];
+    activeWatcher:Watcher = new Watcher(undefined, {});
+    isNewEntity:boolean = true;
 
     constructor(apiClient: ApiClient, private _router: Router) {
         this.http = apiClient;
@@ -38,5 +40,9 @@ export class MainComponent implements OnInit {
             .publishLast().refCount();
 
    }
+
+    public getPanelHeader():string {
+        return this.isNewEntity ? "Add new watcher" : ("Edit watcher " + this.activeWatcher.name);
+    }
 
 }

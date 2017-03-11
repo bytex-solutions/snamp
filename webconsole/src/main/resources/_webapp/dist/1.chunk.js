@@ -27,6 +27,7 @@ var range_comparator_1 = __webpack_require__("./src/app/watchers/model/range.com
 var CheckersComponent = (function () {
     function CheckersComponent() {
         this.entity = {};
+        this.hideDetails = false;
     }
     CheckersComponent.prototype.isConstantType = function (predicate) {
         return (predicate instanceof constant_attribute_predicate_1.ConstantAttributePredicate);
@@ -41,6 +42,10 @@ var CheckersComponent = (function () {
         core_1.Input(), 
         __metadata('design:type', Object)
     ], CheckersComponent.prototype, "entity", void 0);
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', Boolean)
+    ], CheckersComponent.prototype, "hideDetails", void 0);
     CheckersComponent = __decorate([
         core_1.Component({
             moduleId: module.i,
@@ -60,14 +65,14 @@ exports.CheckersComponent = CheckersComponent;
 /***/ "./src/app/watchers/components/templates/checkers.html":
 /***/ function(module, exports) {
 
-module.exports = "<div>\r\n    <dl class=\"row\" *ngFor=\"let entry of entity | keys\">\r\n\r\n        <div class=\"modal fade\" [attr.id]=\"'details_' + entry.value.id\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"detailsLabel\">\r\n            <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n                <div class=\"modal-content\">\r\n                    <div class=\"modal-header\">\r\n                        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                        <h4 class=\"modal-title leftAlign\" id=\"detailsLabel\">Entity {{entry.value.name}} details</h4>\r\n                    </div>\r\n                    <br/>\r\n                    <div class=\"modal-body\" *ngIf=\"entry.value.object == undefined\">\r\n                        <pre class=\"normalspaces\"><code [innerHTML]=\"entry.value.script\"></code></pre>\r\n                    </div>\r\n                    <div class=\"modal-body\" *ngIf=\"entry.value.object != undefined\">\r\n                        <div class=\"alert alert-success\">\r\n                            <strong>Green condition: </strong>\r\n                            <div *ngIf=\"isConstantType(entry.value.object.green)\">\r\n                                <strong>{{entry.value.object.green.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isOperatorType(entry.value.object.green)\">\r\n                                <strong>{{entry.value.object.green.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isRangeType(entry.value.object.green)\">\r\n                                <strong>{{entry.value.object.green.represent()}}</strong>\r\n                            </div>\r\n                        </div>\r\n\r\n                        <div class=\"alert alert-warning\">\r\n                            <strong>Yellow condition: </strong>\r\n                            <div *ngIf=\"isConstantType(entry.value.object.yellow)\">\r\n                                <strong>{{entry.value.object.yellow.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isOperatorType(entry.value.object.yellow)\">\r\n                                <strong>{{entry.value.object.yellow.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isRangeType(entry.value.object.yellow)\">\r\n                                <strong>{{entry.value.object.yellow.represent()}}</strong>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"modal-footer\">\r\n                        <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n\r\n\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.value.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.value.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"'Click for details'\">{{entry.value.shortScript()}}\r\n            <button\r\n                    class=\"center-block btn btn-inline btn-sm\"\r\n                    data-toggle=\"modal\"\r\n                    [attr.data-target]=\"'#details_' + entry.value.id\">\r\n                <i class=\"fa fa-search\"></i> Details\r\n            </button>\r\n        </dd>\r\n    </dl>\r\n</div>"
+module.exports = "<div>\r\n    <dl class=\"row\" *ngFor=\"let entry of entity | keys\">\r\n\r\n        <div class=\"modal fade\" *ngIf=\"!hideDetails\" [attr.id]=\"'details_' + entry.value.id\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"detailsLabel\">\r\n            <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n                <div class=\"modal-content\">\r\n                    <div class=\"modal-header\">\r\n                        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                        <h4 class=\"modal-title leftAlign\" id=\"detailsLabel\">Entity {{entry.value.name}} details</h4>\r\n                    </div>\r\n                    <br/>\r\n                    <div class=\"modal-body\" *ngIf=\"entry.value.object == undefined\">\r\n                        <pre class=\"normalspaces\"><code [innerHTML]=\"entry.value.script\"></code></pre>\r\n                    </div>\r\n                    <div class=\"modal-body\" *ngIf=\"entry.value.object != undefined\">\r\n                        <div class=\"alert alert-success\">\r\n                            <strong>Green condition: </strong>\r\n                            <div *ngIf=\"isConstantType(entry.value.object.green)\">\r\n                                <strong>{{entry.value.object.green.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isOperatorType(entry.value.object.green)\">\r\n                                <strong>{{entry.value.object.green.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isRangeType(entry.value.object.green)\">\r\n                                <strong>{{entry.value.object.green.represent()}}</strong>\r\n                            </div>\r\n                        </div>\r\n\r\n                        <div class=\"alert alert-warning\">\r\n                            <strong>Yellow condition: </strong>\r\n                            <div *ngIf=\"isConstantType(entry.value.object.yellow)\">\r\n                                <strong>{{entry.value.object.yellow.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isOperatorType(entry.value.object.yellow)\">\r\n                                <strong>{{entry.value.object.yellow.represent()}}</strong>\r\n                            </div>\r\n                            <div *ngIf=\"isRangeType(entry.value.object.yellow)\">\r\n                                <strong>{{entry.value.object.yellow.represent()}}</strong>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"modal-footer\">\r\n                        <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n\r\n        <dt class=\"col-sm-3\">Attribute:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.key}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.value.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entry.value.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"'Click for details'\">{{entry.value.shortScript()}}\r\n            <button *ngIf=\"!hideDetails\"\r\n                    class=\"center-block btn btn-inline btn-sm\"\r\n                    data-toggle=\"modal\"\r\n                    [attr.data-target]=\"'#details_' + entry.value.id\">\r\n                <i class=\"fa fa-search\"></i> Details\r\n            </button>\r\n        </dd>\r\n    </dl>\r\n</div>"
 
 /***/ },
 
 /***/ "./src/app/watchers/components/templates/trigger.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"modal fade\" [attr.id]=\"'details_' + entity.id\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Entity {{entity.name}} details</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n                <pre class=\"normalspaces\"><code [innerHTML]=\"entity.script\"></code></pre>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n\r\n<div>\r\n    <dl class=\"row\">\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"'Click for details'\">{{entity.shortScript()}}\r\n            <button\r\n                    class=\"center-block btn btn-inline btn-sm\"\r\n                    data-toggle=\"modal\"\r\n                    [attr.data-target]=\"'#details_' + entity.id\">\r\n                <i class=\"fa fa-search\"></i> Details\r\n            </button>\r\n        </dd>\r\n    </dl>\r\n</div>"
+module.exports = "<div class=\"modal fade\" *ngIf=\"!hideDetails\" [attr.id]=\"'details_' + entity.id\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Entity {{entity.name}} details</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n                <pre class=\"normalspaces\"><code [innerHTML]=\"entity.script\"></code></pre>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n\r\n<div>\r\n    <dl class=\"row\">\r\n        <dt class=\"col-sm-3\">Language:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.language}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Is url:</dt>\r\n        <dd class=\"col-sm-9\">{{entity.isURL}}</dd>\r\n\r\n        <dt class=\"col-sm-3\">Script:</dt>\r\n        <dd class=\"col-sm-9\" [tooltip]=\"'Click for details'\">{{entity.shortScript()}}\r\n            <button *ngIf=\"!hideDetails\"\r\n                    class=\"center-block btn btn-inline btn-sm\"\r\n                    data-toggle=\"modal\"\r\n                    [attr.data-target]=\"'#details_' + entity.id\">\r\n                <i class=\"fa fa-search\"></i> Details\r\n            </button>\r\n        </dd>\r\n    </dl>\r\n</div>"
 
 /***/ },
 
@@ -81,11 +86,16 @@ var scriptlet_data_object_1 = __webpack_require__("./src/app/watchers/model/scri
 var TriggerComponent = (function () {
     function TriggerComponent() {
         this.entity = undefined;
+        this.hideDetails = false;
     }
     __decorate([
         core_1.Input(), 
         __metadata('design:type', (typeof (_a = typeof scriptlet_data_object_1.ScriptletDataObject !== 'undefined' && scriptlet_data_object_1.ScriptletDataObject) === 'function' && _a) || Object)
     ], TriggerComponent.prototype, "entity", void 0);
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', Boolean)
+    ], TriggerComponent.prototype, "hideDetails", void 0);
     TriggerComponent = __decorate([
         core_1.Component({
             moduleId: module.i,
@@ -554,7 +564,7 @@ exports.Watcher = Watcher;
 /***/ "./src/app/watchers/templates/main.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table table-hover table-bordered\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Name</th>\r\n            <th>Checkers</th>\r\n            <th>Trigger</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n      <panel [header]=\"getPanelHeader()\" [column]=\"'12'\">\r\n\r\n      </panel>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 10px\">\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table table-hover table-bordered\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Name</th>\r\n            <th>Checkers</th>\r\n            <th>Trigger</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n\r\n\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 
@@ -678,12 +688,15 @@ exports.TemplateComponent = TemplateComponent;
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
 var factory_1 = __webpack_require__("./src/app/watchers/model/factory.ts");
+var watcher_1 = __webpack_require__("./src/app/watchers/model/watcher.ts");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 var MainComponent = (function () {
     function MainComponent(apiClient, _router) {
         this._router = _router;
         this.watchers = [];
+        this.activeWatcher = new watcher_1.Watcher(undefined, {});
+        this.isNewEntity = true;
         this.http = apiClient;
     }
     MainComponent.prototype.ngOnInit = function () {
@@ -697,6 +710,9 @@ var MainComponent = (function () {
         this.components = this.http.get(app_restClient_1.REST.CHART_COMPONENTS)
             .map(function (res) { return res.json(); })
             .publishLast().refCount();
+    };
+    MainComponent.prototype.getPanelHeader = function () {
+        return this.isNewEntity ? "Add new watcher" : ("Edit watcher " + this.activeWatcher.name);
     };
     MainComponent = __decorate([
         core_1.Component({

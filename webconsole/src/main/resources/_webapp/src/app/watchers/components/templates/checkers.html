@@ -1,7 +1,7 @@
 <div>
     <dl class="row" *ngFor="let entry of entity | keys">
 
-        <div class="modal fade" [attr.id]="'details_' + entry.value.id" tabindex="-1" role="dialog" aria-labelledby="detailsLabel">
+        <div class="modal fade" *ngIf="!hideDetails" [attr.id]="'details_' + entry.value.id" tabindex="-1" role="dialog" aria-labelledby="detailsLabel">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -46,6 +46,8 @@
             </div>
         </div>
 
+        <dt class="col-sm-3">Attribute:</dt>
+        <dd class="col-sm-9">{{entry.key}}</dd>
 
         <dt class="col-sm-3">Language:</dt>
         <dd class="col-sm-9">{{entry.value.language}}</dd>
@@ -55,7 +57,7 @@
 
         <dt class="col-sm-3">Script:</dt>
         <dd class="col-sm-9" [tooltip]="'Click for details'">{{entry.value.shortScript()}}
-            <button
+            <button *ngIf="!hideDetails"
                     class="center-block btn btn-inline btn-sm"
                     data-toggle="modal"
                     [attr.data-target]="'#details_' + entry.value.id">

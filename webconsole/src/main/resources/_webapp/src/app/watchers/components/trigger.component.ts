@@ -9,5 +9,6 @@ import { ScriptletDataObject } from '../model/scriptlet.data.object';
 })
 export class TriggerComponent {
     @Input() entity: ScriptletDataObject = undefined;
+    @Input() hideDetails:boolean = false;
 }
 
