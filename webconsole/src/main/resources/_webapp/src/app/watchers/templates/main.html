@@ -30,6 +30,24 @@
           </div>
         </div>
 
+        <div class="form-group" *ngIf="activeWatcher && activeWatcher.attributeCheckers">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">
+            Checkers <span class="required">*</span>
+          </label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <checkers [entity]="activeWatcher.attributeCheckers" [hideDetails]="'true'"></checkers>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="activeWatcher && activeWatcher.trigger">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12">
+            Trigger <span class="required">*</span>
+          </label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <trigger [entity]="activeWatcher.trigger" [hideDetails]="'true'"></trigger>
+          </div>
+        </div>
+
       </panel>
     </div>
 
