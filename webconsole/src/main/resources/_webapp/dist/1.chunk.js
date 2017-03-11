@@ -564,7 +564,7 @@ exports.Watcher = Watcher;
 /***/ "./src/app/watchers/templates/main.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n      <panel [header]=\"getPanelHeader()\" [column]=\"'12'\">\r\n\r\n      </panel>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 10px\">\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table table-hover table-bordered\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Name</th>\r\n            <th>Checkers</th>\r\n            <th>Trigger</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n\r\n\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n      <panel [header]=\"getPanelHeader()\" [column]=\"'12'\">\r\n\r\n        <div class=\"form-group\">\r\n          <label class=\"control-label col-md-3 col-sm-3 col-xs-12\" for=\"componentSelection\">\r\n              Component <span class=\"required\">*</span>\r\n          </label>\r\n          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n            <select\r\n                    id=\"componentSelection\"\r\n                    class=\"select2_group form-control\">\r\n              <optgroup label=\"Components\">\r\n                <option\r\n                        *ngFor=\"let component of getAvailableComponents()\"\r\n                        [value]=\"component\">\r\n                  {{component}}\r\n                </option>\r\n              </optgroup>\r\n            </select>\r\n          </div>\r\n        </div>\r\n\r\n      </panel>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 10px\">\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table table-hover table-bordered\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Name</th>\r\n            <th>Checkers</th>\r\n            <th>Trigger</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n\r\n\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 
@@ -684,32 +684,65 @@ exports.TemplateComponent = TemplateComponent;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
 var factory_1 = __webpack_require__("./src/app/watchers/model/factory.ts");
 var watcher_1 = __webpack_require__("./src/app/watchers/model/watcher.ts");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
+__webpack_require__("./node_modules/select2/dist/js/select2.js");
 var MainComponent = (function () {
     function MainComponent(apiClient, _router) {
         this._router = _router;
+        this.components = [];
         this.watchers = [];
         this.activeWatcher = new watcher_1.Watcher(undefined, {});
         this.isNewEntity = true;
+        this.selectedComponent = undefined;
         this.http = apiClient;
     }
     MainComponent.prototype.ngOnInit = function () {
         var _this = this;
+        // load the list of watchers
         this.http.get(app_restClient_1.REST.WATCHERS_LIST)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
             _this.watchers = factory_1.Factory.watchersArrayFromJSON(data);
-            console.log("Watchers list is: ", data, _this.watchers);
         });
-        this.components = this.http.get(app_restClient_1.REST.CHART_COMPONENTS)
+        // find all the components
+        this.http.get(app_restClient_1.REST.CHART_COMPONENTS)
             .map(function (res) { return res.json(); })
-            .publishLast().refCount();
+            .subscribe(function (data) {
+            _this.components = data;
+            if (_this.components.length > 0) {
+                _this.selectedComponent = _this.components[0];
+            }
+        });
+        var _thisReference = this;
+        // initialize select2 logic
+        $(document).ready(function () {
+            $("#componentSelection").select2();
+            $("#componentSelection").on('change', function (e) {
+                _thisReference.selectCurrentComponent($(e.target).val());
+            });
+        });
+    };
+    MainComponent.prototype.selectCurrentComponent = function (component) {
+        this.selectedComponent = component;
+    };
+    MainComponent.prototype.getAvailableComponents = function () {
+        var _this = this;
+        return this.components.filter(function (element) {
+            var _available = true;
+            for (var i = 0; i < _this.watchers.length; i++) {
+                if (_this.watchers[i].name == element) {
+                    _available = false;
+                    break;
+                }
+            }
+            return _available;
+        });
     };
     MainComponent.prototype.getPanelHeader = function () {
         return this.isNewEntity ? "Add new watcher" : ("Edit watcher " + this.activeWatcher.name);
@@ -727,6 +760,7 @@ var MainComponent = (function () {
 }());
 exports.MainComponent = MainComponent;
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ }
 

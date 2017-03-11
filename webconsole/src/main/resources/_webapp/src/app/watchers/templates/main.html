@@ -11,6 +11,25 @@
     <div class="row" style="margin-top: 30px">
       <panel [header]="getPanelHeader()" [column]="'12'">
 
+        <div class="form-group">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="componentSelection">
+              Component <span class="required">*</span>
+          </label>
+          <div class="col-md-6 col-sm-6 col-xs-12">
+            <select
+                    id="componentSelection"
+                    class="select2_group form-control">
+              <optgroup label="Components">
+                <option
+                        *ngFor="let component of getAvailableComponents()"
+                        [value]="component">
+                  {{component}}
+                </option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
       </panel>
     </div>
 
