@@ -4,4 +4,5 @@ label.control-label {
 
 .form-group {
     margin-bottom: 10px;
+    display: block;
 }

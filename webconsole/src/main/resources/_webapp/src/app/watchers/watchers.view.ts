@@ -8,6 +8,8 @@ import { Watcher } from './model/watcher';
 
 import { Router } from '@angular/router';
 
+import { AttributeInformation } from '../charts/model/attribute';
+
 import 'rxjs/add/operator/publishLast';
 import 'select2';
 
@@ -26,6 +28,9 @@ export class MainComponent implements OnInit {
 
     selectedComponent:string = undefined;
 
+    metrics:Observable<AttributeInformation[]>;
+    selectedMetric:AttributeInformation = undefined;
+
     constructor(apiClient: ApiClient, private _router: Router) {
         this.http = apiClient;
    }
@@ -43,9 +48,6 @@ export class MainComponent implements OnInit {
             .map((res:Response) => { return <string[]>res.json()})
             .subscribe((data) => {
                 this.components = data;
-                if (this.components.length > 0) {
-                    this.selectedComponent = this.components[0];
-                }
             });
 
         var _thisReference = this;
@@ -58,9 +60,39 @@ export class MainComponent implements OnInit {
         });
    }
 
-   private selectCurrentComponent(component:string):void {
+    private selectCurrentComponent(component:string):void {
         this.selectedComponent = component;
-   }
+        this.loadMetricsOnComponentSelected();
+    }
+
+    isTriggerAvailable():boolean {
+        return (this.activeWatcher != undefined && this.activeWatcher.trigger != undefined);
+    }
+
+    isCheckersAvailable():boolean {
+        return (this.activeWatcher != undefined && this.activeWatcher.attributeCheckers != undefined && !$.isEmptyObject(this.activeWatcher.attributeCheckers));
+    }
+
+    private loadMetricsOnComponentSelected():void {
+       $('#overlay').fadeIn();
+       this.metrics = this.http.getIgnoreErrors(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
+            .map((res:Response) => {
+                let _data:any = res.json();
+                let _values:AttributeInformation[] = [];
+                for (let i in _data) {
+                    _values.push(new AttributeInformation(_data[i]));
+                }
+                return _values;
+            }).catch((res:Response) => Observable.of([])).cache();
+
+       // set auto selected first metric if the array is not empty
+       this.metrics.subscribe((data:AttributeInformation[]) => {
+           if (data && data.length > 0) {
+               this.selectedMetric = data[0];
+           }
+       })
+        $('#overlay').fadeOut();
+    }
 
    public getAvailableComponents():string[] {
         return this.components.filter((element) => {
