@@ -5,8 +5,10 @@ import com.bytex.snamp.management.http.model.ResourceGroupWatcherDataObject;
 import com.bytex.snamp.management.http.model.ScriptletDataObject;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import java.util.Optional;
 
 /**
@@ -35,8 +37,10 @@ public final class ResourceGroupWatcherConfigurationService extends AbstractEnti
     @PUT
     @Path("/{groupName}/trigger")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void setTrigger(@PathParam("groupName") final String groupName, final ScriptletDataObject trigger) {
-        setConfigurationByName(groupName, config -> trigger.exportTo(config.getTrigger()));
+    public void setTrigger(@PathParam("groupName") final String groupName,
+                           final ScriptletDataObject trigger,
+                           @Context final SecurityContext context) {
+        setConfigurationByName(groupName, config -> trigger.exportTo(config.getTrigger()), context);
     }
 
     @Path("/{groupName}/attributeChecker/{attributeName}")
@@ -54,7 +58,10 @@ public final class ResourceGroupWatcherConfigurationService extends AbstractEnti
     @Path("/{groupName}/attributeChecker/{attributeName}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public void setAttributeChecker(@PathParam("groupName") final String groupName, @PathParam("attributeName") final String attributeName, final ScriptletDataObject checker){
-        setConfigurationByName(groupName, config -> checker.exportTo(config.getAttributeCheckers().getOrAdd(attributeName)));
+    public void setAttributeChecker(@PathParam("groupName") final String groupName,
+                                    @PathParam("attributeName") final String attributeName,
+                                    final ScriptletDataObject checker,
+                                    @Context final SecurityContext context){
+        setConfigurationByName(groupName, config -> checker.exportTo(config.getAttributeCheckers().getOrAdd(attributeName)), context);
     }
 }

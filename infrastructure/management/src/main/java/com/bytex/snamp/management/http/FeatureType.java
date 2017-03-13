@@ -9,6 +9,7 @@ import org.osgi.framework.BundleContext;
 import javax.management.*;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -40,8 +41,12 @@ public enum FeatureType {
         }
 
         @Override
-        Response removeFeature(final BundleContext context, final String holderName, final Class<? extends ManagedResourceTemplate> holderType, final String featureName) {
-            return FeatureType.removeFeature(context, holderName, holderType, featureName, AttributeConfiguration.class);
+        Response removeFeature(final BundleContext context,
+                               final SecurityContext security,
+                               final String holderName,
+                               final Class<? extends ManagedResourceTemplate> holderType,
+                               final String featureName) {
+            return FeatureType.removeFeature(context, security, holderName, holderType, featureName, AttributeConfiguration.class);
         }
     },
     EVENTS {
@@ -61,8 +66,12 @@ public enum FeatureType {
         }
 
         @Override
-        Response removeFeature(final BundleContext context, final String holderName, final Class<? extends ManagedResourceTemplate> holderType, final String featureName) {
-            return FeatureType.removeFeature(context, holderName, holderType, featureName, EventConfiguration.class);
+        Response removeFeature(final BundleContext context,
+                               final SecurityContext security,
+                               final String holderName,
+                               final Class<? extends ManagedResourceTemplate> holderType,
+                               final String featureName) {
+            return FeatureType.removeFeature(context, security, holderName, holderType, featureName, EventConfiguration.class);
         }
     },
     OPERATIONS {
@@ -77,13 +86,20 @@ public enum FeatureType {
         }
 
         @Override
-        Optional<OperationDataObject> getFeature(final BundleContext context, final String holderName, final Class<? extends ManagedResourceTemplate> holderType, final String featureName) {
+        Optional<OperationDataObject> getFeature(final BundleContext context,
+                                                 final String holderName,
+                                                 final Class<? extends ManagedResourceTemplate> holderType,
+                                                 final String featureName) {
             return FeatureType.getFeature(context, holderName, holderType, featureName, OperationConfiguration.class, OperationDataObject::new);
         }
 
         @Override
-        Response removeFeature(final BundleContext context, final String holderName, final Class<? extends ManagedResourceTemplate> holderType, final String featureName) {
-            return FeatureType.removeFeature(context, holderName, holderType, featureName, OperationConfiguration.class);
+        Response removeFeature(final BundleContext context,
+                               final SecurityContext security,
+                               final String holderName,
+                               final Class<? extends ManagedResourceTemplate> holderType,
+                               final String featureName) {
+            return FeatureType.removeFeature(context, security, holderName, holderType, featureName, OperationConfiguration.class);
         }
     };
     static final String ATTRIBUTES_TYPE = "attributes";
@@ -109,6 +125,7 @@ public enum FeatureType {
                                                                                                                    final String featureName);
 
     abstract Response removeFeature(final BundleContext context,
+                                    final SecurityContext security,
                                           final String holderName,
                                           final Class<? extends ManagedResourceTemplate> holderType,
                                           final String featureName);
@@ -177,11 +194,12 @@ public enum FeatureType {
     }
 
     private static Response removeFeature(final BundleContext context,
+                                          final SecurityContext security,
                                                                                                                    final String holderName,
-                                                                                                                   final Class<? extends ManagedResourceTemplate> holderType,
-                                                                                                                   final String featureName,
+                                          final Class<? extends ManagedResourceTemplate> holderType,
+                                          final String featureName,
                                           final Class<? extends FeatureConfiguration> featureType) {
-        return changingActions(context, config -> {
+        return changingActions(context, security, config -> {
             final ManagedResourceTemplate resource = config.getEntities(holderType).get(holderName);
             if (resource == null || resource.getFeatures(featureType).remove(featureName) == null) {
                 throw notFound();

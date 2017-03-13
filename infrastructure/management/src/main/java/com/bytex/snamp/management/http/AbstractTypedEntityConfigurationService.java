@@ -4,8 +4,10 @@ import com.bytex.snamp.configuration.TypedEntityConfiguration;
 import com.bytex.snamp.management.http.model.AbstractTypedDataObject;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
 /**
  * @author Roman Sakno
@@ -28,7 +30,9 @@ public abstract class AbstractTypedEntityConfigurationService<E extends TypedEnt
     @Path("/{name}/type")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public final Response changeEntityType(@PathParam("name") final String name, final String newType) {
-        return setConfigurationByName(name, config -> config.setType(newType));
+    public final Response changeEntityType(@PathParam("name") final String name,
+                                           final String newType,
+                                           @Context final SecurityContext context) {
+        return setConfigurationByName(name, config -> config.setType(newType), context);
     }
 }
