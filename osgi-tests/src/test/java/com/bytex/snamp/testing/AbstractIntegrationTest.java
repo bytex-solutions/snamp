@@ -9,6 +9,7 @@ import org.ops4j.pax.exam.TestProbeBuilder;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 import org.ops4j.pax.exam.karaf.options.LogLevelOption;
+import org.ops4j.pax.exam.karaf.options.configs.UsersProperties;
 import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
 import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
@@ -125,7 +126,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         return false;
     }
 
-    private Option[] configureTestingRuntimeImpl(){
+    private Option[] configureTestingRuntimeImpl() {
         final MavenArtifactUrlReference karafUrl = maven()
                 .groupId("org.apache.karaf")
                 .artifactId("apache-karaf")
@@ -136,7 +137,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
                 .name("Apache Karaf")
                 .unpackDirectory(new File("exam")));
         result.add(logLevel(LogLevelOption.LogLevel.INFO));
-        if(enableRemoteDebugging())
+        if (enableRemoteDebugging())
             result.add(debugConfiguration("32441", true));
         result.add(systemProperty(TEST_CONTAINER_INDICATOR).value("true"));
         result.addAll(builder.getSystemProperties(getClass()).entrySet().stream().map(sp -> systemProperty(sp.getKey()).value(sp.getValue())).collect(Collectors.toList()));
@@ -150,6 +151,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         result.addAll(builder.getFeatures(getClass()));
         result.addAll(builder.getBundles(getClass()));
         result.add(cleanCaches(true));
+        result.add(editConfigurationFilePut(UsersProperties.FILE_PATH, "simpleUser", "simplePassword,snamp-user"));
         return result.toArray(new Option[result.size()]);
     }
 
