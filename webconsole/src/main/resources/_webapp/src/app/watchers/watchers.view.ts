@@ -12,6 +12,7 @@ import { AttributeInformation } from '../charts/model/attribute';
 
 import 'rxjs/add/operator/publishLast';
 import 'select2';
+import 'smartwizard';
 
 @Component({
   moduleId: module.id,
@@ -31,8 +32,14 @@ export class MainComponent implements OnInit {
     metrics:Observable<AttributeInformation[]>;
     selectedMetric:AttributeInformation = undefined;
 
+    triggerLanguages:string[] = [ "Groovy", "JavaScript" ];
+
     constructor(apiClient: ApiClient, private _router: Router) {
         this.http = apiClient;
+   }
+
+   saveCurrentTrigger():void {
+        console.log(this.activeWatcher);
    }
 
    ngOnInit():void {

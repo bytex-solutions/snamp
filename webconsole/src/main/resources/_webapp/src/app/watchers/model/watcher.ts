@@ -3,7 +3,7 @@ import { ScriptletDataObject } from './scriptlet.data.object';
 
 export class Watcher extends Entity {
     public attributeCheckers:{ [key:string]:ScriptletDataObject; } = {};
-    public trigger:ScriptletDataObject = undefined;
+    public trigger:ScriptletDataObject = new ScriptletDataObject();
 
     public toJSON():any {
          let _value:any = {};

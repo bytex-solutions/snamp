@@ -14,8 +14,8 @@ export class ScriptletDataObject {
     public id:string = Guid.newGuid();
 
     constructor(){
-        this.language = "n/a";
-        this.script = "empty";
+        this.language = "Groovy";
+        this.script = "";
         this.isURL = false;
         this.object = undefined;
     }

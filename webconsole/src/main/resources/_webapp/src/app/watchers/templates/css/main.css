@@ -1,0 +1,9 @@
+.form-group {
+    margin-bottom: 10px;
+    display: flex;
+}
+
+.btn-inline {
+    display: inline-block;
+    margin-left: 15px;
+}
