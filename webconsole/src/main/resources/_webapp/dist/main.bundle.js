@@ -83964,6 +83964,9 @@ var REST = (function () {
     REST.CHART_METRICS_BY_INSTANCE = function (instanceName) {
         return "/snamp/web/api/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
     };
+    REST.WATCHER_BY_NAME = function (name) {
+        return REST.WATCHERS_LIST + "/" + name;
+    };
     REST.ROOT_PATH = "/snamp/management";
     REST.CFG_PATH = REST.ROOT_PATH + "/configuration";
     REST.GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";

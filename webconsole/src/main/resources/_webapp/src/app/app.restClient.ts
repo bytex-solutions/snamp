@@ -171,4 +171,8 @@ export class REST {
     public static CURRENT_CONFIG:string = REST.ROOT_PATH + "/configuration";
 
     public static WATCHERS_LIST:string = REST.CFG_PATH + "/watcher";
+
+    public static WATCHER_BY_NAME(name:string):string {
+        return REST.WATCHERS_LIST + "/" + name;
+    }
 }

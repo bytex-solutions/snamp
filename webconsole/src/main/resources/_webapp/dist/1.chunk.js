@@ -8,7 +8,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, ".form-group {\r\n    margin-bottom: 10px;\r\n    display: flex;\r\n}\r\n\r\n.btn-inline {\r\n    display: inline-block;\r\n    margin-left: 15px;\r\n}", ""]);
+exports.push([module.i, ".form-group {\r\n    margin-bottom: 10px;\r\n    display: flex;\r\n}\r\n\r\n.btn-inline {\r\n    display: inline-block;\r\n    margin-left: 15px;\r\n}\r\n\r\n.btn-pull-right {\r\n    margin-top:20px;\r\n    float:right;\r\n    margin-right: 20px;\r\n}", ""]);
 
 // exports
 
@@ -173,7 +173,7 @@ var ConstantAttributePredicate = (function (_super) {
         return _value;
     };
     ConstantAttributePredicate.prototype.represent = function () {
-        return (new Boolean(this.value)).toString();
+        return "value = " + (new Boolean(this.value)).toString();
     };
     return ConstantAttributePredicate;
 }(colored_predicate_1.ColoredAttributePredicate));
@@ -343,7 +343,7 @@ var NumberComparatorPredicate = (function (_super) {
         return _value;
     };
     NumberComparatorPredicate.prototype.represent = function () {
-        var _value = "";
+        var _value = "value ";
         switch (this.operator) {
             case "GREATER_THAN":
                 _value += ">";
@@ -565,7 +565,7 @@ exports.Watcher = Watcher;
 /***/ "./src/app/watchers/templates/main.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <!-- Modal for edit the trigger for activeWatcher -->\r\n      <div class=\"modal fade\" id=\"editTriggerModal\" role=\"dialog\" aria-labelledby=\"editTriggerLabel\">\r\n        <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n          <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n              <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n              <h4 class=\"modal-title leftAlign\" id=\"editTriggerLabel\">Edit trigger</h4>\r\n              <br/>\r\n              <div class=\"modal-body\">\r\n                <div id=\"smartwizardForTrigger\" style=\"height: 95%\">\r\n                  <ul>\r\n                    <li>\r\n                      <a [attr.href]=\"'#language'\">\r\n                        Language<br />\r\n                        <small>Select language for trigger</small>\r\n                      </a>\r\n                    </li>\r\n                    <li>\r\n                      <a [attr.href]=\"'#url'\">\r\n                        Use url<br />\r\n                        <small>Use URL for loading script</small>\r\n                      </a>\r\n                    </li>\r\n                    <li>\r\n                      <a [attr.href]=\"'#script'\">\r\n                        Script<br />\r\n                        <small>Trigger's script</small>\r\n                      </a>\r\n                    </li>\r\n                  </ul>\r\n\r\n                  <div style=\"height:100%\">\r\n                    <div id=\"language\" class=\"row\" style=\"margin-top: 100px;\">\r\n                      <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                for=\"languageSelect\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Language <span class=\"required\">*</span>\r\n                        </label>\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                          <select class=\"form-control\" [(ngModel)]=\"activeWatcher.trigger.language\" id=\"languageSelect\">\r\n                            <option *ngFor=\"let language of triggerLanguages\" [ngValue]=\"language\">{{language}}</option>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div id=\"url\" class=\"row\" style=\"margin-top: 100px;\">\r\n                      <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Load script from external URL <span class=\"required\">*</span>\r\n                        </label>\r\n\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activeWatcher.trigger.isURL\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div id=\"script\" class=\"row\" style=\"margin-top: 10px;\">\r\n                      <div *ngIf=\"activeWatcher.trigger.useUrl\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"urlForTrigger\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Url for script loading <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <input type=\"text\" id=\"urlForTrigger\" placeholder=\"Input url for script to be loaded from\" [(ngModel)]=\"activeWatcher.trigger.script\"/>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div *ngIf=\"!activeWatcher.trigger.useUrl\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"scriptBodyForTrigger\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Url for script loading <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <textarea id=\"scriptBodyForTrigger\" [(ngModel)]=\"activeWatcher.trigger.script\"></textarea>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div class=\"col-md-3\" style=\"float:right; margin-right: 20px;\">\r\n                        <button class=\"btn btn-primary\" (click)=\"saveCurrentTrigger()\">Save trigger</button>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n\r\n      <panel [header]=\"getPanelHeader()\" [column]=\"'12'\">\r\n\r\n        <div class=\"form-group\">\r\n          <label class=\"control-label col-md-3 col-sm-3 col-xs-12\" for=\"componentSelection\">\r\n              Component <span class=\"required\">*</span>\r\n          </label>\r\n          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n            <select\r\n                    id=\"componentSelection\"\r\n                    class=\"select2_group form-control\">\r\n              <optgroup label=\"Components\">\r\n                <option\r\n                        *ngFor=\"let component of getAvailableComponents()\"\r\n                        [value]=\"component\">\r\n                  {{component}}\r\n                </option>\r\n              </optgroup>\r\n            </select>\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"form-group\">\r\n          <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">\r\n            Checkers <span class=\"required\">*</span>\r\n          </label>\r\n          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n\r\n            <checkers  *ngIf=\"isCheckersAvailable()\"\r\n                       [entity]=\"activeWatcher.attributeCheckers\"\r\n                       [hideDetails]=\"'true'\"></checkers>\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"form-group\" >\r\n          <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">\r\n            Trigger <span class=\"required\">*</span>\r\n          </label>\r\n          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n\r\n            <trigger *ngIf=\"isTriggerAvailable()\"\r\n                     [entity]=\"activeWatcher.trigger\"\r\n                     [hideDetails]=\"'true'\"></trigger>\r\n\r\n            <button class=\"glyphicon glyphicon-pencil btn btn-xs\"\r\n                    [attr.data-target]=\"'editTriggerModal'\"\r\n                    aria-hidden=\"true\"> Edit\r\n            </button>\r\n          </div>\r\n        </div>\r\n\r\n      </panel>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 10px\">\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table table-hover table-bordered\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Name</th>\r\n            <th>Checkers</th>\r\n            <th>Trigger</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n\r\n\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Setup watchers</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <!-- Modal for edit the trigger for activeWatcher -->\r\n      <div class=\"modal fade\" id=\"editTriggerModal\" role=\"dialog\" aria-labelledby=\"editTriggerLabel\">\r\n        <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n          <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n              <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n              <h4 class=\"modal-title leftAlign\" id=\"editTriggerLabel\">Edit trigger</h4>\r\n              <br/>\r\n              <div class=\"modal-body\">\r\n                <div id=\"smartwizardForTrigger\" style=\"height: 95%\">\r\n                  <ul>\r\n                    <li>\r\n                      <a [attr.href]=\"'#language'\">\r\n                        Language<br />\r\n                        <small>Select language for trigger</small>\r\n                      </a>\r\n                    </li>\r\n                    <li>\r\n                      <a [attr.href]=\"'#url'\">\r\n                        Use url<br />\r\n                        <small>Use URL for loading script</small>\r\n                      </a>\r\n                    </li>\r\n                    <li>\r\n                      <a [attr.href]=\"'#script'\">\r\n                        Script<br />\r\n                        <small>Trigger's script</small>\r\n                      </a>\r\n                    </li>\r\n                  </ul>\r\n\r\n                  <div style=\"height:100%\">\r\n                    <div id=\"language\" class=\"row\" style=\"margin-top: 100px;\">\r\n                      <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                for=\"languageSelect\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Language <span class=\"required\">*</span>\r\n                        </label>\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                          <select class=\"form-control\" [(ngModel)]=\"activeWatcher.trigger.language\" id=\"languageSelect\">\r\n                            <option *ngFor=\"let language of triggerLanguages\" [ngValue]=\"language\">{{language}}</option>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div id=\"url\" class=\"row\" style=\"margin-top: 100px;\">\r\n                      <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Load script from external URL <span class=\"required\">*</span>\r\n                        </label>\r\n\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activeWatcher.trigger.isURL\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div id=\"script\" class=\"row\" style=\"margin-top: 10px;\">\r\n                      <div *ngIf=\"activeWatcher.trigger.useUrl\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"urlForTrigger\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Url for script loading <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <input type=\"text\" id=\"urlForTrigger\" placeholder=\"Input url for script to be loaded from\" [(ngModel)]=\"activeWatcher.trigger.script\"/>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div *ngIf=\"!activeWatcher.trigger.useUrl\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"scriptBodyForTrigger\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Url for script loading <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <textarea id=\"scriptBodyForTrigger\" [(ngModel)]=\"activeWatcher.trigger.script\"></textarea>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div class=\"col-md-3\" style=\"float:right; margin-right: 20px;\">\r\n                        <button class=\"btn btn-primary\" (click)=\"saveCurrentTrigger()\">Save trigger</button>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n\r\n      <!-- Modal for edit checkers for activeWatcher -->\r\n      <div class=\"modal fade\" id=\"editCheckersModal\" role=\"dialog\" aria-labelledby=\"editTriggerLabel\">\r\n        <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n          <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n              <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n              <h4 class=\"modal-title leftAlign\" id=\"editTriggerLabel\">Edit trigger</h4>\r\n              <br/>\r\n              <div class=\"modal-body\">\r\n                <div id=\"smartwizardForTrigger\" style=\"height: 95%\">\r\n                  <ul>\r\n                    <li>\r\n                      <a [attr.href]=\"'#language'\">\r\n                        Language<br />\r\n                        <small>Select language for trigger</small>\r\n                      </a>\r\n                    </li>\r\n                    <li>\r\n                      <a [attr.href]=\"'#url'\">\r\n                        Use url<br />\r\n                        <small>Use URL for loading script</small>\r\n                      </a>\r\n                    </li>\r\n                    <li>\r\n                      <a [attr.href]=\"'#script'\">\r\n                        Script<br />\r\n                        <small>Trigger's script</small>\r\n                      </a>\r\n                    </li>\r\n                  </ul>\r\n\r\n                  <div style=\"height:100%\">\r\n                    <div id=\"language\" class=\"row\" style=\"margin-top: 100px;\">\r\n                      <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                for=\"languageSelect\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Language <span class=\"required\">*</span>\r\n                        </label>\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                          <select class=\"form-control\" [(ngModel)]=\"activeWatcher.trigger.language\" id=\"languageSelect\">\r\n                            <option *ngFor=\"let language of triggerLanguages\" [ngValue]=\"language\">{{language}}</option>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div id=\"url\" class=\"row\" style=\"margin-top: 100px;\">\r\n                      <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Load script from external URL <span class=\"required\">*</span>\r\n                        </label>\r\n\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activeWatcher.trigger.isURL\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div id=\"script\" class=\"row\" style=\"margin-top: 10px;\">\r\n                      <div *ngIf=\"activeWatcher.trigger.useUrl\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"urlForTrigger\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Url for script loading <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <input type=\"text\" id=\"urlForTrigger\" placeholder=\"Input url for script to be loaded from\" [(ngModel)]=\"activeWatcher.trigger.script\"/>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div *ngIf=\"!activeWatcher.trigger.useUrl\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"scriptBodyForTrigger\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Url for script loading <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <textarea id=\"scriptBodyForTrigger\" [(ngModel)]=\"activeWatcher.trigger.script\"></textarea>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div class=\"col-md-3\" style=\"float:right; margin-right: 20px;\">\r\n                        <button class=\"btn btn-primary\" (click)=\"saveCurrentTrigger()\">Save trigger</button>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n\r\n      <panel [header]=\"getPanelHeader()\" [column]=\"'12'\">\r\n\r\n        <div class=\"row\">\r\n          <label class=\"control-label col-md-1 col-sm-1 col-xs-12\" for=\"componentSelection\" style=\"margin-top:10px;\">\r\n              Component <span class=\"required\">*</span>\r\n          </label>\r\n          <div class=\"col-md-3 col-sm-3 col-xs-12\">\r\n            <select\r\n                    id=\"componentSelection\"\r\n                    class=\"select2_group form-control\">\r\n              <optgroup label=\"Components\">\r\n                <option\r\n                        *ngFor=\"let component of getAvailableComponents()\"\r\n                        [value]=\"component\">\r\n                  {{component}}\r\n                </option>\r\n              </optgroup>\r\n            </select>\r\n          </div>\r\n          <div class=\"col-md-2 col-md-offset-1\">\r\n            <button class=\"btn btn-primary\"\r\n                    [attr.data-target]=\"'#editTriggerModal'\"\r\n                    data-toggle=\"modal\"\r\n                    aria-hidden=\"true\"> Edit trigger\r\n            </button>\r\n          </div>\r\n          <div class=\"col-md-2 col-md-offset-1\">\r\n            <button class=\"btn btn-primary\"\r\n                    [attr.data-target]=\"'#editCheckersModal'\"\r\n                    data-toggle=\"modal\"\r\n                    aria-hidden=\"true\"> Edit checkers\r\n            </button>\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"row btn-pull-right\">\r\n            <div class=\"col-md-2\">\r\n              <button class=\"btn btn-sm btn-primary\" (click)=\"saveActiveWatcher()\">Save</button>\r\n              <button class=\"btn btn-sm\" (click)=\"cleanSelection()\">Cancel/clean</button>\r\n            </div>\r\n        </div>\r\n\r\n      </panel>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 10px\">\r\n      <panel [header]=\"'List of watchers'\" [column]=\"'12'\">\r\n        <table class=\"table table-hover table-bordered\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th>Actions</th>\r\n            <th>Name</th>\r\n            <th>Checkers</th>\r\n            <th>Trigger</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\">\r\n            <td>\r\n              <button class=\"btn btn-primary btn-sm\" (click)=\"removeWatcher(watcher)\">Remove</button>\r\n              <br/>\r\n              <button class=\"btn btn-primary btn-sm\" (click)=\"editWatcher(watcher)\">Edit</button>\r\n            </td>\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n\r\n\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 
@@ -696,17 +696,22 @@ var attribute_1 = __webpack_require__("./src/app/charts/model/attribute.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 __webpack_require__("./node_modules/select2/dist/js/select2.js");
 __webpack_require__("./node_modules/smartwizard/js/jquery.smartWizard.min.js");
+var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
+var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 var MainComponent = (function () {
-    function MainComponent(apiClient, _router) {
+    function MainComponent(apiClient, _router, modal, overlay, vcRef) {
         this._router = _router;
+        this.modal = modal;
         this.components = [];
         this.watchers = [];
         this.activeWatcher = new watcher_1.Watcher(undefined, {});
+        this.copyWatcher = undefined;
         this.isNewEntity = true;
         this.selectedComponent = undefined;
         this.selectedMetric = undefined;
         this.triggerLanguages = ["Groovy", "JavaScript"];
         this.http = apiClient;
+        overlay.defaultViewContainer = vcRef;
     }
     MainComponent.prototype.saveCurrentTrigger = function () {
         console.log(this.activeWatcher);
@@ -733,6 +738,8 @@ var MainComponent = (function () {
                 _thisReference.selectCurrentComponent($(e.target).val());
             });
         });
+        this.initTriggerWizard();
+        this.initCheckersWizard();
     };
     MainComponent.prototype.selectCurrentComponent = function (component) {
         this.selectedComponent = component;
@@ -742,7 +749,9 @@ var MainComponent = (function () {
         return (this.activeWatcher != undefined && this.activeWatcher.trigger != undefined);
     };
     MainComponent.prototype.isCheckersAvailable = function () {
-        return (this.activeWatcher != undefined && this.activeWatcher.attributeCheckers != undefined && !$.isEmptyObject(this.activeWatcher.attributeCheckers));
+        return (this.activeWatcher != undefined
+            && this.activeWatcher.attributeCheckers != undefined
+            && !$.isEmptyObject(this.activeWatcher.attributeCheckers));
     };
     MainComponent.prototype.loadMetricsOnComponentSelected = function () {
         var _this = this;
@@ -777,8 +786,72 @@ var MainComponent = (function () {
             return _available;
         });
     };
+    MainComponent.prototype.cleanSelection = function () {
+        for (var i = 0; i < this.watchers.length; i++) {
+            if (this.watchers[i].guid == this.activeWatcher.guid) {
+                this.watchers[i] = this.copyWatcher;
+            }
+        }
+        this.activeWatcher = new watcher_1.Watcher(undefined, {});
+        this.isNewEntity = true;
+    };
+    MainComponent.prototype.removeWatcher = function (watcher) {
+        var _this = this;
+        this.modal.confirm()
+            .className('default')
+            .message('Watcher is going to be removed. Proceed?')
+            .open()
+            .then(function (resultPromise) {
+            return resultPromise.result
+                .then(function (response) {
+                _this.http.delete(app_restClient_1.REST.WATCHER_BY_NAME(watcher.name))
+                    .map(function (res) { return res.text(); })
+                    .subscribe(function (data) {
+                    console.log("view has been reset: ", data);
+                });
+                return response;
+            })
+                .catch(function () {
+                console.log("user preferred to decline watcher removing");
+            });
+        });
+    };
+    MainComponent.prototype.editWatcher = function (watcher) {
+        this.activeWatcher = watcher;
+        this.isNewEntity = false;
+    };
     MainComponent.prototype.getPanelHeader = function () {
         return this.isNewEntity ? "Add new watcher" : ("Edit watcher " + this.activeWatcher.name);
+    };
+    MainComponent.prototype.getTriggerWizardId = function () {
+        return "#editTriggerModal";
+    };
+    MainComponent.prototype.getCheckersWizardId = function () {
+        return "#editCheckersModal";
+    };
+    MainComponent.prototype.initTriggerWizard = function () {
+        $(this.getTriggerWizardId()).smartWizard({
+            theme: 'arrows',
+            useURLhash: false,
+            showStepURLhash: false,
+            transitionEffect: 'fade'
+        });
+        var _thisReference = this;
+        $(this.getTriggerWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
+            console.log(stepNumber);
+        });
+    };
+    MainComponent.prototype.initCheckersWizard = function () {
+        $(this.getCheckersWizardId()).smartWizard({
+            theme: 'arrows',
+            useURLhash: false,
+            showStepURLhash: false,
+            transitionEffect: 'fade'
+        });
+        var _thisReference = this;
+        $(this.getCheckersWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
+            console.log(stepNumber);
+        });
     };
     MainComponent = __decorate([
         core_1.Component({
@@ -786,10 +859,10 @@ var MainComponent = (function () {
             template: __webpack_require__("./src/app/watchers/templates/main.html"),
             styles: [__webpack_require__("./src/app/watchers/templates/css/main.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _b) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object, (typeof (_d = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _e) || Object])
     ], MainComponent);
     return MainComponent;
-    var _a, _b;
+    var _a, _b, _c, _d, _e;
 }());
 exports.MainComponent = MainComponent;
 

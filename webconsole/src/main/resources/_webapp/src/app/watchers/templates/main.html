@@ -114,13 +114,117 @@
         </div>
       </div>
 
+      <!-- Modal for edit checkers for activeWatcher -->
+      <div class="modal fade" id="editCheckersModal" role="dialog" aria-labelledby="editTriggerLabel">
+        <div class="modal-dialog modal-xlg modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title leftAlign" id="editTriggerLabel">Edit trigger</h4>
+              <br/>
+              <div class="modal-body">
+                <div id="smartwizardForTrigger" style="height: 95%">
+                  <ul>
+                    <li>
+                      <a [attr.href]="'#language'">
+                        Language<br />
+                        <small>Select language for trigger</small>
+                      </a>
+                    </li>
+                    <li>
+                      <a [attr.href]="'#url'">
+                        Use url<br />
+                        <small>Use URL for loading script</small>
+                      </a>
+                    </li>
+                    <li>
+                      <a [attr.href]="'#script'">
+                        Script<br />
+                        <small>Trigger's script</small>
+                      </a>
+                    </li>
+                  </ul>
+
+                  <div style="height:100%">
+                    <div id="language" class="row" style="margin-top: 100px;">
+                      <div class="item form-group">
+                        <label
+                                class="control-label col-md-3 col-sm-3 col-xs-12"
+                                for="languageSelect"
+                                style="margin-top: 7px;">
+                          Language <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                          <select class="form-control" [(ngModel)]="activeWatcher.trigger.language" id="languageSelect">
+                            <option *ngFor="let language of triggerLanguages" [ngValue]="language">{{language}}</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div id="url" class="row" style="margin-top: 100px;">
+                      <div class="item form-group">
+                        <label
+                                class="control-label col-md-3 col-sm-3 col-xs-12"
+                                style="margin-top: 7px;">
+                          Load script from external URL <span class="required">*</span>
+                        </label>
+
+                        <div class="col-md-6 col-sm-6 col-xs-12" >
+                          <ui-switch
+                                  [(ngModel)]="activeWatcher.trigger.isURL"
+                                  [size]="'small'">
+                          </ui-switch>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div id="script" class="row" style="margin-top: 10px;">
+                      <div *ngIf="activeWatcher.trigger.useUrl">
+                        <div class="item form-group">
+                          <label
+                                  class="control-label col-md-3 col-sm-3 col-xs-12"
+                                  for="urlForTrigger"
+                                  style="margin-top: 7px;">
+                            Url for script loading <span class="required">*</span>
+                          </label>
+                          <div class="col-md-6 col-sm-6 col-xs-12">
+                            <input type="text" id="urlForTrigger" placeholder="Input url for script to be loaded from" [(ngModel)]="activeWatcher.trigger.script"/>
+                          </div>
+                        </div>
+                      </div>
+                      <div *ngIf="!activeWatcher.trigger.useUrl">
+                        <div class="item form-group">
+                          <label
+                                  class="control-label col-md-3 col-sm-3 col-xs-12"
+                                  for="scriptBodyForTrigger"
+                                  style="margin-top: 7px;">
+                            Url for script loading <span class="required">*</span>
+                          </label>
+                          <div class="col-md-6 col-sm-6 col-xs-12">
+                            <textarea id="scriptBodyForTrigger" [(ngModel)]="activeWatcher.trigger.script"></textarea>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-3" style="float:right; margin-right: 20px;">
+                        <button class="btn btn-primary" (click)="saveCurrentTrigger()">Save trigger</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <panel [header]="getPanelHeader()" [column]="'12'">
 
-        <div class="form-group">
-          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="componentSelection">
+        <div class="row">
+          <label class="control-label col-md-1 col-sm-1 col-xs-12" for="componentSelection" style="margin-top:10px;">
               Component <span class="required">*</span>
           </label>
-          <div class="col-md-6 col-sm-6 col-xs-12">
+          <div class="col-md-3 col-sm-3 col-xs-12">
             <select
                     id="componentSelection"
                     class="select2_group form-control">
@@ -133,35 +237,27 @@
               </optgroup>
             </select>
           </div>
-        </div>
-
-        <div class="form-group">
-          <label class="control-label col-md-3 col-sm-3 col-xs-12">
-            Checkers <span class="required">*</span>
-          </label>
-          <div class="col-md-6 col-sm-6 col-xs-12">
-
-            <checkers  *ngIf="isCheckersAvailable()"
-                       [entity]="activeWatcher.attributeCheckers"
-                       [hideDetails]="'true'"></checkers>
-          </div>
-        </div>
-
-        <div class="form-group" >
-          <label class="control-label col-md-3 col-sm-3 col-xs-12">
-            Trigger <span class="required">*</span>
-          </label>
-          <div class="col-md-6 col-sm-6 col-xs-12">
-
-            <trigger *ngIf="isTriggerAvailable()"
-                     [entity]="activeWatcher.trigger"
-                     [hideDetails]="'true'"></trigger>
-
-            <button class="glyphicon glyphicon-pencil btn btn-xs"
-                    [attr.data-target]="'editTriggerModal'"
-                    aria-hidden="true"> Edit
+          <div class="col-md-2 col-md-offset-1">
+            <button class="btn btn-primary"
+                    [attr.data-target]="'#editTriggerModal'"
+                    data-toggle="modal"
+                    aria-hidden="true"> Edit trigger
             </button>
           </div>
+          <div class="col-md-2 col-md-offset-1">
+            <button class="btn btn-primary"
+                    [attr.data-target]="'#editCheckersModal'"
+                    data-toggle="modal"
+                    aria-hidden="true"> Edit checkers
+            </button>
+          </div>
+        </div>
+
+        <div class="row btn-pull-right">
+            <div class="col-md-2">
+              <button class="btn btn-sm btn-primary" (click)="saveActiveWatcher()">Save</button>
+              <button class="btn btn-sm" (click)="cleanSelection()">Cancel/clean</button>
+            </div>
         </div>
 
       </panel>
@@ -172,6 +268,7 @@
         <table class="table table-hover table-bordered">
           <thead class="thead-inverse">
           <tr>
+            <th>Actions</th>
             <th>Name</th>
             <th>Checkers</th>
             <th>Trigger</th>
@@ -179,6 +276,11 @@
           </thead>
           <tbody>
           <tr *ngFor="let watcher of watchers">
+            <td>
+              <button class="btn btn-primary btn-sm" (click)="removeWatcher(watcher)">Remove</button>
+              <br/>
+              <button class="btn btn-primary btn-sm" (click)="editWatcher(watcher)">Edit</button>
+            </td>
             <th scope="row">{{watcher.name}}</th>
             <td>
               <checkers [entity]="watcher.attributeCheckers"></checkers>

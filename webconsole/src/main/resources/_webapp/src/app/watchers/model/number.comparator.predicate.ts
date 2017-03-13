@@ -14,7 +14,7 @@ export class NumberComparatorPredicate extends ColoredAttributePredicate {
     }
 
     public represent():string {
-        let _value:string = "";
+        let _value:string = "value ";
         switch (this.operator) {
             case "GREATER_THAN":
                 _value += ">";
