@@ -200,14 +200,14 @@
                         </label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
                           <select class="form-control" [(ngModel)]="activeChecker.language" id="checkerTypeSelect">
-                            <option *ngFor="let type of checkersType" [ngValue]="type">{{type.description}}</option>
+                            <option *ngFor="let type of checkersType" [ngValue]="type.id">{{type.description}}</option>
                           </select>
                         </div>
                       </div>
                     </div>
 
 
-                    <div id="checkerBody" class="row" style="margin-top: 100px;">
+                    <div id="checkerBody" class="row" style="margin-top: 5px;">
                       <div *ngIf="activeChecker?.language != 'ColoredAttributeChecker'">
                             <div *ngIf="activeChecker?.isURL">
                               <div class="item form-group">
