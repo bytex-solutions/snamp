@@ -97,7 +97,6 @@ export class MainComponent implements OnInit {
     }
 
     private loadMetricsOnComponentSelected():void {
-       $('#overlay').fadeIn();
        this.metrics = this.http.getIgnoreErrors(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
             .map((res:Response) => {
                 let _data:any = res.json();
@@ -114,7 +113,6 @@ export class MainComponent implements OnInit {
                this.selectedMetric = data[0];
            }
        })
-        $('#overlay').fadeOut();
     }
 
    public getAvailableComponents():string[] {
@@ -151,7 +149,7 @@ export class MainComponent implements OnInit {
                      this.http.delete(REST.WATCHER_BY_NAME(watcher.name))
                          .map((res:Response) => res.text())
                          .subscribe(data => {
-                            console.log("view has been reset: ", data);
+                            console.log("watcher has been removed: ", data);
                          });
                      return response;
                   })
@@ -171,14 +169,15 @@ export class MainComponent implements OnInit {
     }
 
     private getTriggerWizardId():string {
-      return "#editTriggerModal";
+      return "#smartwizardForTrigger";
     }
 
     private getCheckersWizardId():string {
-      return "#editCheckersModal";
+      return "#smartwizardForCheckers";
     }
 
     private initTriggerWizard():void {
+        console.log($(this.getTriggerWizardId()));
         $(this.getTriggerWizardId()).smartWizard({
             theme: 'arrows',
             useURLhash: false,

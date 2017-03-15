@@ -115,15 +115,15 @@
       </div>
 
       <!-- Modal for edit checkers for activeWatcher -->
-      <div class="modal fade" id="editCheckersModal" role="dialog" aria-labelledby="editTriggerLabel">
+      <div class="modal fade" id="editCheckersModal" role="dialog" aria-labelledby="editCheckersLabel">
         <div class="modal-dialog modal-xlg modal-lg" role="document">
           <div class="modal-content">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <h4 class="modal-title leftAlign" id="editTriggerLabel">Edit trigger</h4>
+              <h4 class="modal-title leftAlign" id="editCheckersLabel">Edit trigger</h4>
               <br/>
               <div class="modal-body">
-                <div id="smartwizardForTrigger" style="height: 95%">
+                <div id="smartwizardForCheckers" style="height: 95%">
                   <ul>
                     <li>
                       <a [attr.href]="'#language'">
@@ -253,8 +253,8 @@
           </div>
         </div>
 
-        <div class="row btn-pull-right">
-            <div class="col-md-2">
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-md-4">
               <button class="btn btn-sm btn-primary" (click)="saveActiveWatcher()">Save</button>
               <button class="btn btn-sm" (click)="cleanSelection()">Cancel/clean</button>
             </div>
