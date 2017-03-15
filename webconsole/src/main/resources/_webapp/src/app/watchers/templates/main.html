@@ -95,7 +95,7 @@
                                   class="control-label col-md-3 col-sm-3 col-xs-12"
                                   for="scriptBodyForTrigger"
                                   style="margin-top: 7px;">
-                            Url for script loading <span class="required">*</span>
+                            Script body for the trigger <span class="required">*</span>
                           </label>
                           <div class="col-md-6 col-sm-6 col-xs-12">
                             <textarea id="scriptBodyForTrigger" [(ngModel)]="activeWatcher.trigger.script"></textarea>
@@ -126,19 +126,19 @@
                 <div id="smartwizardForCheckers" style="height: 95%">
                   <ul>
                     <li>
-                      <a [attr.href]="'#language'">
+                      <a [attr.href]="'#languageChecker'">
                         Language<br />
-                        <small>Select language for trigger</small>
+                        <small>Select language for checker</small>
                       </a>
                     </li>
                     <li>
-                      <a [attr.href]="'#url'">
+                      <a [attr.href]="'#urlChecker'">
                         Use url<br />
                         <small>Use URL for loading script</small>
                       </a>
                     </li>
                     <li>
-                      <a [attr.href]="'#script'">
+                      <a [attr.href]="'#scriptChecker'">
                         Script<br />
                         <small>Trigger's script</small>
                       </a>
@@ -146,23 +146,23 @@
                   </ul>
 
                   <div style="height:100%">
-                    <div id="language" class="row" style="margin-top: 100px;">
+                    <div id="languageChecker" class="row" style="margin-top: 100px;">
                       <div class="item form-group">
                         <label
                                 class="control-label col-md-3 col-sm-3 col-xs-12"
-                                for="languageSelect"
+                                for="languageSelectChecker"
                                 style="margin-top: 7px;">
                           Language <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
-                          <select class="form-control" [(ngModel)]="activeWatcher.trigger.language" id="languageSelect">
+                          <select class="form-control" [(ngModel)]="activeWatcher.trigger.language" id="languageSelectChecker">
                             <option *ngFor="let language of triggerLanguages" [ngValue]="language">{{language}}</option>
                           </select>
                         </div>
                       </div>
                     </div>
 
-                    <div id="url" class="row" style="margin-top: 100px;">
+                    <div id="urlChecker" class="row" style="margin-top: 100px;">
                       <div class="item form-group">
                         <label
                                 class="control-label col-md-3 col-sm-3 col-xs-12"
@@ -179,17 +179,17 @@
                       </div>
                     </div>
 
-                    <div id="script" class="row" style="margin-top: 10px;">
+                    <div id="scriptChecker" class="row" style="margin-top: 10px;">
                       <div *ngIf="activeWatcher.trigger.useUrl">
                         <div class="item form-group">
                           <label
                                   class="control-label col-md-3 col-sm-3 col-xs-12"
-                                  for="urlForTrigger"
+                                  for="urlForChecker"
                                   style="margin-top: 7px;">
                             Url for script loading <span class="required">*</span>
                           </label>
                           <div class="col-md-6 col-sm-6 col-xs-12">
-                            <input type="text" id="urlForTrigger" placeholder="Input url for script to be loaded from" [(ngModel)]="activeWatcher.trigger.script"/>
+                            <input type="text" id="urlForChecker" placeholder="Input url for script to be loaded from" [(ngModel)]="activeWatcher.trigger.script"/>
                           </div>
                         </div>
                       </div>
@@ -199,10 +199,10 @@
                                   class="control-label col-md-3 col-sm-3 col-xs-12"
                                   for="scriptBodyForTrigger"
                                   style="margin-top: 7px;">
-                            Url for script loading <span class="required">*</span>
+                            Script body for checker <span class="required">*</span>
                           </label>
                           <div class="col-md-6 col-sm-6 col-xs-12">
-                            <textarea id="scriptBodyForTrigger" [(ngModel)]="activeWatcher.trigger.script"></textarea>
+                            <textarea id="scriptBodyForChecker" [(ngModel)]="activeWatcher.trigger.script"></textarea>
                           </div>
                         </div>
                       </div>
@@ -277,9 +277,16 @@
           <tbody>
           <tr *ngFor="let watcher of watchers">
             <td>
-              <button class="btn btn-primary btn-sm" (click)="removeWatcher(watcher)">Remove</button>
-              <br/>
-              <button class="btn btn-primary btn-sm" (click)="editWatcher(watcher)">Edit</button>
+              <span
+                  class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
+                  (click)="removeWatcher(watcher)"
+                  aria-hidden="true">
+              </span>
+              <span
+                  class="glyphicon glyphicon-pencil btn btn-xs btn-primary"
+                  (click)="editWatcher(watcher)"
+                  aria-hidden="true">
+              </span>
             </td>
             <th scope="row">{{watcher.name}}</th>
             <td>

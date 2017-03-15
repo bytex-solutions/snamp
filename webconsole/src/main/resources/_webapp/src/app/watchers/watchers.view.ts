@@ -66,18 +66,20 @@ export class MainComponent implements OnInit {
             .subscribe((data) => {
                 this.components = data;
             });
+   }
 
+   ngAfterViewInit():void {
+        console.log("ng on init view for watchers setup... ");
         var _thisReference = this;
-        // initialize select2 logic
-        $(document).ready(function() {
+        $(document).ready(function(){
              $("#componentSelection").select2();
              $("#componentSelection").on('change', (e) => {
                   _thisReference.selectCurrentComponent($(e.target).val());
              });
+             _thisReference.initTriggerWizard();
+             _thisReference.initCheckersWizard();
         });
 
-        this.initTriggerWizard();
-        this.initCheckersWizard();
    }
 
     private selectCurrentComponent(component:string):void {
