@@ -15,4 +15,12 @@ export class Watcher extends Entity {
         _value["parameters"] = this.stringifyParameters();
         return _value;
     }
+
+    checkerExists(attributeName:string):boolean {
+        return this.attributeCheckers[attributeName] != undefined;
+    }
+
+    checkerTypeForAttributeName(attributeName:string):string {
+        return this.checkerExists(attributeName) ? this.attributeCheckers[attributeName].language : "n/a";
+    }
 }

@@ -13,3 +13,11 @@
     float:right;
     margin-right: 20px;
 }
+
+.row-margin-bottom-sm {
+    margin-bottom: 15px;
+}
+
+.activeTr {
+    background-color: #b9c7de;
+}

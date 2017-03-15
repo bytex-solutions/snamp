@@ -5,6 +5,7 @@ import { Observable } from 'rxjs/Observable';
 
 import { Factory } from './model/factory';
 import { Watcher } from './model/watcher';
+import { ScriptletDataObject } from './model/scriptlet.data.object';
 
 import { Router } from '@angular/router';
 
@@ -32,14 +33,20 @@ export class MainComponent implements OnInit {
     private http:ApiClient;
     components:string[] = [];
     private watchers:Watcher[] = [];
-    activeWatcher:Watcher = new Watcher(undefined, {});
+    activeWatcher:Watcher = undefined;
     copyWatcher:Watcher = undefined;
     isNewEntity:boolean = true;
 
     selectedComponent:string = undefined;
+    triggerInitialized:boolean = false;
+    checkersInitialized:boolean = false;
 
-    metrics:Observable<AttributeInformation[]>;
-    selectedMetric:AttributeInformation = undefined;
+    attributes:AttributeInformation[] = [];
+    selectedAttribute:AttributeInformation = undefined;
+
+    activeChecker:ScriptletDataObject = new ScriptletDataObject();
+
+    checkersType:CheckerType[] = CheckerType.generateTypes();
 
     triggerLanguages:string[] = [ "Groovy", "JavaScript" ];
 
@@ -76,15 +83,43 @@ export class MainComponent implements OnInit {
              $("#componentSelection").on('change', (e) => {
                   _thisReference.selectCurrentComponent($(e.target).val());
              });
-             _thisReference.initTriggerWizard();
-             _thisReference.initCheckersWizard();
         });
-
    }
+
+   public initTriggerModal():void {
+        // clean the data if the component was already initialized
+        if (this.triggerInitialized) {
+            // reset wizard
+            $(this.getTriggerWizardId()).off("showStep");
+            $(this.getTriggerWizardId()).smartWizard("reset");
+        }
+        this.initTriggerWizard();
+        // open the modal
+        $("#editTriggerModal").modal("show");
+        // and next time user adds the chart - we will reinit all the dialog
+        this.triggerInitialized = true;
+    }
+
+   public initCheckersModal():void {
+        // clean the data if the component was already initialized
+        if (this.checkersInitialized) {
+            // reset wizard
+            $(this.getCheckersWizardId()).off("showStep");
+            $(this.getCheckersWizardId()).smartWizard("reset");
+        }
+        this.initCheckersWizard();
+        // open the modal
+        $("#editCheckerModal").modal("show");
+        // and next time user adds the chart - we will reinit all the dialog
+        this.checkersInitialized = true;
+    }
 
     private selectCurrentComponent(component:string):void {
         this.selectedComponent = component;
-        this.loadMetricsOnComponentSelected();
+        this.loadAttributesOnComponentSelected();
+        this.activeWatcher.name = component;
+        this.activeWatcher.trigger = new ScriptletDataObject();
+        this.activeWatcher.attributeCheckers = {};
     }
 
     isTriggerAvailable():boolean {
@@ -98,8 +133,21 @@ export class MainComponent implements OnInit {
         );
     }
 
-    private loadMetricsOnComponentSelected():void {
-       this.metrics = this.http.getIgnoreErrors(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
+    public removeCheckerForAttribute(attr:AttributeInformation):void {
+        delete this.activeWatcher.attributeCheckers[attr.name];
+    }
+
+    public editCheckerForAttribute(attr:AttributeInformation):void {
+        if (!this.activeWatcher.checkerExists(attr.name)) {
+            this.activeWatcher.attributeCheckers[attr.name] = new ScriptletDataObject();
+         }
+        this.activeChecker = this.activeWatcher.attributeCheckers[attr.name];
+        this.selectedAttribute = attr;
+    }
+
+    private loadAttributesOnComponentSelected():void {
+       console.log("Looking for attributes for group: ", this.selectedComponent);
+       this.http.get(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
             .map((res:Response) => {
                 let _data:any = res.json();
                 let _values:AttributeInformation[] = [];
@@ -107,28 +155,12 @@ export class MainComponent implements OnInit {
                     _values.push(new AttributeInformation(_data[i]));
                 }
                 return _values;
-            }).catch((res:Response) => Observable.of([])).cache();
-
-       // set auto selected first metric if the array is not empty
-       this.metrics.subscribe((data:AttributeInformation[]) => {
-           if (data && data.length > 0) {
-               this.selectedMetric = data[0];
-           }
-       })
+            }).catch((res:Response) => Observable.of([])).cache()
+            .subscribe((data) => {
+                this.attributes = data;
+                console.log("attributes: ", data);
+            });
     }
-
-   public getAvailableComponents():string[] {
-        return this.components.filter((element) => {
-            let _available:boolean = true;
-            for (let i = 0; i < this.watchers.length; i++) {
-                if (this.watchers[i].name == element) {
-                    _available = false;
-                    break;
-                }
-            }
-            return _available;
-        });
-   }
 
    public cleanSelection():void {
         for (let i = 0; i < this.watchers.length; i++) {
@@ -136,7 +168,7 @@ export class MainComponent implements OnInit {
                 this.watchers[i] = this.copyWatcher;
             }
         }
-        this.activeWatcher = new Watcher(undefined, {});
+        this.activeWatcher = undefined;
         this.isNewEntity = true;
    }
 
@@ -164,6 +196,8 @@ export class MainComponent implements OnInit {
    public editWatcher(watcher:Watcher):void {
         this.activeWatcher = watcher;
         this.isNewEntity = false;
+        this.selectedComponent = watcher.name;
+        this.loadAttributesOnComponentSelected();
    }
 
     public getPanelHeader():string {
@@ -179,7 +213,6 @@ export class MainComponent implements OnInit {
     }
 
     private initTriggerWizard():void {
-        console.log($(this.getTriggerWizardId()));
         $(this.getTriggerWizardId()).smartWizard({
             theme: 'arrows',
             useURLhash: false,
@@ -209,4 +242,27 @@ export class MainComponent implements OnInit {
         });
     }
 
+    public addNewWatcher():void {
+        this.activeWatcher = new Watcher(undefined, {});
+        this.selectedComponent = "";
+    }
+
+}
+
+export class CheckerType {
+    id:string;
+    description:string;
+
+    constructor(id:string, description:string) {
+        this.id = id;
+        this.description = description;
+    }
+
+    public static generateTypes():CheckerType[] {
+        let _value:CheckerType[] = [];
+        _value.push(new CheckerType("Groovy", "Groovy checker"));
+        _value.push(new CheckerType("JavaScript", "Javascript checker"));
+        _value.push(new CheckerType("ColoredAttributeChecker", "Green and yellow conditions based checker"));
+        return _value;
+    }
 }

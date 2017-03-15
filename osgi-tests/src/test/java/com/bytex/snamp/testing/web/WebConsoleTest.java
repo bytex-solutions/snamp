@@ -642,6 +642,12 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         fillManagedResources(config.getEntities(ManagedResourceConfiguration.class));
         fillGateways(config.getEntities(GatewayConfiguration.class));
         fillWatchers(config.getEntities(ManagedResourceGroupWatcherConfiguration.class));
+        fillGroups(config.getEntities(ManagedResourceGroupConfiguration.class));
+    }
+
+    private void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups) {
+        final ManagedResourceGroupConfiguration group = groups.getOrAdd(GROUP_NAME);
+        fillJmxAttributes(group.getFeatures(AttributeConfiguration.class));
     }
 
     private void fillWatchers(final EntityMap<? extends ManagedResourceGroupWatcherConfiguration> watchers){
@@ -752,4 +758,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.plainnotif");
         event.put("severity", "notice");
     }
+
+
 }
