@@ -234,7 +234,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
@@ -402,6 +402,13 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         final JsonNode graph = httpPost("/e2e/compute", authenticationToken, FORMATTER.valueToTree(landscapeView));
         assertNotNull(graph);
+    }
+
+    @Test
+    public void watcherTest() throws IOException {
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode groups = httpGet("/groupWatcher/groups", authenticationToken);
+        assertEquals(1, groups.size());
     }
 
     @Test

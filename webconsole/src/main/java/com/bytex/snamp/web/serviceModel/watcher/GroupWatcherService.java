@@ -30,7 +30,7 @@ import java.util.Set;
 @Path("/")
 public final class GroupWatcherService extends AbstractWebConsoleService implements GroupStatusEventListener {
     public static final String NAME = "groupWatcher";
-    public static final String URL_CONTEXT = "/groupWatcher";
+    public static final String URL_CONTEXT = '/' + NAME;
 
     @JsonTypeName("groupStatusChanged")
     public static final class GroupStatusChangedMessage extends WebMessage{

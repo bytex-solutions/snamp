@@ -11,6 +11,7 @@ import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationServic
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
+import com.bytex.snamp.web.serviceModel.notifications.NotificationService;
 import com.bytex.snamp.web.serviceModel.watcher.GroupWatcherService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -45,8 +46,23 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     //=============Predefined services for WebConsole======
-    private static final class NotificationServiceProvider extends ProvidedService<WebConsoleService, GroupWatcherService>{
+    private static final class NotificationServiceProvider extends ProvidedService<WebConsoleService, NotificationService>{
         private NotificationServiceProvider(){
+            super(WebConsoleService.class, simpleDependencies(ThreadPoolRepository.class));
+        }
+
+        @Override
+        protected NotificationService activateService(final Map<String, Object> identity) throws Exception {
+            identity.put(WebConsoleService.NAME, NotificationService.NAME);
+            identity.put(WebConsoleService.URL_CONTEXT, NotificationService.URL_CONTEXT);
+            final ThreadPoolRepository repository = dependencies.getDependency(ThreadPoolRepository.class);
+            assert repository != null;
+            return new NotificationService(repository.getThreadPool(THREAD_POOL_NAME, true));
+        }
+    }
+
+    private static final class GroupWatcherServiceProvider extends ProvidedService<WebConsoleService, GroupWatcherService>{
+        private GroupWatcherServiceProvider(){
             super(WebConsoleService.class, simpleDependencies(HealthSupervisor.class));
         }
 
@@ -158,7 +174,9 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
                 new VersionResourceProvider(),
                 new ManagedResourceInformationServiceProvider(),
                 new ChartDataSourceProvider(),
-                new E2EDataSourceProvider());
+                new E2EDataSourceProvider(),
+                new GroupWatcherServiceProvider(),
+                new NotificationServiceProvider());
     }
 
     @Override
