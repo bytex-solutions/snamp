@@ -5,6 +5,7 @@ import com.bytex.snamp.connector.supervision.GroupStatusEventListener;
 import com.bytex.snamp.connector.supervision.HealthStatus;
 import com.bytex.snamp.connector.supervision.HealthSupervisor;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
+import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.WebMessage;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -27,7 +28,7 @@ import java.util.Set;
  * @version 2.0
  */
 @Path("/")
-public final class GroupWatcherService extends AbstractPrincipalBoundedService<WatchSettings> implements GroupStatusEventListener {
+public final class GroupWatcherService extends AbstractWebConsoleService implements GroupStatusEventListener {
     public static final String NAME = "groupWatcher";
     public static final String URL_CONTEXT = "/groupWatcher";
 
@@ -64,7 +65,6 @@ public final class GroupWatcherService extends AbstractPrincipalBoundedService<W
     private final HealthSupervisor supervisor;
 
     public GroupWatcherService(final HealthSupervisor supervisor){
-        super(WatchSettings.class);
         this.supervisor = Objects.requireNonNull(supervisor);
     }
 
@@ -90,12 +90,6 @@ public final class GroupWatcherService extends AbstractPrincipalBoundedService<W
                 result.put(groupName, status);
         }
         return result;
-    }
-
-    @Nonnull
-    @Override
-    protected WatchSettings createUserData() {
-        return new WatchSettings();
     }
 
     @Override
