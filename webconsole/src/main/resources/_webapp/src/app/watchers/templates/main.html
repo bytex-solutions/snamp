@@ -162,16 +162,11 @@
                             </tr>
                             </thead>
                         <tbody>
-                            <tr *ngFor="let attribute of attributes" [class.activeTr]="((selectedAttribute != undefined) && (selectedAttribute.name == attribute.name))">
+                            <tr *ngFor="let attribute of attributes" class="clickableTr" [class.activeTr]="((selectedAttribute != undefined) && (selectedAttribute.name == attribute.name))" (click)="editCheckerForAttribute(attribute)">
                               <td>
                                   <span
                                           class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
                                           (click)="removeCheckerForAttribute(attribute)"
-                                          aria-hidden="true">
-                                  </span>
-                                  <span
-                                          class="glyphicon glyphicon-pencil btn btn-xs btn-primary"
-                                          (click)="editCheckerForAttribute(attribute)"
                                           aria-hidden="true">
                                   </span>
                               </td>
@@ -259,7 +254,7 @@
                             <div class="panel-heading" role="tab" id="headingOne">
                               <h4 class="panel-title">
                                 <a role="button" data-toggle="collapse" data-parent="#accordionChecker" href="#collapseGreen" aria-expanded="true" aria-controls="collapseGreen">
-                                  Green condition
+                                  <img src="assets/img/green-circle.png" class="img-inline"> Green condition
                                 </a>
                               </h4>
                             </div>
@@ -273,7 +268,7 @@
                             <div class="panel-heading" role="tab" id="headingTwo">
                               <h4 class="panel-title">
                                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionChecker" href="#collapseYellow" aria-expanded="false" aria-controls="collapseYellow">
-                                  Yellow condition
+                                  <img src="assets/img/yellow-circle.png" class="img-inline"> Yellow condition
                                 </a>
                               </h4>
                             </div>

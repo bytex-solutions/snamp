@@ -21,3 +21,13 @@
 .activeTr {
     background-color: #b9c7de;
 }
+
+.img-inline {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 3px;
+}
+
+.clickableTr {
+    cursor: pointer;
+}

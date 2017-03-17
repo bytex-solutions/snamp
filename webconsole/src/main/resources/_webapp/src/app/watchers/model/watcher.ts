@@ -17,7 +17,7 @@ export class Watcher extends Entity {
     }
 
     checkerExists(attributeName:string):boolean {
-        return this.attributeCheckers[attributeName] != undefined;
+        return this.attributeCheckers[attributeName] != undefined && this.attributeCheckers[attributeName].script.length > 0 ;
     }
 
     checkerTypeForAttributeName(attributeName:string):string {
