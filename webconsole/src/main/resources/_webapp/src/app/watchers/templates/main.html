@@ -209,6 +209,22 @@
 
                     <div id="checkerBody" class="row" style="margin-top: 5px;">
                       <div *ngIf="activeChecker?.language != 'ColoredAttributeChecker'">
+
+                        <div class="item form-group" style="margin-bottom: 15px;">
+                          <label
+                                  class="control-label col-md-3 col-sm-3 col-xs-12"
+                                  style="margin-top: 7px;">
+                            Load script from external URL <span class="required">*</span>
+                          </label>
+
+                          <div class="col-md-6 col-sm-6 col-xs-12" >
+                            <ui-switch
+                                    [(ngModel)]="activeChecker.isURL"
+                                    [size]="'small'">
+                            </ui-switch>
+                          </div>
+                        </div>
+
                             <div *ngIf="activeChecker?.isURL">
                               <div class="item form-group">
                                 <label
