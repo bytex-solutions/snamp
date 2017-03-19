@@ -18,6 +18,7 @@ import { MainComponent } from './watchers.view';
 
 import { CheckersComponent } from './components/checkers.component';
 import { TriggerComponent } from './components/trigger.component';
+import { ColoredCondition } from './components/condition.block';
 
 import { KeysPipe } from './watchers.pipes';
 
@@ -41,7 +42,7 @@ const PROVIDERS:any =  [
             ]
       }])
     ],
-    declarations: [ TemplateComponent, MainComponent, CheckersComponent, TriggerComponent, KeysPipe ],
+    declarations: [ TemplateComponent, MainComponent, CheckersComponent, TriggerComponent, ColoredCondition, KeysPipe ],
     providers:    PROVIDERS
 })
 export class WatchersModule {}

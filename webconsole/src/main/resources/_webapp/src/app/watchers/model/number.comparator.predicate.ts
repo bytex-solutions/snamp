@@ -29,7 +29,7 @@ export class NumberComparatorPredicate extends ColoredAttributePredicate {
                 _value += "≤";
                 break;
             case "EQUAL":
-                _value += ">";
+                _value += "=";
                 break;
             case "NOT_EQUAL":
                 _value += "≠";

@@ -260,7 +260,8 @@
                             </div>
                             <div id="collapseGreen" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                               <div class="panel-body">
-                                  {{ activeChecker.object.green.represent() }}
+                                  <coloredCondition [entity]="activeChecker.object.green"></coloredCondition>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -274,7 +275,7 @@
                             </div>
                             <div id="collapseYellow" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                               <div class="panel-body">
-                                {{ activeChecker.object.yellow.represent() }}
+                                <coloredCondition [entity]="activeChecker.object.yellow"></coloredCondition>
                               </div>
                             </div>
                           </div>

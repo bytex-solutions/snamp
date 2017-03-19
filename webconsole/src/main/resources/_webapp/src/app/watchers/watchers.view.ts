@@ -6,6 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import { Factory } from './model/factory';
 import { Watcher } from './model/watcher';
 import { ScriptletDataObject } from './model/scriptlet.data.object';
+import { ColoredAttributePredicate } from './model/colored.predicate';
 
 import { Router } from '@angular/router';
 
@@ -46,7 +47,8 @@ export class MainComponent implements OnInit {
 
     activeChecker:ScriptletDataObject = new ScriptletDataObject();
 
-    checkersType:CheckerType[] = CheckerType.generateTypes();
+    checkersType:EntityWithDescription[] = EntityWithDescription.generateCheckersTypes();
+
 
     triggerLanguages:string[] = [ "Groovy", "JavaScript" ];
 
@@ -249,7 +251,7 @@ export class MainComponent implements OnInit {
 
 }
 
-export class CheckerType {
+export class EntityWithDescription {
     id:string;
     description:string;
 
@@ -258,11 +260,19 @@ export class CheckerType {
         this.description = description;
     }
 
-    public static generateTypes():CheckerType[] {
-        let _value:CheckerType[] = [];
-        _value.push(new CheckerType("Groovy", "Groovy checker"));
-        _value.push(new CheckerType("JavaScript", "Javascript checker"));
-        _value.push(new CheckerType("ColoredAttributeChecker", "Green and yellow conditions based checker"));
+    public static generateCheckersTypes():EntityWithDescription[] {
+        let _value:EntityWithDescription[] = [];
+        _value.push(new EntityWithDescription("Groovy", "Groovy checker"));
+        _value.push(new EntityWithDescription("JavaScript", "Javascript checker"));
+        _value.push(new EntityWithDescription("ColoredAttributeChecker", "Green and yellow conditions based checker"));
+        return _value;
+    }
+
+    public static generateConditionsTypes():EntityWithDescription[] {
+        let _value:EntityWithDescription[] = [];
+        _value.push(new EntityWithDescription(ColoredAttributePredicate.CONSTANT, "Boolean constant"));
+        _value.push(new EntityWithDescription(ColoredAttributePredicate.COMPARATOR, "Compare with certain value"));
+        _value.push(new EntityWithDescription(ColoredAttributePredicate.RANGE, "Range comparator"));
         return _value;
     }
 }
