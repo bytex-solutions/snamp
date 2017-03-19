@@ -12,22 +12,40 @@ import { IsInRangePredicate } from '../model/range.comparator';
 })
 export class ColoredCondition {
     @Input() entity: ColoredAttributePredicate = undefined;
+    @Input() entityType: string = "";
 
     conditionsType:EntityWithDescription[] = EntityWithDescription.generateConditionsTypes();
     constantExpressions:EntityWithDescription[] = EntityWithDescription.generateTrueFalseTypes();
     operators:EntityWithDescription[] = EntityWithDescription.generateOperatorsTypes();
     rangeOperators:EntityWithDescription[] = EntityWithDescription.generateRangeTypes();
 
-    public isConstantType(predicate:ColoredAttributePredicate):boolean {
-        return (predicate instanceof ConstantAttributePredicate);
+    public isConstantType(language:string):boolean {
+        return (language == ColoredAttributePredicate.CONSTANT);
     }
 
-    public isOperatorType(predicate:ColoredAttributePredicate):boolean {
-        return (predicate instanceof NumberComparatorPredicate);
+    public isOperatorType(language:string):boolean {
+        return (language == ColoredAttributePredicate.COMPARATOR);
     }
 
-    public isRangeType(predicate:ColoredAttributePredicate):boolean {
-        return (predicate instanceof IsInRangePredicate);
+    public isRangeType(language:string):boolean {
+        return (language == ColoredAttributePredicate.RANGE);
+    }
+
+    public onTypeChange(event:string):void {
+         switch (event) {
+             case ColoredAttributePredicate.CONSTANT:
+                this.entity = new ConstantAttributePredicate();
+                break;
+             case ColoredAttributePredicate.COMPARATOR:
+                 this.entity = new NumberComparatorPredicate();
+                 break;
+             case ColoredAttributePredicate.RANGE:
+                 this.entity = new IsInRangePredicate();
+                 break;
+             default:
+                throw new Error("Could not recognize yellow checker type: " + event);
+        }
+        this.entityType = event;
     }
 
 }

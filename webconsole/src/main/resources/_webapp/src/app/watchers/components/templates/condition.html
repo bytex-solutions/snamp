@@ -1,49 +1,51 @@
-<div class="item form-group">
+<div class="item form-inline">
     <label
             class="control-label col-md-3 col-sm-3 col-xs-12"
             style="margin-top: 7px;">
         Type of condition <span class="required">*</span>
     </label>
-    <select class="form-control" [(ngModel)]="entity.language" >
+    <select class="form-control" [(ngModel)]="entityType" (ngModelChange)="onTypeChange($event)">
         <option *ngFor="let type of conditionsType" [ngValue]="type.id">{{type.description}}</option>
     </select>
 </div>
 
 <div *ngIf="isConstantType(entity.language)">
-    <div class="item form-group">
+    <div class="item form-inline">
         <label
-                class="control-label col-md-3 col-sm-3 col-xs-12"
+                class="custom-control col-md-3 col-sm-3 col-xs-12"
                 style="margin-top: 7px;">
             Value is <span class="required">*</span>
         </label>
-        <select class="form-control" [(ngModel)]="entity.value">
+        <select class="custom-select" [(ngModel)]="entity.value">
             <option *ngFor="let exp of constantExpressions" [ngValue]="exp.id">{{exp.description}}</option>
         </select>
     </div>
 </div>
+
 <div *ngIf="isOperatorType(entity.language)">
-    <div class="item form-group">
+    <div class="item form-inline">
         <label
-                class="control-label col-md-2 col-sm-2 col-xs-5"
+                class="custom-control col-md-2 col-sm-2 col-xs-5"
                 style="margin-top: 7px;">
-            Value <span class="required">*</span>
+            Value
         </label>
-        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.operator">
+        <select class="custom-select col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.operator">
             <option *ngFor="let operator of operators" [ngValue]="operator.id">{{operator.description}}</option>
         </select>
         <input type="text" class="form-control col-md-3 col-sm-3 col-xs-6" [(ngModel)]="entity.value"/>
     </div>
 </div>
+
 <div *ngIf="isRangeType(entity.language)">
-    <div class="item form-group">
+    <div class="item form-inline">
         <input type="text" class="form-control col-md-3 col-sm-3 col-xs-4" [(ngModel)]="entity.rangeEnd"/>
-        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeEndInclusive">
+        <select class="custom-select col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeEndInclusive">
             <option *ngFor="let operator of rangeOperators" [ngValue]="operator.id">{{operator.description}}</option>
         </select>
         <label class="control-label col-md-2 col-sm-2 col-xs-2" style="margin-top: 7px;">
             value
         </label>
-        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeStartInclusive">
+        <select class="custom-select col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeStartInclusive">
             <option *ngFor="let operator of rangeOperators" [ngValue]="operator.id">{{operator.description}}</option>
         </select>
         <input type="text" class="form-control col-md-3 col-sm-3 col-xs-4" [(ngModel)]="entity.rangeStart"/>
