@@ -31,3 +31,8 @@
 .clickableTr {
     cursor: pointer;
 }
+
+.input-group-addon {
+    border: 0 !important;
+    background-color: rgba(0,0,0,0) !important;
+}

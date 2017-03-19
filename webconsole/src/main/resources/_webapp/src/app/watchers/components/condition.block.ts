@@ -19,16 +19,16 @@ export class ColoredCondition {
     operators:EntityWithDescription[] = EntityWithDescription.generateOperatorsTypes();
     rangeOperators:EntityWithDescription[] = EntityWithDescription.generateRangeTypes();
 
-    public isConstantType(language:string):boolean {
-        return (language == ColoredAttributePredicate.CONSTANT);
+    public isConstantType():boolean {
+        return (this.entity instanceof ConstantAttributePredicate);
     }
 
-    public isOperatorType(language:string):boolean {
-        return (language == ColoredAttributePredicate.COMPARATOR);
+    public isOperatorType():boolean {
+        return (this.entity instanceof NumberComparatorPredicate);
     }
 
-    public isRangeType(language:string):boolean {
-        return (language == ColoredAttributePredicate.RANGE);
+    public isRangeType():boolean {
+        return (this.entity instanceof IsInRangePredicate);
     }
 
     public onTypeChange(event:string):void {
@@ -46,6 +46,14 @@ export class ColoredCondition {
                 throw new Error("Could not recognize yellow checker type: " + event);
         }
         this.entityType = event;
+    }
+
+    ngOnInit():void {
+        this.entityType = this.entity.constructor.name;
+    }
+
+    ngAfterViewInit():void {
+        console.log("Entity: ", this.entity, ", entityType: ", this.entityType);
     }
 
 }

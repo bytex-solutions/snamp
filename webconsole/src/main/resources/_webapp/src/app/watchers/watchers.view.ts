@@ -267,12 +267,4 @@ export class EntityWithDescription {
         _value.push(new EntityWithDescription("ColoredAttributeChecker", "Green and yellow conditions based checker"));
         return _value;
     }
-
-    public static generateConditionsTypes():EntityWithDescription[] {
-        let _value:EntityWithDescription[] = [];
-        _value.push(new EntityWithDescription(ColoredAttributePredicate.CONSTANT, "Boolean constant"));
-        _value.push(new EntityWithDescription(ColoredAttributePredicate.COMPARATOR, "Compare with certain value"));
-        _value.push(new EntityWithDescription(ColoredAttributePredicate.RANGE, "Range comparator"));
-        return _value;
-    }
 }

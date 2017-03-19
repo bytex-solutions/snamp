@@ -172,9 +172,9 @@
                               </td>
                               <th scope="row">{{attribute.name}}</th>
                               <td>
-                                <div *ngIf="activeWatcher.checkerExists(attribute.name)">
-                                  <i class="fa fa-check-square-o" aria-hidden="true"></i>
-                                </div>
+                                <span class="input-group-addon"  *ngIf="activeWatcher.checkerExists(attribute.name)">
+                                      <span class="glyphicon glyphicon-ok glyph-icon-appended" aria-hidden="true"></span>
+                                 </span>
                               </td>
                               <td>
                                 {{activeWatcher.checkerTypeForAttributeName(attribute.name)}}
