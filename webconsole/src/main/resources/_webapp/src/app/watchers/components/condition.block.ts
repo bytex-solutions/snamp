@@ -49,7 +49,7 @@ export class ColoredCondition {
     }
 
     ngOnInit():void {
-        this.entityType = this.entity.constructor.name;
+        this.entityType = (this.entity != undefined) ?  this.entity.constructor.name : "";
     }
 
     ngAfterViewInit():void {

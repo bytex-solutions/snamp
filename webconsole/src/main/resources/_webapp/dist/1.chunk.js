@@ -95,7 +95,7 @@ var ColoredCondition = (function () {
         this.entityType = event;
     };
     ColoredCondition.prototype.ngOnInit = function () {
-        this.entityType = this.entity.constructor.name;
+        this.entityType = (this.entity != undefined) ? this.entity.constructor.name : "";
     };
     ColoredCondition.prototype.ngAfterViewInit = function () {
         console.log("Entity: ", this.entity, ", entityType: ", this.entityType);
