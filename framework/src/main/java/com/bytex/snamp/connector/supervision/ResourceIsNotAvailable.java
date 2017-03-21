@@ -10,13 +10,13 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public class ResourceInGroupIsNotUnavailable extends MalfunctionStatus {
+public class ResourceIsNotAvailable extends MalfunctionStatus {
     public static final int CODE = 2;
     private static final long serialVersionUID = -1368848980168422995L;
     private final JMException error;
     private final String resourceName;
 
-    public ResourceInGroupIsNotUnavailable(final String resourceName, final JMException e){
+    public ResourceIsNotAvailable(final String resourceName, final JMException e){
         super(resourceName, CODE, true);
         error = Objects.requireNonNull(e);
         this.resourceName = Objects.requireNonNull(resourceName);

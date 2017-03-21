@@ -1,7 +1,5 @@
 package com.bytex.snamp.connector.supervision;
 
-import java.time.Duration;
-
 /**
  * Provides support for health checks.
  * @author Roman Sakno
@@ -11,8 +9,7 @@ import java.time.Duration;
 public interface HealthCheckSupport {
     /**
      * Determines whether the connected managed resource is alive.
-     * @param timeout Timeout required to identify health status.
      * @return Status of the remove managed resource.
      */
-    HealthStatus getStatus(final Duration timeout);
+    HealthStatus getStatus();
 }

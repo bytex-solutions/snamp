@@ -141,7 +141,7 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
     }
 
     void updateStatus(final String resourceName, final JMException error) {
-        updateStatus(new ResourceInGroupIsNotUnavailable(resourceName, error));
+        updateStatus(new ResourceIsNotAvailable(resourceName, error));
     }
 
     void removeResource(final String resourceName) {

@@ -23,7 +23,6 @@ import javax.management.openmbean.*;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -718,11 +717,10 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
     /**
      * Determines whether the connected managed resource is alive.
      *
-     * @param timeout Timeout required to identify health status.
      * @return Status of the remove managed resource.
      */
     @Override
-    public HealthStatus getStatus(final Duration timeout) {
+    public HealthStatus getStatus() {
         final String resourceName = this.resourceName;
         try {
             return connectionManager.handleConnection(connection -> {
@@ -730,9 +728,9 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
                 return new OkStatus(resourceName);
             });
         } catch (final InterruptedException e) {
-            return new ResourceInGroupIsNotUnavailable(resourceName, new ReflectionException(e));
+            return new ResourceIsNotAvailable(resourceName, new ReflectionException(e));
         } catch (final JMException e) {
-            return new ResourceInGroupIsNotUnavailable(resourceName, e);
+            return new ResourceIsNotAvailable(resourceName, e);
         } catch (final IOException e) {
             return new ConnectionProblem(resourceName, e);
         }

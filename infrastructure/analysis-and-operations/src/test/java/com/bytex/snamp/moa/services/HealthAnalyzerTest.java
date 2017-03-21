@@ -8,7 +8,7 @@ import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
 import com.bytex.snamp.connector.attributes.checkers.NumberComparatorPredicate;
 import com.bytex.snamp.connector.supervision.InvalidAttributeValue;
 import com.bytex.snamp.connector.supervision.OkStatus;
-import com.bytex.snamp.connector.supervision.ResourceInGroupIsNotUnavailable;
+import com.bytex.snamp.connector.supervision.ResourceIsNotAvailable;
 import com.bytex.snamp.connector.supervision.triggers.InvalidTriggerException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -47,7 +47,7 @@ public final class HealthAnalyzerTest extends Assert {
         watcher.updateStatus(RESOURCE_NAME, singleton(new Attribute(ATTRIBUTE_NAME, 50)));
         assertTrue(watcher.getStatus() instanceof OkStatus);
         watcher.updateStatus(RESOURCE_NAME, new JMException());
-        assertTrue(watcher.getStatus() instanceof ResourceInGroupIsNotUnavailable);
+        assertTrue(watcher.getStatus() instanceof ResourceIsNotAvailable);
         watcher.removeResource(RESOURCE_NAME);
         assertTrue(watcher.getStatus() instanceof OkStatus);
     }

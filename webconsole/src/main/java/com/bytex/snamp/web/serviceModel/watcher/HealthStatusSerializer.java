@@ -35,8 +35,8 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
         output.put("attributeValue", new POJONode(status.getAttribute().getValue()));
     }
 
-    private static void serialize(final ResourceInGroupIsNotUnavailable status, final ObjectNode output) {
-        putCommonFields(status, "ResourceInGroupIsNotUnavailable", output);
+    private static void serialize(final ResourceIsNotAvailable status, final ObjectNode output) {
+        putCommonFields(status, "ResourceIsNotAvailable", output);
         output.put("error", status.getError().getLocalizedMessage());
     }
 
@@ -52,8 +52,8 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
             serialize((OkStatus) status, node);
         else if (status instanceof InvalidAttributeValue)
             serialize((InvalidAttributeValue) status, node);
-        else if (status instanceof ResourceInGroupIsNotUnavailable)
-            serialize((ResourceInGroupIsNotUnavailable) status, node);
+        else if (status instanceof ResourceIsNotAvailable)
+            serialize((ResourceIsNotAvailable) status, node);
         else if (status instanceof ConnectionProblem)
             serialize((ConnectionProblem) status, node);
         else if (status instanceof MalfunctionStatus) { //unknown status
