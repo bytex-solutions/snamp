@@ -194,7 +194,7 @@
                           Set type for attribute checker <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
-                          <select class="form-control" [(ngModel)]="activeChecker.language" id="checkerTypeSelect">
+                          <select class="form-control" [(ngModel)]="activeChecker.language" id="checkerTypeSelect" (ngModelChange)="selectCheckerType($event)">
                             <option *ngFor="let type of checkersType" [ngValue]="type.id">{{type.description}}</option>
                           </select>
                         </div>
@@ -300,17 +300,8 @@
               Component <span class="required">*</span>
           </label>
           <div class="col-md-3 col-sm-3 col-xs-12">
-            <select
-                    [(ngModel)]="selectedComponent"
-                    id="componentSelection"
-                    class="select2_group form-control">
-              <optgroup label="Components">
-                <option
-                        *ngFor="let component of components"
-                        [value]="selectedComponent">
-                  {{component}}
-                </option>
-              </optgroup>
+            <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="selectedComponent" id="componentSelection" (ngModelChange)="selectCurrentComponent($event)">
+              <option  *ngFor="let component of components" [ngValue]="component">{{component}}</option>
             </select>
           </div>
         </div>

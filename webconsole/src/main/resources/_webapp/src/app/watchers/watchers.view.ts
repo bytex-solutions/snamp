@@ -7,13 +7,13 @@ import { Factory } from './model/factory';
 import { Watcher } from './model/watcher';
 import { ScriptletDataObject } from './model/scriptlet.data.object';
 import { ColoredAttributePredicate } from './model/colored.predicate';
+import { ColoredAttributeChecker } from './model/colored.checker';
 
 import { Router } from '@angular/router';
 
 import { AttributeInformation } from '../charts/model/attribute';
 
 import 'rxjs/add/operator/publishLast';
-import 'select2';
 import 'smartwizard';
 
 import { overlayConfigFactory, Overlay } from "angular2-modal";
@@ -49,7 +49,6 @@ export class MainComponent implements OnInit {
 
     checkersType:EntityWithDescription[] = EntityWithDescription.generateCheckersTypes();
 
-
     triggerLanguages:string[] = [ "Groovy", "JavaScript" ];
 
     constructor(apiClient: ApiClient, private _router: Router, private modal: Modal,  overlay: Overlay, vcRef: ViewContainerRef) {
@@ -77,16 +76,7 @@ export class MainComponent implements OnInit {
             });
    }
 
-   ngAfterViewInit():void {
-        console.log("ng on init view for watchers setup... ");
-        var _thisReference = this;
-        $(document).ready(function(){
-             $("#componentSelection").select2();
-             $("#componentSelection").on('change', (e) => {
-                  _thisReference.selectCurrentComponent($(e.target).val());
-             });
-        });
-   }
+   ngAfterViewInit():void {}
 
    public initTriggerModal():void {
         // clean the data if the component was already initialized
@@ -163,6 +153,14 @@ export class MainComponent implements OnInit {
                 console.log("attributes: ", data);
             });
     }
+
+   public selectCheckerType(type:string):void {
+        if (type == "ColoredAttributeChecker") {
+            this.activeChecker.object = new ColoredAttributeChecker();
+        } else {
+            this.activeChecker.object = undefined;
+        }
+   }
 
    public cleanSelection():void {
         for (let i = 0; i < this.watchers.length; i++) {
