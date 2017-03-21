@@ -4,15 +4,11 @@ import com.bytex.snamp.connector.supervision.GroupStatusChangedEvent;
 import com.bytex.snamp.connector.supervision.GroupStatusEventListener;
 import com.bytex.snamp.connector.supervision.HealthStatus;
 import com.bytex.snamp.connector.supervision.HealthSupervisor;
-import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
-import com.bytex.snamp.web.serviceModel.WebConsoleService;
-import com.bytex.snamp.web.serviceModel.WebMessage;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-import javax.annotation.Nonnull;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -33,13 +29,12 @@ public final class GroupWatcherService extends AbstractWebConsoleService impleme
     public static final String URL_CONTEXT = '/' + NAME;
 
     @JsonTypeName("groupStatusChanged")
-    public static final class GroupStatusChangedMessage extends WebMessage{
+    public final class GroupStatusChangedMessage extends WebConsoleServiceMessage{
         private static final long serialVersionUID = -9201166624972276258L;
         private final HealthStatus previousStatus;
         private final HealthStatus newStatus;
 
-        private GroupStatusChangedMessage(final WebConsoleService source, final GroupStatusChangedEvent event) {
-            super(source);
+        private GroupStatusChangedMessage(final GroupStatusChangedEvent event) {
             this.previousStatus = event.getPreviousStatus();
             this.newStatus = event.getNewStatus();
         }
@@ -94,7 +89,7 @@ public final class GroupWatcherService extends AbstractWebConsoleService impleme
 
     @Override
     public void statusChanged(final GroupStatusChangedEvent event) {
-        forEachSession(session -> session.sendMessage(new GroupStatusChangedMessage(this, event)));
+        sendBroadcastMessage(new GroupStatusChangedMessage(event));
     }
 
     @Override

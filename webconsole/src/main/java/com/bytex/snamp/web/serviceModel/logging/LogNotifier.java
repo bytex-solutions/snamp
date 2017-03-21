@@ -73,7 +73,7 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
     @Override
     public void doAppend(final PaxLoggingEvent entry) {
         if (isInitialized() && logNotFromWebConsole(entry))
-            forEachSession(session -> doAppend(session, entry), executor);
+            forEachSession(this, (notifier, session) -> notifier.doAppend(session, entry), executor);
     }
 
     @Override

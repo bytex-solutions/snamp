@@ -234,7 +234,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,

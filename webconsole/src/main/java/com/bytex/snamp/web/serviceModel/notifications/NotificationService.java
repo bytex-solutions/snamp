@@ -7,7 +7,7 @@ import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.NotificationSerializer;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
-import com.bytex.snamp.web.serviceModel.WebMessage;
+import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.osgi.framework.BundleContext;
@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 import javax.management.ListenerNotFoundException;
 import javax.management.Notification;
 import javax.management.NotificationListener;
+import javax.ws.rs.Path;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -27,16 +28,17 @@ import java.util.logging.Logger;
 /**
  * Provides delivery of all notifications to the web console.
  */
+@Path("/")
 public final class NotificationService extends AbstractPrincipalBoundedService<NotificationSettings> implements NotificationListener, ServiceListener {
     public static final String NAME = "notifications";
     public static final String URL_CONTEXT = '/' + NAME;
 
     @JsonTypeName("resourceNotification")
-    public static final class NotificationMessage extends WebMessage{
+    public final class NotificationMessage extends WebConsoleServiceMessage{
+        private static final long serialVersionUID = -9189834497935677635L;
         private final Notification notification;
 
-        private NotificationMessage(final NotificationService source, final Notification notification) {
-            super(source);
+        private NotificationMessage(final Notification notification) {
             this.notification = Objects.requireNonNull(notification);
         }
 
@@ -119,13 +121,15 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         return new NotificationSettings();
     }
 
-    private void handleNotification(final NotificationSource sender, final Notification notification) {
+    private void handleNotification(final WebConsoleSession session, final NotificationSource sender, final Notification notification) {
         notification.setSource(sender.getResourceName());
-        forEachSession(session -> {
-            final NotificationSettings settings = getUserData(session);
-            if (settings.isNotificationEnabled(sender, notification))
-                session.sendMessage(new NotificationMessage(this, notification));
-        }, threadPool);
+        final NotificationSettings settings = getUserData(session);
+        if (settings.isNotificationEnabled(sender, notification))
+            session.sendMessage(new NotificationMessage(notification));
+    }
+
+    private void handleNotification(final NotificationSource sender, final Notification notification) {
+        forEachSession(this, (service, session) -> service.handleNotification(session, sender, notification), threadPool);
     }
 
     @Override

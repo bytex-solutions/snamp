@@ -1,9 +1,12 @@
 package com.bytex.snamp.web.serviceModel;
 
 import com.bytex.snamp.WeakEventListenerList;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
+import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -14,6 +17,25 @@ import java.util.function.Consumer;
 public abstract class AbstractWebConsoleService implements WebConsoleService {
     private final WeakEventListenerList<WebConsoleSession, WebMessage> listeners = WeakEventListenerList.create(WebConsoleSession::sendMessage);
     private final AtomicBoolean initialized = new AtomicBoolean(false);
+
+    protected class WebConsoleServiceMessage extends WebMessage {
+        private static final long serialVersionUID = 7176815454191529198L;
+
+        protected WebConsoleServiceMessage() {
+            super(AbstractWebConsoleService.this);
+        }
+
+        /**
+         * The object on which the Event initially occurred.
+         *
+         * @return The object on which the Event initially occurred.
+         */
+        @Override
+        @JsonIgnore
+        public WebConsoleService getSource() {
+            return AbstractWebConsoleService.this;
+        }
+    }
 
     @Override
     public final void attachSession(final WebConsoleSession listener) {
@@ -33,6 +55,26 @@ public abstract class AbstractWebConsoleService implements WebConsoleService {
     protected final void forEachSession(final Consumer<? super WebConsoleSession> sessionConsumer, final Executor executor) {
         listeners.parallelForEach(sessionConsumer, executor);
     }
+
+    protected static <S extends AbstractWebConsoleService> void forEachSession(final S service,
+                                                                              final BiConsumer<? super S, ? super WebConsoleSession> sessionHandler,
+                                                                              final Executor executor) {
+        final class WebConsoleSessionTask extends WeakReference<S> implements Consumer<WebConsoleSession> {
+            private WebConsoleSessionTask() {
+                super(service);
+            }
+
+            @Override
+            public void accept(final WebConsoleSession session) {
+                final S service = get();
+                if (service != null)
+                    sessionHandler.accept(service, session);
+                clear();
+            }
+        }
+        service.forEachSession(new WebConsoleSessionTask(), executor);
+    }
+
     /**
      * Initializes this service.
      * <p />

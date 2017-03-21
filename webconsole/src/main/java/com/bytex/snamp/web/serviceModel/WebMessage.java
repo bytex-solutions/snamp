@@ -34,7 +34,7 @@ public abstract class WebMessage extends EventObject {
      */
     @Override
     @JsonIgnore
-    public final WebConsoleService getSource() {
+    public WebConsoleService getSource() {
         return (WebConsoleService) super.getSource();
     }
 }
