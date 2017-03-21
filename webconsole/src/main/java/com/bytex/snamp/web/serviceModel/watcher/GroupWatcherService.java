@@ -1,7 +1,7 @@
 package com.bytex.snamp.web.serviceModel.watcher;
 
-import com.bytex.snamp.connector.supervision.GroupStatusChangedEvent;
-import com.bytex.snamp.connector.supervision.GroupStatusEventListener;
+import com.bytex.snamp.connector.supervision.HealthStatusChangedEvent;
+import com.bytex.snamp.connector.supervision.HealthStatusEventListener;
 import com.bytex.snamp.connector.supervision.HealthStatus;
 import com.bytex.snamp.connector.supervision.HealthSupervisor;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
@@ -24,7 +24,7 @@ import java.util.Set;
  * @version 2.0
  */
 @Path("/")
-public final class GroupWatcherService extends AbstractWebConsoleService implements GroupStatusEventListener {
+public final class GroupWatcherService extends AbstractWebConsoleService implements HealthStatusEventListener {
     public static final String NAME = "groupWatcher";
     public static final String URL_CONTEXT = '/' + NAME;
 
@@ -34,7 +34,7 @@ public final class GroupWatcherService extends AbstractWebConsoleService impleme
         private final HealthStatus previousStatus;
         private final HealthStatus newStatus;
 
-        private GroupStatusChangedMessage(final GroupStatusChangedEvent event) {
+        private GroupStatusChangedMessage(final HealthStatusChangedEvent event) {
             this.previousStatus = event.getPreviousStatus();
             this.newStatus = event.getNewStatus();
         }
@@ -89,7 +89,7 @@ public final class GroupWatcherService extends AbstractWebConsoleService impleme
     }
 
     @Override
-    public void statusChanged(final GroupStatusChangedEvent event) {
+    public void statusChanged(final HealthStatusChangedEvent event) {
         sendBroadcastMessage(new GroupStatusChangedMessage(event));
     }
 

@@ -31,11 +31,11 @@ public interface HealthSupervisor extends FrameworkService, DataAnalyzer {
      * Adds listener of health status.
      * @param listener Listener of health status to add.
      */
-    void addHealthStatusEventListener(final GroupStatusEventListener listener);
+    void addHealthStatusEventListener(final HealthStatusEventListener listener);
 
     /**
      * Removes listener of health status.
      * @param listener Listener of health status to remove.
      */
-    void removeHealthStatusEventListener(final GroupStatusEventListener listener);
+    void removeHealthStatusEventListener(final HealthStatusEventListener listener);
 }

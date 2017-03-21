@@ -29,11 +29,11 @@ import java.util.function.Function;
  * @version 2.0
  * @since 2.0
  */
-final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener> implements Stateful, SafeCloseable {
+final class UpdatableGroupWatcher extends WeakReference<HealthStatusEventListener> implements Stateful, SafeCloseable {
     private static final AttributeCheckerFactory CHECKER_FACTORY = new AttributeCheckerFactory();
     private static final TriggerFactory TRIGGER_FACTORY = new TriggerFactory();
 
-    private static final class StatusChangedEvent extends GroupStatusChangedEvent {
+    private static final class StatusChangedEvent extends HealthStatusChangedEvent {
         private static final long serialVersionUID = -6608026114593286031L;
         private final HealthStatus previousStatus;
         private final HealthStatus newStatus;
@@ -67,7 +67,7 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
     private final HealthStatusTrigger trigger;
 
     UpdatableGroupWatcher(final ManagedResourceGroupWatcherConfiguration configuration,
-                          final GroupStatusEventListener statusListener) throws InvalidAttributeCheckerException, InvalidTriggerException {
+                          final HealthStatusEventListener statusListener) throws InvalidAttributeCheckerException, InvalidTriggerException {
         super(statusListener);
         status = new OkStatus();
         this.attributeCheckers = new ConcurrentHashMap<>(15);
@@ -121,7 +121,7 @@ final class UpdatableGroupWatcher extends WeakReference<GroupStatusEventListener
                 return;
             status = newStatus;
         }
-        final GroupStatusEventListener listener = get();
+        final HealthStatusEventListener listener = get();
         if (listener != null)
             listener.statusChanged(new StatusChangedEvent(this, newStatus, prevStatus));
     }

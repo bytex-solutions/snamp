@@ -7,8 +7,8 @@ import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
-import com.bytex.snamp.connector.supervision.GroupStatusChangedEvent;
-import com.bytex.snamp.connector.supervision.GroupStatusEventListener;
+import com.bytex.snamp.connector.supervision.HealthStatusChangedEvent;
+import com.bytex.snamp.connector.supervision.HealthStatusEventListener;
 import com.bytex.snamp.connector.supervision.HealthStatus;
 import com.bytex.snamp.connector.supervision.triggers.InvalidTriggerException;
 import com.bytex.snamp.core.LoggerProvider;
@@ -39,7 +39,7 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> implements HealthAnalyzer, GroupStatusEventListener {
+final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> implements HealthAnalyzer, HealthStatusEventListener {
     private enum ResourceGroup{
         ATTRIBUTES,
         WATCHERS,
@@ -87,7 +87,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
     private StatusUpdater statusUpdater;
     private final ExecutorService threadPool;
     private final CMManagedResourceGroupWatcherParser watcherParser;
-    private final WeakEventListenerList<GroupStatusEventListener, GroupStatusChangedEvent> statusListeners;
+    private final WeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent> statusListeners;
 
     HealthAnalyzerImpl(final ExecutorService threadPool, final CMManagedResourceGroupWatcherParser watcherParser) {
         super(ResourceGroup.class, ResourceGroup.ATTRIBUTES);
@@ -95,7 +95,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         this.threadPool = Objects.requireNonNull(threadPool);
         this.watcherParser = Objects.requireNonNull(watcherParser);
         watchers = new HashMap<>();
-        statusListeners = WeakEventListenerList.create(GroupStatusEventListener::statusChanged);
+        statusListeners = WeakEventListenerList.create(HealthStatusEventListener::statusChanged);
     }
 
     @Nonnull
@@ -210,7 +210,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
      * @param listener Listener of health status to add.
      */
     @Override
-    public void addHealthStatusEventListener(final GroupStatusEventListener listener) {
+    public void addHealthStatusEventListener(final HealthStatusEventListener listener) {
         statusListeners.add(listener);
     }
 
@@ -220,12 +220,12 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
      * @param listener Listener of health status to remove.
      */
     @Override
-    public void removeHealthStatusEventListener(final GroupStatusEventListener listener) {
+    public void removeHealthStatusEventListener(final HealthStatusEventListener listener) {
         statusListeners.remove(listener);
     }
 
     @Override
-    public void statusChanged(final GroupStatusChangedEvent event) {
+    public void statusChanged(final HealthStatusChangedEvent event) {
         statusListeners.fire(event);
 
     }

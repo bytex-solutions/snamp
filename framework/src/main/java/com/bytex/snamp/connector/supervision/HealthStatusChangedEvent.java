@@ -7,7 +7,7 @@ import java.util.EventObject;
  * @version 2.0
  * @since 2.0
  */
-public abstract class GroupStatusChangedEvent extends EventObject {
+public abstract class HealthStatusChangedEvent extends EventObject {
     private static final long serialVersionUID = 2442700408424867171L;
 
     /**
@@ -16,7 +16,7 @@ public abstract class GroupStatusChangedEvent extends EventObject {
      * @param source The object on which the Event initially occurred.
      * @throws IllegalArgumentException if source is null.
      */
-    protected GroupStatusChangedEvent(final Object source) {
+    protected HealthStatusChangedEvent(final Object source) {
         super(source);
     }
 

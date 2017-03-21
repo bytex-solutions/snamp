@@ -9,6 +9,6 @@ import java.util.EventListener;
  * @since 2.0
  */
 @FunctionalInterface
-public interface GroupStatusEventListener extends EventListener {
-    void statusChanged(final GroupStatusChangedEvent event);
+public interface HealthStatusEventListener extends EventListener {
+    void statusChanged(final HealthStatusChangedEvent event);
 }
