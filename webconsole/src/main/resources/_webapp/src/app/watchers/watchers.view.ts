@@ -197,6 +197,7 @@ export class MainComponent implements OnInit {
 
    public editWatcher(watcher:Watcher):void {
         this.activeWatcher = watcher;
+        this.copyWatcher = watcher;
         this.isNewEntity = false;
         this.selectedComponent = watcher.name;
         this.loadAttributesOnComponentSelected();

@@ -38,16 +38,16 @@
 
 <div *ngIf="isRangeType()">
     <div class="item form-inline">
-        <input type="text" class="form-control col-md-3 col-sm-3 col-xs-4" [(ngModel)]="entity.rangeEnd"/>
-        <select class="form-control col-md-1 col-sm-1 col-xs-1 col-md-offset-1" [(ngModel)]="entity.isRangeEndInclusive">
+        <input type="text" class="form-control col-md-2 col-sm-2 col-xs-2" [(ngModel)]="entity.rangeEnd"/>
+        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeEndInclusive">
             <option *ngFor="let operator of rangeOperators" [ngValue]="operator.id">{{operator.description}}</option>
         </select>
-        <label class="control-label col-md-2 col-sm-2 col-xs-2 col-md-offset-1" style="margin-top: 7px;">
+        <label class="control-label col-md-1 col-sm-1 col-xs-1" style="margin-top: 7px;">
             value
         </label>
-        <select class="form-control col-md-1 col-sm-1 col-xs-1 col-md-offset-1" [(ngModel)]="entity.isRangeStartInclusive">
+        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeStartInclusive">
             <option *ngFor="let operator of rangeOperators" [ngValue]="operator.id">{{operator.description}}</option>
         </select>
-        <input type="text" class="form-control col-md-3 col-sm-3 col-xs-4 col-md-offset-1" [(ngModel)]="entity.rangeStart"/>
+        <input type="text" class="form-control col-md-2 col-sm-2 col-xs-2" [(ngModel)]="entity.rangeStart"/>
     </div>
 </div>

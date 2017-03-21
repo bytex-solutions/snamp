@@ -33,13 +33,13 @@ export class ColoredCondition {
 
     public onTypeChange(event:string):void {
          switch (event) {
-             case ColoredAttributePredicate.CONSTANT:
+             case "ConstantAttributePredicate":
                 this.entity = new ConstantAttributePredicate();
                 break;
-             case ColoredAttributePredicate.COMPARATOR:
+             case "NumberComparatorPredicate":
                  this.entity = new NumberComparatorPredicate();
                  break;
-             case ColoredAttributePredicate.RANGE:
+             case "IsInRangePredicate":
                  this.entity = new IsInRangePredicate();
                  break;
              default:
@@ -69,9 +69,9 @@ export class EntityWithDescription {
 
     public static generateConditionsTypes():EntityWithDescription[] {
         let _value:EntityWithDescription[] = [];
-        _value.push(new EntityWithDescription(ColoredAttributePredicate.CONSTANT, "Boolean constant"));
-        _value.push(new EntityWithDescription(ColoredAttributePredicate.COMPARATOR, "Compare with certain value"));
-        _value.push(new EntityWithDescription(ColoredAttributePredicate.RANGE, "Range comparator"));
+        _value.push(new EntityWithDescription("ConstantAttributePredicate", "Boolean constant"));
+        _value.push(new EntityWithDescription("NumberComparatorPredicate", "Compare with certain value"));
+        _value.push(new EntityWithDescription("IsInRangePredicate", "Range comparator"));
         return _value;
     }
 
