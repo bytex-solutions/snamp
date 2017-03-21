@@ -653,8 +653,12 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     private void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups) {
-        final ManagedResourceGroupConfiguration group = groups.getOrAdd(GROUP_NAME);
+        ManagedResourceGroupConfiguration group = groups.getOrAdd(GROUP_NAME);
         fillJmxAttributes(group.getFeatures(AttributeConfiguration.class));
+
+        group = groups.getOrAdd(GROUP2_NAME);
+        fillAlternativeJmxAttributes(group.getFeatures(AttributeConfiguration.class));
+
     }
 
     private void fillWatchers(final EntityMap<? extends ManagedResourceGroupWatcherConfiguration> watchers){
@@ -748,6 +752,22 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         attribute.setUnitOfMeasurement("MBytes");
         attribute.setDescription("Used amount of memory, in megabytes");
         attribute.setAlternativeName("bigint");
+
+        attribute = attributes.getOrAdd("CPU");
+        attribute.setUnitOfMeasurement("%");
+        attribute.setDescription("CPU utilization");
+        attribute.setAlternativeName("float");
+    }
+
+    private static void fillAlternativeJmxAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("available");
+        attribute.setDescription("Is service available?");
+        attribute.setAlternativeName("boolean");
+
+        attribute = attributes.getOrAdd("diskSpace");
+        attribute.setUnitOfMeasurement("MB");
+        attribute.setDescription("Volume of the available disk space");
+        attribute.setAlternativeName("int32");
 
         attribute = attributes.getOrAdd("CPU");
         attribute.setUnitOfMeasurement("%");
