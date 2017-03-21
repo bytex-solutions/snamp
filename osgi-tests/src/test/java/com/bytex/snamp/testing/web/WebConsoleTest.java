@@ -657,8 +657,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         fillJmxAttributes(group.getFeatures(AttributeConfiguration.class));
 
         group = groups.getOrAdd(GROUP2_NAME);
-        fillAlternativeJmxAttributes(group.getFeatures(AttributeConfiguration.class));
-
+        //fillAlternativeJmxAttributes(group.getFeatures(AttributeConfiguration.class));
+        fillSpanEvents(group.getFeatures(EventConfiguration.class));
     }
 
     private void fillWatchers(final EntityMap<? extends ManagedResourceGroupWatcherConfiguration> watchers){
@@ -723,7 +723,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource = resources.getOrAdd(FIFTH_RESOURCE_NAME);
         resource.setGroupName(GROUP2_NAME);
         resource.setType(HTTP_ACCEPTOR_TYPE);
-        fillSpanEvents(resource.getFeatures(EventConfiguration.class));
+        //events are configured through group configuration
 
         resource = resources.getOrAdd(SIXTH_RESOURCE_NAME);
         resource.setGroupName(GROUP3_NAME);
