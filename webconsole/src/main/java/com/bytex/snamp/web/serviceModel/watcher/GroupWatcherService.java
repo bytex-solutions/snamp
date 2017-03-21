@@ -77,6 +77,7 @@ public final class GroupWatcherService extends AbstractWebConsoleService impleme
 
     @GET
     @Path("/groups/status")
+    @Produces(MediaType.APPLICATION_JSON)
     public StatusOfGroups getStatus() {
         final StatusOfGroups result = new StatusOfGroups();
         for (final String groupName : supervisor.getWatchingGroups()) {

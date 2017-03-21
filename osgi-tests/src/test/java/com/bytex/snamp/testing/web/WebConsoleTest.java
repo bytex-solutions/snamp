@@ -407,8 +407,11 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void watcherTest() throws IOException {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode groups = httpGet("/groupWatcher/groups", authenticationToken);
-        assertEquals(1, groups.size());
+        JsonNode result = httpGet("/groupWatcher/groups", authenticationToken);
+        assertEquals(1, result.size());
+        assertEquals(GROUP_NAME, result.get(0).asText());
+        result = httpGet("/groupWatcher/groups/status", authenticationToken);
+        assertNotNull(result);
     }
 
     @Test
