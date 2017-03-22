@@ -274,7 +274,7 @@
                             </div>
                             <div id="collapseYellow" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                               <div class="panel-body">
-                                <coloredCondition [entity]="activeChecker.object.yellow" (notify)="g($event)"></coloredCondition>
+                                <coloredCondition [entity]="activeChecker.object.yellow" (notify)="onYellowNotify($event)"></coloredCondition>
                               </div>
                             </div>
                           </div>
@@ -308,12 +308,17 @@
           </div>
         </div>
 
+        <div class="row row-margin-bottom-sm" *ngIf="attributes && attributes.length > 0">
+          <h5>Selected group does not contain attributes - please select another component or set some attributes</h5>
+        </div>
+
         <div class="row row-margin-bottom-sm">
           <label class="control-label col-md-3 col-sm-3 col-xs-12" for="componentSelection" style="margin-top:10px;">
             Trigger
           </label>
           <div class="col-md-4 col-sm-4 col-xs-12">
             <button class="btn btn-primary"
+                    [disabled]="attributes && attributes.length > 0"
                     (click)="initTriggerModal()"
                     aria-hidden="true"> Edit trigger
             </button>
@@ -326,6 +331,7 @@
           </label>
           <div class="col-md-4 col-sm-4 col-xs-12">
             <button class="btn btn-primary"
+                    [disabled]="attributes && attributes.length > 0"
                     (click)="initCheckersModal()"
                     aria-hidden="true"> Edit checkers
             </button>
@@ -334,7 +340,7 @@
 
         <div class="row" style="margin-top: 20px;">
             <div style="float:right">
-              <button class="btn btn-sm btn-primary" (click)="saveActiveWatcher()">Save</button>
+              <button class="btn btn-sm btn-primary" (click)="saveActiveWatcher()" [disabled]="attributes && attributes.length > 0">Save</button>
               <button class="btn btn-sm" (click)="cleanSelection()">Cancel/clean</button>
             </div>
         </div>
