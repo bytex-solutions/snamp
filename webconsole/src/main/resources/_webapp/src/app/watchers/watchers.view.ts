@@ -57,11 +57,12 @@ export class MainComponent implements OnInit {
    }
 
    saveCurrentTrigger():void {
-        console.log(this.activeWatcher);
+        console.log("Trigger has been saved: ", this.activeWatcher);
    }
 
    saveCurrentChecker():void {
         console.log(this.activeChecker);
+        this.activeWatcher.attributeCheckers[this.selectedAttribute.name] = this.activeChecker;
    }
 
    ngOnInit():void {

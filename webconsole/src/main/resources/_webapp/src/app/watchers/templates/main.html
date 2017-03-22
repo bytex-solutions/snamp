@@ -203,7 +203,7 @@
 
 
                     <div id="checkerBody" class="row" style="margin-top: 5px;">
-                      <div *ngIf="activeChecker?.language != 'ColoredAttributeChecker'">
+                      <div *ngIf="activeChecker?.language != 'ColoredAttributeChecker'" style="margin-top: 20px;">
 
                         <div class="item form-group" style="margin-bottom: 15px;">
                           <label
@@ -274,7 +274,7 @@
                             </div>
                             <div id="collapseYellow" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                               <div class="panel-body">
-                                <coloredCondition [entity]="activeChecker.object.yellow" (notify)="onYellowNotify($event)"></coloredCondition>
+                                <coloredCondition [entity]="activeChecker.object.yellow" (notify)="g($event)"></coloredCondition>
                               </div>
                             </div>
                           </div>
