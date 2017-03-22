@@ -60,6 +60,10 @@ export class MainComponent implements OnInit {
         console.log(this.activeWatcher);
    }
 
+   saveCurrentChecker():void {
+        console.log(this.activeChecker);
+   }
+
    ngOnInit():void {
         // load the list of watchers
         this.http.get(REST.WATCHERS_LIST)

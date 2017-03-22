@@ -293,14 +293,16 @@
         </div>
       </div>
 
-      <panel [header]="getPanelHeader()" [column]="'12'" *ngIf="activeWatcher != undefined">
+      <div class="col-md-6 col-sm-6 col-xs-12"></div>
+
+      <panel [header]="getPanelHeader()" [column]="'6'" *ngIf="activeWatcher != undefined">
 
         <div class="row row-margin-bottom-sm">
           <label class="control-label col-md-3 col-sm-3 col-xs-12" for="componentSelection" style="margin-top:10px;">
               Component <span class="required">*</span>
           </label>
-          <div class="col-md-3 col-sm-3 col-xs-12">
-            <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="selectedComponent" id="componentSelection" (ngModelChange)="selectCurrentComponent($event)">
+          <div class="col-md-9 col-sm-9 col-xs-12">
+            <select class="form-control" [(ngModel)]="selectedComponent" id="componentSelection" (ngModelChange)="selectCurrentComponent($event)">
               <option  *ngFor="let component of components" [ngValue]="component">{{component}}</option>
             </select>
           </div>
@@ -310,7 +312,7 @@
           <label class="control-label col-md-3 col-sm-3 col-xs-12" for="componentSelection" style="margin-top:10px;">
             Trigger
           </label>
-          <div class="col-md-1 col-sm-1 col-xs-12">
+          <div class="col-md-4 col-sm-4 col-xs-12">
             <button class="btn btn-primary"
                     (click)="initTriggerModal()"
                     aria-hidden="true"> Edit trigger
@@ -322,7 +324,7 @@
           <label class="control-label col-md-3 col-sm-3 col-xs-12" for="componentSelection" style="margin-top:10px;">
             Checkers
           </label>
-          <div class="col-md-3 col-sm-3 col-xs-12">
+          <div class="col-md-4 col-sm-4 col-xs-12">
             <button class="btn btn-primary"
                     (click)="initCheckersModal()"
                     aria-hidden="true"> Edit checkers
@@ -331,7 +333,7 @@
         </div>
 
         <div class="row" style="margin-top: 20px;">
-            <div class="col-md-4">
+            <div style="float:right">
               <button class="btn btn-sm btn-primary" (click)="saveActiveWatcher()">Save</button>
               <button class="btn btn-sm" (click)="cleanSelection()">Cancel/clean</button>
             </div>
