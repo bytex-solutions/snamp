@@ -16,7 +16,7 @@
                 style="margin-top: 7px;">
             Value is <span class="required">*</span>
         </label>
-        <select class="form-control col-md-1 col-sm-1 col-xs-4" [(ngModel)]="entity.value">
+        <select class="form-control col-md-1 col-sm-1 col-xs-4" [(ngModel)]="entity.value" (ngModelChange)="onAnyChange()">
             <option *ngFor="let exp of constantExpressions" [ngValue]="exp.id">{{exp.description}}</option>
         </select>
     </div>
@@ -29,25 +29,25 @@
                 style="margin-top: 7px;">
             Value
         </label>
-        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.operator">
+        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.operator" (ngModelChange)="onAnyChange()">
             <option *ngFor="let operator of operators" [ngValue]="operator.id">{{operator.description}}</option>
         </select>
-        <input type="text" class="form-control col-md-offset-1 col-md-3 col-sm-3 col-xs-6" [(ngModel)]="entity.value"/>
+        <input type="text" class="form-control col-md-offset-1 col-md-3 col-sm-3 col-xs-6" [(ngModel)]="entity.value" (ngModelChange)="onAnyChange()"/>
     </div>
 </div>
 
 <div *ngIf="isRangeType()">
     <div class="item form-inline">
-        <input type="text" class="form-control col-md-2 col-sm-2 col-xs-2" [(ngModel)]="entity.rangeEnd"/>
-        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeEndInclusive">
+        <input type="text" class="form-control col-md-2 col-sm-2 col-xs-2" [(ngModel)]="entity.rangeEnd" (ngModelChange)="onAnyChange()"/>
+        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeEndInclusive" (ngModelChange)="onAnyChange()">
             <option *ngFor="let operator of rangeOperators" [ngValue]="operator.id">{{operator.description}}</option>
         </select>
         <label class="control-label col-md-1 col-sm-1 col-xs-1" style="margin-top: 7px;">
             value
         </label>
-        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeStartInclusive">
+        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeStartInclusive" (ngModelChange)="onAnyChange()">
             <option *ngFor="let operator of rangeOperators" [ngValue]="operator.id">{{operator.description}}</option>
         </select>
-        <input type="text" class="form-control col-md-2 col-sm-2 col-xs-2" [(ngModel)]="entity.rangeStart"/>
+        <input type="text" class="form-control col-md-2 col-sm-2 col-xs-2" [(ngModel)]="entity.rangeStart" (ngModelChange)="onAnyChange()"/>
     </div>
 </div>

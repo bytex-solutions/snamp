@@ -252,6 +252,16 @@ export class MainComponent implements OnInit {
         this.selectedComponent = "";
     }
 
+    public onGreenNotify(event:ColoredAttributePredicate):void {
+        this.activeChecker.object.green = event;
+        console.log("Saved green condition: ", event);
+    }
+
+    public onYellowNotify(event:ColoredAttributePredicate):void {
+        this.activeChecker.object.yellow = event;
+        console.log("Saved yellow condition: ", event);
+    }
+
 }
 
 export class EntityWithDescription {

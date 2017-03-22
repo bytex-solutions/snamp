@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { ColoredAttributePredicate } from '../model/colored.predicate';
 
 import { ConstantAttributePredicate } from '../model/constant.attribute.predicate';
@@ -12,7 +12,9 @@ import { IsInRangePredicate } from '../model/range.comparator';
 })
 export class ColoredCondition {
     @Input() entity: ColoredAttributePredicate = undefined;
-    @Input() entityType: string = "";
+    @Output() notify: EventEmitter<ColoredAttributePredicate> = new EventEmitter<ColoredAttributePredicate>();
+
+    entityType: string = "";
 
     conditionsType:EntityWithDescription[] = EntityWithDescription.generateConditionsTypes();
     constantExpressions:EntityWithDescription[] = EntityWithDescription.generateTrueFalseTypes();
@@ -46,6 +48,11 @@ export class ColoredCondition {
                 throw new Error("Could not recognize yellow checker type: " + event);
         }
         this.entityType = event;
+        this.notify.emit(this.entity);
+    }
+
+    public onAnyChange():void {
+        this.notify.emit(this.entity);
     }
 
     ngOnInit():void {
