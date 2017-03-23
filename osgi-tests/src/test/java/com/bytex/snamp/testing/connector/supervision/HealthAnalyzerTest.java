@@ -8,7 +8,7 @@ import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
 import com.bytex.snamp.connector.attributes.checkers.NumberComparatorPredicate;
 import com.bytex.snamp.connector.supervision.HealthStatus;
-import com.bytex.snamp.connector.supervision.HealthSupervisor;
+import com.bytex.snamp.connector.supervision.HealthStatusProvider;
 import com.bytex.snamp.connector.supervision.InvalidAttributeValue;
 import com.bytex.snamp.connector.supervision.OkStatus;
 import com.bytex.snamp.core.ServiceHolder;
@@ -46,7 +46,7 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
 
     @Test
     public void coloredCheckerTest() throws JMException, InterruptedException {
-        final ServiceHolder<HealthSupervisor> supervisor = ServiceHolder.tryCreate(getTestBundleContext(), HealthSupervisor.class);
+        final ServiceHolder<HealthStatusProvider> supervisor = ServiceHolder.tryCreate(getTestBundleContext(), HealthStatusProvider.class);
         assertNotNull(supervisor);
         try{
             assertTrue(supervisor.get().getWatchingGroups().contains(GROUP_NAME));
@@ -76,7 +76,7 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
 
     @Test
     public void groovyCheckerTest() throws JMException, InterruptedException {
-        final ServiceHolder<HealthSupervisor> supervisor = ServiceHolder.tryCreate(getTestBundleContext(), HealthSupervisor.class);
+        final ServiceHolder<HealthStatusProvider> supervisor = ServiceHolder.tryCreate(getTestBundleContext(), HealthStatusProvider.class);
         assertNotNull(supervisor);
         try {
             assertTrue(supervisor.get().getWatchingGroups().contains(GROUP_NAME));

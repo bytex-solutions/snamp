@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.attributes;
 
 import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.connector.ManagedResourceAggregatedService;
 
 import javax.management.*;
 import java.util.Collection;
@@ -25,7 +26,7 @@ import java.util.Set;
  * @version 2.0
  * @since 1.0
  */
-public interface AttributeSupport {
+public interface AttributeSupport extends ManagedResourceAggregatedService {
     /**
      * The name of field in {@link javax.management.Descriptor} which contains
      * the name of the attribute.

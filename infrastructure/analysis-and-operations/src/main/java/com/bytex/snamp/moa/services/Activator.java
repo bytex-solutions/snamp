@@ -4,7 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
-import com.bytex.snamp.connector.supervision.HealthSupervisor;
+import com.bytex.snamp.connector.supervision.HealthStatusProvider;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.moa.DataAnalyzer;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
@@ -58,7 +58,7 @@ public final class Activator extends AbstractServiceLibrary {
 
     private static final class HealthAnalyzerProvider extends AnalyticalServiceProvider<HealthAnalyzer, HealthAnalyzerImpl>{
         HealthAnalyzerProvider(){
-            super(HealthAnalyzer.class, new RequiredService<?>[0], HealthSupervisor.class, ManagedService.class);
+            super(HealthAnalyzer.class, new RequiredService<?>[0], HealthStatusProvider.class, ManagedService.class);
         }
 
         @Override

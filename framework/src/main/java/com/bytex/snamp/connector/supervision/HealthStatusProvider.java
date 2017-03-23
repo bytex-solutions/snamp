@@ -12,7 +12,7 @@ import java.util.Set;
  * @version 2.0
  * @since 2.0
  */
-public interface HealthSupervisor extends FrameworkService, DataAnalyzer {
+public interface HealthStatusProvider extends FrameworkService, DataAnalyzer, SupervisorService {
     /**
      * Gets immutable set of groups configured for health check.
      * @return Immutable set of groups configured for health check.

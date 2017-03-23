@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.operations;
 
+import com.bytex.snamp.connector.ManagedResourceAggregatedService;
+
 import javax.management.MBeanException;
 import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
@@ -12,7 +14,7 @@ import java.util.Set;
  * @version 2.0
  * @since 1.0
  */
-public interface OperationSupport {
+public interface OperationSupport extends ManagedResourceAggregatedService {
     /**
      * The name of the field in operation descriptor indicating
      * that the operation is asynchronous and returns {@link com.google.common.util.concurrent.ListenableFuture}

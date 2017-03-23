@@ -1,7 +1,6 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
-import com.bytex.snamp.connector.supervision.HealthSupervisor;
+import com.bytex.snamp.connector.supervision.HealthStatusProvider;
 import org.osgi.service.cm.ManagedService;
 
 import javax.annotation.Nonnull;
@@ -12,7 +11,7 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-interface HealthAnalyzer extends HealthSupervisor, ManagedService {
+interface HealthAnalyzer extends HealthStatusProvider, ManagedService {
     String getPersistentID();
 
     @Nonnull

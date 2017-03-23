@@ -2,7 +2,7 @@ package com.bytex.snamp.web;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
-import com.bytex.snamp.connector.supervision.HealthSupervisor;
+import com.bytex.snamp.connector.supervision.HealthStatusProvider;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
@@ -63,14 +63,14 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
     private static final class GroupWatcherServiceProvider extends ProvidedService<WebConsoleService, GroupWatcherService>{
         private GroupWatcherServiceProvider(){
-            super(WebConsoleService.class, simpleDependencies(HealthSupervisor.class));
+            super(WebConsoleService.class, simpleDependencies(HealthStatusProvider.class));
         }
 
         @Override
         protected GroupWatcherService activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, GroupWatcherService.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, GroupWatcherService.URL_CONTEXT);
-            final HealthSupervisor supervisor = dependencies.getDependency(HealthSupervisor.class);
+            final HealthStatusProvider supervisor = dependencies.getDependency(HealthStatusProvider.class);
             return new GroupWatcherService(supervisor);
         }
 

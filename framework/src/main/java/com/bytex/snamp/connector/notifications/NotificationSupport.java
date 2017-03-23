@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.notifications;
 
 
 import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.connector.ManagedResourceAggregatedService;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
@@ -18,7 +19,7 @@ import java.util.Set;
  * @version 2.0
  * @since 1.0
  */
-public interface NotificationSupport extends NotificationBroadcaster {
+public interface NotificationSupport extends NotificationBroadcaster, ManagedResourceAggregatedService {
 
     /**
      * The name of the field in {@link javax.management.Descriptor}

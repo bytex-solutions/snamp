@@ -25,7 +25,8 @@ public interface ManagedResourceGroupSupervisor extends FrameworkService {
      * @param objectType Type of supervisor service. Cannot be {@literal null}.
      * @param <T> Type of supervisor service.
      * @return Supervisor service; or {@literal null} if service is not supported.
-     * @see HealthSupervisor
+     * @see HealthStatusProvider
+     * @see ElasticityManager
      */
     @Override
     <T> T queryObject(@Nonnull final Class<T> objectType);

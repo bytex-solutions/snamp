@@ -3,7 +3,7 @@
  * <ul>
  *     <li>{@link com.bytex.snamp.connector.supervision.HealthCheckSupport} can be implemented by {@link com.bytex.snamp.connector.ManagedResourceConnector} to provide
  *     health information about individual managed resource in real-time.</li>
- *     <li>{@link com.bytex.snamp.connector.supervision.HealthSupervisor} used to supervise status of the group of managed resources.</li>
+ *     <li>{@link com.bytex.snamp.connector.supervision.HealthStatusProvider} used to supervise status of the group of managed resources.</li>
  * </ul>
  * @author Roman Sakno
  * @version 2.0

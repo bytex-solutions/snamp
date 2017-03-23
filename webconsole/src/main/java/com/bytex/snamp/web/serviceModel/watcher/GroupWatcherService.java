@@ -3,7 +3,7 @@ package com.bytex.snamp.web.serviceModel.watcher;
 import com.bytex.snamp.connector.supervision.HealthStatusChangedEvent;
 import com.bytex.snamp.connector.supervision.HealthStatusEventListener;
 import com.bytex.snamp.connector.supervision.HealthStatus;
-import com.bytex.snamp.connector.supervision.HealthSupervisor;
+import com.bytex.snamp.connector.supervision.HealthStatusProvider;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
@@ -57,9 +57,9 @@ public final class GroupWatcherService extends AbstractWebConsoleService impleme
         private static final long serialVersionUID = 2645921325913575632L;
     }
 
-    private final HealthSupervisor supervisor;
+    private final HealthStatusProvider supervisor;
 
-    public GroupWatcherService(final HealthSupervisor supervisor){
+    public GroupWatcherService(final HealthStatusProvider supervisor){
         this.supervisor = Objects.requireNonNull(supervisor);
     }
 
