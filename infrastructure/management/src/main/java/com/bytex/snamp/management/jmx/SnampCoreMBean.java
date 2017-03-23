@@ -8,6 +8,7 @@ import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogService;
 
+import javax.annotation.Nonnull;
 import javax.management.openmbean.OpenDataException;
 import java.time.Duration;
 
@@ -72,7 +73,7 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(final Class<T> objectType) {
+    public <T> T queryObject(@Nonnull final Class<T> objectType) {
         return objectType.isInstance(this) ? objectType.cast(this) : null;
     }
 }

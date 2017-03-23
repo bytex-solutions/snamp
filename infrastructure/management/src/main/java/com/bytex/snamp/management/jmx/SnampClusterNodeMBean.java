@@ -7,6 +7,8 @@ import com.bytex.snamp.jmx.FrameworkMBean;
 import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.management.SnampManagerImpl;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Roman Sakno
  * @version 2.0
@@ -36,7 +38,7 @@ public final class SnampClusterNodeMBean extends OpenMBean implements FrameworkM
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(final Class<T> objectType) {
+    public <T> T queryObject(@Nonnull final Class<T> objectType) {
         return objectType.isInstance(this) ? objectType.cast(this) : aggregator.queryObject(objectType);
     }
 }

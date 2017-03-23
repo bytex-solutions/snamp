@@ -6,6 +6,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import groovy.lang.GroovyObjectSupport;
 
+import javax.annotation.Nonnull;
+
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
@@ -17,8 +19,8 @@ public abstract class GroovyManagementModel extends GroovyObjectSupport implemen
     private final Cache<String, GroovyManagedResource> cache = CacheBuilder.newBuilder().maximumSize(15).build();
 
     @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return objectType != null && objectType.isInstance(this) ? objectType.cast(this) : null;
+    public <T> T queryObject(@Nonnull final Class<T> objectType) {
+        return objectType.isInstance(this) ? objectType.cast(this) : null;
     }
 
     private GroovyManagedResource getOrPutResource(final String resourceName) {

@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.supervision;
 
 import com.bytex.snamp.core.FrameworkService;
 
+import javax.annotation.Nonnull;
 import java.util.Set;
 
 /**
@@ -12,10 +13,20 @@ import java.util.Set;
  * @version 2.0
  * @author Roman Sakno
  */
-public interface ManagedResourceGroupSupervisor extends FrameworkService, HealthCheckSupport {
+public interface ManagedResourceGroupSupervisor extends FrameworkService {
     /**
      * Gets immutable set of group members.
      * @return Immutable set of group members.
      */
     Set<String> getResources();
+
+    /**
+     * Obtains supervisor service.
+     * @param objectType Type of supervisor service. Cannot be {@literal null}.
+     * @param <T> Type of supervisor service.
+     * @return Supervisor service; or {@literal null} if service is not supported.
+     * @see HealthSupervisor
+     */
+    @Override
+    <T> T queryObject(@Nonnull final Class<T> objectType);
 }
