@@ -9,7 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
- * Represents
+ * Represents activator of {@link ModbusResourceConnector}.
  */
 public final class ModbusResourceConnectorActivator extends ManagedResourceActivator<ModbusResourceConnector> {
 

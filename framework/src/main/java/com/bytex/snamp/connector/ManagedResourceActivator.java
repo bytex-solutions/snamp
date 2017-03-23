@@ -15,8 +15,6 @@ import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SupportService;
-import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -38,6 +36,7 @@ import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -51,17 +50,19 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  * @version 2.0
  */
-public class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
+public abstract class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
     private static final String CATEGORY = "resourceConnector";
 
     private static final String NAME_PROPERTY = "resourceName";
+    private static final String GROUP_NAME_PROPERTY = "groupName";
     private static final String CONNECTION_STRING_PROPERTY = "connectionString";
 
     private static final ActivationProperty<String> CONNECTOR_TYPE_HOLDER = defineActivationProperty(String.class);
-    private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
+    private static final ActivationProperty<CMManagedResourceParser> MANAGED_RESOURCE_PARSER_HOLDER = defineActivationProperty(CMManagedResourceParser.class);
+
 
     /**
-     * Represents an interface responsible for lifecycle control over resource connector instances.
+     * Represents an interface responsible for instantiating {@link ManagedResourceConnector}.
      * @param <TConnector> Type of the managed resource connector implementation.
      * @author Roman Sakno
      * @since 2.0
@@ -83,33 +84,24 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
-        private final ManagedResourceConnectorFactory<TConnector> controller;
-
-        /**
-         * Represents name of the managed resource connector.
-         */
-        protected final String connectorType;
+        private final ManagedResourceConnectorFactory<TConnector> factory;
+        private final String connectorType;
 
         private ManagedResourceConnectorRegistry(final String connectorType,
                                                  final ManagedResourceConnectorFactory<TConnector> controller,
                                                  final RequiredService<?>... dependencies) {
             super(ManagedResourceConnector.class, dependencies);
-            this.dependencies.add(ConfigurationManager.class);
-            this.controller = Objects.requireNonNull(controller, "controller is null.");
+            this.factory = Objects.requireNonNull(controller, "factory is null.");
             this.connectorType = connectorType;
         }
 
-        private ManagedResourceConnectorRegistry(final ManagedResourceConnectorFactory<TConnector> controller,
+        ManagedResourceConnectorRegistry(final ManagedResourceConnectorFactory<TConnector> controller,
                                                  final RequiredService<?>... dependencies){
-            this(ManagedResourceConnector.getConnectorType(Utils.getBundleContextOfObject(controller).getBundle()), controller, dependencies);
+            this(ManagedResourceConnector.getConnectorType(getBundleContextOfObject(controller).getBundle()), controller, dependencies);
         }
 
         private CMManagedResourceParser getParser(){
-            final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class);
-            assert configManager != null;
-            final CMManagedResourceParser parser = configManager.queryObject(CMManagedResourceParser.class);
-            assert parser != null;
-            return parser;
+            return getActivationPropertyValue(MANAGED_RESOURCE_PARSER_HOLDER);
         }
 
         @Override
@@ -195,7 +187,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored) {
                     //Update operation is not supported -> force recreation
                     connector.close();
-                    connector = controller.createConnector(resourceName, newConfig, dependencies);
+                    connector = factory.createConnector(resourceName, newConfig, dependencies);
                 }
             }
             //but we should always update resource features
@@ -257,10 +249,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                          final ManagedResourceConfiguration configuration) throws Exception {
             identity.putAll(configuration);
             identity.put(NAME_PROPERTY, resourceName);
+            identity.put(GROUP_NAME_PROPERTY, configuration.getGroupName());
             identity.put(ManagedResourceConnector.TYPE_CAPABILITY_ATTRIBUTE, connectorType);
             identity.put(ManagedResourceConnector.CATEGORY_PROPERTY, CATEGORY);
             identity.put(CONNECTION_STRING_PROPERTY, configuration.getConnectionString());
-            final TConnector result = controller.createConnector(resourceName, configuration, dependencies);
+            final TConnector result = factory.createConnector(resourceName, configuration, dependencies);
             updateFeatures(result, configuration);
             return result;
         }
@@ -291,22 +284,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected void cleanupService(final TConnector service,
                                       final Map<String, ?> identity) throws Exception {
             service.close();
-        }
-    }
-
-    private static class ManagedResourceConnectorFactoryServiceImpl<TConnector extends ManagedResourceConnector> extends AbstractAggregator implements ManagedResourceConnectorFactoryService {
-        private final ManagedResourceConnectorFactory<TConnector> connectorFactory;
-        private final DependencyManager dependencies;
-
-        private ManagedResourceConnectorFactoryServiceImpl(final ManagedResourceConnectorFactory<TConnector> factory,
-                                                           final DependencyManager dependencies) {
-            this.connectorFactory = Objects.requireNonNull(factory);
-            this.dependencies = dependencies;
-        }
-        
-        @Override
-        public TConnector createConnector(final String resourceName, final ManagedResourceInfo configuration) throws Exception {
-            return connectorFactory.createConnector(resourceName, configuration, dependencies);
         }
     }
 
@@ -348,7 +325,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         final Logger getLogger(){
-            return getActivationPropertyValue(LOGGER_HOLDER);
+            return LoggerProvider.getLoggerForObject(this);
         }
 
         /**
@@ -372,18 +349,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
     }
 
-    /**
-     * Initializes a new connector factory.
-     * @param controller Resource connector lifecycle controller. Cannot be {@literal null}.
-     * @param optionalServices Additional set of supporting services.
-     */
-    protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> controller,
-                                       final SupportConnectorServiceManager<?, ?>... optionalServices) {
-        this(controller,
-                emptyArray(RequiredService[].class),
-                optionalServices);
-    }
-
     protected static <T extends ConfigurationEntityDescriptionProvider> SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceActivator<T> factory,
                                                                                                                                                                           final RequiredService<?>... dependencies) {
         return SupportConnectorServiceManager.create(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
@@ -398,34 +363,65 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return SupportConnectorServiceManager.create(DiscoveryService.class, factory, dependencies);
     }
 
-    private static <TConnector extends ManagedResourceConnector> SupportConnectorServiceManager<ManagedResourceConnectorFactoryService, ?> factoryService(final ManagedResourceConnectorFactory<TConnector> factory,
-                                                                                                                                                          final RequiredService<?>... dependencies){
-        return new SupportConnectorServiceManager<ManagedResourceConnectorFactoryService, ManagedResourceConnectorFactoryServiceImpl<TConnector>>(ManagedResourceConnectorFactoryService.class, dependencies) {
-            @Override
-            ManagedResourceConnectorFactoryServiceImpl<TConnector> activateService() {
-                return new ManagedResourceConnectorFactoryServiceImpl<>(factory, dependencies);
-            }
-        };
+    protected final String connectorType;
+
+    /**
+     * Initializes a new connector factory.
+     * @param factory Resource connector factory. Cannot be {@literal null}.
+     * @param optionalServices Additional set of supporting services.
+     */
+    protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
+                                       final SupportConnectorServiceManager<?, ?>... optionalServices) {
+        this(factory,
+                emptyArray(RequiredService[].class),
+                optionalServices);
     }
 
     /**
      * Initializes a new connector factory.
-     * @param controller Resource connector lifecycle controller. Cannot be {@literal null}.
+     * @param factory Resource connector factory. Cannot be {@literal null}.
      * @param connectorDependencies A collection of connector-level dependencies.
      * @param optionalServices Additional set of supporting services.
      */
-    protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> controller,
+    protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
                                        final RequiredService<?>[] connectorDependencies,
-                                       final SupportConnectorServiceManager<?, ?>[] optionalServices){
-        super(ObjectArrays.concat(optionalServices, new ProvidedService<?, ?>[]{ new ManagedResourceConnectorRegistry<>(controller, connectorDependencies), factoryService(controller, connectorDependencies)}, ProvidedService.class));
+                                       final SupportConnectorServiceManager<?, ?>[] optionalServices) {
+        super(serviceProvider(factory, connectorDependencies, optionalServices));
+        connectorType = ManagedResourceConnector.getConnectorType(getBundleContextOfObject(this).getBundle());
     }
 
-    /**
-     * Gets type of the connector.
-     * @return Type of the connector.
-     */
-    public final String getConnectorType(){
-        return ManagedResourceConnector.getConnectorType(Utils.getBundleContextOfObject(this).getBundle());
+    private static <TConnector extends ManagedResourceConnector> ProvidedServices serviceProvider(final ManagedResourceConnectorFactory<TConnector> controller,
+                                                                                                  final RequiredService<?>[] connectorDependencies,
+                                                                                                  final SupportConnectorServiceManager<?, ?>[] optionalServices){
+        final class ManagedResourceConnectorFactoryServiceImpl extends AbstractAggregator implements ManagedResourceConnectorFactoryService {
+            private final DependencyManager dependencies;
+
+            ManagedResourceConnectorFactoryServiceImpl(final DependencyManager dependencies){
+                this.dependencies = Objects.requireNonNull(dependencies);
+            }
+
+            @Override
+            public TConnector createConnector(final String resourceName, final ManagedResourceInfo configuration) throws Exception {
+                return controller.createConnector(resourceName, configuration, dependencies);
+            }
+        }
+
+        final class ManagedResourceConnectorFactoryServiceManager extends SupportConnectorServiceManager<ManagedResourceConnectorFactoryService, ManagedResourceConnectorFactoryServiceImpl>{
+            private ManagedResourceConnectorFactoryServiceManager(){
+                super(ManagedResourceConnectorFactoryService.class, connectorDependencies);
+            }
+
+            @Override
+            ManagedResourceConnectorFactoryServiceImpl activateService() {
+                return new ManagedResourceConnectorFactoryServiceImpl(dependencies);
+            }
+        }
+
+        return (services, activationProperties, bundleLevelDependencies) -> {
+            services.add(new ManagedResourceConnectorRegistry<>(controller, connectorDependencies));
+            services.add(new ManagedResourceConnectorFactoryServiceManager());
+            Collections.addAll(services, optionalServices);
+        };
     }
 
     /**
@@ -444,9 +440,15 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     @OverridingMethodsMustInvokeSuper
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
-        activationProperties.publish(LOGGER_HOLDER, getLogger());
-        activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
-        getLogger().info(String.format("Activating resource connector of type %s", getConnectorType()));
+        activationProperties.publish(CONNECTOR_TYPE_HOLDER, connectorType);
+        {
+            final ConfigurationManager configurationManager = dependencies.getDependency(ConfigurationManager.class);
+            assert configurationManager != null;
+            final CMManagedResourceParser parser = configurationManager.queryObject(CMManagedResourceParser.class);
+            assert parser != null : "CMManagedResourceParser is not supported";
+            activationProperties.publish(MANAGED_RESOURCE_PARSER_HOLDER, parser);
+        }
+        getLogger().info(String.format("Activating resource connector of type %s", connectorType));
         super.activate(context, activationProperties, dependencies);
     }
 
@@ -462,8 +464,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     @Override
     protected final void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to instantiate %s connector",
-                getConnectorType()), e);
+        getLogger().log(Level.SEVERE, String.format("Unable to instantiate %s connector", connectorType), e);
     }
 
     /**
@@ -476,7 +477,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
         getLogger().log(Level.SEVERE, String.format("Unable to release %s connector",
-                getConnectorType()), e);
+                connectorType), e);
     }
 
     /**
@@ -492,7 +493,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
         super.deactivate(context, activationProperties);
-        getLogger().info(String.format("Unloading connector of type %s", getConnectorType()));
+        getLogger().info(String.format("Unloading connector of type %s", connectorType));
     }
 
     /**
@@ -501,7 +502,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     @Override
     public final String toString(){
-        return getConnectorType();
+        return connectorType;
     }
 
     /**
@@ -512,7 +513,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * the same type of the SNAMP resource connector; otherwise, {@literal false}.
      */
     public final boolean equals(final ManagedResourceActivator<?> factory){
-        return factory != null && Objects.equals(getConnectorType(), factory.getConnectorType());
+        return factory != null && Objects.equals(connectorType, factory.connectorType);
     }
 
     /**
@@ -529,7 +530,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     @Override
     public final int hashCode() {
-        return getConnectorType().hashCode();
+        return connectorType.hashCode();
     }
 
     private static String getReferencePropertyAsString(final ServiceReference<ManagedResourceConnector> connectorRef,
@@ -546,10 +547,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     static String getConnectionString(final ServiceReference<ManagedResourceConnector> identity){
         return getValue(getProperties(identity), CONNECTION_STRING_PROPERTY, Objects::toString).orElse("");
-    }
-
-    private static String getManagedResourceName(final Map<String, ?> identity){
-        return getValue(identity, NAME_PROPERTY, String.class).orElse("");
     }
 
     private static List<Bundle> getResourceConnectorBundles(final BundleContext context) {

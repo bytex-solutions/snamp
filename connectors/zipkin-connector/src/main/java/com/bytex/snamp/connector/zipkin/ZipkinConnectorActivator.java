@@ -29,13 +29,6 @@ public final class ZipkinConnectorActivator extends ManagedResourceActivator<Zip
         return new ZipkinConnector(resourceName, configuration);
     }
 
-    /**
-     * Starts the bundle and instantiate runtime state of the bundle.
-     *
-     * @param context                 The execution context of the bundle being started.
-     * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
-     * @throws Exception An exception occurred during starting.
-     */
     @Override
     protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
         super.start(context, bundleLevelDependencies);
