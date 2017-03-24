@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Map;
 
 /**
  * Represents scriptlet.
@@ -52,6 +53,12 @@ public interface ScriptletConfiguration {
      * @param value {@literal true} if {@link #getScript()} returns URL to the script body.
      */
     void setURL(final boolean value);
+
+    /**
+     * Gets scriptlet context parameters.
+     * @return Context parameters.
+     */
+    Map<String, String> getParameters();
 
     default String resolveScriptBody() throws IOException {
         final String result;

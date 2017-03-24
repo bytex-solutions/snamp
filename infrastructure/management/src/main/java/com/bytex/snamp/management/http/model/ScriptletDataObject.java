@@ -4,6 +4,9 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -15,16 +18,35 @@ public final class ScriptletDataObject implements ScriptletConfiguration, Export
     private String language;
     private String script;
     private boolean isURL;
+    private final Map<String, String> parameters;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public ScriptletDataObject() {
         language = script = "";
+        parameters = new HashMap<>();
     }
 
     public ScriptletDataObject(final ScriptletConfiguration configuration){
         language = configuration.getLanguage();
         script = configuration.getScript();
         isURL = configuration.isURL();
+        parameters = new HashMap<>(configuration.getParameters());
+    }
+
+    /**
+     * Gets scriptlet context parameters.
+     *
+     * @return Context parameters.
+     */
+    @Override
+    @JsonProperty
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(@Nonnull final Map<String, String> value){
+        parameters.clear();
+        parameters.putAll(value);
     }
 
     @Override
@@ -32,6 +54,8 @@ public final class ScriptletDataObject implements ScriptletConfiguration, Export
         output.setScript(script);
         output.setLanguage(language);
         output.setURL(isURL);
+        output.getParameters().clear();
+        output.getParameters().putAll(parameters);
     }
 
     /**

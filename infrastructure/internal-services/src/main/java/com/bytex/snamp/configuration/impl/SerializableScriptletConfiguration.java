@@ -22,10 +22,17 @@ final class SerializableScriptletConfiguration implements ScriptletConfiguration
     private String script;
     private boolean isURL;
     private transient boolean modified;
+    private final ParametersMap parameters;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableScriptletConfiguration() {
         language = script = "";
+        parameters = new ParametersMap();
+    }
+
+    @Override
+    public ParametersMap getParameters() {
+        return parameters;
     }
 
     @Override
@@ -66,40 +73,46 @@ final class SerializableScriptletConfiguration implements ScriptletConfiguration
         out.writeUTF(language);
         out.writeUTF(script);
         out.writeBoolean(isURL);
+        parameters.writeExternal(out);
     }
 
     @Override
-    public void readExternal(final ObjectInput in) throws IOException {
+    public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         language = in.readUTF();
         script = in.readUTF();
         isURL = in.readBoolean();
+        parameters.readExternal(in);
     }
 
     void load(final ScriptletConfiguration other){
         setLanguage(other.getLanguage());
         setScript(other.getScript());
         setURL(other.isURL());
+        parameters.clear();
+        parameters.putAll(other.getParameters());
     }
 
     @Override
     public boolean isModified() {
-        return modified;
+        return modified || parameters.isModified();
     }
 
     @Override
     public void reset() {
         modified = false;
+        parameters.reset();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(language, script, isURL);
+        return Objects.hash(language, script, isURL, parameters);
     }
 
     private boolean equals(final ScriptletConfiguration other) {
         return other.getScript().equals(script) &&
                 other.getLanguage().equals(language) &&
-                other.isURL() == isURL;
+                other.isURL() == isURL &&
+                other.getParameters().equals(parameters);
     }
 
     @Override

@@ -27,10 +27,4 @@ public interface ManagedResourceGroupConfiguration extends ManagedResourceTempla
          */
         ScriptletConfiguration getTrigger();
     }
-
-    /**
-     * Gets configuration of the health status watcher associated with this group.
-     * @return Configuration of the health status watcher.
-     */
-    HealthSupervisorConfiguration getHealthSupervisor();
 }
