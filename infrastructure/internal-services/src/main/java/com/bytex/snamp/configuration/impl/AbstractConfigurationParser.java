@@ -13,11 +13,11 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
 
 import static com.bytex.snamp.MapUtils.getValue;
+import static com.google.common.collect.Iterators.forEnumeration;
 
 /**
  * Abstract configuration parser.
@@ -58,15 +58,12 @@ abstract class AbstractConfigurationParser<E extends SerializableEntityConfigura
     private static void fillProperties(final Dictionary<String, ?> input,
                                                       final Map<String, String> output,
                                                       final Set<String> ignoredProperties) {
-        final Enumeration<String> names = input.keys();
-        while (names.hasMoreElements()) {
-            final String name = names.nextElement();
-            if (ignoredProperties.contains(name) || IGNORED_PROPERTIES.contains(name))
-                continue;
+        forEnumeration(input.keys()).forEachRemaining(name -> {
+            if (ignoredProperties.contains(name) || IGNORED_PROPERTIES.contains(name)) return;
             final Object value = input.get(name);
             if (value != null)
                 output.put(name, value.toString());
-        }
+        });
     }
 
     static void fillProperties(final Dictionary<String, ?> input,
