@@ -27,8 +27,7 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
         this.entityType = Objects.requireNonNull(entityType);
         this.excludeConfigKeys = ImmutableSet.<String>builder()
                 .add(excludeConfigKeys)
-                .add(SERVICE_PID)
-                .add(OBJECTCLASS)
+                .addAll(IGNORED_PROPERTIES)
                 .build();
     }
 

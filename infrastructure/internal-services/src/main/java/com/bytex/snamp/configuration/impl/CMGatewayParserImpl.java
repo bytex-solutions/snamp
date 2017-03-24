@@ -1,18 +1,20 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.BooleanBox;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.gateway.Gateway.CAPABILITY_NAMESPACE;
@@ -26,6 +28,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     private static final String GATEWAY_PID_TEMPLATE = CAPABILITY_NAMESPACE + ".%s";
     private static final String GATEWAY_INSTANCE_NAME_PROPERTY = "$gatewayInstanceName$";
     private static final String ALL_GATEWAYS_QUERY = String.format("(%s=%s)", Constants.SERVICE_PID, String.format(GATEWAY_PID_TEMPLATE, "*"));
+    private static final Pattern GATEWAY_PID_REPLACEMENT = Pattern.compile(String.format(GATEWAY_PID_TEMPLATE, ""), Pattern.LITERAL);
 
     private static final class GatewayConfigurationException extends PersistentConfigurationException{
         private static final long serialVersionUID = -242953184038600223L;
@@ -41,7 +44,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
      * @return Type of gateway.
      */
     private static String getGatewayType(final String factoryPID){
-        return factoryPID.replaceFirst(String.format(GATEWAY_PID_TEMPLATE, ""), "");
+        return GATEWAY_PID_REPLACEMENT.matcher(factoryPID).replaceFirst("");
     }
 
     @Override
@@ -52,38 +55,6 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     @Override
     public String getInstanceName(final Dictionary<String, ?> gatewayInstanceConfig) {
         return getValue(gatewayInstanceConfig, GATEWAY_INSTANCE_NAME_PROPERTY, Objects::toString).orElse("");
-    }
-
-    private static void fillGatewayInstanceParameters(final Dictionary<String, ?> instanceConfig,
-                                                      final Map<String, String> output){
-        final Enumeration<String> names = instanceConfig.keys();
-        while (names.hasMoreElements()){
-            final String name = names.nextElement();
-            switch (name){
-                default:
-                    final Object value = instanceConfig.get(name);
-                    if(value != null)
-                        output.put(name, value.toString());
-                case Constants.SERVICE_PID:
-                case ConfigurationAdmin.SERVICE_FACTORYPID:
-                case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
-                case GATEWAY_INSTANCE_NAME_PROPERTY:
-            }
-        }
-    }
-
-    private static <E extends Exception> void forEachGatewayInstance(final ConfigurationAdmin admin,
-                                                                     final String filter,
-                                                                     final Acceptor<Configuration, E> reader) throws E, IOException {
-        final Configuration[] configs;
-        try {
-            configs = admin.listConfigurations(filter);
-        } catch (final InvalidSyntaxException e) {
-            throw new IOException(e);
-        }
-        if (configs != null)
-            for (final Configuration config : configs)
-                reader.accept(config);
     }
 
     private void fill(final Configuration config, final Map<String, SerializableGatewayConfiguration> output) throws IOException {
@@ -101,19 +72,19 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     @Override
     void fill(final ConfigurationAdmin admin,
                                      final Map<String, SerializableGatewayConfiguration> output) throws IOException {
-        forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, config -> fill(config, output));
+        forEachConfiguration(admin, ALL_GATEWAYS_QUERY, config -> fill(config, output));
     }
 
     @Override
     void removeAll(final ConfigurationAdmin admin) throws IOException {
-        forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, Configuration::delete);
+        removeAll(admin, ALL_GATEWAYS_QUERY);
     }
 
     @Override
     public SingletonMap<String, SerializableGatewayConfiguration> parse(final Dictionary<String, ?> configuration) {
         final SerializableGatewayConfiguration result = new SerializableGatewayConfiguration();
         //deserialize parameters
-        fillGatewayInstanceParameters(configuration, result);
+        fillProperties(configuration, result, GATEWAY_INSTANCE_NAME_PROPERTY);
         result.reset();
         return new SingletonMap<>(getInstanceName(configuration), result);
     }
@@ -128,14 +99,10 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
 
     private static Dictionary<String, String> serialize(final SerializableGatewayConfiguration gatewayInstance) {
         final Dictionary<String, String> result = new Hashtable<>(4);
-
-        for(final Map.Entry<String, String> entry: gatewayInstance.entrySet())
-            switch (entry.getKey()) {
-                default: result.put(entry.getKey(), entry.getValue());
-                case Constants.SERVICE_PID:
-                case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
-                case ConfigurationAdmin.SERVICE_FACTORYPID:
-            }
+        gatewayInstance.forEach((name, value) -> {
+            if (!IGNORED_PROPERTIES.contains(name))
+                result.put(name, value);
+        });
         return result;
     }
 
@@ -145,7 +112,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
         try {
             //find existing configuration of gateway
             final BooleanBox updated = BoxFactory.createForBoolean(false);
-            forEachGatewayInstance(admin, String.format("(%s=%s)", GATEWAY_INSTANCE_NAME_PROPERTY, gatewayInstanceName), config -> {
+            forEachConfiguration(admin, String.format("(%s=%s)", GATEWAY_INSTANCE_NAME_PROPERTY, gatewayInstanceName), config -> {
                 serialize(gatewayInstanceName, gatewayInstance, config);
                 updated.set(true);
             });
@@ -164,7 +131,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
               final ConfigurationAdmin admin) throws IOException {
         final ConfigurationEntityList<? extends SerializableGatewayConfiguration> instances = config.getEntities(SerializableGatewayConfiguration.class);
         //remove all unnecessary gateway
-        forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, output -> {
+        forEachConfiguration(admin, ALL_GATEWAYS_QUERY, output -> {
             final String gatewayType = getGatewayType(output.getFactoryPid());
             final GatewayConfiguration gateway = instances.get(getInstanceName(output.getProperties()));
             //delete resource if its type was changed
