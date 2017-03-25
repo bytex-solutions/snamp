@@ -2,7 +2,7 @@ package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
+import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
@@ -66,15 +66,15 @@ final class UpdatableGroupWatcher extends WeakReference<HealthStatusEventListene
     private final ConcurrentMap<String, AttributeChecker> attributeCheckers;
     private final HealthStatusTrigger trigger;
 
-    UpdatableGroupWatcher(final ManagedResourceGroupWatcherConfiguration configuration,
+    UpdatableGroupWatcher(final SupervisorConfiguration configuration,
                           final HealthStatusEventListener statusListener) throws InvalidAttributeCheckerException, InvalidTriggerException {
         super(statusListener);
         status = new OkStatus();
         this.attributeCheckers = new ConcurrentHashMap<>(15);
-        for (final Map.Entry<String, ? extends ScriptletConfiguration> checker : configuration.getAttributeCheckers().entrySet()) {
+        for (final Map.Entry<String, ? extends ScriptletConfiguration> checker : configuration.getHealthCheckConfig().getAttributeCheckers().entrySet()) {
             attributeCheckers.put(checker.getKey(), CHECKER_FACTORY.createChecker(checker.getValue()));
         }
-        this.trigger = TRIGGER_FACTORY.createTrigger(configuration.getTrigger());
+        this.trigger = TRIGGER_FACTORY.createTrigger(configuration.getHealthCheckConfig().getTrigger());
     }
 
     @Override

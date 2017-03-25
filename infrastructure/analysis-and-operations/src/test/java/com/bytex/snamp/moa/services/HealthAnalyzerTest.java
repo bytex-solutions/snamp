@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
+import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
@@ -29,9 +29,9 @@ public final class HealthAnalyzerTest extends Assert {
     public void updateComponentWatcherTest() throws InvalidAttributeCheckerException, InvalidTriggerException {
         final String RESOURCE_NAME = "myResource";
         final String ATTRIBUTE_NAME = "memory";
-        final ManagedResourceGroupWatcherConfiguration watcherConfiguration = ConfigurationManager.createEntityConfiguration(getClass().getClassLoader(), ManagedResourceGroupWatcherConfiguration.class);
+        final SupervisorConfiguration watcherConfiguration = ConfigurationManager.createEntityConfiguration(getClass().getClassLoader(), SupervisorConfiguration.class);
         assertNotNull(watcherConfiguration);
-        watcherConfiguration.getAttributeCheckers().addAndConsume(ATTRIBUTE_NAME, scriptlet -> {
+        watcherConfiguration.getHealthCheckConfig().getAttributeCheckers().addAndConsume(ATTRIBUTE_NAME, scriptlet -> {
             final ColoredAttributeChecker checker = new ColoredAttributeChecker();
             checker.setGreenPredicate(new NumberComparatorPredicate(NumberComparatorPredicate.Operator.LESS_THAN, 1000D));
             checker.setYellowPredicate(new IsInRangePredicate(1000D, true, 2000D, true));

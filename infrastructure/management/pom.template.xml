@@ -84,6 +84,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>json-helpers</artifactId>
+            <version>${snamp.json.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>

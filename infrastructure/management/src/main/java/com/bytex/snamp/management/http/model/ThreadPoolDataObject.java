@@ -3,6 +3,7 @@ package com.bytex.snamp.management.http.model;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 
 /**
@@ -86,7 +87,7 @@ public final class ThreadPoolDataObject extends AbstractDataObject<ThreadPoolCon
      * @param entity Entity to modify.
      */
     @Override
-    public void exportTo(final ThreadPoolConfiguration entity) {
+    public void exportTo(@Nonnull final ThreadPoolConfiguration entity) {
         super.exportTo(entity);
         entity.setQueueSize(queueSize);
         entity.setMaxPoolSize(maxPoolSize);

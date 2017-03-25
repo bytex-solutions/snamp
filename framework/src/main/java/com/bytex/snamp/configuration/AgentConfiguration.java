@@ -55,7 +55,7 @@ public interface AgentConfiguration extends Cloneable, EntityConfiguration {
      *                  {@link EventConfiguration},
      *                  {@link OperationConfiguration},
      *                  {@link ManagedResourceGroupConfiguration},
-     *                  {@link ManagedResourceGroupWatcherConfiguration}.
+     *                  {@link SupervisorConfiguration}.
      * @param <E> Type of requested entity.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */

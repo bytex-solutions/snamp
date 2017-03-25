@@ -116,7 +116,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         return "";
     }
 
-    protected void fillWatchers(final EntityMap<? extends ManagedResourceGroupWatcherConfiguration> watchers){
+    protected void fillWatchers(final EntityMap<? extends SupervisorConfiguration> watchers){
         
     }
 
@@ -198,7 +198,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         fillAttributes(targetConfig.getFeatures(AttributeConfiguration.class));
         fillEvents(targetConfig.getFeatures(EventConfiguration.class));
         fillOperations(targetConfig.getFeatures(OperationConfiguration.class));
-        fillWatchers(config.getEntities(ManagedResourceGroupWatcherConfiguration.class));
+        fillWatchers(config.getEntities(SupervisorConfiguration.class));
     }
 
     protected final <T> void testAttribute(final String attributeName,

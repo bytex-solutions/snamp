@@ -26,7 +26,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
     private final ConfigurationEntityList<SerializableThreadPoolConfiguration> threadPools;
     private final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups;
     private final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources;
-    private final ConfigurationEntityList<SerializableManagedResourceGroupWatcherConfiguration> watchers;
+    private final ConfigurationEntityList<SerializableSupervisorConfiguration> watchers;
 
     /**
      * Initializes a new empty agent configuration.
@@ -76,7 +76,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         threadPools.load(configuration.getEntities(ThreadPoolConfiguration.class));
         gateways.load(configuration.getEntities(GatewayConfiguration.class));
         groups.load(configuration.getEntities(ManagedResourceGroupConfiguration.class));
-        watchers.load(configuration.getEntities(ManagedResourceGroupWatcherConfiguration.class));
+        watchers.load(configuration.getEntities(SupervisorConfiguration.class));
         loadParameters(configuration);
     }
 
@@ -187,14 +187,14 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
             result = threadPools;
         else if(entityType.isAssignableFrom(SerializableManagedResourceGroupConfiguration.class))
             result = groups;
-        else if(entityType.isAssignableFrom(SerializableManagedResourceGroupWatcherConfiguration.class))
+        else if(entityType.isAssignableFrom(SerializableSupervisorConfiguration.class))
             result = watchers;
         else
             result = null;
         return result;
     }
 
-    ConfigurationEntityList<SerializableManagedResourceGroupWatcherConfiguration> getWatchers(){
+    ConfigurationEntityList<SerializableSupervisorConfiguration> getWatchers(){
         return watchers;
     }
 
@@ -250,8 +250,8 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
             result = new SerializableThreadPoolConfiguration();
         else if (entityType.isAssignableFrom(SerializableManagedResourceGroupConfiguration.class))
             result = new SerializableManagedResourceGroupConfiguration();
-        else if (entityType.isAssignableFrom(SerializableManagedResourceGroupWatcherConfiguration.class))
-            result = new SerializableManagedResourceGroupWatcherConfiguration();
+        else if (entityType.isAssignableFrom(SerializableSupervisorConfiguration.class))
+            result = new SerializableSupervisorConfiguration();
         else
             return null;
         return entityType.cast(result);
@@ -262,7 +262,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
                 resources.equals(other.getEntities(ManagedResourceConfiguration.class)) &&
                 threadPools.equals(other.getEntities(ThreadPoolConfiguration.class)) &&
                 groups.equals(other.getEntities(ManagedResourceGroupConfiguration.class)) &&
-                watchers.equals(other.getEntities(ManagedResourceGroupWatcherConfiguration.class)) &&
+                watchers.equals(other.getEntities(SupervisorConfiguration.class)) &&
                 super.equals(other);
     }
 

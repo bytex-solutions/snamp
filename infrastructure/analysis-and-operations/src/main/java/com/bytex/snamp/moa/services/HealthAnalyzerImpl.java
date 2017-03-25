@@ -3,7 +3,7 @@ package com.bytex.snamp.moa.services;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.WeakRepeater;
-import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
+import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
@@ -245,7 +245,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         return LoggerProvider.getLoggerForObject(this);
     }
 
-    private void addWatcher(final String groupName, final ManagedResourceGroupWatcherConfiguration watcherConfig) {
+    private void addWatcher(final String groupName, final SupervisorConfiguration watcherConfig) {
         final UpdatableGroupWatcher watcher;
         try {
             watcher = new UpdatableGroupWatcher(watcherConfig, this);
@@ -256,7 +256,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         watchers.put(groupName, watcher);
     }
 
-    private void addWatchers(final Map<String, ? extends ManagedResourceGroupWatcherConfiguration> configuration) {
+    private void addWatchers(final Map<String, ? extends SupervisorConfiguration> configuration) {
         removeAllWatchers(watchers);
         configuration.forEach(this::addWatcher);
     }
@@ -266,7 +266,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
         if (properties == null)   //remove all watchers
             writeLock.accept(ResourceGroup.WATCHERS, watchers, HealthAnalyzerImpl::removeAllWatchers);
         else {
-            final Map<String, ? extends ManagedResourceGroupWatcherConfiguration> watchersConfiguration;
+            final Map<String, ? extends SupervisorConfiguration> watchersConfiguration;
             try {
                 watchersConfiguration = watcherParser.parse(properties);
             } catch (final IOException e) {

@@ -3,6 +3,7 @@ package com.bytex.snamp.management.http.model;
 import com.bytex.snamp.configuration.*;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -103,7 +104,7 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
     }
 
     @Override
-    public void exportTo(final E entity) {
+    public void exportTo(@Nonnull final E entity) {
         super.exportTo(entity);
         exportFeatures(attributes, entity, AttributeConfiguration.class);
         exportFeatures(events, entity, EventConfiguration.class);

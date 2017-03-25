@@ -651,7 +651,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     protected void setupTestConfiguration(final AgentConfiguration config) {
         fillManagedResources(config.getEntities(ManagedResourceConfiguration.class));
         fillGateways(config.getEntities(GatewayConfiguration.class));
-        fillWatchers(config.getEntities(ManagedResourceGroupWatcherConfiguration.class));
+        fillWatchers(config.getEntities(SupervisorConfiguration.class));
         fillGroups(config.getEntities(ManagedResourceGroupConfiguration.class));
     }
 
@@ -664,7 +664,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         fillSpanEvents(group.getFeatures(EventConfiguration.class));
     }
 
-    private void fillWatchers(final EntityMap<? extends ManagedResourceGroupWatcherConfiguration> watchers){
+    private void fillWatchers(final EntityMap<? extends SupervisorConfiguration> watchers){
         final String groovyTrigger;
         try {
             groovyTrigger = IOUtils.toString(HealthAnalyzerTest.class.getResourceAsStream("GroovyTrigger.groovy"));
@@ -672,18 +672,18 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
             throw new UncheckedIOException(e);
         }
         watchers.addAndConsume(GROUP_NAME, watcher -> {
-            watcher.getAttributeCheckers().addAndConsume("requestsPerSecond", scriptlet -> {
+            watcher.getHealthCheckConfig().getAttributeCheckers().addAndConsume("requestsPerSecond", scriptlet -> {
                 final ColoredAttributeChecker checker = new ColoredAttributeChecker();
                 checker.setGreenPredicate(new NumberComparatorPredicate(NumberComparatorPredicate.Operator.LESS_THAN, 1000D));
                 checker.setYellowPredicate(new IsInRangePredicate(1000D, true, 2000D, true));
                 checker.configureScriptlet(scriptlet);
             });
-            watcher.getAttributeCheckers().addAndConsume("CPU", scriptlet -> {
+            watcher.getHealthCheckConfig().getAttributeCheckers().addAndConsume("CPU", scriptlet -> {
                 scriptlet.setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
                 scriptlet.setScript("attributeValue < 42 ? OK : MALFUNCTION");
             });
-            watcher.getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
-            watcher.getTrigger().setScript(groovyTrigger);
+            watcher.getHealthCheckConfig().getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
+            watcher.getHealthCheckConfig().getTrigger().setScript(groovyTrigger);
         });
     }
 

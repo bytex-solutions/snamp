@@ -50,7 +50,7 @@ public final class ScriptletDataObject implements ScriptletConfiguration, Export
     }
 
     @Override
-    public void exportTo(final ScriptletConfiguration output) {
+    public void exportTo(@Nonnull final ScriptletConfiguration output) {
         output.setScript(script);
         output.setLanguage(language);
         output.setURL(isURL);

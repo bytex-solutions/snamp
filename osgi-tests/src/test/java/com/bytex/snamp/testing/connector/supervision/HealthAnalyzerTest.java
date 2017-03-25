@@ -2,7 +2,7 @@ package com.bytex.snamp.testing.connector.supervision;
 
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ManagedResourceGroupWatcherConfiguration;
+import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
@@ -103,7 +103,7 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
     }
 
     @Override
-    protected void fillWatchers(final EntityMap<? extends ManagedResourceGroupWatcherConfiguration> watchers) {
+    protected void fillWatchers(final EntityMap<? extends SupervisorConfiguration> watchers) {
         final String groovyTrigger;
         try {
             groovyTrigger = IOUtils.toString(getClass().getResourceAsStream("GroovyTrigger.groovy"));
@@ -111,18 +111,18 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
             throw new UncheckedIOException(e);
         }
         watchers.addAndConsume(GROUP_NAME, watcher -> {
-            watcher.getAttributeCheckers().addAndConsume("3.0", scriptlet -> {
+            watcher.getHealthCheckConfig().getAttributeCheckers().addAndConsume("3.0", scriptlet -> {
                 final ColoredAttributeChecker checker = new ColoredAttributeChecker();
                 checker.setGreenPredicate(new NumberComparatorPredicate(NumberComparatorPredicate.Operator.LESS_THAN, 1000D));
                 checker.setYellowPredicate(new IsInRangePredicate(1000D, true, 2000D, true));
                 checker.configureScriptlet(scriptlet);
             });
-            watcher.getAttributeCheckers().addAndConsume("8.0", scriptlet -> {
+            watcher.getHealthCheckConfig().getAttributeCheckers().addAndConsume("8.0", scriptlet -> {
                 scriptlet.setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
                 scriptlet.setScript("attributeValue < 42 ? OK : MALFUNCTION");
             });
-            watcher.getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
-            watcher.getTrigger().setScript(groovyTrigger);
+            watcher.getHealthCheckConfig().getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
+            watcher.getHealthCheckConfig().getTrigger().setScript(groovyTrigger);
         });
     }
 

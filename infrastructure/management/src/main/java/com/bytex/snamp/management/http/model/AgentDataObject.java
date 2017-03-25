@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.*;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -52,7 +53,7 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
      * @param entity Entity to modify.
      */
     @Override
-    public void exportTo(final AgentConfiguration entity) {
+    public void exportTo(@Nonnull final AgentConfiguration entity) {
         super.exportTo(entity);
         exportEntities(resources, entity, ManagedResourceConfiguration.class);
         exportEntities(groups, entity, ManagedResourceGroupConfiguration.class);

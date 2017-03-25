@@ -77,6 +77,12 @@
       <artifactId>jsr305</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.bytex.snamp</groupId>
+      <artifactId>json-helpers</artifactId>
+      <version>${snamp.json.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>com.hazelcast</groupId>
       <artifactId>hazelcast</artifactId>
     </dependency>

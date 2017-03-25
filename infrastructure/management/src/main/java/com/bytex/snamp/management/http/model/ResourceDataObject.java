@@ -5,6 +5,8 @@ import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
+import javax.annotation.Nonnull;
+
 /**
  * ManagedResourceConfigurationDTO
  *
@@ -32,7 +34,7 @@ public final class ResourceDataObject extends TemplateDataObject<ManagedResource
     }
 
     @Override
-    public void exportTo(final ManagedResourceConfiguration entity) {
+    public void exportTo(@Nonnull final ManagedResourceConfiguration entity) {
         super.exportTo(entity);
         entity.setConnectionString(connectionString);
         entity.setGroupName(groupName);
