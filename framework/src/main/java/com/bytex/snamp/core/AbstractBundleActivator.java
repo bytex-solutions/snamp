@@ -350,7 +350,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             final String filter = toString();
             if(filter.isEmpty())
                 context.addServiceListener(listener);
-            else context.addServiceListener(listener, filter);
+            else
+                context.addServiceListener(listener, filter);
         }
 
         @Override

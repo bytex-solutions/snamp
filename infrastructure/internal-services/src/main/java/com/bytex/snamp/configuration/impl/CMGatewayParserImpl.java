@@ -5,7 +5,6 @@ import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
-import org.osgi.framework.Constants;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -27,7 +26,7 @@ import static com.bytex.snamp.gateway.Gateway.CAPABILITY_NAMESPACE;
 final class CMGatewayParserImpl extends AbstractConfigurationParser<SerializableGatewayConfiguration> implements CMGatewayParser {
     private static final String GATEWAY_PID_TEMPLATE = CAPABILITY_NAMESPACE + ".%s";
     private static final String GATEWAY_INSTANCE_NAME_PROPERTY = "$gatewayInstanceName$";
-    private static final String ALL_GATEWAYS_QUERY = String.format("(%s=%s)", Constants.SERVICE_PID, String.format(GATEWAY_PID_TEMPLATE, "*"));
+    private static final String ALL_GATEWAYS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(GATEWAY_PID_TEMPLATE, "*"));
     private static final Pattern GATEWAY_PID_REPLACEMENT = Pattern.compile(String.format(GATEWAY_PID_TEMPLATE, ""), Pattern.LITERAL);
 
     private static final class GatewayConfigurationException extends PersistentConfigurationException{

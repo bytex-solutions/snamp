@@ -11,7 +11,6 @@ import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.io.SerializableMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
-import org.osgi.framework.Constants;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -45,7 +44,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
     private static final String OPERATIONS_PROPERTY = "$operations$";
     private static final Pattern CONNECTOR_PID_REPLACEMENT = Pattern.compile(String.format(CONNECTOR_PID_TEMPLATE, ""), Pattern.LITERAL);
 
-    private static final String ALL_CONNECTORS_QUERY = String.format("(%s=%s)", Constants.SERVICE_PID, String.format(CONNECTOR_PID_TEMPLATE, "*"));
+    private static final String ALL_CONNECTORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(CONNECTOR_PID_TEMPLATE, "*"));
 
     private static final class ManagedResourceConfigurationException extends PersistentConfigurationException{
         private static final long serialVersionUID = -8618780912903622327L;

@@ -10,7 +10,6 @@ import com.bytex.snamp.core.SupportService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -38,7 +37,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 public abstract class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary {
-    private static final String CATEGORY = "gateway";
     private static final ActivationProperty<String> GATEWAY_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<CMGatewayParser> GATEWAY_PARSER_HOLDER = defineActivationProperty(CMGatewayParser.class);
 
@@ -101,11 +99,8 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
 
         private G createService(final Map<String, Object> identity,
                                 final String instanceName,
-                                final GatewayConfiguration configuration) throws Exception{
-            identity.putAll(configuration);
-            identity.put(Gateway.TYPE_CAPABILITY_ATTRIBUTE, gatewayType);
-            identity.put(Gateway.NAME_PROPERTY, instanceName);
-            identity.put(Gateway.CATEGORY_PROPERTY, CATEGORY);
+                                final GatewayConfiguration configuration) throws Exception {
+            identity.putAll(new GatewayFilterBuilder(configuration).setInstanceName(instanceName));
             final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, dependencies);
             gatewayInstance.update(configuration);
             return gatewayInstance;
@@ -182,8 +177,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
 
         @Override
         protected T activateService(final Map<String, Object> identity) throws Exception {
-            identity.put(Gateway.TYPE_CAPABILITY_ATTRIBUTE, getGatewayType());
-            identity.put(Gateway.CATEGORY_PROPERTY, CATEGORY);
+            identity.putAll(new GatewayFilterBuilder().setGatewayType(getGatewayType()));
             return activator.activateService(dependencies);
         }
 
@@ -398,25 +392,5 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
                 .map(Gateway::getGatewayType)
                 .filter(name -> !isNullOrEmpty(name))
                 .collect(Collectors.toSet());
-    }
-
-    static String createFilter(final String gatewayType, final String filter){
-        return filter == null || filter.isEmpty() ?
-                String.format("(&(%s=%s)(%s=%s))", Gateway.CATEGORY_PROPERTY, CATEGORY, Gateway.TYPE_CAPABILITY_ATTRIBUTE, gatewayType):
-                String.format("(&(%s=%s)(%s=%s)%s)", Gateway.CATEGORY_PROPERTY, CATEGORY, Gateway.TYPE_CAPABILITY_ATTRIBUTE, gatewayType, filter);
-    }
-
-    static String createFilter(final String gatewayInstance){
-        return String.format("(&(%s=%s)(%s=%s))", Gateway.CATEGORY_PROPERTY, CATEGORY, Gateway.NAME_PROPERTY, gatewayInstance);
-    }
-
-    private static String getGatewayInstance(final Dictionary<String, ?> identity){
-        return Objects.toString(identity.get(Gateway.NAME_PROPERTY), "");
-    }
-
-    static String getGatewayInstance(final ServiceReference<Gateway> gatewayInstance) {
-        return gatewayInstance != null ?
-                getGatewayInstance(getProperties(gatewayInstance)) :
-                "";
     }
 }

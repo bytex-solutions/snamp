@@ -480,7 +480,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 start(newState.parameters);
                 mutableState = newState.transition(GatewayState.STARTED);
                 started();
-                ManagedResourceConnectorClient.addResourceListener(getBundleContext(), this);
+                ManagedResourceConnectorClient.filterBuilder().addServiceListener(context, this);
         }
     }
 

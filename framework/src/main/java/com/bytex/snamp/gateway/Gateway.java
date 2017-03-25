@@ -38,8 +38,6 @@ public interface Gateway extends FrameworkService, ServiceListener, Closeable {
      */
     String TYPE_CAPABILITY_ATTRIBUTE = "type";
 
-    String NAME_PROPERTY = "instanceName";
-
     /**
      * Represents binding of the feature from the connected resource.
      * <p>

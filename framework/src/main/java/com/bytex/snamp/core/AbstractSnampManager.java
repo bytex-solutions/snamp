@@ -203,13 +203,14 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
+            final FilterBuilder filter = GatewayClient.filterBuilder()
+                    .setGatewayType(getType())
+                    .setServiceType(serviceType);
             ServiceReference<S> ref = null;
             try {
-                ref = GatewayClient.getServiceReference(getItselfContext(), getType(), null, serviceType);
+                ref = filter.getServiceReference(getItselfContext(), serviceType).orElse(null);
                 if (ref == null) return false;
                 serviceInvoker.accept(getItselfContext().getService(ref));
-            } catch (final InvalidSyntaxException ignored) {
-                return false;
             } finally {
                 if (ref != null) getItselfContext().ungetService(ref);
             }
@@ -318,13 +319,16 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
+            final FilterBuilder filter = ManagedResourceConnectorClient.filterBuilder()
+                    .setConnectorType(getType())
+                    .setServiceType(serviceType);
             ServiceReference<S> ref = null;
             try {
-                ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getType(), null, serviceType);
-                if (ref == null) return false;
-                else serviceInvoker.accept(getItselfContext().getService(ref));
-            } catch (final InvalidSyntaxException ignored) {
-                return false;
+                ref = filter.getServiceReference(getItselfContext(), serviceType).orElse(null);
+                if (ref == null)
+                    return false;
+                else
+                    serviceInvoker.accept(getItselfContext().getService(ref));
             } finally {
                 if (ref != null) getItselfContext().ungetService(ref);
             }
