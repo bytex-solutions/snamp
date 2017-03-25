@@ -59,7 +59,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
                     result.addAll(nics.nextElement().getInterfaceAddresses().stream()
                             .map(iface -> iface.getAddress().getHostAddress())
                             .collect(Collectors.toList()));
-                return result.stream().toArray(String[]::new);
+                return result.toArray(new String[0]);
             }
         }
 
