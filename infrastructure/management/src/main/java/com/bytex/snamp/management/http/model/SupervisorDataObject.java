@@ -4,29 +4,35 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeName;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
+@JsonTypeName("supervisor")
 public final class SupervisorDataObject extends AbstractDataObject<SupervisorConfiguration> {
     private final Map<String, ScriptletDataObject> attributeCheckers;
     private ScriptletDataObject trigger;
+    private String supervisorType;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SupervisorDataObject(){
         attributeCheckers = new HashMap<>();
+        supervisorType = SupervisorConfiguration.DEFAULT_TYPE;
     }
 
     public SupervisorDataObject(final SupervisorConfiguration configuration){
         super(configuration);
         attributeCheckers = Exportable.importEntities(configuration.getHealthCheckConfig().getAttributeCheckers(), ScriptletDataObject::new);
         trigger = new ScriptletDataObject(configuration.getHealthCheckConfig().getTrigger());
+        supervisorType = configuration.getType();
     }
 
     @Override
@@ -37,6 +43,16 @@ public final class SupervisorDataObject extends AbstractDataObject<SupervisorCon
         else
             trigger.exportTo(entity.getHealthCheckConfig().getTrigger());
         Exportable.exportEntities(attributeCheckers, entity.getHealthCheckConfig().getAttributeCheckers());
+        entity.setType(supervisorType);
+    }
+
+    @JsonProperty("type")
+    public String getSupervisorType(){
+        return supervisorType;
+    }
+
+    public void setSupervisorType(final String value){
+        supervisorType = nullToEmpty(value);
     }
 
     @JsonProperty("attributeCheckers")

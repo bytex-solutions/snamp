@@ -38,7 +38,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private final CMThreadPoolParser threadPoolParser;
     private final CMManagedResourceGroupParser groupParser;
     @Aggregation(cached = true)
-    private final CMManagedResourceGroupWatcherParserImpl watcherParser;
+    private final CMSupervisorParserImpl watcherParser;
 
     /**
      * Initializes a new configuration manager.
@@ -51,7 +51,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         gatewayInstanceParser = new CMGatewayParserImpl();
         threadPoolParser = new CMThreadPoolParser();
         groupParser = new CMManagedResourceGroupParser();
-        watcherParser = new CMManagedResourceGroupWatcherParserImpl();
+        watcherParser = new CMSupervisorParserImpl();
     }
 
     private void mergeResourcesWithGroups(final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources,

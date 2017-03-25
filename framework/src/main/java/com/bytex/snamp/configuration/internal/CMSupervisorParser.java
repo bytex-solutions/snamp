@@ -7,6 +7,6 @@ import com.bytex.snamp.configuration.SupervisorConfiguration;
  * @version 2.0
  * @since 2.0
  */
-public interface CMManagedResourceGroupWatcherParser extends CMConfigurationParser<SupervisorConfiguration> {
+public interface CMSupervisorParser extends CMConfigurationParser<SupervisorConfiguration> {
     String getPersistentID();
 }

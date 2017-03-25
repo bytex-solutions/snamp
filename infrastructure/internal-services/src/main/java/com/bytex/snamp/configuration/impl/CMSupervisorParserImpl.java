@@ -1,6 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
+import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 
 /**
  * Represents parser of {@link SerializableSupervisorConfiguration}.
@@ -8,10 +8,10 @@ import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParse
  * @version 2.0
  * @since 2.0
  */
-final class CMManagedResourceGroupWatcherParserImpl extends SerializableConfigurationParser<SerializableSupervisorConfiguration> implements CMManagedResourceGroupWatcherParser {
+final class CMSupervisorParserImpl extends SerializableConfigurationParser<SerializableSupervisorConfiguration> implements CMSupervisorParser {
     private static final String PID = "com.bytex.snamp.watchers";
 
-    CMManagedResourceGroupWatcherParserImpl() {
+    CMSupervisorParserImpl() {
         super(PID, SerializableSupervisorConfiguration.class);
     }
 

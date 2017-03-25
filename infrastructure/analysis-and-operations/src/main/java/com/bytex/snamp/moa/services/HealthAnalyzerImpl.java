@@ -4,7 +4,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
+import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
 import com.bytex.snamp.connector.supervision.HealthStatusChangedEvent;
@@ -86,10 +86,10 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
     private final Map<String, UpdatableGroupWatcher> watchers;
     private StatusUpdater statusUpdater;
     private final ExecutorService threadPool;
-    private final CMManagedResourceGroupWatcherParser watcherParser;
+    private final CMSupervisorParser watcherParser;
     private final WeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent> statusListeners;
 
-    HealthAnalyzerImpl(final ExecutorService threadPool, final CMManagedResourceGroupWatcherParser watcherParser) {
+    HealthAnalyzerImpl(final ExecutorService threadPool, final CMSupervisorParser watcherParser) {
         super(ResourceGroup.class, ResourceGroup.ATTRIBUTES);
         groupToResourceMap = HashMultimap.create();
         this.threadPool = Objects.requireNonNull(threadPool);

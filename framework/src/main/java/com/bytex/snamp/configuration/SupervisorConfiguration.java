@@ -8,7 +8,9 @@ import com.bytex.snamp.FactoryMap;
  * @version 2.0
  * @since 2.0
  */
-public interface SupervisorConfiguration extends EntityConfiguration {
+public interface SupervisorConfiguration extends TypedEntityConfiguration {
+    String DEFAULT_TYPE = "DEFAULT";
+    
     /**
      * Represents configuration of the health supervisor.
      */
@@ -27,6 +29,22 @@ public interface SupervisorConfiguration extends EntityConfiguration {
          */
         ScriptletConfiguration getTrigger();
     }
+
+    /**
+     * Gets supervisor type.
+     *
+     * @return Supervisor type.
+     */
+    @Override
+    String getType();
+
+    /**
+     * Sets supervisor type.
+     *
+     * @param value Supervisor type.
+     */
+    @Override
+    void setType(final String value);
 
     /**
      * Gets configuration of the health check.

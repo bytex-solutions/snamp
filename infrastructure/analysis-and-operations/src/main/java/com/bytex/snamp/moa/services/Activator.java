@@ -3,7 +3,7 @@ package com.bytex.snamp.moa.services;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
+import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import com.bytex.snamp.connector.supervision.HealthStatusProvider;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.moa.DataAnalyzer;
@@ -100,7 +100,7 @@ public final class Activator extends AbstractServiceLibrary {
         assert configurationManager != null;
         final ThreadPoolRepository repository = dependencies.getDependency(ThreadPoolRepository.class);
         assert repository != null;
-        final CMManagedResourceGroupWatcherParser watcherParser = configurationManager.queryObject(CMManagedResourceGroupWatcherParser.class);
+        final CMSupervisorParser watcherParser = configurationManager.queryObject(CMSupervisorParser.class);
         assert watcherParser != null;
         final AnalyticalGateway service = new AnalyticalGateway(
                 context,

@@ -11,6 +11,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Map;
 import java.util.Objects;
+import static com.google.common.base.Strings.*;
 
 /**
  * Represents serializable configuration of the supervisor.
@@ -139,20 +140,44 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
     }
 
     private final SerializableHealthCheckConfiguration healthCheckConfig;
+    private String supervisorType;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableSupervisorConfiguration() {
         healthCheckConfig = new SerializableHealthCheckConfiguration();
+        supervisorType = DEFAULT_TYPE;
+    }
+
+    /**
+     * Gets supervisor type.
+     *
+     * @return Supervisor type.
+     */
+    @Override
+    public String getType() {
+        return isNullOrEmpty(supervisorType) ? DEFAULT_TYPE : supervisorType;
+    }
+
+    /**
+     * Sets supervisor type.
+     *
+     * @param value Supervisor type.
+     */
+    @Override
+    public void setType(final String value) {
+        supervisorType = nullToEmpty(value);
     }
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
+        out.writeUTF(supervisorType);
         healthCheckConfig.writeExternal(out);
         super.writeExternal(out);
     }
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+        supervisorType = in.readUTF();
         healthCheckConfig.readExternal(in);
         super.readExternal(in);
     }

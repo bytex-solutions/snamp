@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.configuration.internal.CMManagedResourceGroupWatcherParser;
+import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
@@ -38,7 +38,7 @@ final class AnalyticalGateway extends AbstractGateway implements NotificationLis
     private TopologyAnalysisImpl graph;
     private final HealthAnalyzerImpl watchDog;
 
-    AnalyticalGateway(final BundleContext context, final ExecutorService threadPool, final CMManagedResourceGroupWatcherParser watcherParser) {
+    AnalyticalGateway(final BundleContext context, final ExecutorService threadPool, final CMSupervisorParser watcherParser) {
         super(DistributedServices.getLocalMemberName(context));
         watchDog = new HealthAnalyzerImpl(threadPool, watcherParser);
     }
