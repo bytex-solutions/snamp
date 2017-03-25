@@ -74,4 +74,11 @@ public interface ScriptletConfiguration {
             result = getScript();
         return result;
     }
+
+    static void fillByDefault(final ScriptletConfiguration scriptlet){
+        scriptlet.setScript("");
+        scriptlet.setURL(false);
+        scriptlet.setLanguage("");
+        scriptlet.getParameters().clear();
+    }
 }

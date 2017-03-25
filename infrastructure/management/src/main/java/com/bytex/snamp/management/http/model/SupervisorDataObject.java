@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.http.model;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -31,7 +32,10 @@ public final class SupervisorDataObject extends AbstractDataObject<SupervisorCon
     @Override
     public void exportTo(@Nonnull final SupervisorConfiguration entity) {
         super.exportTo(entity);
-        trigger.exportTo(entity.getHealthCheckConfig().getTrigger());
+        if (trigger == null)
+            ScriptletConfiguration.fillByDefault(entity.getHealthCheckConfig().getTrigger());
+        else
+            trigger.exportTo(entity.getHealthCheckConfig().getTrigger());
         Exportable.exportEntities(attributeCheckers, entity.getHealthCheckConfig().getAttributeCheckers());
     }
 
@@ -50,7 +54,7 @@ public final class SupervisorDataObject extends AbstractDataObject<SupervisorCon
         return trigger;
     }
 
-    public void setTrigger(@Nonnull final ScriptletDataObject value){
+    public void setTrigger(final ScriptletDataObject value){
         trigger = value;
     }
 }
