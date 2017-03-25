@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.configuration.ConfigurationEntityDescription.ParameterDescription;
 
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 
@@ -17,8 +18,8 @@ public interface SelectableGatewayParameterDescriptor extends ParameterDescripti
      * Suggests the values of the configuration parameter.
      * @param connectionOptions Configuration parameters associated with the gateway.
      * @param loc Target localization of the suggested values.
-     * @return An array of parameter suggested values.
+     * @return A collection of suggested values.
      * @throws java.lang.Exception Unable to suggest values.
      */
-    String[] suggestValues(final Map<String, String> connectionOptions, final Locale loc) throws Exception;
+    Collection<String> suggestValues(final Map<String, String> connectionOptions, final Locale loc) throws Exception;
 }
