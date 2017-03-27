@@ -15,6 +15,7 @@ import { CommonSnampUtilsModule } from '../app.module';
 
 import { TemplateComponent } from './watchers.template';
 import { MainComponent } from './watchers.view';
+import { WatcherDashboard } from './watchers.dashboard';
 
 import { CheckersComponent } from './components/checkers.component';
 import { TriggerComponent } from './components/trigger.component';
@@ -38,11 +39,20 @@ const PROVIDERS:any =  [
       CommonSnampUtilsModule,
       RouterModule.forChild([{
             path: '', component: TemplateComponent, children: [
-                { path: '', component: MainComponent }
+                { path: '', component: MainComponent },
+                { path: 'dashboard', component: WatcherDashboard }
             ]
       }])
     ],
-    declarations: [ TemplateComponent, MainComponent, CheckersComponent, TriggerComponent, ColoredCondition, KeysPipe ],
+    declarations: [
+        TemplateComponent,
+        MainComponent,
+        WatcherDashboard,
+        CheckersComponent,
+        TriggerComponent,
+        ColoredCondition,
+        KeysPipe
+    ],
     providers:    PROVIDERS
 })
 export class WatchersModule {}

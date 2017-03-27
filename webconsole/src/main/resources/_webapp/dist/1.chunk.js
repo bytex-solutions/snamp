@@ -15,6 +15,21 @@ exports.push([module.i, ".form-group {\r\n    margin-bottom: 10px;\r\n    displa
 
 /***/ },
 
+/***/ "./node_modules/css-loader/index.js!./src/app/watchers/templates/css/statuses.css":
+/***/ function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ },
+
 /***/ "./src/app/watchers/components/checkers.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -687,6 +702,21 @@ exports.Watcher = Watcher;
 
 /***/ },
 
+/***/ "./src/app/watchers/templates/css/statuses.css":
+/***/ function(module, exports, __webpack_require__) {
+
+
+        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/watchers/templates/css/statuses.css");
+
+        if (typeof result === "string") {
+            module.exports = result;
+        } else {
+            module.exports = result.toString();
+        }
+    
+
+/***/ },
+
 /***/ "./src/app/watchers/templates/main.html":
 /***/ function(module, exports) {
 
@@ -694,10 +724,68 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949
 
 /***/ },
 
+/***/ "./src/app/watchers/templates/statuses.html":
+/***/ function(module, exports) {
+
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Watcher statuses</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n\r\n  </div>\r\n</div>\r\n\r\n"
+
+/***/ },
+
 /***/ "./src/app/watchers/templates/template.html":
 /***/ function(module, exports) {
 
 module.exports = "<router-outlet></router-outlet>"
+
+/***/ },
+
+/***/ "./src/app/watchers/watchers.dashboard.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+__webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
+var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
+var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+var WatcherDashboard = (function () {
+    function WatcherDashboard(apiClient, modal, overlay, vcRef) {
+        this.modal = modal;
+        this.timerId = undefined;
+        this.statuses = [];
+        this.http = apiClient;
+        overlay.defaultViewContainer = vcRef;
+    }
+    WatcherDashboard.prototype.ngOnInit = function () { };
+    WatcherDashboard.prototype.ngAfterViewInit = function () {
+        var _thisReference = this;
+        // load the list of watchers
+        this.timerId = setInterval(function () {
+            var _this = this;
+            this.http.get(app_restClient_1.REST.WATCHERS_STATUS)
+                .map(function (res) { return res.json(); })
+                .subscribe(function (data) {
+                _this.statuses = data;
+                console.log(_this.statuses);
+            });
+        }, 1000);
+    };
+    WatcherDashboard.prototype.ngOnDestroy = function () {
+        clearInterval(this.timerId);
+    };
+    WatcherDashboard = __decorate([
+        core_1.Component({
+            moduleId: module.i,
+            template: __webpack_require__("./src/app/watchers/templates/statuses.html"),
+            styles: [__webpack_require__("./src/app/watchers/templates/css/statuses.css")]
+        }), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _b) || Object, (typeof (_c = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _c) || Object, (typeof (_d = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _d) || Object])
+    ], WatcherDashboard);
+    return WatcherDashboard;
+    var _a, _b, _c, _d;
+}());
+exports.WatcherDashboard = WatcherDashboard;
+
 
 /***/ },
 
@@ -718,6 +806,7 @@ var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index
 var app_module_1 = __webpack_require__("./src/app/app.module.ts");
 var watchers_template_1 = __webpack_require__("./src/app/watchers/watchers.template.ts");
 var watchers_view_1 = __webpack_require__("./src/app/watchers/watchers.view.ts");
+var watchers_dashboard_1 = __webpack_require__("./src/app/watchers/watchers.dashboard.ts");
 var checkers_component_1 = __webpack_require__("./src/app/watchers/components/checkers.component.ts");
 var trigger_component_1 = __webpack_require__("./src/app/watchers/components/trigger.component.ts");
 var condition_block_1 = __webpack_require__("./src/app/watchers/components/condition.block.ts");
@@ -741,11 +830,20 @@ var WatchersModule = (function () {
                 app_module_1.CommonSnampUtilsModule,
                 router_1.RouterModule.forChild([{
                         path: '', component: watchers_template_1.TemplateComponent, children: [
-                            { path: '', component: watchers_view_1.MainComponent }
+                            { path: '', component: watchers_view_1.MainComponent },
+                            { path: 'dashboard', component: watchers_dashboard_1.WatcherDashboard }
                         ]
                     }])
             ],
-            declarations: [watchers_template_1.TemplateComponent, watchers_view_1.MainComponent, checkers_component_1.CheckersComponent, trigger_component_1.TriggerComponent, condition_block_1.ColoredCondition, watchers_pipes_1.KeysPipe],
+            declarations: [
+                watchers_template_1.TemplateComponent,
+                watchers_view_1.MainComponent,
+                watchers_dashboard_1.WatcherDashboard,
+                checkers_component_1.CheckersComponent,
+                trigger_component_1.TriggerComponent,
+                condition_block_1.ColoredCondition,
+                watchers_pipes_1.KeysPipe
+            ],
             providers: PROVIDERS
         }), 
         __metadata('design:paramtypes', [])

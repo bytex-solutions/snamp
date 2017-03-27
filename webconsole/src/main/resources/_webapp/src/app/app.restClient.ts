@@ -175,4 +175,8 @@ export class REST {
     public static WATCHER_BY_NAME(name:string):string {
         return REST.WATCHERS_LIST + "/" + name;
     }
+
+    public static WATCHERS_STATUS():string {
+        return "/snamp/web/api/groupWatcher/groups/status"
+    }
 }
