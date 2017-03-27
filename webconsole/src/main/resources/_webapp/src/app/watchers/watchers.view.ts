@@ -263,6 +263,10 @@ export class MainComponent implements OnInit {
         console.log("Saved yellow condition: ", event);
     }
 
+    public saveActiveWatcher():void {
+        console.log("Saving selected watcher: ", this.activeWatcher.toJSON());
+    }
+
 }
 
 export class EntityWithDescription {
