@@ -1,9 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.BooleanBox;
-import com.bytex.snamp.BoxFactory;
-import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.*;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
@@ -52,6 +49,11 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         private ManagedResourceConfigurationException(final String pid, final Throwable e) {
             super(pid, SerializableManagedResourceConfiguration.class, e);
         }
+    }
+
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
+    public CMManagedResourceParserImpl(){
+        super(SerializableManagedResourceConfiguration.class);
     }
 
     /**
@@ -183,10 +185,9 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
     }
 
     @Override
-    void saveChanges(final SerializableAgentConfiguration config,
+    void saveChanges(final ConfigurationEntityList<? extends SerializableManagedResourceConfiguration> resources,
                      final ConfigurationAdmin admin) throws IOException {
         //remove all unnecessary resources
-        final Map<String, ? extends SerializableManagedResourceConfiguration> resources = config.getEntities(SerializableManagedResourceConfiguration.class);
         forEachConfiguration(admin, ALL_CONNECTORS_QUERY, output -> {
             final String connectorType = getConnectorType(output.getFactoryPid());
             final ManagedResourceConfiguration resourceConfig = resources.get(getResourceName(output.getProperties()));
@@ -195,7 +196,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
                 output.delete();
         });
         //save each modified resource
-        config.getEntities(SerializableManagedResourceConfiguration.class).modifiedEntries((resourceName, resource) -> {
+        resources.modifiedEntries((resourceName, resource) -> {
             serialize(resourceName, resource, admin);
             return true;
         });

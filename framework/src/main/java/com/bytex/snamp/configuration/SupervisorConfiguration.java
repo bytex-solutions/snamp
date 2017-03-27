@@ -10,7 +10,7 @@ import com.bytex.snamp.FactoryMap;
  */
 public interface SupervisorConfiguration extends TypedEntityConfiguration {
     String DEFAULT_TYPE = "DEFAULT";
-    
+
     /**
      * Represents configuration of the health supervisor.
      */
@@ -34,6 +34,7 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration {
      * Gets supervisor type.
      *
      * @return Supervisor type.
+     * @see #DEFAULT_TYPE
      */
     @Override
     String getType();

@@ -3,6 +3,7 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.BooleanBox;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import org.osgi.service.cm.Configuration;
@@ -44,6 +45,11 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
      */
     private static String getGatewayType(final String factoryPID){
         return GATEWAY_PID_REPLACEMENT.matcher(factoryPID).replaceFirst("");
+    }
+
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
+    public CMGatewayParserImpl(){
+        super(SerializableGatewayConfiguration.class);
     }
 
     @Override
@@ -126,9 +132,8 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     }
 
     @Override
-    void saveChanges(final SerializableAgentConfiguration config,
+    void saveChanges(final ConfigurationEntityList<? extends SerializableGatewayConfiguration> instances,
               final ConfigurationAdmin admin) throws IOException {
-        final ConfigurationEntityList<? extends SerializableGatewayConfiguration> instances = config.getEntities(SerializableGatewayConfiguration.class);
         //remove all unnecessary gateway
         forEachConfiguration(admin, ALL_GATEWAYS_QUERY, output -> {
             final String gatewayType = getGatewayType(output.getFactoryPid());
@@ -138,7 +143,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
                 output.delete();
         });
         //save each modified gateway instance
-        config.getEntities(SerializableGatewayConfiguration.class).modifiedEntries((gatewayInstanceName, gatewayInstanceConfig) -> {
+        instances.modifiedEntries((gatewayInstanceName, gatewayInstanceConfig) -> {
             serialize(gatewayInstanceName, gatewayInstanceConfig, admin);
             return true;
         });

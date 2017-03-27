@@ -17,14 +17,13 @@ import java.util.function.BiConsumer;
  */
 abstract class SerializableConfigurationParser<E extends SerializableEntityConfiguration & Stateful> extends AbstractConfigurationParser<E> {
     final String persistentID;
-    private final Class<E> entityType;
     private final ImmutableSet<String> excludeConfigKeys;
 
     SerializableConfigurationParser(final String pid,
                                     final Class<E> entityType,
                                     final String... excludeConfigKeys) {
+        super(entityType);
         this.persistentID = Objects.requireNonNull(pid);
-        this.entityType = Objects.requireNonNull(entityType);
         this.excludeConfigKeys = ImmutableSet.<String>builder()
                 .add(excludeConfigKeys)
                 .addAll(IGNORED_PROPERTIES)
@@ -74,8 +73,8 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
             dest.putAll(parse(config));
     }
 
-    private void saveChanges(final SerializableAgentConfiguration source, final Dictionary<String, Object> dest) throws IOException {
-        final ConfigurationEntityList<? extends E> list = source.getEntities(entityType);
+    private static <E extends SerializableEntityConfiguration> void saveChanges(final ConfigurationEntityList<? extends E> list,
+                                                                                final Dictionary<String, Object> dest) throws IOException {
         //remove deleted items
         Collections.list(dest.keys()).stream()
                 .filter(destName -> !list.containsKey(destName))
@@ -88,7 +87,7 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
     }
 
     @Override
-    final void saveChanges(final SerializableAgentConfiguration source, final ConfigurationAdmin dest) throws IOException {
+    final void saveChanges(final ConfigurationEntityList<? extends E> source, final ConfigurationAdmin dest) throws IOException {
         final Configuration config = getConfig(dest);
         Dictionary<String, Object> props = config.getProperties();
         if(props == null)

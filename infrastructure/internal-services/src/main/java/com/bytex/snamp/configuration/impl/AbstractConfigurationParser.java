@@ -10,6 +10,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Dictionary;
@@ -31,6 +32,12 @@ abstract class AbstractConfigurationParser<E extends SerializableEntityConfigura
             ConfigurationAdmin.SERVICE_FACTORYPID,
             ConfigurationAdmin.SERVICE_BUNDLELOCATION);
 
+    final Class<E> entityType;
+
+    AbstractConfigurationParser(@Nonnull final Class<E> entityType){
+        this.entityType = entityType;
+    }
+
     abstract void removeAll(final ConfigurationAdmin admin) throws IOException;
 
     static void removeAll(final ConfigurationAdmin admin, final String filter) throws IOException {
@@ -39,7 +46,13 @@ abstract class AbstractConfigurationParser<E extends SerializableEntityConfigura
 
     abstract void fill(final ConfigurationAdmin source, final Map<String, E> dest) throws IOException;
 
-    abstract void saveChanges(final SerializableAgentConfiguration source, final ConfigurationAdmin dest) throws IOException;
+    abstract void saveChanges(final ConfigurationEntityList<? extends E> source, final ConfigurationAdmin dest) throws IOException;
+
+    final void saveChanges(final SerializableAgentConfiguration source, final ConfigurationAdmin dest) throws IOException{
+        final ConfigurationEntityList<? extends E> entities = source.getEntities(entityType);
+        assert entities != null;
+        saveChanges(entities, dest);
+    }
 
     abstract Map<String, E> parse(final Dictionary<String, ?> config) throws IOException;
 

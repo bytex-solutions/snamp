@@ -7,4 +7,17 @@ package com.bytex.snamp.configuration;
  * @since 2.0
  */
 public interface ManagedResourceGroupConfiguration extends ManagedResourceTemplate {
+    /**
+     * Gets supervisor name used for this group.
+     *
+     * @return Supervisor name.
+     */
+    String getSupervisor();
+
+    /**
+     * Sets supervisor name for this group.
+     *
+     * @param value Supervisor name.
+     */
+    void setSupervisor(final String value);
 }
