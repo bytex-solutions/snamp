@@ -12,10 +12,11 @@ import 'rxjs/add/operator/publishLast';
 
 import { overlayConfigFactory, Overlay } from "angular2-modal";
 import {
-  VEXBuiltInThemes,
   Modal,
-  DialogFormModal
-} from 'angular2-modal/plugins/vex';
+  OneButtonPresetBuilder,
+  TwoButtonPresetBuilder,
+  PromptPresetBuilder
+} from 'angular2-modal/plugins/bootstrap/index';
 
 
 @Component({
@@ -55,6 +56,13 @@ export class WatcherDashboard implements OnInit {
 
     showDetails(status:HealthStatus):void {
         console.log("details for status: ", status);
+        this.modal.alert()
+           .size('lg')
+           .title("Details for health status")
+           .body(status.htmlDetails())
+           .isBlocking(false)
+           .keyboard(27)
+           .open()
     }
 
 }

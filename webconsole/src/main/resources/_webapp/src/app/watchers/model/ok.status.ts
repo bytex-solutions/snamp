@@ -14,4 +14,8 @@ export class OkStatus extends HealthStatus {
     public getShortDescription():string {
         return "n/a";
     }
+
+    public htmlDetails():string {
+        return "<strong>Everything is fine</strong>"
+    }
 }

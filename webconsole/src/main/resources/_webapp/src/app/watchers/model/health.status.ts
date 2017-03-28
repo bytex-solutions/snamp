@@ -12,6 +12,7 @@ export abstract class HealthStatus {
     public abstract isCritical():boolean;
     public abstract represent():string;
     public abstract getShortDescription():string;
+    public abstract htmlDetails():string;
 
     public details():string {
         return this.represent() + " (Click for details)";

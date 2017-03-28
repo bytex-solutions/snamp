@@ -23,7 +23,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, "/* grid-item\r\n------------------------- */\r\n\r\n.grid-item {\r\n  position: relative;\r\n  float: left;\r\n  width: 123px;\r\n  height: 123px;\r\n  margin: 10px;\r\n  padding: 10px;\r\n  background: #888;\r\n  color: #262524;\r\n}\r\n\r\n.componentOk {\r\n  background: #228B22 !important;\r\n}\r\n\r\n.componentError  {\r\n  background: #F08080 !important;\r\n}\r\n\r\n.grid-item > * {\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n\r\n.grid-item .name {\r\n  position: absolute;\r\n\r\n  left: 10px;\r\n  top: 55px;\r\n  text-transform: none;\r\n  letter-spacing: 0;\r\n  font-weight: normal;\r\n}\r\n\r\n.grid-item .symbol {\r\n  position: absolute;\r\n  left: 10px;\r\n  top: 0px;\r\n  font-weight: bold;\r\n  color: white;\r\n}\r\n\r\n.grid-item .number {\r\n  position: absolute;\r\n  right: 8px;\r\n  top: 5px;\r\n}\r\n\r\n.grid-item .weight {\r\n  position: absolute;\r\n  left: 9px;\r\n  top: 107px;\r\n  font-size: 0.8em;\r\n}\r\n\r\n.grid-item .bundleInfo {\r\n  position: absolute;\r\n  left: 117px;\r\n  top: 117px;\r\n  font-size: medium;\r\n}\r\n\r\n.grid-item-link {\r\n    display: inline-block;\r\n    border: 1px solid #dddddd;\r\n    border-radius: 4px;\r\n    -webkit-transition: border 0.2s ease-in-out;\r\n    -o-transition: border 0.2s ease-in-out;\r\n    transition: border 0.2s ease-in-out;\r\n    margin: 5px;\r\n}\r\n\r\na.grid-item-link:hover,\r\na.grid-item-link:focus,\r\na.grid-item-link.active {\r\n  border-color: #337ab7;\r\n}", ""]);
+exports.push([module.i, "/* grid-item\r\n------------------------- */\r\n\r\n.grid-item {\r\n  position: relative;\r\n  float: left;\r\n  width: 123px;\r\n  height: 123px;\r\n  margin: 10px;\r\n  padding: 10px;\r\n  background: #888;\r\n  color: #262524;\r\n}\r\n\r\n.componentOk {\r\n  background: #228B22 !important;\r\n}\r\n\r\n.componentError  {\r\n  background: #F08080 !important;\r\n}\r\n\r\n.grid-item > * {\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n\r\n.grid-item .name {\r\n  position: absolute;\r\n\r\n  left: 10px;\r\n  top: 55px;\r\n  text-transform: none;\r\n  letter-spacing: 0;\r\n  font-weight: normal;\r\n}\r\n\r\n.grid-item .symbol {\r\n  position: absolute;\r\n  left: 10px;\r\n  top: 0px;\r\n  font-weight: bold;\r\n  color: white;\r\n}\r\n\r\n.grid-item .number {\r\n  position: absolute;\r\n  right: 8px;\r\n  top: 5px;\r\n}\r\n\r\n.grid-item .weight {\r\n  position: absolute;\r\n  left: 9px;\r\n  top: 107px;\r\n  font-size: 0.8em;\r\n}\r\n\r\n.grid-item .bundleInfo {\r\n  position: absolute;\r\n  left: 117px;\r\n  top: 117px;\r\n  font-size: medium;\r\n}\r\n\r\n.grid-item-link {\r\n    display: inline-block;\r\n    border: 1px solid #dddddd;\r\n    border-radius: 4px;\r\n    -webkit-transition: border 0.2s ease-in-out;\r\n    -o-transition: border 0.2s ease-in-out;\r\n    transition: border 0.2s ease-in-out;\r\n    margin: 5px 5px 20px 5px;\r\n}\r\n\r\na.grid-item-link:hover,\r\na.grid-item-link:focus,\r\na.grid-item-link.active {\r\n  border-color: #337ab7;\r\n}", ""]);
 
 // exports
 
@@ -299,6 +299,14 @@ var ConnectionProblem = (function (_super) {
     ConnectionProblem.prototype.getShortDescription = function () {
         return "Connection problems";
     };
+    ConnectionProblem.prototype.htmlDetails = function () {
+        var _details = "";
+        _details += "<strong>Watcher name: </strong>" + this.name + "<br/>";
+        _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
+        _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+        _details += "<strong>IO Exception: </strong>" + this.ioException + "<br/>";
+        return _details;
+    };
     return ConnectionProblem;
 }(malfunction_status_1.MalfunctionStatus));
 exports.ConnectionProblem = ConnectionProblem;
@@ -561,6 +569,15 @@ var InvalidAttributeValue = (function (_super) {
     InvalidAttributeValue.prototype.getShortDescription = function () {
         return "Invalid attribute";
     };
+    InvalidAttributeValue.prototype.htmlDetails = function () {
+        var _details = "";
+        _details += "<strong>Watcher name: </strong>" + this.name + "<br/>";
+        _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
+        _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+        _details += "<strong>Attribute name: </strong>" + this.attribute.name + "<br/>";
+        _details += "<strong>Attribute value: </strong>" + this.attribute.value + "<br/>";
+        return _details;
+    };
     return InvalidAttributeValue;
 }(malfunction_status_1.MalfunctionStatus));
 exports.InvalidAttributeValue = InvalidAttributeValue;
@@ -672,6 +689,9 @@ var OkStatus = (function (_super) {
     OkStatus.prototype.getShortDescription = function () {
         return "n/a";
     };
+    OkStatus.prototype.htmlDetails = function () {
+        return "<strong>Everything is fine</strong>";
+    };
     return OkStatus;
 }(health_status_1.HealthStatus));
 exports.OkStatus = OkStatus;
@@ -731,6 +751,14 @@ var ResourceIsNotAvailable = (function (_super) {
     };
     ResourceIsNotAvailable.prototype.getShortDescription = function () {
         return "Resource is not available";
+    };
+    ResourceIsNotAvailable.prototype.htmlDetails = function () {
+        var _details = "";
+        _details += "<strong>Watcher name: </strong>" + this.name + "<br/>";
+        _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
+        _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+        _details += "<strong>JMX Exception: </strong>" + this.jmxError + "<br/>";
+        return _details;
     };
     return ResourceIsNotAvailable;
 }(malfunction_status_1.MalfunctionStatus));
@@ -951,7 +979,7 @@ var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
 var factory_1 = __webpack_require__("./src/app/watchers/model/factory.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
-var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+var index_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
 var WatcherDashboard = (function () {
     function WatcherDashboard(apiClient, modal, overlay, vcRef) {
         this.modal = modal;
@@ -978,6 +1006,13 @@ var WatcherDashboard = (function () {
     };
     WatcherDashboard.prototype.showDetails = function (status) {
         console.log("details for status: ", status);
+        this.modal.alert()
+            .size('lg')
+            .title("Details for health status")
+            .body(status.htmlDetails())
+            .isBlocking(false)
+            .keyboard(27)
+            .open();
     };
     WatcherDashboard = __decorate([
         core_1.Component({
@@ -985,7 +1020,7 @@ var WatcherDashboard = (function () {
             template: __webpack_require__("./src/app/watchers/templates/statuses.html"),
             styles: [__webpack_require__("./src/app/watchers/templates/css/statuses.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _b) || Object, (typeof (_c = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _c) || Object, (typeof (_d = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _d) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof index_1.Modal !== 'undefined' && index_1.Modal) === 'function' && _b) || Object, (typeof (_c = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _c) || Object, (typeof (_d = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _d) || Object])
     ], WatcherDashboard);
     return WatcherDashboard;
     var _a, _b, _c, _d;
