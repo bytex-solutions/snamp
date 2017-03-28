@@ -37,8 +37,8 @@
           </li>
           <li><a id="watchersli" (click)="anchorClicked($event)"><i class="fa fa-eye"></i> Watchers<span id="watcherschevron" class="fa fa-chevron-down"></span></a>
             <ul class="nav child_menu">
-              <li routerLinkActive="activeLi"><a routerLink="watchers" routerLinkActive="active">Setup</a></li>
-              <li routerLinkActive="activeLi"><a routerLink="watchers/dashboard" routerLinkActive="active">Statuses</a></li>
+              <li routerLinkActive="activeLi"  [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Setup</a></li>
+              <li routerLinkActive="activeLi"  [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Statuses</a></li>
             </ul>
           </li>
           <li><a id="homeli" (click)="anchorClicked($event)"><i class="fa fa-home"></i> Configure<span id="homechevron" class="fa fa-chevron-down"></span></a>

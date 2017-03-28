@@ -38,11 +38,11 @@ export class WatcherDashboard implements OnInit {
         var _thisReference = this;
         // load the list of watchers
          this.timerId = setInterval(function(){
-              this.http.get(REST.WATCHERS_STATUS)
+              _thisReference.http.get(REST.WATCHERS_STATUS)
                  .map((res:Response) => res.json())
                  .subscribe((data) => {
-                    this.statuses = data;
-                    console.log(this.statuses);
+                    _thisReference.statuses = data;
+                    console.log(_thisReference.statuses);
                  });
          }, 1000);
    }

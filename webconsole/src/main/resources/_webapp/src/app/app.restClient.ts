@@ -176,7 +176,6 @@ export class REST {
         return REST.WATCHERS_LIST + "/" + name;
     }
 
-    public static WATCHERS_STATUS():string {
-        return "/snamp/web/api/groupWatcher/groups/status"
-    }
+    // watchers statuses
+    public static WATCHERS_STATUS:string = "/snamp/web/api/groupWatcher/groups/status";
 }

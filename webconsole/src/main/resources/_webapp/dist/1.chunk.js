@@ -761,12 +761,11 @@ var WatcherDashboard = (function () {
         var _thisReference = this;
         // load the list of watchers
         this.timerId = setInterval(function () {
-            var _this = this;
-            this.http.get(app_restClient_1.REST.WATCHERS_STATUS)
+            _thisReference.http.get(app_restClient_1.REST.WATCHERS_STATUS)
                 .map(function (res) { return res.json(); })
                 .subscribe(function (data) {
-                _this.statuses = data;
-                console.log(_this.statuses);
+                _thisReference.statuses = data;
+                console.log(_thisReference.statuses);
             });
         }, 1000);
     };
