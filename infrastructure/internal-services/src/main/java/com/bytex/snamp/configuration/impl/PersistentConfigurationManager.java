@@ -37,8 +37,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private final CMGatewayParserImpl gatewayInstanceParser;
     private final CMThreadPoolParser threadPoolParser;
     private final CMManagedResourceGroupParser groupParser;
-    @Aggregation(cached = true)
-    private final CMSupervisorParserImpl watcherParser;
 
     /**
      * Initializes a new configuration manager.
@@ -51,7 +49,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         gatewayInstanceParser = new CMGatewayParserImpl();
         threadPoolParser = new CMThreadPoolParser();
         groupParser = new CMManagedResourceGroupParser();
-        watcherParser = new CMSupervisorParserImpl();
     }
 
     private void mergeResourcesWithGroups(final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources,
@@ -80,14 +77,12 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             gatewayInstanceParser.removeAll(admin);
             threadPoolParser.removeAll(admin);
             groupParser.removeAll(admin);
-            watcherParser.removeAll(admin);
         } else {
             mergeResourcesWithGroups(config.getManagedResources(), config.getManagedResourceGroups());
             gatewayInstanceParser.saveChanges(config, admin);
             resourceParser.saveChanges(config, admin);
             threadPoolParser.saveChanges(config, admin);
             groupParser.saveChanges(config, admin);
-            watcherParser.saveChanges(config, admin);
         }
         //save SNAMP config
         CMAgentParserImpl.saveParameters(admin, config);
@@ -108,7 +103,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             resourceParser.fill(admin, config.getManagedResources());
             threadPoolParser.fill(admin, config.getThreadPools());
             groupParser.fill(admin, config.getManagedResourceGroups());
-            watcherParser.fill(admin, config.getWatchers());
             CMAgentParserImpl.loadParameters(admin, config);
             if (handler.process(config))
                 save(config);

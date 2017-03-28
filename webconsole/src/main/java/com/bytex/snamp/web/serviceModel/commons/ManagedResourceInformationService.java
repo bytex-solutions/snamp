@@ -40,7 +40,7 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
 
     public ManagedResourceInformationService() {
         resources = new ConcurrentResourceAccessor<>(HashMultimap.create());
-        ManagedResourceConnectorClient.addResourceListener(getBundleContext(), this);
+        ManagedResourceConnectorClient.filterBuilder().addServiceListener(getBundleContext(), this);
     }
 
     /**

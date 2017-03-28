@@ -53,7 +53,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
     public NotificationService(final ExecutorService threadPool) {
         super(NotificationSettings.class);
         this.threadPool = Objects.requireNonNull(threadPool);
-        ManagedResourceConnectorClient.addResourceListener(getBundleContext(), this);
+        ManagedResourceConnectorClient.filterBuilder().addServiceListener(getBundleContext(), this);
     }
 
     private BundleContext getBundleContext(){

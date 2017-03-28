@@ -1,6 +1,5 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.Stateful;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.osgi.service.cm.Configuration;
@@ -15,8 +14,8 @@ import java.util.function.BiConsumer;
  * @version 1.0
  * @since 1.0
  */
-abstract class SerializableConfigurationParser<E extends SerializableEntityConfiguration & Stateful> extends AbstractConfigurationParser<E> {
-    final String persistentID;
+abstract class SerializableConfigurationParser<E extends SerializableEntityConfiguration> extends AbstractConfigurationParser<E> {
+    private final String persistentID;
     private final ImmutableSet<String> excludeConfigKeys;
 
     SerializableConfigurationParser(final String pid,

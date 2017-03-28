@@ -1,5 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
+import com.bytex.snamp.Stateful;
 import com.bytex.snamp.configuration.EntityConfiguration;
 
 import java.io.Externalizable;
@@ -10,5 +11,5 @@ import java.io.Externalizable;
  * @since 1.2
  * @version 2.0
  */
-interface SerializableEntityConfiguration extends EntityConfiguration, Modifiable, Externalizable {
+interface SerializableEntityConfiguration extends EntityConfiguration, Modifiable, Externalizable, Stateful {
 }

@@ -1,6 +1,5 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.Stateful;
 import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 
@@ -11,7 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 
-abstract class ConfigurationEntityList<E extends SerializableEntityConfiguration & Stateful> extends SerializableFactoryMap<String, E> implements EntityMap<E> {
+abstract class ConfigurationEntityList<E extends SerializableEntityConfiguration> extends SerializableFactoryMap<String, E> implements EntityMap<E> {
     private static final long serialVersionUID = -3859844548619883398L;
 
     ConfigurationEntityList() {

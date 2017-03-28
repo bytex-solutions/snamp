@@ -131,7 +131,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
     @Test
     public void simpleTrackingTest() throws Exception {
         final TestGateway gateway = new TestGateway();
-        ManagedResourceConnectorClient.addResourceListener(getTestBundleContext(), gateway);
+        ManagedResourceConnectorClient.filterBuilder().addServiceListener(getTestBundleContext(), gateway);
         try {
             tryStart(gateway, Collections.emptyMap());
             assertEquals(9, gateway.getAttributes().size());
