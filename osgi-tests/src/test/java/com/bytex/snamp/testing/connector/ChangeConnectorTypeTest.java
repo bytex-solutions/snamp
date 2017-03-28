@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.connector;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.instrumentation.measurements.IntegerMeasurement;
@@ -35,10 +34,10 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
         final String RESOURCE_NAME = "connector";
         //Configure Groovy connector
         processConfiguration(config -> {
-            ManagedResourceConfiguration connector = config.getEntities(ManagedResourceConfiguration.class).getOrAdd(RESOURCE_NAME);
+            ManagedResourceConfiguration connector = config.getResources().getOrAdd(RESOURCE_NAME);
             connector.setType(AbstractGroovyConnectorTest.CONNECTOR_TYPE);
             connector.setConnectionString(AbstractGroovyConnectorTest.getConnectionString());
-            connector.getFeatures(AttributeConfiguration.class).getOrAdd("DummyAttribute").put("configParam", "value");
+            connector.getAttributes().getOrAdd("DummyAttribute").put("configParam", "value");
             return true;
         });
         ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2));
@@ -52,15 +51,15 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
         final String COMPONENT_NAME = "javaApp";
         final String INSTANCE_NAME = "myComponent";
         processConfiguration(config -> {
-            ManagedResourceConfiguration connector = config.getEntities(ManagedResourceConfiguration.class).getOrAdd(RESOURCE_NAME);
+            ManagedResourceConfiguration connector = config.getResources().getOrAdd(RESOURCE_NAME);
             assertEquals(AbstractGroovyConnectorTest.CONNECTOR_TYPE, connector.getType());
             connector.setType(AbstractHttpConnectorTest.CONNECTOR_TYPE);
             connector.setConnectionString(INSTANCE_NAME);
             connector.put("componentName", COMPONENT_NAME);
-            connector.getFeatures(AttributeConfiguration.class).clear();
-            connector.getFeatures(AttributeConfiguration.class)
+            connector.getAttributes().clear();
+            connector.getAttributes()
                     .addAndConsume("longValue", attribute -> attribute.put("gauge", "get lastValue from gauge64 attribute1"));
-            connector.getFeatures(AttributeConfiguration.class)
+            connector.getAttributes()
                     .addAndConsume("attribute1", attribute -> {
                         attribute.put("gauge", "gauge64");
                         attribute.setAlternativeName(StandardMeasurements.FREE_RAM);

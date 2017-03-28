@@ -17,11 +17,12 @@ import java.util.function.BiConsumer;
 abstract class SerializableConfigurationParser<E extends SerializableEntityConfiguration> extends AbstractConfigurationParser<E> {
     private final String persistentID;
     private final ImmutableSet<String> excludeConfigKeys;
+    private final Class<E> entityType;
 
     SerializableConfigurationParser(final String pid,
                                     final Class<E> entityType,
                                     final String... excludeConfigKeys) {
-        super(entityType);
+        this.entityType = Objects.requireNonNull(entityType);
         this.persistentID = Objects.requireNonNull(pid);
         this.excludeConfigKeys = ImmutableSet.<String>builder()
                 .add(excludeConfigKeys)
@@ -72,7 +73,7 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
             dest.putAll(parse(config));
     }
 
-    private static <E extends SerializableEntityConfiguration> void saveChanges(final ConfigurationEntityList<? extends E> list,
+    private static <E extends SerializableEntityConfiguration> void saveChanges(final SerializableEntityMap<? extends E> list,
                                                                                 final Dictionary<String, Object> dest) throws IOException {
         //remove deleted items
         Collections.list(dest.keys()).stream()
@@ -86,7 +87,7 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
     }
 
     @Override
-    final void saveChanges(final ConfigurationEntityList<? extends E> source, final ConfigurationAdmin dest) throws IOException {
+    final void saveChanges(final SerializableEntityMap<? extends E> source, final ConfigurationAdmin dest) throws IOException {
         final Configuration config = getConfig(dest);
         Dictionary<String, Object> props = config.getProperties();
         if(props == null)

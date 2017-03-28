@@ -1,11 +1,14 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+
+import javax.annotation.Nonnull;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;
 
@@ -24,10 +27,6 @@ public final class GatewayInstanceInfoCommand extends ConfigurationCommand<Gatew
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String instanceName = "";
 
-    public GatewayInstanceInfoCommand(){
-        super(GatewayConfiguration.class);
-    }
-
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
         if (configuration.containsKey(instanceName)) {
@@ -39,5 +38,11 @@ public final class GatewayInstanceInfoCommand extends ConfigurationCommand<Gatew
         } else
             output.append("Gateway instance doesn't exist");
         return false;
+    }
+
+    @Nonnull
+    @Override
+    public EntityMap<? extends GatewayConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return owner.getGateways();
     }
 }

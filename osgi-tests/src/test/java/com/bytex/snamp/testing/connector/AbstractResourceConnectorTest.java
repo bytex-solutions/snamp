@@ -188,17 +188,15 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
      */
     @Override
     protected final void setupTestConfiguration(final AgentConfiguration config) {
-        final ManagedResourceConfiguration targetConfig =
-                config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME);
+        final ManagedResourceConfiguration targetConfig = config.getResources().getOrAdd(TEST_RESOURCE_NAME);
         targetConfig.putAll(connectorParameters);
         targetConfig.setGroupName(getGroupName());
-        fillGateways(config.getEntities(GatewayConfiguration.class));
+        fillGateways(config.getGateways());
         targetConfig.setConnectionString(connectionString);
         targetConfig.setType(connectorType);
-        fillAttributes(targetConfig.getFeatures(AttributeConfiguration.class));
-        fillEvents(targetConfig.getFeatures(EventConfiguration.class));
-        fillOperations(targetConfig.getFeatures(OperationConfiguration.class));
-        fillWatchers(config.getEntities(SupervisorConfiguration.class));
+        fillAttributes(targetConfig.getAttributes());
+        fillEvents(targetConfig.getEvents());
+        fillOperations(targetConfig.getOperations());
     }
 
     protected final <T> void testAttribute(final String attributeName,

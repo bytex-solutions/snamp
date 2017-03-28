@@ -1,11 +1,14 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+
+import javax.annotation.Nonnull;
 
 /**
  * Deletes managed resource.
@@ -22,10 +25,6 @@ public final class DeleteResourceCommand extends ConfigurationCommand<ManagedRes
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to remove")
     private String resourceName = "";
 
-    public DeleteResourceCommand(){
-        super(ManagedResourceConfiguration.class);
-    }
-
     @Override
     boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
         if(configuration.remove(resourceName) == null){
@@ -36,5 +35,11 @@ public final class DeleteResourceCommand extends ConfigurationCommand<ManagedRes
             output.append("Removed successfully");
             return true;
         }
+    }
+
+    @Nonnull
+    @Override
+    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return owner.getResources();
     }
 }

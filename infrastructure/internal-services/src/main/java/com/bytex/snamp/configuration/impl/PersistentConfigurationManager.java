@@ -51,8 +51,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         groupParser = new CMManagedResourceGroupParser();
     }
 
-    private void mergeResourcesWithGroups(final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources,
-                                          final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups) {
+    private void mergeResourcesWithGroups(final SerializableEntityMap<SerializableManagedResourceConfiguration> resources,
+                                          final SerializableEntityMap<SerializableManagedResourceGroupConfiguration> groups) {
         //migrate attributes, events, operations and properties from modified groups into resources
         groups.modifiedEntries((groupName, groupConfig) -> {
             resources.values().parallelStream()                 //attempt to increase performance with many registered resources
@@ -78,7 +78,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             threadPoolParser.removeAll(admin);
             groupParser.removeAll(admin);
         } else {
-            mergeResourcesWithGroups(config.getManagedResources(), config.getManagedResourceGroups());
+            mergeResourcesWithGroups(config.getResources(), config.getResourceGroups());
             gatewayInstanceParser.saveChanges(config, admin);
             resourceParser.saveChanges(config, admin);
             threadPoolParser.saveChanges(config, admin);
@@ -99,10 +99,10 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         //Process configuration protected by lock.
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
-            gatewayInstanceParser.fill(admin, config.getGatewayInstances());
-            resourceParser.fill(admin, config.getManagedResources());
+            gatewayInstanceParser.fill(admin, config.getGateways());
+            resourceParser.fill(admin, config.getResources());
             threadPoolParser.fill(admin, config.getThreadPools());
-            groupParser.fill(admin, config.getManagedResourceGroups());
+            groupParser.fill(admin, config.getResourceGroups());
             CMAgentParserImpl.loadParameters(admin, config);
             if (handler.process(config))
                 save(config);

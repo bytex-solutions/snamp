@@ -1,11 +1,14 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+
+import javax.annotation.Nonnull;
 
 /**
  * Deletes configuration parameter of the gateway instance.
@@ -26,11 +29,6 @@ public final class DeleteGatewayParameterCommand extends ConfigurationCommand<Ga
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String paramName = "";
 
-    @SpecialUse(SpecialUse.Case.REFLECTION)
-    public DeleteGatewayParameterCommand(){
-        super(GatewayConfiguration.class);
-    }
-
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
         if(configuration.containsKey(instanceName)){
@@ -42,5 +40,11 @@ public final class DeleteGatewayParameterCommand extends ConfigurationCommand<Ga
             output.append("Instance doesn't exist");
             return false;
         }
+    }
+
+    @Nonnull
+    @Override
+    public EntityMap<? extends GatewayConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return owner.getGateways();
     }
 }

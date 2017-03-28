@@ -3,7 +3,6 @@ package com.bytex.snamp.web.serviceModel.commons;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
-import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
@@ -83,9 +82,9 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
         final ServiceHolder<ConfigurationManager> configurationManager = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
         if (configurationManager != null)
             try {
-                final Optional<? extends ManagedResourceGroupConfiguration> group = configurationManager.get().transformConfiguration(config -> config.getEntities(ManagedResourceGroupConfiguration.class).getIfPresent(componentName));
+                final Optional<? extends ManagedResourceGroupConfiguration> group = configurationManager.get().transformConfiguration(config -> config.getResourceGroups().getIfPresent(componentName));
                 if(group.isPresent())
-                    return group.get().getFeatures(AttributeConfiguration.class)
+                    return group.get().getAttributes()
                             .entrySet()
                             .stream()
                             .map(entry -> new AttributeInformation(entry.getKey(), entry.getValue()))

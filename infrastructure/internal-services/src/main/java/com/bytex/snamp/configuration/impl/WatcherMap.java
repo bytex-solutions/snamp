@@ -5,7 +5,7 @@ package com.bytex.snamp.configuration.impl;
  * @version 2.0
  * @since 2.0
  */
-final class WatcherList extends ConfigurationEntityList<SerializableSupervisorConfiguration> {
+final class WatcherMap extends SerializableEntityMap<SerializableSupervisorConfiguration> {
     private static final long serialVersionUID = -1512394714178712018L;
 
     @Override

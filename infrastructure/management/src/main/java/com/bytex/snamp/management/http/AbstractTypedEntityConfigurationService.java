@@ -15,10 +15,6 @@ import javax.ws.rs.core.SecurityContext;
  * @since 2.0
  */
 public abstract class AbstractTypedEntityConfigurationService<E extends TypedEntityConfiguration, DTO extends AbstractTypedDataObject<E>> extends AbstractEntityConfigurationService<E, DTO> {
-    AbstractTypedEntityConfigurationService(final Class<E> entityType) {
-        super(entityType);
-    }
-
     /**
      * Change gateway type response.
      *

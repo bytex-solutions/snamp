@@ -1,10 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.OperationConfiguration;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -128,9 +125,9 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     private boolean equals(final ManagedResourceConfiguration other){
         return Objects.equals(getConnectionString(),  other.getConnectionString()) &&
                 Objects.equals(getType(), other.getType()) &&
-                getAttributes().equals(other.getFeatures(AttributeConfiguration.class)) &&
-                getEvents().equals(other.getFeatures(EventConfiguration.class)) &&
-                getOperations().equals(other.getFeatures(OperationConfiguration.class)) &&
+                other.getAttributes().equals(getAttributes()) &&
+                other.getEvents().equals(getEvents()) &&
+                other.getOperations().equals(getOperations()) &&
                 super.equals(other);
     }
 

@@ -2,7 +2,6 @@ package com.bytex.snamp.testing.concurrent;
 
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import org.junit.Test;
@@ -38,6 +37,6 @@ public final class ThreadPoolRepositoryTest extends AbstractSnampIntegrationTest
 
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-        config.getEntities(ThreadPoolConfiguration.class).getOrAdd(POOL_NAME);
+        config.getThreadPools().getOrAdd(POOL_NAME);
     }
 }

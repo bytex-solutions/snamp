@@ -91,16 +91,16 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         final String NEW_RESOURCE_NAME = "temp-resource";
         //change the name of the resource
         processConfiguration(config -> {
-            final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).remove(TEST_RESOURCE_NAME);
+            final ManagedResourceConfiguration resource = config.getResources().remove(TEST_RESOURCE_NAME);
             assertNotNull(resource);
-            config.getEntities(ManagedResourceConfiguration.class).getOrAdd(NEW_RESOURCE_NAME).load(resource);
+            config.getResources().getOrAdd(NEW_RESOURCE_NAME).load(resource);
             return true;
         });
         Thread.sleep(1000);
         processConfiguration(config -> {
-            final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).remove(NEW_RESOURCE_NAME);
+            final ManagedResourceConfiguration resource = config.getResources().remove(NEW_RESOURCE_NAME);
             assertNotNull(resource);
-            config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME).load(resource);
+            config.getResources().getOrAdd(TEST_RESOURCE_NAME).load(resource);
             return true;
         });
     }

@@ -289,7 +289,7 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
             return null;
         else
             try {
-                return manager.get().transformConfiguration(config -> config.getEntities(ManagedResourceConfiguration.class).get(resourceName));
+                return manager.get().transformConfiguration(config -> config.getResources().get(resourceName));
             } finally {
                 manager.release(getBundleContext());
             }

@@ -1,6 +1,10 @@
 package com.bytex.snamp.management.shell;
 
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
+
+import javax.annotation.Nonnull;
 
 /**
  * Provides abstract class for all thread pool management commands.
@@ -9,7 +13,9 @@ import com.bytex.snamp.configuration.ThreadPoolConfiguration;
  * @version 2.0
  */
 abstract class AbstractThreadPoolCommand extends ConfigurationCommand<ThreadPoolConfiguration> {
-    AbstractThreadPoolCommand(){
-        super(ThreadPoolConfiguration.class);
+    @Nonnull
+    @Override
+    public final EntityMap<? extends ThreadPoolConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return owner.getThreadPools();
     }
 }

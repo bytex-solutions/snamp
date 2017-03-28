@@ -2,12 +2,15 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+
+import javax.annotation.Nonnull;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -39,11 +42,6 @@ public final class ConfigResourceCommand extends ConfigurationCommand<ManagedRes
     @Option(name = "-p", aliases = {"-param, --parameter"}, required = false, multiValued = true, description = "Configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
-    @SpecialUse(SpecialUse.Case.REFLECTION)
-    public ConfigResourceCommand(){
-        super(ManagedResourceConfiguration.class);
-    }
-
     @Override
     boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
         if(isNullOrEmpty(resourceName)) return false;
@@ -63,5 +61,11 @@ public final class ConfigResourceCommand extends ConfigurationCommand<ManagedRes
             }
         appendln(output, "Updated");
         return true;
+    }
+
+    @Nonnull
+    @Override
+    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return owner.getResources();
     }
 }

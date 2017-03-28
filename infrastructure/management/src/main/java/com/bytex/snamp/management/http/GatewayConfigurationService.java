@@ -1,9 +1,12 @@
 package com.bytex.snamp.management.http;
 
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.management.http.model.FeatureBindingDataObject;
 import com.bytex.snamp.management.http.model.GatewayDataObject;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Map;
@@ -17,13 +20,6 @@ import java.util.Map;
  */
 @Path("/configuration/gateway")
 public final class GatewayConfigurationService extends AbstractTypedEntityConfigurationService<GatewayConfiguration, GatewayDataObject> {
-
-    /**
-     * Instantiates a new Gateway configuration service.
-     */
-    GatewayConfigurationService(){
-        super(GatewayConfiguration.class);
-    }
 
     @Override
     protected GatewayDataObject toDataTransferObject(final GatewayConfiguration entity) {
@@ -44,5 +40,11 @@ public final class GatewayConfigurationService extends AbstractTypedEntityConfig
     public Map<String, Map<String, FeatureBindingDataObject>> getBindings(@PathParam("name") final String name,
                                                              @PathParam("feature") final FeatureType type) {
         return type.getBindings(getBundleContext(), name);
+    }
+
+    @Nonnull
+    @Override
+    public EntityMap<? extends GatewayConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return owner.getGateways();
     }
 }

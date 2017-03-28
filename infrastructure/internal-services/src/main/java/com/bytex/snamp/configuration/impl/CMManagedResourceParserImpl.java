@@ -11,6 +11,7 @@ import com.google.common.reflect.TypeToken;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -51,9 +52,10 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         }
     }
 
-    @SpecialUse(SpecialUse.Case.SERIALIZATION)
-    public CMManagedResourceParserImpl(){
-        super(SerializableManagedResourceConfiguration.class);
+    @Nonnull
+    @Override
+    public SerializableEntityMap<SerializableManagedResourceConfiguration> apply(@Nonnull final SerializableAgentConfiguration owner) {
+        return owner.getResources();
     }
 
     /**
@@ -185,7 +187,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
     }
 
     @Override
-    void saveChanges(final ConfigurationEntityList<? extends SerializableManagedResourceConfiguration> resources,
+    void saveChanges(final SerializableEntityMap<? extends SerializableManagedResourceConfiguration> resources,
                      final ConfigurationAdmin admin) throws IOException {
         //remove all unnecessary resources
         forEachConfiguration(admin, ALL_CONNECTORS_QUERY, output -> {

@@ -3,6 +3,7 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -22,11 +23,11 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     private static final long serialVersionUID = -9024738184822056816L;
 
 
-    private static final class OperationList extends ConfigurationEntityList<SerializableOperationConfiguration> {
+    private static final class OperationMap extends SerializableEntityMap<SerializableOperationConfiguration> {
         private static final long serialVersionUID = -6621970441951257198L;
 
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
-        public OperationList(){
+        public OperationMap(){
 
         }
 
@@ -38,11 +39,11 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
     }
 
-    private static final class AttributeList extends ConfigurationEntityList<SerializableAttributeConfiguration> {
+    private static final class AttributeMap extends SerializableEntityMap<SerializableAttributeConfiguration> {
         private static final long serialVersionUID = -9035924377259475433L;
 
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
-        public AttributeList() {
+        public AttributeMap() {
         }
 
         @Override
@@ -53,11 +54,11 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
     }
 
-    private static final class EventList extends ConfigurationEntityList<SerializableEventConfiguration> {
+    private static final class EventMap extends SerializableEntityMap<SerializableEventConfiguration> {
         private static final long serialVersionUID = -4425614353529830020L;
 
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
-        public EventList() {
+        public EventMap() {
         }
 
         @Override
@@ -296,15 +297,15 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
     }
 
-    private final ConfigurationEntityList<SerializableAttributeConfiguration> attributes;
-    private final ConfigurationEntityList<SerializableEventConfiguration> events;
-    private final ConfigurationEntityList<SerializableOperationConfiguration> operations;
+    private final SerializableEntityMap<SerializableAttributeConfiguration> attributes;
+    private final SerializableEntityMap<SerializableEventConfiguration> events;
+    private final SerializableEntityMap<SerializableOperationConfiguration> operations;
     private String type;
 
     AbstractManagedResourceTemplate(){
-        attributes = new AttributeList();
-        events = new EventList();
-        operations = new OperationList();
+        attributes = new AttributeMap();
+        events = new EventMap();
+        operations = new OperationMap();
         type = "";
     }
 
@@ -319,21 +320,27 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         markAsModified();
     }
 
-    final ConfigurationEntityList<SerializableAttributeConfiguration> getAttributes(){
+    @Override
+    @Nonnull
+    public final SerializableEntityMap<SerializableAttributeConfiguration> getAttributes(){
         return attributes;
     }
 
-    final ConfigurationEntityList<SerializableEventConfiguration> getEvents(){
+    @Override
+    @Nonnull
+    public final SerializableEntityMap<SerializableEventConfiguration> getEvents(){
         return events;
     }
 
-    final ConfigurationEntityList<SerializableOperationConfiguration> getOperations(){
+    @Override
+    @Nonnull
+    public final SerializableEntityMap<SerializableOperationConfiguration> getOperations(){
         return operations;
     }
 
     @SuppressWarnings("unchecked")
     public final <T extends FeatureConfiguration> EntityMap<? extends T> getFeatures(final Class<T> featureType) {
-        final ConfigurationEntityList result;
+        final SerializableEntityMap result;
         if(featureType == null)
             result = null;
         else if(featureType.isAssignableFrom(SerializableAttributeConfiguration.class))
@@ -398,9 +405,9 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
 
     private void load(final ManagedResourceTemplate template) {
         type = template.getType();
-        attributes.load(template.getFeatures(AttributeConfiguration.class));
-        events.load(template.getFeatures(EventConfiguration.class));
-        operations.load(template.getFeatures(OperationConfiguration.class));
+        attributes.load(template.getAttributes());
+        events.load(template.getEvents());
+        operations.load(template.getOperations());
         loadParameters(template);
     }
 

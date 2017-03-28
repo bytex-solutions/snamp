@@ -5,11 +5,11 @@ import com.bytex.snamp.SpecialUse;
 /**
  * Serializable collection of managed resources.
  */
-final class ManagedResourceList extends ConfigurationEntityList<SerializableManagedResourceConfiguration> {
+final class ManagedResourceMap extends SerializableEntityMap<SerializableManagedResourceConfiguration> {
     private static final long serialVersionUID = 8031527910928209252L;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
-    public ManagedResourceList() {
+    public ManagedResourceMap() {
     }
 
     @Override

@@ -1,9 +1,12 @@
 package com.bytex.snamp.management.http;
 
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.management.http.model.SupervisorDataObject;
 import com.bytex.snamp.management.http.model.ScriptletDataObject;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -18,10 +21,6 @@ import java.util.Optional;
  */
 @Path("/configuration/watcher")
 public final class ResourceGroupWatcherConfigurationService extends AbstractEntityConfigurationService<SupervisorConfiguration, SupervisorDataObject> {
-    ResourceGroupWatcherConfigurationService(){
-        super(SupervisorConfiguration.class);
-    }
-
     @Override
     protected SupervisorDataObject toDataTransferObject(final SupervisorConfiguration entity) {
         return new SupervisorDataObject(entity);
@@ -63,5 +62,11 @@ public final class ResourceGroupWatcherConfigurationService extends AbstractEnti
                                     final ScriptletDataObject checker,
                                     @Context final SecurityContext context){
         setConfigurationByName(groupName, config -> checker.exportTo(config.getHealthCheckConfig().getAttributeCheckers().getOrAdd(attributeName)), context);
+    }
+
+    @Nonnull
+    @Override
+    public EntityMap<? extends SupervisorConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return null;
     }
 }

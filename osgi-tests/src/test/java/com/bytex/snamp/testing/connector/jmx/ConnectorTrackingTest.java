@@ -149,13 +149,13 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             //remove some attributes
             processConfiguration(config -> {
                 final ManagedResourceConfiguration testResource =
-                        config.getEntities(ManagedResourceConfiguration.class).get(TEST_RESOURCE_NAME);
+                        config.getResources().get(TEST_RESOURCE_NAME);
                 assertNotNull(testResource);
-                assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("1.0"));
-                assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("2.0"));
-                assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("3.0"));
-                assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("4.0"));
-                assertNotNull(testResource.getFeatures(EventConfiguration.class).remove("19.1"));
+                assertNotNull(testResource.getAttributes().remove("1.0"));
+                assertNotNull(testResource.getAttributes().remove("2.0"));
+                assertNotNull(testResource.getAttributes().remove("3.0"));
+                assertNotNull(testResource.getAttributes().remove("4.0"));
+                assertNotNull(testResource.getAttributes().remove("19.1"));
                 return true;
             });
             Thread.sleep(2000);

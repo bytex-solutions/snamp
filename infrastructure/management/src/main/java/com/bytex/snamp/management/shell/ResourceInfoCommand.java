@@ -7,6 +7,7 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;
@@ -38,10 +39,6 @@ public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResou
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @Option(name = "-o", aliases = {"--operations"}, description = "Show resource operations", required = false, multiValued = false)
     private boolean showOperations = false;
-
-    public ResourceInfoCommand(){
-        super(ManagedResourceConfiguration.class);
-    }
 
     private static void printParameters(final FeatureConfiguration feature, final StringBuilder output){
         feature.forEach((key, value) -> appendln(output, "%s=%s", key, value));
@@ -76,26 +73,32 @@ public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResou
             checkInterrupted();
             if(showAttributes) {
                 appendln(output, "==ATTRIBUTES==");
-                for (final Map.Entry<String, ? extends AttributeConfiguration> attr : getFeatures(resource, AttributeConfiguration.class))
+                for (final Map.Entry<String, ? extends AttributeConfiguration> attr : resource.getAttributes().entrySet())
                     printAttribute(attr.getKey(), attr.getValue(), output);
                 newLine(output);
             }
             checkInterrupted();
             if(showEvents){
                 appendln(output, "==EVENTS==");
-                for (final Map.Entry<String, ? extends EventConfiguration> attr : getFeatures(resource, EventConfiguration.class))
+                for (final Map.Entry<String, ? extends EventConfiguration> attr : resource.getEvents().entrySet())
                     printEvent(attr.getKey(), attr.getValue(), output);
                 newLine(output);
             }
             checkInterrupted();
             if(showOperations){
                 appendln(output, "==OPERATIONS==");
-                for (final Map.Entry<String, ? extends OperationConfiguration> attr : getFeatures(resource, OperationConfiguration.class))
+                for (final Map.Entry<String, ? extends OperationConfiguration> attr : resource.getOperations().entrySet())
                     printOperation(attr.getKey(), attr.getValue(), output);
                 newLine(output);
             }
         } else
             output.append("Resource doesn't exist");
         return false;
+    }
+
+    @Nonnull
+    @Override
+    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return owner.getResources();
     }
 }

@@ -3,12 +3,12 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.BooleanBox;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SingletonMap;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -47,9 +47,10 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
         return GATEWAY_PID_REPLACEMENT.matcher(factoryPID).replaceFirst("");
     }
 
-    @SpecialUse(SpecialUse.Case.SERIALIZATION)
-    public CMGatewayParserImpl(){
-        super(SerializableGatewayConfiguration.class);
+    @Nonnull
+    @Override
+    public SerializableEntityMap<SerializableGatewayConfiguration> apply(@Nonnull final SerializableAgentConfiguration owner) {
+        return owner.getGateways();
     }
 
     @Override
@@ -132,7 +133,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     }
 
     @Override
-    void saveChanges(final ConfigurationEntityList<? extends SerializableGatewayConfiguration> instances,
+    void saveChanges(final SerializableEntityMap<? extends SerializableGatewayConfiguration> instances,
               final ConfigurationAdmin admin) throws IOException {
         //remove all unnecessary gateway
         forEachConfiguration(admin, ALL_GATEWAYS_QUERY, output -> {

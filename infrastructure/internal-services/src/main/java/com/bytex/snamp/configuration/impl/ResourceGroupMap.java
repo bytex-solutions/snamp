@@ -9,11 +9,11 @@ import com.bytex.snamp.SpecialUse;
  * @version 1.0
  * @since 1.0
  */
-final class ResourceGroupList extends ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> {
+final class ResourceGroupMap extends SerializableEntityMap<SerializableManagedResourceGroupConfiguration> {
     private static final long serialVersionUID = -3661389588364513413L;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
-    public ResourceGroupList() {
+    public ResourceGroupMap() {
     }
 
     @Override

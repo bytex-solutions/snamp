@@ -155,13 +155,13 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                             final ManagedResourceConfiguration configuration) throws Exception {
             Aggregator.queryAndAccept(connector,
                     AttributeSupport.class,
-                    attributeSupport -> updateAttributes(attributeSupport, configuration.getFeatures(AttributeConfiguration.class)));
+                    attributeSupport -> updateAttributes(attributeSupport, configuration.getAttributes()));
             Aggregator.queryAndAccept(connector,
                     NotificationSupport.class,
-                    notificationSupport -> updateEvents(notificationSupport, configuration.getFeatures(EventConfiguration.class)));
+                    notificationSupport -> updateEvents(notificationSupport, configuration.getEvents()));
             Aggregator.queryAndAccept(connector,
                     OperationSupport.class,
-                    operationSupport -> updateOperations(operationSupport, configuration.getFeatures(OperationConfiguration.class)));
+                    operationSupport -> updateOperations(operationSupport, configuration.getOperations()));
             //expansion should be the last instruction in this method because updating procedure
             //may remove all automatically added attributes
             connector.expandAll();

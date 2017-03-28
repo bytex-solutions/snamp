@@ -26,33 +26,36 @@ import static com.bytex.snamp.management.http.AbstractEntityConfigurationService
 public enum FeatureType {
     ATTRIBUTES {
         @Override
-        Map<String, AttributeDataObject> getFeatures(final BundleContext context, final String holderName, final Class<? extends ManagedResourceTemplate> holderType) {
-            return FeatureType.getFeatures(context, holderName, holderType, AttributeConfiguration.class, AttributeDataObject::new);
+        <T extends ManagedResourceTemplate> Map<String, AttributeDataObject> getFeatures(final BundleContext context, final String templateName, final EntityMapResolver<AgentConfiguration, T> templateResolver) {
+            return getFeatures(context, templateName, templateResolver, ManagedResourceTemplate::getAttributes, AttributeDataObject::new);
         }
 
         @Override
         Map<String, Map<String, FeatureBindingDataObject>> getBindings(final BundleContext context, final String gatewayInstance) {
-            return FeatureType.getBindings(context, gatewayInstance, MBeanAttributeInfo.class, MBeanAttributeInfo::getName);
+            return getBindings(context, gatewayInstance, MBeanAttributeInfo.class, MBeanAttributeInfo::getName);
         }
 
         @Override
-        Optional<AttributeDataObject> getFeature(final BundleContext context, final String holderName, final Class<? extends ManagedResourceTemplate> holderType, final String featureName) {
-            return FeatureType.getFeature(context, holderName, holderType, featureName, AttributeConfiguration.class, AttributeDataObject::new);
+        <T extends ManagedResourceTemplate> Optional<AttributeDataObject> getFeature(final BundleContext context,
+                                                 final String templateName,
+                                                 final EntityMapResolver<AgentConfiguration, T> templateResolver,
+                                                 final String attributeName) {
+            return getFeature(context, templateName, templateResolver, template -> template.getAttributes().getIfPresent(attributeName).map(AttributeDataObject::new));
         }
 
         @Override
-        Response removeFeature(final BundleContext context,
+        <T extends ManagedResourceTemplate> Response removeFeature(final BundleContext context,
                                final SecurityContext security,
-                               final String holderName,
-                               final Class<? extends ManagedResourceTemplate> holderType,
+                               final String templateName,
+                               final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                final String featureName) {
-            return FeatureType.removeFeature(context, security, holderName, holderType, featureName, AttributeConfiguration.class);
+            return removeFeature(context, security, templateName, templateResolver, featureName, ManagedResourceTemplate::getAttributes);
         }
     },
     EVENTS {
         @Override
-        Map<String, EventDataObject> getFeatures(final BundleContext context, final String holderName, final Class<? extends ManagedResourceTemplate> holderType) {
-            return FeatureType.getFeatures(context, holderName, holderType, EventConfiguration.class, EventDataObject::new);
+        <T extends ManagedResourceTemplate> Map<String, EventDataObject> getFeatures(final BundleContext context, final String holderName, final EntityMapResolver<AgentConfiguration, T> templateResolver) {
+            return getFeatures(context, holderName, templateResolver, ManagedResourceTemplate::getEvents, EventDataObject::new);
         }
 
         @Override
@@ -61,23 +64,26 @@ public enum FeatureType {
         }
 
         @Override
-        Optional<EventDataObject> getFeature(final BundleContext context, final String holderName, final Class<? extends ManagedResourceTemplate> holderType, final String featureName) {
-            return FeatureType.getFeature(context, holderName, holderType, featureName, EventConfiguration.class, EventDataObject::new);
+        <T extends ManagedResourceTemplate> Optional<EventDataObject> getFeature(final BundleContext context,
+                                                 final String templateName,
+                                                 final EntityMapResolver<AgentConfiguration, T> templateResolver,
+                                                 final String eventName) {
+            return getFeature(context, templateName, templateResolver, template -> template.getEvents().getIfPresent(eventName).map(EventDataObject::new));
         }
 
         @Override
-        Response removeFeature(final BundleContext context,
+        <T extends ManagedResourceTemplate> Response removeFeature(final BundleContext context,
                                final SecurityContext security,
-                               final String holderName,
-                               final Class<? extends ManagedResourceTemplate> holderType,
+                               final String templateName,
+                               final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                final String featureName) {
-            return FeatureType.removeFeature(context, security, holderName, holderType, featureName, EventConfiguration.class);
+            return removeFeature(context, security, templateName, templateResolver, featureName, ManagedResourceTemplate::getEvents);
         }
     },
     OPERATIONS {
         @Override
-        Map<String, OperationDataObject> getFeatures(final BundleContext context, final String holderName, final Class<? extends ManagedResourceTemplate> holderType) {
-            return FeatureType.getFeatures(context, holderName, holderType, OperationConfiguration.class, OperationDataObject::new);
+        <T extends ManagedResourceTemplate> Map<String, OperationDataObject> getFeatures(final BundleContext context, final String holderName, final EntityMapResolver<AgentConfiguration, T> templateResolver) {
+            return FeatureType.getFeatures(context, holderName, templateResolver, ManagedResourceTemplate::getOperations, OperationDataObject::new);
         }
 
         @Override
@@ -86,60 +92,56 @@ public enum FeatureType {
         }
 
         @Override
-        Optional<OperationDataObject> getFeature(final BundleContext context,
-                                                 final String holderName,
-                                                 final Class<? extends ManagedResourceTemplate> holderType,
-                                                 final String featureName) {
-            return FeatureType.getFeature(context, holderName, holderType, featureName, OperationConfiguration.class, OperationDataObject::new);
+        <T extends ManagedResourceTemplate> Optional<OperationDataObject> getFeature(final BundleContext context,
+                                                 final String templateName,
+                                                 final EntityMapResolver<AgentConfiguration, T> templateResolver,
+                                                 final String operationName) {
+            return getFeature(context, templateName, templateResolver, template -> template.getOperations().getIfPresent(operationName).map(OperationDataObject::new));
         }
 
         @Override
-        Response removeFeature(final BundleContext context,
+        <T extends ManagedResourceTemplate> Response removeFeature(final BundleContext context,
                                final SecurityContext security,
-                               final String holderName,
-                               final Class<? extends ManagedResourceTemplate> holderType,
+                               final String templateName,
+                               final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                final String featureName) {
-            return FeatureType.removeFeature(context, security, holderName, holderType, featureName, OperationConfiguration.class);
+            return removeFeature(context, security, templateName, templateResolver, featureName, ManagedResourceTemplate::getOperations);
         }
     };
     static final String ATTRIBUTES_TYPE = "attributes";
     static final String EVENTS_TYPE = "events";
     static final String OPERATIONS_TYPE = "operations";
 
-    /**
-     * Gets all features provided by managed resource or resource group.
-     * @param context Context of the caller bundle.
-     * @param holderName Instance of the managed resource or resource group.
-     * @param holderType Expects {@link ManagedResourceConfiguration} or {@link ManagedResourceGroupConfiguration}.
-     * @return A map of all features.
-     */
-    abstract Map<String, ? extends AbstractFeatureDataObject<?>> getFeatures(final BundleContext context,
-                                                                             final String holderName,
-                                                                             final Class<? extends ManagedResourceTemplate> holderType);
+    abstract <T extends ManagedResourceTemplate> Map<String, ? extends AbstractFeatureDataObject<?>> getFeatures(final BundleContext context,
+                                                                             final String templateName,
+                                                                             final EntityMapResolver<AgentConfiguration, T> holderType);
 
-    abstract Map<String, Map<String, FeatureBindingDataObject>> getBindings(final BundleContext context,
-                                                              final String gatewayInstance);
+    abstract Map<String, Map<String, FeatureBindingDataObject>> getBindings(final BundleContext context, final String gatewayInstance);
 
-    abstract Optional<? extends AbstractFeatureDataObject<?>> getFeature(final BundleContext context, final String holderName,
-                                                                                                                   final Class<? extends ManagedResourceTemplate> holderType,
-                                                                                                                   final String featureName);
+    abstract <T extends ManagedResourceTemplate> Optional<? extends AbstractFeatureDataObject<?>> getFeature(final BundleContext context,
+                                                                         final String templateName,
+                                                                         final EntityMapResolver<AgentConfiguration, T> templateResolver,
+                                                                         final String featureName);
 
-    abstract Response removeFeature(final BundleContext context,
+    abstract <T extends ManagedResourceTemplate> Response removeFeature(final BundleContext context,
                                     final SecurityContext security,
-                                          final String holderName,
-                                          final Class<? extends ManagedResourceTemplate> holderType,
+                                          final String templateName,
+                                          final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                           final String featureName);
 
-    private static <F extends FeatureConfiguration, D extends AbstractFeatureDataObject<F>> Map<String, D> getFeatures(final BundleContext context,
-                                                                                                                       final String holderName,
-                                                                                                                       final Class<? extends ManagedResourceTemplate> holderType,
-                                                                                                                       final Class<F> featureType,
-                                                                                                                       final Function<? super F, ? extends D> factory){
+    static <T extends ManagedResourceTemplate, F extends FeatureConfiguration, D extends AbstractFeatureDataObject<F>> Map<String, D> getFeatures(final BundleContext context,
+                                                                                                                       final String templateName,
+                                                                                                                       final EntityMapResolver<AgentConfiguration, T> templateResolver,
+                                                                                                                       final EntityMapResolver<? super T, F> featureResolver,
+                                                                                                                       final Function<? super F, ? extends D> factory) {
         return readOnlyActions(context, config -> {
-            final ManagedResourceTemplate entity = config.getEntities(holderType).get(holderName);
-            if (entity == null)
-                throw AbstractEntityConfigurationService.notFound();
-            return entity.getFeatures(featureType).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> factory.apply(entry.getValue())));
+            final T template = templateResolver.apply(config)
+                    .getIfPresent(templateName)
+                    .orElseThrow(AbstractEntityConfigurationService::notFound);
+            return featureResolver.apply(template)
+                    .entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> factory.apply(entry.getValue())));
         });
     }
 
@@ -169,41 +171,36 @@ public enum FeatureType {
         return result;
     }
 
-    private static <F extends MBeanFeatureInfo> Map<String, Map<String, FeatureBindingDataObject>> getBindings(final BundleContext context,
+    static <F extends MBeanFeatureInfo> Map<String, Map<String, FeatureBindingDataObject>> getBindings(final BundleContext context,
                                                                                                                final String gatewayInstance,
                                                                                                                final Class<F> featureType,
                                                                                                                final Function<? super F, String> nameMapper) {
         return getBindingsFlat(context, gatewayInstance, featureType, metadata -> new String[]{nameMapper.apply(metadata)});
     }
 
-    private static <F extends FeatureConfiguration, D extends AbstractFeatureDataObject<F>> Optional<D> getFeature(final BundleContext context,
-                                                                                                                         final String holderName,
-                                                                                                                         final Class<? extends ManagedResourceTemplate> holderType,
-                                                                                                                  final String featureName,
-                                                                                                                  final Class<F> featureType,
-                                                                                                                  final Function<? super F, ? extends D> factory) {
-        final Optional<F> feature = readOnlyActions(context, config -> {
-            final ManagedResourceTemplate resource = config.getEntities(holderType).get(holderName);
-            if (resource != null) {
-                final Map<String, ? extends F> features = resource.getFeatures(featureType);
-                return Optional.ofNullable(features.get(featureName));
-            } else
-                return Optional.empty();
-        });
-        return feature.map(factory);
+    static <T extends ManagedResourceTemplate, F extends FeatureConfiguration, D extends AbstractFeatureDataObject<F>> Optional<D> getFeature(final BundleContext context,
+                                                                                                                         final String templateName,
+                                                                                                                         final EntityMapResolver<AgentConfiguration, T> templateResolver,
+                                                                                                           final Function<? super T, Optional<D>> dtoFactory) {
+        return readOnlyActions(context, config -> templateResolver.apply(config)
+                .getIfPresent(templateName)
+                .flatMap(dtoFactory));
     }
 
-    private static Response removeFeature(final BundleContext context,
+    static <T extends ManagedResourceTemplate> Response removeFeature(final BundleContext context,
                                           final SecurityContext security,
-                                                                                                                   final String holderName,
-                                          final Class<? extends ManagedResourceTemplate> holderType,
-                                          final String featureName,
-                                          final Class<? extends FeatureConfiguration> featureType) {
+                                            final String templateName,
+                                  final EntityMapResolver<AgentConfiguration, T> templateResolver,
+                                  final String featureName,
+                                          final EntityMapResolver<? super T, FeatureConfiguration> featureResolver
+                                          ) {
         return changingActions(context, security, config -> {
-            final ManagedResourceTemplate resource = config.getEntities(holderType).get(holderName);
-            if (resource == null || resource.getFeatures(featureType).remove(featureName) == null) {
+            final T resource = templateResolver.apply(config)
+                    .getIfPresent(templateName)
+                    .orElseThrow(AbstractManagementService::notFound);
+            if (featureResolver.apply(resource).remove(featureName) == null)
                 throw notFound();
-            } else
+            else
                 return true;
         });
     }

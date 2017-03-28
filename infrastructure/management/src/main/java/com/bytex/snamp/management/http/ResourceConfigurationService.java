@@ -1,8 +1,11 @@
 package com.bytex.snamp.management.http;
 
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.management.http.model.ResourceDataObject;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -18,13 +21,6 @@ import javax.ws.rs.core.SecurityContext;
  */
 @Path("/configuration/resource")
 public final class ResourceConfigurationService extends TemplateConfigurationService<ManagedResourceConfiguration, ResourceDataObject> {
-    /**
-     * Instantiates a new Resource configuration service.
-     */
-    ResourceConfigurationService(){
-        super(ManagedResourceConfiguration.class);
-    }
-
     @Override
     protected ResourceDataObject toDataTransferObject(final ManagedResourceConfiguration entity) {
         return new ResourceDataObject(entity);
@@ -84,5 +80,11 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setGroupName(@PathParam("name") final String resourceName, final String value, @Context final SecurityContext context){
         return setConfigurationByName(resourceName, config -> config.setGroupName(value), context);
+    }
+
+    @Nonnull
+    @Override
+    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return owner.getResources();
     }
 }

@@ -1,5 +1,7 @@
 package com.bytex.snamp.configuration;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents template of managed resource.
  * @author Roman Sakno
@@ -20,14 +22,12 @@ public interface ManagedResourceTemplate extends TypedEntityConfiguration {
      */
     String THREAD_POOL_KEY = "threadPool";
 
-    /**
-     * Gets a collection of configured manageable elements for this target.
-     * @param featureType The type of the manageable element.
-     * @param <T> The type of the manageable element.
-     * @return A map of manageable elements; or {@literal null}, if element type is not supported.
-     * @see AttributeConfiguration
-     * @see EventConfiguration
-     * @see OperationConfiguration
-     */
-    <T extends FeatureConfiguration> EntityMap<? extends T> getFeatures(final Class<T> featureType);
+    @Nonnull
+    EntityMap<? extends AttributeConfiguration> getAttributes();
+
+    @Nonnull
+    EntityMap<? extends EventConfiguration> getEvents();
+
+    @Nonnull
+    EntityMap<? extends OperationConfiguration> getOperations();
 }

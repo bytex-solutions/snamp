@@ -4,6 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.Stateful;
 import com.bytex.snamp.configuration.*;
 
+import javax.annotation.Nonnull;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -22,22 +23,22 @@ import static com.bytex.snamp.configuration.impl.AbstractManagedResourceTemplate
 public final class SerializableAgentConfiguration extends AbstractEntityConfiguration implements Externalizable, Modifiable, Stateful, AgentConfiguration {
     private static final long serialVersionUID = 8461144056430141155L;
 
-    private final ConfigurationEntityList<SerializableGatewayConfiguration> gateways;
-    private final ConfigurationEntityList<SerializableThreadPoolConfiguration> threadPools;
-    private final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups;
-    private final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources;
-    private final ConfigurationEntityList<SerializableSupervisorConfiguration> watchers;
+    private final SerializableEntityMap<SerializableGatewayConfiguration> gateways;
+    private final SerializableEntityMap<SerializableThreadPoolConfiguration> threadPools;
+    private final SerializableEntityMap<SerializableManagedResourceGroupConfiguration> groups;
+    private final SerializableEntityMap<SerializableManagedResourceConfiguration> resources;
+    private final SerializableEntityMap<SerializableSupervisorConfiguration> watchers;
 
     /**
      * Initializes a new empty agent configuration.
      */
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableAgentConfiguration(){
-        gateways = new GatewayList();
-        threadPools = new ThreadPoolList();
-        groups = new ResourceGroupList();
-        resources = new ManagedResourceList();
-        watchers = new WatcherList();
+        gateways = new GatewayMap();
+        threadPools = new ThreadPoolMap();
+        groups = new ResourceGroupMap();
+        resources = new ManagedResourceMap();
+        watchers = new WatcherMap();
     }
 
     /**
@@ -72,11 +73,10 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
     }
 
     private void load(final AgentConfiguration configuration) {
-        resources.load(configuration.getEntities(ManagedResourceConfiguration.class));
-        threadPools.load(configuration.getEntities(ThreadPoolConfiguration.class));
-        gateways.load(configuration.getEntities(GatewayConfiguration.class));
-        groups.load(configuration.getEntities(ManagedResourceGroupConfiguration.class));
-        watchers.load(configuration.getEntities(SupervisorConfiguration.class));
+        resources.load(configuration.getResources());
+        threadPools.load(configuration.getThreadPools());
+        gateways.load(configuration.getGateways());
+        groups.load(configuration.getResourceGroups());
         loadParameters(configuration);
     }
 
@@ -175,43 +175,31 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
                 super.isEmpty();
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public <E extends EntityConfiguration> ConfigurationEntityList<? extends E> getEntities(final Class<E> entityType) {
-        final ConfigurationEntityList result;
-        if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
-            result = resources;
-        else if (entityType.isAssignableFrom(SerializableGatewayConfiguration.class))
-            result = gateways;
-        else if(entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
-            result = threadPools;
-        else if(entityType.isAssignableFrom(SerializableManagedResourceGroupConfiguration.class))
-            result = groups;
-        else if(entityType.isAssignableFrom(SerializableSupervisorConfiguration.class))
-            result = watchers;
-        else
-            result = null;
-        return result;
-    }
-
-    ConfigurationEntityList<SerializableSupervisorConfiguration> getWatchers(){
+    SerializableEntityMap<SerializableSupervisorConfiguration> getWatchers(){
         return watchers;
     }
 
-    ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> getManagedResourceGroups(){
+    @Override
+    @Nonnull
+    public SerializableEntityMap<SerializableManagedResourceGroupConfiguration> getResourceGroups(){
         return groups;
     }
 
-    ConfigurationEntityList<SerializableThreadPoolConfiguration> getThreadPools(){
+    @Override
+    @Nonnull
+    public SerializableEntityMap<SerializableThreadPoolConfiguration> getThreadPools(){
         return threadPools;
     }
 
-    ConfigurationEntityList<SerializableGatewayConfiguration> getGatewayInstances() {
+    @Override
+    @Nonnull
+    public SerializableEntityMap<SerializableGatewayConfiguration> getGateways() {
         return gateways;
     }
 
-
-    ConfigurationEntityList<SerializableManagedResourceConfiguration> getManagedResources() {
+    @Override
+    @Nonnull
+    public SerializableEntityMap<SerializableManagedResourceConfiguration> getResources() {
         return resources;
     }
 
@@ -258,11 +246,10 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
     }
 
     private boolean equals(final AgentConfiguration other) {
-        return gateways.equals(other.getEntities(GatewayConfiguration.class)) &&
-                resources.equals(other.getEntities(ManagedResourceConfiguration.class)) &&
-                threadPools.equals(other.getEntities(ThreadPoolConfiguration.class)) &&
-                groups.equals(other.getEntities(ManagedResourceGroupConfiguration.class)) &&
-                watchers.equals(other.getEntities(SupervisorConfiguration.class)) &&
+        return other.getGateways().equals(gateways) &&
+                other.getResources().equals(resources) &&
+                other.getThreadPools().equals(threadPools) &&
+                other.getResourceGroups().equals(groups) &&
                 super.equals(other);
     }
 

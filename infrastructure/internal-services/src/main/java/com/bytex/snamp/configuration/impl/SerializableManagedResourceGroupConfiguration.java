@@ -1,16 +1,14 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
-import com.bytex.snamp.configuration.OperationConfiguration;
 
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Map;
 import java.util.Objects;
+
 import static com.google.common.base.Strings.nullToEmpty;
 
 /**
@@ -76,10 +74,10 @@ final class SerializableManagedResourceGroupConfiguration extends AbstractManage
     }
 
     private boolean equals(final ManagedResourceGroupConfiguration other) {
-        return getAttributes().equals(other.getFeatures(AttributeConfiguration.class)) &&
-                getEvents().equals(other.getFeatures(EventConfiguration.class)) &&
-                getOperations().equals(other.getFeatures(OperationConfiguration.class)) &&
-                getType().equals(other.getType()) &&
+        return other.getAttributes().equals(getAttributes()) &&
+                other.getEvents().equals(getEvents()) &&
+                other.getOperations().equals(getOperations()) &&
+                Objects.equals(other.getType(), getType()) &&
                 Objects.equals(supervisor, other.getSupervisor()) &&
                 super.equals(other);
     }

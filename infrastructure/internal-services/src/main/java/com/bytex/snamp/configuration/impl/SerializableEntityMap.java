@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.Optional;
 
 
-abstract class ConfigurationEntityList<E extends SerializableEntityConfiguration> extends SerializableFactoryMap<String, E> implements EntityMap<E> {
+abstract class SerializableEntityMap<E extends SerializableEntityConfiguration> extends SerializableFactoryMap<String, E> implements EntityMap<E> {
     private static final long serialVersionUID = -3859844548619883398L;
 
-    ConfigurationEntityList() {
+    SerializableEntityMap() {
     }
 
     final void load(final Map<String, ? extends EntityConfiguration> entities) {

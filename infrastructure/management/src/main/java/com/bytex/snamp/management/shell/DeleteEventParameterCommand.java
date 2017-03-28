@@ -1,12 +1,14 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+
+import javax.annotation.Nonnull;
 
 /**
  * Deletes configuration parameter from event.
@@ -31,17 +33,13 @@ public final class DeleteEventParameterCommand extends ConfigurationCommand<Mana
     @Argument(index = 2, name = "parameter", required = true, description = "Name of parameter to remove")
     private String paramName = "";
 
-    public DeleteEventParameterCommand(){
-        super(ManagedResourceConfiguration.class);
-    }
-
     @Override
     boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
         if(configuration.containsKey(resourceName))
-            if(configuration.get(resourceName).getFeatures(EventConfiguration.class).containsKey(userDefinedName)){
+            if(configuration.get(resourceName).getEvents().containsKey(userDefinedName)){
                 configuration
                         .get(resourceName)
-                        .getFeatures(EventConfiguration.class)
+                        .getEvents()
                         .get(userDefinedName)
                         .remove(paramName);
                 output.append("Event modified successfully");
@@ -55,5 +53,11 @@ public final class DeleteEventParameterCommand extends ConfigurationCommand<Mana
             output.append("Resource doesn't exist");
             return true;
         }
+    }
+
+    @Nonnull
+    @Override
+    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return owner.getResources();
     }
 }

@@ -2,12 +2,15 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+
+import javax.annotation.Nonnull;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -34,10 +37,6 @@ public final class ConfigGatewayInstanceCommand extends ConfigurationCommand<Gat
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
-    public ConfigGatewayInstanceCommand(){
-        super(GatewayConfiguration.class);
-    }
-
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
         if (isNullOrEmpty(instanceName)) return false;
@@ -54,5 +53,11 @@ public final class ConfigGatewayInstanceCommand extends ConfigurationCommand<Gat
             }
         output.append("Updated");
         return true;
+    }
+
+    @Nonnull
+    @Override
+    public EntityMap<? extends GatewayConfiguration> apply(@Nonnull final AgentConfiguration owner) {
+        return owner.getGateways();
     }
 }

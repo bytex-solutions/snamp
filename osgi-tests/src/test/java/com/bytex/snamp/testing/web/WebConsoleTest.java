@@ -649,19 +649,18 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
      */
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-        fillManagedResources(config.getEntities(ManagedResourceConfiguration.class));
-        fillGateways(config.getEntities(GatewayConfiguration.class));
-        fillWatchers(config.getEntities(SupervisorConfiguration.class));
-        fillGroups(config.getEntities(ManagedResourceGroupConfiguration.class));
+        fillManagedResources(config.getResources());
+        fillGateways(config.getGateways());
+        fillGroups(config.getResourceGroups());
     }
 
     private void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups) {
         ManagedResourceGroupConfiguration group = groups.getOrAdd(GROUP_NAME);
-        fillJmxAttributes(group.getFeatures(AttributeConfiguration.class));
+        fillJmxAttributes(group.getAttributes());
 
         group = groups.getOrAdd(GROUP2_NAME);
         //fillAlternativeJmxAttributes(group.getFeatures(AttributeConfiguration.class));
-        fillSpanEvents(group.getFeatures(EventConfiguration.class));
+        fillSpanEvents(group.getEvents());
     }
 
     private void fillWatchers(final EntityMap<? extends SupervisorConfiguration> watchers){
@@ -695,8 +694,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.setType(JMX_CONNECTOR_TYPE);
         resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
         resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
-        fillJmxAttributes(resource.getFeatures(AttributeConfiguration.class));
-        fillJmxEvents(resource.getFeatures(EventConfiguration.class));
+        fillJmxAttributes(resource.getAttributes());
+        fillJmxEvents(resource.getEvents());
 
         resource = resources.getOrAdd(SECOND_RESOURCE_NAME);
         resource.put("objectName", SECOND_BEAN_NAME);
@@ -705,8 +704,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.setType(JMX_CONNECTOR_TYPE);
         resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
         resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
-        fillJmxAttributes(resource.getFeatures(AttributeConfiguration.class));
-        fillJmxEvents(resource.getFeatures(EventConfiguration.class));
+        fillJmxAttributes(resource.getAttributes());
+        fillJmxEvents(resource.getEvents());
 
         resource = resources.getOrAdd(THIRD_RESOURCE_NAME);
         resource.put("objectName", THIRD_BEAN_NAME);
@@ -715,13 +714,13 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.setType(JMX_CONNECTOR_TYPE);
         resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
         resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
-        fillJmxAttributes(resource.getFeatures(AttributeConfiguration.class));
-        fillJmxEvents(resource.getFeatures(EventConfiguration.class));
+        fillJmxAttributes(resource.getAttributes());
+        fillJmxEvents(resource.getEvents());
 
         resource = resources.getOrAdd(FOURTH_RESOURCE_NAME);
         resource.setGroupName(GROUP1_NAME);
         resource.setType(HTTP_ACCEPTOR_TYPE);
-        fillSpanEvents(resource.getFeatures(EventConfiguration.class));
+        fillSpanEvents(resource.getEvents());
 
         resource = resources.getOrAdd(FIFTH_RESOURCE_NAME);
         resource.setGroupName(GROUP2_NAME);
@@ -731,7 +730,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource = resources.getOrAdd(SIXTH_RESOURCE_NAME);
         resource.setGroupName(GROUP3_NAME);
         resource.setType(HTTP_ACCEPTOR_TYPE);
-        fillSpanEvents(resource.getFeatures(EventConfiguration.class));
+        fillSpanEvents(resource.getEvents());
     }
 
     private static void fillSpanEvents(final EntityMap<? extends EventConfiguration> events) {
