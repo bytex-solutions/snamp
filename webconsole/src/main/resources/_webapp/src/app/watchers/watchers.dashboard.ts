@@ -6,6 +6,8 @@ import { Observable } from 'rxjs/Observable';
 import { Factory } from './model/factory';
 import { Watcher } from './model/watcher';
 
+import { HealthStatus } from './model/health.status';
+
 import 'rxjs/add/operator/publishLast';
 
 import { overlayConfigFactory, Overlay } from "angular2-modal";
@@ -25,7 +27,7 @@ export class WatcherDashboard implements OnInit {
 
     private http:ApiClient;
     timerId:any = undefined;
-    statuses:any[] = [];
+    statuses:HealthStatus[] = [];
 
     constructor(apiClient: ApiClient, private modal: Modal,  overlay: Overlay, vcRef: ViewContainerRef) {
         this.http = apiClient;
@@ -41,10 +43,10 @@ export class WatcherDashboard implements OnInit {
               _thisReference.http.get(REST.WATCHERS_STATUS)
                  .map((res:Response) => res.json())
                  .subscribe((data) => {
-                    _thisReference.statuses = data;
+                    _thisReference.statuses = Factory.parseAllStatuses(data);
                     console.log(_thisReference.statuses);
                  });
-         }, 1000);
+         }, 2000);
    }
 
     ngOnDestroy() {

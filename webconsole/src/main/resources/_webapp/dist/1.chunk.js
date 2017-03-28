@@ -280,6 +280,29 @@ exports.ColoredAttributePredicate = ColoredAttributePredicate;
 
 /***/ },
 
+/***/ "./src/app/watchers/model/connection.problem.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var malfunction_status_1 = __webpack_require__("./src/app/watchers/model/malfunction.status.ts");
+var ConnectionProblem = (function (_super) {
+    __extends(ConnectionProblem, _super);
+    function ConnectionProblem() {
+        _super.apply(this, arguments);
+        this.ioException = "";
+    }
+    ConnectionProblem.prototype.represent = function () {
+        return "Connection problems detected. Caused by " + this.ioException;
+    };
+    ConnectionProblem.CODE = 1;
+    return ConnectionProblem;
+}(malfunction_status_1.MalfunctionStatus));
+exports.ConnectionProblem = ConnectionProblem;
+
+
+/***/ },
+
 /***/ "./src/app/watchers/model/constant.attribute.predicate.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -420,6 +443,12 @@ exports.Guid = Guid;
 "use strict";
 var watcher_1 = __webpack_require__("./src/app/watchers/model/watcher.ts");
 var scriptlet_data_object_1 = __webpack_require__("./src/app/watchers/model/scriptlet.data.object.ts");
+var health_status_1 = __webpack_require__("./src/app/watchers/model/health.status.ts");
+var ok_status_1 = __webpack_require__("./src/app/watchers/model/ok.status.ts");
+var connection_problem_status_1 = __webpack_require__("./src/app/watchers/model/connection.problem.status.ts");
+var resource_na_status_1 = __webpack_require__("./src/app/watchers/model/resource.na.status.ts");
+var invalid_attribute_value_status_1 = __webpack_require__("./src/app/watchers/model/invalid.attribute.value.status.ts");
+var malfunction_status_1 = __webpack_require__("./src/app/watchers/model/malfunction.status.ts");
 var Factory = (function () {
     function Factory() {
     }
@@ -442,9 +471,120 @@ var Factory = (function () {
         }
         return result;
     };
+    Factory.parseAllStatuses = function (json) {
+        var _value = [];
+        for (var key in json) {
+            _value.push(Factory.healthStatusFromJSON(key, json[key]));
+        }
+        return _value;
+    };
+    Factory.healthStatusFromJSON = function (name, json) {
+        var _value = undefined;
+        switch (json["@type"]) {
+            case health_status_1.HealthStatus.OK_TYPE:
+                _value = new ok_status_1.OkStatus();
+                break;
+            case health_status_1.HealthStatus.RESOURCE_NA_TYPE:
+                _value = new resource_na_status_1.ResourceIsNotAvailable();
+                _value.jmxError = json["error"];
+                break;
+            case health_status_1.HealthStatus.CONNECTION_PROBLEM_TYPE:
+                _value = new connection_problem_status_1.ConnectionProblem();
+                _value.ioException = json["error"];
+                break;
+            case health_status_1.HealthStatus.ATTRIBUTE_VALUE_PROBLEM_TYPE:
+                _value = new invalid_attribute_value_status_1.InvalidAttributeValue();
+                _value.attribute.name = json["attributeName"];
+                _value.attribute.value = json["attributeValue"];
+                break;
+            default:
+                throw new Error("Cannot recognize type of health status: " + json["@type"]);
+        }
+        _value.name = name;
+        _value.resourceName = json["resourceName"];
+        if (_value instanceof malfunction_status_1.MalfunctionStatus) {
+            _value.critical = (json["critical"] === "true");
+        }
+        return _value;
+    };
     return Factory;
 }());
 exports.Factory = Factory;
+
+
+/***/ },
+
+/***/ "./src/app/watchers/model/health.status.ts":
+/***/ function(module, exports) {
+
+"use strict";
+"use strict";
+var HealthStatus = (function () {
+    function HealthStatus() {
+        this.code = -1;
+        this.resourceName = "";
+        this.name = "";
+    }
+    HealthStatus.OK_TYPE = "OK";
+    HealthStatus.RESOURCE_NA_TYPE = "ResourceIsNotAvailable";
+    HealthStatus.CONNECTION_PROBLEM_TYPE = "ConnectionProblem";
+    HealthStatus.ATTRIBUTE_VALUE_PROBLEM_TYPE = "InvalidAttributeValue";
+    return HealthStatus;
+}());
+exports.HealthStatus = HealthStatus;
+
+
+/***/ },
+
+/***/ "./src/app/watchers/model/invalid.attribute.value.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var malfunction_status_1 = __webpack_require__("./src/app/watchers/model/malfunction.status.ts");
+var InvalidAttributeValue = (function (_super) {
+    __extends(InvalidAttributeValue, _super);
+    function InvalidAttributeValue() {
+        _super.apply(this, arguments);
+        this.attribute = new AttributeWithValue();
+    }
+    InvalidAttributeValue.prototype.represent = function () {
+        return "Invalid attribute (" + this.attribute.name + ")  value: " + this.attribute.value;
+    };
+    InvalidAttributeValue.CODE = 3;
+    return InvalidAttributeValue;
+}(malfunction_status_1.MalfunctionStatus));
+exports.InvalidAttributeValue = InvalidAttributeValue;
+var AttributeWithValue = (function () {
+    function AttributeWithValue() {
+        this.name = "";
+        this.value = undefined;
+    }
+    return AttributeWithValue;
+}());
+exports.AttributeWithValue = AttributeWithValue;
+
+
+/***/ },
+
+/***/ "./src/app/watchers/model/malfunction.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var health_status_1 = __webpack_require__("./src/app/watchers/model/health.status.ts");
+var MalfunctionStatus = (function (_super) {
+    __extends(MalfunctionStatus, _super);
+    function MalfunctionStatus() {
+        _super.apply(this, arguments);
+        this.critical = false;
+    }
+    MalfunctionStatus.prototype.isCritical = function () {
+        return this.critical;
+    };
+    return MalfunctionStatus;
+}(health_status_1.HealthStatus));
+exports.MalfunctionStatus = MalfunctionStatus;
 
 
 /***/ },
@@ -502,6 +642,31 @@ exports.NumberComparatorPredicate = NumberComparatorPredicate;
 
 /***/ },
 
+/***/ "./src/app/watchers/model/ok.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var health_status_1 = __webpack_require__("./src/app/watchers/model/health.status.ts");
+var OkStatus = (function (_super) {
+    __extends(OkStatus, _super);
+    function OkStatus() {
+        _super.apply(this, arguments);
+    }
+    OkStatus.prototype.isCritical = function () {
+        return false;
+    };
+    OkStatus.prototype.represent = function () {
+        return "Everything is fine";
+    };
+    OkStatus.CODE = 0;
+    return OkStatus;
+}(health_status_1.HealthStatus));
+exports.OkStatus = OkStatus;
+
+
+/***/ },
+
 /***/ "./src/app/watchers/model/range.comparator.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -532,6 +697,29 @@ var IsInRangePredicate = (function (_super) {
     return IsInRangePredicate;
 }(colored_predicate_1.ColoredAttributePredicate));
 exports.IsInRangePredicate = IsInRangePredicate;
+
+
+/***/ },
+
+/***/ "./src/app/watchers/model/resource.na.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var malfunction_status_1 = __webpack_require__("./src/app/watchers/model/malfunction.status.ts");
+var ResourceIsNotAvailable = (function (_super) {
+    __extends(ResourceIsNotAvailable, _super);
+    function ResourceIsNotAvailable() {
+        _super.apply(this, arguments);
+        this.jmxError = "";
+    }
+    ResourceIsNotAvailable.prototype.represent = function () {
+        return "Resource " + this.resourceName + " is not available. Caused by: " + this.jmxError;
+    };
+    ResourceIsNotAvailable.CODE = 2;
+    return ResourceIsNotAvailable;
+}(malfunction_status_1.MalfunctionStatus));
+exports.ResourceIsNotAvailable = ResourceIsNotAvailable;
 
 
 /***/ },
@@ -745,6 +933,7 @@ module.exports = "<router-outlet></router-outlet>"
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var factory_1 = __webpack_require__("./src/app/watchers/model/factory.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
@@ -764,10 +953,10 @@ var WatcherDashboard = (function () {
             _thisReference.http.get(app_restClient_1.REST.WATCHERS_STATUS)
                 .map(function (res) { return res.json(); })
                 .subscribe(function (data) {
-                _thisReference.statuses = data;
+                _thisReference.statuses = factory_1.Factory.parseAllStatuses(data);
                 console.log(_thisReference.statuses);
             });
-        }, 1000);
+        }, 2000);
     };
     WatcherDashboard.prototype.ngOnDestroy = function () {
         clearInterval(this.timerId);
