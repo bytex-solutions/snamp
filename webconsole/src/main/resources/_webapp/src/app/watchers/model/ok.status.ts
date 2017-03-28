@@ -1,7 +1,7 @@
 import { HealthStatus } from './health.status';
 
 export class OkStatus extends HealthStatus {
-    public static CODE:number = 0;
+    public code:number = 0;
 
     public isCritical():boolean {
         return false;
@@ -9,5 +9,9 @@ export class OkStatus extends HealthStatus {
 
     public represent():string {
         return "Everything is fine";
+    }
+
+    public getShortDescription():string {
+        return "n/a";
     }
 }

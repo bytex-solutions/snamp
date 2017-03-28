@@ -67,7 +67,7 @@ export class Factory {
         _value.name = name;
         _value.resourceName = json["resourceName"];
         if (_value instanceof MalfunctionStatus) {
-            (<MalfunctionStatus>_value).critical = (json["critical"] === "true");
+            (<MalfunctionStatus>_value).critical = json["critical"];
         }
         return _value;
     }

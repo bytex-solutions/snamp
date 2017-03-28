@@ -53,4 +53,8 @@ export class WatcherDashboard implements OnInit {
         clearInterval(this.timerId);
     }
 
+    showDetails(status:HealthStatus):void {
+        console.log("details for status: ", status);
+    }
+
 }

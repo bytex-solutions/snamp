@@ -10,6 +10,23 @@
 
     <div class="row" style="margin-top: 30px">
 
+      <panel [header]="'Statuses of watchers'" [column]="'12'" *ngIf="statuses && statuses.length > 0">
+
+        <a *ngFor="let status of statuses"
+           class="grid-item-link pointerElement"
+           (click)="showDetails(status)">
+
+          <div
+                   [class.componentError]="status.code != 0"
+                   [class.componentOk]="status.code == 0"
+                   class="grid-item"
+                   [tooltip]="status.details()">
+            <h5 class="name">{{status.name}}</h5>
+            <p class="symbol">{{status.resourceName}}</p>
+            <p class="weight" *ngIf="status.code != 0">{{status.getShortDescription()}}</p>
+          </div>
+        </a>
+      </panel>
 
   </div>
 </div>

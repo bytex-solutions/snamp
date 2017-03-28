@@ -23,7 +23,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, "", ""]);
+exports.push([module.i, "/* grid-item\r\n------------------------- */\r\n\r\n.grid-item {\r\n  position: relative;\r\n  float: left;\r\n  width: 123px;\r\n  height: 123px;\r\n  margin: 10px;\r\n  padding: 10px;\r\n  background: #888;\r\n  color: #262524;\r\n}\r\n\r\n.componentOk {\r\n  background: #228B22 !important;\r\n}\r\n\r\n.componentError  {\r\n  background: #F08080 !important;\r\n}\r\n\r\n.grid-item > * {\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n\r\n.grid-item .name {\r\n  position: absolute;\r\n\r\n  left: 10px;\r\n  top: 55px;\r\n  text-transform: none;\r\n  letter-spacing: 0;\r\n  font-weight: normal;\r\n}\r\n\r\n.grid-item .symbol {\r\n  position: absolute;\r\n  left: 10px;\r\n  top: 0px;\r\n  font-weight: bold;\r\n  color: white;\r\n}\r\n\r\n.grid-item .number {\r\n  position: absolute;\r\n  right: 8px;\r\n  top: 5px;\r\n}\r\n\r\n.grid-item .weight {\r\n  position: absolute;\r\n  left: 9px;\r\n  top: 107px;\r\n  font-size: 0.8em;\r\n}\r\n\r\n.grid-item .bundleInfo {\r\n  position: absolute;\r\n  left: 117px;\r\n  top: 117px;\r\n  font-size: medium;\r\n}\r\n\r\n.grid-item-link {\r\n    display: inline-block;\r\n    border: 1px solid #dddddd;\r\n    border-radius: 4px;\r\n    -webkit-transition: border 0.2s ease-in-out;\r\n    -o-transition: border 0.2s ease-in-out;\r\n    transition: border 0.2s ease-in-out;\r\n    margin: 5px;\r\n}\r\n\r\na.grid-item-link:hover,\r\na.grid-item-link:focus,\r\na.grid-item-link.active {\r\n  border-color: #337ab7;\r\n}", ""]);
 
 // exports
 
@@ -290,12 +290,15 @@ var ConnectionProblem = (function (_super) {
     __extends(ConnectionProblem, _super);
     function ConnectionProblem() {
         _super.apply(this, arguments);
+        this.code = 1;
         this.ioException = "";
     }
     ConnectionProblem.prototype.represent = function () {
         return "Connection problems detected. Caused by " + this.ioException;
     };
-    ConnectionProblem.CODE = 1;
+    ConnectionProblem.prototype.getShortDescription = function () {
+        return "Connection problems";
+    };
     return ConnectionProblem;
 }(malfunction_status_1.MalfunctionStatus));
 exports.ConnectionProblem = ConnectionProblem;
@@ -503,7 +506,7 @@ var Factory = (function () {
         _value.name = name;
         _value.resourceName = json["resourceName"];
         if (_value instanceof malfunction_status_1.MalfunctionStatus) {
-            _value.critical = (json["critical"] === "true");
+            _value.critical = json["critical"];
         }
         return _value;
     };
@@ -525,6 +528,9 @@ var HealthStatus = (function () {
         this.resourceName = "";
         this.name = "";
     }
+    HealthStatus.prototype.details = function () {
+        return this.represent() + " (Click for details)";
+    };
     HealthStatus.OK_TYPE = "OK";
     HealthStatus.RESOURCE_NA_TYPE = "ResourceIsNotAvailable";
     HealthStatus.CONNECTION_PROBLEM_TYPE = "ConnectionProblem";
@@ -546,12 +552,15 @@ var InvalidAttributeValue = (function (_super) {
     __extends(InvalidAttributeValue, _super);
     function InvalidAttributeValue() {
         _super.apply(this, arguments);
+        this.code = 3;
         this.attribute = new AttributeWithValue();
     }
     InvalidAttributeValue.prototype.represent = function () {
         return "Invalid attribute (" + this.attribute.name + ")  value: " + this.attribute.value;
     };
-    InvalidAttributeValue.CODE = 3;
+    InvalidAttributeValue.prototype.getShortDescription = function () {
+        return "Invalid attribute";
+    };
     return InvalidAttributeValue;
 }(malfunction_status_1.MalfunctionStatus));
 exports.InvalidAttributeValue = InvalidAttributeValue;
@@ -652,6 +661,7 @@ var OkStatus = (function (_super) {
     __extends(OkStatus, _super);
     function OkStatus() {
         _super.apply(this, arguments);
+        this.code = 0;
     }
     OkStatus.prototype.isCritical = function () {
         return false;
@@ -659,7 +669,9 @@ var OkStatus = (function (_super) {
     OkStatus.prototype.represent = function () {
         return "Everything is fine";
     };
-    OkStatus.CODE = 0;
+    OkStatus.prototype.getShortDescription = function () {
+        return "n/a";
+    };
     return OkStatus;
 }(health_status_1.HealthStatus));
 exports.OkStatus = OkStatus;
@@ -711,12 +723,15 @@ var ResourceIsNotAvailable = (function (_super) {
     __extends(ResourceIsNotAvailable, _super);
     function ResourceIsNotAvailable() {
         _super.apply(this, arguments);
+        this.code = 2;
         this.jmxError = "";
     }
     ResourceIsNotAvailable.prototype.represent = function () {
         return "Resource " + this.resourceName + " is not available. Caused by: " + this.jmxError;
     };
-    ResourceIsNotAvailable.CODE = 2;
+    ResourceIsNotAvailable.prototype.getShortDescription = function () {
+        return "Resource is not available";
+    };
     return ResourceIsNotAvailable;
 }(malfunction_status_1.MalfunctionStatus));
 exports.ResourceIsNotAvailable = ResourceIsNotAvailable;
@@ -915,7 +930,7 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949
 /***/ "./src/app/watchers/templates/statuses.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Watcher statuses</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Watcher statuses</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'Statuses of watchers'\" [column]=\"'12'\" *ngIf=\"statuses && statuses.length > 0\">\r\n\r\n        <a *ngFor=\"let status of statuses\"\r\n           class=\"grid-item-link pointerElement\"\r\n           (click)=\"showDetails(status)\">\r\n\r\n          <div\r\n                   [class.componentError]=\"status.code != 0\"\r\n                   [class.componentOk]=\"status.code == 0\"\r\n                   class=\"grid-item\"\r\n                   [tooltip]=\"status.details()\">\r\n            <h5 class=\"name\">{{status.name}}</h5>\r\n            <p class=\"symbol\">{{status.resourceName}}</p>\r\n            <p class=\"weight\" *ngIf=\"status.code != 0\">{{status.getShortDescription()}}</p>\r\n          </div>\r\n        </a>\r\n      </panel>\r\n\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 
@@ -960,6 +975,9 @@ var WatcherDashboard = (function () {
     };
     WatcherDashboard.prototype.ngOnDestroy = function () {
         clearInterval(this.timerId);
+    };
+    WatcherDashboard.prototype.showDetails = function (status) {
+        console.log("details for status: ", status);
     };
     WatcherDashboard = __decorate([
         core_1.Component({

@@ -1,11 +1,15 @@
 import { MalfunctionStatus } from './malfunction.status';
 
 export class InvalidAttributeValue extends MalfunctionStatus {
-    public static CODE:number = 3;
+    public code:number = 3;
     public attribute:AttributeWithValue = new AttributeWithValue();
 
     public represent():string {
         return "Invalid attribute (" + this.attribute.name + ")  value: " + this.attribute.value;
+    }
+
+    public getShortDescription():string {
+        return "Invalid attribute";
     }
 }
 
