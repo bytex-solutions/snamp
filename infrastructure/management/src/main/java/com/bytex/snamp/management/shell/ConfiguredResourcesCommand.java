@@ -1,12 +1,10 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;
@@ -21,7 +19,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
     name = "resources",
     description = "List of configured managed resources")
 @Service
-public final class ConfiguredResourcesCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
+public final class ConfiguredResourcesCommand extends ManagedResourceConfigurationCommand {
 
     @Override
     boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
@@ -30,11 +28,5 @@ public final class ConfiguredResourcesCommand extends ConfigurationCommand<Manag
                     resource.getValue().getType(),
                     resource.getValue().getConnectionString());
         return false;
-    }
-
-    @Nonnull
-    @Override
-    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
-        return owner.getResources();
     }
 }

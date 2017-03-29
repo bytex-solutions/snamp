@@ -1,14 +1,11 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
-
-import javax.annotation.Nonnull;
 
 /**
  * Deletes configuration parameter from attribute.
@@ -20,7 +17,7 @@ import javax.annotation.Nonnull;
     name = "delete-attribute-param",
     description = "Delete configuration parameter from attribute")
 @Service
-public final class DeleteAttributeParameterCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
+public final class DeleteAttributeParameterCommand extends ManagedResourceConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to modify")
     private String resourceName = "";
@@ -53,11 +50,5 @@ public final class DeleteAttributeParameterCommand extends ConfigurationCommand<
             output.append("Resource doesn't exist");
             return true;
         }
-    }
-
-    @Nonnull
-    @Override
-    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
-        return owner.getResources();
     }
 }

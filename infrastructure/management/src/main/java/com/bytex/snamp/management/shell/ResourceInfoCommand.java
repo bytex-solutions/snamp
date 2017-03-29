@@ -7,7 +7,6 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;
@@ -23,7 +22,7 @@ import static com.bytex.snamp.management.ManagementUtils.newLine;
     name = "resource",
     description = "Display configuration of the managed resource")
 @Service
-public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
+public final class ResourceInfoCommand extends ManagedResourceConfigurationCommand {
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of configured resource to display")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String resourceName = "";
@@ -94,11 +93,5 @@ public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResou
         } else
             output.append("Resource doesn't exist");
         return false;
-    }
-
-    @Nonnull
-    @Override
-    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
-        return owner.getResources();
     }
 }

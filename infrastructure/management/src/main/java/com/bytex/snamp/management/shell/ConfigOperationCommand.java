@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
@@ -11,7 +10,6 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import javax.annotation.Nonnull;
 import java.time.Duration;
 
 /**
@@ -24,7 +22,7 @@ import java.time.Duration;
     name = "configure-operation",
     description = "Configure new or existing operation")
 @Service
-public final class ConfigOperationCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
+public final class ConfigOperationCommand extends ManagedResourceConfigurationCommand {
     private static final long INFINITE_TIMEOUT = -1;
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
@@ -63,11 +61,5 @@ public final class ConfigOperationCommand extends ConfigurationCommand<ManagedRe
             output.append("Resource doesn't exist");
             return false;
         }
-    }
-
-    @Nonnull
-    @Override
-    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
-        return owner.getResources();
     }
 }

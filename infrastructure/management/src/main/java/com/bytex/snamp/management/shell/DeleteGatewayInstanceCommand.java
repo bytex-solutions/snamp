@@ -1,14 +1,11 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
-
-import javax.annotation.Nonnull;
 
 /**
  * Deletes gateway instance.
@@ -20,7 +17,7 @@ import javax.annotation.Nonnull;
     name = "delete-gateway",
     description = "Delete gateway instance from configuration")
 @Service
-public final class DeleteGatewayInstanceCommand extends ConfigurationCommand<GatewayConfiguration> {
+public final class DeleteGatewayInstanceCommand extends GatewayConfigurationCommand {
     @Argument(index = 0, name = "instanceName", required = true, description = "The name of the gateway instance to remove")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String instanceName = "";
@@ -35,11 +32,5 @@ public final class DeleteGatewayInstanceCommand extends ConfigurationCommand<Gat
             output.append("Removed successfully");
             return true;
         }
-    }
-
-    @Nonnull
-    @Override
-    public EntityMap<? extends GatewayConfiguration> apply(@Nonnull final AgentConfiguration owner) {
-        return owner.getGateways();
     }
 }

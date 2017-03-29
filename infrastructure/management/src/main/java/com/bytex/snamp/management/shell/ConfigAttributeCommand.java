@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
@@ -11,7 +10,6 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import javax.annotation.Nonnull;
 import java.time.Duration;
 
 /**
@@ -24,7 +22,7 @@ import java.time.Duration;
     description = "Configure attribute of the managed resource",
     name = "configure-attribute")
 @Service
-public final class ConfigAttributeCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
+public final class ConfigAttributeCommand extends ManagedResourceConfigurationCommand {
     private static final long INFINITE_TIMEOUT = -1;
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
@@ -62,11 +60,5 @@ public final class ConfigAttributeCommand extends ConfigurationCommand<ManagedRe
             output.append("Resource doesn't exist");
             return false;
         }
-    }
-
-    @Nonnull
-    @Override
-    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
-        return owner.getResources();
     }
 }

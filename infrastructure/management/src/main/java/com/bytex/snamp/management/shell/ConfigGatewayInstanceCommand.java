@@ -2,15 +2,12 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
-
-import javax.annotation.Nonnull;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -24,7 +21,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
     name = "configure-gateway",
     description = "Configure new or existing gateway instance")
 @Service
-public final class ConfigGatewayInstanceCommand extends ConfigurationCommand<GatewayConfiguration> {
+public final class ConfigGatewayInstanceCommand extends GatewayConfigurationCommand {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the gateway instance")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String instanceName = "";
@@ -53,11 +50,5 @@ public final class ConfigGatewayInstanceCommand extends ConfigurationCommand<Gat
             }
         output.append("Updated");
         return true;
-    }
-
-    @Nonnull
-    @Override
-    public EntityMap<? extends GatewayConfiguration> apply(@Nonnull final AgentConfiguration owner) {
-        return owner.getGateways();
     }
 }

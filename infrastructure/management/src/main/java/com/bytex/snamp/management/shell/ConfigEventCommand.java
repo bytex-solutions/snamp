@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
@@ -10,8 +9,6 @@ import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
-
-import javax.annotation.Nonnull;
 
 /**
  * Configures resource event.
@@ -23,7 +20,7 @@ import javax.annotation.Nonnull;
     name = "configure-event",
     description = "Configure resource event")
 @Service
-public final class ConfigEventCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
+public final class ConfigEventCommand extends ManagedResourceConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to modify")
     private String resourceName = "";
@@ -54,11 +51,5 @@ public final class ConfigEventCommand extends ConfigurationCommand<ManagedResour
             output.append("Resource doesn't exist");
             return false;
         }
-    }
-
-    @Nonnull
-    @Override
-    public EntityMap<? extends ManagedResourceConfiguration> apply(@Nonnull final AgentConfiguration owner) {
-        return owner.getResources();
     }
 }
