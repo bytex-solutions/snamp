@@ -23,7 +23,7 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate, M
      */
     @Override
     default String getGroupName(){
-        return get(GROUP_NAME_PROPERTY);
+        return getOrDefault(GROUP_NAME_PROPERTY, "");
     }
 
     /**

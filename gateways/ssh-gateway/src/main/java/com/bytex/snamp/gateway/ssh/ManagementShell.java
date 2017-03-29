@@ -252,7 +252,7 @@ final class ManagementShell implements Command, SessionAware {
     private static Command createSshCommand(final String commandLine,
                                             final CommandExecutionContext controller) {
         final String[] parts = splitArguments(commandLine);
-        final ManagementShellCommand factory = createCommand(ArrayUtils.getFirst(parts), controller);
+        final ManagementShellCommand factory = createCommand(ArrayUtils.getFirst(parts).orElseThrow(AssertionError::new), controller);
         return factory.createSshCommand(ArrayUtils.remove(parts, 0));
     }
 
@@ -268,7 +268,7 @@ final class ManagementShell implements Command, SessionAware {
                                   final PrintWriter outStream,
                                   final PrintWriter errStream){
         final String[] parts = splitArguments(commandLine);
-        doCommand(ArrayUtils.getFirst(parts),
+        doCommand(ArrayUtils.getFirst(parts).orElseThrow(IllegalArgumentException::new),
                 ArrayUtils.remove(parts, 0),
                 context,
                 outStream,

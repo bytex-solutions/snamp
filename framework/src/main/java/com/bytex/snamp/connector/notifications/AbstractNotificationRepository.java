@@ -13,6 +13,7 @@ import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -21,7 +22,6 @@ import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Represents a base class that allows to enable notification support for the management connector.
@@ -101,7 +101,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                                              final Class<M> notifMetadataType,
                                              final boolean expandable) {
         super(resourceName, notifMetadataType);
-        notifications = AbstractKeyedObjects.create(metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()));
+        notifications = AbstractKeyedObjects.create(metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new));
         listeners = new NotificationListenerList();
         metrics = new NotificationMetricRecorder();
         this.expandable = expandable;
@@ -181,14 +181,14 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                               final long sequenceNumber,
                               final long timeStamp,
                               final Object userData) {
-        return fire(category, holder -> new NotificationBuilder()
-                .setType(ArrayUtils.getFirst(holder.getNotifTypes()))
+        return fire(category, holder -> ArrayUtils.getFirst(holder.getNotifTypes()).map(newNotifType -> new NotificationBuilder()
+                .setType(newNotifType)
                 .setTimeStamp(timeStamp)
                 .setSequenceNumber(sequenceNumber)
                 .setMessage(message)
                 .setUserData(userData)
                 .setSource(getSource())
-                .get());
+                .get()).orElse(null));
     }
 
     /**
@@ -452,6 +452,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     @Override
+    @Nonnull
     public final Iterator<M> iterator() {
         return readLock.apply(SingleResourceGroup.INSTANCE, notifications.values(), Collection::iterator);
     }

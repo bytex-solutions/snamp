@@ -129,7 +129,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @since 2.0
          */
         protected final Class<? super S> getServiceContract(){
-            return ArrayUtils.getFirst(serviceContracts);
+            return ArrayUtils.getFirst(serviceContracts).orElseThrow(AssertionError::new);
         }
 
         /**

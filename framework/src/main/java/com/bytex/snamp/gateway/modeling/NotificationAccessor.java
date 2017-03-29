@@ -80,7 +80,7 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
      * @return The notification type.
      */
     public final String getType(){
-        return ArrayUtils.getFirst(getMetadata().getNotifTypes());
+        return ArrayUtils.getFirst(getMetadata().getNotifTypes()).orElseThrow(AssertionError::new);
     }
 
     /**

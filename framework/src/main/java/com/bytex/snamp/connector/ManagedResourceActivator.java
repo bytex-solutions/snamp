@@ -145,7 +145,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                                   final Map<String, ? extends EventConfiguration> events){
             updateFeatures(
                     (name, config) -> connector.enableNotifications(name, new NotificationDescriptor(config)),
-                    metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()),
+                    metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new),
                     connector::retainNotifications,
                     events
             );

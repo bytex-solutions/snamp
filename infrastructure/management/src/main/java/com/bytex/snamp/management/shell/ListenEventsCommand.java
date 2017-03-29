@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -62,8 +63,11 @@ public final class ListenEventsCommand extends SnampShellCommand {
 
     private static String[] getNames(final MBeanNotificationInfo[] attributes) {
         final String[] result = new String[attributes.length];
-        for (int i = 0; i < attributes.length; i++)
-            result[i] = ArrayUtils.getFirst(attributes[i].getNotifTypes());
+        for (int i = 0; i < attributes.length; i++) {
+            final Optional<String> name = ArrayUtils.getFirst(attributes[i].getNotifTypes());
+            if (name.isPresent())
+                result[i] = name.get();
+        }
         return result;
     }
 

@@ -259,14 +259,10 @@ public final class ArrayUtils {
         return (char[]) unwrapArrayImpl(value);
     }
 
-    public static <T> T find(final T[] array, final Predicate<T> filter, final T defval) {
+    public static <T> Optional<T> find(final T[] array, final Predicate<T> filter) {
         for(final T item: array)
-            if(filter.test(item)) return item;
-        return defval;
-    }
-
-    public static <T> T find(final T[] array, final Predicate<T> filter) {
-        return find(array, filter, null);
+            if(filter.test(item)) return Optional.ofNullable(item);
+        return Optional.empty();
     }
 
     private static Object newArray(final OpenType<?> elementType,
@@ -339,33 +335,18 @@ public final class ArrayUtils {
         return (T) emptyArrayImpl(elementType);
     }
 
-    public static <T> T getLast(final T[] array, final T defval){
-        return array.length > 0 ? array[array.length - 1] : defval;
-    }
-
-    public static <T> T getLast(final T[] array) {
-        return getLast(array, null);
+    public static <T> Optional<T> getLast(final T[] array){
+        return array.length > 0 ? Optional.ofNullable(array[array.length - 1]) : Optional.empty();
     }
 
     /**
      * Gets the first element in the array.
      * @param array Array instance. Cannot be {@literal null}.
-     * @param defval Value returned from the method if array is empty.
      * @param <T> Type of array elements.
      * @return The first element in the specified array; or default value.
      */
-    public static <T> T getFirst(final T[] array, final T defval){
-        return array.length > 0 ? array[0] : defval;
-    }
-
-    /**
-     * Gets the first element in the array.
-     * @param array Array instance. Cannot be {@literal null}.
-     * @param <T> Type of array elements.
-     * @return The first element in the specified array; or {@literal null}, if array is empty.
-     */
-    public static <T> T getFirst(final T[] array){
-        return getFirst(array, null);
+    public static <T> Optional<T> getFirst(final T[] array){
+        return array.length > 0 ? Optional.ofNullable(array[0]) : Optional.empty();
     }
 
     private static boolean isNullOrEmptyImpl(final Object array){

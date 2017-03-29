@@ -1,9 +1,7 @@
 package com.bytex.snamp.configuration;
 
-import com.bytex.snamp.jmx.DescriptorUtils;
-
 import java.time.Duration;
-import java.time.temporal.TemporalUnit;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -32,7 +30,7 @@ public interface AttributeConfiguration extends FeatureConfiguration {
     void setReadWriteTimeout(final Duration value);
 
     default String getUnitOfMeasurement(){
-        return get(UNIT_OF_MEASUREMENT_KEY);
+        return getOrDefault(UNIT_OF_MEASUREMENT_KEY, "");
     }
 
     default void setUnitOfMeasurement(final String value) {

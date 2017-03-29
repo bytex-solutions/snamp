@@ -61,7 +61,7 @@ public final class OpenMBeanTest extends Assert {
         mbean.setAttribute(new Attribute("Temperature", 52));
         assertEquals(52, mbean.getAttribute("Temperature"));
         assertEquals(2, mbean.getMBeanInfo().getAttributes().length);
-        MBeanAttributeInfo info = ArrayUtils.getFirst(mbean.getMBeanInfo().getAttributes());
+        MBeanAttributeInfo info = ArrayUtils.getFirst(mbean.getMBeanInfo().getAttributes()).orElseThrow(AssertionError::new);
         assertEquals("Temperature", info.getName());
         assertTrue(info instanceof OpenMBeanAttributeInfo);
         assertTrue(info.isReadable());

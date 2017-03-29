@@ -6,6 +6,7 @@ import com.bytex.snamp.connector.FeatureDescriptor;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.Nonnull;
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanNotificationInfo;
@@ -88,6 +89,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Featu
             entity.put(fieldName, Objects.toString(getFieldValue(fieldName)));
     }
 
+    @Nonnull
     public final String getDescription(){
         return getDescription(this, "");
     }
@@ -156,7 +158,8 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Featu
     public static String getName(final MBeanNotificationInfo metadata) {
         return DescriptorUtils.getField(metadata.getDescriptor(),
                 EventConfiguration.NAME_KEY,
-                Objects::toString).orElseGet(() -> ArrayUtils.getFirst(metadata.getNotifTypes()));
+                Objects::toString)
+                .orElseGet(() -> ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new));
     }
 
     /**
