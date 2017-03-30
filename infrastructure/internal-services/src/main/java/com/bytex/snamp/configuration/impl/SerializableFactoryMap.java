@@ -13,13 +13,14 @@ import java.util.function.Consumer;
 abstract class SerializableFactoryMap<K, V extends Modifiable & Stateful> extends ModifiableMap<K, V> implements FactoryMap<K, V>, SerializableMap<K, V> {
     private static final long serialVersionUID = -5518666612904348037L;
 
-    final <ERROR extends Exception> void modifiedEntries(final EntryReader<? super K, ? super V, ERROR> reader) throws ERROR {
+    final <ERROR extends Exception> boolean modifiedEntries(final EntryReader<? super K, ? super V, ERROR> reader) throws ERROR {
         for (final Entry<K, V> e : entrySet()) {
             final V entity = e.getValue();
             final K name = e.getKey();
             if (entity.isModified())
-                if (!reader.accept(name, entity)) break;
+                if (!reader.accept(name, entity)) return false;
         }
+        return true;
     }
 
     final <S> void load(final Map<K, S> map, final BiConsumer<? super V, ? super S> loader) {

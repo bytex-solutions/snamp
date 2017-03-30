@@ -3,7 +3,6 @@ package com.bytex.snamp.configuration;
 import com.bytex.snamp.FactoryMap;
 
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 /**
  * Represents catalog of configuration entities.
@@ -23,7 +22,6 @@ public interface EntityMap<E extends EntityConfiguration> extends FactoryMap<Str
     }
 
     default void putAll(final EntityMap<?> entities) {
-        clear();
         entities.forEach((name, importedEntity) -> getOrAdd(name).load(importedEntity));
     }
 }
