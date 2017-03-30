@@ -338,22 +338,6 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         return operations;
     }
 
-    @SuppressWarnings("unchecked")
-    public final <T extends FeatureConfiguration> EntityMap<? extends T> getFeatures(final Class<T> featureType) {
-        final SerializableEntityMap result;
-        if(featureType == null)
-            result = null;
-        else if(featureType.isAssignableFrom(SerializableAttributeConfiguration.class))
-            result = attributes;
-        else if(featureType.isAssignableFrom(SerializableEventConfiguration.class))
-            result = events;
-        else if(featureType.isAssignableFrom(SerializableOperationConfiguration.class))
-            result = operations;
-        else
-            result = null;
-        return result;
-    }
-
     /**
      * Determines whether this configuration entity is modified after deserialization.
      *

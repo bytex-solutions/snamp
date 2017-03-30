@@ -9,7 +9,7 @@ import java.io.ObjectOutput;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Strings.*;
 
 /**
  * Represents configuration of the management information provider. This class cannot be inherited.
@@ -99,27 +99,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     @Override
     public void setConnectionString(final String value) {
         markAsModified();
-        connectionString = firstNonNull(value, "");
-    }
-
-    /**
-     * Sets resource group for this resource.
-     *
-     * @param value The name of the resource group. Cannot be {@literal null}.
-     */
-    @Override
-    public void setGroupName(final String value) {
-        put(GROUP_NAME_PROPERTY, firstNonNull(value, ""));
-    }
-
-    /**
-     * Gets name of resource group.
-     *
-     * @return Name of resource group; or empty string, if group is not assigned.
-     */
-    @Override
-    public String getGroupName() {
-        return firstNonNull(get(GROUP_NAME_PROPERTY), "");
+        connectionString = nullToEmpty(value);
     }
 
     private boolean equals(final ManagedResourceConfiguration other){

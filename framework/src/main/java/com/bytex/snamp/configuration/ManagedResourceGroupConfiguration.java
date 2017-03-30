@@ -12,12 +12,5 @@ public interface ManagedResourceGroupConfiguration extends ManagedResourceTempla
      *
      * @return Supervisor name.
      */
-    String getSupervisor();
-
-    /**
-     * Sets supervisor name for this group.
-     *
-     * @param value Supervisor name.
-     */
-    void setSupervisor(final String value);
+    SupervisorConfiguration getSupervisor();
 }

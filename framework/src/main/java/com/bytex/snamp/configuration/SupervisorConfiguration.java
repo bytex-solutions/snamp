@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration;
 import com.bytex.snamp.FactoryMap;
 
 /**
- * Represents configuration of the component watcher.
+ * Represents configuration of the supervisor.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0

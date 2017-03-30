@@ -51,11 +51,11 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         groupParser = new CMManagedResourceGroupParser();
     }
 
-    private void mergeResourcesWithGroups(final SerializableEntityMap<SerializableManagedResourceConfiguration> resources,
+    private static void mergeResourcesWithGroups(final SerializableEntityMap<SerializableManagedResourceConfiguration> resources,
                                           final SerializableEntityMap<SerializableManagedResourceGroupConfiguration> groups) {
         //migrate attributes, events, operations and properties from modified groups into resources
         groups.modifiedEntries((groupName, groupConfig) -> {
-            resources.values().parallelStream()                 //attempt to increase performance with many registered resources
+            resources.values().stream()                
                     .filter(resource -> resource.getGroupName().equals(groupName))
                     .forEach(resource -> {
                         //overwrite all properties in resource but hold user-defined properties
@@ -66,6 +66,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                         resource.getEvents().putAll(groupConfig.getEvents());
                         //overwrite all operations
                         resource.getOperations().putAll(groupConfig.getOperations());
+                        //overwrite connector type
+                        resource.setType(groupConfig.getType());
                     });
             return true;
         });
