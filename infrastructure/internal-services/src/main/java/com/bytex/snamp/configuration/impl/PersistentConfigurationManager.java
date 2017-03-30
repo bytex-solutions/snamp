@@ -55,20 +55,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                                           final SerializableEntityMap<SerializableManagedResourceGroupConfiguration> groups) {
         //migrate attributes, events, operations and properties from modified groups into resources
         groups.modifiedEntries((groupName, groupConfig) -> {
-            resources.values().stream()                
+            resources.values().stream()
                     .filter(resource -> resource.getGroupName().equals(groupName))
-                    .forEach(resource -> {
-                        //overwrite all properties in resource but hold user-defined properties
-                        resource.putAll(groupConfig);
-                        //overwrite all attributes
-                        resource.getAttributes().putAll(groupConfig.getAttributes());
-                        //overwrite all events
-                        resource.getEvents().putAll(groupConfig.getEvents());
-                        //overwrite all operations
-                        resource.getOperations().putAll(groupConfig.getOperations());
-                        //overwrite connector type
-                        resource.setType(groupConfig.getType());
-                    });
+                    .forEach(groupConfig::merge);
             return true;
         });
     }

@@ -1,6 +1,8 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 
 import java.io.IOException;
@@ -46,6 +48,20 @@ final class SerializableManagedResourceGroupConfiguration extends AbstractManage
     @Override
     public void setSupervisor(final String value) {
         supervisor = nullToEmpty(value);
+    }
+
+    @Override
+    public void merge(final ManagedResourceConfiguration resource) {
+        //overwrite all properties in resource but hold user-defined properties
+        resource.putAll(this);
+        //overwrite all attributes
+        resource.getAttributes().putAll(getAttributes());
+        //overwrite all events
+        resource.getEvents().putAll(getEvents());
+        //overwrite all operations
+        resource.getOperations().putAll(getOperations());
+        //overwrite connector type
+        resource.setType(getType());
     }
 
     @Override

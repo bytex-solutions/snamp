@@ -3,6 +3,7 @@ package com.bytex.snamp.configuration;
 import com.bytex.snamp.FactoryMap;
 
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 /**
  * Represents catalog of configuration entities.
@@ -19,5 +20,10 @@ public interface EntityMap<E extends EntityConfiguration> extends FactoryMap<Str
 
     default Optional<E> getIfPresent(final String entityID){
         return containsKey(entityID) ? Optional.of(get(entityID)) : Optional.empty();
+    }
+
+    default void putAll(final EntityMap<?> entities) {
+        clear();
+        entities.forEach((name, importedEntity) -> getOrAdd(name).load(importedEntity));
     }
 }
