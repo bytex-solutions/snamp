@@ -11,6 +11,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Map;
@@ -44,6 +45,7 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
         return getValue(config, identityHolderName, Objects::toString).orElse("");
     }
 
+    @Nonnull
     abstract Dictionary<String, Object> serialize(final E entity) throws IOException;
 
     private void serialize(final String identityName,
@@ -112,6 +114,7 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
     }
 
     @Override
+    @Nonnull
     abstract SingletonMap<String, E> parse(final Dictionary<String, ?> config) throws IOException;
 
     final void saveChanges(final SerializableEntityMap<E> resources,

@@ -12,6 +12,7 @@ import com.google.common.reflect.TypeToken;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -105,6 +106,7 @@ final class CMManagedResourceParserImpl extends AbstractTypedConfigurationParser
     }
 
     @Override
+    @Nonnull
     public SingletonMap<String, SerializableManagedResourceConfiguration> parse(final Dictionary<String, ?> configuration) throws IOException {
         final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
         result.setConnectionString(getConnectionString(configuration));
@@ -119,6 +121,7 @@ final class CMManagedResourceParserImpl extends AbstractTypedConfigurationParser
     }
 
     @Override
+    @Nonnull
     Dictionary<String, Object> serialize(final SerializableManagedResourceConfiguration resource) throws IOException {
         final Dictionary<String, Object> result = new Hashtable<>(4);
         putValue(result, CONNECTION_STRING_PROPERTY, resource, SerializableManagedResourceConfiguration::getConnectionString);

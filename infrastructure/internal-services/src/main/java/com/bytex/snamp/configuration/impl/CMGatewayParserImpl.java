@@ -6,6 +6,7 @@ import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -55,11 +56,13 @@ final class CMGatewayParserImpl extends AbstractTypedConfigurationParser<Seriali
     }
 
     @Override
+    @Nonnull
     public SingletonMap<String, SerializableGatewayConfiguration> parse(final Dictionary<String, ?> configuration) {
         return createParserResult(configuration, new SerializableGatewayConfiguration());
     }
 
     @Override
+    @Nonnull
     Dictionary<String, Object> serialize(final SerializableGatewayConfiguration gatewayInstance) {
         final Dictionary<String, Object> result = new Hashtable<>(4);
         gatewayInstance.forEach((name, value) -> {

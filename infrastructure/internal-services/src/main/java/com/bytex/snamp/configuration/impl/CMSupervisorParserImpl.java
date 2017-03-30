@@ -6,6 +6,7 @@ import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.regex.Pattern;
@@ -38,6 +39,7 @@ final class CMSupervisorParserImpl extends AbstractTypedConfigurationParser<Seri
     }
 
     @Override
+    @Nonnull
     Dictionary<String, Object> serialize(final SerializableSupervisorConfiguration entity) throws IOException {
         return null;
     }
@@ -63,6 +65,7 @@ final class CMSupervisorParserImpl extends AbstractTypedConfigurationParser<Seri
     }
 
     @Override
+    @Nonnull
     public SingletonMap<String, SerializableSupervisorConfiguration> parse(final Dictionary<String, ?> configuration) throws IOException {
         return null;
     }
