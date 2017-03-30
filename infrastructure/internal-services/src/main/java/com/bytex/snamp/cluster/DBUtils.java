@@ -16,7 +16,11 @@ final class DBUtils {
     static <V> V supplyWithDatabase(final ODatabaseDocumentInternal database, final Supplier<V> callable) {
         if (!database.isActiveOnCurrentThread())
             database.activateOnCurrentThread();
-        return callable.get();
+        try {
+            return callable.get();
+        } finally {
+            ODatabaseRecordThreadLocal.INSTANCE.remove();
+        }
     }
 
     static void runWithDatabase(final ODatabaseDocumentInternal database, final Runnable runnable) {

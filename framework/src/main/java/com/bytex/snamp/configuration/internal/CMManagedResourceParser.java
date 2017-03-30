@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration.internal;
 
 
+import com.bytex.snamp.Internal;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 import java.util.Dictionary;
@@ -14,6 +15,7 @@ import java.util.Dictionary;
  * @version 2.0
  * @since 1.2
  */
+@Internal
 public interface CMManagedResourceParser extends CMRootEntityParser<ManagedResourceConfiguration> {
     /**
      * Extracts resource name from the managed resource configuration.

@@ -1,5 +1,6 @@
 package com.bytex.snamp.configuration.internal;
 
+import com.bytex.snamp.Internal;
 import com.bytex.snamp.configuration.EntityConfiguration;
 
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.Map;
  * @version 2.0
  * @since 1.2
  */
+@Internal
 public interface CMConfigurationParser<E extends EntityConfiguration> {
     /**
      * Converts {@link Dictionary} into SNAMP-specific configuration section.
