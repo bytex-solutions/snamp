@@ -116,7 +116,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         return "";
     }
 
-    protected void fillWatchers(final EntityMap<? extends SupervisorConfiguration> watchers){
+    protected void fillSupervisors(final EntityMap<? extends SupervisorConfiguration> supervisors){
         
     }
 

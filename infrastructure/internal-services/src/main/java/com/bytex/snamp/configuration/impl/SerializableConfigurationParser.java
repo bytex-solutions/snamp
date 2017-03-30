@@ -19,9 +19,11 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
     private final ImmutableSet<String> excludeConfigKeys;
     private final Class<E> entityType;
 
-    SerializableConfigurationParser(final String pid,
+    SerializableConfigurationParser(final SerializableEntityMapResolver<SerializableAgentConfiguration, E> resolver,
+                                    final String pid,
                                     final Class<E> entityType,
                                     final String... excludeConfigKeys) {
+        super(resolver);
         this.entityType = Objects.requireNonNull(entityType);
         this.persistentID = Objects.requireNonNull(pid);
         this.excludeConfigKeys = ImmutableSet.<String>builder()

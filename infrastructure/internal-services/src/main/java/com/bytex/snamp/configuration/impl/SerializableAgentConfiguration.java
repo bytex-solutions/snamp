@@ -27,7 +27,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
     private final SerializableEntityMap<SerializableThreadPoolConfiguration> threadPools;
     private final SerializableEntityMap<SerializableManagedResourceGroupConfiguration> groups;
     private final SerializableEntityMap<SerializableManagedResourceConfiguration> resources;
-    private final SerializableEntityMap<SerializableSupervisorConfiguration> watchers;
+    private final SerializableEntityMap<SerializableSupervisorConfiguration> supervisors;
 
     /**
      * Initializes a new empty agent configuration.
@@ -38,7 +38,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         threadPools = new ThreadPoolMap();
         groups = new ResourceGroupMap();
         resources = new ManagedResourceMap();
-        watchers = new WatcherMap();
+        supervisors = new SupervisorMap();
     }
 
     /**
@@ -51,7 +51,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         threadPools.clear();
         groups.clear();
         resources.clear();
-        watchers.clear();
+        supervisors.clear();
     }
 
     /**
@@ -77,6 +77,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         threadPools.load(configuration.getThreadPools());
         gateways.load(configuration.getGateways());
         groups.load(configuration.getResourceGroups());
+        supervisors.load(configuration.getSupervisors());
         loadParameters(configuration);
     }
 
@@ -94,7 +95,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
                 threadPools.isModified() ||
                 groups.isModified() ||
                 resources.isModified() ||
-                watchers.isModified() ||
+                supervisors.isModified() ||
                 super.isModified();
     }
 
@@ -105,7 +106,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         threadPools.reset();
         groups.reset();
         resources.reset();
-        watchers.reset();
+        supervisors.reset();
     }
 
     /**
@@ -133,7 +134,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         //write thread pools
         threadPools.writeExternal(out);
         //write watchers
-        watchers.writeExternal(out);
+        supervisors.writeExternal(out);
     }
 
     /**
@@ -159,7 +160,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
         //read thread pools
         threadPools.readExternal(in);
         //read watchers
-        watchers.readExternal(in);
+        supervisors.readExternal(in);
     }
 
     /**
@@ -171,12 +172,14 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
                 resources.isEmpty() &&
                 groups.isEmpty() &&
                 threadPools.isEmpty() &&
-                watchers.isEmpty() &&
+                supervisors.isEmpty() &&
                 super.isEmpty();
     }
 
-    SerializableEntityMap<SerializableSupervisorConfiguration> getWatchers(){
-        return watchers;
+    @Override
+    @Nonnull
+    public SerializableEntityMap<SerializableSupervisorConfiguration> getSupervisors(){
+        return supervisors;
     }
 
     @Override
@@ -250,6 +253,7 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
                 other.getResources().equals(resources) &&
                 other.getThreadPools().equals(threadPools) &&
                 other.getResourceGroups().equals(groups) &&
+                other.getSupervisors().equals(supervisors) &&
                 super.equals(other);
     }
 
@@ -260,6 +264,6 @@ public final class SerializableAgentConfiguration extends AbstractEntityConfigur
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ Objects.hash(gateways, groups, resources, threadPools, watchers);
+        return super.hashCode() ^ Objects.hash(gateways, groups, resources, threadPools, supervisors);
     }
 }

@@ -8,7 +8,6 @@ import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -30,6 +29,10 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     private static final String ALL_GATEWAYS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(GATEWAY_PID_TEMPLATE, "*"));
     private static final Pattern GATEWAY_PID_REPLACEMENT = Pattern.compile(String.format(GATEWAY_PID_TEMPLATE, ""), Pattern.LITERAL);
 
+    CMGatewayParserImpl() {
+        super(SerializableAgentConfiguration::getGateways);
+    }
+
     private static final class GatewayConfigurationException extends PersistentConfigurationException{
         private static final long serialVersionUID = -242953184038600223L;
 
@@ -45,12 +48,6 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
      */
     private static String getGatewayType(final String factoryPID){
         return GATEWAY_PID_REPLACEMENT.matcher(factoryPID).replaceFirst("");
-    }
-
-    @Nonnull
-    @Override
-    public SerializableEntityMap<SerializableGatewayConfiguration> apply(@Nonnull final SerializableAgentConfiguration owner) {
-        return owner.getGateways();
     }
 
     @Override

@@ -48,6 +48,8 @@ public interface AgentConfiguration extends Cloneable, EntityConfiguration {
     EntityMap<? extends ManagedResourceGroupConfiguration> getResourceGroups();
     @Nonnull
     EntityMap<? extends ThreadPoolConfiguration> getThreadPools();
+    @Nonnull
+    EntityMap<? extends SupervisorConfiguration> getSupervisors();
 
     /**
      * Creates a new instance of entity configuration.

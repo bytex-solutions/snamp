@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 
 /**
@@ -11,6 +11,6 @@ import com.bytex.snamp.configuration.ThreadPoolConfiguration;
  */
 abstract class AbstractThreadPoolCommand extends ConfigurationCommand<ThreadPoolConfiguration> {
     AbstractThreadPoolCommand() {
-        super(AgentConfiguration::getThreadPools);
+        super(EntityMapResolver.THREAD_POOLS);
     }
 }

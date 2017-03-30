@@ -1,11 +1,9 @@
 package com.bytex.snamp.management.http;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 import com.bytex.snamp.management.http.model.ResourceGroupDataObject;
 
-import javax.annotation.Nonnull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -24,6 +22,9 @@ import java.util.stream.Collectors;
  */
 @Path("/configuration/resourceGroup")
 public final class ResourceGroupConfigurationService extends TemplateConfigurationService<ManagedResourceGroupConfiguration, ResourceGroupDataObject> {
+    ResourceGroupConfigurationService() {
+        super(EntityMapResolver.GROUPS);
+    }
 
     @Override
     protected ResourceGroupDataObject toDataTransferObject(final ManagedResourceGroupConfiguration entity) {
@@ -40,16 +41,10 @@ public final class ResourceGroupConfigurationService extends TemplateConfigurati
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Set<String> getResourceGroupNames() {
-        return readOnlyActions(getBundleContext(), config -> apply(config)
+        return readOnlyActions(getBundleContext(), config -> entityMapResolver.apply(config)
                 .entrySet()
                 .stream()
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet()));
-    }
-
-    @Nonnull
-    @Override
-    public EntityMap<? extends ManagedResourceGroupConfiguration> apply(@Nonnull final AgentConfiguration owner) {
-        return owner.getResourceGroups();
     }
 }

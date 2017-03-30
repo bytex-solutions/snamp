@@ -1,6 +1,9 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.*;
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.BooleanBox;
+import com.bytex.snamp.BoxFactory;
+import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
@@ -11,7 +14,6 @@ import com.google.common.reflect.TypeToken;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -52,10 +54,8 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         }
     }
 
-    @Nonnull
-    @Override
-    public SerializableEntityMap<SerializableManagedResourceConfiguration> apply(@Nonnull final SerializableAgentConfiguration owner) {
-        return owner.getResources();
+    CMManagedResourceParserImpl() {
+        super(SerializableAgentConfiguration::getResources);
     }
 
     /**

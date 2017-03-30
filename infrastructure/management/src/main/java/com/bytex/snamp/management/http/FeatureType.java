@@ -27,7 +27,7 @@ public enum FeatureType {
     ATTRIBUTES {
         @Override
         <T extends ManagedResourceTemplate> Map<String, AttributeDataObject> getFeatures(final BundleContext context, final String templateName, final EntityMapResolver<AgentConfiguration, T> templateResolver) {
-            return getFeatures(context, templateName, templateResolver, ManagedResourceTemplate::getAttributes, AttributeDataObject::new);
+            return getFeatures(context, templateName, templateResolver, EntityMapResolver.ATTRIBUTES, AttributeDataObject::new);
         }
 
         @Override
@@ -49,13 +49,13 @@ public enum FeatureType {
                                final String templateName,
                                final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                final String featureName) {
-            return removeFeature(context, security, templateName, templateResolver, featureName, ManagedResourceTemplate::getAttributes);
+            return removeFeature(context, security, templateName, templateResolver, featureName, EntityMapResolver.ATTRIBUTES);
         }
     },
     EVENTS {
         @Override
         <T extends ManagedResourceTemplate> Map<String, EventDataObject> getFeatures(final BundleContext context, final String holderName, final EntityMapResolver<AgentConfiguration, T> templateResolver) {
-            return getFeatures(context, holderName, templateResolver, ManagedResourceTemplate::getEvents, EventDataObject::new);
+            return getFeatures(context, holderName, templateResolver, EntityMapResolver.EVENTS, EventDataObject::new);
         }
 
         @Override
@@ -77,13 +77,13 @@ public enum FeatureType {
                                final String templateName,
                                final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                final String featureName) {
-            return removeFeature(context, security, templateName, templateResolver, featureName, ManagedResourceTemplate::getEvents);
+            return removeFeature(context, security, templateName, templateResolver, featureName, EntityMapResolver.EVENTS);
         }
     },
     OPERATIONS {
         @Override
         <T extends ManagedResourceTemplate> Map<String, OperationDataObject> getFeatures(final BundleContext context, final String holderName, final EntityMapResolver<AgentConfiguration, T> templateResolver) {
-            return FeatureType.getFeatures(context, holderName, templateResolver, ManagedResourceTemplate::getOperations, OperationDataObject::new);
+            return FeatureType.getFeatures(context, holderName, templateResolver, EntityMapResolver.OPERATIONS, OperationDataObject::new);
         }
 
         @Override
@@ -105,7 +105,7 @@ public enum FeatureType {
                                final String templateName,
                                final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                final String featureName) {
-            return removeFeature(context, security, templateName, templateResolver, featureName, ManagedResourceTemplate::getOperations);
+            return removeFeature(context, security, templateName, templateResolver, featureName, EntityMapResolver.OPERATIONS);
         }
     };
     static final String ATTRIBUTES_TYPE = "attributes";
@@ -192,7 +192,7 @@ public enum FeatureType {
                                             final String templateName,
                                   final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                   final String featureName,
-                                          final EntityMapResolver<? super T, FeatureConfiguration> featureResolver
+                                          final EntityMapResolver<? super T, ? extends FeatureConfiguration> featureResolver
                                           ) {
         return changingActions(context, security, config -> {
             final T resource = templateResolver.apply(config)

@@ -1,12 +1,10 @@
 package com.bytex.snamp.management.http;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.management.http.model.SupervisorDataObject;
 import com.bytex.snamp.management.http.model.ScriptletDataObject;
+import com.bytex.snamp.management.http.model.SupervisorDataObject;
 
-import javax.annotation.Nonnull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -19,22 +17,26 @@ import java.util.Optional;
  * @version 2.0
  * @since 2.0
  */
-@Path("/configuration/watcher")
-public final class ResourceGroupWatcherConfigurationService extends AbstractEntityConfigurationService<SupervisorConfiguration, SupervisorDataObject> {
+@Path("/configuration/supervisor")
+public final class SupervisorConfigurationService extends AbstractEntityConfigurationService<SupervisorConfiguration, SupervisorDataObject> {
+    SupervisorConfigurationService() {
+        super(EntityMapResolver.SUPERVISORS);
+    }
+
     @Override
     protected SupervisorDataObject toDataTransferObject(final SupervisorConfiguration entity) {
         return new SupervisorDataObject(entity);
     }
 
     @GET
-    @Path("/{groupName}/trigger")
+    @Path("/{groupName}/healthCheck/trigger")
     @Produces(MediaType.APPLICATION_JSON)
     public ScriptletDataObject getTrigger(@PathParam("groupName") final String groupName){
         return getConfigurationByName(groupName, config -> new ScriptletDataObject(config.getHealthCheckConfig().getTrigger()));
     }
 
     @PUT
-    @Path("/{groupName}/trigger")
+    @Path("/{groupName}/healthCheck/trigger")
     @Consumes(MediaType.APPLICATION_JSON)
     public void setTrigger(@PathParam("groupName") final String groupName,
                            final ScriptletDataObject trigger,
@@ -42,7 +44,7 @@ public final class ResourceGroupWatcherConfigurationService extends AbstractEnti
         setConfigurationByName(groupName, config -> trigger.exportTo(config.getHealthCheckConfig().getTrigger()), context);
     }
 
-    @Path("/{groupName}/attributeChecker/{attributeName}")
+    @Path("/{groupName}/healthCheck/attributeChecker/{attributeName}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ScriptletDataObject getAttributeChecker(@PathParam("groupName") final String groupName, @PathParam("attributeName") final String attributeName){
@@ -54,7 +56,7 @@ public final class ResourceGroupWatcherConfigurationService extends AbstractEnti
             throw new WebApplicationException(Response.Status.NOT_FOUND);
     }
 
-    @Path("/{groupName}/attributeChecker/{attributeName}")
+    @Path("/{groupName}/healthCheck/attributeChecker/{attributeName}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void setAttributeChecker(@PathParam("groupName") final String groupName,
@@ -62,11 +64,5 @@ public final class ResourceGroupWatcherConfigurationService extends AbstractEnti
                                     final ScriptletDataObject checker,
                                     @Context final SecurityContext context){
         setConfigurationByName(groupName, config -> checker.exportTo(config.getHealthCheckConfig().getAttributeCheckers().getOrAdd(attributeName)), context);
-    }
-
-    @Nonnull
-    @Override
-    public EntityMap<? extends SupervisorConfiguration> apply(@Nonnull final AgentConfiguration owner) {
-        return null;
     }
 }

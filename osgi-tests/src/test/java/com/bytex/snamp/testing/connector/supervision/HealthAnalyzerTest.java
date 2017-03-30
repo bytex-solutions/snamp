@@ -103,7 +103,7 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
     }
 
     @Override
-    protected void fillWatchers(final EntityMap<? extends SupervisorConfiguration> watchers) {
+    protected void fillSupervisors(final EntityMap<? extends SupervisorConfiguration> watchers) {
         final String groovyTrigger;
         try {
             groovyTrigger = IOUtils.toString(getClass().getResourceAsStream("GroovyTrigger.groovy"));

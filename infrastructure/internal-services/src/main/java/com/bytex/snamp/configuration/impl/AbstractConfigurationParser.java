@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Dictionary;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.bytex.snamp.MapUtils.getValue;
@@ -25,11 +26,17 @@ import static com.google.common.collect.Iterators.forEnumeration;
  * @version 2.0
  * @since 2.0
  */
-abstract class AbstractConfigurationParser<E extends SerializableEntityConfiguration> implements Constants, SerializableEntityMapResolver<SerializableAgentConfiguration, E> {
+abstract class AbstractConfigurationParser<E extends SerializableEntityConfiguration> implements Constants {
     static final ImmutableSet<String> IGNORED_PROPERTIES = ImmutableSet.of(SERVICE_PID,
             OBJECTCLASS,
             ConfigurationAdmin.SERVICE_FACTORYPID,
             ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+
+    private final SerializableEntityMapResolver<SerializableAgentConfiguration, E> entityMapResolver;
+
+    AbstractConfigurationParser(final SerializableEntityMapResolver<SerializableAgentConfiguration, E> resolver){
+        entityMapResolver = Objects.requireNonNull(resolver);
+    }
 
     abstract void removeAll(final ConfigurationAdmin admin) throws IOException;
 
@@ -42,7 +49,7 @@ abstract class AbstractConfigurationParser<E extends SerializableEntityConfigura
     abstract void saveChanges(final SerializableEntityMap<? extends E> source, final ConfigurationAdmin dest) throws IOException;
 
     final void saveChanges(final SerializableAgentConfiguration source, final ConfigurationAdmin dest) throws IOException {
-        saveChanges(apply(source), dest);
+        saveChanges(entityMapResolver.apply(source), dest);
     }
 
     abstract Map<String, E> parse(final Dictionary<String, ?> config) throws IOException;

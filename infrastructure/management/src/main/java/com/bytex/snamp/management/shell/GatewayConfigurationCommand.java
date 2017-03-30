@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 
 /**
@@ -10,6 +10,6 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
  */
 abstract class GatewayConfigurationCommand extends ConfigurationCommand<GatewayConfiguration> {
     GatewayConfigurationCommand() {
-        super(AgentConfiguration::getGateways);
+        super(EntityMapResolver.GATEWAYS);
     }
 }

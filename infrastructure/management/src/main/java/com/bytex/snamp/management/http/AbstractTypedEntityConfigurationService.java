@@ -1,5 +1,7 @@
 package com.bytex.snamp.management.http;
 
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.TypedEntityConfiguration;
 import com.bytex.snamp.management.http.model.AbstractTypedDataObject;
 
@@ -15,6 +17,10 @@ import javax.ws.rs.core.SecurityContext;
  * @since 2.0
  */
 public abstract class AbstractTypedEntityConfigurationService<E extends TypedEntityConfiguration, DTO extends AbstractTypedDataObject<E>> extends AbstractEntityConfigurationService<E, DTO> {
+    AbstractTypedEntityConfigurationService(final EntityMapResolver<AgentConfiguration, E> resolver) {
+        super(resolver);
+    }
+
     /**
      * Change gateway type response.
      *

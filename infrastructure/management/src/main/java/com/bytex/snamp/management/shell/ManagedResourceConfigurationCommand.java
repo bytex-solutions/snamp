@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 /**
@@ -10,6 +10,6 @@ import com.bytex.snamp.configuration.ManagedResourceConfiguration;
  */
 abstract class ManagedResourceConfigurationCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     ManagedResourceConfigurationCommand() {
-        super(AgentConfiguration::getResources);
+        super(EntityMapResolver.RESOURCES);
     }
 }

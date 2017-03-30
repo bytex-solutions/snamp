@@ -57,7 +57,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         groups.modifiedEntries((groupName, groupConfig) -> {
             resources.values().stream()
                     .filter(resource -> resource.getGroupName().equals(groupName))
-                    .forEach(groupConfig::merge);
+                    .forEach(groupConfig::fillResourceConfig);
             return true;
         });
     }

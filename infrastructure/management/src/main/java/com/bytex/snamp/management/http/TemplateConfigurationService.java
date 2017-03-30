@@ -1,9 +1,6 @@
 package com.bytex.snamp.management.http;
 
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.EntityMapResolver;
-import com.bytex.snamp.configuration.FeatureConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceTemplate;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.management.http.model.*;
 
 import javax.ws.rs.*;
@@ -24,13 +21,17 @@ import java.util.Map;
  */
 public abstract class TemplateConfigurationService<E extends ManagedResourceTemplate, DTO extends TemplateDataObject<E>> extends AbstractTypedEntityConfigurationService<E, DTO> {
 
+    TemplateConfigurationService(final EntityMapResolver<AgentConfiguration, E> resolver) {
+        super(resolver);
+    }
+
     private <F extends FeatureConfiguration> Response setFeature(final String holderName,
                                                                  final String featureName,
                                                                  final EntityMapResolver<ManagedResourceTemplate, F> featureMapResolver,
                                                                  final AbstractFeatureDataObject<F> dto,
                                                                  final SecurityContext security) {
         return changingActions(getBundleContext(), security, config -> {
-            final ManagedResourceTemplate resource = apply(config).get(holderName);
+            final ManagedResourceTemplate resource = entityMapResolver.apply(config).get(holderName);
             if (resource != null) {
                 dto.exportTo(featureMapResolver.apply(resource).getOrAdd(featureName));
                 return true;
@@ -44,7 +45,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
                                                                   final Map<String, ? extends AbstractFeatureDataObject<F>> dto,
                                                                   final SecurityContext security){
         return changingActions(getBundleContext(), security, currentConfig -> {
-            final ManagedResourceTemplate mrc = apply(currentConfig).get(holderName);
+            final ManagedResourceTemplate mrc = entityMapResolver.apply(currentConfig).get(holderName);
             if (mrc != null) {
                 final EntityMap<? extends F> em = featureMapResolver.apply(mrc);
                 em.clear();
@@ -68,7 +69,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     public final Response deleteAttribute(@PathParam("name") final String name,
                                           @PathParam("featureName") final String featureName,
                                           @Context final SecurityContext security){
-        return FeatureType.ATTRIBUTES.removeFeature(getBundleContext(), security, name, this, featureName);
+        return FeatureType.ATTRIBUTES.removeFeature(getBundleContext(), security, name, entityMapResolver, featureName);
     }
 
     /**
@@ -83,7 +84,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     public final Response deleteEvent(@PathParam("name") final String name,
                                         @PathParam("featureName") final String featureName,
                                       @Context final SecurityContext security){
-        return FeatureType.EVENTS.removeFeature(getBundleContext(), security, name, this, featureName);
+        return FeatureType.EVENTS.removeFeature(getBundleContext(), security, name, entityMapResolver, featureName);
     }
 
     /**
@@ -98,7 +99,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     public final Response deleteOperation(@PathParam("name") final String name,
                                         @PathParam("featureName") final String featureName,
                                           @Context final SecurityContext security){
-        return FeatureType.OPERATIONS.removeFeature(getBundleContext(), security, name, this, featureName);
+        return FeatureType.OPERATIONS.removeFeature(getBundleContext(), security, name, entityMapResolver, featureName);
     }
 
 
@@ -114,7 +115,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Map<String, AttributeDataObject> getAttributes(@PathParam("name") final String name) {
-        return (Map<String, AttributeDataObject>) FeatureType.ATTRIBUTES.getFeatures(getBundleContext(), name, this);
+        return (Map<String, AttributeDataObject>) FeatureType.ATTRIBUTES.getFeatures(getBundleContext(), name, entityMapResolver);
     }
 
     /**
@@ -129,7 +130,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Map<String, EventDataObject> getEvents(@PathParam("name") final String name) {
-        return (Map<String, EventDataObject>) FeatureType.EVENTS.getFeatures(getBundleContext(), name, this);
+        return (Map<String, EventDataObject>) FeatureType.EVENTS.getFeatures(getBundleContext(), name, entityMapResolver);
     }
 
     /**
@@ -144,7 +145,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Map<String, OperationDataObject> getOperations(@PathParam("name") final String name) {
-        return (Map<String, OperationDataObject>) FeatureType.OPERATIONS.getFeatures(getBundleContext(), name, this);
+        return (Map<String, OperationDataObject>) FeatureType.OPERATIONS.getFeatures(getBundleContext(), name, entityMapResolver);
     }
 
 
@@ -161,7 +162,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Consumes(MediaType.APPLICATION_JSON)
     public final AttributeDataObject getAttribute(@PathParam("name") final String name,
                                                         @PathParam("featureName") final String featureName) {
-        return (AttributeDataObject) FeatureType.ATTRIBUTES.getFeature(getBundleContext(), name, this, featureName)
+        return (AttributeDataObject) FeatureType.ATTRIBUTES.getFeature(getBundleContext(), name, entityMapResolver, featureName)
                 .orElseThrow(ResourceConfigurationService::notFound);
     }
 
@@ -178,7 +179,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Consumes(MediaType.APPLICATION_JSON)
     public final EventDataObject geEvent(@PathParam("name") final String name,
                                                          @PathParam("featureName") final String featureName) {
-        return (EventDataObject) FeatureType.EVENTS.getFeature(getBundleContext(), name, this, featureName)
+        return (EventDataObject) FeatureType.EVENTS.getFeature(getBundleContext(), name, entityMapResolver, featureName)
                 .orElseThrow(ResourceConfigurationService::notFound);
     }
 
@@ -196,7 +197,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Consumes(MediaType.APPLICATION_JSON)
     public final OperationDataObject getOperation(@PathParam("name") final String name,
                                                          @PathParam("featureName") final String featureName) {
-        return (OperationDataObject) FeatureType.OPERATIONS.getFeature(getBundleContext(), name, this, featureName)
+        return (OperationDataObject) FeatureType.OPERATIONS.getFeature(getBundleContext(), name, entityMapResolver, featureName)
                 .orElseThrow(ResourceConfigurationService::notFound);
     }
 
