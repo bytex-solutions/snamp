@@ -2,7 +2,7 @@ package com.bytex.snamp.configuration;
 
 import java.time.Duration;
 
-import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
+import static com.bytex.snamp.internal.Utils.staticInit;
 
 /**
  * Represents configuration of thread pool.
@@ -13,7 +13,7 @@ public interface ThreadPoolConfiguration extends EntityConfiguration {
     /**
      * Default maximum number of threads to allow in the pool
      */
-    int DEFAULT_MAX_POOL_SIZE = interfaceStaticInitialize(() -> {
+    int DEFAULT_MAX_POOL_SIZE = staticInit(() -> {
         final int availableProcessors = Runtime.getRuntime().availableProcessors();
         return availableProcessors + availableProcessors / 2;
     });

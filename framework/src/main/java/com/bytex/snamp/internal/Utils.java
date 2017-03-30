@@ -156,7 +156,7 @@ public final class Utils {
      * @return The value returned from initializer.
      * @throws ExceptionInInitializerError the exception in initializer error
      */
-    public static <T> T interfaceStaticInitialize(final Callable<T> initializer){
+    public static <T> T staticInit(final Callable<T> initializer){
         return callAndWrapException(initializer, ExceptionInInitializerError::new);
     }
 

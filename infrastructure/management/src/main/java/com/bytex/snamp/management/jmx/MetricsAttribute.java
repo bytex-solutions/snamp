@@ -24,7 +24,7 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
     private static final String RESOURCE_NAME_CELL = "resourceName";
     private static final String METRICS_CELL = "metrics";
 
-    private static final TabularType TYPE = Utils.interfaceStaticInitialize(() -> new TabularTypeBuilder("MetricsTable", "A table of metrics mapped to the resource names")
+    private static final TabularType TYPE = Utils.staticInit(() -> new TabularTypeBuilder("MetricsTable", "A table of metrics mapped to the resource names")
             .addColumn(RESOURCE_NAME_CELL, "Name of the source of metrics", SimpleType.STRING, true)
             .addColumn(METRICS_CELL, "Set of metrics provided by resource", SummaryMetricsAttribute.TYPE, false)
             .build());

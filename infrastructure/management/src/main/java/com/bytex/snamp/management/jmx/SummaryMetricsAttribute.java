@@ -26,7 +26,7 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
     private static final String INVOCATIONS_FIELD = "invocations";
 
 
-    static final CompositeType TYPE = Utils.interfaceStaticInitialize(() -> new CompositeTypeBuilder("Metrics", "Consolidated set of metrics")
+    static final CompositeType TYPE = Utils.staticInit(() -> new CompositeTypeBuilder("Metrics", "Consolidated set of metrics")
             .addItem(ATTRIBUTE_READS_FIELD, "Rate of attribute reads", RATE_TYPE)
             .addItem(ATTRIBUTES_WRITES_FIELD, "Rate of attribute writes", RATE_TYPE)
             .addItem(NOTIFICATIONS_FIELD, "Rate of received notifications", RATE_TYPE)
