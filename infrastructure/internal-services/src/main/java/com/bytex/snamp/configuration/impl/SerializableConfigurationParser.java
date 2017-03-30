@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
@@ -10,7 +9,6 @@ import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.*;
 import java.util.function.BiConsumer;
 
@@ -90,7 +88,7 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
                 .forEach(dest::remove);
         //save modified items
         list.modifiedEntries((itemName, itemConfig) -> {
-            dest.put(itemName, serialize(itemConfig));
+            dest.put(itemName, IOUtils.serialize(itemConfig));
             return true;
         });
     }
@@ -111,9 +109,5 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
                                                                      final ClassLoader caller) throws IOException {
         final byte[] serializedConfig = getValue(properties, itemName, byte[].class).orElseGet(ArrayUtils::emptyByteArray);
         return IOUtils.deserialize(serializedConfig, entityType, caller);
-    }
-
-    private static <E extends EntityConfiguration & Serializable> byte[] serialize(final E input) throws IOException {
-        return IOUtils.serialize(input);
     }
 }
