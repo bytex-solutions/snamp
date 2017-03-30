@@ -6,8 +6,8 @@ import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.TypedEntityConfiguration;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableSet;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -142,12 +142,7 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
     private static <E extends Exception> void forEachConfiguration(final ConfigurationAdmin admin,
                                                                    final String filter,
                                                                    final Acceptor<Configuration, E> reader) throws E, IOException {
-        final Configuration[] configs;
-        try {
-            configs = admin.listConfigurations(filter);
-        } catch (final InvalidSyntaxException e) {
-            throw new IOException(e);
-        }
+        final Configuration[] configs = Utils.callAndWrapException(() -> admin.listConfigurations(filter), IOException::new);
         if (configs != null)
             for (final Configuration config : configs)
                 reader.accept(config);
