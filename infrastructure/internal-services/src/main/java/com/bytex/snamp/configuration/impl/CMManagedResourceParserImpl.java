@@ -1,11 +1,9 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.BooleanBox;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.FeatureConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.io.SerializableMap;
@@ -31,7 +29,7 @@ import static com.bytex.snamp.connector.ManagedResourceConnector.CAPABILITY_NAME
  * @version 1.0
  * @since 1.0
  */
-final class CMManagedResourceParserImpl extends AbstractConfigurationParser<SerializableManagedResourceConfiguration> implements CMManagedResourceParser {
+final class CMManagedResourceParserImpl extends AbstractTypedConfigurationParser<SerializableManagedResourceConfiguration> implements CMManagedResourceParser {
     private static final TypeToken<SerializableMap<String, SerializableAttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableAttributeConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, SerializableEventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableEventConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, SerializableOperationConfiguration>> OPS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableOperationConfiguration>>() {};
@@ -46,16 +44,8 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
 
     private static final String ALL_CONNECTORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(CONNECTOR_PID_TEMPLATE, "*"));
 
-    private static final class ManagedResourceConfigurationException extends PersistentConfigurationException{
-        private static final long serialVersionUID = -8618780912903622327L;
-
-        private ManagedResourceConfigurationException(final String pid, final Throwable e) {
-            super(pid, SerializableManagedResourceConfiguration.class, e);
-        }
-    }
-
     CMManagedResourceParserImpl() {
-        super(SerializableAgentConfiguration::getResources);
+        super(RESOURCE_NAME_PROPERTY, SerializableAgentConfiguration::getResources);
     }
 
     /**
@@ -68,13 +58,9 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         return String.format(CONNECTOR_PID_TEMPLATE, connectorType);
     }
 
-    /**
-     * Returns managed resource name by its persistent identifier.
-     * @param factoryPID Managed resource persistent identifier.
-     * @return The name of the managed resource.
-     */
-    private static String getConnectorType(final String factoryPID){
-        return CONNECTOR_PID_REPLACEMENT.matcher(factoryPID).replaceFirst("");
+    @Override
+    String getType(final Configuration config) {
+        return CONNECTOR_PID_REPLACEMENT.matcher(config.getFactoryPid()).replaceFirst("");
     }
 
     private String getConnectionString(final Dictionary<String, ?> resourceConfig) {
@@ -83,7 +69,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
 
     @Override
     public String getResourceName(final Dictionary<String, ?> resourceConfig) {
-        return getValue(resourceConfig, RESOURCE_NAME_PROPERTY, Objects::toString).orElse("");
+        return getIdentityName(resourceConfig);
     }
 
     private <F extends FeatureConfiguration> Map<String, F> getFeatures(final Dictionary<String, ?> resourceConfig,
@@ -112,22 +98,10 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         removeAll(admin, ALL_CONNECTORS_QUERY);
     }
 
-    private void fill(final Configuration config, final Map<String, SerializableManagedResourceConfiguration> output) throws IOException {
-        final SingletonMap<String, SerializableManagedResourceConfiguration> resource;
-        final Dictionary<String, ?> properties = config.getProperties();
-        if (properties == null)
-            return;
-        else
-            resource = parse(properties);
-        resource.getValue().setType(getConnectorType(config.getFactoryPid()));
-        resource.getValue().reset();
-        output.putAll(resource);
-    }
-
     @Override
-    void fill(final ConfigurationAdmin admin,
-                                      final Map<String, SerializableManagedResourceConfiguration> output) throws IOException {
-        forEachConfiguration(admin, ALL_CONNECTORS_QUERY, config -> fill(config, output));
+    void populateRepository(final ConfigurationAdmin admin,
+                            final EntityMap<SerializableManagedResourceConfiguration> output) throws IOException {
+        populateRepository(admin, ALL_CONNECTORS_QUERY, output);
     }
 
     @Override
@@ -141,20 +115,11 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         //deserialize operations
         result.setOperations(getOperations(configuration));
         //deserialize parameters
-        fillProperties(configuration, result, CONNECTION_STRING_PROPERTY, ATTRIBUTES_PROPERTY, EVENTS_PROPERTY, OPERATIONS_PROPERTY, RESOURCE_NAME_PROPERTY);
-        result.reset();
-        return new SingletonMap<>(getResourceName(configuration), result);
+        return createParserResult(configuration, result, CONNECTION_STRING_PROPERTY, ATTRIBUTES_PROPERTY, EVENTS_PROPERTY, OPERATIONS_PROPERTY);
     }
 
-    private static void serialize(final String resourceName,
-                   final SerializableManagedResourceConfiguration resource,
-                   final Configuration output) throws IOException {
-        final Dictionary<String, Object> configuration = serialize(resource);
-        configuration.put(RESOURCE_NAME_PROPERTY, resourceName);
-        output.update(configuration);
-    }
-
-    private static Dictionary<String, Object> serialize(final SerializableManagedResourceConfiguration resource) throws IOException {
+    @Override
+    Dictionary<String, Object> serialize(final SerializableManagedResourceConfiguration resource) throws IOException {
         final Dictionary<String, Object> result = new Hashtable<>(4);
         putValue(result, CONNECTION_STRING_PROPERTY, resource, SerializableManagedResourceConfiguration::getConnectionString);
         result.put(ATTRIBUTES_PROPERTY, IOUtils.serialize(resource.getAttributes()));
@@ -168,39 +133,9 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         return result;
     }
 
-    private void serialize(final String resourceName,
-                             final SerializableManagedResourceConfiguration resource,
-                             final ConfigurationAdmin admin) throws ManagedResourceConfigurationException {
-        try {
-            final BooleanBox updated = BoxFactory.createForBoolean(false);
-            //find existing configuration of resources
-            forEachConfiguration(admin, String.format("(%s=%s)", RESOURCE_NAME_PROPERTY, resourceName), config -> {
-                serialize(resourceName, resource, config);
-                updated.set(true);
-            });
-            //no existing configuration, creates a new configuration
-            if (!updated.get())
-                serialize(resourceName, resource, admin.createFactoryConfiguration(getFactoryPersistentID(resource.getType()), null));
-        } catch (final IOException e) {
-            throw new ManagedResourceConfigurationException(resourceName, e);
-        }
-    }
-
     @Override
-    void saveChanges(final SerializableEntityMap<? extends SerializableManagedResourceConfiguration> resources,
+    void saveChanges(final SerializableEntityMap<SerializableManagedResourceConfiguration> resources,
                      final ConfigurationAdmin admin) throws IOException {
-        //remove all unnecessary resources
-        forEachConfiguration(admin, ALL_CONNECTORS_QUERY, output -> {
-            final String connectorType = getConnectorType(output.getFactoryPid());
-            final ManagedResourceConfiguration resourceConfig = resources.get(getResourceName(output.getProperties()));
-            //delete resource if its type was changed
-            if (resourceConfig == null || !Objects.equals(resourceConfig.getType(), connectorType))
-                output.delete();
-        });
-        //save each modified resource
-        resources.modifiedEntries((resourceName, resource) -> {
-            serialize(resourceName, resource, admin);
-            return true;
-        });
+        saveChanges(resources, ALL_CONNECTORS_QUERY, admin);
     }
 }

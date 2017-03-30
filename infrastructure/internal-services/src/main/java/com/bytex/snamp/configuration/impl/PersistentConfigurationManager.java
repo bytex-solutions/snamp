@@ -90,10 +90,10 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         //Process configuration protected by lock.
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
-            gatewayInstanceParser.fill(admin, config.getGateways());
-            resourceParser.fill(admin, config.getResources());
-            threadPoolParser.fill(admin, config.getThreadPools());
-            groupParser.fill(admin, config.getResourceGroups());
+            gatewayInstanceParser.populateRepository(admin, config);
+            resourceParser.populateRepository(admin, config);
+            threadPoolParser.populateRepository(admin, config);
+            groupParser.populateRepository(admin, config);
             CMAgentParserImpl.loadParameters(admin, config);
             if (handler.process(config))
                 save(config);

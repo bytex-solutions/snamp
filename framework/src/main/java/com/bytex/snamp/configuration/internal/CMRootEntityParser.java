@@ -14,7 +14,7 @@ import java.util.Dictionary;
  */
 @Internal
 interface CMRootEntityParser<E extends EntityConfiguration> extends CMConfigurationParser<E> {
-    String getFactoryPersistentID(final String gatewayType);
+    String getFactoryPersistentID(final String entityType);
 
     @Override
     SingletonMap<String, ? extends E> parse(final Dictionary<String, ?> configuration) throws IOException;

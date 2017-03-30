@@ -14,5 +14,4 @@ import java.util.Dictionary;
 @Internal
 public interface CMSupervisorParser extends CMRootEntityParser<SupervisorConfiguration> {
     String getGroupName(final Dictionary<String, ?> configuration);
-    String getPersistentID();
 }

@@ -1,13 +1,20 @@
 package com.bytex.snamp.configuration.impl;
 
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.BiConsumer;
+
+import static com.bytex.snamp.MapUtils.getValue;
 
 /**
  * @author Roman Sakno
@@ -69,7 +76,7 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
     }
 
     @Override
-    final void fill(final ConfigurationAdmin source, final Map<String, E> dest) throws IOException {
+    final void populateRepository(final ConfigurationAdmin source, final EntityMap<E> dest) throws IOException {
         final Dictionary<String, ?> config = getConfig(source).getProperties();
         if (config != null)
             dest.putAll(parse(config));
@@ -89,12 +96,24 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
     }
 
     @Override
-    final void saveChanges(final SerializableEntityMap<? extends E> source, final ConfigurationAdmin dest) throws IOException {
+    final void saveChanges(final SerializableEntityMap<E> source, final ConfigurationAdmin dest) throws IOException {
         final Configuration config = getConfig(dest);
         Dictionary<String, Object> props = config.getProperties();
         if(props == null)
             props = new Hashtable<>();
         saveChanges(source, props);
         config.update(props);
+    }
+
+    static <E extends SerializableEntityConfiguration> E deserialize(final String itemName,
+                                                                     final Class<E> entityType,
+                                                                     final Dictionary<String, ?> properties,
+                                                                     final ClassLoader caller) throws IOException {
+        final byte[] serializedConfig = getValue(properties, itemName, byte[].class).orElseGet(ArrayUtils::emptyByteArray);
+        return IOUtils.deserialize(serializedConfig, entityType, caller);
+    }
+
+    private static <E extends EntityConfiguration & Serializable> byte[] serialize(final E input) throws IOException {
+        return IOUtils.serialize(input);
     }
 }

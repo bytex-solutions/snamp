@@ -106,7 +106,7 @@ final class HealthAnalyzerImpl extends ModelOfAttributes<AttributeWatcher> imple
 
     @Override
     public String getPersistentID(){
-        return watcherParser.getPersistentID();
+        return "";
     }
 
     private void updateWatcher(final String groupName, final UpdatableGroupWatcher watcher) throws TimeoutException, InterruptedException {
