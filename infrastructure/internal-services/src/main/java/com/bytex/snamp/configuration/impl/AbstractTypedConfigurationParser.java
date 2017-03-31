@@ -50,9 +50,13 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
 
     private void serialize(final String identityName,
                                   final E entity,
-                                  final Configuration output) throws IOException{
+                                  final Configuration output) throws IOException {
         final Dictionary<String, Object> configuration = serialize(entity);
         configuration.put(identityHolderName, identityName);
+        entity.forEach((name, value) -> {
+            if (!IGNORED_PROPERTIES.contains(name))
+                configuration.put(name, value);
+        });
         output.update(configuration);
     }
 

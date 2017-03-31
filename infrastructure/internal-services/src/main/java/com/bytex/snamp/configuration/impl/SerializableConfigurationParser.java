@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.reflect.TypeToken;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -56,7 +57,7 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
     }
 
     private E deserialize(final String itemName, final Dictionary<String, ?> properties) throws IOException {
-        return deserialize(itemName, entityType, properties, getClass().getClassLoader());
+        return deserialize(itemName, entityType, properties);
     }
 
     @Override
@@ -101,13 +102,5 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
             props = new Hashtable<>();
         saveChanges(source, props);
         config.update(props);
-    }
-
-    static <E extends SerializableEntityConfiguration> E deserialize(final String itemName,
-                                                                     final Class<E> entityType,
-                                                                     final Dictionary<String, ?> properties,
-                                                                     final ClassLoader caller) throws IOException {
-        final byte[] serializedConfig = getValue(properties, itemName, byte[].class).orElseGet(ArrayUtils::emptyByteArray);
-        return IOUtils.deserialize(serializedConfig, entityType, caller);
     }
 }

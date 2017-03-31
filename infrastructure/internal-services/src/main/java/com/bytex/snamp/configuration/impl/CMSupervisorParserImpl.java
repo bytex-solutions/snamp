@@ -3,12 +3,15 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.internal.CMSupervisorParser;
+import com.bytex.snamp.io.IOUtils;
+import com.google.common.reflect.TypeToken;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.regex.Pattern;
 
 import static com.bytex.snamp.connector.supervision.ManagedResourceGroupSupervisor.CAPABILITY_NAMESPACE;
@@ -21,6 +24,7 @@ import static com.bytex.snamp.connector.supervision.ManagedResourceGroupSupervis
 final class CMSupervisorParserImpl extends AbstractTypedConfigurationParser<SerializableSupervisorConfiguration> implements CMSupervisorParser {
     private static final String SUPERVISOR_PID_TEMPLATE = CAPABILITY_NAMESPACE + ".%s";
     private static final String GROUP_NAME_PROPERTY = "$groupName$";
+    private static final String HEALTH_CHECK_PROPERTY = "$healthCheck$";
     private static final String ALL_SUPERVISORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(SUPERVISOR_PID_TEMPLATE, "*"));
     private static final Pattern SUPERVISOR_PID_REPLACEMENT = Pattern.compile(String.format(SUPERVISOR_PID_TEMPLATE, ""), Pattern.LITERAL);
 
@@ -41,7 +45,9 @@ final class CMSupervisorParserImpl extends AbstractTypedConfigurationParser<Seri
     @Override
     @Nonnull
     Dictionary<String, Object> serialize(final SerializableSupervisorConfiguration entity) throws IOException {
-        return null;
+        final Dictionary<String, Object> result = new Hashtable<>(4);
+        result.put(HEALTH_CHECK_PROPERTY, IOUtils.serialize(entity.getHealthCheckConfig()));
+        return result;
     }
 
     @Override
@@ -67,6 +73,8 @@ final class CMSupervisorParserImpl extends AbstractTypedConfigurationParser<Seri
     @Override
     @Nonnull
     public SingletonMap<String, SerializableSupervisorConfiguration> parse(final Dictionary<String, ?> configuration) throws IOException {
-        return null;
+        final SerializableSupervisorConfiguration supervisor = new SerializableSupervisorConfiguration();
+        supervisor.setHealthCheckConfig(deserialize(HEALTH_CHECK_PROPERTY, SerializableSupervisorConfiguration.SerializableHealthCheckConfiguration.class, configuration));
+        return createParserResult(configuration, supervisor, HEALTH_CHECK_PROPERTY);
     }
 }

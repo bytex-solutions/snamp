@@ -64,12 +64,7 @@ final class CMGatewayParserImpl extends AbstractTypedConfigurationParser<Seriali
     @Override
     @Nonnull
     Dictionary<String, Object> serialize(final SerializableGatewayConfiguration gatewayInstance) {
-        final Dictionary<String, Object> result = new Hashtable<>(4);
-        gatewayInstance.forEach((name, value) -> {
-            if (!IGNORED_PROPERTIES.contains(name))
-                result.put(name, value);
-        });
-        return result;
+        return new Hashtable<>(4);
     }
 
     @Override

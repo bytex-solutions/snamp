@@ -5,6 +5,7 @@ import com.bytex.snamp.Stateful;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 
+import javax.annotation.Nonnull;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -70,6 +71,11 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
         public SerializableHealthCheckConfiguration(){
             checkers = new SerializableAttributeCheckers();
             trigger = new SerializableScriptletConfiguration();
+        }
+
+        private SerializableHealthCheckConfiguration(final ObjectInput input) throws IOException, ClassNotFoundException {
+            this();
+            readExternal(input);
         }
 
         @Override
@@ -139,7 +145,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
         }
     }
 
-    private final SerializableHealthCheckConfiguration healthCheckConfig;
+    private SerializableHealthCheckConfiguration healthCheckConfig;
     private String supervisorType;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
@@ -178,7 +184,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         supervisorType = in.readUTF();
-        healthCheckConfig.readExternal(in);
+        healthCheckConfig = new SerializableHealthCheckConfiguration(in);
         super.readExternal(in);
     }
 
@@ -190,6 +196,10 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
     @Override
     public SerializableHealthCheckConfiguration getHealthCheckConfig() {
         return healthCheckConfig;
+    }
+
+    void setHealthCheckConfig(@Nonnull final SerializableHealthCheckConfiguration value){
+        healthCheckConfig = value;
     }
 
     @Override

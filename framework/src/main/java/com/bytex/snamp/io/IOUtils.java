@@ -87,11 +87,11 @@ public final class IOUtils {
     public static <T extends Serializable> T deserialize(final InputStream serializedForm,
                                                          final TypeToken<T> expectedType,
                                                          final ClassResolver resolver) throws IOException {
-        return callAndWrapException(() -> {
-                try (final ObjectInputStream deserializer = new CustomObjectInputStream(serializedForm, resolver)) {
-                    return Convert.toTypeToken(deserializer.readObject(), expectedType);
-                }
-            }, IOException::new);
+        try (final ObjectInputStream deserializer = new CustomObjectInputStream(serializedForm, resolver)) {
+            return Convert.toTypeToken(deserializer.readObject(), expectedType);
+        } catch (final ClassNotFoundException e) {
+            throw new IOException(e);
+        }
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,

@@ -82,10 +82,6 @@ public final class MapUtils {
         return putValue(map::put, key, value, transform);
     }
 
-    public static <K, I, V> V putValue(final Dictionary<K, V> map, final K key, final I value, final Function<? super I, ? extends V> transform){
-        return putValue(map::put, key, value, transform);
-    }
-
     public static <K, V> V putIntValue(final Map<K, V> map, final K key, final int value, final IntFunction<? extends V> transform){
         return map.put(key, transform.apply(value));
     }

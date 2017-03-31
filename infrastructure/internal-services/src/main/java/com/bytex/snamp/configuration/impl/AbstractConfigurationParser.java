@@ -1,14 +1,20 @@
 package com.bytex.snamp.configuration.impl;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.bytex.snamp.MapUtils.getValue;
 
 /**
  * Abstract configuration parser.
@@ -43,4 +49,17 @@ abstract class AbstractConfigurationParser<E extends SerializableEntityConfigura
     }
 
     abstract Map<String, E> parse(final Dictionary<String, ?> config) throws IOException;
+
+    final <R extends Serializable> R deserialize(final String itemName,
+                                                 final TypeToken<R> entityType,
+                                                 final Dictionary<String, ?> properties) throws IOException {
+        final byte[] serializedConfig = getValue(properties, itemName, byte[].class).orElseGet(ArrayUtils::emptyByteArray);
+        return IOUtils.deserialize(serializedConfig, entityType, getClass().getClassLoader());
+    }
+
+    final <R extends Serializable> R deserialize(final String itemName,
+                                                 final Class<R> entityType,
+                                                 final Dictionary<String, ?> properties) throws IOException {
+        return deserialize(itemName, TypeToken.of(entityType), properties);
+    }
 }

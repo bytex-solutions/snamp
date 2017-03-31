@@ -21,7 +21,6 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static com.bytex.snamp.MapUtils.getValue;
-import static com.bytex.snamp.MapUtils.putValue;
 import static com.bytex.snamp.configuration.impl.SerializableManagedResourceConfiguration.*;
 import static com.bytex.snamp.connector.ManagedResourceConnector.CAPABILITY_NAMESPACE;
 
@@ -73,25 +72,16 @@ final class CMManagedResourceParserImpl extends AbstractTypedConfigurationParser
         return getIdentityName(resourceConfig);
     }
 
-    private <F extends FeatureConfiguration> Map<String, F> getFeatures(final Dictionary<String, ?> resourceConfig,
-                                                                        final String featureHolder,
-                                                                        final TypeToken<SerializableMap<String, F>> featureType) throws IOException {
-        final byte[] serializedForm = getValue(resourceConfig, featureHolder, byte[].class).orElseGet(ArrayUtils::emptyByteArray);
-        return ArrayUtils.isNullOrEmpty(serializedForm) ?
-                ImmutableMap.of() :
-                IOUtils.deserialize(serializedForm, featureType, getClass().getClassLoader());
-    }
-
     private Map<String, SerializableAttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException {
-        return getFeatures(resourceConfig, ATTRIBUTES_PROPERTY, ATTRS_MAP_TYPE);
+        return deserialize(ATTRIBUTES_PROPERTY, ATTRS_MAP_TYPE, resourceConfig);
     }
 
     private Map<String, SerializableOperationConfiguration> getOperations(final Dictionary<String, ?> resourceConfig) throws IOException {
-        return getFeatures(resourceConfig, OPERATIONS_PROPERTY, OPS_MAP_TYPE);
+        return deserialize(OPERATIONS_PROPERTY, OPS_MAP_TYPE, resourceConfig);
     }
 
     private Map<String, SerializableEventConfiguration> getEvents(final Dictionary<String, ?> resourceConfig) throws IOException {
-        return getFeatures(resourceConfig, EVENTS_PROPERTY, EVENTS_MAP_TYPE);
+        return deserialize(EVENTS_PROPERTY, EVENTS_MAP_TYPE, resourceConfig);
     }
 
     @Override
@@ -124,15 +114,10 @@ final class CMManagedResourceParserImpl extends AbstractTypedConfigurationParser
     @Nonnull
     Dictionary<String, Object> serialize(final SerializableManagedResourceConfiguration resource) throws IOException {
         final Dictionary<String, Object> result = new Hashtable<>(4);
-        putValue(result, CONNECTION_STRING_PROPERTY, resource, SerializableManagedResourceConfiguration::getConnectionString);
+        result.put(CONNECTION_STRING_PROPERTY, resource.getConnectionString());
         result.put(ATTRIBUTES_PROPERTY, IOUtils.serialize(resource.getAttributes()));
         result.put(EVENTS_PROPERTY, IOUtils.serialize(resource.getEvents()));
         result.put(OPERATIONS_PROPERTY, IOUtils.serialize(resource.getOperations()));
-        //serialize properties
-        resource.forEach((name, value) -> {
-            if (!IGNORED_PROPERTIES.contains(name))
-                result.put(name, value);
-        });
         return result;
     }
 
