@@ -50,11 +50,6 @@ final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<Ser
     }
 
     @Override
-    public String getGroupName(final Dictionary<String, ?> configuration) {
-        return getIdentityName(configuration);
-    }
-
-    @Override
     void removeAll(final ConfigurationAdmin admin) throws IOException {
         removeAll(admin, ALL_SUPERVISORS_QUERY);
     }

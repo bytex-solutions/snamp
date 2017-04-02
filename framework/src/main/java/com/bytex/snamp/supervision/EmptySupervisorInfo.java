@@ -12,7 +12,7 @@ import javax.annotation.Nonnull;
  * @version 2.0
  * @since 2.0
  */
-final class EmptySupervisorConfiguration extends ImmutableEmptyMap<String, String> implements SupervisorInfo {
+final class EmptySupervisorInfo extends ImmutableEmptyMap<String, String> implements SupervisorInfo {
     private static final class EmptyHealthCheckInfo implements HealthCheckInfo{
         @Nonnull
         @Override
@@ -29,7 +29,7 @@ final class EmptySupervisorConfiguration extends ImmutableEmptyMap<String, Strin
 
     private final EmptyHealthCheckInfo healthCheckConfig;
 
-    EmptySupervisorConfiguration(){
+    EmptySupervisorInfo(){
         healthCheckConfig = new EmptyHealthCheckInfo();
     }
 

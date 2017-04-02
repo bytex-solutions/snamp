@@ -1,5 +1,6 @@
 package com.bytex.snamp.gateway;
 
+import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.GatewayConfiguration;
@@ -76,40 +77,29 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
             return getParser().getFactoryPersistentID(getGatewayType());
         }
 
+        private SingletonMap<String, ? extends GatewayConfiguration> parseConfig(final Dictionary<String, ?> configuration) throws IOException{
+            final SingletonMap<String, ? extends GatewayConfiguration> newConfig = getParser().parse(configuration);
+            newConfig.getValue().setType(getGatewayType());
+            newConfig.getValue().expandParameters();
+            return newConfig;
+        }
+
         @Override
         protected G update(final G gatewayInstance,
                            final Dictionary<String, ?> configuration) throws Exception {
-            final CMGatewayParser parser = getParser();
-            final String instanceName = parser.getInstanceName(configuration);
-            final GatewayConfiguration newConfig = parser.parse(configuration).getValue();
-            if (newConfig == null)
-                throw new IllegalStateException(String.format("Gateway %s cannot be updated. Configuration not found.", instanceName));
-            newConfig.setType(getGatewayType());
-            newConfig.expandParameters();
-            gatewayInstance.update(newConfig);
-            return gatewayInstance;
-        }
-
-        private G createService(final Map<String, Object> identity,
-                                final String instanceName,
-                                final GatewayConfiguration configuration) throws Exception {
-            identity.putAll(new GatewayFilterBuilder(configuration).setInstanceName(instanceName));
-            final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, dependencies);
-            gatewayInstance.update(configuration);
+            final SingletonMap<String, ? extends GatewayConfiguration> newConfig = parseConfig(configuration);
+            gatewayInstance.update(newConfig.getValue());
             return gatewayInstance;
         }
 
         @Override
         protected G createService(final Map<String, Object> identity,
                                   final Dictionary<String, ?> configuration) throws Exception {
-            final CMGatewayParser parser = getParser();
-            final String instanceName = parser.getInstanceName(configuration);
-            final GatewayConfiguration newConfig = parser.parse(configuration).getValue();
-            if(newConfig == null)
-                throw new IllegalStateException(String.format("Gateway %s cannot be created. Configuration not found.", instanceName));
-            newConfig.setType(getGatewayType());
-            newConfig.expandParameters();
-            return createService(identity, instanceName, newConfig);
+            final SingletonMap<String, ? extends GatewayConfiguration> newConfig = parseConfig(configuration);
+            identity.putAll(new GatewayFilterBuilder(newConfig.getValue()).setInstanceName(newConfig.getKey()));
+            final G gatewayInstance = gatewayInstanceFactory.createInstance(newConfig.getKey(), dependencies);
+            gatewayInstance.update(newConfig.getValue());
+            return gatewayInstance;
         }
 
         @Override

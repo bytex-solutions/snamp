@@ -6,10 +6,11 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 
-import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.ArrayUtils.getFirst;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
@@ -28,9 +29,17 @@ public interface FilterBuilder extends Supplier<Filter>, Stateful {
     }
 
     default <S> Optional<ServiceReference<S>> getServiceReference(final BundleContext context, final Class<S> serviceType) {
+        return getFirst(getServiceReferences(context, serviceType));
+    }
+
+    default <S> ServiceReference<S>[] getServiceReferences(final BundleContext context, final Class<S> serviceType) {
         final String filter = toString();
-        final Collection<ServiceReference<S>> refs = callUnchecked(() -> context.getServiceReferences(serviceType, filter));
-        return refs.isEmpty() ? Optional.empty() : Optional.of(refs.iterator().next());
+        @SuppressWarnings("unchecked")
+        final ServiceReference<S>[] refs = (ServiceReference<S>[]) callUnchecked(() -> {
+            final ServiceReference<?>[] result = context.getAllServiceReferences(serviceType.getName(), filter);
+            return result == null ? emptyArray(ServiceReference[].class) : result;
+        });
+        return refs;
     }
 
     FilterBuilder setServiceType(final Class<?> serviceType);

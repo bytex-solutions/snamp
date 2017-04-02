@@ -40,11 +40,6 @@ final class DefaultGatewayParser extends AbstractTypedConfigurationParser<Serial
     }
 
     @Override
-    public String getInstanceName(final Dictionary<String, ?> gatewayInstanceConfig) {
-        return getIdentityName(gatewayInstanceConfig);
-    }
-
-    @Override
     void populateRepository(final ConfigurationAdmin admin,
                             final EntityMap<SerializableGatewayConfiguration> output) throws IOException {
         populateRepository(admin, ALL_GATEWAYS_QUERY, output);

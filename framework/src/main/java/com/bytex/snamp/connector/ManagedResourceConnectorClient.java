@@ -5,7 +5,6 @@ import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
-import com.google.common.collect.Sets;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
@@ -190,29 +189,6 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         }
     }
 
-    /**
-     * Gets a map of available management connector in the current OSGi environment.
-     * @param context The context of the caller bundle.
-     * @return A map of management connector references where the key of the map represents
-     *          a name of the management target.
-     */
-    @SuppressWarnings("unchecked")
-    public static Set<String> getResources(final BundleContext context) {
-        if (context == null) return Collections.emptySet();
-        final ServiceReference<?>[] resources;
-        try {
-            resources = context.getAllServiceReferences(ManagedResourceConnector.class.getName(), null);
-        } catch (final InvalidSyntaxException ignored) {
-            return Collections.emptySet();
-        }
-        if (resources == null)
-            return Collections.emptySet();
-        final Set<String> result = Sets.newHashSetWithExpectedSize(resources.length);
-        for (final ServiceReference<?> reference : resources)
-            result.add(ManagedResourceFilterBuilder.getManagedResourceName((ServiceReference<ManagedResourceConnector>) reference));
-        return result;
-    }
-
     public String getConnectorType(){
         return ManagedResourceConnector.getConnectorType(getBundle());
     }
@@ -241,7 +217,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     private static ServiceReference<ManagedResourceConnector> getResourceConnector(final BundleContext context,
                                                                           final String resourceName) {
-        return new ManagedResourceFilterBuilder()
+        return filterBuilder()
                 .setResourceName(resourceName)
                 .getServiceReference(context, ManagedResourceConnector.class)
                 .orElse(null);

@@ -1,16 +1,18 @@
 package com.bytex.snamp.supervision;
 
+import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.LoggerProvider;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.service.cm.ConfigurationException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,54 +46,65 @@ public class SupervisorActivator<S extends Supervisor> extends AbstractServiceLi
             this.factory = factory;
         }
 
-        /**
-         * Gets the base persistent identifier used as a prefix for individual dynamic services configuration.
-         *
-         * @return The base persistent identifier. Cannot be {@literal null} or empty string.
-         */
+        private String getSupervisorType(){
+            return getActivationPropertyValue(SUPERVISOR_TYPE_HOLDER);
+        }
+
+        private CMSupervisorParser getParser(){
+            return getActivationPropertyValue(SUPERVISOR_PARSER_HOLDER);
+        }
+
         @Override
         protected String getFactoryPID() {
-            return null;
+            return getParser().getFactoryPersistentID(getSupervisorType());
         }
 
-        /**
-         * Updates the service with a new configuration.
-         *
-         * @param service       The service to update.
-         * @param configuration A new configuration of the service.
-         * @return The updated service.
-         * @throws Exception              Unable to update service.
-         * @throws ConfigurationException Invalid service configuration.
-         */
+        private SingletonMap<String, ? extends SupervisorConfiguration> parseConfig(final Dictionary<String, ?> configuration) throws IOException {
+            final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = getParser().parse(configuration);
+            newConfig.getValue().setType(getSupervisorType());
+            newConfig.getValue().expandParameters();
+            return newConfig;
+        }
+
         @Override
-        protected S update(final S service, final Dictionary<String, ?> configuration) throws Exception {
-            return null;
+        protected S update(final S supervisor, final Dictionary<String, ?> configuration) throws Exception {
+            final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
+            supervisor.update(newConfig.getValue());
+            return supervisor;
         }
-
-        /**
-         * Creates a new service.
-         *
-         * @param identity      The registration properties to fill.
-         * @param configuration A new configuration of the service.
-         * @return A new instance of the service.
-         * @throws Exception              Unable to instantiate a new service.
-         * @throws ConfigurationException Invalid configuration exception.
-         */
+        
         @Override
         protected S createService(final Map<String, Object> identity, final Dictionary<String, ?> configuration) throws Exception {
-            return null;
+            final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
+            final S supervisor = factory.createSupervisor(newConfig.getKey(), dependencies);
+            identity.putAll(new SupervisorFilterBuilder(newConfig.getValue()).setGroupName(newConfig.getKey()));
+            supervisor.update(newConfig.getValue());
+            return supervisor;
         }
 
-        /**
-         * Releases all resources associated with the service instance.
-         *
-         * @param service  A service to dispose.
-         * @param identity Service identity.
-         * @throws Exception Unable to dispose service.
-         */
         @Override
-        protected void cleanupService(final S service, final Map<String, ?> identity) throws Exception {
+        protected void cleanupService(final S supervisor, final Map<String, ?> identity) throws Exception {
+            supervisor.close();
+        }
 
+        @Override
+        protected void failedToUpdateService(final Logger logger,
+                                             final String servicePID,
+                                             final Dictionary<String, ?> configuration,
+                                             final Exception e) {
+            logger.log(Level.SEVERE,
+                    String.format("Unable to update supervisor. Type: %s, instance: %s",
+                            getSupervisorType(),
+                            servicePID),
+                    e);
+        }
+
+        @Override
+        protected void failedToCleanupService(final Logger logger,
+                                              final String servicePID,
+                                              final Exception e) {
+            logger.log(Level.SEVERE, String.format("Unable to release gateway. Type: %s, instance: %s", getSupervisorType(), servicePID),
+                    e);
         }
     }
 

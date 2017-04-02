@@ -3,6 +3,7 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -24,6 +25,7 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanOperationInfo;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -163,23 +165,11 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             connector.expandAll();
         }
 
-        private TConnector update(TConnector connector,
-                                  final String resourceName,
-                                  final ManagedResourceConfiguration newConfig) throws Exception {
-            //we should not update resource connector if connection parameters was not changed
-            if (!connector.getConfiguration().equals(newConfig)) {
-                //trying to update resource connector on-the-fly
-                try {
-                    connector.update(newConfig);
-                } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored) {
-                    //Update operation is not supported -> force recreation
-                    connector.close();
-                    connector = factory.createConnector(resourceName, newConfig, dependencies);
-                }
-            }
-            //but we should always update resource features
-            updateFeatures(connector, newConfig);
-            return connector;
+        private SingletonMap<String, ? extends ManagedResourceConfiguration> parseConfig(final Dictionary<String, ?> configuration) throws IOException{
+            final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = getParser().parse(configuration);
+            newConfig.getValue().setType(getConnectorType());
+            newConfig.getValue().expandParameters();
+            return newConfig;
         }
 
         /**
@@ -192,15 +182,23 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @Override
-        protected TConnector update(final TConnector connector,
+        protected TConnector update(TConnector connector,
                                     final Dictionary<String, ?> configuration) throws Exception {
-            final CMManagedResourceParser parser = getParser();
-            final String resourceName = parser.getResourceName(configuration);
-            final ManagedResourceConfiguration newConfig = parser.parse(configuration).getValue();
-            if(newConfig == null)
-                throw new IllegalStateException(String.format("Managed resource %s cannot be updated. Configuration not found.", resourceName));
-            newConfig.expandParameters();
-            return update(connector, resourceName, newConfig);
+            final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = parseConfig(configuration);
+            //we should not update resource connector if connection parameters was not changed
+            if (!connector.getConfiguration().equals(newConfig.getValue())) {
+                //trying to update resource connector on-the-fly
+                try {
+                    connector.update(newConfig.getValue());
+                } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored) {
+                    //Update operation is not supported -> force recreation
+                    connector.close();
+                    connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
+                }
+            }
+            //but we should always update resource features
+            updateFeatures(connector, newConfig.getValue());
+            return connector;
         }
 
         /**
@@ -231,15 +229,6 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             logger.log(Level.SEVERE, String.format("Unable to dispose connector '%s'", servicePID), e);
         }
 
-        private TConnector createService(final Map<String, Object> identity,
-                                         final String resourceName,
-                                         final ManagedResourceConfiguration configuration) throws Exception {
-            identity.putAll(new ManagedResourceFilterBuilder(configuration).setResourceName(resourceName));
-            final TConnector result = factory.createConnector(resourceName, configuration, dependencies);
-            updateFeatures(result, configuration);
-            return result;
-        }
-
         /**
          * Creates a new service.
          *
@@ -252,14 +241,11 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         @Override
         protected TConnector createService(final Map<String, Object> identity,
                                            final Dictionary<String, ?> configuration) throws Exception {
-            final CMManagedResourceParser parser = getParser();
-            final String resourceName = parser.getResourceName(configuration);
-            final ManagedResourceConfiguration newConfig = parser.parse(configuration).getValue();
-            if(newConfig == null)
-                throw new IllegalStateException(String.format("Managed resource %s cannot be created. Configuration not found.", resourceName));
-            newConfig.setType(getConnectorType());
-            newConfig.expandParameters();
-            return createService(identity, resourceName, newConfig);
+            final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = parseConfig(configuration);
+            identity.putAll(new ManagedResourceFilterBuilder(newConfig.getValue()).setResourceName(newConfig.getKey()));
+            final TConnector connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
+            updateFeatures(connector, newConfig.getValue());
+            return connector;
         }
 
         @Override

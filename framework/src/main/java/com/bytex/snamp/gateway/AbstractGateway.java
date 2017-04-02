@@ -1,8 +1,6 @@
 package com.bytex.snamp.gateway;
 
-import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.connector.*;
 import com.bytex.snamp.connector.attributes.AttributeModifiedEvent;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -10,19 +8,12 @@ import com.bytex.snamp.connector.notifications.NotificationModifiedEvent;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationModifiedEvent;
 import com.bytex.snamp.connector.operations.OperationSupport;
-import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.LoggerProvider;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.*;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceReference;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
@@ -36,88 +27,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-
 /**
  * Represents a base class for constructing custom gateway.
  * @author Roman Sakno
  * @since 1.0
  * @version 2.0
  */
-public abstract class AbstractGateway extends AbstractAggregator implements Gateway, ResourceEventListener, ServiceListener{
+public abstract class AbstractGateway extends StatefulManagedResourceTracker<Map<String, String>> implements Gateway, ResourceEventListener{
     @FunctionalInterface
     private interface FeatureModifiedEventFactory<S, F extends MBeanFeatureInfo>{
         FeatureModifiedEvent<F> createEvent(final S sender,
                                             final String resourceName,
                                             final F feature);
-    }
-
-    private static final class GatewayLoggingScope extends LoggingScope {
-
-        private GatewayLoggingScope(final AbstractGateway requester,
-                                    final String operationName){
-            super(requester, operationName);
-        }
-
-        static GatewayLoggingScope connectorChangesDetected(final AbstractGateway requester) {
-            return new GatewayLoggingScope(requester, "processResourceConnectorChanges");
-        }
-    }
-
-    @Immutable
-    private static final class InternalState {
-        final ImmutableMap<String, String> parameters;
-        final FrameworkServiceState state;
-
-        private InternalState(final FrameworkServiceState state, final Map<String, String> params) {
-            this.state = state;
-            this.parameters = ImmutableMap.copyOf(params);
-        }
-
-        private InternalState(){
-            this(FrameworkServiceState.CREATED, ImmutableMap.of());
-        }
-
-        InternalState setParameters(final Map<String, String> value) {
-            return new InternalState(state, value);
-        }
-
-        InternalState transition(final FrameworkServiceState value) {
-            switch (value) {
-                case CLOSED:
-                    return null;
-                default:
-                    return new InternalState(value, parameters);
-            }
-        }
-
-        boolean parametersAreEqual(final Map<String, String> newParameters) {
-            if (parameters.size() == newParameters.size()) {
-                for (final Map.Entry<String, String> entry : newParameters.entrySet())
-                    if (!Objects.equals(parameters.get(entry.getKey()), entry.getValue()))
-                        return false;
-                return true;
-            } else return false;
-        }
-
-        private boolean equals(final InternalState other) {
-            return state.equals(other.state) && parametersAreEqual(other.parameters);
-        }
-
-        @Override
-        public boolean equals(final Object other) {
-            return other instanceof InternalState && equals((InternalState) other);
-        }
-
-        @Override
-        public String toString() {
-            return state.toString();
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(state, parameters);
-        }
     }
 
     /**
@@ -207,7 +128,6 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         }
     }
 
-    private volatile InternalState mutableState;
     protected final String gatewayType;
 
     /**
@@ -220,26 +140,9 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      * @param instanceName The name of the gateway instance.
      */
     protected AbstractGateway(final String instanceName) {
+        super(new InternalState<>(ImmutableMap.of()));
         this.instanceName = instanceName;
-        mutableState = new InternalState();
         gatewayType = Gateway.getGatewayType(getClass()).intern();
-    }
-
-    @Nonnull
-    @Override
-    public final Map<String, String> getConfiguration() {
-        final InternalState currentState = mutableState;
-        return currentState == null ? ImmutableMap.of() : currentState.parameters;
-    }
-
-    /**
-     * Gets state of this gateway.
-     * @return The state of this gateway.
-     */
-    @Override
-    public final FrameworkServiceState getState(){
-        final InternalState current = mutableState;
-        return current != null ? current.state : FrameworkServiceState.CLOSED;
     }
 
     private <F extends MBeanFeatureInfo> void featureModified(final FeatureModifiedEvent<F> event){
@@ -350,42 +253,10 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      *     This method will be called by SNAMP infrastructure automatically.
      * </p>
      * @param parameters Gateway startup parameters.
-     * @throws java.lang.Exception Unable to gateway instance.
+     * @throws java.lang.Exception Unable start to gateway instance.
      */
-    protected abstract void start(final Map<String, String> parameters) throws Exception;
-
-    /**
-     * Updates this gateway with a new configuration parameters.
-     * <p>
-     *     In the default implementation this method causes restarting
-     *     of this gateway instance that affects availability of the gateway.
-     *     You should override this method if custom gateway
-     *     supports soft update (without affecting availability).
-     * </p>
-     * @param current The current configuration parameters.
-     * @param newParameters A new configuration parameters.
-     * @return {@literal true}, if the gateway is modified; otherwise, {@literal false}.
-     * @throws Exception Unable to update this gateway.
-     */
-    protected boolean update(final Map<String, String> current,
-                          final Map<String, String> newParameters) throws Exception {
-        doStop();
-        doStart(newParameters);
-        return false;
-    }
-
     @Override
-    public final synchronized void update(@Nonnull final Map<String, String> newParameters) throws Exception {
-        final InternalState currentState = mutableState;
-        switch (currentState.state) {
-            case CREATED:
-                doStart(newParameters);
-            case STARTED:
-                //compare parameters
-                if (!currentState.parametersAreEqual(newParameters) && update(currentState.parameters, newParameters))
-                    mutableState = currentState.setParameters(newParameters);
-        }
-    }
+    protected abstract void start(final Map<String, String> parameters) throws Exception;
 
     private static GatewayUpdatedCallback gatewayUpdatedNotifier(final AbstractGateway gatewayInstance) {
         final class GatewayUpdatedCallbackImpl extends WeakReference<AbstractGateway> implements GatewayUpdatedCallback {
@@ -438,13 +309,9 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 featureModified(eventFactory.createEvent(support, resourceName, feature));
     }
 
-    @MethodStub
-    protected void resourceAdded(final ManagedResourceConnectorClient resourceConnector){
-
-    }
-
-    private synchronized void addResource(final ManagedResourceConnectorClient connector) {
-        resourceAdded(connector);
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    protected synchronized void addResource(final ManagedResourceConnectorClient connector) {
         //add gateway as a listener
         connector.addResourceEventListener(this);
         //expose all features
@@ -454,63 +321,11 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
     }
 
-    @MethodStub
-    protected void resourceRemoved(final ManagedResourceConnectorClient resourceConnector){
-
-    }
-
-    private synchronized void removeResource(final ManagedResourceConnectorClient connector) {
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    protected synchronized void removeResource(final ManagedResourceConnectorClient connector) {
         connector.removeResourceEventListener(this);
         removeAllFeaturesImpl(connector.getManagedResourceName()).forEach(FeatureAccessor::close);
-        resourceRemoved(connector);
-    }
-
-    private synchronized void doStart(final Map<String, String> params) throws Exception {
-        final InternalState currentState = mutableState;
-        switch (currentState.state) {
-            case CREATED:
-            case STOPPED:
-                //explore all available resources
-                final BundleContext context = getBundleContext();
-                for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
-                    final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-                    if (client != null)
-                        try {
-                            addResource(client);
-                        } finally {
-                            client.release(context);
-                        }
-                }
-                InternalState newState = currentState.setParameters(params);
-                start(newState.parameters);
-                mutableState = newState.transition(FrameworkServiceState.STARTED);
-                started();
-                ManagedResourceConnectorClient.filterBuilder().addServiceListener(context, this);
-        }
-    }
-
-    private synchronized void doStop() throws Exception {
-        final InternalState currentState = mutableState;
-        switch (currentState.state) {
-            case STARTED:
-                try {
-                    stop();
-                    final BundleContext context = getBundleContext();
-                    for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
-                        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-                        if (client != null)
-                            try {
-                                removeResource(client);
-                            } finally {
-                                client.release(context);
-                            }
-                    }
-                } finally {
-                    getBundleContext().removeServiceListener(this);
-                    mutableState = currentState.transition(FrameworkServiceState.STOPPED);
-                }
-                stopped();
-        }
     }
 
     /**
@@ -523,74 +338,37 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     protected abstract void stop() throws Exception;
 
     /**
-     * Captures reference to the managed resource connector.
-     *
-     * @param event The {@code ServiceEvent} object.
-     */
-    @Override
-    public final void serviceChanged(final ServiceEvent event) {
-        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference())) {
-            final BundleContext context = getBundleContext();
-            @SuppressWarnings("unchecked")
-            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, (ServiceReference<ManagedResourceConnector>) event.getServiceReference());
-            try (final LoggingScope logger = GatewayLoggingScope.connectorChangesDetected(this)) {
-                switch (event.getType()) {
-                    case ServiceEvent.MODIFIED_ENDMATCH:
-                    case ServiceEvent.UNREGISTERING:
-                        removeResource(client);
-                        return;
-                    case ServiceEvent.REGISTERED:
-                        addResource(client);
-                        return;
-                    default:
-                        logger.info(String.format("Unexpected event %s captured by gateway %s for resource %s",
-                                event.getType(),
-                                instanceName,
-                                client.getManagedResourceName()));
-                }
-            } finally {
-                client.release(context);
-            }
-        }
-    }
-
-    /**
      * Releases all resources associated with this gateway.
      * @throws java.io.IOException An exception occurred during gateway releasing.
      */
     @Override
     public final void close() throws IOException {
         try {
-            doStop();
+            super.close();
         } catch (final IOException e) {
             throw e;
         } catch (final Exception e) {
             throw new IOException(String.format("Unable to release resources associated with %s gateway instance", instanceName), e);
-        } finally {
-            mutableState = mutableState.transition(FrameworkServiceState.CLOSED);
-            clearCache();
         }
     }
 
-    private void started(){
+    @Override
+    protected final void started(){
         GatewayEventBus.notifyInstanceStarted(gatewayType, this);
     }
 
-    private void stopped(){
+    @Override
+    protected final void stopped(){
         GatewayEventBus.notifyInstanceStopped(gatewayType, this);
     }
-
-    private BundleContext getBundleContext(){
-        return getBundleContextOfObject(this);
-    }
-
+    
     /**
      * Returns a string representation of this gateway instance.
      * @return A string representation of this gateway instance.
      */
     @Override
     public String toString() {
-        return instanceName;
+        return gatewayType + ':' + instanceName;
     }
 
     @Override

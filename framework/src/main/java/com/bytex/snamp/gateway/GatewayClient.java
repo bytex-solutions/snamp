@@ -56,7 +56,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     
     private static ServiceReference<Gateway> getGatewayInstance(final BundleContext context,
                                                                 final String instanceName) {
-        return new GatewayFilterBuilder().setInstanceName(instanceName).getServiceReference(context, Gateway.class).orElse(null);
+        return filterBuilder().setInstanceName(instanceName).getServiceReference(context, Gateway.class).orElse(null);
     }
 
     /**

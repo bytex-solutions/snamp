@@ -1,12 +1,14 @@
 package com.bytex.snamp.supervision;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.Version;
+import com.bytex.snamp.core.ServiceHolder;
+import org.osgi.framework.*;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeoutException;
+
+import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 
 /**
  * Represents client for {@link Supervisor}.
@@ -14,12 +16,42 @@ import java.util.Locale;
  * @version 2.0
  * @since 2.0
  */
-public final class SupervisorClient {
+public final class SupervisorClient extends ServiceHolder<Supervisor> {
+    /**
+     * Initializes a new supervisor client.
+     *
+     * @param context    The context of the bundle which holds this reference. Cannot be {@literal null}.
+     * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
+     */
+    public SupervisorClient(final BundleContext context, final ServiceReference<Supervisor> serviceRef) {
+        super(context, serviceRef);
+    }
 
+    public static SupervisorClient tryCreate(final BundleContext context,
+                                          final String groupName,
+                                          final Duration instanceTimeout) throws TimeoutException, InterruptedException{
+        final ServiceReference<Supervisor> ref = spinUntilNull(context, groupName, SupervisorClient::getSupervisorInstance, instanceTimeout);
+        return new SupervisorClient(context, ref);
+    }
+
+    public static SupervisorClient tryCreate(final BundleContext context, final String groupName) {
+        final ServiceReference<Supervisor> ref = getSupervisorInstance(context, groupName);
+        return ref == null ? null : new SupervisorClient(context, ref);
+    }
+
+    /**
+     * Constructs a new instance of the filter used to obtain service {@link Supervisor} from OSGi service registry.
+     * @return A new instance of the filter builder.
+     */
     public static SupervisorFilterBuilder filterBuilder(){
         final SupervisorFilterBuilder filter = new SupervisorFilterBuilder();
         filter.setServiceType(Supervisor.class);
         return filter;
+    }
+
+    private static ServiceReference<Supervisor> getSupervisorInstance(final BundleContext context,
+                                                                final String groupName) {
+        return filterBuilder().setGroupName(groupName).getServiceReference(context, Supervisor.class).orElse(null);
     }
 
     private static String getSupervisorBundleHeader(final BundleContext context,

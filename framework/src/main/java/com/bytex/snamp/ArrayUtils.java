@@ -345,8 +345,8 @@ public final class ArrayUtils {
      * @param <T> Type of array elements.
      * @return The first element in the specified array; or default value.
      */
-    public static <T> Optional<T> getFirst(final T[] array){
-        return array.length > 0 ? Optional.ofNullable(array[0]) : Optional.empty();
+    public static <T> Optional<T> getFirst(final T[] array) {
+        return isNullOrEmpty(array) ? Optional.empty() : Optional.ofNullable(array[0]);
     }
 
     private static boolean isNullOrEmptyImpl(final Object array){

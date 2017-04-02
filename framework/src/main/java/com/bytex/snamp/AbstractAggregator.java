@@ -7,6 +7,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -291,7 +292,8 @@ public abstract class AbstractAggregator implements Aggregator {
     /**
      * Clears internal cache with aggregated objects.
      */
-    protected final void clearCache(){
+    @OverridingMethodsMustInvokeSuper
+    protected void clearCache(){
         providers.invalidateAll();
     }
 

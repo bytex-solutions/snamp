@@ -67,11 +67,6 @@ final class DefaultManagedResourceParser extends AbstractTypedConfigurationParse
         return getValue(resourceConfig, CONNECTION_STRING_PROPERTY, Objects::toString).orElse("");
     }
 
-    @Override
-    public String getResourceName(final Dictionary<String, ?> resourceConfig) {
-        return getIdentityName(resourceConfig);
-    }
-
     private Map<String, SerializableAttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException {
         return deserialize(ATTRIBUTES_PROPERTY, ATTRS_MAP_TYPE, resourceConfig);
     }

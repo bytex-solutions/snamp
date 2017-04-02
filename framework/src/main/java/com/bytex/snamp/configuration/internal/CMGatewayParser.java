@@ -3,8 +3,6 @@ package com.bytex.snamp.configuration.internal;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 
-import java.util.Dictionary;
-
 /**
  * Provides parsing of gateway configuration from data provided by {@link org.osgi.service.cm.Configuration}.
  * <p>
@@ -16,10 +14,4 @@ import java.util.Dictionary;
  */
 @Internal
 public interface CMGatewayParser extends CMRootEntityParser<GatewayConfiguration> {
-    /**
-     * Extracts the name of the gateway instance from its configuration.
-     * @param gatewayInstanceConfig The gateway instance configuration supplied by {@link org.osgi.service.cm.Configuration} object.
-     * @return Gateway instance name.
-     */
-    String getInstanceName(final Dictionary<String, ?> gatewayInstanceConfig);
 }

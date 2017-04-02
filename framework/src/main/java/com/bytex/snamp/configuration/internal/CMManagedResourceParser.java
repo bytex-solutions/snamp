@@ -4,8 +4,6 @@ package com.bytex.snamp.configuration.internal;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
-import java.util.Dictionary;
-
 /**
  * Provides parsing of managed resource configuration from data provided by {@link org.osgi.service.cm.Configuration}.
  * <p>
@@ -17,11 +15,4 @@ import java.util.Dictionary;
  */
 @Internal
 public interface CMManagedResourceParser extends CMRootEntityParser<ManagedResourceConfiguration> {
-    /**
-     * Extracts resource name from the managed resource configuration.
-     *
-     * @param resourceConfig A dictionary that represents managed resource configuration.
-     * @return The resource name.
-     */
-    String getResourceName(final Dictionary<String, ?> resourceConfig);
 }

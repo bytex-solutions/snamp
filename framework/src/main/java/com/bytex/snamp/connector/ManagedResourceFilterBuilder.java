@@ -2,7 +2,12 @@ package com.bytex.snamp.connector;
 
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.core.SimpleFilterBuilder;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.connector.ManagedResourceConnector.CATEGORY_PROPERTY;
 import static com.bytex.snamp.connector.ManagedResourceConnector.TYPE_CAPABILITY_ATTRIBUTE;
@@ -69,6 +74,13 @@ public final class ManagedResourceFilterBuilder extends SimpleFilterBuilder {
         else
             put(ManagedResourceConfiguration.GROUP_NAME_PROPERTY, value);
         return this;
+    }
+
+    public Set<String> getResources(final BundleContext context) {
+        return Arrays.stream(getServiceReferences(context, ManagedResourceConnector.class))
+                .map(ManagedResourceFilterBuilder::getManagedResourceName)
+                .filter(name -> !isNullOrEmpty(name))
+                .collect(Collectors.toSet());
     }
 
     static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef) {
