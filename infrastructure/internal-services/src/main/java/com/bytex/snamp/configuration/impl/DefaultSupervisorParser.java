@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import com.bytex.snamp.io.IOUtils;
@@ -27,8 +28,14 @@ final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<Ser
     private static final String ALL_SUPERVISORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(SUPERVISOR_PID_TEMPLATE, "*"));
     private static final Pattern SUPERVISOR_PID_REPLACEMENT = Pattern.compile(String.format(SUPERVISOR_PID_TEMPLATE, ""), Pattern.LITERAL);
 
-    DefaultSupervisorParser() {
+    private static final LazySoftReference<DefaultSupervisorParser> INSTANCE = new LazySoftReference<>();
+
+    private DefaultSupervisorParser() {
         super(GROUP_NAME_PROPERTY, SerializableAgentConfiguration::getSupervisors);
+    }
+
+    static DefaultSupervisorParser getInstance(){
+        return INSTANCE.lazyGet(DefaultSupervisorParser::new);
     }
 
     @Override

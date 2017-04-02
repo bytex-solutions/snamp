@@ -5,6 +5,7 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -73,7 +74,8 @@ public class SimpleFilterBuilder extends HashMap<String, String> implements Filt
     }
 
     @Override
-    public SimpleFilterBuilder setServiceType(final Class<?> serviceType) {
+    @Nonnull
+    public SimpleFilterBuilder setServiceType(@Nonnull final Class<?> serviceType) {
         put(OBJECTCLASS, serviceType.getName());
         return this;
     }

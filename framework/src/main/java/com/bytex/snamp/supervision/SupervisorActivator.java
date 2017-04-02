@@ -1,11 +1,13 @@
 package com.bytex.snamp.supervision;
 
 import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.LoggerProvider;
+import com.bytex.snamp.core.SupportService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -14,10 +16,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -27,7 +31,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-public class SupervisorActivator<S extends Supervisor> extends AbstractServiceLibrary {
+public abstract class SupervisorActivator<S extends Supervisor> extends AbstractServiceLibrary {
     private static final ActivationProperty<String> SUPERVISOR_TYPE_HOLDER = defineActivationProperty(String.class, "");
     private static final ActivationProperty<CMSupervisorParser> SUPERVISOR_PARSER_HOLDER = defineActivationProperty(CMSupervisorParser.class);
 
@@ -108,16 +112,79 @@ public class SupervisorActivator<S extends Supervisor> extends AbstractServiceLi
         }
     }
 
+    /**
+     * Represents activator for support service.
+     * @param <T> Type of support service.
+     * @since 2.0
+     */
+    @FunctionalInterface
+    protected interface SupportServiceFactory<T extends SupportService>{
+        @Nonnull
+        T activateService(final DependencyManager dependencies) throws Exception;
+    }
+
+    /**
+     * Represents superclass for all optional supervisor-related service factories.
+     * You cannot derive from this class directly.
+     * @param <S> Type of the supervisor-related service contract.
+     * @param <T> Type of the supervisor-related service implementation.
+     * @author Roman Sakno
+     * @since 2.0
+     * @version 2.0
+     * @see #configurationDescriptor(Supplier)
+     */
+    protected final static class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T>{
+        private final SupportServiceFactory<T> activator;
+
+        private SupportServiceManager(final Class<S> contract,
+                                      final SupportServiceFactory<T> activator,
+                                      final RequiredService<?>... dependencies) {
+            super(contract, dependencies);
+            this.activator = Objects.requireNonNull(activator);
+        }
+
+        @Override
+        protected T activateService(final Map<String, Object> identity) throws Exception {
+            identity.putAll(new SupervisorFilterBuilder().setSupervisorType(getSupervisorType()));
+            return activator.activateService(dependencies);
+        }
+
+        private String getSupervisorType(){
+            return getActivationPropertyValue(SUPERVISOR_TYPE_HOLDER);
+        }
+    }
+
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceFactory<T> factory,
+                                                                                                                                                                 final RequiredService<?>... dependencies) {
+        return new SupportServiceManager<>(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
+    }
+
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory) {
+        return configurationDescriptor(dependencies -> factory.get());
+    }
+
+    /**
+     * Type of this supervisor.
+     */
     protected final String supervisorType;
 
-    protected SupervisorActivator(final SupervisorFactory<S> factory, final RequiredService<?>... dependencies) {
-        super(serviceProvider(factory, dependencies));
+    protected SupervisorActivator(final SupervisorFactory<S> factory, final SupportServiceManager<?, ?>... optionalServices) {
+        this(factory, emptyArray(RequiredService[].class), optionalServices);
+    }
+
+    protected SupervisorActivator(final SupervisorFactory<S> factory,
+                                  final RequiredService<?>[] dependencies,
+                                  final SupportServiceManager<?, ?>[] optionalServices){
+        super(serviceProvider(factory, dependencies, optionalServices));
         supervisorType = Supervisor.getSupervisorType(getBundleContextOfObject(this).getBundle());
     }
 
-    private static  <S extends Supervisor> ProvidedServices serviceProvider(final SupervisorFactory<S> factory, final RequiredService<?>... dependencies) {
+    private static  <S extends Supervisor> ProvidedServices serviceProvider(final SupervisorFactory<S> factory,
+                                                                            final RequiredService<?>[] dependencies,
+                                                                            final SupportServiceManager<?, ?>[] optionalServices) {
         return (services, activationProperties, supervisorDependencies) -> {
             services.add(new SupervisorInstances<>(factory, dependencies));
+            Collections.addAll(services, optionalServices);
         };
     }
 

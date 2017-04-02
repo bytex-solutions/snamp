@@ -14,7 +14,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class LazyWeakReference<V> extends AbstractLazyReference<V> {
     private static final long serialVersionUID = 1898537173263220348L;
 
-    public LazyWeakReference() {
-        super(WeakReference::new);
+    @Override
+    WeakReference<V> makeRef(final V value) {
+        return new WeakReference<>(value);
     }
 }

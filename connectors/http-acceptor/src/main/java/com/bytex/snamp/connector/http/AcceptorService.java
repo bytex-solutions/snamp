@@ -77,7 +77,7 @@ public final class AcceptorService {
         final String httpAcceptorType = ManagedResourceConnector.getConnectorType(HttpAcceptor.class);
         final Set<String> sources = new HashSet<>();
         final BundleContext context = getBundleContext();
-        for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
             final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
             if (client != null) {
                 final String connectorType = client.getConnectorType();

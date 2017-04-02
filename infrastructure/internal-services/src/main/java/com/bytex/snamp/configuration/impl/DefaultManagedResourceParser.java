@@ -1,13 +1,11 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.io.SerializableMap;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -44,8 +42,14 @@ final class DefaultManagedResourceParser extends AbstractTypedConfigurationParse
 
     private static final String ALL_CONNECTORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(CONNECTOR_PID_TEMPLATE, "*"));
 
-    DefaultManagedResourceParser() {
+    private static final LazySoftReference<DefaultManagedResourceParser> INSTANCE = new LazySoftReference<>();
+
+    private DefaultManagedResourceParser() {
         super(RESOURCE_NAME_PROPERTY, SerializableAgentConfiguration::getResources);
+    }
+
+    static DefaultManagedResourceParser getInstance(){
+        return INSTANCE.lazyGet(DefaultManagedResourceParser::new);
     }
 
     /**

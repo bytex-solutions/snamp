@@ -13,6 +13,6 @@
   <name>SNAMP Supervisors</name>
   <description>Pack of standard SNAMP supervisors</description>
   <modules>
-    <module>supervisor-core</module>
+    <module>default-supervisor</module>
   </modules>
 </project>

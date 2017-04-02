@@ -6,6 +6,7 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 
+import javax.annotation.Nonnull;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -42,7 +43,8 @@ public interface FilterBuilder extends Supplier<Filter>, Stateful {
         return refs;
     }
 
-    FilterBuilder setServiceType(final Class<?> serviceType);
+    @Nonnull
+    FilterBuilder setServiceType(@Nonnull final Class<?> serviceType);
 
     /**
      * Constructs OSGi filter in text format.

@@ -11,7 +11,11 @@ import javax.annotation.Nonnull;
  * @since 2.0
  */
 public interface SupervisorConfiguration extends TypedEntityConfiguration, SupervisorInfo {
-    String DEFAULT_TYPE = "DEFAULT";
+
+    /**
+     * Represents default supervisor type.
+     */
+    String DEFAULT_TYPE = "default";
 
     /**
      * Represents configuration of the health supervisor.

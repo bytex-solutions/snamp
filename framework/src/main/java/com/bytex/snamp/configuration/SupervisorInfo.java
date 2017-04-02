@@ -8,7 +8,7 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-public interface SupervisorInfo extends Map<String, String> {
+public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
     /**
      * Represents configuration of the health supervisor.
      */

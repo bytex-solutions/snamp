@@ -3,7 +3,6 @@ package com.bytex.snamp.gateway.influx;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import org.influxdb.InfluxDB;
@@ -18,7 +17,6 @@ import javax.management.MBeanNotificationInfo;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -145,10 +143,6 @@ final class InfluxGateway extends AbstractGateway {
             pointsUploader = new PointsUploader(uploadPeriod, this);
             pointsUploader.run();
         }
-    }
-
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForObject(this);
     }
 
     @Override

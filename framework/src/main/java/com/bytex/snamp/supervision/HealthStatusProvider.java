@@ -1,6 +1,7 @@
 package com.bytex.snamp.supervision;
 
 import com.bytex.snamp.Stateful;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
 
 /**
  * Represents health check service used to supervise groups of managed resources.
@@ -8,7 +9,7 @@ import com.bytex.snamp.Stateful;
  * @version 2.0
  * @since 2.0
  */
-public interface HealthStatusProvider extends SupervisorService, Stateful {
+public interface HealthStatusProvider extends SupervisorService, Stateful, HealthCheckSupport {
     /**
      * Adds listener of health status.
      *

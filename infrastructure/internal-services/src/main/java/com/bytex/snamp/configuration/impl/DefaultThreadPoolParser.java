@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
-import java.io.IOException;
-import java.util.Dictionary;
+import com.bytex.snamp.concurrent.LazySoftReference;
 
 import static com.bytex.snamp.concurrent.ThreadPoolRepository.DEFAULT_POOL;
 
@@ -14,13 +13,13 @@ import static com.bytex.snamp.concurrent.ThreadPoolRepository.DEFAULT_POOL;
 public final class DefaultThreadPoolParser extends SerializableConfigurationParser<SerializableThreadPoolConfiguration> {
     public static final String PID = "com.bytex.snamp.concurrency.threadPools";
 
-    DefaultThreadPoolParser() {
+    private static final LazySoftReference<DefaultThreadPoolParser> INSTANCE = new LazySoftReference<>();
+
+    private DefaultThreadPoolParser() {
         super(SerializableAgentConfiguration::getThreadPools, PID, SerializableThreadPoolConfiguration.class, DEFAULT_POOL);
     }
 
-    public static SerializableThreadPoolConfiguration deserialize(final String poolName,
-                                                                  final Dictionary<String, ?> properties,
-                                                                  final ClassLoader caller) throws IOException {
-        return deserialize(poolName, SerializableThreadPoolConfiguration.class, properties, caller);
+    public static DefaultThreadPoolParser getInstance(){
+        return INSTANCE.lazyGet(DefaultThreadPoolParser::new);
     }
 }

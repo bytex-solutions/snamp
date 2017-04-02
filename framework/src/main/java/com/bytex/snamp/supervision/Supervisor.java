@@ -8,6 +8,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleRevision;
 
 import javax.annotation.Nonnull;
+import java.io.Closeable;
 import java.util.Objects;
 import java.util.Set;
 
@@ -21,7 +22,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @author Roman Sakno
  */
-public interface Supervisor extends StatefulFrameworkService {
+public interface Supervisor extends StatefulFrameworkService, Closeable {
     /**
      * This namespace must be defined in Provide-Capability manifest header inside of the bundle containing implementation
      * of Managed Resource Group Supervisor.

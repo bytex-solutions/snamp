@@ -261,7 +261,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      * @since 2.0
      */
     @FunctionalInterface
-    protected interface SupportServiceActivator<T extends SupportService>{
+    protected interface SupportServiceFactory<T extends SupportService>{
         T activateService(final DependencyManager dependencies) throws Exception;
     }
 
@@ -273,13 +273,13 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
-     * @see #discoveryService(SupportServiceActivator, RequiredService[])
-     * @see #configurationDescriptor(SupportServiceActivator, RequiredService[])
+     * @see #discoveryService(SupportServiceFactory, RequiredService[])
+     * @see #configurationDescriptor(SupportServiceFactory, RequiredService[])
      */
-    protected static abstract class SupportConnectorServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T> {
+    protected static abstract class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T> {
 
-        private SupportConnectorServiceManager(final Class<S> contract,
-                                               final RequiredService<?>... dependencies) {
+        private SupportServiceManager(final Class<S> contract,
+                                      final RequiredService<?>... dependencies) {
             super(contract, dependencies);
         }
 
@@ -304,10 +304,10 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             return getActivationPropertyValue(CONNECTOR_TYPE_HOLDER);
         }
 
-        private static <S extends SupportService, T extends S> SupportConnectorServiceManager<S, T> create(final Class<S> contract,
-                                                                                                           final SupportServiceActivator<T> activator,
-                                                                                                           final RequiredService<?>... dependencies){
-            return new SupportConnectorServiceManager<S, T>(contract, dependencies) {
+        private static <S extends SupportService, T extends S> SupportServiceManager<S, T> create(final Class<S> contract,
+                                                                                                  final SupportServiceFactory<T> activator,
+                                                                                                  final RequiredService<?>... dependencies){
+            return new SupportServiceManager<S, T>(contract, dependencies) {
                 @Override
                 T activateService() throws Exception {
                     return activator.activateService(super.dependencies);
@@ -316,18 +316,18 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceActivator<T> factory,
-                                                                                                                                                                          final RequiredService<?>... dependencies) {
-        return SupportConnectorServiceManager.create(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceFactory<T> factory,
+                                                                                                                                                                 final RequiredService<?>... dependencies) {
+        return SupportServiceManager.create(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory){
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory){
         return configurationDescriptor(dependencies -> factory.get());
     }
 
-    protected static <T extends DiscoveryService> SupportConnectorServiceManager<DiscoveryService, T> discoveryService(final SupportServiceActivator<T> factory,
-                                                                                                                       final RequiredService<?>... dependencies) {
-        return SupportConnectorServiceManager.create(DiscoveryService.class, factory, dependencies);
+    protected static <T extends DiscoveryService> SupportServiceManager<DiscoveryService, T> discoveryService(final SupportServiceFactory<T> factory,
+                                                                                                              final RequiredService<?>... dependencies) {
+        return SupportServiceManager.create(DiscoveryService.class, factory, dependencies);
     }
 
     protected final String connectorType;
@@ -338,7 +338,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      * @param optionalServices Additional set of supporting services.
      */
     protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
-                                       final SupportConnectorServiceManager<?, ?>... optionalServices) {
+                                       final SupportServiceManager<?, ?>... optionalServices) {
         this(factory,
                 emptyArray(RequiredService[].class),
                 optionalServices);
@@ -352,14 +352,14 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      */
     protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
                                        final RequiredService<?>[] connectorDependencies,
-                                       final SupportConnectorServiceManager<?, ?>[] optionalServices) {
+                                       final SupportServiceManager<?, ?>[] optionalServices) {
         super(serviceProvider(factory, connectorDependencies, optionalServices));
         connectorType = ManagedResourceConnector.getConnectorType(getBundleContextOfObject(this).getBundle());
     }
 
     private static <TConnector extends ManagedResourceConnector> ProvidedServices serviceProvider(final ManagedResourceConnectorFactory<TConnector> controller,
                                                                                                   final RequiredService<?>[] connectorDependencies,
-                                                                                                  final SupportConnectorServiceManager<?, ?>[] optionalServices){
+                                                                                                  final SupportServiceManager<?, ?>[] optionalServices){
         final class ManagedResourceConnectorFactoryServiceImpl extends AbstractAggregator implements ManagedResourceConnectorFactoryService {
             private final DependencyManager dependencies;
 
@@ -373,7 +373,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             }
         }
 
-        final class ManagedResourceConnectorFactoryServiceManager extends SupportConnectorServiceManager<ManagedResourceConnectorFactoryService, ManagedResourceConnectorFactoryServiceImpl>{
+        final class ManagedResourceConnectorFactoryServiceManager extends SupportServiceManager<ManagedResourceConnectorFactoryService, ManagedResourceConnectorFactoryServiceImpl> {
             private ManagedResourceConnectorFactoryServiceManager(){
                 super(ManagedResourceConnectorFactoryService.class, connectorDependencies);
             }

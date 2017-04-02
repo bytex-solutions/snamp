@@ -367,7 +367,7 @@ final class SshGateway extends AbstractGateway implements GatewayController {
                 parser.getPort(parameters),
                 parser.getKeyPairProvider(parameters),
                 parser.getSecuritySettings(parameters),
-                parser.getThreadPool(parameters));
+                parser.parseThreadPool(parameters));
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import org.osgi.service.cm.Configuration;
@@ -25,8 +26,14 @@ final class DefaultGatewayParser extends AbstractTypedConfigurationParser<Serial
     private static final String ALL_GATEWAYS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(GATEWAY_PID_TEMPLATE, "*"));
     private static final Pattern GATEWAY_PID_REPLACEMENT = Pattern.compile(String.format(GATEWAY_PID_TEMPLATE, ""), Pattern.LITERAL);
 
-    DefaultGatewayParser() {
+    private static final LazySoftReference<DefaultGatewayParser> INSTANCE = new LazySoftReference<>();
+
+    private DefaultGatewayParser() {
         super(GATEWAY_INSTANCE_NAME_PROPERTY, SerializableAgentConfiguration::getGateways);
+    }
+
+    static DefaultGatewayParser getInstance(){
+        return INSTANCE.lazyGet(DefaultGatewayParser::new);
     }
 
     @Override

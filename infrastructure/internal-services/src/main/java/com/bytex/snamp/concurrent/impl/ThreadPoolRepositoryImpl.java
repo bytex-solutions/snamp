@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationException;
 
+import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
@@ -54,6 +55,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractAggregator implement
     }
 
     @Override
+    @Nonnull
     public Iterator<String> iterator() {
         return threadPools.read(services -> ImmutableSet.copyOf(services.keySet()).iterator());
     }
@@ -82,7 +84,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractAggregator implement
                             //deserialize configuration
                             final ThreadPoolConfiguration offeredConfig;
                             try {
-                                offeredConfig = DefaultThreadPoolParser.deserialize(poolName, properties, getClass().getClassLoader());
+                                offeredConfig = DefaultThreadPoolParser.getInstance().deserialize(poolName, properties);
                                 assert offeredConfig != null;
                             } catch (final IOException e) {
                                 logger.log(Level.SEVERE, "Unable to read thread pool config");

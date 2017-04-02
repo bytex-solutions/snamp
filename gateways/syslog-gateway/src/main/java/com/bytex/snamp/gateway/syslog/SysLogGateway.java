@@ -132,7 +132,7 @@ final class SysLogGateway extends AbstractGateway {
         final SysLogConfigurationDescriptor parser = SysLogConfigurationDescriptor.getInstance();
         start(parser.createSender(parameters),
                 parser.getPassiveCheckSendPeriod(parameters),
-                parser.getThreadPool(parameters));
+                parser.parseThreadPool(parameters));
     }
 
     @Override

@@ -14,7 +14,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class LazySoftReference<V> extends AbstractLazyReference<V> {
     private static final long serialVersionUID = 1898537173263220348L;
 
-    public LazySoftReference() {
-        super(SoftReference::new);
+    @Override
+    SoftReference<V> makeRef(final V value) {
+        return new SoftReference<>(value);
     }
 }

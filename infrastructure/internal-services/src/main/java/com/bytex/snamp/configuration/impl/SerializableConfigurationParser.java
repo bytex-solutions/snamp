@@ -1,19 +1,15 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.reflect.TypeToken;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.function.BiConsumer;
-
-import static com.bytex.snamp.MapUtils.getValue;
 
 /**
  * @author Roman Sakno
@@ -56,7 +52,7 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
         return admin.getConfiguration(persistentID, null);
     }
 
-    private E deserialize(final String itemName, final Dictionary<String, ?> properties) throws IOException {
+    public final E deserialize(final String itemName, final Dictionary<String, ?> properties) throws IOException {
         return deserialize(itemName, entityType, properties);
     }
 

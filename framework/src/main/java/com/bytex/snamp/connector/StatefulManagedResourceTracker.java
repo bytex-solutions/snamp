@@ -5,6 +5,7 @@ import com.bytex.snamp.core.StatefulFrameworkService;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.concurrent.Immutable;
 import java.util.Map;
 import java.util.Objects;
@@ -222,6 +223,7 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
     }
 
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
         try {
             doStop();

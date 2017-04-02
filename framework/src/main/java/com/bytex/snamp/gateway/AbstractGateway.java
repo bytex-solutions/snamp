@@ -8,7 +8,6 @@ import com.bytex.snamp.connector.notifications.NotificationModifiedEvent;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationModifiedEvent;
 import com.bytex.snamp.connector.operations.OperationSupport;
-import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.*;
@@ -24,7 +23,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
@@ -241,10 +239,6 @@ public abstract class AbstractGateway extends StatefulManagedResourceTracker<Map
             getLogger().log(Level.SEVERE, String.format("Failed to remove %s resource feature %s", resourceName, feature), e);
             return null;
         }
-    }
-
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForBundle(getBundleContext());
     }
 
     /**

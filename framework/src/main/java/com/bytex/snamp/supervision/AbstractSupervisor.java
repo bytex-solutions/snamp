@@ -8,6 +8,7 @@ import com.bytex.snamp.core.FrameworkServiceState;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -103,5 +104,16 @@ public abstract class AbstractSupervisor extends StatefulManagedResourceTracker<
     @Override
     public String toString() {
         return supervisorType + ':' + groupName;
+    }
+
+    @Override
+    public final void close() throws IOException {
+        try {
+            super.close();
+        } catch (final IOException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new IOException(String.format("Unable to terminate supervisor %s", toString()), e);
+        }
     }
 }

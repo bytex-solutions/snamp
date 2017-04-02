@@ -53,7 +53,7 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
     public TabularData getValue() throws OpenDataException {
         final BundleContext context = Utils.getBundleContextOfObject(this);
         final TabularDataBuilderRowFill rows = new TabularDataBuilderRowFill(TYPE);
-        for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
             final ManagedResourceConnectorClient connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
             if (connector != null)
                 try {

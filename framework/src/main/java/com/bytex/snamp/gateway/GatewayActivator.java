@@ -134,7 +134,8 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      * @since 2.0
      */
     @FunctionalInterface
-    protected interface SupportServiceActivator<T extends SupportService>{
+    protected interface SupportServiceFactory<T extends SupportService>{
+        @Nonnull
         T activateService(final DependencyManager dependencies) throws Exception;
     }
 
@@ -148,12 +149,12 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      * @version 2.0
      * @see #configurationDescriptor(Supplier)
      */
-    protected final static class SupportGatewayServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T>{
-        private final SupportServiceActivator<T> activator;
+    protected final static class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T>{
+        private final SupportServiceFactory<T> activator;
 
-        private SupportGatewayServiceManager(final Class<S> contract,
-                                             final SupportServiceActivator<T> activator,
-                                             final RequiredService<?>... dependencies) {
+        private SupportServiceManager(final Class<S> contract,
+                                      final SupportServiceFactory<T> activator,
+                                      final RequiredService<?>... dependencies) {
             super(contract, dependencies);
             this.activator = Objects.requireNonNull(activator);
         }
@@ -181,7 +182,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      * @param optionalServices Additional services exposed by gateway.
      */
     protected GatewayActivator(final GatewayFactory<G> factory,
-                               final SupportGatewayServiceManager<?, ?>... optionalServices){
+                               final SupportServiceManager<?, ?>... optionalServices){
         this(factory, emptyArray(RequiredService[].class), optionalServices);
     }
 
@@ -193,26 +194,26 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      */
     protected GatewayActivator(final GatewayFactory<G> factory,
                                final RequiredService<?>[] gatewayDependencies,
-                               final SupportGatewayServiceManager<?, ?>[] optionalServices) {
+                               final SupportServiceManager<?, ?>[] optionalServices) {
         super(serviceProvider(factory, gatewayDependencies, optionalServices));
         gatewayType = Gateway.getGatewayType(getBundleContextOfObject(this).getBundle());
     }
 
     private static <G extends Gateway> ProvidedServices serviceProvider(final GatewayFactory<G> factory,
                                                                         final RequiredService<?>[] gatewayDependencies,
-                                                    final SupportGatewayServiceManager<?, ?>[] optionalServices){
+                                                    final SupportServiceManager<?, ?>[] optionalServices){
         return (services, activationProperties, bundleLevelDependencies) -> {
             services.add(new GatewayInstances<>(factory, gatewayDependencies));
             Collections.addAll(services, optionalServices);
         };
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportGatewayServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceActivator<T> factory,
-                                                                                                                                                                        final RequiredService<?>... dependencies) {
-        return new SupportGatewayServiceManager<>(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceFactory<T> factory,
+                                                                                                                                                                 final RequiredService<?>... dependencies) {
+        return new SupportServiceManager<>(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportGatewayServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory) {
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory) {
         return configurationDescriptor(dependencies -> factory.get());
     }
 

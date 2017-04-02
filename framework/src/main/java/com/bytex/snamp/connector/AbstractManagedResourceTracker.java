@@ -3,10 +3,13 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.core.FilterBuilder;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.LoggingScope;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
+
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -33,6 +36,10 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
 
     protected final BundleContext getBundleContext(){
         return getBundleContextOfObject(this);
+    }
+
+    protected final Logger getLogger(){
+        return LoggerProvider.getLoggerForBundle(getBundleContext());
     }
 
     protected abstract void addResource(final ManagedResourceConnectorClient connector);

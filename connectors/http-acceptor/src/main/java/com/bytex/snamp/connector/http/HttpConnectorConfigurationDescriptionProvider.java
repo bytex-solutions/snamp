@@ -23,14 +23,14 @@ final class HttpConnectorConfigurationDescriptionProvider extends DataStreamConn
 
     private static final LazySoftReference<HttpConnectorConfigurationDescriptionProvider> INSTANCE = new LazySoftReference<>();
 
-    private static final class HttpConnectorCofigurationDescription extends ConnectorConfigurationDescription{
-        private HttpConnectorCofigurationDescription(){
+    private static final class HttpConnectorConfigurationDescription extends ConnectorConfigurationDescription{
+        private HttpConnectorConfigurationDescription(){
             super("ConnectorParameters", PARSER_SCRIPT_NAME_PARAM, PARSER_SCRIPT_PATH_PARAM);
         }
     }
 
     private HttpConnectorConfigurationDescriptionProvider(){
-        super(new HttpConnectorCofigurationDescription(), AttributeConfigurationDescription.createDefault(), EventConfigurationDescription.createDefault());
+        super(new HttpConnectorConfigurationDescription(), AttributeConfigurationDescription.createDefault(), EventConfigurationDescription.createDefault());
     }
 
     static HttpConnectorConfigurationDescriptionProvider getInstance(){

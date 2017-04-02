@@ -140,7 +140,7 @@ final class NRDPGateway extends AbstractGateway {
         final NRDPGatewayConfigurationDescriptor parser = NRDPGatewayConfigurationDescriptor.getInstance();
         start(parser.getPassiveCheckSendPeriod(parameters),
                 parser.parseSettings(parameters),
-                parser.getThreadPool(parameters));
+                parser.parseThreadPool(parameters));
     }
 
     @Override
