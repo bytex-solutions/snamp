@@ -5,7 +5,7 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.core.SnampManager;
 import com.bytex.snamp.jmx.FrameworkMBean;
 import com.bytex.snamp.jmx.OpenMBean;
-import com.bytex.snamp.management.SnampManagerImpl;
+import com.bytex.snamp.management.DefaultSnampManager;
 
 import javax.annotation.Nonnull;
 
@@ -27,7 +27,7 @@ public final class SnampClusterNodeMBean extends OpenMBean implements FrameworkM
                 new ResignOperation()
         );
         aggregator = AbstractAggregator.builder()
-                .addValue(SnampManager.class, new SnampManagerImpl())
+                .addValue(SnampManager.class, new DefaultSnampManager())
                 .build();
     }
 

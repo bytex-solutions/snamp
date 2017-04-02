@@ -6,10 +6,10 @@ import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
 import com.bytex.snamp.connector.attributes.checkers.NumberComparatorPredicate;
-import com.bytex.snamp.connector.supervision.InvalidAttributeValue;
-import com.bytex.snamp.connector.supervision.OkStatus;
-import com.bytex.snamp.connector.supervision.ResourceIsNotAvailable;
-import com.bytex.snamp.connector.supervision.triggers.InvalidTriggerException;
+import com.bytex.snamp.connector.health.InvalidAttributeValue;
+import com.bytex.snamp.connector.health.OkStatus;
+import com.bytex.snamp.connector.health.ResourceIsNotAvailable;
+import com.bytex.snamp.connector.health.triggers.InvalidTriggerException;
 import org.junit.Assert;
 import org.junit.Test;
 

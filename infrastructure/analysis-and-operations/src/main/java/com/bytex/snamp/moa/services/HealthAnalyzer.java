@@ -1,6 +1,6 @@
 package com.bytex.snamp.moa.services;
 
-import com.bytex.snamp.connector.supervision.HealthStatusProvider;
+import com.bytex.snamp.supervision.HealthStatusProvider;
 import org.osgi.service.cm.ManagedService;
 
 import javax.annotation.Nonnull;

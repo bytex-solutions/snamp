@@ -4,7 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.internal.CMSupervisorParser;
-import com.bytex.snamp.connector.supervision.HealthStatusProvider;
+import com.bytex.snamp.supervision.HealthStatusProvider;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.moa.DataAnalyzer;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;

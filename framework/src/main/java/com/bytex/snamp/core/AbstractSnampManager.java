@@ -7,9 +7,9 @@ import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
-import com.bytex.snamp.connector.supervision.SupervisorActivator;
-import com.bytex.snamp.connector.supervision.SupervisorClient;
-import com.bytex.snamp.connector.supervision.SupervisorFilterBuilder;
+import com.bytex.snamp.supervision.SupervisorActivator;
+import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.SupervisorFilterBuilder;
 import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
@@ -399,6 +399,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @param systemName The name of the connector.
      * @return A new instance of the connector descriptor.
      */
+    @Nonnull
     protected abstract ResourceConnectorDescriptor createResourceConnectorDescriptor(final String systemName);
 
     /**
@@ -417,6 +418,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @param gatewayType Type of gateway.
      * @return A new instance of the gateway descriptor.
      */
+    @Nonnull
     protected abstract GatewayDescriptor createGatewayDescriptor(final String gatewayType);
 
     /**
@@ -435,6 +437,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @param supervisorType Type of supervisor.
      * @return A new instance of the supervisor descriptor.
      */
+    @Nonnull
     protected abstract SupervisorDescriptor createSupervisorDescriptor(final String supervisorType);
 
     /**

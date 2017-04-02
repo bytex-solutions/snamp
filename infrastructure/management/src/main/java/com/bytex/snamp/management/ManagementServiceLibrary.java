@@ -37,15 +37,15 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final ActivationProperty<Boolean> USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY = defineActivationProperty(Boolean.class, false);
     private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
-    private static final class SnampManagerProvider extends ProvidedService<SnampManager, SnampManagerImpl>{
+    private static final class SnampManagerProvider extends ProvidedService<SnampManager, DefaultSnampManager>{
 
         private SnampManagerProvider() {
             super(SnampManager.class);
         }
 
         @Override
-        protected SnampManagerImpl activateService(final Map<String, Object> identity) {
-            return new SnampManagerImpl();
+        protected DefaultSnampManager activateService(final Map<String, Object> identity) {
+            return new DefaultSnampManager();
         }
     }
 

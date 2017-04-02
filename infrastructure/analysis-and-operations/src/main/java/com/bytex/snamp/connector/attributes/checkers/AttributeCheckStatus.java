@@ -1,8 +1,8 @@
 package com.bytex.snamp.connector.attributes.checkers;
 
-import com.bytex.snamp.connector.supervision.HealthStatus;
-import com.bytex.snamp.connector.supervision.InvalidAttributeValue;
-import com.bytex.snamp.connector.supervision.OkStatus;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.InvalidAttributeValue;
+import com.bytex.snamp.connector.health.OkStatus;
 
 import javax.management.Attribute;
 

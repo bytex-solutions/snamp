@@ -13,7 +13,7 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.regex.Pattern;
 
-import static com.bytex.snamp.connector.supervision.Supervisor.CAPABILITY_NAMESPACE;
+import static com.bytex.snamp.supervision.Supervisor.CAPABILITY_NAMESPACE;
 
 /**
  * @author Roman Sakno

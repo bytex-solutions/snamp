@@ -15,7 +15,7 @@ import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptorRead;
-import com.bytex.snamp.connector.supervision.*;
+import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.core.LoggerProvider;
 
 import javax.management.*;

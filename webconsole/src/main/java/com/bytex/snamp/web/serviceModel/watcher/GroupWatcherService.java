@@ -1,9 +1,9 @@
 package com.bytex.snamp.web.serviceModel.watcher;
 
-import com.bytex.snamp.connector.supervision.HealthStatusChangedEvent;
-import com.bytex.snamp.connector.supervision.HealthStatusEventListener;
-import com.bytex.snamp.connector.supervision.HealthStatus;
-import com.bytex.snamp.connector.supervision.HealthStatusProvider;
+import com.bytex.snamp.supervision.HealthStatusChangedEvent;
+import com.bytex.snamp.supervision.HealthStatusEventListener;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.supervision.HealthStatusProvider;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;

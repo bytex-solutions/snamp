@@ -2,7 +2,7 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.core.SnampComponentDescriptor;
 import com.bytex.snamp.core.SnampManager;
-import com.bytex.snamp.management.SnampManagerImpl;
+import com.bytex.snamp.management.DefaultSnampManager;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
@@ -22,7 +22,7 @@ import static com.bytex.snamp.management.ManagementUtils.getStateString;
         description = "List of installed gateways")
 @Service
 public final class InstalledGatewaysCommand extends SnampShellCommand  {
-    private final SnampManager manager = new SnampManagerImpl();
+    private final SnampManager manager = new DefaultSnampManager();
 
     static void writeGateway(final SnampComponentDescriptor component, final StringBuilder output) {
         appendln(output, "%s. Name: %s. Description: %s. Version: %s. State: %s",

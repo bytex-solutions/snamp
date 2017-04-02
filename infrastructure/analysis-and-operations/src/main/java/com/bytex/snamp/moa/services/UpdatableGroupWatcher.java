@@ -7,12 +7,14 @@ import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
 import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
-import com.bytex.snamp.connector.supervision.*;
-import com.bytex.snamp.connector.supervision.triggers.HealthStatusTrigger;
-import com.bytex.snamp.connector.supervision.triggers.InvalidTriggerException;
-import com.bytex.snamp.connector.supervision.triggers.TriggerFactory;
+import com.bytex.snamp.connector.health.*;
+import com.bytex.snamp.connector.health.triggers.HealthStatusTrigger;
+import com.bytex.snamp.connector.health.triggers.InvalidTriggerException;
+import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.supervision.HealthStatusChangedEvent;
+import com.bytex.snamp.supervision.HealthStatusEventListener;
 import org.osgi.framework.BundleContext;
 
 import javax.management.Attribute;

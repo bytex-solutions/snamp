@@ -39,7 +39,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-                        <Export-Package>com.bytex.snamp.connector.supervision.core.*</Export-Package>
+                        <Export-Package>com.bytex.snamp.connector.health.core.*</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

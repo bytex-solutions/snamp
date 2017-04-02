@@ -1,6 +1,6 @@
 package com.bytex.snamp.web.serviceModel.watcher;
 
-import com.bytex.snamp.connector.supervision.*;
+import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
