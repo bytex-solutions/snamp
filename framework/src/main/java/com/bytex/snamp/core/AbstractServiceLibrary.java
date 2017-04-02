@@ -105,7 +105,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             serviceContracts = contracts.get();
             this.dependencies = new DependencyManager(dependencies);
             registration = null;
-            properties = emptyActivationPropertyReader;
+            properties = EMPTY_ACTIVATION_PROPERTY_READER;
         }
 
         /**
@@ -267,7 +267,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             } finally {
                 //releases all dependencies
                 dependencies.unbind(context);
-                properties = emptyActivationPropertyReader;
+                properties = EMPTY_ACTIVATION_PROPERTY_READER;
                 activationContext = null;
             }
         }

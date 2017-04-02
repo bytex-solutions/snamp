@@ -24,6 +24,11 @@ public interface SnampComponentDescriptor extends Localizable, Map<String, Strin
     String GATEWAY_TYPE_PROPERTY = "gatewayType";
 
     /**
+     * Represents name of the property that contains gateway type.
+     */
+    String SUPERVISOR_TYPE_PROPERTY = "supervisorType";
+
+    /**
      * Represents name of the property that contains bundle identifier.
      */
     String BUNDLE_ID_PROPERTY = "bundleID";

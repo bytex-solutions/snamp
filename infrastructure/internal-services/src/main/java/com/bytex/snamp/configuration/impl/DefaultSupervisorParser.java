@@ -4,7 +4,6 @@ import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import com.bytex.snamp.io.IOUtils;
-import com.google.common.reflect.TypeToken;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -14,21 +13,21 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.regex.Pattern;
 
-import static com.bytex.snamp.connector.supervision.ManagedResourceGroupSupervisor.CAPABILITY_NAMESPACE;
+import static com.bytex.snamp.connector.supervision.Supervisor.CAPABILITY_NAMESPACE;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-final class CMSupervisorParserImpl extends AbstractTypedConfigurationParser<SerializableSupervisorConfiguration> implements CMSupervisorParser {
+final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<SerializableSupervisorConfiguration> implements CMSupervisorParser {
     private static final String SUPERVISOR_PID_TEMPLATE = CAPABILITY_NAMESPACE + ".%s";
     private static final String GROUP_NAME_PROPERTY = "$groupName$";
     private static final String HEALTH_CHECK_PROPERTY = "$healthCheck$";
     private static final String ALL_SUPERVISORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(SUPERVISOR_PID_TEMPLATE, "*"));
     private static final Pattern SUPERVISOR_PID_REPLACEMENT = Pattern.compile(String.format(SUPERVISOR_PID_TEMPLATE, ""), Pattern.LITERAL);
 
-    CMSupervisorParserImpl() {
+    DefaultSupervisorParser() {
         super(GROUP_NAME_PROPERTY, SerializableAgentConfiguration::getSupervisors);
     }
 

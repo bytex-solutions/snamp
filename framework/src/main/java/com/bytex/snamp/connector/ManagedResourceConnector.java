@@ -116,7 +116,8 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
                 .filter(Objects::nonNull)
                 .map(Object::toString)
                 .findFirst()
-                .orElse("");
+                .orElse("")
+                .intern();
     }
 
     /**

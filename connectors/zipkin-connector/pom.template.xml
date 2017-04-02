@@ -45,7 +45,7 @@
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>data-stream-connector</artifactId>
-            <version>${snamp.stream.connector.version}</version>
+            <version>${snamp.connector.stream.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

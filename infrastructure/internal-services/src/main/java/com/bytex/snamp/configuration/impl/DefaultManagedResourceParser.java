@@ -29,7 +29,7 @@ import static com.bytex.snamp.connector.ManagedResourceConnector.CAPABILITY_NAME
  * @version 1.0
  * @since 1.0
  */
-final class CMManagedResourceParserImpl extends AbstractTypedConfigurationParser<SerializableManagedResourceConfiguration> implements CMManagedResourceParser {
+final class DefaultManagedResourceParser extends AbstractTypedConfigurationParser<SerializableManagedResourceConfiguration> implements CMManagedResourceParser {
     private static final TypeToken<SerializableMap<String, SerializableAttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableAttributeConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, SerializableEventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableEventConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, SerializableOperationConfiguration>> OPS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableOperationConfiguration>>() {};
@@ -44,7 +44,7 @@ final class CMManagedResourceParserImpl extends AbstractTypedConfigurationParser
 
     private static final String ALL_CONNECTORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(CONNECTOR_PID_TEMPLATE, "*"));
 
-    CMManagedResourceParserImpl() {
+    DefaultManagedResourceParser() {
         super(RESOURCE_NAME_PROPERTY, SerializableAgentConfiguration::getResources);
     }
 

@@ -1,11 +1,11 @@
 package com.bytex.snamp.gateway;
 
-import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.core.FrameworkServiceState;
+import com.bytex.snamp.core.StatefulFrameworkService;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceListener;
 import org.osgi.framework.wiring.BundleRevision;
 
 import javax.annotation.Nonnull;
@@ -23,7 +23,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 1.0
  */
-public interface Gateway extends FrameworkService, ServiceListener, Closeable {
+public interface Gateway extends StatefulFrameworkService, Closeable {
     /**
      * This namespace must be defined in Provide-Capability manifest header inside of the bundle containing implementation
      * of gateway.
@@ -95,20 +95,21 @@ public interface Gateway extends FrameworkService, ServiceListener, Closeable {
      */
     @Nonnull
     @Override
-    Map<String, Object> getConfiguration();
+    Map<String, String> getConfiguration();
 
     /**
      * Updates configuration of this gateway.
      * @param configuration A new configuration to update
      * @throws Exception Unable to update this gateway.
      */
-    void update(final Map<String, String> configuration) throws Exception;
+    void update(@Nonnull final Map<String, String> configuration) throws Exception;
 
     /**
      * Gets state of this instance.
      * @return The state of this instance.
      */
-    GatewayState getState();
+    @Override
+    FrameworkServiceState getState();
 
     /**
      * Gets a collection of features contained in this instance of the gateway.
@@ -134,7 +135,8 @@ public interface Gateway extends FrameworkService, ServiceListener, Closeable {
                 .filter(Objects::nonNull)
                 .map(Object::toString)
                 .findFirst()
-                .orElse("");
+                .orElse("")
+                .intern();
     }
 
     static boolean isGatewayBundle(final Bundle bnd) {

@@ -10,6 +10,7 @@ import com.bytex.snamp.connector.notifications.NotificationModifiedEvent;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationModifiedEvent;
 import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.gateway.modeling.*;
@@ -17,6 +18,7 @@ import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.*;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
@@ -42,7 +44,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 1.0
  * @version 2.0
  */
-public abstract class AbstractGateway extends AbstractAggregator implements Gateway, ResourceEventListener{
+public abstract class AbstractGateway extends AbstractAggregator implements Gateway, ResourceEventListener, ServiceListener{
     @FunctionalInterface
     private interface FeatureModifiedEventFactory<S, F extends MBeanFeatureInfo>{
         FeatureModifiedEvent<F> createEvent(final S sender,
@@ -57,31 +59,30 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
             super(requester, operationName);
         }
 
-        private static GatewayLoggingScope connectorChangesDetected(final AbstractGateway requester) {
+        static GatewayLoggingScope connectorChangesDetected(final AbstractGateway requester) {
             return new GatewayLoggingScope(requester, "processResourceConnectorChanges");
         }
     }
 
     @Immutable
     private static final class InternalState {
-        private final ImmutableMap<String, String> parameters;
-        private final GatewayState state;
+        final ImmutableMap<String, String> parameters;
+        final FrameworkServiceState state;
 
-        private InternalState(final GatewayState state, final Map<String, String> params) {
+        private InternalState(final FrameworkServiceState state, final Map<String, String> params) {
             this.state = state;
             this.parameters = ImmutableMap.copyOf(params);
         }
 
         private InternalState(){
-            state = GatewayState.CREATED;
-            parameters = ImmutableMap.of();
+            this(FrameworkServiceState.CREATED, ImmutableMap.of());
         }
 
         InternalState setParameters(final Map<String, String> value) {
             return new InternalState(state, value);
         }
 
-        InternalState transition(final GatewayState value) {
+        InternalState transition(final FrameworkServiceState value) {
             switch (value) {
                 case CLOSED:
                     return null;
@@ -115,7 +116,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
 
         @Override
         public int hashCode() {
-            return state.hashCode() & parameters.hashCode();
+            return Objects.hash(state, parameters);
         }
     }
 
@@ -207,6 +208,8 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     private volatile InternalState mutableState;
+    protected final String gatewayType;
+
     /**
      * Gets name of this instance.
      */
@@ -219,12 +222,14 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     protected AbstractGateway(final String instanceName) {
         this.instanceName = instanceName;
         mutableState = new InternalState();
+        gatewayType = Gateway.getGatewayType(getClass()).intern();
     }
 
     @Nonnull
     @Override
-    public final Map<String, Object> getConfiguration() {
-        return ImmutableMap.of();
+    public final Map<String, String> getConfiguration() {
+        final InternalState currentState = mutableState;
+        return currentState == null ? ImmutableMap.of() : currentState.parameters;
     }
 
     /**
@@ -232,9 +237,9 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      * @return The state of this gateway.
      */
     @Override
-    public final GatewayState getState(){
+    public final FrameworkServiceState getState(){
         final InternalState current = mutableState;
-        return current != null ? current.state : GatewayState.CLOSED;
+        return current != null ? current.state : FrameworkServiceState.CLOSED;
     }
 
     private <F extends MBeanFeatureInfo> void featureModified(final FeatureModifiedEvent<F> event){
@@ -370,7 +375,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     @Override
-    public final synchronized void update(final Map<String, String> newParameters) throws Exception {
+    public final synchronized void update(@Nonnull final Map<String, String> newParameters) throws Exception {
         final InternalState currentState = mutableState;
         switch (currentState.state) {
             case CREATED:
@@ -392,7 +397,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
             public void updated() {
                 final AbstractGateway gateway = get();
                 if (gateway != null)
-                    GatewayEventBus.notifyInstanceUpdated(gateway.getGatewayType(), gateway);
+                    GatewayEventBus.notifyInstanceUpdated(gateway.gatewayType, gateway);
             }
         }
 
@@ -411,7 +416,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         else
             callback = GatewayUpdateManager.combineCallbacks(callback, gatewayUpdatedNotifier(this));
         if (manager.beginUpdate(callback))
-            GatewayEventBus.notifyInstanceUpdating(getGatewayType(), this);
+            GatewayEventBus.notifyInstanceUpdating(gatewayType, this);
     }
 
     /**
@@ -478,7 +483,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 }
                 InternalState newState = currentState.setParameters(params);
                 start(newState.parameters);
-                mutableState = newState.transition(GatewayState.STARTED);
+                mutableState = newState.transition(FrameworkServiceState.STARTED);
                 started();
                 ManagedResourceConnectorClient.filterBuilder().addServiceListener(context, this);
         }
@@ -502,7 +507,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                     }
                 } finally {
                     getBundleContext().removeServiceListener(this);
-                    mutableState = currentState.transition(GatewayState.STOPPED);
+                    mutableState = currentState.transition(FrameworkServiceState.STOPPED);
                 }
                 stopped();
         }
@@ -562,17 +567,17 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         } catch (final Exception e) {
             throw new IOException(String.format("Unable to release resources associated with %s gateway instance", instanceName), e);
         } finally {
-            mutableState = mutableState.transition(GatewayState.CLOSED);
+            mutableState = mutableState.transition(FrameworkServiceState.CLOSED);
             clearCache();
         }
     }
 
     private void started(){
-        GatewayEventBus.notifyInstanceStarted(getGatewayType(), this);
+        GatewayEventBus.notifyInstanceStarted(gatewayType, this);
     }
 
     private void stopped(){
-        GatewayEventBus.notifyInstanceStopped(getGatewayType(), this);
+        GatewayEventBus.notifyInstanceStopped(gatewayType, this);
     }
 
     private BundleContext getBundleContext(){
@@ -586,10 +591,6 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     @Override
     public String toString() {
         return instanceName;
-    }
-
-    public final String getGatewayType() {
-        return Gateway.getGatewayType(getClass());
     }
 
     @Override

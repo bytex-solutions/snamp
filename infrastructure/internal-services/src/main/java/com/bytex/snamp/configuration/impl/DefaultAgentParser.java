@@ -22,7 +22,7 @@ import static com.bytex.snamp.MapUtils.getValue;
  * @version 2.0
  * @since 2.0
  */
-final class CMAgentParserImpl {
+final class DefaultAgentParser {
     private static final String PID = "com.bytex.snamp.configuration";
 
     private static Configuration getConfig(final ConfigurationAdmin admin) throws IOException {
@@ -41,7 +41,7 @@ final class CMAgentParserImpl {
     static void loadParameters(final ConfigurationAdmin admin, final AgentConfiguration agentConfig) throws IOException {
         final Configuration conf = getConfig(admin);
         if (conf.getProperties() != null) {
-            Iterator<String> keys = Iterators.filter(Iterators.forEnumeration(conf.getProperties().keys()), CMAgentParserImpl::isValidParameter);
+            Iterator<String> keys = Iterators.filter(Iterators.forEnumeration(conf.getProperties().keys()), DefaultAgentParser::isValidParameter);
             final Map<String, String> params = Maps.toMap(keys, key -> getValue(conf.getProperties(), key, Objects::toString).orElse(""));
             agentConfig.load(params);
         }

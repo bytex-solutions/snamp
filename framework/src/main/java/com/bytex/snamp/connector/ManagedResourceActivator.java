@@ -76,19 +76,15 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
 
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
         private final ManagedResourceConnectorFactory<TConnector> factory;
-        private final String connectorType;
 
-        private ManagedResourceConnectorRegistry(final String connectorType,
-                                                 final ManagedResourceConnectorFactory<TConnector> controller,
+        private ManagedResourceConnectorRegistry(@Nonnull final ManagedResourceConnectorFactory<TConnector> controller,
                                                  final RequiredService<?>... dependencies) {
             super(ManagedResourceConnector.class, dependencies);
-            this.factory = Objects.requireNonNull(controller, "factory is null.");
-            this.connectorType = connectorType;
+            this.factory = controller;
         }
 
-        ManagedResourceConnectorRegistry(final ManagedResourceConnectorFactory<TConnector> controller,
-                                                 final RequiredService<?>... dependencies){
-            this(ManagedResourceConnector.getConnectorType(getBundleContextOfObject(controller).getBundle()), controller, dependencies);
+        private String getConnectorType(){
+            return getActivationPropertyValue(CONNECTOR_TYPE_HOLDER);
         }
 
         private CMManagedResourceParser getParser(){
@@ -97,7 +93,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
 
         @Override
         protected String getFactoryPID() {
-            return getParser().getFactoryPersistentID(connectorType);
+            return getParser().getFactoryPersistentID(getConnectorType());
         }
 
         private static void setFeatureNameIfNecessary(final FeatureConfiguration feature,
@@ -261,7 +257,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             final ManagedResourceConfiguration newConfig = parser.parse(configuration).getValue();
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Managed resource %s cannot be created. Configuration not found.", resourceName));
-            newConfig.setType(connectorType);
+            newConfig.setType(getConnectorType());
             newConfig.expandParameters();
             return createService(identity, resourceName, newConfig);
         }

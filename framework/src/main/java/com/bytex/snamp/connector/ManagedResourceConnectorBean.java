@@ -15,6 +15,9 @@ import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
+import com.bytex.snamp.connector.supervision.HealthCheckSupport;
+import com.bytex.snamp.connector.supervision.HealthStatus;
+import com.bytex.snamp.connector.supervision.OkStatus;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.SharedCounter;
 import org.osgi.framework.BundleContext;
@@ -66,7 +69,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 1.0
  * @version 2.0
  */
-public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector {
+public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector implements HealthCheckSupport {
 
     /**
      * Describes management notification type supported by this connector.
@@ -340,6 +343,16 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     private static BeanDiscoveryService createDiscoveryService(final BeanInfo beanMetadata,
                                                                final Set<? extends ManagementNotificationType<?>> notifTypes){
         return new BeanDiscoveryService(beanMetadata, notifTypes);
+    }
+
+    /**
+     * Determines whether the connected managed resource is alive.
+     *
+     * @return Status of the remove managed resource.
+     */
+    @Override
+    public HealthStatus getStatus() {
+        return new OkStatus(attributes.getResourceName());
     }
 
     /**

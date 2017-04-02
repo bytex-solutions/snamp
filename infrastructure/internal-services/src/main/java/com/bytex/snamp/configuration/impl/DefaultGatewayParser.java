@@ -19,13 +19,13 @@ import static com.bytex.snamp.gateway.Gateway.CAPABILITY_NAMESPACE;
  * @version 1.0
  * @since 1.0
  */
-final class CMGatewayParserImpl extends AbstractTypedConfigurationParser<SerializableGatewayConfiguration> implements CMGatewayParser {
+final class DefaultGatewayParser extends AbstractTypedConfigurationParser<SerializableGatewayConfiguration> implements CMGatewayParser {
     private static final String GATEWAY_PID_TEMPLATE = CAPABILITY_NAMESPACE + ".%s";
     private static final String GATEWAY_INSTANCE_NAME_PROPERTY = "$gatewayInstanceName$";
     private static final String ALL_GATEWAYS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(GATEWAY_PID_TEMPLATE, "*"));
     private static final Pattern GATEWAY_PID_REPLACEMENT = Pattern.compile(String.format(GATEWAY_PID_TEMPLATE, ""), Pattern.LITERAL);
 
-    CMGatewayParserImpl() {
+    DefaultGatewayParser() {
         super(GATEWAY_INSTANCE_NAME_PROPERTY, SerializableAgentConfiguration::getGateways);
     }
 

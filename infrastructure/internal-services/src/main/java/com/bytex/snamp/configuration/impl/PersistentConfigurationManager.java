@@ -32,11 +32,11 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private final ConfigurationAdmin admin;
     private final ReadWriteLock configurationLock;
     @Aggregation(cached = true)
-    private final CMManagedResourceParserImpl resourceParser;
+    private final DefaultManagedResourceParser resourceParser;
     @Aggregation(cached = true)
-    private final CMGatewayParserImpl gatewayInstanceParser;
-    private final CMThreadPoolParser threadPoolParser;
-    private final CMManagedResourceGroupParser groupParser;
+    private final DefaultGatewayParser gatewayInstanceParser;
+    private final DefaultThreadPoolParser threadPoolParser;
+    private final DefaultManagedResourceGroupParser groupParser;
 
     /**
      * Initializes a new configuration manager.
@@ -45,10 +45,10 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     public PersistentConfigurationManager(final ConfigurationAdmin configAdmin){
         admin = Objects.requireNonNull(configAdmin, "configAdmin is null.");
         configurationLock = new ReentrantReadWriteLock();
-        resourceParser = new CMManagedResourceParserImpl();
-        gatewayInstanceParser = new CMGatewayParserImpl();
-        threadPoolParser = new CMThreadPoolParser();
-        groupParser = new CMManagedResourceGroupParser();
+        resourceParser = new DefaultManagedResourceParser();
+        gatewayInstanceParser = new DefaultGatewayParser();
+        threadPoolParser = new DefaultThreadPoolParser();
+        groupParser = new DefaultManagedResourceGroupParser();
     }
 
     private static void mergeResourcesWithGroups(final SerializableEntityMap<SerializableManagedResourceConfiguration> resources,
@@ -76,7 +76,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             groupParser.saveChanges(config, admin);
         }
         //save SNAMP config
-        CMAgentParserImpl.saveParameters(admin, config);
+        DefaultAgentParser.saveParameters(admin, config);
     }
 
     private <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler, final Lock synchronizer) throws E, IOException {
@@ -94,7 +94,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             resourceParser.populateRepository(admin, config);
             threadPoolParser.populateRepository(admin, config);
             groupParser.populateRepository(admin, config);
-            CMAgentParserImpl.loadParameters(admin, config);
+            DefaultAgentParser.loadParameters(admin, config);
             if (handler.process(config))
                 save(config);
         } finally {

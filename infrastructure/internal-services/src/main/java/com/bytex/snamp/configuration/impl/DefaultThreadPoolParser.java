@@ -11,10 +11,10 @@ import static com.bytex.snamp.concurrent.ThreadPoolRepository.DEFAULT_POOL;
  * @version 2.0
  * @since 2.0
  */
-public final class CMThreadPoolParser extends SerializableConfigurationParser<SerializableThreadPoolConfiguration> {
+public final class DefaultThreadPoolParser extends SerializableConfigurationParser<SerializableThreadPoolConfiguration> {
     public static final String PID = "com.bytex.snamp.concurrency.threadPools";
 
-    CMThreadPoolParser() {
+    DefaultThreadPoolParser() {
         super(SerializableAgentConfiguration::getThreadPools, PID, SerializableThreadPoolConfiguration.class, DEFAULT_POOL);
     }
 

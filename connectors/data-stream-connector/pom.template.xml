@@ -12,7 +12,7 @@
     <description>Framework for writing connectors based on message processing</description>
     <artifactId>data-stream-connector</artifactId>
     <packaging>bundle</packaging>
-    <version>${snamp.stream.connector.version}</version>
+    <version>${snamp.connector.stream.version}</version>
     <build>
         <resources>
             <resource>

@@ -52,10 +52,8 @@
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
     <snamp.gateway.influx.version>2.0.0</snamp.gateway.influx.version>
 
-    <snamp.json.version>2.0.0</snamp.json.version>
-    <snamp.management.version>2.0.0</snamp.management.version>
-    <snamp.services.version>2.0.0</snamp.services.version>
-    <snamp.scripting.version>2.0.0</snamp.scripting.version>
+    <snamp.supervisors.version>2.0.0</snamp.supervisors.version>
+    <snamp.supervisor.openstack.version>2.0.0</snamp.supervisor.openstack.version>
 
     <snamp.connectors.version>2.0.0</snamp.connectors.version>
     <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
@@ -64,9 +62,14 @@
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
     <snamp.connector.snmp.version>2.0.0</snamp.connector.snmp.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
-    <snamp.stream.connector.version>2.0.0</snamp.stream.connector.version>
+    <snamp.connector.stream.version>2.0.0</snamp.connector.stream.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
     <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
+
+    <snamp.json.version>2.0.0</snamp.json.version>
+    <snamp.management.version>2.0.0</snamp.management.version>
+    <snamp.services.version>2.0.0</snamp.services.version>
+    <snamp.scripting.version>2.0.0</snamp.scripting.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
     <snamp.security.version>2.0.0</snamp.security.version>
@@ -423,6 +426,7 @@
     <module>instrumentation/java</module>
     <module>osgi-tests</module>
       <module>infrastructure/analysis-and-operations</module>
+      <module>supervisors</module>
   </modules>
     <repositories>
         <repository>

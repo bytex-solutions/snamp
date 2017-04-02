@@ -103,6 +103,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
          * @return Map of attribute checkers.
          */
         @Override
+        @Nonnull
         public SerializableFactoryMap<String, SerializableScriptletConfiguration> getAttributeCheckers() {
             return checkers;
         }
@@ -113,6 +114,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
          * @return Trigger configuration.
          */
         @Override
+        @Nonnull
         public SerializableScriptletConfiguration getTrigger() {
             return trigger;
         }
@@ -194,6 +196,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
      * @return Configuration of the health checks.
      */
     @Override
+    @Nonnull
     public SerializableHealthCheckConfiguration getHealthCheckConfig() {
         return healthCheckConfig;
     }

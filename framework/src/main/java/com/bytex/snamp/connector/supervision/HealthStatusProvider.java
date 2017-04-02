@@ -1,10 +1,6 @@
 package com.bytex.snamp.connector.supervision;
 
-import com.bytex.snamp.configuration.ManagedResourceInfo;
-import com.bytex.snamp.core.FrameworkService;
-import com.bytex.snamp.moa.DataAnalyzer;
-
-import java.util.Set;
+import com.bytex.snamp.Stateful;
 
 /**
  * Represents health check service used to supervise groups of managed resources.
@@ -12,29 +8,17 @@ import java.util.Set;
  * @version 2.0
  * @since 2.0
  */
-public interface HealthStatusProvider extends FrameworkService, DataAnalyzer, SupervisorService {
-    /**
-     * Gets immutable set of groups configured for health check.
-     * @return Immutable set of groups configured for health check.
-     * @see ManagedResourceInfo#getGroupName()
-     */
-    Set<String> getWatchingGroups();
-
-    /**
-     * Gets health status of the specified group.
-     * @param groupName Group of managed resources.
-     * @return Health status of the group; or {@literal null}, if group is not configured for watching.
-     */
-    HealthStatus getHealthStatus(final String groupName);
-
+public interface HealthStatusProvider extends SupervisorService, Stateful {
     /**
      * Adds listener of health status.
+     *
      * @param listener Listener of health status to add.
      */
     void addHealthStatusEventListener(final HealthStatusEventListener listener);
 
     /**
      * Removes listener of health status.
+     *
      * @param listener Listener of health status to remove.
      */
     void removeHealthStatusEventListener(final HealthStatusEventListener listener);

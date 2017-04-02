@@ -37,7 +37,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 public abstract class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary {
-    private static final ActivationProperty<String> GATEWAY_TYPE_HOLDER = defineActivationProperty(String.class);
+    private static final ActivationProperty<String> GATEWAY_TYPE_HOLDER = defineActivationProperty(String.class, "");
     private static final ActivationProperty<CMGatewayParser> GATEWAY_PARSER_HOLDER = defineActivationProperty(CMGatewayParser.class);
 
     /**
@@ -56,22 +56,15 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
 
     private static final class GatewayInstances<G extends Gateway> extends ServiceSubRegistryManager<Gateway, G>{
         private final GatewayFactory<G> gatewayInstanceFactory;
-        /**
-         * Represents type of gateway.
-         */
-        protected final String gatewayType;
 
-        private GatewayInstances(final String gatewayType,
-                                 final GatewayFactory<G> factory,
+        private GatewayInstances(@Nonnull final GatewayFactory<G> factory,
                                  final RequiredService<?>... dependencies) {
             super(Gateway.class, dependencies);
-            this.gatewayInstanceFactory = Objects.requireNonNull(factory, "factory is null.");
-            this.gatewayType = gatewayType;
+            this.gatewayInstanceFactory = factory;
         }
 
-        private GatewayInstances(final GatewayFactory<G> factory,
-                                 final RequiredService<?>... dependencies) {
-            this(Gateway.getGatewayType(getBundleContextOfObject(factory).getBundle()), factory, dependencies);
+        private String getGatewayType(){
+            return getActivationPropertyValue(GATEWAY_TYPE_HOLDER);
         }
 
         private CMGatewayParser getParser(){
@@ -80,7 +73,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
 
         @Override
         protected String getFactoryPID() {
-            return getParser().getFactoryPersistentID(gatewayType);
+            return getParser().getFactoryPersistentID(getGatewayType());
         }
 
         @Override
@@ -91,7 +84,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
             final GatewayConfiguration newConfig = parser.parse(configuration).getValue();
             if (newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be updated. Configuration not found.", instanceName));
-            newConfig.setType(gatewayType);
+            newConfig.setType(getGatewayType());
             newConfig.expandParameters();
             gatewayInstance.update(newConfig);
             return gatewayInstance;
@@ -114,7 +107,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
             final GatewayConfiguration newConfig = parser.parse(configuration).getValue();
             if(newConfig == null)
                 throw new IllegalStateException(String.format("Gateway %s cannot be created. Configuration not found.", instanceName));
-            newConfig.setType(gatewayType);
+            newConfig.setType(getGatewayType());
             newConfig.expandParameters();
             return createService(identity, instanceName, newConfig);
         }
@@ -131,7 +124,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
                                              final Exception e) {
             logger.log(Level.SEVERE,
                     String.format("Unable to update gateway. Type: %s, instance: %s",
-                            gatewayType,
+                            getGatewayType(),
                             servicePID),
                     e);
         }
@@ -140,7 +133,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         protected void failedToCleanupService(final Logger logger,
                                               final String servicePID,
                                               final Exception e) {
-            logger.log(Level.SEVERE, String.format("Unable to release gateway. Type: %s, instance: %s", gatewayType, servicePID),
+            logger.log(Level.SEVERE, String.format("Unable to release gateway. Type: %s, instance: %s", getGatewayType(), servicePID),
                     e);
         }
     }

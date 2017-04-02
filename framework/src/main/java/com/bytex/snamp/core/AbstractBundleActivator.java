@@ -6,6 +6,8 @@ import com.bytex.snamp.MethodStub;
 import com.google.common.reflect.TypeToken;
 import org.osgi.framework.*;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -53,30 +55,17 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * Gets type of the activation property.
          * @return The type of the attribute value.
          */
+        @Nonnull
         TypeToken<T> getType();
 
         /**
          * Gets default value of this property.
          * @return Default value of this property.
          */
+        @Nullable
         default T getDefaultValue(){
             return null;
         }
-    }
-
-    /**
-     * Represents named activation property.
-     * @param <T> Type of the property.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    protected interface NamedActivationProperty<T> extends ActivationProperty<T>{
-        /**
-         * Gets name of this property.
-         * @return The name of this property.
-         */
-        String getName();
     }
 
     /**
@@ -97,7 +86,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @return {@literal true}, if the property is published successfully and
          * there is no duplications; otherwise, {@literal false}.
          */
-        <T> boolean publish(final ActivationProperty<T> propertyDef, final T value);
+        <T> boolean publish(@Nonnull final ActivationProperty<T> propertyDef, final T value);
     }
 
     /**
@@ -110,30 +99,30 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @version 2.0
      */
     protected interface ActivationPropertyReader{
-        <T> T getProperty(final ActivationProperty<T> propertyDef);
+        <T> T getProperty(@Nonnull final ActivationProperty<T> propertyDef);
 
         /**
          * Finds the property definition.
-         * @param propertyType The type of the property definition.
-         * @param filter Property definition filter.
+         * @param propertyType Type of requested property. Cannot be {@literal null}.
+         * @param filter Property definition filter. Cannot be {@literal null}.
          * @param <P> The type of the property definition.
          * @return The property definition; or {@literal null}, if porperty not found.
          */
-        <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<? super P> filter);
+        <P extends ActivationProperty<?>> Optional<P> findProperty(@Nonnull final Class<P> propertyType, @Nonnull final Predicate<? super P> filter);
     }
 
     /**
      * Represents an empty activation property reader.
      */
-    protected static final ActivationPropertyReader emptyActivationPropertyReader = new ActivationPropertyReader() {
+    static final ActivationPropertyReader EMPTY_ACTIVATION_PROPERTY_READER = new ActivationPropertyReader() {
         @Override
-        public <T> T getProperty(final ActivationProperty<T> propertyDef) {
+        public <T> T getProperty(@Nonnull final ActivationProperty<T> propertyDef) {
             return null;
         }
 
         @Override
-        public <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<? super P> filter) {
-            return null;
+        public <P extends ActivationProperty<?>> Optional<P> findProperty(@Nonnull final Class<P> propertyType, @Nonnull final Predicate<? super P> filter) {
+            return Optional.empty();
         }
     };
 
@@ -144,58 +133,26 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             super(10);
         }
 
-        /**
-         * Publishes the activation property.
-         *
-         * @param propertyDef The definition of the property. Cannot be {@literal null}.
-         * @param value       The value of the property.
-         * @return {@literal true}, if the property is published successfully and
-         * there is no duplications; otherwise, {@literal false}.
-         * @throws IllegalArgumentException propertyDef is {@literal null}.
-         */
         @Override
-        public <T> boolean publish(final ActivationProperty<T> propertyDef, final T value) {
-            if(propertyDef == null) return false;
-            else if(containsKey(propertyDef)) return false;
-            else {
-                put(propertyDef, value);
-                return true;
-            }
+        public <T> boolean publish(@Nonnull final ActivationProperty<T> propertyDef, final T value) {
+            return putIfAbsent(propertyDef, value) == null;
         }
 
-        /**
-         * Reads value of the activation property.
-         *
-         * @param propertyDef The definition of the activation property.
-         * @return The property value; or {@literal null}, if property doesn't exist.
-         */
         @Override
-        public <T> T getProperty(final ActivationProperty<T> propertyDef) {
-            if (propertyDef == null) return null;
-            else if (containsKey(propertyDef)) {
-                final Object value = get(propertyDef);
-                return Convert.isInstance(value, propertyDef.getType()) ?
-                        Convert.toTypeToken(value, propertyDef.getType()) :
-                        propertyDef.getDefaultValue();
-            } else return null;
+        public <T> T getProperty(@Nonnull final ActivationProperty<T> propertyDef) {
+            final Object value = get(propertyDef);
+            return Convert.isInstance(value, propertyDef.getType()) ?
+                    Convert.toTypeToken(value, propertyDef.getType()) :
+                    propertyDef.getDefaultValue();
         }
 
-        /**
-         * Finds the property definition.
-         *
-         * @param propertyType The type of the property definition.
-         * @param filter       Property definition filter.
-         * @return The property definition; or {@literal null}, if property not found.
-         */
         @Override
-        public <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<? super P> filter) {
-            if(propertyType == null || filter == null) return null;
-            for(final ActivationProperty<?> prop: keySet())
-                if(propertyType.isInstance(prop)){
-                    final P candidate = propertyType.cast(prop);
-                    if(filter.test(candidate)) return candidate;
-                }
-            return null;
+        public <P extends ActivationProperty<?>> Optional<P> findProperty(@Nonnull final Class<P> propertyType, @Nonnull final Predicate<? super P> filter) {
+            return keySet().stream()
+                    .filter(propertyType::isInstance)
+                    .map(propertyType::cast)
+                    .filter(filter)
+                    .findFirst();
         }
     }
 
@@ -485,7 +442,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> Type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineActivationProperty(final Class<T> propertyType, final T defaultValue) {
+    protected static <T> ActivationProperty<T> defineActivationProperty(@Nonnull final Class<T> propertyType, @Nullable final T defaultValue) {
         return defineActivationProperty(TypeToken.of(propertyType), defaultValue);
     }
 
@@ -496,15 +453,17 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> Type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType, final T defaultValue){
+    protected static <T> ActivationProperty<T> defineActivationProperty(@Nonnull final TypeToken<T> propertyType, @Nullable final T defaultValue){
         return new ActivationProperty<T>() {
 
             @Override
+            @Nonnull
             public TypeToken<T> getType() {
                 return propertyType;
             }
 
             @Override
+            @Nullable
             public T getDefaultValue() {
                 return defaultValue;
             }
@@ -528,48 +487,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @return Activation property definition.
      */
     protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType) {
-        return () -> propertyType;
-    }
-
-    /**
-     * Defines named activation property.
-     * @param propertyName The name of the property.
-     * @param propertyType The type of the property.
-     * @param defaultValue The default value of the property.
-     * @param <T> Type of the property.
-     * @return Named activation property definition.
-     */
-    protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType, final T defaultValue){
-        return new NamedActivationProperty<T>() {
-            private final TypeToken<T> pType = TypeToken.of(propertyType);
-
-            @Override
-            public String getName() {
-                return propertyName;
-            }
-
-            @Override
-            public TypeToken<T> getType() {
-                return pType;
-            }
-
-            @Override
-            public T getDefaultValue() {
-                return defaultValue;
-            }
-
-            @Override
-            public int hashCode() {
-                return propertyName.hashCode();
-            }
-
-            @Override
-            public boolean equals(final Object obj) {
-                if(obj instanceof NamedActivationProperty<?>)
-                    return Objects.equals(propertyName, ((NamedActivationProperty<?>)obj).getName());
-                else return Objects.equals(propertyName, obj);
-            }
-        };
+        return defineActivationProperty(propertyType, null);
     }
 
     /**

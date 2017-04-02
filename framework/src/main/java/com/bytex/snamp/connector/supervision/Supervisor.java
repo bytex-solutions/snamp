@@ -1,12 +1,17 @@
 package com.bytex.snamp.connector.supervision;
 
-import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.core.StatefulFrameworkService;
+import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleRevision;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Set;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents supervisor of the managed resource group.
@@ -16,7 +21,7 @@ import java.util.Set;
  * @version 2.0
  * @author Roman Sakno
  */
-public interface ManagedResourceGroupSupervisor extends FrameworkService, AutoCloseable {
+public interface Supervisor extends StatefulFrameworkService {
     /**
      * This namespace must be defined in Provide-Capability manifest header inside of the bundle containing implementation
      * of Managed Resource Group Supervisor.
@@ -35,7 +40,20 @@ public interface ManagedResourceGroupSupervisor extends FrameworkService, AutoCl
      * Gets immutable set of group members.
      * @return Immutable set of group members.
      */
+    @Nonnull
     Set<String> getResources();
+
+    /**
+     * Gets runtime configuration of this service.
+     *
+     * @return Runtime configuration of this service.
+     * @implSpec Returning map is always immutable.
+     */
+    @Nonnull
+    @Override
+    SupervisorInfo getConfiguration();
+
+    void update(@Nonnull final SupervisorInfo configuration) throws Exception;
 
     /**
      * Obtains supervisor service.
@@ -57,6 +75,17 @@ public interface ManagedResourceGroupSupervisor extends FrameworkService, AutoCl
                 .filter(Objects::nonNull)
                 .map(Object::toString)
                 .findFirst()
-                .orElse("");
+                .orElse("")
+                .intern();
+    }
+
+    static String getSupervisorType(final Class<? extends Supervisor> supervisorType) {
+        final BundleContext context = Utils.getBundleContext(supervisorType);
+        assert context != null;
+        return getSupervisorType(context.getBundle());
+    }
+
+    static boolean isSupervisorBundle(final Bundle bnd) {
+        return bnd != null && !isNullOrEmpty(getSupervisorType(bnd));
     }
 }
