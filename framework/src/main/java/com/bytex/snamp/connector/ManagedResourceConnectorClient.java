@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
@@ -23,10 +24,13 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 1.0
  */
-public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector {
-    public ManagedResourceConnectorClient(final BundleContext context,
+public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector, SafeCloseable {
+    private final BundleContext context;
+
+    public ManagedResourceConnectorClient(@Nonnull final BundleContext context,
                                           final ServiceReference<ManagedResourceConnector> reference){
         super(context, reference);
+        this.context = context;
     }
 
     public static ManagedResourceConnectorClient tryCreate(final BundleContext context,
@@ -290,7 +294,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     @Override
     public void close() {
-
+        release(context);
     }
 
     /**

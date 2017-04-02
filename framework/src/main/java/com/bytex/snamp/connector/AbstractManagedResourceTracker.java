@@ -59,15 +59,14 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
      *
      * @param event The {@code ServiceEvent} object.
      */
+    @SuppressWarnings("unchecked")
     @Override
     public final void serviceChanged(final ServiceEvent event) {
         //use cached version of filter
         final Filter filter = resourceFilterCache.lazyGet(this, tracker -> tracker.createResourceFilter().get());
         if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()) && filter.match(event.getServiceReference())) {
-            final BundleContext context = getBundleContext();
-            @SuppressWarnings("unchecked")
-            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, (ServiceReference<ManagedResourceConnector>) event.getServiceReference());
-            try (final LoggingScope logger = TrackerLoggingScope.connectorChangesDetected(this)) {
+            try (final LoggingScope logger = TrackerLoggingScope.connectorChangesDetected(this);
+                 final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), (ServiceReference<ManagedResourceConnector>) event.getServiceReference())) {
                 switch (event.getType()) {
                     case ServiceEvent.MODIFIED_ENDMATCH:
                     case ServiceEvent.UNREGISTERING:
@@ -82,8 +81,6 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
                                 toString(),
                                 client.getManagedResourceName()));
                 }
-            } finally {
-                client.release(context);
             }
         }
     }

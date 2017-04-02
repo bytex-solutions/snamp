@@ -3,6 +3,7 @@ package com.bytex.snamp.core;
 import com.bytex.snamp.EntryReader;
 import org.osgi.framework.*;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,12 +31,9 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * Initializes a new service reference holder.
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
-     * @throws java.lang.IllegalArgumentException context or serviceRef is {@literal null}.
      */
-    public ServiceHolder(final BundleContext context, final ServiceReference<S> serviceRef) throws IllegalArgumentException{
-        if(context == null) throw new IllegalArgumentException("context is null.");
-        else if(serviceRef == null) throw new IllegalArgumentException("serviceRef is null.");
-        else serviceImpl = context.getService(this.serviceRef = serviceRef);
+    public ServiceHolder(@Nonnull final BundleContext context, @Nonnull final ServiceReference<S> serviceRef) {
+        serviceImpl = context.getService(this.serviceRef = serviceRef);
     }
 
     /**
@@ -46,7 +44,7 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @return A reference to OSGi service; or {@literal null}, if service was not registered.
      * @since 1.2
      */
-    public static <S> ServiceHolder<S> tryCreate(final BundleContext context, final Class<S> serviceType){
+    public static <S> ServiceHolder<S> tryCreate(@Nonnull final BundleContext context, final Class<S> serviceType){
         final ServiceReference<S> serviceRef = context.getServiceReference(serviceType);
         return serviceRef != null ? new ServiceHolder<>(context, serviceRef) : null;
     }

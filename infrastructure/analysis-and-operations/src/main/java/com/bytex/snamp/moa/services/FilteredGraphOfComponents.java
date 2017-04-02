@@ -31,23 +31,21 @@ final class FilteredGraphOfComponents extends GraphOfComponents {
         return allowedGroups.read(groups -> filterSpan(groups, span));
     }
 
-    private static Void add(final Map<String, Long> allowedGroups, final String groupName) {
-        allowedGroups.compute(groupName, (k, v) -> v == null ? 0L : v + 1L);
-        return null;
+    private static Long add(final Map<String, Long> allowedGroups, final String groupName) {
+        return allowedGroups.compute(groupName, (k, v) -> v == null ? 0L : v + 1L);
     }
 
     void add(final String groupName) {
         allowedGroups.write(groups -> add(groups, groupName));
     }
 
-    private static Void remove(final Map<String, Long> allowedGroups, final String groupName) {
-        allowedGroups.compute(groupName, (k, v) -> {
+    private static Long remove(final Map<String, Long> allowedGroups, final String groupName) {
+        return allowedGroups.compute(groupName, (k, v) -> {
             if (v == null)
                 return null;
             v = v - 1L;
             return v <= 1L ? null : v;
         });
-        return null;
     }
 
     @Override

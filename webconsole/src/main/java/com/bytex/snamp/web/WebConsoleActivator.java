@@ -2,7 +2,6 @@ package com.bytex.snamp.web;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
-import com.bytex.snamp.supervision.HealthStatusProvider;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
@@ -12,7 +11,7 @@ import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
 import com.bytex.snamp.web.serviceModel.notifications.NotificationService;
-import com.bytex.snamp.web.serviceModel.watcher.GroupWatcherService;
+import com.bytex.snamp.web.serviceModel.health.HealthStatusWatcher;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.http.HttpService;
@@ -61,21 +60,20 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class GroupWatcherServiceProvider extends ProvidedService<WebConsoleService, GroupWatcherService>{
+    private static final class GroupWatcherServiceProvider extends ProvidedService<WebConsoleService, HealthStatusWatcher>{
         private GroupWatcherServiceProvider(){
-            super(WebConsoleService.class, simpleDependencies(HealthStatusProvider.class));
+            super(WebConsoleService.class);
         }
 
         @Override
-        protected GroupWatcherService activateService(final Map<String, Object> identity) {
-            identity.put(WebConsoleService.NAME, GroupWatcherService.NAME);
-            identity.put(WebConsoleService.URL_CONTEXT, GroupWatcherService.URL_CONTEXT);
-            final HealthStatusProvider supervisor = dependencies.getDependency(HealthStatusProvider.class);
-            return new GroupWatcherService(supervisor);
+        protected HealthStatusWatcher activateService(final Map<String, Object> identity) {
+            identity.put(WebConsoleService.NAME, HealthStatusWatcher.NAME);
+            identity.put(WebConsoleService.URL_CONTEXT, HealthStatusWatcher.URL_CONTEXT);
+            return new HealthStatusWatcher();
         }
 
         @Override
-        protected void cleanupService(final GroupWatcherService serviceInstance, final boolean stopBundle) throws Exception {
+        protected void cleanupService(final HealthStatusWatcher serviceInstance, final boolean stopBundle) throws Exception {
             serviceInstance.close();
         }
     }

@@ -48,7 +48,7 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     @Override
     protected void initialize() {
         final BundleContext context = getBundleContext();
-        for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
             final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
             if (client != null)
                 try {
@@ -131,17 +131,13 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void serviceChanged(final ServiceEvent event) {
-        if (isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class)) {
-            @SuppressWarnings("unchecked")
-            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), (ServiceReference<ManagedResourceConnector>) event.getServiceReference());
-            try {
+        if (isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class))
+            try (final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), (ServiceReference<ManagedResourceConnector>) event.getServiceReference())) {
                 connectorChanged(client, event.getType());
-            } finally {
-                client.release(getBundleContext());
             }
-        }
     }
 
     @Override

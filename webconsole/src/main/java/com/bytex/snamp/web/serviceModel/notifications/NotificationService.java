@@ -80,13 +80,11 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
             notifications.addNotificationListener(this, null, new NotificationSource(notifications, client.getManagedResourceName()));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void serviceChanged(final ServiceEvent event) {
         if (Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class)) {
-            final BundleContext context = getBundleContext();
-            @SuppressWarnings("unchecked")
-            final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, (ServiceReference<ManagedResourceConnector>) event.getServiceReference());
-            try {
+            try (final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), (ServiceReference<ManagedResourceConnector>) event.getServiceReference())) {
                 switch (event.getType()) {
                     case ServiceEvent.UNREGISTERING:
                     case ServiceEvent.MODIFIED_ENDMATCH:
@@ -95,8 +93,6 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
                     case ServiceEvent.REGISTERED:
                         addNotificationListener(client);
                 }
-            } finally {
-                client.release(context);
             }
         }
     }
@@ -104,7 +100,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
     @Override
     protected void initialize() {
         final BundleContext context = getBundleContext();
-        for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
             final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
             if (client != null)
                 try {

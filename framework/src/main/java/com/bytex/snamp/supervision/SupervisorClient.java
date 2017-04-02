@@ -1,11 +1,17 @@
 package com.bytex.snamp.supervision;
 
+import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.ServiceHolder;
+import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.*;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
@@ -16,15 +22,18 @@ import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
  * @version 2.0
  * @since 2.0
  */
-public final class SupervisorClient extends ServiceHolder<Supervisor> {
+public final class SupervisorClient extends ServiceHolder<Supervisor> implements Supervisor, SafeCloseable {
+    private final BundleContext context;
+
     /**
      * Initializes a new supervisor client.
      *
      * @param context    The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
      */
-    public SupervisorClient(final BundleContext context, final ServiceReference<Supervisor> serviceRef) {
+    public SupervisorClient(@Nonnull final BundleContext context, final ServiceReference<Supervisor> serviceRef) {
         super(context, serviceRef);
+        this.context = context;
     }
 
     public static SupervisorClient tryCreate(final BundleContext context,
@@ -103,5 +112,72 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> {
      */
     public static String getDescription(final BundleContext context, final String supervisorType, final Locale loc) {
         return getSupervisorBundleHeader(context, supervisorType, Constants.BUNDLE_DESCRIPTION, loc);
+    }
+
+    /**
+     * Gets name of the group served by this supervisor.
+     * @return Name of the group.
+     */
+    public String getGroupName() {
+        return SupervisorFilterBuilder.getGroupName(this);
+    }
+
+    /**
+     * Gets state of this service.
+     *
+     * @return Service type.
+     */
+    @Override
+    public FrameworkServiceState getState() {
+        final Supervisor service = get();
+        return service == null ? FrameworkServiceState.CLOSED : service.getState();
+    }
+
+    /**
+     * Gets immutable set of group members.
+     *
+     * @return Immutable set of group members.
+     */
+    @Nonnull
+    @Override
+    public Set<String> getResources() {
+        final Supervisor service = get();
+        return service == null ? ImmutableSet.of() : service.getResources();
+    }
+
+    /**
+     * Gets runtime configuration of this service.
+     *
+     * @return Runtime configuration of this service.
+     * @implSpec Returning map is always immutable.
+     */
+    @Nonnull
+    @Override
+    public SupervisorInfo getConfiguration() {
+        return get().getConfiguration();
+    }
+
+    @Override
+    public void update(@Nonnull final SupervisorInfo configuration) throws Exception {
+        get().update(configuration);
+    }
+
+    /**
+     * Obtains supervisor service.
+     *
+     * @param objectType Type of supervisor service. Cannot be {@literal null}.
+     * @return Supervisor service; or {@literal null} if service is not supported.
+     * @see HealthStatusProvider
+     * @see ElasticityManager
+     */
+    @Override
+    public <T> T queryObject(@Nonnull final Class<T> objectType) {
+        final Supervisor service = get();
+        return service == null ? null : service.queryObject(objectType);
+    }
+
+    @Override
+    public void close() {
+        release(context);
     }
 }
