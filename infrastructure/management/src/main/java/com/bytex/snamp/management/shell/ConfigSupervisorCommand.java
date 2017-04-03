@@ -1,14 +1,19 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.FactoryMap;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ScriptletConfiguration;
+import com.bytex.snamp.configuration.SupervisorConfiguration;
+import com.bytex.snamp.io.IOUtils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.*;
 import java.util.Arrays;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;
@@ -21,24 +26,20 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-    name = "configure-resource",
-    description = "Configure managed resource")
+        name = "configure-supervisor",
+        description = "Configure supervisor")
 @Service
-public final class ConfigResourceCommand extends ManagedResourceConfigurationCommand {
+public final class ConfigSupervisorCommand extends SupervisorConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
-    @Argument(index = 0, name = "resourceName", required = true, description = "Name of the resource")
-    private String resourceName = "";
+    @Argument(index = 0, name = "groupName", required = true, description = "Name of the group to be controlled by supervisor")
+    private String groupName = "";
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
-    @Argument(index = 1, name = "connectionType", required = false, description = "Name of the connector")
-    private String connectionType = "";
+    @Argument(index = 1, name = "supervisorType", required = false, description = "Supervisor type")
+    private String supervisorType = "";
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
-    @Argument(index = 2, name = "connectionString", required = false, description = "Connection string used for connection with managed resource")
-    private String connectionString = "";
-
-    @SpecialUse(SpecialUse.Case.REFLECTION)
-    @Option(name = "-d", aliases = {"--delete"}, description = "Delete resource")
+    @Option(name = "-d", aliases = {"--delete"}, description = "Delete supervisor")
     private boolean del = false;
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
@@ -50,27 +51,24 @@ public final class ConfigResourceCommand extends ManagedResourceConfigurationCom
     private String[] parametersToDelete = parameters;
 
     @Override
-    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> resources, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> supervisors, final StringBuilder output) throws Exception {
         if (del)
-            resources.remove(resourceName);
+            supervisors.remove(groupName);
         else {
-            final ManagedResourceConfiguration resource = resources.getOrAdd(resourceName);
+            final SupervisorConfiguration supervisor = supervisors.getOrAdd(groupName);
             //setup connection type
-            if (!isNullOrEmpty(connectionType))
-                resource.setType(connectionType);
-            //setup connection string
-            if (!isNullOrEmpty(connectionString))
-                resource.setConnectionString(connectionString);
+            if (!isNullOrEmpty(supervisorType))
+                supervisor.setType(supervisorType);
             //setup parameters
             if (!ArrayUtils.isNullOrEmpty(parameters))
                 for (final String pair : parameters) {
                     final StringKeyValue keyValue = StringKeyValue.parse(pair);
                     if (keyValue != null)
-                        resource.put(keyValue.getKey(), keyValue.getValue());
+                        supervisor.put(keyValue.getKey(), keyValue.getValue());
                 }
-            Arrays.stream(parametersToDelete).forEach(resource::remove);
+            Arrays.stream(parametersToDelete).forEach(supervisor::remove);
         }
-        appendln(output, "Resource configured successfully");
+        appendln(output, "Supervisor configured successfully");
         return true;
     }
 }

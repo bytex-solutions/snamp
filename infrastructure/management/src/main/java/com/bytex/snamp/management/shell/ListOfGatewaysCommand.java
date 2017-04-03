@@ -17,7 +17,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
         name = "gateway-instances",
         description = "List of configured gateway instances")
 @Service
-public final class ConfiguredGatewaysCommand extends GatewayConfigurationCommand {
+public final class ListOfGatewaysCommand extends GatewayConfigurationCommand {
 
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {

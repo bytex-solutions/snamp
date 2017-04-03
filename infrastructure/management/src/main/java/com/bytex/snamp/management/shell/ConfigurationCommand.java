@@ -11,13 +11,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 1.0
  */
-abstract class ConfigurationCommand<E extends EntityConfiguration> extends SnampShellCommand {
-    private final EntityMapResolver<AgentConfiguration, E> resolver;
-
-    ConfigurationCommand(final EntityMapResolver<AgentConfiguration, E> resolver){
-        this.resolver = Objects.requireNonNull(resolver);
-    }
-
+abstract class ConfigurationCommand<E extends EntityConfiguration> extends SnampShellCommand implements EntityMapResolver<AgentConfiguration, E> {
     abstract boolean doExecute(final EntityMap<? extends E> configuration, final StringBuilder output) throws Exception;
 
     @Override
@@ -26,7 +20,7 @@ abstract class ConfigurationCommand<E extends EntityConfiguration> extends Snamp
         if (adminRef != null)
             try {
                 final StringBuilder output = new StringBuilder(64);
-                adminRef.get().processConfiguration(config -> doExecute(resolver.apply(config), output));
+                adminRef.get().processConfiguration(config -> doExecute(apply(config), output));
                 return output;
             } finally {
                 adminRef.release(getBundleContext());

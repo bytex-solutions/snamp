@@ -76,17 +76,17 @@ public final class ListenEventsCommand extends SnampShellCommand {
                                      final int capacity,
                                      final Duration timeout,
                                      final PrintStream output) throws ListenerNotFoundException, InterruptedException {
-        if(notifSupport == null){
+        if (notifSupport == null) {
             output.println("Notifications are not supported");
             return;
         }
         output.println("Press CTRL+C to stop listening");
         final Mailbox mailbox = MailboxFactory.newFixedSizeMailbox(capacity);
         notifSupport.addNotificationListener(mailbox, new AllowedCategories(categories), null);
-        try{
-            while (true){
+        try {
+            while (!Thread.interrupted()) {
                 final Notification notif = mailbox.poll(timeout.toNanos(), TimeUnit.NANOSECONDS);//InterruptedException when CTRL+C was pressed
-                if(notif == null) continue;
+                if (notif == null) continue;
                 output.println(notif.getType());
                 output.println(new Date(notif.getTimeStamp()));
                 output.println(notif.getSequenceNumber());
@@ -94,8 +94,7 @@ public final class ListenEventsCommand extends SnampShellCommand {
                 output.println(notif.getUserData());
                 output.println();
             }
-        }
-        finally {
+        } finally {
             notifSupport.removeNotificationListener(mailbox);
         }
     }

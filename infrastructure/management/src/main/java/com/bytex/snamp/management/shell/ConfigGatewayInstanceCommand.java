@@ -8,6 +8,9 @@ import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+import static com.bytex.snamp.management.ManagementUtils.appendln;
+
+import java.util.Arrays;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -30,25 +33,35 @@ public final class ConfigGatewayInstanceCommand extends GatewayConfigurationComm
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String gatewayType = "";
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
+    @Option(name = "-d", aliases = {"--delete"}, description = "Delete gateway")
+    private boolean del = false;
+
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, required = false, description = "Configuration parameters in the form of key=value")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
+    @Option(name = "-dp", aliases = {"--delete-parameter"}, multiValued = true, description = "Configuration parameters to be deleted")
+    @SpecialUse(SpecialUse.Case.REFLECTION)
+    private String[] parametersToDelete = parameters;
+
     @Override
-    boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
-        if (isNullOrEmpty(instanceName)) return false;
-        final GatewayConfiguration gatewayInstanceConfig = configuration.getOrAdd(instanceName);
-        //setup system name
-        if (!isNullOrEmpty(gatewayType))
-            gatewayInstanceConfig.setType(gatewayType);
-        //setup parameters
-        if (!ArrayUtils.isNullOrEmpty(parameters))
-            for (final String pair : parameters) {
-                final StringKeyValue keyValue = StringKeyValue.parse(pair);
-                if (keyValue != null)
-                    gatewayInstanceConfig.put(keyValue.getKey(), keyValue.getValue());
-            }
-        output.append("Updated");
+    boolean doExecute(final EntityMap<? extends GatewayConfiguration> gateways, final StringBuilder output) {
+        if (del)
+            gateways.remove(instanceName);
+        else {
+            final GatewayConfiguration gateway = gateways.getOrAdd(instanceName);
+            if (!isNullOrEmpty(gatewayType))
+                gateway.setType(gatewayType);
+            if (!ArrayUtils.isNullOrEmpty(parameters))
+                for (final String param : parameters) {
+                    final StringKeyValue pair = StringKeyValue.parse(param);
+                    if (pair != null)
+                        gateway.put(pair.getKey(), pair.getValue());
+                }
+            Arrays.stream(parametersToDelete).forEach(gateway::remove);
+        }
+        appendln(output, "Gateway configured successfully");
         return true;
     }
 }

@@ -11,18 +11,23 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 import java.time.Duration;
 
 import static com.bytex.snamp.configuration.ThreadPoolConfiguration.*;
+import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * Registers a new thread pool in globally accessible repository.
  */
 @Command(scope = SnampShellCommand.SCOPE,
-        name = "thread-pool-add",
-        description = "Register a new thread pool")
+        name = "configure-thread-pool",
+        description = "Configures thread pool")
 @Service
-public final class AddThreadPoolCommand extends AbstractThreadPoolCommand {
-    @Argument(index = 0, name = "name", required = true, description = "Name of the thread pool to register")
+public final class ConfigThreadPoolCommand extends AbstractThreadPoolCommand {
+    @Argument(index = 0, name = "name", required = true, description = "Name of the thread pool to modify")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String poolName = "";
+
+    @SpecialUse(SpecialUse.Case.REFLECTION)
+    @Option(name = "-d", aliases = {"--delete"}, description = "Delete thread pool")
+    private boolean del = false;
 
     @Option(name = "-m", aliases = "--minPoolSize", description = "A number of threads to keep in the pool")
     @SpecialUse(SpecialUse.Case.REFLECTION)
@@ -46,12 +51,11 @@ public final class AddThreadPoolCommand extends AbstractThreadPoolCommand {
     private int queueSize = INFINITE_QUEUE_SIZE;
 
     @Override
-    boolean doExecute(final EntityMap<? extends ThreadPoolConfiguration> configuration, final StringBuilder output) {
-        if (configuration.containsKey(poolName)) {
-            output.append("Thread pool with the specified name is already registered");
-            return false;
-        }
-        configuration.addAndConsume(poolName, config -> {
+    boolean doExecute(final EntityMap<? extends ThreadPoolConfiguration> threadPools, final StringBuilder output) {
+        if (del)
+            threadPools.remove(poolName);
+        else {
+            final ThreadPoolConfiguration config = threadPools.getOrAdd(poolName);
             config.setMinPoolSize(minPoolSize);
             config.setMaxPoolSize(maxPoolSize);
             config.setThreadPriority(threadPriority);
@@ -60,8 +64,8 @@ public final class AddThreadPoolCommand extends AbstractThreadPoolCommand {
             else
                 config.setQueueSize(queueSize);
             config.setKeepAliveTime(Duration.ofMillis(keepAliveTime));
-        });
-        output.append("Thread pool is registered successfully");
+        }
+        appendln(output, "Thread pool is modified successfully");
         return true;
     }
 }

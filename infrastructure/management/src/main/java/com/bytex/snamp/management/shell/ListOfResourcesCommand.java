@@ -19,7 +19,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
     name = "resources",
     description = "List of configured managed resources")
 @Service
-public final class ConfiguredResourcesCommand extends ManagedResourceConfigurationCommand {
+public final class ListOfResourcesCommand extends ManagedResourceConfigurationCommand {
 
     @Override
     boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
