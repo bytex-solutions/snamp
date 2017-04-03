@@ -30,10 +30,10 @@ import java.io.UncheckedIOException;
  * @since 2.0
  */
 @SnampDependencies(SnampFeature.STANDARD_TOOLS)
-public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String GROUP_NAME = "trip-manager";
 
-    public HealthAnalyzerTest() throws MalformedObjectNameException {
+    public DefaultSupervisorTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
@@ -45,7 +45,7 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
     @Test
     public void defaultSupervisorConfigTest() {
         final ConfigurationEntityDescription<SupervisorConfiguration> description =
-                SupervisorClient.getConfigurationEntityDescriptor(getTestBundleContext(), SupervisorConfiguration.DEFAULT_TYPE);
+                SupervisorClient.getConfigurationDescriptor(getTestBundleContext(), SupervisorConfiguration.DEFAULT_TYPE);
         testConfigurationDescriptor(description, "checkPeriod");
     }
 

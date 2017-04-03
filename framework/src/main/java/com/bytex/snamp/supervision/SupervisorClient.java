@@ -77,7 +77,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
         return candidates.isEmpty() ? null : candidates.get(0).getHeaders(loc != null ? loc.toString() : null).get(header);
     }
 
-    public static  ConfigurationEntityDescription<SupervisorConfiguration> getConfigurationEntityDescriptor(final BundleContext context, final String supervisorType) throws UnsupportedOperationException {
+    public static  ConfigurationEntityDescription<SupervisorConfiguration> getConfigurationDescriptor(final BundleContext context, final String supervisorType) throws UnsupportedOperationException {
         ServiceReference<ConfigurationEntityDescriptionProvider> ref = null;
         try {
             ref = filterBuilder()

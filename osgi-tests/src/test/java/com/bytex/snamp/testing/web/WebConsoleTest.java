@@ -25,7 +25,7 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
-import com.bytex.snamp.testing.supervision.HealthAnalyzerTest;
+import com.bytex.snamp.testing.supervision.DefaultSupervisorTest;
 import com.bytex.snamp.web.serviceModel.charts.*;
 import com.bytex.snamp.web.serviceModel.commons.AttributeInformation;
 import com.bytex.snamp.web.serviceModel.e2e.ChildComponentsView;
@@ -667,7 +667,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     private void fillSupervisors(final EntityMap<? extends SupervisorConfiguration> watchers){
         final String groovyTrigger;
         try {
-            groovyTrigger = IOUtils.toString(HealthAnalyzerTest.class.getResourceAsStream("GroovyTrigger.groovy"));
+            groovyTrigger = IOUtils.toString(DefaultSupervisorTest.class.getResourceAsStream("GroovyTrigger.groovy"));
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }
