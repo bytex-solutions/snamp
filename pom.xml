@@ -86,7 +86,7 @@
     <jersey.version>1.19.3</jersey.version>
     <snamp.services.version>2.0.0</snamp.services.version>
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
-    <groovy.version>2.4.7</groovy.version>
+    <groovy.version>2.4.10</groovy.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <sshd.version>0.14.0</sshd.version>
     <concurrentlinkedhashmap.version>1.4.2</concurrentlinkedhashmap.version>

@@ -95,9 +95,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-            <Export-Package>com.bytex.snamp.moa.topology,
-                            com.bytex.snamp.connector.attributes.checkers,
-                            com.bytex.snamp.connector.health.triggers</Export-Package>
+            <Export-Package>com.bytex.snamp.moa.topology</Export-Package>
             <Bundle-Activator>com.bytex.snamp.moa.services.Activator</Bundle-Activator>
             <DynamicImport-Package>*</DynamicImport-Package>
           </instructions>
