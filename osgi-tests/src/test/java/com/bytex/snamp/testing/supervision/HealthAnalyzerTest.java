@@ -1,10 +1,7 @@
 package com.bytex.snamp.testing.supervision;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ScriptletConfiguration;
-import com.bytex.snamp.configuration.SupervisorConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
 import com.bytex.snamp.connector.attributes.checkers.NumberComparatorPredicate;
@@ -42,7 +39,14 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
+    }
+
+    @Test
+    public void defaultSupervisorConfigTest() {
+        final ConfigurationEntityDescription<SupervisorConfiguration> description =
+                SupervisorClient.getConfigurationEntityDescriptor(getTestBundleContext(), SupervisorConfiguration.DEFAULT_TYPE);
+        testConfigurationDescriptor(description, "checkPeriod");
     }
 
     @Test

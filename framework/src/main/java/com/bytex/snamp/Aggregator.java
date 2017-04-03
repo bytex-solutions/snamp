@@ -42,7 +42,7 @@ public interface Aggregator {
         }
 
         @Override
-        public Aggregator compose(final Aggregator other) {
+        public Aggregator compose(@Nonnull final Aggregator other) {
             return other;
         }
     };
@@ -56,14 +56,8 @@ public interface Aggregator {
      */
     <T> T queryObject(@Nonnull final Class<T> objectType);
 
-    default Aggregator compose(final Aggregator other) {
+    default Aggregator compose(@Nonnull final Aggregator other) {
         final class AggregatorComposition implements Aggregator {
-            private final Aggregator other;
-
-            private AggregatorComposition(final Aggregator other) {
-                this.other = Objects.requireNonNull(other);
-            }
-
             @Override
             public <T> T queryObject(@Nonnull final Class<T> objectType) {
                 final T obj = Aggregator.this.queryObject(objectType);
@@ -71,25 +65,25 @@ public interface Aggregator {
             }
         }
 
-        return new AggregatorComposition(other);
+        return new AggregatorComposition();
     }
 
     static <I, O> Optional<O> queryAndApply(final Aggregator a, final Class<I> type, final Function<? super I, ? extends O> processing) {
         final I obj = a.queryObject(type);
-        return obj != null ? Optional.of(processing.apply(obj)) : Optional.empty();
+        return obj == null ? Optional.empty() : Optional.of(processing.apply(obj));
     }
 
     static <I, O> O queryAndApply(final Aggregator a, final Class<I> type, final Function<? super I, ? extends O> processing, final Supplier<? extends O> fallback) {
-        final Optional<O> result = queryAndApply(a, type, processing);
-        return result.isPresent() ? result.get() : fallback.get();
+        return queryAndApply(a, type, processing).orElseGet(fallback);
     }
 
-    static <I, E extends Throwable> boolean queryAndAccept(final Aggregator a, final Class<I> type, final Acceptor<? super I, E> processing) throws E{
+    static <I, E extends Throwable> boolean queryAndAccept(final Aggregator a, final Class<I> type, final Acceptor<? super I, E> processing) throws E {
         final I obj = a.queryObject(type);
-        if(obj != null){
+        if (obj == null)
+            return false;
+        else {
             processing.accept(obj);
             return true;
-        } else
-            return false;
+        }
     }
 }

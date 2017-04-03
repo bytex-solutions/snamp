@@ -1,9 +1,10 @@
 package com.bytex.snamp.supervision;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.core.SupportService;
 import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.*;
 
@@ -63,12 +64,32 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
         return filterBuilder().setGroupName(groupName).getServiceReference(context, Supervisor.class).orElse(null);
     }
 
+    private static UnsupportedOperationException unsupportedServiceRequest(final String supervisorType,
+                                                                           final Class<? extends SupportService> serviceType){
+        return new UnsupportedOperationException(String.format("Supervisor %s doesn't expose %s service", supervisorType, serviceType));
+    }
+
     private static String getSupervisorBundleHeader(final BundleContext context,
                                                  final String supervisorType,
                                                  final String header,
                                                  final Locale loc){
         final List<Bundle> candidates = SupervisorActivator.getSupervisorBundles(context, supervisorType);
         return candidates.isEmpty() ? null : candidates.get(0).getHeaders(loc != null ? loc.toString() : null).get(header);
+    }
+
+    public static  ConfigurationEntityDescription<SupervisorConfiguration> getConfigurationEntityDescriptor(final BundleContext context, final String supervisorType) throws UnsupportedOperationException {
+        ServiceReference<ConfigurationEntityDescriptionProvider> ref = null;
+        try {
+            ref = filterBuilder()
+                    .setSupervisorType(supervisorType)
+                    .setServiceType(ConfigurationEntityDescriptionProvider.class)
+                    .getServiceReference(context, ConfigurationEntityDescriptionProvider.class)
+                    .orElseThrow(() -> unsupportedServiceRequest(supervisorType, ConfigurationEntityDescriptionProvider.class));
+            final ConfigurationEntityDescriptionProvider provider = context.getService(ref);
+            return provider.getDescription(SupervisorConfiguration.class);
+        } finally {
+            if (ref != null) context.ungetService(ref);
+        }
     }
 
     /**

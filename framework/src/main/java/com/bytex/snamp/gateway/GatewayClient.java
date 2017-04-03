@@ -114,8 +114,9 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
         if (context == null || configurationEntity == null) return null;
         ServiceReference<ConfigurationEntityDescriptionProvider> ref = null;
         try {
-            ref = new GatewayFilterBuilder()
+            ref = filterBuilder()
                     .setGatewayType(gatewayType)
+                    .setServiceType(ConfigurationEntityDescriptionProvider.class)
                     .getServiceReference(context, ConfigurationEntityDescriptionProvider.class)
                     .orElseThrow(() -> unsupportedServiceRequest(gatewayType, ConfigurationEntityDescriptionProvider.class));
             final ConfigurationEntityDescriptionProvider provider = context.getService(ref);

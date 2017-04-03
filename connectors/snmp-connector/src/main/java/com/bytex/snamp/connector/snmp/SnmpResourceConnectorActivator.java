@@ -56,10 +56,10 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         return result;
     }
 
-    private static SnmpDiscoveryService newDiscoveryService(final DependencyManager dependencies) throws IOException {
+    private static SnmpFeatureDiscoveryService newDiscoveryService(final DependencyManager dependencies) throws IOException {
         @SuppressWarnings("unchecked")
         final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class);
         assert configManager != null;
-        return new SnmpDiscoveryService(configManager.transformConfiguration(SnmpResourceConnectorActivator::getDiscoveryTimeout));
+        return new SnmpFeatureDiscoveryService(configManager.transformConfiguration(SnmpResourceConnectorActivator::getDiscoveryTimeout));
     }
 }

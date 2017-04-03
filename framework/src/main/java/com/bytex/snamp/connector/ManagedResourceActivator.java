@@ -8,7 +8,7 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.discovery.DiscoveryService;
+import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
@@ -325,9 +325,9 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         return configurationDescriptor(dependencies -> factory.get());
     }
 
-    protected static <T extends DiscoveryService> SupportServiceManager<DiscoveryService, T> discoveryService(final SupportServiceFactory<T> factory,
-                                                                                                              final RequiredService<?>... dependencies) {
-        return SupportServiceManager.create(DiscoveryService.class, factory, dependencies);
+    protected static <T extends FeatureDiscoveryService> SupportServiceManager<FeatureDiscoveryService, T> discoveryService(final SupportServiceFactory<T> factory,
+                                                                                                                            final RequiredService<?>... dependencies) {
+        return SupportServiceManager.create(FeatureDiscoveryService.class, factory, dependencies);
     }
 
     protected final String connectorType;

@@ -4,7 +4,7 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.FeatureConfiguration;
-import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
+import com.bytex.snamp.connector.discovery.AbstractFeatureDiscoveryService;
 
 import javax.management.*;
 import javax.management.remote.JMXConnector;
@@ -19,7 +19,7 @@ import static com.bytex.snamp.connector.jmx.JmxConnectorDescriptionProvider.OBJE
  * @version 2.0
  * @since 1.0
  */
-final class JmxDiscoveryService extends AbstractDiscoveryService<JMXConnector>{
+final class JmxFeatureDiscoveryService extends AbstractFeatureDiscoveryService<JMXConnector> {
 
     private static Collection<AttributeConfiguration> discoverAttributes(final ClassLoader context, final MBeanServerConnection connection) throws IOException, JMException {
         final List<AttributeConfiguration> result = new ArrayList<>(40);

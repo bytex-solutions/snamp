@@ -47,6 +47,7 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @version 2.0
  */
 public abstract class AbstractAggregator implements Aggregator {
+    @FunctionalInterface
     private interface AggregationSupplier {
         Object get(final Aggregator owner) throws ReflectiveOperationException;
     }
@@ -245,11 +246,11 @@ public abstract class AbstractAggregator implements Aggregator {
 
         private static <I> AbstractAggregator createAnonymousAggregator(final I input, final Function<? super I, ? extends AggregationCacheLoader> loaderFactory) {
             final class DynamicAggregator extends AbstractAggregator {
-                private DynamicAggregator(final I input, final Function<? super I, ? extends AggregationCacheLoader> loaderFactory) {
+                private DynamicAggregator() {
                     super(type -> loaderFactory.apply(input));
                 }
             }
-            return new DynamicAggregator(input, loaderFactory);
+            return new DynamicAggregator();
         }
 
         private static Aggregator build(final ImmutableMap<Class<?>, Callable<?>> aggregations) {
@@ -332,14 +333,8 @@ public abstract class AbstractAggregator implements Aggregator {
     }
 
     @Override
-    public final AbstractAggregator compose(final Aggregator other) {
+    public final AbstractAggregator compose(@Nonnull final Aggregator other) {
         final class AggregatorComposition extends AbstractAggregator {
-            private final Aggregator other;
-
-            private AggregatorComposition(final Aggregator other) {
-                this.other = Objects.requireNonNull(other);
-            }
-
             @Override
             public <T> T queryObject(@Nonnull final Class<T> objectType) {
                 final T obj = AbstractAggregator.this.queryObject(objectType);
@@ -347,7 +342,7 @@ public abstract class AbstractAggregator implements Aggregator {
             }
         }
 
-        return new AggregatorComposition(other);
+        return new AggregatorComposition();
     }
 
     /**

@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static com.bytex.snamp.connector.discovery.DiscoveryService.DiscoveryResult;
+import static com.bytex.snamp.connector.discovery.FeatureDiscoveryService.DiscoveryResult;
 
 /**
  * Represents builder of {@link DiscoveryResult} object.
@@ -46,7 +46,7 @@ public final class DiscoveryResultBuilder implements Supplier<DiscoveryResult> {
         return this;
     }
 
-    public void importFeatures(final DiscoveryService service,
+    public void importFeatures(final FeatureDiscoveryService service,
                                final String connectionString,
                                final Map<String, String> connectionOptions,
                                final Class<? extends FeatureConfiguration> featureType){

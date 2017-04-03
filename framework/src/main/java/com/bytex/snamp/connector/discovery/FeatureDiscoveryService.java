@@ -19,7 +19,7 @@ import java.util.Set;
  * @version 2.0
  * @since 1.0
  */
-public interface DiscoveryService extends SupportService {
+public interface FeatureDiscoveryService extends SupportService {
     /**
      * Represents result of batch discovery operation.
      * @author Roman Sakno
@@ -74,18 +74,9 @@ public interface DiscoveryService extends SupportService {
     /**
      * Attempts to discover collection of managed entities (such as attributes or notifications)
      * using managed resource connection string.
-     * <p>
-     *     Do not add elements from the returned collection directly in {@link ManagedResourceConfiguration#getFeatures(Class)}
-     *     result set, use the following algorithm:
-     *     <ul>
-     *         <li>Create a new managed entity with {@link ManagedResourceConfiguration#getFeatures(Class)} method.</li>
-     *         <li>Use {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(AttributeConfiguration, AttributeConfiguration)}
-     *         or {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(EventConfiguration, EventConfiguration)} method
-     *         to copy managed entity returned by this method into the newly created entity.</li>
-     *     </ul>
      * @param connectionString Managed resource connection string.
      * @param connectionOptions Managed resource connection options (see {@link ManagedResourceConfiguration#getConnectionString()}).
-     * @param entityType Type of the managed entity (see {@link ManagedResourceConfiguration#getParameters()}).
+     * @param entityType Type of the managed entity.
      * @param <T> Type of the managed entity.
      * @return A collection of discovered entities; or empty collection if no entities
      * was detected.

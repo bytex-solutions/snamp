@@ -17,9 +17,9 @@ import java.util.logging.Level;
  * @version 2.0
  * @since 1.0
  */
-public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> extends AbstractAggregator implements DiscoveryService {
+public abstract class AbstractFeatureDiscoveryService<TProvider extends AutoCloseable> extends AbstractAggregator implements FeatureDiscoveryService {
     private static final class DiscoveryLoggingScope extends LoggingScope {
-        private DiscoveryLoggingScope(final DiscoveryService service) {
+        private DiscoveryLoggingScope(final FeatureDiscoveryService service) {
             super(service, "discovery");
         }
 
@@ -31,7 +31,7 @@ public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> 
     /**
      * Initializes a new discovery service.
      */
-    protected AbstractDiscoveryService() {
+    protected AbstractFeatureDiscoveryService() {
 
     }
 

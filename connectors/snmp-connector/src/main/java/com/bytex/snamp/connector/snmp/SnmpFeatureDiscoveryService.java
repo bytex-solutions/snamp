@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.snmp;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.FeatureConfiguration;
-import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
+import com.bytex.snamp.connector.discovery.AbstractFeatureDiscoveryService;
 import org.snmp4j.smi.GenericAddress;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
@@ -26,10 +26,10 @@ import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SN
  * @version 2.0
  * @since 1.0
  */
-final class SnmpDiscoveryService extends AbstractDiscoveryService<SnmpClient> {
+final class SnmpFeatureDiscoveryService extends AbstractFeatureDiscoveryService<SnmpClient> {
     private final Duration discoveryTimeout;
 
-    SnmpDiscoveryService(final Duration discoveryTimeout){
+    SnmpFeatureDiscoveryService(final Duration discoveryTimeout){
         this.discoveryTimeout = Objects.requireNonNull(discoveryTimeout);
     }
 

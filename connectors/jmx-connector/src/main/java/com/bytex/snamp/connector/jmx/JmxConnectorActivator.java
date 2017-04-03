@@ -34,7 +34,7 @@ public final class JmxConnectorActivator extends ManagedResourceActivator<JmxCon
         return connector;
     }
 
-    private static JmxDiscoveryService newDiscoveryService(final DependencyManager dependencies){
-        return new JmxDiscoveryService();
+    private static JmxFeatureDiscoveryService newDiscoveryService(final DependencyManager dependencies){
+        return new JmxFeatureDiscoveryService();
     }
 }

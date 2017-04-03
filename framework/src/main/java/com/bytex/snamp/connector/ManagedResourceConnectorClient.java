@@ -3,7 +3,7 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.discovery.DiscoveryService;
+import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
 import org.osgi.framework.*;
@@ -120,8 +120,9 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         if (context == null || configurationEntity == null) return null;
         ServiceReference<ConfigurationEntityDescriptionProvider> ref = null;
         try {
-            ref = new ManagedResourceFilterBuilder()
+            ref = filterBuilder()
                     .setConnectorType(connectorType)
+                    .setServiceType(ConfigurationEntityDescriptionProvider.class)
                     .getServiceReference(context, ConfigurationEntityDescriptionProvider.class)
                     .orElseThrow(() -> unsupportedServiceRequest(connectorType, ConfigurationEntityDescriptionProvider.class));
             final ConfigurationEntityDescriptionProvider provider = context.getService(ref);
@@ -149,8 +150,9 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                                                            final ManagedResourceInfo configuration) throws Exception {
         ServiceReference<ManagedResourceConnectorFactoryService> ref = null;
         try {
-            ref = new ManagedResourceFilterBuilder()
+            ref = filterBuilder()
                     .setConnectorType(connectorType)
+                    .setServiceType(ManagedResourceConnectorFactoryService.class)
                     .getServiceReference(context, ManagedResourceConnectorFactoryService.class)
                     .orElseThrow(() -> unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class));
             final ManagedResourceConnectorFactoryService service = context.getService(ref);
@@ -163,7 +165,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     /**
      * Discovers elements for the managed resource.
      * <p>
-     *     The connector bundle should expose {@link com.bytex.snamp.connector.discovery.DiscoveryService} service.
+     *     The connector bundle should expose {@link FeatureDiscoveryService} service.
      * </p>
      * @param context The context of the caller bundle.
      * @param connectorType The system name of the connector.
@@ -180,13 +182,14 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                                                                                   final Map<String, String> connectionOptions,
                                                                                   final Class<T> entityType) throws UnsupportedOperationException {
         if (context == null || entityType == null) return Collections.emptyList();
-        ServiceReference<DiscoveryService> ref = null;
+        ServiceReference<FeatureDiscoveryService> ref = null;
         try {
-            ref = new ManagedResourceFilterBuilder()
+            ref = filterBuilder()
                     .setConnectorType(connectorType)
-                    .getServiceReference(context, DiscoveryService.class)
-                    .orElseThrow(() -> unsupportedServiceRequest(connectorType, DiscoveryService.class));
-            final DiscoveryService service = context.getService(ref);
+                    .setServiceType(FeatureDiscoveryService.class)
+                    .getServiceReference(context, FeatureDiscoveryService.class)
+                    .orElseThrow(() -> unsupportedServiceRequest(connectorType, FeatureDiscoveryService.class));
+            final FeatureDiscoveryService service = context.getService(ref);
             return service.discover(connectionString, connectionOptions, entityType);
         } finally {
             if (ref != null) context.ungetService(ref);
