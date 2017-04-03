@@ -59,12 +59,7 @@ public final class ConfigOperationCommand extends TemplateConfigurationCommand {
             operations.remove(operationName);
         else {
             final OperationConfiguration operation = operations.getOrAdd(operationName);
-            if (!ArrayUtils.isNullOrEmpty(parameters))
-                for (final String param : parameters) {
-                    final StringKeyValue pair = StringKeyValue.parse(param);
-                    if (pair != null)
-                        operation.put(pair.getKey(), pair.getValue());
-                }
+            operation.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(operation::remove);
         }
         appendln(output, "Operation configured successfully");

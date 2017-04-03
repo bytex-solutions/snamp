@@ -53,12 +53,7 @@ public final class ConfigGatewayInstanceCommand extends GatewayConfigurationComm
             final GatewayConfiguration gateway = gateways.getOrAdd(instanceName);
             if (!isNullOrEmpty(gatewayType))
                 gateway.setType(gatewayType);
-            if (!ArrayUtils.isNullOrEmpty(parameters))
-                for (final String param : parameters) {
-                    final StringKeyValue pair = StringKeyValue.parse(param);
-                    if (pair != null)
-                        gateway.put(pair.getKey(), pair.getValue());
-                }
+            gateway.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(gateway::remove);
         }
         appendln(output, "Gateway configured successfully");

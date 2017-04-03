@@ -56,12 +56,7 @@ public final class ConfigEventCommand extends TemplateConfigurationCommand {
             events.remove(category);
         else {
             final EventConfiguration event = events.getOrAdd(category);
-            if (!ArrayUtils.isNullOrEmpty(parameters))
-                for (final String param : parameters) {
-                    final StringKeyValue pair = StringKeyValue.parse(param);
-                    if (pair != null)
-                        event.put(pair.getKey(), pair.getValue());
-                }
+            event.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(event::remove);
         }
         appendln(output, "Event configured successfully");

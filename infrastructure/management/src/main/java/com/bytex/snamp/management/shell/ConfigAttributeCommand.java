@@ -62,12 +62,7 @@ public final class ConfigAttributeCommand extends TemplateConfigurationCommand {
             final AttributeConfiguration attribute = attributes.getOrAdd(attributeName);
             if (readWriteTimeout > INFINITE_TIMEOUT)
                 attribute.setReadWriteTimeout(Duration.ofMillis(readWriteTimeout));
-            if (!ArrayUtils.isNullOrEmpty(parameters))
-                for (final String param : parameters) {
-                    final StringKeyValue pair = StringKeyValue.parse(param);
-                    if (pair != null)
-                        attribute.put(pair.getKey(), pair.getValue());
-                }
+            attribute.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(attribute::remove);
         }
         appendln(output, "Attribute configured successfully");

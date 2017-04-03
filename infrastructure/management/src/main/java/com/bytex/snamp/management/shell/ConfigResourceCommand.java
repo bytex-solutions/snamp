@@ -62,12 +62,7 @@ public final class ConfigResourceCommand extends ManagedResourceConfigurationCom
             if (!isNullOrEmpty(connectionString))
                 resource.setConnectionString(connectionString);
             //setup parameters
-            if (!ArrayUtils.isNullOrEmpty(parameters))
-                for (final String pair : parameters) {
-                    final StringKeyValue keyValue = StringKeyValue.parse(pair);
-                    if (keyValue != null)
-                        resource.put(keyValue.getKey(), keyValue.getValue());
-                }
+            resource.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(resource::remove);
         }
         appendln(output, "Resource configured successfully");
