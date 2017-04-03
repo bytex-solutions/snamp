@@ -25,7 +25,7 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
-import com.bytex.snamp.testing.connector.supervision.HealthAnalyzerTest;
+import com.bytex.snamp.testing.supervision.HealthAnalyzerTest;
 import com.bytex.snamp.web.serviceModel.charts.*;
 import com.bytex.snamp.web.serviceModel.commons.AttributeInformation;
 import com.bytex.snamp.web.serviceModel.e2e.ChildComponentsView;
@@ -652,6 +652,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         fillManagedResources(config.getResources());
         fillGateways(config.getGateways());
         fillGroups(config.getResourceGroups());
+        fillSupervisors(config.getSupervisors());
     }
 
     private void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups) {
@@ -663,7 +664,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         fillSpanEvents(group.getEvents());
     }
 
-    private void fillWatchers(final EntityMap<? extends SupervisorConfiguration> watchers){
+    private void fillSupervisors(final EntityMap<? extends SupervisorConfiguration> watchers){
         final String groovyTrigger;
         try {
             groovyTrigger = IOUtils.toString(HealthAnalyzerTest.class.getResourceAsStream("GroovyTrigger.groovy"));
@@ -754,22 +755,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         attribute.setUnitOfMeasurement("MBytes");
         attribute.setDescription("Used amount of memory, in megabytes");
         attribute.setAlternativeName("bigint");
-
-        attribute = attributes.getOrAdd("CPU");
-        attribute.setUnitOfMeasurement("%");
-        attribute.setDescription("CPU utilization");
-        attribute.setAlternativeName("float");
-    }
-
-    private static void fillAlternativeJmxAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
-        AttributeConfiguration attribute = attributes.getOrAdd("available");
-        attribute.setDescription("Is service available?");
-        attribute.setAlternativeName("boolean");
-
-        attribute = attributes.getOrAdd("diskSpace");
-        attribute.setUnitOfMeasurement("MB");
-        attribute.setDescription("Volume of the available disk space");
-        attribute.setAlternativeName("int32");
 
         attribute = attributes.getOrAdd("CPU");
         attribute.setUnitOfMeasurement("%");

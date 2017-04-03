@@ -1,18 +1,19 @@
-package com.bytex.snamp.testing.connector.supervision;
+package com.bytex.snamp.testing.supervision;
 
+import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
+import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
 import com.bytex.snamp.connector.attributes.checkers.NumberComparatorPredicate;
 import com.bytex.snamp.connector.health.HealthStatus;
-import com.bytex.snamp.supervision.HealthStatusProvider;
 import com.bytex.snamp.connector.health.InvalidAttributeValue;
 import com.bytex.snamp.connector.health.OkStatus;
-import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.io.IOUtils;
+import com.bytex.snamp.supervision.HealthStatusProvider;
+import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
@@ -46,26 +47,26 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
 
     @Test
     public void coloredCheckerTest() throws JMException, InterruptedException {
-        final ServiceHolder<HealthStatusProvider> supervisor = ServiceHolder.tryCreate(getTestBundleContext(), HealthStatusProvider.class);
+        final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME);
         assertNotNull(supervisor);
         try{
-            assertTrue(supervisor.get().getWatchingGroups().contains(GROUP_NAME));
+            assertTrue(supervisor.get().getResources().contains(TEST_RESOURCE_NAME));
 
             testAttribute("3.0", TypeToken.of(Integer.class), 90);
             Thread.sleep(1000L);
-            HealthStatus status = supervisor.get().getHealthStatus(GROUP_NAME);
+            HealthStatus status = Aggregator.queryAndApply(supervisor, HealthStatusProvider.class, HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status instanceof OkStatus);
 
             testAttribute("3.0", TypeToken.of(Integer.class), 1000);
             Thread.sleep(1000L);
-            status = supervisor.get().getHealthStatus(GROUP_NAME);
+            status = Aggregator.queryAndApply(supervisor, HealthStatusProvider.class, HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status instanceof InvalidAttributeValue);
             assertEquals(TEST_RESOURCE_NAME, status.getResourceName());
             assertFalse(status.isCritical());
 
             testAttribute("3.0", TypeToken.of(Integer.class), 2001);
             Thread.sleep(1000L);
-            status = supervisor.get().getHealthStatus(GROUP_NAME);
+            status = Aggregator.queryAndApply(supervisor, HealthStatusProvider.class, HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status instanceof InvalidAttributeValue);
             assertEquals(TEST_RESOURCE_NAME, status.getResourceName());
             assertTrue(status.isCritical());
@@ -76,19 +77,19 @@ public final class HealthAnalyzerTest extends AbstractJmxConnectorTest<TestOpenM
 
     @Test
     public void groovyCheckerTest() throws JMException, InterruptedException {
-        final ServiceHolder<HealthStatusProvider> supervisor = ServiceHolder.tryCreate(getTestBundleContext(), HealthStatusProvider.class);
+        final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME);
         assertNotNull(supervisor);
         try {
-            assertTrue(supervisor.get().getWatchingGroups().contains(GROUP_NAME));
+            assertTrue(supervisor.get().getResources().contains(TEST_RESOURCE_NAME));
 
             testAttribute("8.0", TypeToken.of(Float.class), 40F);
             Thread.sleep(1000L);
-            HealthStatus status = supervisor.get().getHealthStatus(GROUP_NAME);
+            HealthStatus status = Aggregator.queryAndApply(supervisor, HealthStatusProvider.class, HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status instanceof OkStatus);
 
             testAttribute("8.0", TypeToken.of(Float.class), 50F);
             Thread.sleep(1000L);
-            status = supervisor.get().getHealthStatus(GROUP_NAME);
+            status = Aggregator.queryAndApply(supervisor, HealthStatusProvider.class, HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status instanceof InvalidAttributeValue);
             assertEquals(TEST_RESOURCE_NAME, status.getResourceName());
             assertTrue(status.isCritical());

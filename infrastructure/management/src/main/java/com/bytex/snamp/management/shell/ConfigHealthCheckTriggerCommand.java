@@ -10,7 +10,6 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import java.security.KeyPair;
 import java.util.Arrays;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;
@@ -49,6 +48,8 @@ public final class ConfigHealthCheckTriggerCommand extends SupervisorConfigurati
             healthCheckTrigger.getParameters().putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(healthCheckTrigger.getParameters()::remove);
         }
+        appendln(output, "Supervisor is modified successfully");
+        return true;
     }
 
     @Override

@@ -245,7 +245,7 @@
     </dependency>
     <dependency>
       <groupId>com.bytex.snamp</groupId>
-      <artifactId>analysis-and-operations</artifactId>
+      <artifactId>default-supervisor</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
     </dependency>

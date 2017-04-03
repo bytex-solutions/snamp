@@ -12,7 +12,7 @@ import org.osgi.framework.Bundle;
  */
 public final class ManagementUtils {
     private ManagementUtils(){
-
+        throw new InstantiationError();
     }
 
     private static String getStateString(final int state){

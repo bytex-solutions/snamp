@@ -183,9 +183,8 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
                             client.release(context);
                         }
                 }
-                InternalState<C> newState = currentState.setConfiguration(newConfiguration);
-                start(newState.configuration);
-                mutableState = newState.transition(FrameworkServiceState.STARTED);
+                start(newConfiguration);
+                mutableState = currentState.transition(FrameworkServiceState.STARTED).setConfiguration(newConfiguration);
                 started();
                 filter.addServiceListener(context, this);
         }

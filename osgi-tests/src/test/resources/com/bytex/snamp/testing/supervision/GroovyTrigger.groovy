@@ -1,4 +1,4 @@
-package com.bytex.snamp.testing.connector.supervision
+package com.bytex.snamp.testing.supervision
 
 import com.bytex.snamp.connector.health.HealthStatus
 

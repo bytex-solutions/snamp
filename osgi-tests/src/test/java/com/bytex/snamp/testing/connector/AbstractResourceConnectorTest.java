@@ -192,6 +192,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         targetConfig.putAll(connectorParameters);
         targetConfig.setGroupName(getGroupName());
         fillGateways(config.getGateways());
+        fillSupervisors(config.getSupervisors());
         targetConfig.setConnectionString(connectionString);
         targetConfig.setType(connectorType);
         fillAttributes(targetConfig.getAttributes());
