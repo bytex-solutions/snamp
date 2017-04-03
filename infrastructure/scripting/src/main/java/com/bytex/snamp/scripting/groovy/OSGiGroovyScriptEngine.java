@@ -107,6 +107,13 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
         return typedResult;
     }
 
+    private SafeCloseable withBaseClass(final Class<? extends B> baseScriptClass){
+        final CompilerConfiguration config = getConfig();
+        final String previousBaseClass = config.getScriptBaseClass();
+        config.setScriptBaseClass(baseScriptClass.getName());
+        return () -> config.setScriptBaseClass(previousBaseClass);
+    }           
+
     /**
      * Creates a Script with a given scriptName and binding.
      *
@@ -121,16 +128,12 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
         final Script result;
         final Binding bindingUnion = binding == null ? rootBinding : concatBindings(rootBinding, binding);
 
-        final String previousBaseClass = getConfig().getScriptBaseClass();
-        getConfig().setScriptBaseClass(baseScriptClass.getName());
-        try(final SafeCloseable ignored = Utils.withContextClassLoader(getGroovyClassLoader())) {
+        try(final SafeCloseable ignored = Utils.withContextClassLoader(getGroovyClassLoader()); final SafeCloseable ignored2 = withBaseClass(baseScriptClass)) {
             result = super.createScript(scriptName, bindingUnion);
         } catch (final ResourceException | ScriptException e){
             throw e;
         } catch (final Exception e) {
             throw new ScriptException(e);
-        } finally {
-            getConfig().setScriptBaseClass(previousBaseClass);
         }
         final C typedResult = baseScriptClass.cast(result);
         interceptCreate(typedResult);
