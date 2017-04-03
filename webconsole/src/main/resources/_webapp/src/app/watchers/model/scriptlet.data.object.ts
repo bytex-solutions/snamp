@@ -108,6 +108,7 @@ export class ScriptletDataObject {
                 this.script = this.object.toJSON();
             }
         }
+        console.log("Trying to stringify current scriptlet object: ", _value);
         return _value;
     }
 }

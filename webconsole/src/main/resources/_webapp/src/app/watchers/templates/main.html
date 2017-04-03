@@ -308,7 +308,7 @@
           </div>
         </div>
 
-        <div class="row row-margin-bottom-sm" *ngIf="attributes && attributes.length > 0">
+        <div class="row row-margin-bottom-sm" *ngIf="!(attributes && attributes.length > 0)">
           <h5>Selected group does not contain attributes - please select another component or set some attributes</h5>
         </div>
 

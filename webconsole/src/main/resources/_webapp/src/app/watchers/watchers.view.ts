@@ -61,8 +61,8 @@ export class MainComponent implements OnInit {
    }
 
    saveCurrentChecker():void {
-        console.log(this.activeChecker);
         this.activeWatcher.attributeCheckers[this.selectedAttribute.name] = this.activeChecker;
+        console.log("Checker has been saved", this.activeWatcher);
    }
 
    ngOnInit():void {
