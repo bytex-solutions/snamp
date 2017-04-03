@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.Box;
 import com.bytex.snamp.BoxFactory;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.internal.Utils;
 
 import javax.management.MalformedObjectNameException;
@@ -82,11 +83,11 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     public JMXConnector createConnection() throws IOException {
         //this string should be used in OSGi environment. Otherwise, JMX connector
         //will not resolve the JMX registry via JNDI
-        try {
-            return Utils.callWithContextClassLoader(getClass().getClassLoader(), () -> JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions()));
+        try (final SafeCloseable ignored = Utils.withContextClassLoader(getClass().getClassLoader())) {
+            return JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions());
         } catch (final IOException e) {
             throw e;
-        } catch (final Exception e){
+        } catch (final Exception e) {
             throw new IOException(e);
         }
     }

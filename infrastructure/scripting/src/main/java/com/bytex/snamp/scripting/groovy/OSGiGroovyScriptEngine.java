@@ -1,6 +1,7 @@
 package com.bytex.snamp.scripting.groovy;
 
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.StandardSystemProperty;
 import groovy.lang.Binding;
@@ -94,9 +95,9 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
     public synchronized final B createScript(final String scriptName, final Binding binding) throws ResourceException, ScriptException {
         final Script result;
         final Binding bindingUnion = binding == null ? rootBinding : concatBindings(rootBinding, binding);
-        try {
-            result = Utils.callWithContextClassLoader(getGroovyClassLoader(), () -> super.createScript(scriptName, bindingUnion));
-        } catch (final ResourceException | ScriptException e){
+        try (final SafeCloseable ignored = Utils.withContextClassLoader(getGroovyClassLoader())) {
+            result = super.createScript(scriptName, bindingUnion);
+        } catch (final ResourceException | ScriptException e) {
             throw e;
         } catch (final Exception e) {
             throw new ScriptException(e);
@@ -122,8 +123,8 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
 
         final String previousBaseClass = getConfig().getScriptBaseClass();
         getConfig().setScriptBaseClass(baseScriptClass.getName());
-        try {
-            result = Utils.callWithContextClassLoader(getGroovyClassLoader(), () -> super.createScript(scriptName, bindingUnion));
+        try(final SafeCloseable ignored = Utils.withContextClassLoader(getGroovyClassLoader())) {
+            result = super.createScript(scriptName, bindingUnion);
         } catch (final ResourceException | ScriptException e){
             throw e;
         } catch (final Exception e) {

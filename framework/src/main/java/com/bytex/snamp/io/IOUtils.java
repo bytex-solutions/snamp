@@ -1,6 +1,8 @@
 package com.bytex.snamp.io;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Convert;
+import com.google.common.base.Strings;
 import com.google.common.reflect.TypeToken;
 
 import javax.annotation.Nonnull;
@@ -9,8 +11,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.BitSet;
-
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * @author Roman Sakno
@@ -66,7 +66,7 @@ public final class IOUtils {
     }
 
     public static void writeString(final String value, final OutputStream output, final Charset encoding) throws IOException {
-        if (value == null || value.isEmpty()) return;
+        if (Strings.isNullOrEmpty(value)) return;
         else if (encoding == null) writeString(value, output, Charset.defaultCharset());
         else output.write(value.getBytes(encoding));
     }
@@ -97,7 +97,7 @@ public final class IOUtils {
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
                                                          final TypeToken<T> expectedType,
                                                          final ClassResolver resolver) throws IOException {
-        if (serializedForm == null || serializedForm.length == 0)
+        if (ArrayUtils.isNullOrEmpty(serializedForm))
             return null;
         else
             try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm)) {
