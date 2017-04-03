@@ -101,6 +101,7 @@ export class ScriptletDataObject {
         _value["language"] = this.language;
         _value["script"] = this.script;
         _value["isURL"] = this.isURL;
+        console.log("Object is: ", this.object);
         if (this.language == "ColoredAttributeChecker") {
             if (this.object == undefined) {
                 throw new Error("Trying to serialize ColoredAttributeChecker instance without the object");

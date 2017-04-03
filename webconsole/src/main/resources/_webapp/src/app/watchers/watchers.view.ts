@@ -264,7 +264,7 @@ export class MainComponent implements OnInit {
     }
 
     public saveActiveWatcher():void {
-        console.log("Saving selected watcher: ", this.activeWatcher.toJSON());
+        console.log("Saving selected watcher: ", this.activeWatcher, ", json is: ", this.activeWatcher.toJSON());
     }
 
 }
