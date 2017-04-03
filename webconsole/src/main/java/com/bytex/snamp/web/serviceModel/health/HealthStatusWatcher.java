@@ -3,6 +3,7 @@ package com.bytex.snamp.web.serviceModel.health;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.OkStatus;
+import com.bytex.snamp.core.FilterBuilder;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.*;
@@ -20,10 +21,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -65,17 +64,41 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
     public static final class StatusOfGroups extends HashMap<String, HealthStatus>{
         private static final long serialVersionUID = 2645921325913575632L;
 
-        void put(final String groupName, final Supervisor supervisor) {
+        void putStatus(final String groupName, final Supervisor supervisor) {
             final HealthStatus status = Aggregator.queryAndApply(supervisor, HealthCheckSupport.class, HealthCheckSupport::getStatus).orElseGet(OkStatus::new);
             put(groupName, status);
         }
     }
 
-    private final Set<String> groups;
-
     public HealthStatusWatcher(){
         SupervisorClient.filterBuilder().addServiceListener(getBundleContext(), this);
-        groups = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    }
+
+    private void removeHealthStatusListener(final Supervisor supervisor) {
+        Aggregator.queryAndAccept(supervisor, HealthStatusProvider.class, provider -> provider.removeHealthStatusEventListener(this));
+    }
+
+    private void addHealthStatusListener(final Supervisor supervisor) {
+        Aggregator.queryAndAccept(supervisor, HealthStatusProvider.class, provider -> provider.addHealthStatusEventListener(this));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void serviceChanged(final ServiceEvent event) {
+        if (Utils.isInstanceOf(event.getServiceReference(), Supervisor.class))
+            try (final SupervisorClient client = new SupervisorClient(getBundleContext(), (ServiceReference<Supervisor>) event.getServiceReference())) {
+                switch (event.getType()) {
+                    case ServiceEvent.MODIFIED_ENDMATCH:
+                    case ServiceEvent.UNREGISTERING:
+                        removeHealthStatusListener(client);
+                        return;
+                    case ServiceEvent.REGISTERED:
+                        addHealthStatusListener(client);
+                        return;
+                    default:
+                        getLogger().warning(String.format("Unknown event type %s detected by HealthStatusWatcher", event.getType()));
+                }
+            }
     }
 
     private BundleContext getBundleContext(){
@@ -84,43 +107,24 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
 
     @Override
     protected void initialize() {
-        supervisor.addHealthStatusEventListener(this);
+        for (final String groupName : getGroups()) {
+            final SupervisorClient client = SupervisorClient.tryCreate(getBundleContext(), groupName);
+            if (client == null)
+                getLogger().warning(String.format("Supervisor for group %s cannot be resolved", groupName));
+            else
+                addHealthStatusListener(client);
+        }
     }
 
     private Logger getLogger(){
         return LoggerProvider.getLoggerForBundle(getBundleContext());
     }
 
-    /**
-     * Receives notification that a service has had a lifecycle change.
-     *
-     * @param event The {@code ServiceEvent} object.
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public void serviceChanged(final ServiceEvent event) {
-        if (Utils.isInstanceOf(event.getServiceReference(), Supervisor.class)) {
-            try(final SupervisorClient client = new SupervisorClient(getBundleContext(), (ServiceReference<Supervisor>) event.getServiceReference())) {
-                switch (event.getType()) {
-                    case ServiceEvent.UNREGISTERING:
-                    case ServiceEvent.MODIFIED_ENDMATCH:
-                        groups.remove(client.getGroupName());
-                        return;
-                    case ServiceEvent.REGISTERED:
-                        groups.add(client.getGroupName());
-                        return;
-                    default:
-                        getLogger().warning(String.format("Unknown message type detected: %s. Group %s", event.getType(), client.getGroupName()));
-                }
-            }
-        }
-    }
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/groups")
-    public Set<String> getGroups(){
-        return groups;
+    public Set<String> getGroups() {
+        return SupervisorClient.filterBuilder().getGroups(getBundleContext());
     }
 
     @GET
@@ -128,12 +132,12 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
     @Produces(MediaType.APPLICATION_JSON)
     public StatusOfGroups getStatus() {
         final StatusOfGroups result = new StatusOfGroups();
-        for(final String groupName: groups) {
+        for(final String groupName: getGroups()) {
             final SupervisorClient client = SupervisorClient.tryCreate(getBundleContext(), groupName);
             if (client == null)
                 getLogger().warning(String.format("Supervisor for group %s cannot be resolved", groupName));
             else try {
-                result.put(groupName, client);
+                result.putStatus(groupName, client);
             } finally {
                 client.close();
             }

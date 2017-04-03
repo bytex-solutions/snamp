@@ -101,10 +101,14 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                                              final Class<M> notifMetadataType,
                                              final boolean expandable) {
         super(resourceName, notifMetadataType);
-        notifications = AbstractKeyedObjects.create(metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new));
+        notifications = AbstractKeyedObjects.create(AbstractNotificationRepository::extractNotificationType);
         listeners = new NotificationListenerList();
         metrics = new NotificationMetricRecorder();
         this.expandable = expandable;
+    }
+
+    private static String extractNotificationType(final MBeanNotificationInfo metadata) {
+        return ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new);
     }
 
     /**
