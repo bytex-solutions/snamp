@@ -25,16 +25,16 @@ public final class MetricRegistryTest extends Assert {
         assertEquals(2L, reporter.size());
         reporter.clear();
         //schedule reporting
-        final MeasurementScope scope = registry.integer(NAME).scheduleReporting(new MeasurementReporter.ReportingTask<IntegerMeasurementReporter>() {
+        try(final RuntimeScope scope = registry.integer(NAME).scheduleReporting(new MeasurementReporter.ReportingTask<IntegerMeasurementReporter>() {
             @Override
             public boolean report(final IntegerMeasurementReporter reporter) {
                 reporter.report(50L);
                 return true;
             }
-        }, 100, TimeUnit.MILLISECONDS);
-        Thread.sleep(1001L);
-        scope.close();
-        assertTrue(reporter.size() >= 9);
+        }, 100, TimeUnit.MILLISECONDS)) {
+            Thread.sleep(1001L);
+            assertTrue(reporter.size() >= 9);
+        }
     }
 
     @Test
@@ -55,7 +55,7 @@ public final class MetricRegistryTest extends Assert {
         final String NAME = "testTimer";
         final TimeMeasurementReporter timer = registry.timer(NAME);
         assertEquals(timer, registry.timer(NAME));
-        try (final MeasurementScope scope = timer.start()) {
+        try (final RuntimeScope scope = timer.start()) {
             Thread.sleep(1000);
         }
         assertEquals(1L, reporter.size());

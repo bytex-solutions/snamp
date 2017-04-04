@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * @since 1.0
  */
-public abstract class TraceScope implements MeasurementScope {
+public abstract class TraceScope implements RuntimeScope {
     private static final ThreadLocal<TraceScope> CURRENT_SCOPE = new ThreadLocal<>();
 
     private final long startTime;
@@ -29,7 +29,19 @@ public abstract class TraceScope implements MeasurementScope {
         this.correlationID = Objects.requireNonNull(correlationID);
         startTime = System.nanoTime();
         //push scope
-        parent = parentSpanID.isEmpty() ? CURRENT_SCOPE.get() : ephemeralScope(correlationID, parentSpanID);
+        parent = parentSpanID.isEmpty() ? CURRENT_SCOPE.get() : new TransitiveScope(correlationID, parentSpanID);
+        pushScope();
+    }
+
+    //constructor for transitive scope
+    private TraceScope(final Identifier correlationID, final Identifier spanID, final boolean transitive){
+        assert transitive;
+        this.moduleName = "";
+        this.spanID = Objects.requireNonNull(spanID);
+        this.correlationID = Objects.requireNonNull(correlationID);
+        startTime = System.nanoTime();
+        //push scope
+        parent = CURRENT_SCOPE.get();
         pushScope();
     }
 
@@ -37,22 +49,15 @@ public abstract class TraceScope implements MeasurementScope {
         this(correlationID, Identifier.randomID(), parentSpanID, moduleName);
     }
 
-    boolean isEphemeral(){
-        return false;
-    }
+    private static final class TransitiveScope extends TraceScope {
+        TransitiveScope(final Identifier correlationID, final Identifier spanID) {
+            super(correlationID, spanID, true);
+        }
 
-    private static TraceScope ephemeralScope(final Identifier correlationID, final Identifier spanID){
-        return new TraceScope(correlationID, spanID, Identifier.EMPTY, "") {
-            @Override
-            protected void report(final Span s) {
-                //ephemeral scope cannot report anything
-            }
-
-            @Override
-            boolean isEphemeral() {
-                return true;
-            }
-        };
+        @Override
+        protected void report(final Span s) {
+            //transitive scope cannot report anything
+        }
     }
 
     private void pushScope(){
@@ -62,7 +67,7 @@ public abstract class TraceScope implements MeasurementScope {
     private void popScope() {
         if (parent == null)
             CURRENT_SCOPE.remove();
-        else if (parent.isEphemeral())
+        else if (parent instanceof TransitiveScope)
             parent.popScope();
         else
             CURRENT_SCOPE.set(parent);

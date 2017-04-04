@@ -3,6 +3,7 @@ package com.bytex.snamp.instrumentation.measurements;
 import com.bytex.snamp.instrumentation.ApplicationInfo;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
 
 import java.io.*;
 import java.util.Date;
@@ -28,6 +29,10 @@ import java.util.Map;
 public abstract class Measurement implements Externalizable {
     private static final class ObjectMapperHolder{
         private static final ObjectMapper INSTANCE = new ObjectMapper();
+
+        static ObjectWriter getWriter(final boolean prettyPrint) {
+            return prettyPrint ? INSTANCE.writerWithDefaultPrettyPrinter() : INSTANCE.writer();
+        }
     }
 
     public static final String DESCRIPTION_ANNOTATION = "description";
@@ -129,19 +134,13 @@ public abstract class Measurement implements Externalizable {
     }
 
     @JsonIgnore
-    public static String toJsonString(final Measurement... measurements) throws IOException {
-        try (final StringWriter writer = new StringWriter()) {
-            ObjectMapperHolder.INSTANCE.writeValue(writer, measurements);
-            return writer.toString();
-        }
+    public static String toJsonString(final boolean prettyPrint, final Measurement... measurements) throws IOException {
+        return ObjectMapperHolder.getWriter(prettyPrint).writeValueAsString(measurements);
     }
 
     @JsonIgnore
-    public final String toJsonString() throws IOException {
-        try (final StringWriter writer = new StringWriter()) {
-            ObjectMapperHolder.INSTANCE.writeValue(writer, this);
-            return writer.toString();
-        }
+    public final String toJsonString(final boolean prettyPrint) throws IOException {
+        return ObjectMapperHolder.getWriter(prettyPrint).writeValueAsString(this);
     }
 
     /**

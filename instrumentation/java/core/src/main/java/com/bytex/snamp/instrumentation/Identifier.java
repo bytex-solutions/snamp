@@ -24,6 +24,18 @@ import java.util.UUID;
 public final class Identifier implements Serializable {
     private static final class SecureRandomHolder{
         private static final SecureRandom INSTANCE = new SecureRandom();
+
+        static long nextLong(){
+            return INSTANCE.nextLong();
+        }
+
+        static int nextInt(){
+            return INSTANCE.nextInt();
+        }
+
+        static void nextBytes(final byte[] bytes) {
+            INSTANCE.nextBytes(bytes);
+        }
     }
 
     private static final long serialVersionUID = -767298982099087481L;
@@ -59,16 +71,16 @@ public final class Identifier implements Serializable {
     public static Identifier randomID(final int bytes) {
         switch (bytes){
             case 4:
-                return ofLong(SecureRandomHolder.INSTANCE.nextInt());
+                return ofLong(SecureRandomHolder.nextInt());
             case 8:
-                return ofLong(SecureRandomHolder.INSTANCE.nextLong());
+                return ofLong(SecureRandomHolder.nextLong());
             case 1:
                 byte[] randomBytes = new byte[1];
-                SecureRandomHolder.INSTANCE.nextBytes(randomBytes);
+                SecureRandomHolder.nextBytes(randomBytes);
                 return ofString(Byte.toString(randomBytes[0]));
             default:
                 randomBytes = new byte[bytes];
-                SecureRandomHolder.INSTANCE.nextBytes(randomBytes);
+                SecureRandomHolder.nextBytes(randomBytes);
                 return ofBytes(randomBytes);
         }
     }

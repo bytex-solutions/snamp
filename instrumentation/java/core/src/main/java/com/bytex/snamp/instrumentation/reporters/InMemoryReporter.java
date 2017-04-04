@@ -62,7 +62,7 @@ public final class InMemoryReporter extends LinkedBlockingQueue<Measurement> imp
      */
     @Override
     public void close() {
-        clear();
         closed = true;
+        clear();
     }
 }

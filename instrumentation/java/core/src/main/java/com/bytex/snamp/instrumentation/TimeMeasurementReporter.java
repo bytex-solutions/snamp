@@ -53,8 +53,8 @@ public class TimeMeasurementReporter extends MeasurementReporter<TimeMeasurement
      * @param userData Additional data associated with time measurement.
      * @return An object used to stop timer
      */
-    public MeasurementScope start(final Map<String, String> userData){
-        return new MeasurementScope() {
+    public RuntimeScope start(final Map<String, String> userData){
+        return new RuntimeScope() {
             private final long startTime = System.nanoTime();
 
             @Override
@@ -68,12 +68,12 @@ public class TimeMeasurementReporter extends MeasurementReporter<TimeMeasurement
      * Starts timer.
      * @return An object used to stop timer
      */
-    public final MeasurementScope start(){
+    public final RuntimeScope start(){
         return start(Collections.<String, String>emptyMap());
     }
 
     public <V> V call(final Callable<V> callable, final Map<String, String> userData) throws Exception {
-        try (final MeasurementScope scope = start(userData)) {
+        try (final RuntimeScope scope = start(userData)) {
             return callable.call();
         }
     }
@@ -83,7 +83,7 @@ public class TimeMeasurementReporter extends MeasurementReporter<TimeMeasurement
     }
 
     public void run(final Runnable runnable, final Map<String, String> userData) {
-        try (final MeasurementScope scope = start(userData)) {
+        try (final RuntimeScope scope = start(userData)) {
             runnable.run();
         }
     }
@@ -92,7 +92,7 @@ public class TimeMeasurementReporter extends MeasurementReporter<TimeMeasurement
         run(runnable, Collections.<String, String>emptyMap());
     }
 
-    public MeasurementScope scheduleReporting(final ReportingTask<? super TimeMeasurementReporter> task, final long delay, final TimeUnit unit){
+    public RuntimeScope scheduleReporting(final ReportingTask<? super TimeMeasurementReporter> task, final long delay, final TimeUnit unit){
         return scheduleReporting(createTask(this, task), delay, unit);
     }
 }

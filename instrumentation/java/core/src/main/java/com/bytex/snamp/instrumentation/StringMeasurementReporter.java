@@ -49,7 +49,7 @@ public class StringMeasurementReporter extends ValueMeasurementReporter<StringMe
         report(value, ChangeType.NEW_VALUE);
     }
 
-    public MeasurementScope scheduleReporting(final ReportingTask<? super StringMeasurementReporter> task, final long delay, final TimeUnit unit){
+    public RuntimeScope scheduleReporting(final ReportingTask<? super StringMeasurementReporter> task, final long delay, final TimeUnit unit){
         return scheduleReporting(createTask(this, task), delay, unit);
     }
 }

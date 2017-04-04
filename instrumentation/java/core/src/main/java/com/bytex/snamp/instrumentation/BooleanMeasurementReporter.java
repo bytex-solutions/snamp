@@ -37,7 +37,7 @@ public class BooleanMeasurementReporter extends ValueMeasurementReporter<Boolean
         report(value, Collections.<String, String>emptyMap());
     }
 
-    public MeasurementScope scheduleReporting(final ReportingTask<? super BooleanMeasurementReporter> task, final long delay, final TimeUnit unit){
+    public RuntimeScope scheduleReporting(final ReportingTask<? super BooleanMeasurementReporter> task, final long delay, final TimeUnit unit){
         return scheduleReporting(createTask(this, task), delay, unit);
     }
 }

@@ -49,7 +49,7 @@ public class IntegerMeasurementReporter extends ValueMeasurementReporter<Integer
         report(measurement);
     }
 
-    public MeasurementScope scheduleReporting(final ReportingTask<? super IntegerMeasurementReporter> task, final long delay, final TimeUnit unit){
+    public RuntimeScope scheduleReporting(final ReportingTask<? super IntegerMeasurementReporter> task, final long delay, final TimeUnit unit){
         return scheduleReporting(createTask(this, task), delay, unit);
     }
 }
