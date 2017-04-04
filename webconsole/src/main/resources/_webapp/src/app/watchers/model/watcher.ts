@@ -6,7 +6,7 @@ export class Watcher extends Entity {
     public trigger:ScriptletDataObject = new ScriptletDataObject();
 
     public toJSON():any {
-        console.log("JSONify the watcher from the watcher class: ", this);
+        // console.log("JSONify the watcher from the watcher class: ", this);
          let _value:any = {};
         _value["attributeCheckers"] = {};
         for (let key in this.attributeCheckers) {

@@ -864,13 +864,12 @@ var ScriptletDataObject = (function () {
         _value["language"] = this.language;
         _value["script"] = this.script;
         _value["isURL"] = this.isURL;
-        console.log("Object is: ", this.object);
         if (this.language == "ColoredAttributeChecker") {
             if (this.object == undefined) {
                 throw new Error("Trying to serialize ColoredAttributeChecker instance without the object");
             }
             else {
-                this.script = this.object.toJSON();
+                this.script = JSON.stringify(this.object.toJSON());
             }
         }
         console.log("Trying to stringify current scriptlet object: ", _value);
@@ -898,7 +897,7 @@ var Watcher = (function (_super) {
         this.trigger = new scriptlet_data_object_1.ScriptletDataObject();
     }
     Watcher.prototype.toJSON = function () {
-        console.log("JSONify the watcher from the watcher class: ", this);
+        // console.log("JSONify the watcher from the watcher class: ", this);
         var _value = {};
         _value["attributeCheckers"] = {};
         for (var key in this.attributeCheckers) {
