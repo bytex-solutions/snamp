@@ -90,6 +90,35 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
         SnampFeature.HTTP_ACCEPTOR
 })
 public final class WebConsoleTest extends AbstractSnampIntegrationTest {
+    private static final ObjectMapper FORMATTER = new ObjectMapper();
+
+    private static final String GROUP_NAME = "web-server";
+
+    private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
+    private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
+
+    private static final String JMX_CONNECTOR_TYPE = "jmx";
+    private static final String HTTP_ACCEPTOR_TYPE = "http";
+
+    private static final String ADAPTER_NAME = "http";
+    private static final String TEST_PARAMETER = "testParameter";
+
+    private static final String FIRST_BEAN_NAME = BEAN_NAME + "_1";
+    private static final String FIRST_RESOURCE_NAME = "node#1";
+
+    private static final String SECOND_BEAN_NAME = BEAN_NAME + "_2";
+    private static final String SECOND_RESOURCE_NAME = "node#2";
+
+    private static final String THIRD_BEAN_NAME = BEAN_NAME + "_3";
+    private static final String THIRD_RESOURCE_NAME = "node#3";
+
+    private static final String FOURTH_RESOURCE_NAME = "iOS";
+    private static final String GROUP1_NAME = "mobileApp";
+    private static final String FIFTH_RESOURCE_NAME = "node2";
+    private static final String GROUP2_NAME = "dispatcher";
+    private static final String SIXTH_RESOURCE_NAME = "paypal";
+    private static final String GROUP3_NAME = "paymentSystem";
+
     private static final class TestApplicationInfo extends ApplicationInfo {
         static void setName(final String componentName, final String instanceName){
             setName(componentName);
@@ -172,35 +201,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
         abstract void sendTestSpans(final MetricRegistry registry, final IntUnaryOperator delay) throws IOException, InterruptedException;
     }
-
-    private static final ObjectMapper FORMATTER = new ObjectMapper();
-
-    private static final String GROUP_NAME = "web-server";
-
-    private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
-    private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
-
-    private static final String JMX_CONNECTOR_TYPE = "jmx";
-    private static final String HTTP_ACCEPTOR_TYPE = "http";
-
-    private static final String ADAPTER_NAME = "http";
-    private static final String TEST_PARAMETER = "testParameter";
-
-    private static final String FIRST_BEAN_NAME = BEAN_NAME + "_1";
-    private static final String FIRST_RESOURCE_NAME = "node#1";
-
-    private static final String SECOND_BEAN_NAME = BEAN_NAME + "_2";
-    private static final String SECOND_RESOURCE_NAME = "node#2";
-
-    private static final String THIRD_BEAN_NAME = BEAN_NAME + "_3";
-    private static final String THIRD_RESOURCE_NAME = "node#3";
-
-    private static final String FOURTH_RESOURCE_NAME = "iOS";
-    private static final String GROUP1_NAME = "mobileApp";
-    private static final String FIFTH_RESOURCE_NAME = "node2";
-    private static final String GROUP2_NAME = "dispatcher";
-    private static final String SIXTH_RESOURCE_NAME = "paypal";
-    private static final String GROUP3_NAME = "paymentSystem";
 
     //must be public
     @WebSocket
@@ -657,9 +657,11 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     private void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups) {
         ManagedResourceGroupConfiguration group = groups.getOrAdd(GROUP_NAME);
+        group.setType(JMX_CONNECTOR_TYPE);
         fillJmxAttributes(group.getAttributes());
 
         group = groups.getOrAdd(GROUP2_NAME);
+        group.setType(HTTP_ACCEPTOR_TYPE);
         //fillAlternativeJmxAttributes(group.getFeatures(AttributeConfiguration.class));
         fillSpanEvents(group.getEvents());
     }
@@ -692,7 +694,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.put("objectName", FIRST_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.setType(JMX_CONNECTOR_TYPE);
         resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
         resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
         fillJmxAttributes(resource.getAttributes());
@@ -702,7 +703,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.put("objectName", SECOND_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.setType(JMX_CONNECTOR_TYPE);
         resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
         resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
         fillJmxAttributes(resource.getAttributes());
@@ -712,7 +712,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.put("objectName", THIRD_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.setType(JMX_CONNECTOR_TYPE);
         resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
         resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
         fillJmxAttributes(resource.getAttributes());
