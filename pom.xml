@@ -40,7 +40,7 @@
     <snamp.version>2.0.0</snamp.version>
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
     <junit.version>4.12</junit.version>
-    <snmp4j.version>2.5.1</snmp4j.version>
+    <snmp4j.version>2.5.3</snmp4j.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
     <karaf.version>4.0.8</karaf.version>
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
