@@ -49,17 +49,18 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
     private static final class DynamicServiceLoggingScope extends LoggingScope {
 
-        private DynamicServiceLoggingScope(final ServiceListener requester,
+        private DynamicServiceLoggingScope(final Logger logger,
+                                           final Class<?> requester,
                                            final String operationName){
-            super(requester, operationName);
+            super(logger, requester, operationName);
         }
 
-        private static DynamicServiceLoggingScope update(final ServiceListener requester){
-            return new DynamicServiceLoggingScope(requester, "updateDynamicService");
+        static DynamicServiceLoggingScope update(final Logger logger, final Class<?> requester){
+            return new DynamicServiceLoggingScope(logger, requester, "updateDynamicService");
         }
 
-        private static DynamicServiceLoggingScope delete(final ServiceListener requester){
-            return new DynamicServiceLoggingScope(requester, "deleteDynamicService");
+        static DynamicServiceLoggingScope delete(final Logger logger, final Class<?> requester){
+            return new DynamicServiceLoggingScope(logger, requester, "deleteDynamicService");
         }
     }
 
@@ -399,7 +400,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected void failedToCleanupService(final Logger logger,
                                               final String servicePID,
                                               final Exception e) {
-            logger.log(Level.SEVERE, String.format("Unable to deactivate service with PID %s", servicePID), e);
+            getLogger().log(Level.SEVERE, String.format("Unable to deactivate service with PID %s", servicePID), e);
+        }
+
+        protected Logger getLogger(){
+            return LoggerProvider.getLoggerForObject(this);
         }
 
         /**
@@ -423,7 +428,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                 @Override
                 public synchronized void updated(final String pid, final Dictionary<String, ?> properties) throws ConfigurationException {
                     TService service;
-                    final LoggingScope logger = DynamicServiceLoggingScope.update(DynamicServiceManager.this);
+                    final LoggingScope logger = DynamicServiceLoggingScope.update(getLogger(), getClass());
                     try {
                         service = containsKey(pid) ?
                                 updateService(get(pid), properties) :
@@ -445,15 +450,21 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
                 @Override
                 public synchronized void deleted(final String pid) {
-                    final LoggingScope logger = DynamicServiceLoggingScope.delete(DynamicServiceManager.this);
+                    final LoggingScope logger = DynamicServiceLoggingScope.delete(getLogger(), getClass());
                     try {
                         if (containsKey(pid))
                             dispose(remove(pid), false);
                     } catch (final Exception e) {
                         failedToCleanupService(logger, pid, e);
+                    } finally {
+                        logger.close();
                     }
                 }
             };
+        }
+
+        protected void destroyed(){
+
         }
 
         /**
@@ -476,6 +487,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     si.clear();
                 }
             });
+            destroyed();
         }
     }
 

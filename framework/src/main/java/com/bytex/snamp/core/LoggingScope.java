@@ -81,6 +81,12 @@ public class LoggingScope extends Logger implements SafeCloseable {
         (this.logger = logger).entering(this.source = source, operationName);
     }
 
+    LoggingScope(final Logger logger,
+                 final Class<?> source,
+                 final String operationName){
+        this(logger, source.getName(), operationName, CORREL_ID_GEN.generate());
+    }
+
     /**
      * Initializes a new logical operation.
      * @param context The context of the caller bundle.

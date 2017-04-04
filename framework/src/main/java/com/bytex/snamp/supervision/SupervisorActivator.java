@@ -1,6 +1,7 @@
 package com.bytex.snamp.supervision;
 
 import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
@@ -34,6 +35,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public abstract class SupervisorActivator<S extends Supervisor> extends AbstractServiceLibrary {
     private static final ActivationProperty<String> SUPERVISOR_TYPE_HOLDER = defineActivationProperty(String.class, "");
     private static final ActivationProperty<CMSupervisorParser> SUPERVISOR_PARSER_HOLDER = defineActivationProperty(CMSupervisorParser.class);
+    private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class, Logger.getAnonymousLogger());
 
     @FunctionalInterface
     protected interface SupervisorFactory<S extends Supervisor>{
@@ -43,11 +45,22 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
 
     private static final class SupervisorInstances<S extends Supervisor> extends ServiceSubRegistryManager<Supervisor ,S>{
         private final SupervisorFactory<S> factory;
+        private final LazyStrongReference<Logger> logger;
 
         private SupervisorInstances(@Nonnull final SupervisorFactory<S> factory,
                                     final RequiredService<?>... dependencies){
             super(Supervisor.class, dependencies);
             this.factory = factory;
+            this.logger = new LazyStrongReference<>();
+        }
+
+        private Logger getLoggerImpl(){
+            return getActivationPropertyValue(LOGGER_HOLDER);
+        }
+
+        @Override
+        protected Logger getLogger() {
+            return logger.lazyGet(this, SupervisorInstances::getLoggerImpl);
         }
 
         private String getSupervisorType(){
@@ -74,6 +87,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         protected S update(final S supervisor, final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
             supervisor.update(newConfig.getValue());
+            getLogger().info(String.format("Supervisor %s is updated", supervisor));
             return supervisor;
         }
         
@@ -83,11 +97,13 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
             final S supervisor = factory.createSupervisor(newConfig.getKey(), dependencies);
             identity.putAll(new SupervisorFilterBuilder(newConfig.getValue()).setGroupName(newConfig.getKey()));
             supervisor.update(newConfig.getValue());
+            getLogger().info(String.format("Supervisor %s is instantiated", supervisor));
             return supervisor;
         }
 
         @Override
         protected void cleanupService(final S supervisor, final Map<String, ?> identity) throws Exception {
+            getLogger().info(String.format("Supervisor %s is destroyed", supervisor));
             supervisor.close();
         }
 
@@ -167,6 +183,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
      * Type of this supervisor.
      */
     protected final String supervisorType;
+    private final Logger logger;
 
     protected SupervisorActivator(final SupervisorFactory<S> factory, final SupportServiceManager<?, ?>... optionalServices) {
         this(factory, emptyArray(RequiredService[].class), optionalServices);
@@ -177,6 +194,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
                                   final SupportServiceManager<?, ?>[] optionalServices){
         super(serviceProvider(factory, dependencies, optionalServices));
         supervisorType = Supervisor.getSupervisorType(getBundleContextOfObject(this).getBundle());
+        logger = LoggerProvider.getLoggerForObject(this);
     }
 
     private static  <S extends Supervisor> ProvidedServices serviceProvider(final SupervisorFactory<S> factory,
@@ -213,6 +231,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     @OverridingMethodsMustInvokeSuper
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
         activationProperties.publish(SUPERVISOR_TYPE_HOLDER, supervisorType);
+        activationProperties.publish(LOGGER_HOLDER, logger);
         {
             final ConfigurationManager configurationManager = dependencies.getDependency(ConfigurationManager.class);
             assert configurationManager != null;
@@ -220,19 +239,15 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
             assert parser != null : "Supervisor parser is not supported";
             activationProperties.publish(SUPERVISOR_PARSER_HOLDER, parser);
         }
-        getLogger().info(String.format("Activating supervisor of type %s", supervisorType));
+        logger.info(String.format("Activating supervisor of type %s", supervisorType));
         super.activate(context, activationProperties, dependencies);
-    }
-
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForObject(this);
     }
 
     @Override
     @OverridingMethodsMustInvokeSuper
     protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
         super.deactivate(context, activationProperties);
-        getLogger().info(String.format("Unloading supervisor of type %s", supervisorType));
+        logger.info(String.format("Unloading supervisor of type %s", supervisorType));
     }
 
     /**
@@ -243,7 +258,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to activate %s supervisor",
+        logger.log(Level.SEVERE, String.format("Unable to activate %s supervisor",
                 supervisorType),
                 e);
     }
@@ -256,7 +271,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to deactivate %s supervisor instance",
+        logger.log(Level.SEVERE, String.format("Unable to deactivate %s supervisor instance",
                 supervisorType),
                 e);
     }

@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.GatewayConfiguration;
@@ -40,6 +41,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public abstract class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary {
     private static final ActivationProperty<String> GATEWAY_TYPE_HOLDER = defineActivationProperty(String.class, "");
     private static final ActivationProperty<CMGatewayParser> GATEWAY_PARSER_HOLDER = defineActivationProperty(CMGatewayParser.class);
+    private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class, Logger.getAnonymousLogger());
 
     /**
      * Represents a factory responsible for creating instances of a gateway.
@@ -57,11 +59,22 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
 
     private static final class GatewayInstances<G extends Gateway> extends ServiceSubRegistryManager<Gateway, G>{
         private final GatewayFactory<G> gatewayInstanceFactory;
+        private final LazyStrongReference<Logger> logger;
 
         private GatewayInstances(@Nonnull final GatewayFactory<G> factory,
                                  final RequiredService<?>... dependencies) {
             super(Gateway.class, dependencies);
             this.gatewayInstanceFactory = factory;
+            this.logger = new LazyStrongReference<>();
+        }
+
+        private Logger getLoggerImpl(){
+            return getActivationPropertyValue(LOGGER_HOLDER);
+        }
+
+        @Override
+        protected Logger getLogger() {
+            return logger.lazyGet(this, GatewayInstances::getLoggerImpl);
         }
 
         private String getGatewayType(){
@@ -89,6 +102,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
                            final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends GatewayConfiguration> newConfig = parseConfig(configuration);
             gatewayInstance.update(newConfig.getValue());
+            getLogger().info(String.format("Gateway %s is updated", gatewayInstance));
             return gatewayInstance;
         }
 
@@ -99,11 +113,13 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
             identity.putAll(new GatewayFilterBuilder(newConfig.getValue()).setInstanceName(newConfig.getKey()));
             final G gatewayInstance = gatewayInstanceFactory.createInstance(newConfig.getKey(), dependencies);
             gatewayInstance.update(newConfig.getValue());
+            getLogger().info(String.format("Gateway %s is instantiated", gatewayInstance));
             return gatewayInstance;
         }
 
         @Override
         protected void cleanupService(final G gatewayInstance, final Map<String, ?> identity) throws IOException {
+            getLogger().info(String.format("Gateway %s is destroyed", gatewayInstance));
             gatewayInstance.close();
         }
 
@@ -125,6 +141,11 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
                                               final Exception e) {
             logger.log(Level.SEVERE, String.format("Unable to release gateway. Type: %s, instance: %s", getGatewayType(), servicePID),
                     e);
+        }
+
+        @Override
+        protected void destroyed() {
+            logger.reset();
         }
     }
 
@@ -175,6 +196,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
     }
 
     protected final String gatewayType;
+    private final Logger logger;
 
     /**
      * Initializes a new instance of the gateway activator.
@@ -197,6 +219,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
                                final SupportServiceManager<?, ?>[] optionalServices) {
         super(serviceProvider(factory, gatewayDependencies, optionalServices));
         gatewayType = Gateway.getGatewayType(getBundleContextOfObject(this).getBundle());
+        logger = LoggerProvider.getLoggerForObject(this);
     }
 
     private static <G extends Gateway> ProvidedServices serviceProvider(final GatewayFactory<G> factory,
@@ -234,6 +257,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
     @OverridingMethodsMustInvokeSuper
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
         activationProperties.publish(GATEWAY_TYPE_HOLDER, gatewayType);
+        activationProperties.publish(LOGGER_HOLDER, logger);
         {
             final ConfigurationManager configurationManager = dependencies.getDependency(ConfigurationManager.class);
             assert configurationManager != null;
@@ -241,19 +265,15 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
             assert parser != null : "CMGatewayParser is not supported";
             activationProperties.publish(GATEWAY_PARSER_HOLDER, parser);
         }
-        getLogger().info(String.format("Activating gateway of type %s", gatewayType));
+        logger.info(String.format("Activating gateway of type %s", gatewayType));
         super.activate(context, activationProperties, dependencies);
-    }
-
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForObject(this);
     }
 
     @Override
     @OverridingMethodsMustInvokeSuper
     protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
         super.deactivate(context, activationProperties);
-        getLogger().info(String.format("Unloading gateway of type %s", gatewayType));
+        logger.info(String.format("Unloading gateway of type %s", gatewayType));
     }
 
     /**
@@ -264,7 +284,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to activate %s gateway instance",
+        logger.log(Level.SEVERE, String.format("Unable to activate %s gateway instance",
                 gatewayType),
                 e);
     }
@@ -277,7 +297,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to deactivate %s gateway instance",
+        logger.log(Level.SEVERE, String.format("Unable to deactivate %s gateway instance",
                         gatewayType),
                 e);
     }

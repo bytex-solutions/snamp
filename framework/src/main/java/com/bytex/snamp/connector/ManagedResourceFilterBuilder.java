@@ -1,11 +1,14 @@
 package com.bytex.snamp.connector;
 
+import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.core.SimpleFilterBuilder;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -85,6 +88,10 @@ public final class ManagedResourceFilterBuilder extends SimpleFilterBuilder {
 
     static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef) {
         return getReferencePropertyAsString(connectorRef, NAME_PROPERTY).orElse("");
+    }
+
+    static String getManagedResourceName(final Map<String, ?> identity) {
+        return MapUtils.getValue(identity, NAME_PROPERTY, Objects::toString).orElse("");
     }
 
     static String getConnectionString(final ServiceReference<ManagedResourceConnector> connectorRef) {

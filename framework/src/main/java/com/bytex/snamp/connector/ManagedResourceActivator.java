@@ -4,6 +4,7 @@ import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -52,7 +53,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 public abstract class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
     private static final ActivationProperty<String> CONNECTOR_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<CMManagedResourceParser> MANAGED_RESOURCE_PARSER_HOLDER = defineActivationProperty(CMManagedResourceParser.class);
-
+    private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class, Logger.getAnonymousLogger());
 
     /**
      * Represents an interface responsible for instantiating {@link ManagedResourceConnector}.
@@ -78,11 +79,22 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
 
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
         private final ManagedResourceConnectorFactory<TConnector> factory;
+        private final LazyStrongReference<Logger> logger;
 
         private ManagedResourceConnectorRegistry(@Nonnull final ManagedResourceConnectorFactory<TConnector> controller,
                                                  final RequiredService<?>... dependencies) {
             super(ManagedResourceConnector.class, dependencies);
             this.factory = controller;
+            this.logger = new LazyStrongReference<>();
+        }
+
+        private Logger getLoggerImpl(){
+            return getActivationPropertyValue(LOGGER_HOLDER);
+        }
+
+        @Override
+        protected Logger getLogger() {
+            return logger.lazyGet(this, ManagedResourceConnectorRegistry::getLoggerImpl);
         }
 
         private String getConnectorType(){
@@ -198,6 +210,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             }
             //but we should always update resource features
             updateFeatures(connector, newConfig.getValue());
+            getLogger().info(String.format("Connector %s for resource %s is updated", getConnectorType(), newConfig.getKey()));
             return connector;
         }
 
@@ -245,13 +258,20 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             identity.putAll(new ManagedResourceFilterBuilder(newConfig.getValue()).setResourceName(newConfig.getKey()));
             final TConnector connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
             updateFeatures(connector, newConfig.getValue());
+            getLogger().info(String.format("Connector %s for resource %s is instantiated", getConnectorType(), newConfig.getKey()));
             return connector;
         }
 
         @Override
         protected void cleanupService(final TConnector service,
                                       final Map<String, ?> identity) throws Exception {
+            getLogger().info(String.format("Connector %s is destroyed", ManagedResourceFilterBuilder.getManagedResourceName(identity)));
             service.close();
+        }
+
+        @Override
+        protected void destroyed() {
+            logger.reset();
         }
     }
 
@@ -331,6 +351,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
     }
 
     protected final String connectorType;
+    private final Logger logger;
 
     /**
      * Initializes a new connector factory.
@@ -355,6 +376,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                                        final SupportServiceManager<?, ?>[] optionalServices) {
         super(serviceProvider(factory, connectorDependencies, optionalServices));
         connectorType = ManagedResourceConnector.getConnectorType(getBundleContextOfObject(this).getBundle());
+        logger = LoggerProvider.getLoggerForObject(this);
     }
 
     private static <TConnector extends ManagedResourceConnector> ProvidedServices serviceProvider(final ManagedResourceConnectorFactory<TConnector> controller,
@@ -408,6 +430,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
     @OverridingMethodsMustInvokeSuper
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, connectorType);
+        activationProperties.publish(LOGGER_HOLDER, logger);
         {
             final ConfigurationManager configurationManager = dependencies.getDependency(ConfigurationManager.class);
             assert configurationManager != null;
@@ -415,12 +438,8 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             assert parser != null : "CMManagedResourceParser is not supported";
             activationProperties.publish(MANAGED_RESOURCE_PARSER_HOLDER, parser);
         }
-        getLogger().info(String.format("Activating resource connector of type %s", connectorType));
+        logger.info(String.format("Activating resource connector of type %s", connectorType));
         super.activate(context, activationProperties, dependencies);
-    }
-
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForObject(this);
     }
 
     /**
@@ -431,7 +450,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      */
     @Override
     protected final void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to instantiate %s connector", connectorType), e);
+        logger.log(Level.SEVERE, String.format("Unable to instantiate %s connector", connectorType), e);
     }
 
     /**
@@ -443,7 +462,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to release %s connector",
+        logger.log(Level.SEVERE, String.format("Unable to release %s connector",
                 connectorType), e);
     }
 
@@ -460,7 +479,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
     @Override
     protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
         super.deactivate(context, activationProperties);
-        getLogger().info(String.format("Unloading connector of type %s", connectorType));
+        logger.info(String.format("Unloading connector of type %s", connectorType));
     }
 
     /**
