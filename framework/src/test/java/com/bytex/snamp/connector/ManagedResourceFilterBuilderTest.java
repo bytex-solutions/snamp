@@ -3,6 +3,7 @@ package com.bytex.snamp.connector;
 import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
 
 /**
  * Represents tests for {@link ManagedResourceFilterBuilder}.
@@ -28,7 +29,7 @@ public final class ManagedResourceFilterBuilderTest extends Assert {
     }
 
     @Test
-    public void withUserFilter(){
+    public void withUserFilter() throws InvalidSyntaxException {
         final Filter filter = ManagedResourceConnectorClient.filterBuilder().get("(&(a=b)(c=d))");
         assertNotNull(filter);
     }

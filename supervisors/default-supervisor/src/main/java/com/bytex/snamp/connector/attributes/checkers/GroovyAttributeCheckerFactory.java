@@ -19,4 +19,9 @@ final class GroovyAttributeCheckerFactory extends OSGiGroovyScriptEngine<GroovyA
     GroovyAttributeChecker create(final String text) {
         return parseScript(text, getGlobalVariables());
     }
+
+    @Override
+    protected void interceptCreate(final GroovyAttributeChecker script) {
+        script.setBundleContext(getBundleContext());
+    }
 }

@@ -2,12 +2,11 @@ package com.bytex.snamp.web.serviceModel.health;
 
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
-import com.bytex.snamp.core.FilterBuilder;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.*;
-import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
@@ -33,10 +32,10 @@ import java.util.logging.Logger;
  */
 @Path("/")
 public final class HealthStatusWatcher extends AbstractWebConsoleService implements HealthStatusEventListener, ServiceListener {
-    public static final String NAME = "groupWatcher";
+    public static final String NAME = "health-watcher";
     public static final String URL_CONTEXT = '/' + NAME;
 
-    @JsonTypeName("groupStatusChanged")
+    @JsonTypeName("healthStatusChanged")
     public final class GroupStatusChangedMessage extends WebConsoleServiceMessage{
         private static final long serialVersionUID = -9201166624972276258L;
         private final HealthStatus previousStatus;

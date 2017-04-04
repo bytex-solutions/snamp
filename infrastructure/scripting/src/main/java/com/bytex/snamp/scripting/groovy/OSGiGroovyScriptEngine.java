@@ -143,7 +143,9 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
 
     public synchronized final B parseScript(final String text, final Binding binding) {
         final Class<?> scriptImpl = getGroovyClassLoader().parseClass(text);
-        return baseScriptClass.cast(InvokerHelper.createScript(scriptImpl, binding));
+        final B script = baseScriptClass.cast(InvokerHelper.createScript(scriptImpl, binding));
+        interceptCreate(script);
+        return script;
     }
 
     public static Binding concatBindings(final Binding first, final Binding... other){

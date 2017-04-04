@@ -28,4 +28,9 @@ public final class GatewayScriptEngine extends OSGiGroovyScriptEngine<GatewayScr
                                       final Map<String, ?> environment) throws ResourceException, ScriptException {
         return createScript(scriptFile, new Binding(environment));
     }
+
+    @Override
+    protected void interceptCreate(final GatewayScript script) {
+        script.setBundleContext(getBundleContext());
+    }
 }

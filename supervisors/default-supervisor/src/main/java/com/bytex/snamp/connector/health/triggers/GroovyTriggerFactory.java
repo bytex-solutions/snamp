@@ -16,6 +16,11 @@ final class GroovyTriggerFactory extends OSGiGroovyScriptEngine<GroovyTrigger> {
         super(rootClassLoader, new Properties(), GroovyTrigger.class);
     }
 
+    @Override
+    protected void interceptCreate(final GroovyTrigger script) {
+        script.setBundleContext(getBundleContext());
+    }
+
     public GroovyTrigger create(final String text) {
         return parseScript(text, getGlobalVariables());
     }
