@@ -1,9 +1,6 @@
 package com.bytex.snamp.core;
 
-import org.osgi.framework.Constants;
-import org.osgi.framework.Filter;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -54,7 +51,7 @@ public class SimpleFilterBuilder extends HashMap<String, String> implements Filt
      */
     @Override
     public Filter get() {
-        return get("");
+        return callUnchecked(() -> get(""));
     }
 
     /**
@@ -62,10 +59,10 @@ public class SimpleFilterBuilder extends HashMap<String, String> implements Filt
      *
      * @param filter Additional filter to be appended to this filter.
      * @return OSGi filter.
+     * @throws InvalidSyntaxException Unable to compile additional filter.
      */
-    public Filter get(final String filter) {
-        final String textFilter = toString(filter);
-        return callUnchecked(() -> FrameworkUtil.createFilter(textFilter));
+    public Filter get(final String filter) throws InvalidSyntaxException {
+        return FrameworkUtil.createFilter(toString(filter));
     }
 
     @Override
