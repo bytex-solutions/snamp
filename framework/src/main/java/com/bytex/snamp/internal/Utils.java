@@ -260,7 +260,7 @@ public final class Utils {
         final class MultiException extends Exception {
             private static final long serialVersionUID = -6235370425809964317L;
 
-            private MultiException(final Collection<Exception> exceptions) throws IOException {
+            private MultiException(final Iterable<Exception> exceptions) throws IOException {
                 super(constructMessage(exceptions));
             }
 
