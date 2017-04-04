@@ -8,8 +8,8 @@ import javax.management.Attribute;
 
 /**
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
 public enum AttributeCheckStatus {
     OK {
@@ -32,8 +32,4 @@ public enum AttributeCheckStatus {
     };
 
     public abstract HealthStatus createStatus(final String resourceName, final Attribute attribute);
-
-    public AttributeCheckStatus max(final AttributeCheckStatus other) {
-        return compareTo(other) >= 0 ? this : other;
-    }
 }
