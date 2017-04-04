@@ -11,9 +11,15 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.invoke.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -241,5 +247,50 @@ public final class Utils {
     @SuppressWarnings("unchecked")
     public static <V> V callUnchecked(final Callable<V> callable){
         return (V) CALL_SILENT_FN.apply(callable);
+    }
+
+    private static String constructMessage(final Iterable<Exception> exceptions) throws IOException {
+        try (final StringWriter writer = new StringWriter(1024); final PrintWriter printer = new PrintWriter(writer)) {
+            exceptions.forEach(e -> e.printStackTrace(printer));
+            return writer.toString();
+        }
+    }
+
+    public static void closeAll(final AutoCloseable... other) throws Exception {
+        final class MultiException extends Exception {
+            private static final long serialVersionUID = -6235370425809964317L;
+
+            private MultiException(final Collection<Exception> exceptions) throws IOException {
+                super(constructMessage(exceptions));
+            }
+
+            @Override
+            public String toString() {
+                return "Multiple exceptions: " + getMessage();
+            }
+        }
+
+        final List<Exception> exceptions = new LinkedList<>();
+        for (final AutoCloseable closeable : other)
+            try {
+                closeable.close();
+            } catch (final Exception e) {
+                exceptions.add(e);
+            }
+
+        Exception e;
+        switch (exceptions.size()) {
+            case 1:
+                e = exceptions.get(0);
+                break;
+            default:
+                e = new MultiException(exceptions);
+                break;
+            case 0:
+                return;
+        }
+        exceptions.clear(); //help GC
+        assert e != null;
+        throw e;
     }
 }

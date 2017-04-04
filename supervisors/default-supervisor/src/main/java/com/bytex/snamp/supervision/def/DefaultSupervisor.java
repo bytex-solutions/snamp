@@ -8,6 +8,7 @@ import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ScriptletCompilationException;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.AbstractSupervisor;
 import org.osgi.framework.BundleContext;
 
@@ -15,6 +16,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.SupervisorInfo.HealthCheckInfo;
 
@@ -41,6 +43,10 @@ public class DefaultSupervisor extends AbstractSupervisor {
         @Override
         protected void doAction() throws InterruptedException {
             getReferenceOrTerminate().updateHealthStatus();
+        }
+
+        void terminate() throws TimeoutException, InterruptedException {
+            close(getPeriod());
         }
     }
 
@@ -105,8 +111,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
     @Override
     protected void stop() throws Exception {
         try {
-            updater.close(updater.getPeriod().multipliedBy(2L));
-            healthStatusProvider.close();
+            Utils.closeAll(updater::terminate, healthStatusProvider);
         } finally {
             updater = null;
             healthStatusProvider = null;

@@ -38,6 +38,7 @@ public final class UtilsTest extends Assert {
         return BigInteger.TEN;
     }
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private BigInteger sum(final BigInteger v){
         return getBigInteger().add(v);
     }
@@ -97,5 +98,14 @@ public final class UtilsTest extends Assert {
         Utils.parallelForEach(Arrays.spliterator(ArrayUtils.wrapArray(bytes)), b -> index.incrementAndGet(), executor);
         SpinWait.spinUntil(() -> index.get() < 100, Duration.ofSeconds(2));
         assertEquals(100, index.get());
+    }
+
+    @Test
+    public void closeAllTest()  {
+        try {
+            Utils.closeAll(() -> {}, () ->{throw new Exception();}, () -> {throw new Exception();});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
