@@ -265,6 +265,11 @@ export class MainComponent implements OnInit {
 
     public saveActiveWatcher():void {
         console.log("Saving selected watcher: ", this.activeWatcher, ", json is: ", this.activeWatcher.toJSON());
+        this.http.put(REST.WATCHER_BY_NAME(this.activeWatcher.name), this.activeWatcher.toJSON())
+             .map((res:Response) => res.text())
+             .subscribe(data => {
+                console.log("watcher has been saved: ", data);
+             });
     }
 
 }

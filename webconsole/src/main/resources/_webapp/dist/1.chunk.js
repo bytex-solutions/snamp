@@ -1369,6 +1369,11 @@ var MainComponent = (function () {
     };
     MainComponent.prototype.saveActiveWatcher = function () {
         console.log("Saving selected watcher: ", this.activeWatcher, ", json is: ", this.activeWatcher.toJSON());
+        this.http.put(app_restClient_1.REST.WATCHER_BY_NAME(this.activeWatcher.name), this.activeWatcher.toJSON())
+            .map(function (res) { return res.text(); })
+            .subscribe(function (data) {
+            console.log("watcher has been saved: ", data);
+        });
     };
     MainComponent = __decorate([
         core_1.Component({
