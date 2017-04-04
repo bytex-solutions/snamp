@@ -41,6 +41,12 @@ public final class ConfigHealthCheckTriggerCommand extends SupervisorConfigurati
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parametersToDelete = parameters;
 
+    @Option(name = "-u", aliases = "--url", description = "Treat script path as a reference to script in the form of URL")
+    private boolean isURL;
+
+    @Option(name = "-l", aliases = "--language", description = "Script language")
+    private String language;
+
     private boolean processHealthCheckTrigger(final ScriptletConfiguration healthCheckTrigger, final StringBuilder output){
         if(del)
             ScriptletConfiguration.fillByDefault(healthCheckTrigger);
