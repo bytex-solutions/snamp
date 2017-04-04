@@ -798,7 +798,7 @@ var ScriptletDataObject = (function () {
             instance.script = json["script"];
         }
         if (json["isURL"] != undefined) {
-            instance.isURL = (json["isURL"] == 'true');
+            instance.isURL = (json["url"] == 'true');
         }
         switch (instance.language) {
             case "Groovy":
@@ -863,7 +863,7 @@ var ScriptletDataObject = (function () {
         var _value = {};
         _value["language"] = this.language;
         _value["script"] = this.script;
-        _value["isURL"] = this.isURL;
+        _value["url"] = this.isURL;
         if (this.language == "ColoredAttributeChecker") {
             if (this.object == undefined) {
                 throw new Error("Trying to serialize ColoredAttributeChecker instance without the object");
