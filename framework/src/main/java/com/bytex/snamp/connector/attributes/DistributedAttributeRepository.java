@@ -8,6 +8,7 @@ import javax.management.MBeanAttributeInfo;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.core.DistributedServices.getDistributedStorage;
 import static com.bytex.snamp.core.DistributedServices.isActiveNode;
@@ -61,6 +62,11 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
         @Override
         protected void doAction() throws InterruptedException {
             getReferenceOrTerminate().sync();
+        }
+
+        Void terminate() throws TimeoutException, InterruptedException {
+            close(getPeriod());
+            return null;
         }
     }
 
@@ -134,14 +140,9 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
         return Optional.of(AttributeDescriptor.getName(attribute));
     }
 
-    private Void stopSyncThread() throws InterruptedException {
-        syncThread.close();
-        return null;
-    }
-
     @Override
     public void close() {
         super.close();
-        callUnchecked(this::stopSyncThread);
+        callUnchecked(syncThread::terminate);
     }
 }

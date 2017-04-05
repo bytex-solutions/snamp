@@ -137,10 +137,13 @@ final class SysLogGateway extends AbstractGateway {
 
     @Override
     protected void stop() throws Exception {
-        attributeSender.close();
-        attributeSender = null;
-        attributes.clear();
-        notifications.clear();
+        try {
+            attributeSender.close();
+        } finally {
+            attributeSender = null;
+            attributes.clear();
+            notifications.clear();
+        }
     }
 
     @SuppressWarnings("unchecked")

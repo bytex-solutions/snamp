@@ -246,36 +246,17 @@ public final class Utils {
     }
 
     public static void closeAll(final AutoCloseable... other) throws Exception {
-        final class MultiException extends Exception{
-            private static final long serialVersionUID = -3998789612664533680L;
-
-            @Override
-            public String toString() {
-                return "Multiple exceptions";
-            }
-        }
-        final List<Exception> exceptions = new LinkedList<>();
+        Exception e = null;
         for (final AutoCloseable closeable : other)
             try {
                 closeable.close();
-            } catch (final Exception e) {
-                exceptions.add(e);
+            } catch (final Exception inner) {
+                if (e == null)
+                    e = inner;
+                else
+                    e.addSuppressed(inner);
             }
-
-        Exception e;
-        switch (exceptions.size()) {
-            case 1:
-                e = exceptions.get(0);
-                break;
-            default:
-                e = new MultiException();
-                exceptions.forEach(e::addSuppressed);
-                break;
-            case 0:
-                return;
-        }
-        exceptions.clear(); //help GC
-        assert e != null;
-        throw e;
+        if (e != null)
+            throw e;
     }
 }

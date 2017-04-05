@@ -5,6 +5,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.LockManager;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.util.concurrent.UncheckedTimeoutException;
 
 import javax.management.JMException;
@@ -145,6 +146,10 @@ final class JmxConnectionManager extends ThreadSafeObject implements AutoCloseab
                 reportProblem(e);
             }
         }
+
+        void terminate() throws TimeoutException, InterruptedException {
+            close(getPeriod());
+        }
     }
 
     private final ConnectionHolder connectionHolder;
@@ -215,12 +220,11 @@ final class JmxConnectionManager extends ThreadSafeObject implements AutoCloseab
 
     @Override
     public void close() throws Exception {
+        watchDog.reconnectionHandlers.clear();
         try {
-            watchDog.reconnectionHandlers.clear();
-            watchDog.close(watchDog.getPeriod());
+            Utils.closeAll(watchDog::terminate, connectionHolder);
         } finally {
             watchDog = null;
-            connectionHolder.close();
         }
     }
 }
