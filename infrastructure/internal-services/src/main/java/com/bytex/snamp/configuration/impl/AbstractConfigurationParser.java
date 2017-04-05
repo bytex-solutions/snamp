@@ -2,6 +2,7 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
@@ -13,6 +14,7 @@ import java.io.Serializable;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.MapUtils.getValue;
 
@@ -32,6 +34,10 @@ abstract class AbstractConfigurationParser<E extends SerializableEntityConfigura
 
     AbstractConfigurationParser(final SerializableEntityMapResolver<SerializableAgentConfiguration, E> resolver){
         entityMapResolver = Objects.requireNonNull(resolver);
+    }
+
+    final Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
     }
 
     abstract void removeAll(final ConfigurationAdmin admin) throws IOException;

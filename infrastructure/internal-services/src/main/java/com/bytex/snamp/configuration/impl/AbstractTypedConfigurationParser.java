@@ -20,6 +20,7 @@ import java.util.Set;
 
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.google.common.collect.Iterators.forEnumeration;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
@@ -37,8 +38,8 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
 
     abstract String getFactoryPersistentID(final String entityType);
 
-    private String getFactoryPersistentID(final TypedEntityConfiguration entity){
-        return getFactoryPersistentID(entity.getType());
+    private String getFactoryPersistentID(final TypedEntityConfiguration entity) {
+        return isNullOrEmpty(entity.getType()) ? null : getFactoryPersistentID(entity.getType());
     }
 
     final String getIdentityName(final Dictionary<String, ?> config) {
@@ -72,10 +73,15 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
             updated.set(true);
         });
         //no existing configuration, creates a new configuration
-        if (!updated.get())
-            serialize(identityName,
-                    entity,
-                    admin.createFactoryConfiguration(getFactoryPersistentID(entity), null));
+        if (!updated.get()) {
+            final String persistentID = getFactoryPersistentID(entity);
+            if (isNullOrEmpty(persistentID)) {
+                getLogger().severe(String.format("Configuration entity %s could not be saved because its type is not specified", identityName));
+            } else
+                serialize(identityName,
+                        entity,
+                        admin.createFactoryConfiguration(persistentID, null));
+        }
     }
 
     abstract String getType(final Configuration config);
