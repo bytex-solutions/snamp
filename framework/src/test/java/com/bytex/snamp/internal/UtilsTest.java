@@ -8,6 +8,7 @@ import com.bytex.snamp.concurrent.SpinWait;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
@@ -100,12 +101,13 @@ public final class UtilsTest extends Assert {
         assertEquals(100, index.get());
     }
 
-    @Test
-    public void closeAllTest()  {
-        try {
-            Utils.closeAll(() -> {}, () ->{throw new Exception();}, () -> {throw new Exception();});
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    @Test(expected = IOException.class)
+    public void closeAllTest() throws Exception {
+        Utils.closeAll(() -> {
+        }, () -> {
+            throw new IOException();
+        }, () -> {
+            throw new IllegalArgumentException();
+        });
     }
 }
