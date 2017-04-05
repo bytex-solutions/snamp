@@ -29,12 +29,4 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>supervisors</artifactId>
-            <version>${snamp.supervisors.version}</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 </project>

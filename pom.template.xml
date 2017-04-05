@@ -409,8 +409,10 @@
   </dependencyManagement>
   <modules>
     <module>framework</module>
+    <module>supervisors</module>
     <module>connectors</module>
     <module>gateways</module>
+    <module>instrumentation/java</module>
     <module>third-party-libs/bundlized/snmp4j</module>
     <module>third-party-libs/bundlized/sshj</module>
     <module>infrastructure/json-helpers</module>
@@ -419,14 +421,12 @@
     <module>infrastructure/security</module>
     <module>infrastructure/scripting</module>
     <module>infrastructure/groovy-xml-bridge</module>
-      <module>webconsole</module>
+    <module>webconsole</module>
     <module>features/core-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>features/standard-features</module>
-    <module>instrumentation/java</module>
     <module>osgi-tests</module>
-      <module>infrastructure/analysis-and-operations</module>
-      <module>supervisors</module>
+    <module>infrastructure/analysis-and-operations</module>
   </modules>
     <repositories>
         <repository>
