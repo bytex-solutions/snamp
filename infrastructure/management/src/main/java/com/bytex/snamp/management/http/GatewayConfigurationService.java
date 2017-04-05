@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.http;
 
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.management.http.model.FeatureBindingDataObject;
 import com.bytex.snamp.management.http.model.GatewayDataObject;
@@ -17,12 +18,8 @@ import java.util.Map;
  */
 @Path("/configuration/gateway")
 public final class GatewayConfigurationService extends AbstractTypedEntityConfigurationService<GatewayConfiguration, GatewayDataObject> {
-
-    /**
-     * Instantiates a new Gateway configuration service.
-     */
-    GatewayConfigurationService(){
-        super(GatewayConfiguration.class);
+    GatewayConfigurationService() {
+        super(EntityMapResolver.GATEWAYS);
     }
 
     @Override

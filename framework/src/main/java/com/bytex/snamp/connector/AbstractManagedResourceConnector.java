@@ -16,10 +16,10 @@ import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.*;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
@@ -50,8 +50,8 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
         setConfiguration(configuration);
     }
 
-    protected final void setConfiguration(final ManagedResourceInfo value) {
-        configuration = Objects.requireNonNull(value);
+    protected final void setConfiguration(@Nonnull final ManagedResourceInfo value) {
+        configuration = value;
     }
 
     @Nonnull
@@ -80,6 +80,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      * @throws Exception Unable to release resources associated with this connector.
      */
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
         //change state of the connector
         metrics.reset();

@@ -12,7 +12,7 @@ public final class XMPPGatewayActivator extends GatewayActivator<XMPPGateway> {
     public XMPPGatewayActivator() {
         super(XMPPGatewayActivator::newGateway,
                 simpleDependencies(ThreadPoolRepository.class),
-                new SupportGatewayServiceManager<?, ?>[]{configurationDescriptor(XMPPGatewayConfigurationProvider::new)});
+                new SupportServiceManager<?, ?>[]{configurationDescriptor(XMPPGatewayConfigurationProvider::new)});
     }
 
     private static XMPPGateway newGateway(final String instanceName, final DependencyManager dependencies) {

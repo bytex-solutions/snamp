@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -62,8 +63,11 @@ public final class ListenEventsCommand extends SnampShellCommand {
 
     private static String[] getNames(final MBeanNotificationInfo[] attributes) {
         final String[] result = new String[attributes.length];
-        for (int i = 0; i < attributes.length; i++)
-            result[i] = ArrayUtils.getFirst(attributes[i].getNotifTypes());
+        for (int i = 0; i < attributes.length; i++) {
+            final Optional<String> name = ArrayUtils.getFirst(attributes[i].getNotifTypes());
+            if (name.isPresent())
+                result[i] = name.get();
+        }
         return result;
     }
 
@@ -72,17 +76,17 @@ public final class ListenEventsCommand extends SnampShellCommand {
                                      final int capacity,
                                      final Duration timeout,
                                      final PrintStream output) throws ListenerNotFoundException, InterruptedException {
-        if(notifSupport == null){
+        if (notifSupport == null) {
             output.println("Notifications are not supported");
             return;
         }
         output.println("Press CTRL+C to stop listening");
         final Mailbox mailbox = MailboxFactory.newFixedSizeMailbox(capacity);
         notifSupport.addNotificationListener(mailbox, new AllowedCategories(categories), null);
-        try{
-            while (true){
+        try {
+            while (!Thread.interrupted()) {
                 final Notification notif = mailbox.poll(timeout.toNanos(), TimeUnit.NANOSECONDS);//InterruptedException when CTRL+C was pressed
-                if(notif == null) continue;
+                if (notif == null) continue;
                 output.println(notif.getType());
                 output.println(new Date(notif.getTimeStamp()));
                 output.println(notif.getSequenceNumber());
@@ -90,8 +94,7 @@ public final class ListenEventsCommand extends SnampShellCommand {
                 output.println(notif.getUserData());
                 output.println();
             }
-        }
-        finally {
+        } finally {
             notifSupport.removeNotificationListener(mailbox);
         }
     }

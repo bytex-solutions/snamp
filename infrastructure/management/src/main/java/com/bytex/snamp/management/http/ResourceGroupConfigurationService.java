@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.http;
 
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 import com.bytex.snamp.management.http.model.ResourceGroupDataObject;
 
@@ -21,12 +22,8 @@ import java.util.stream.Collectors;
  */
 @Path("/configuration/resourceGroup")
 public final class ResourceGroupConfigurationService extends TemplateConfigurationService<ManagedResourceGroupConfiguration, ResourceGroupDataObject> {
-
-    /**
-     * Instantiates a new Resource group configuration service.
-     */
-    ResourceGroupConfigurationService(){
-        super(ManagedResourceGroupConfiguration.class);
+    ResourceGroupConfigurationService() {
+        super(EntityMapResolver.GROUPS);
     }
 
     @Override
@@ -44,7 +41,7 @@ public final class ResourceGroupConfigurationService extends TemplateConfigurati
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Set<String> getResourceGroupNames() {
-        return readOnlyActions(getBundleContext(), config -> config.getEntities(entityType)
+        return readOnlyActions(getBundleContext(), config -> entityMapResolver.apply(config)
                 .entrySet()
                 .stream()
                 .map(Map.Entry::getKey)

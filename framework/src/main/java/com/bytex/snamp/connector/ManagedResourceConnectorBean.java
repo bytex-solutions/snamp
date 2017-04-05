@@ -10,11 +10,14 @@ import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeInfo;
 import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeRepository;
 import com.bytex.snamp.connector.discovery.DiscoveryResultBuilder;
-import com.bytex.snamp.connector.discovery.DiscoveryService;
+import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.SharedCounter;
 import org.osgi.framework.BundleContext;
@@ -66,7 +69,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 1.0
  * @version 2.0
  */
-public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector {
+public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector implements HealthCheckSupport {
 
     /**
      * Describes management notification type supported by this connector.
@@ -155,18 +158,18 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     /**
-     * Represents default implementation of {@link DiscoveryService} based on information
+     * Represents default implementation of {@link FeatureDiscoveryService} based on information
      * supplied through reflection of the bean.
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
      */
-    public static class BeanDiscoveryService extends AbstractAggregator implements DiscoveryService{
+    public static class BeanFeatureDiscoveryService extends AbstractAggregator implements FeatureDiscoveryService {
         private final Collection<? extends ManagementNotificationType<?>> notifications;
         private final BeanInfo beanMetadata;
 
-        private BeanDiscoveryService(final BeanInfo beanMetadata,
-                                     final Collection<? extends ManagementNotificationType<?>> notifications){
+        private BeanFeatureDiscoveryService(final BeanInfo beanMetadata,
+                                            final Collection<? extends ManagementNotificationType<?>> notifications){
             this.beanMetadata = Objects.requireNonNull(beanMetadata);
             this.notifications = Objects.requireNonNull(notifications);
         }
@@ -175,12 +178,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             return beanMetadata.getBeanDescriptor().getBeanClass().getClassLoader();
         }
 
-        protected BeanDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
+        protected BeanFeatureDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
             this(connectorType, EnumSet.noneOf(EmptyManagementNotificationType.class));
         }
 
-        protected <N extends Enum<N> & ManagementNotificationType<?>> BeanDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType,
-                                                                                           final EnumSet<N> notifications) throws IntrospectionException {
+        protected <N extends Enum<N> & ManagementNotificationType<?>> BeanFeatureDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType,
+                                                                                                  final EnumSet<N> notifications) throws IntrospectionException {
             this(getBeanInfo(connectorType), notifications);
         }
 
@@ -337,9 +340,19 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         return emitNotificationImpl(category, message, userData);
     }
 
-    private static BeanDiscoveryService createDiscoveryService(final BeanInfo beanMetadata,
-                                                               final Set<? extends ManagementNotificationType<?>> notifTypes){
-        return new BeanDiscoveryService(beanMetadata, notifTypes);
+    private static BeanFeatureDiscoveryService createDiscoveryService(final BeanInfo beanMetadata,
+                                                                      final Set<? extends ManagementNotificationType<?>> notifTypes){
+        return new BeanFeatureDiscoveryService(beanMetadata, notifTypes);
+    }
+
+    /**
+     * Determines whether the connected managed resource is alive.
+     *
+     * @return Status of the remove managed resource.
+     */
+    @Override
+    public HealthStatus getStatus() {
+        return new OkStatus(attributes.getResourceName());
     }
 
     /**
@@ -347,7 +360,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @return A new instance of the discovery service.
      * @throws IntrospectionException Unable to reflect this bean.
      */
-    public DiscoveryService createDiscoveryService() throws IntrospectionException{
+    public FeatureDiscoveryService createDiscoveryService() throws IntrospectionException{
         final BeanInfo beanMetadata = getBeanInfo(getClass());
         final Set<? extends ManagementNotificationType<?>> notifTypes = notifications.notifTypes;
         return createDiscoveryService(beanMetadata, notifTypes);

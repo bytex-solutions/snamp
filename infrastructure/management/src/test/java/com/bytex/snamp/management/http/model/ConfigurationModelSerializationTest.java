@@ -20,19 +20,19 @@ public final class ConfigurationModelSerializationTest extends Assert {
     public void agentConfigurationSerialization() throws IOException {
         final AgentConfiguration configuration = new SerializableAgentConfiguration();
         configuration.put("param", "value");
-        configuration.getEntities(ManagedResourceConfiguration.class).addAndConsume("resource1", resource -> {
+        configuration.getResources().addAndConsume("resource1", resource -> {
             resource.setType("http");
             resource.setGroupName("cluster");
             resource.setConnectionString("http://localhost");
-            resource.getFeatures(EventConfiguration.class).addAndConsume("event1", event -> {
+            resource.getEvents().addAndConsume("event1", event -> {
                 event.put("eventParam", "value");
             });
         });
-        configuration.getEntities(ManagedResourceGroupConfiguration.class).addAndConsume("cluster", group -> {
+        configuration.getResourceGroups().addAndConsume("cluster", group -> {
             group.setType("http");
             group.put("groupParam", "value");
         });
-        configuration.getEntities(GatewayConfiguration.class).addAndConsume("gateway1", gateway -> {
+        configuration.getGateways().addAndConsume("gateway1", gateway -> {
             gateway.setType("snmp");
             gateway.put("gatewayParam", "value");
         });
@@ -42,8 +42,8 @@ public final class ConfigurationModelSerializationTest extends Assert {
         assertTrue(configuration.isEmpty());
         mapper.readValue(json, AgentDataObject.class).exportTo(configuration);
         assertEquals("value", configuration.get("param"));
-        assertNotNull(configuration.getEntities(ManagedResourceConfiguration.class).get("resource1"));
-        assertNotNull(configuration.getEntities(ManagedResourceGroupConfiguration.class).get("cluster"));
-        assertNotNull(configuration.getEntities(GatewayConfiguration.class).get("gateway1"));
+        assertNotNull(configuration.getResources().get("resource1"));
+        assertNotNull(configuration.getResourceGroups().get("cluster"));
+        assertNotNull(configuration.getGateways().get("gateway1"));
     }
 }

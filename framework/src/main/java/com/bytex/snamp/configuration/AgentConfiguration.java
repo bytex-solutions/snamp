@@ -1,5 +1,7 @@
 package com.bytex.snamp.configuration;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents in-memory representation of the agent configuration.
  * <p>The agent configuration consists of the following parts:
@@ -38,14 +40,16 @@ public interface AgentConfiguration extends Cloneable, EntityConfiguration {
      */
     AgentConfiguration clone() throws CloneNotSupportedException;
 
-    /**
-     * Obtains a repository of configuration entities.
-     * @param entityType Type of entity. You can use {@link ManagedResourceConfiguration} or {@link GatewayConfiguration} as entities.
-     * @param <E> Type of entity.
-     * @return A repository of configuration entities; or {@literal null}, if entity type is not supported by SNAMP configuration subsystem.
-     * @since 1.2
-     */
-    <E extends EntityConfiguration> EntityMap<? extends E> getEntities(final Class<E> entityType);
+    @Nonnull
+    EntityMap<? extends ManagedResourceConfiguration> getResources();
+    @Nonnull
+    EntityMap<? extends GatewayConfiguration> getGateways();
+    @Nonnull
+    EntityMap<? extends ManagedResourceGroupConfiguration> getResourceGroups();
+    @Nonnull
+    EntityMap<? extends ThreadPoolConfiguration> getThreadPools();
+    @Nonnull
+    EntityMap<? extends SupervisorConfiguration> getSupervisors();
 
     /**
      * Creates a new instance of entity configuration.
@@ -55,7 +59,7 @@ public interface AgentConfiguration extends Cloneable, EntityConfiguration {
      *                  {@link EventConfiguration},
      *                  {@link OperationConfiguration},
      *                  {@link ManagedResourceGroupConfiguration},
-     *                  {@link ManagedResourceGroupWatcherConfiguration}.
+     *                  {@link SupervisorConfiguration}.
      * @param <E> Type of requested entity.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */

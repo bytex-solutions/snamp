@@ -1,6 +1,7 @@
 package com.bytex.snamp.scripting.groovy;
 
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.StandardSystemProperty;
 import groovy.lang.Binding;
@@ -94,9 +95,9 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
     public synchronized final B createScript(final String scriptName, final Binding binding) throws ResourceException, ScriptException {
         final Script result;
         final Binding bindingUnion = binding == null ? rootBinding : concatBindings(rootBinding, binding);
-        try {
-            result = Utils.callWithContextClassLoader(getGroovyClassLoader(), () -> super.createScript(scriptName, bindingUnion));
-        } catch (final ResourceException | ScriptException e){
+        try (final SafeCloseable ignored = Utils.withContextClassLoader(getGroovyClassLoader())) {
+            result = super.createScript(scriptName, bindingUnion);
+        } catch (final ResourceException | ScriptException e) {
             throw e;
         } catch (final Exception e) {
             throw new ScriptException(e);
@@ -105,6 +106,13 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
         interceptCreate(typedResult);
         return typedResult;
     }
+
+    private SafeCloseable withBaseClass(final Class<? extends B> baseScriptClass){
+        final CompilerConfiguration config = getConfig();
+        final String previousBaseClass = config.getScriptBaseClass();
+        config.setScriptBaseClass(baseScriptClass.getName());
+        return () -> config.setScriptBaseClass(previousBaseClass);
+    }           
 
     /**
      * Creates a Script with a given scriptName and binding.
@@ -120,16 +128,12 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
         final Script result;
         final Binding bindingUnion = binding == null ? rootBinding : concatBindings(rootBinding, binding);
 
-        final String previousBaseClass = getConfig().getScriptBaseClass();
-        getConfig().setScriptBaseClass(baseScriptClass.getName());
-        try {
-            result = Utils.callWithContextClassLoader(getGroovyClassLoader(), () -> super.createScript(scriptName, bindingUnion));
+        try(final SafeCloseable ignored = Utils.withContextClassLoader(getGroovyClassLoader()); final SafeCloseable ignored2 = withBaseClass(baseScriptClass)) {
+            result = super.createScript(scriptName, bindingUnion);
         } catch (final ResourceException | ScriptException e){
             throw e;
         } catch (final Exception e) {
             throw new ScriptException(e);
-        } finally {
-            getConfig().setScriptBaseClass(previousBaseClass);
         }
         final C typedResult = baseScriptClass.cast(result);
         interceptCreate(typedResult);
@@ -139,7 +143,9 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
 
     public synchronized final B parseScript(final String text, final Binding binding) {
         final Class<?> scriptImpl = getGroovyClassLoader().parseClass(text);
-        return baseScriptClass.cast(InvokerHelper.createScript(scriptImpl, binding));
+        final B script = baseScriptClass.cast(InvokerHelper.createScript(scriptImpl, binding));
+        interceptCreate(script);
+        return script;
     }
 
     public static Binding concatBindings(final Binding first, final Binding... other){

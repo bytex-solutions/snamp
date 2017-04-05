@@ -1,9 +1,7 @@
 package com.bytex.snamp.configuration.internal;
 
-import com.bytex.snamp.SingletonMap;
+import com.bytex.snamp.Internal;
 import com.bytex.snamp.configuration.GatewayConfiguration;
-
-import java.util.Dictionary;
 
 /**
  * Provides parsing of gateway configuration from data provided by {@link org.osgi.service.cm.Configuration}.
@@ -14,21 +12,6 @@ import java.util.Dictionary;
  * @version 2.0
  * @since 1.2
  */
-public interface CMGatewayParser extends CMConfigurationParser<GatewayConfiguration> {
-    /**
-     * Returns persistent identifier of the specified gateway.
-     * @param gatewayType The name of the gateway instance.
-     * @return Persistent identifier.
-     */
-    String getFactoryPersistentID(final String gatewayType);
-
-    @Override
-    SingletonMap<String, ? extends GatewayConfiguration> parse(final Dictionary<String, ?> configuration);
-
-    /**
-     * Extracts the name of the gateway instance from its configuration.
-     * @param gatewayInstanceConfig The gateway instance configuration supplied by {@link org.osgi.service.cm.Configuration} object.
-     * @return Gateway instance name.
-     */
-    String getInstanceName(final Dictionary<String, ?> gatewayInstanceConfig);
+@Internal
+public interface CMGatewayParser extends CMRootEntityParser<GatewayConfiguration> {
 }

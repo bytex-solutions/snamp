@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Predicate;
 
-import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
+import static com.bytex.snamp.internal.Utils.staticInit;
 
 /**
  * @author Roman Sakno
@@ -27,7 +27,7 @@ import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
  */
 @ThreadSafe
 final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValueStorage {
-    private static File DATABASE_HOME = interfaceStaticInitialize(() -> {
+    private static File DATABASE_HOME = staticInit(() -> {
         final String KARAF_DATA_DIR = "karaf.data";
         final File databaseHome;
         if(System.getProperties().containsKey(KARAF_DATA_DIR))

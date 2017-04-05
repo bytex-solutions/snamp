@@ -3,6 +3,8 @@ package com.bytex.snamp.management.http.model;
 import com.bytex.snamp.configuration.TypedEntityConfiguration;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import javax.annotation.Nonnull;
+
 /**
  * TypedDTOEntity
  *
@@ -21,7 +23,7 @@ public abstract class AbstractTypedDataObject<E extends TypedEntityConfiguration
     }
 
     @Override
-    public void exportTo(final E entity) {
+    public void exportTo(@Nonnull final E entity) {
         super.exportTo(entity);
         entity.setType(type);
     }

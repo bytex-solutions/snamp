@@ -2,8 +2,14 @@ package com.bytex.snamp.management.http.model;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.json.DurationDeserializer;
+import com.bytex.snamp.json.DurationSerializer;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 
 /**
@@ -26,11 +32,14 @@ public final class AttributeDataObject extends AbstractFeatureDataObject<Attribu
     }
 
     @Override
-    public void exportTo(final AttributeConfiguration entity) {
+    public void exportTo(@Nonnull final AttributeConfiguration entity) {
         super.exportTo(entity);
         entity.setReadWriteTimeout(duration);
     }
 
+    @JsonProperty("readWriteTimeout")
+    @JsonSerialize(using = DurationSerializer.class)
+    @JsonDeserialize(using = DurationDeserializer.class)
     public Duration getReadWriteTimeout() {
         return duration;
     }

@@ -2,11 +2,17 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-connectors">
     <repository>mvn:com.bytex.snamp/core-features/${snamp.version}/xml/features</repository>
 
-    <feature name="snamp-stream-connector" description="SNAMP instrumentation library and connector for measurements" version="${snamp.stream.connector.version}">
+    <feature name="snamp-default-supervisor" description="SNAMP Default Supervisor" version="${snamp.supervisors.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp/default-supervisor/${snamp.supervisors.version}</bundle>
+    </feature>
+
+    <feature name="snamp-stream-connector" description="SNAMP instrumentation library and connector for measurements" version="${snamp.connector.stream.version}">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
         <feature version="${snamp.instrumentation.version}">snamp-instrumentation</feature>
-        <bundle start="true">mvn:com.bytex.snamp/data-stream-connector/${snamp.stream.connector.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/data-stream-connector/${snamp.connector.stream.version}</bundle>
     </feature>
 
     <feature name="snamp-composite-connector" description="Composite Connector Karaf Feature" version="${snamp.connector.composite.version}" install="auto">
@@ -24,7 +30,7 @@
     <feature name="snamp-http-acceptor" description="HTTP Acceptor Karaf Feature" version="${snamp.connector.http.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
-        <feature version="${snamp.stream.connector.version}" >snamp-stream-connector</feature>
+        <feature version="${snamp.connector.stream.version}" >snamp-stream-connector</feature>
         <bundle start="true">mvn:com.bytex.snamp/http-acceptor/${snamp.connector.http.version}</bundle>
     </feature>
 
@@ -53,7 +59,7 @@
     <feature name="snamp-zipkin-connector" description="Zipkin Connector Karaf Feature" version="${snamp.connector.zipkin.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
-        <feature version="${snamp.stream.connector.version}" >snamp-stream-connector</feature>
+        <feature version="${snamp.connector.stream.version}" >snamp-stream-connector</feature>
         <bundle>mvn:io.zipkin.java/zipkin/1.16.2</bundle>
         <bundle>mvn:com.bytex.snamp/zipkin-connector/${snamp.connector.zipkin.version}</bundle>
     </feature>

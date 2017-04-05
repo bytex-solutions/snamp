@@ -52,8 +52,8 @@ public final class ConsoleReporter implements Reporter {
      */
     @Override
     public void report(final Measurement... measurements) throws IOException {
-        for(final Measurement m: measurements)
-            output.print(m);
+        for (final Measurement m : measurements)
+            output.println(m.toJsonString(true));
     }
 
     /**

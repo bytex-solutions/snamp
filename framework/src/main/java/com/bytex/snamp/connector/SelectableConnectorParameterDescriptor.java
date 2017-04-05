@@ -3,6 +3,7 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription.ParameterDescription;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ public interface SelectableConnectorParameterDescriptor extends ParameterDescrip
      * @return An array of parameter suggested values.
      * @throws java.lang.Exception Unable to suggest parameter values.
      */
-    String[] suggestValues(final String connectionString,
-                           final Map<String, String> connectionOptions,
-                           final Locale loc) throws Exception;
+    Collection<String> suggestValues(final String connectionString,
+                             final Map<String, String> connectionOptions,
+                             final Locale loc) throws Exception;
 }

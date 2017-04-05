@@ -11,7 +11,6 @@ import javax.management.AttributeList;
 import javax.management.JMException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -43,7 +42,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
     public Map<String, Collection<ChartData>> getChartData(final Chart[] charts) throws WebApplicationException {
         final BundleContext context = getBundleContext();
         final Multimap<String, ChartData> result = HashMultimap.create(charts.length, 3);
-        for (final String resourceName : ManagedResourceConnectorClient.getResources(context)) {
+        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
             final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
             if (client == null)
                 continue;

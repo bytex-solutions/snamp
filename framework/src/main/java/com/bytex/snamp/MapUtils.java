@@ -82,10 +82,6 @@ public final class MapUtils {
         return putValue(map::put, key, value, transform);
     }
 
-    public static <K, I, V> V putValue(final Dictionary<K, V> map, final K key, final I value, final Function<? super I, ? extends V> transform){
-        return putValue(map::put, key, value, transform);
-    }
-
     public static <K, V> V putIntValue(final Map<K, V> map, final K key, final int value, final IntFunction<? extends V> transform){
         return map.put(key, transform.apply(value));
     }
@@ -116,5 +112,12 @@ public final class MapUtils {
                                                          final BiFunction<? super K, ? super V, ? extends V> keySetter,
                                                          final Collection<? extends K> keys){
         return new FixedKeysMap<>(keyGetter, Objects.requireNonNull(keySetter), ImmutableSet.copyOf(keys));
+    }
+
+    public static <K, V> boolean putIf(final Map<K, ? super V> map, final K key, final V value, final Predicate<? super V> condition) {
+        final boolean success;
+        if (success = condition.test(value))
+            map.put(key, value);
+        return success;
     }
 }

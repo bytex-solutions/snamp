@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.http;
 
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import com.bytex.snamp.management.http.model.ThreadPoolDataObject;
 
@@ -11,7 +12,7 @@ import com.bytex.snamp.management.http.model.ThreadPoolDataObject;
  */
 public final class ThreadPoolConfigurationService extends AbstractEntityConfigurationService<ThreadPoolConfiguration, ThreadPoolDataObject> {
     ThreadPoolConfigurationService() {
-        super(ThreadPoolConfiguration.class);
+        super(EntityMapResolver.THREAD_POOLS);
     }
 
     @Override

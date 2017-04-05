@@ -8,7 +8,7 @@ import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.reflection.ManagementAttribute;
 import com.bytex.snamp.connector.attributes.reflection.ManagementAttributeMarshaller;
-import com.bytex.snamp.connector.discovery.DiscoveryService;
+import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
@@ -135,7 +135,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
     @Test
     public void discoveryTest() throws IntrospectionException {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
-        final DiscoveryService discovery = connector.createDiscoveryService();
+        final FeatureDiscoveryService discovery = connector.createDiscoveryService();
         final Collection<AttributeConfiguration> attributes =
                 discovery.discover("", ImmutableMap.of(), AttributeConfiguration.class);
         assertEquals(3, attributes.size());

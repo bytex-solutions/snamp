@@ -11,10 +11,7 @@ import com.google.common.base.Splitter;
 import javax.management.*;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static com.bytex.snamp.MapUtils.getValueAsInt;
@@ -81,15 +78,16 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
             }
 
             @Override
-            public String[] suggestValues(final String connectionString,
-                                          final Map<String, String> connectionOptions,
-                                          final Locale loc) throws IOException, MalformedObjectNameException {
+            public Set<String> suggestValues(final String connectionString,
+                                                   final Map<String, String> connectionOptions,
+                                                   final Locale loc) throws IOException, MalformedObjectNameException {
                 final JmxConnectionOptions options = new JmxConnectionOptions(connectionString, connectionOptions);
+                final Set<String> result = new HashSet<>();
                 try (final JMXConnector connection = options.createConnection()) {
                     final MBeanServerConnection server = connection.getMBeanServerConnection();
-                    return server.queryNames(null, null).stream().map(ObjectName::toString).toArray(String[]::new);
-
+                    server.queryNames(null, null).stream().map(ObjectName::toString).forEach(result::add);
                 }
+                return result;
             }
         }
 

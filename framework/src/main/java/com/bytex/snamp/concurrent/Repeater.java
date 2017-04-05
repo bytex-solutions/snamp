@@ -88,7 +88,11 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @return A new unique name of the repeater thread.
      */
     protected String generateThreadName(){
-        return String.format("%sThread#%s", getClass().getSimpleName(), THREAD_COUNTER.getAndIncrement());
+        return generateThreadName(getClass().getSimpleName() + "Thread");
+    }
+
+    protected static String generateThreadName(final String prefix) {
+        return prefix + '#' + THREAD_COUNTER.getAndIncrement();
     }
 
     /**

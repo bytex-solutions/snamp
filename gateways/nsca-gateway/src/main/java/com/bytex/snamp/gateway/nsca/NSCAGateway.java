@@ -143,7 +143,7 @@ final class NSCAGateway extends AbstractGateway {
         final NSCAGatewayConfigurationDescriptor parser = NSCAGatewayConfigurationDescriptor.getInstance();
         start(parser.getPassiveCheckSendPeriod(parameters),
                 parser.parseSettings(parameters),
-                parser.getThreadPool(parameters));
+                parser.parseThreadPool(parameters));
     }
 
     @Override

@@ -3,7 +3,7 @@ package com.bytex.snamp.management.jmx;
 import com.bytex.snamp.core.AbstractSnampManager;
 import com.bytex.snamp.jmx.FrameworkMBean;
 import com.bytex.snamp.jmx.OpenMBean;
-import com.bytex.snamp.management.SnampManagerImpl;
+import com.bytex.snamp.management.DefaultSnampManager;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogService;
@@ -46,7 +46,7 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
     }
 
     public SnampCoreMBean() throws OpenDataException{
-        this(new StatisticCounters(DEFAULT_RENEWAL_TIME), new SnampManagerImpl());
+        this(new StatisticCounters(DEFAULT_RENEWAL_TIME), new DefaultSnampManager());
     }
 
     /**

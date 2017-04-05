@@ -22,7 +22,7 @@ import static com.bytex.snamp.management.ManagementUtils.newLine;
     name = "resource",
     description = "Display configuration of the managed resource")
 @Service
-public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
+public final class ResourceInfoCommand extends ManagedResourceConfigurationCommand {
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of configured resource to display")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String resourceName = "";
@@ -38,10 +38,6 @@ public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResou
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @Option(name = "-o", aliases = {"--operations"}, description = "Show resource operations", required = false, multiValued = false)
     private boolean showOperations = false;
-
-    public ResourceInfoCommand(){
-        super(ManagedResourceConfiguration.class);
-    }
 
     private static void printParameters(final FeatureConfiguration feature, final StringBuilder output){
         feature.forEach((key, value) -> appendln(output, "%s=%s", key, value));
@@ -76,21 +72,21 @@ public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResou
             checkInterrupted();
             if(showAttributes) {
                 appendln(output, "==ATTRIBUTES==");
-                for (final Map.Entry<String, ? extends AttributeConfiguration> attr : getFeatures(resource, AttributeConfiguration.class))
+                for (final Map.Entry<String, ? extends AttributeConfiguration> attr : resource.getAttributes().entrySet())
                     printAttribute(attr.getKey(), attr.getValue(), output);
                 newLine(output);
             }
             checkInterrupted();
             if(showEvents){
                 appendln(output, "==EVENTS==");
-                for (final Map.Entry<String, ? extends EventConfiguration> attr : getFeatures(resource, EventConfiguration.class))
+                for (final Map.Entry<String, ? extends EventConfiguration> attr : resource.getEvents().entrySet())
                     printEvent(attr.getKey(), attr.getValue(), output);
                 newLine(output);
             }
             checkInterrupted();
             if(showOperations){
                 appendln(output, "==OPERATIONS==");
-                for (final Map.Entry<String, ? extends OperationConfiguration> attr : getFeatures(resource, OperationConfiguration.class))
+                for (final Map.Entry<String, ? extends OperationConfiguration> attr : resource.getOperations().entrySet())
                     printOperation(attr.getKey(), attr.getValue(), output);
                 newLine(output);
             }

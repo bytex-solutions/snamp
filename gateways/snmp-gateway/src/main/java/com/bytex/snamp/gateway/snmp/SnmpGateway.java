@@ -112,7 +112,7 @@ final class SnmpGateway extends AbstractGateway {
                 parser.parseAddress(parameters),
                 parser.parseSecurityConfiguration(parameters, contextFactory),
                 parser.parseSocketTimeout(parameters),
-                parser.getThreadPool(parameters));
+                parser.parseThreadPool(parameters));
         //initialize restart manager and start SNMP agent
         updateManager = new SnmpGatewayUpdateManager(instanceName, parser.parseRestartTimeout(parameters), agentFactory);
         updateManager.startAgent(attributes.values(), notifications.values());

@@ -8,6 +8,7 @@ import com.bytex.snamp.concurrent.SpinWait;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
@@ -38,6 +39,7 @@ public final class UtilsTest extends Assert {
         return BigInteger.TEN;
     }
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     private BigInteger sum(final BigInteger v){
         return getBigInteger().add(v);
     }
@@ -97,5 +99,15 @@ public final class UtilsTest extends Assert {
         Utils.parallelForEach(Arrays.spliterator(ArrayUtils.wrapArray(bytes)), b -> index.incrementAndGet(), executor);
         SpinWait.spinUntil(() -> index.get() < 100, Duration.ofSeconds(2));
         assertEquals(100, index.get());
+    }
+
+    @Test(expected = IOException.class)
+    public void closeAllTest() throws Exception {
+        Utils.closeAll(() -> {
+        }, () -> {
+            throw new IOException();
+        }, () -> {
+            throw new IllegalArgumentException();
+        });
     }
 }

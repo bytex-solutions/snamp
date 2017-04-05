@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.shell;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -29,6 +30,16 @@ final class StringKeyValue implements Map.Entry<String, String>, Serializable {
         return index > 0 ?
                 new StringKeyValue(pair.substring(0, index), pair.substring(index + 1)):
                 null;
+    }
+
+    static Map<String, String> parse(final String[] parameters) {
+        final Map<String, String> result = new HashMap<>();
+        for (final String param : parameters) {
+            final StringKeyValue pair = parse(param);
+            if (pair != null)
+                result.put(pair.getKey(), pair.getValue());
+        }
+        return result;
     }
 
     @Override

@@ -15,7 +15,7 @@ public final class NagiosGatewayActivator extends GatewayActivator<NagiosGateway
     public NagiosGatewayActivator() {
         super(NagiosGatewayActivator::newGateway,
                 simpleDependencies(HttpService.class),
-                new SupportGatewayServiceManager<?, ?>[]{configurationDescriptor(NagiosGatewayConfigurationDescriptor::new)});
+                new SupportServiceManager<?, ?>[]{configurationDescriptor(NagiosGatewayConfigurationDescriptor::new)});
     }
 
     @SuppressWarnings("unchecked")

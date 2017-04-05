@@ -318,8 +318,8 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>analysis-and-operations</artifactId>
-            <version>${snamp.ops.version}</version>
+            <artifactId>default-supervisor</artifactId>
+            <version>${snamp.supervisors.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

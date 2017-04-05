@@ -69,11 +69,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
         private static String getDescription(final NotificationDescriptor descriptor){
             final String result = descriptor.getDescription();
-            return result == null || result.isEmpty() ? "SNMP Trap" : result;
+            return result.isEmpty() ? "SNMP Trap" : result;
         }
 
         private OID getNotificationID(){
-            return new OID(getDescriptor().getName(ArrayUtils.getFirst(getNotifTypes())));
+            return new OID(getDescriptor().getName(ArrayUtils.getFirst(getNotifTypes()).orElseThrow(AssertionError::new)));
         }
 
     }
@@ -149,7 +149,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                     if (bnd.getOid().startsWith(input.getNotificationID()))
                         return true;
                 return false;
-            });
+            }).orElse(null);
             //unknown notification
             if(notificationInfo == null) return;
             String message;
@@ -180,7 +180,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                 message = String.join(System.lineSeparator(), (CharSequence[]) bindings.stream().map(VariableBinding::toString).toArray(String[]::new));
                 bindings.clear();
             }
-            fire(notificationInfo.getDescriptor().getName(ArrayUtils.getFirst(notificationInfo.getNotifTypes())),
+            fire(notificationInfo.getDescriptor().getName(ArrayUtils.getFirst(notificationInfo.getNotifTypes()).orElseThrow(AssertionError::new)),
                     message,
                     bindings);
         }
@@ -753,7 +753,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
      * @return An instance of the requested object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(final Class<T> objectType) {
+    public <T> T queryObject(@Nonnull final Class<T> objectType) {
         return queryObject(objectType, attributes);
     }
 

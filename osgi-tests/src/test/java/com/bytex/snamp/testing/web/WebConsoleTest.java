@@ -25,7 +25,7 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
-import com.bytex.snamp.testing.connector.supervision.HealthAnalyzerTest;
+import com.bytex.snamp.testing.supervision.DefaultSupervisorTest;
 import com.bytex.snamp.web.serviceModel.charts.*;
 import com.bytex.snamp.web.serviceModel.commons.AttributeInformation;
 import com.bytex.snamp.web.serviceModel.e2e.ChildComponentsView;
@@ -90,6 +90,35 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
         SnampFeature.HTTP_ACCEPTOR
 })
 public final class WebConsoleTest extends AbstractSnampIntegrationTest {
+    private static final ObjectMapper FORMATTER = new ObjectMapper();
+
+    private static final String GROUP_NAME = "web-server";
+
+    private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
+    private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
+
+    private static final String JMX_CONNECTOR_TYPE = "jmx";
+    private static final String HTTP_ACCEPTOR_TYPE = "http";
+
+    private static final String ADAPTER_NAME = "http";
+    private static final String TEST_PARAMETER = "testParameter";
+
+    private static final String FIRST_BEAN_NAME = BEAN_NAME + "_1";
+    private static final String FIRST_RESOURCE_NAME = "node#1";
+
+    private static final String SECOND_BEAN_NAME = BEAN_NAME + "_2";
+    private static final String SECOND_RESOURCE_NAME = "node#2";
+
+    private static final String THIRD_BEAN_NAME = BEAN_NAME + "_3";
+    private static final String THIRD_RESOURCE_NAME = "node#3";
+
+    private static final String FOURTH_RESOURCE_NAME = "iOS";
+    private static final String GROUP1_NAME = "mobileApp";
+    private static final String FIFTH_RESOURCE_NAME = "node2";
+    private static final String GROUP2_NAME = "dispatcher";
+    private static final String SIXTH_RESOURCE_NAME = "paypal";
+    private static final String GROUP3_NAME = "paymentSystem";
+
     private static final class TestApplicationInfo extends ApplicationInfo {
         static void setName(final String componentName, final String instanceName){
             setName(componentName);
@@ -173,35 +202,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         abstract void sendTestSpans(final MetricRegistry registry, final IntUnaryOperator delay) throws IOException, InterruptedException;
     }
 
-    private static final ObjectMapper FORMATTER = new ObjectMapper();
-
-    private static final String GROUP_NAME = "web-server";
-
-    private static final String WS_ENDPOINT = "ws://localhost:8181/snamp/console/events";
-    private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
-
-    private static final String JMX_CONNECTOR_TYPE = "jmx";
-    private static final String HTTP_ACCEPTOR_TYPE = "http";
-
-    private static final String ADAPTER_NAME = "http";
-    private static final String TEST_PARAMETER = "testParameter";
-
-    private static final String FIRST_BEAN_NAME = BEAN_NAME + "_1";
-    private static final String FIRST_RESOURCE_NAME = "node#1";
-
-    private static final String SECOND_BEAN_NAME = BEAN_NAME + "_2";
-    private static final String SECOND_RESOURCE_NAME = "node#2";
-
-    private static final String THIRD_BEAN_NAME = BEAN_NAME + "_3";
-    private static final String THIRD_RESOURCE_NAME = "node#3";
-
-    private static final String FOURTH_RESOURCE_NAME = "iOS";
-    private static final String GROUP1_NAME = "mobileApp";
-    private static final String FIFTH_RESOURCE_NAME = "node2";
-    private static final String GROUP2_NAME = "dispatcher";
-    private static final String SIXTH_RESOURCE_NAME = "paypal";
-    private static final String GROUP3_NAME = "paymentSystem";
-
     //must be public
     @WebSocket
     public static final class EventReceiver extends LinkedBlockingQueue<JsonNode> {
@@ -234,7 +234,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
@@ -405,12 +405,12 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void watcherTest() throws IOException {
+    public void healthWatcherTest() throws IOException {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        JsonNode result = httpGet("/groupWatcher/groups", authenticationToken);
+        JsonNode result = httpGet("/health-watcher/groups", authenticationToken);
         assertEquals(1, result.size());
         assertEquals(GROUP_NAME, result.get(0).asText());
-        result = httpGet("/groupWatcher/groups/status", authenticationToken);
+        result = httpGet("/health-watcher/groups/status", authenticationToken);
         assertNotNull(result);
     }
 
@@ -649,41 +649,43 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
      */
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-        fillManagedResources(config.getEntities(ManagedResourceConfiguration.class));
-        fillGateways(config.getEntities(GatewayConfiguration.class));
-        fillWatchers(config.getEntities(ManagedResourceGroupWatcherConfiguration.class));
-        fillGroups(config.getEntities(ManagedResourceGroupConfiguration.class));
+        fillManagedResources(config.getResources());
+        fillGateways(config.getGateways());
+        fillGroups(config.getResourceGroups());
+        fillSupervisors(config.getSupervisors());
     }
 
     private void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups) {
         ManagedResourceGroupConfiguration group = groups.getOrAdd(GROUP_NAME);
-        fillJmxAttributes(group.getFeatures(AttributeConfiguration.class));
+        group.setType(JMX_CONNECTOR_TYPE);
+        fillJmxAttributes(group.getAttributes());
 
         group = groups.getOrAdd(GROUP2_NAME);
+        group.setType(HTTP_ACCEPTOR_TYPE);
         //fillAlternativeJmxAttributes(group.getFeatures(AttributeConfiguration.class));
-        fillSpanEvents(group.getFeatures(EventConfiguration.class));
+        fillSpanEvents(group.getEvents());
     }
 
-    private void fillWatchers(final EntityMap<? extends ManagedResourceGroupWatcherConfiguration> watchers){
+    private void fillSupervisors(final EntityMap<? extends SupervisorConfiguration> watchers){
         final String groovyTrigger;
         try {
-            groovyTrigger = IOUtils.toString(HealthAnalyzerTest.class.getResourceAsStream("GroovyTrigger.groovy"));
+            groovyTrigger = IOUtils.toString(DefaultSupervisorTest.class.getResourceAsStream("GroovyTrigger.groovy"));
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }
         watchers.addAndConsume(GROUP_NAME, watcher -> {
-            watcher.getAttributeCheckers().addAndConsume("requestsPerSecond", scriptlet -> {
+            watcher.getHealthCheckConfig().getAttributeCheckers().addAndConsume("requestsPerSecond", scriptlet -> {
                 final ColoredAttributeChecker checker = new ColoredAttributeChecker();
                 checker.setGreenPredicate(new NumberComparatorPredicate(NumberComparatorPredicate.Operator.LESS_THAN, 1000D));
                 checker.setYellowPredicate(new IsInRangePredicate(1000D, true, 2000D, true));
                 checker.configureScriptlet(scriptlet);
             });
-            watcher.getAttributeCheckers().addAndConsume("CPU", scriptlet -> {
+            watcher.getHealthCheckConfig().getAttributeCheckers().addAndConsume("CPU", scriptlet -> {
                 scriptlet.setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
                 scriptlet.setScript("attributeValue < 42 ? OK : MALFUNCTION");
             });
-            watcher.getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
-            watcher.getTrigger().setScript(groovyTrigger);
+            watcher.getHealthCheckConfig().getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
+            watcher.getHealthCheckConfig().getTrigger().setScript(groovyTrigger);
         });
     }
 
@@ -692,36 +694,33 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.put("objectName", FIRST_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.setType(JMX_CONNECTOR_TYPE);
         resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
         resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
-        fillJmxAttributes(resource.getFeatures(AttributeConfiguration.class));
-        fillJmxEvents(resource.getFeatures(EventConfiguration.class));
+        fillJmxAttributes(resource.getAttributes());
+        fillJmxEvents(resource.getEvents());
 
         resource = resources.getOrAdd(SECOND_RESOURCE_NAME);
         resource.put("objectName", SECOND_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.setType(JMX_CONNECTOR_TYPE);
         resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
         resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
-        fillJmxAttributes(resource.getFeatures(AttributeConfiguration.class));
-        fillJmxEvents(resource.getFeatures(EventConfiguration.class));
+        fillJmxAttributes(resource.getAttributes());
+        fillJmxEvents(resource.getEvents());
 
         resource = resources.getOrAdd(THIRD_RESOURCE_NAME);
         resource.put("objectName", THIRD_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.setType(JMX_CONNECTOR_TYPE);
         resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
         resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
-        fillJmxAttributes(resource.getFeatures(AttributeConfiguration.class));
-        fillJmxEvents(resource.getFeatures(EventConfiguration.class));
+        fillJmxAttributes(resource.getAttributes());
+        fillJmxEvents(resource.getEvents());
 
         resource = resources.getOrAdd(FOURTH_RESOURCE_NAME);
         resource.setGroupName(GROUP1_NAME);
         resource.setType(HTTP_ACCEPTOR_TYPE);
-        fillSpanEvents(resource.getFeatures(EventConfiguration.class));
+        fillSpanEvents(resource.getEvents());
 
         resource = resources.getOrAdd(FIFTH_RESOURCE_NAME);
         resource.setGroupName(GROUP2_NAME);
@@ -731,7 +730,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource = resources.getOrAdd(SIXTH_RESOURCE_NAME);
         resource.setGroupName(GROUP3_NAME);
         resource.setType(HTTP_ACCEPTOR_TYPE);
-        fillSpanEvents(resource.getFeatures(EventConfiguration.class));
+        fillSpanEvents(resource.getEvents());
     }
 
     private static void fillSpanEvents(final EntityMap<? extends EventConfiguration> events) {
@@ -755,22 +754,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         attribute.setUnitOfMeasurement("MBytes");
         attribute.setDescription("Used amount of memory, in megabytes");
         attribute.setAlternativeName("bigint");
-
-        attribute = attributes.getOrAdd("CPU");
-        attribute.setUnitOfMeasurement("%");
-        attribute.setDescription("CPU utilization");
-        attribute.setAlternativeName("float");
-    }
-
-    private static void fillAlternativeJmxAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
-        AttributeConfiguration attribute = attributes.getOrAdd("available");
-        attribute.setDescription("Is service available?");
-        attribute.setAlternativeName("boolean");
-
-        attribute = attributes.getOrAdd("diskSpace");
-        attribute.setUnitOfMeasurement("MB");
-        attribute.setDescription("Volume of the available disk space");
-        attribute.setAlternativeName("int32");
 
         attribute = attributes.getOrAdd("CPU");
         attribute.setUnitOfMeasurement("%");

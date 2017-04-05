@@ -62,7 +62,7 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
 
         @Override
         protected Optional<String> getStringFallback(final String key, final Locale loc) {
-            return fallbackReader != null ? fallbackReader.getString(key, loc) : Optional.empty();
+            return fallbackReader == null ? Optional.empty() : fallbackReader.getString(key, loc);
         }
     }
 
@@ -135,7 +135,7 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
         filterFactory = createNotificationFilterFactory(getClass().getClassLoader());
     }
 
-    protected DataStreamConnectorConfigurationDescriptionProvider(){
+    DataStreamConnectorConfigurationDescriptionProvider(){
         super(ConnectorConfigurationDescription.createDefault(), AttributeConfigurationDescription.createDefault(), EventConfigurationDescription.createDefault());
         filterFactory = createNotificationFilterFactory(getClass().getClassLoader());
     }

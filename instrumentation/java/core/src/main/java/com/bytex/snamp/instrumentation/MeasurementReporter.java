@@ -4,6 +4,7 @@ import com.bytex.snamp.instrumentation.measurements.Measurement;
 import com.bytex.snamp.instrumentation.reporters.Reporter;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -29,7 +30,7 @@ public abstract class MeasurementReporter<M extends Measurement> {
         boolean report(final R reporter);
     }
 
-    private static final AtomicLong threadCounter = new AtomicLong(0L);
+    private static final AtomicLong THREAD_COUNTER = new AtomicLong(0L);
     private static final Logger LOGGER = Logger.getLogger("SnampMeasurementsReporter");
     private final Iterable<Reporter> reporters;
     private final String name;
@@ -39,14 +40,14 @@ public abstract class MeasurementReporter<M extends Measurement> {
     MeasurementReporter(final Iterable<Reporter> reporters, final String name, final Map<String, String> userData){
         this.reporters = reporters;
         this.name = name;
-        this.userData = userData;
+        this.userData = new HashMap<>(userData);
     }
 
     private static ThreadFactory createThreadFactory(final String reporterName) {
         return new ThreadFactory() {
             @Override
             public Thread newThread(final Runnable r) {
-                final Thread t = new Thread(r, reporterName + "-reporter-" + threadCounter.getAndIncrement());
+                final Thread t = new Thread(r, reporterName + "-reporter-" + THREAD_COUNTER.getAndIncrement());
                 t.setDaemon(true);
                 t.setPriority(3);   //at the middle between MIN and NORM priority to save CPU time when report measurements
                 return t;
@@ -54,8 +55,8 @@ public abstract class MeasurementReporter<M extends Measurement> {
         };
     }
 
-    private static MeasurementScope taskScope(final Future<?> future){
-        return new MeasurementScope() {
+    private static RuntimeScope taskScope(final Future<?> future){
+        return new RuntimeScope() {
             @Override
             public void close() {
                 future.cancel(true);
@@ -84,7 +85,7 @@ public abstract class MeasurementReporter<M extends Measurement> {
         return scheduler;
     }
 
-    final MeasurementScope scheduleReporting(final Runnable task, final long delay, final TimeUnit unit) {
+    final RuntimeScope scheduleReporting(final Runnable task, final long delay, final TimeUnit unit) {
         ScheduledExecutorService scheduler = this.scheduler;
         if (scheduler == null)
             scheduler = getScheduler();

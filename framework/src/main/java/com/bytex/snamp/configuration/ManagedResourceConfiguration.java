@@ -1,4 +1,5 @@
 package com.bytex.snamp.configuration;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents management target configuration (back-end management information providers).
@@ -13,8 +14,11 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate, M
      * Sets resource group for this resource.
      * @param value The name of the resource group. Cannot be {@literal null}.
      */
-    default void setGroupName(final String value){
-        put(GROUP_NAME_PROPERTY, value);
+    default void setGroupName(final String value) {
+        if (isNullOrEmpty(value))
+            remove(GROUP_NAME_PROPERTY);
+        else
+            put(GROUP_NAME_PROPERTY, value);
     }
 
     /**
@@ -23,7 +27,7 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate, M
      */
     @Override
     default String getGroupName(){
-        return get(GROUP_NAME_PROPERTY);
+        return getOrDefault(GROUP_NAME_PROPERTY, "");
     }
 
     /**

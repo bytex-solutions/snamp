@@ -21,7 +21,7 @@ public final class SingletonMap<K, V> implements Map<K, V>, Map.Entry<K, V> {
     private final K key;
     private V value;
 
-    public SingletonMap(final K k, final V v){
+    public SingletonMap(@Nonnull final K k, @Nonnull final V v){
         key = k;
         value = v;
     }

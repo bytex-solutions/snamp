@@ -6,6 +6,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 
+import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +26,7 @@ import java.util.Map;
         @JsonSubTypes.Type(GatewayDataObject.class),
         @JsonSubTypes.Type(ResourceGroupDataObject.class),
         @JsonSubTypes.Type(AgentDataObject.class),
-        @JsonSubTypes.Type(ResourceGroupWatcherDataObject.class)
+        @JsonSubTypes.Type(SupervisorDataObject.class)
 })
 public abstract class AbstractDataObject<E extends EntityConfiguration> implements Exportable<E> {
     @JsonIgnore
@@ -57,7 +59,8 @@ public abstract class AbstractDataObject<E extends EntityConfiguration> implemen
      * @param entity Entity to modify.
      */
     @Override
-    public void exportTo(final E entity){
+    @OverridingMethodsMustInvokeSuper
+    public void exportTo(@Nonnull final E entity){
         entity.load(parameters);
     }
 }

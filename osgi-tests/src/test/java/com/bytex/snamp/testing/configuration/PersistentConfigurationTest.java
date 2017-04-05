@@ -27,18 +27,18 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
         try {
             admin.get().processConfiguration(currentConfig -> {
                 //resource without group
-                ManagedResourceConfiguration resource = currentConfig.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
+                ManagedResourceConfiguration resource = currentConfig.getResources().getOrAdd("resource1");
                 resource.put("key1", "value1");
                 //resource with group
-                resource = currentConfig.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource2");
+                resource = currentConfig.getResources().getOrAdd("resource2");
                 resource.put("key1", "value1");
                 resource.setGroupName("group1");
                 //group
-                ManagedResourceGroupConfiguration group = currentConfig.getEntities(ManagedResourceGroupConfiguration.class).getOrAdd("group1");
+                ManagedResourceGroupConfiguration group = currentConfig.getResourceGroups().getOrAdd("group1");
                 group.put("key1", "valueFromGroup");
                 group.put("key2", "value2");
                 //attribute in group
-                assertTrue(group.getFeatures(AttributeConfiguration.class).addAndConsume("attribute1", attr -> {
+                assertTrue(group.getAttributes().addAndConsume("attribute1", attr -> {
                     attr.setAlternativeName("altName");
                     attr.put("param1", "value1");
                 }));
@@ -47,17 +47,17 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
             //verify first and second resources
             admin.get().readConfiguration(currentConfig -> {
                 //verify resource without group
-                ManagedResourceConfiguration resource = currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource1");
+                ManagedResourceConfiguration resource = currentConfig.getResources().get("resource1");
                 assertNotNull(resource);
                 assertEquals("value1", resource.get("key1"));
-                assertEquals(0, resource.getFeatures(AttributeConfiguration.class).size());
+                assertEquals(0, resource.getAttributes().size());
                 //verify resource with group
-                resource = currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource2");
+                resource = currentConfig.getResources().get("resource2");
                 assertNotNull(resource);
                 assertEquals("valueFromGroup", resource.get("key1"));
                 assertEquals("value2", resource.get("key2"));
                 //verify attribute in resources
-                assertFalse(resource.getFeatures(AttributeConfiguration.class).addAndConsume("attribute1", attr -> {
+                assertFalse(resource.getAttributes().addAndConsume("attribute1", attr -> {
                     assertEquals("altName", attr.getAlternativeName());
                     assertEquals("value1", attr.get("param1"));
                 }));
@@ -74,14 +74,14 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
         try{
             admin.get().processConfiguration(currentConfig -> {
                 assertNotNull(currentConfig);
-                assertEquals(0, currentConfig.getEntities(GatewayConfiguration.class).size());
-                assertEquals(0, currentConfig.getEntities(ManagedResourceConfiguration.class).size());
+                assertEquals(0, currentConfig.getGateways().size());
+                assertEquals(0, currentConfig.getResources().size());
                 return false;
             });
             //save gateway
             admin.get().processConfiguration(currentConfig -> {
                 final GatewayConfiguration gatewayInstanceConfig =
-                        currentConfig.getEntities(GatewayConfiguration.class).getOrAdd("gateway1");
+                        currentConfig.getGateways().getOrAdd("gateway1");
                 assertNotNull(gatewayInstanceConfig);
                 gatewayInstanceConfig.setType("snmp");
                 gatewayInstanceConfig.put("param1", "value");
@@ -89,37 +89,36 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
             });
             //save connector
             admin.get().processConfiguration(currentConfig -> {
-                final ManagedResourceConfiguration resource = currentConfig.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
+                final ManagedResourceConfiguration resource = currentConfig.getResources().getOrAdd("resource1");
                 resource.setConnectionString("connection string");
                 resource.setType("jmx");
                 resource.put("param2", "value2");
-                resource.getFeatures(AttributeConfiguration.class).getOrAdd("attr1");
+                resource.getAttributes().getOrAdd("attr1");
                 return true;
             });
             //verify configuration
             admin.get().processConfiguration(currentConfig -> {
-                assertEquals(1, currentConfig.getEntities(GatewayConfiguration.class).size());
-                assertEquals(1, currentConfig.getEntities(ManagedResourceConfiguration.class).size());
-                assertTrue(currentConfig.getEntities(GatewayConfiguration.class).containsKey("gateway1"));
-                assertTrue(currentConfig.getEntities(ManagedResourceConfiguration.class).containsKey("resource1"));
-                assertEquals("value", currentConfig.getEntities(GatewayConfiguration.class).get("gateway1").get("param1"));
-                assertEquals("value2", currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource1").get("param2"));
-                assertNotNull(currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource1")
-                        .getFeatures(AttributeConfiguration.class).get("attr1"));
+                assertEquals(1, currentConfig.getGateways().size());
+                assertEquals(1, currentConfig.getResources().size());
+                assertTrue(currentConfig.getGateways().containsKey("gateway1"));
+                assertTrue(currentConfig.getResources().containsKey("resource1"));
+                assertEquals("value", currentConfig.getGateways().get("gateway1").get("param1"));
+                assertEquals("value2", currentConfig.getResources().get("resource1").get("param2"));
+                assertNotNull(currentConfig.getResources().get("resource1").getAttributes().get("attr1"));
 
                 return false;
             });
             //delete managed resource
             admin.get().processConfiguration(currentConfig -> {
-                currentConfig.getEntities(ManagedResourceConfiguration.class).remove("resource1");
-                assertEquals(0, currentConfig.getEntities(ManagedResourceConfiguration.class).size());
+                currentConfig.getResources().remove("resource1");
+                assertEquals(0, currentConfig.getResources().size());
                 return true;
             });
             admin.get().processConfiguration(currentConfig -> {
-                assertEquals(1, currentConfig.getEntities(GatewayConfiguration.class).size());
-                assertEquals(0, currentConfig.getEntities(ManagedResourceConfiguration.class).size());
-                assertTrue(currentConfig.getEntities(GatewayConfiguration.class).containsKey("gateway1"));
-                assertEquals("value", currentConfig.getEntities(GatewayConfiguration.class).get("gateway1").get("param1"));
+                assertEquals(1, currentConfig.getGateways().size());
+                assertEquals(0, currentConfig.getResources().size());
+                assertTrue(currentConfig.getGateways().containsKey("gateway1"));
+                assertEquals("value", currentConfig.getGateways().get("gateway1").get("param1"));
                 return false;
             });
         }

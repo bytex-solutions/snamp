@@ -15,7 +15,7 @@ import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptorRead;
-import com.bytex.snamp.connector.supervision.*;
+import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.core.LoggerProvider;
 
 import javax.management.*;
@@ -519,7 +519,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
                         assert config != null;
                         config.setAutomaticallyAdded(true);
                         config.put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
-                        return enableNotifications(ArrayUtils.getFirst(notificationInfo.getNotifTypes()), new NotificationDescriptor(config));
+                        final String notifType = ArrayUtils.getFirst(notificationInfo.getNotifTypes()).orElseThrow(AssertionError::new);
+                        return enableNotifications(notifType, new NotificationDescriptor(config));
                     })
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());

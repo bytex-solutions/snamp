@@ -113,7 +113,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
 
     @Override
     public final InputRegister readInputRegister(final int unitID, final int ref) throws ModbusException {
-        return getFirst(readInputRegisters(unitID, ref, 1));
+        return getFirst(readInputRegisters(unitID, ref, 1)).orElseThrow(ModbusException::new);
     }
 
     @Override
@@ -128,7 +128,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
 
     @Override
     public final Register readHoldingRegister(final int unitID, final int ref) throws ModbusException {
-        return getFirst(readHoldingRegisters(unitID, ref, 1));
+        return getFirst(readHoldingRegisters(unitID, ref, 1)).orElseThrow(ModbusException::new);
     }
 
     @Override

@@ -22,7 +22,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 1.0
  */
 public final class DefaultValues {
-    private static final ImmutableMap<OpenType<?>, Object> values = Utils.interfaceStaticInitialize(() -> {
+    private static final ImmutableMap<OpenType<?>, Object> values = Utils.staticInit(() -> {
         final ImmutableMap.Builder<OpenType<?>, Object> builder = ImmutableMap.builder();
         //primitives
         put(builder, SimpleType.STRING, "");

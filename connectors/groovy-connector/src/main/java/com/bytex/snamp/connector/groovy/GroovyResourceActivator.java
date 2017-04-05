@@ -4,7 +4,7 @@ import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.ManagedResourceActivator;
-import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
+import com.bytex.snamp.connector.discovery.AbstractFeatureDiscoveryService;
 import groovy.grape.GrabAnnotationTransformation;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
@@ -36,8 +36,8 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         return new GroovyResourceConnector(resourceName, configuration);
     }
 
-    private static AbstractDiscoveryService<ManagedResourceInfo> newDiscoveryService(final DependencyManager dependencies){
-        return new AbstractDiscoveryService<ManagedResourceInfo>() {
+    private static AbstractFeatureDiscoveryService<ManagedResourceInfo> newDiscoveryService(final DependencyManager dependencies){
+        return new AbstractFeatureDiscoveryService<ManagedResourceInfo>() {
             @Override
             protected ManagedResourceInfo createProvider(final String connectionString, final Map<String, String> connectionOptions) throws IOException, ResourceException, ScriptException {
                 final GroovyConnectionString connectionInfo = new GroovyConnectionString(connectionString);

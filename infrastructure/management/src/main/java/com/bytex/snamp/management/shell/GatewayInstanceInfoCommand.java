@@ -19,14 +19,10 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
     name = "gateway-instance",
     description = "Display configuration of gateway instance")
 @Service
-public final class GatewayInstanceInfoCommand extends ConfigurationCommand<GatewayConfiguration> {
+public final class GatewayInstanceInfoCommand extends GatewayConfigurationCommand {
     @Argument(index = 0, name = "instanceName", required = true, description = "Name of gateway instance to display")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String instanceName = "";
-
-    public GatewayInstanceInfoCommand(){
-        super(GatewayConfiguration.class);
-    }
 
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {

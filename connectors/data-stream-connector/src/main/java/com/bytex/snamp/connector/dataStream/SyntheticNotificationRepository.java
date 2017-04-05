@@ -53,7 +53,7 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
 
     private static Notification prepareNotification(final SyntheticNotificationInfo metadata, final Notification notification) {
         if (metadata.isNotificationEnabled(notification)) {
-            final String newNotifType = ArrayUtils.getFirst(metadata.getNotifTypes());
+            final String newNotifType = ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new);
             return newNotifType.equals(notification.getType()) ?
                     notification :
                     new NotificationContainer(newNotifType, notification);

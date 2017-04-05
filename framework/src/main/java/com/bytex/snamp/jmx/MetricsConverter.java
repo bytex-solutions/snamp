@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
-import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
+import static com.bytex.snamp.internal.Utils.staticInit;
 
 /**
  * Provides conversion between SNAMP metrics declared in {@link com.bytex.snamp.connector.metrics} package
@@ -224,7 +224,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent for {@link Ranged}.
      */
-    public static final CompositeType RANGED_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Ranged", "Ranged metric")
+    public static final CompositeType RANGED_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Ranged", "Ranged metric")
             //less than
             .addItem(LESS_THAN_RANGE_FIELD, "Number of recorded values that are less than normative", SimpleType.DOUBLE)
             .addItem(LESS_THAN_RANGE_LAST_SECOND_FIELD, "Number of recorded values that are less than normative for the last second", SimpleType.DOUBLE)
@@ -257,7 +257,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent for {@link Timer}.
      */
-    public static final CompositeType TIMER_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Timer", "Timing measurement")
+    public static final CompositeType TIMER_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Timer", "Timing measurement")
             .addItem(SUMMARY_VALUE_FIELD, "Summary duration of all operations", SimpleType.DOUBLE)
             .addItem(MEAN_DURATION_FIELD, "Mean duration", SimpleType.DOUBLE)
             .addItem(MAX_VALUE_FIELD, "Maximum duration ever presented", SimpleType.DOUBLE)
@@ -321,7 +321,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent of {@link StringGauge}.
      */
-    public static final CompositeType STRING_GAUGE_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.StringGauge", "StringGauge")
+    public static final CompositeType STRING_GAUGE_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.StringGauge", "StringGauge")
             .addItem(MAX_VALUE_FIELD, "Maximum value ever presented", SimpleType.STRING)
             .addItem(LAST_VALUE_FIELD, "The last presented value", SimpleType.STRING)
             .addItem(MIN_VALUE_FIELD, "Minimum value ever presented", SimpleType.STRING)
@@ -346,7 +346,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent of {@link Flag}.
      */
-    public static final CompositeType FLAG_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Flag", "Flag")
+    public static final CompositeType FLAG_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Flag", "Flag")
         .addItem(LAST_VALUE_FIELD, "Last value submitted to gauge", SimpleType.BOOLEAN)
         .addItem(TRUE_TOTAL_COUNT_FIELD, "Total count of 'true' values", SimpleType.LONG)
         .addItem(FALSE_TOTAL_COUNT_FIELD, "Total count of 'false' values", SimpleType.LONG)
@@ -380,7 +380,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent of {@link Rate}.
      */
-    public static final CompositeType RATE_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Rate", "Rate counter")
+    public static final CompositeType RATE_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Rate", "Rate counter")
         .addItem(TOTAL_RATE_FIELD, "Total rate", SimpleType.LONG)
             //mean rate for the last time
         .addItem(MEAN_RATE_FOR_LAST_SECOND_FIELD, "Mean rate per second computed for the last second", SimpleType.DOUBLE)
@@ -432,7 +432,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent of {@link GaugeFP}.
      */
-    public static final CompositeType GAUGE_FP_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.GaugeFP", "Floating-point gauge")
+    public static final CompositeType GAUGE_FP_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.GaugeFP", "Floating-point gauge")
             .addItem(MAX_VALUE_FIELD, "Maximum value ever presented", SimpleType.DOUBLE)
             .addItem(LAST_VALUE_FIELD, "The last presented value", SimpleType.DOUBLE)
             .addItem(MIN_VALUE_FIELD, "Minimum value ever presented", SimpleType.DOUBLE)
@@ -470,7 +470,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent of {@link GaugeFP}.
      */
-    public static final CompositeType GAUGE_64_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Gauge64", "64-bit integer gauge")
+    public static final CompositeType GAUGE_64_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Gauge64", "64-bit integer gauge")
             .addItem(MAX_VALUE_FIELD, "Maximum value ever presented", SimpleType.LONG)
             .addItem(LAST_VALUE_FIELD, "The last presented value", SimpleType.LONG)
             .addItem(MIN_VALUE_FIELD, "Minimum value ever presented", SimpleType.LONG)
@@ -508,7 +508,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent of {@link RatedGaugeFP}.
      */
-    public static final CompositeType RATED_GAUGE_FP_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedGaugeFP", "Floating-point gauge with rate support")
+    public static final CompositeType RATED_GAUGE_FP_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedGaugeFP", "Floating-point gauge with rate support")
             .importFrom(GAUGE_FP_TYPE)
             .importFrom(RATE_TYPE)
             .build());
@@ -516,7 +516,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent of {@link RatedStringGauge}.
      */
-    public static final CompositeType RATED_STRING_GAUGE_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedStringGauge", "Rated StringGauge")
+    public static final CompositeType RATED_STRING_GAUGE_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedStringGauge", "Rated StringGauge")
             .importFrom(STRING_GAUGE_TYPE)
             .importFrom(RATE_TYPE)
             .build());
@@ -524,7 +524,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent for {@link RatedGauge64}.
      */
-    public static final CompositeType RATED_GAUGE_64_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedGauge64", "64-bit integer gauge with rate support")
+    public static final CompositeType RATED_GAUGE_64_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedGauge64", "64-bit integer gauge with rate support")
             .importFrom(GAUGE_64_TYPE)
             .importFrom(RATE_TYPE)
             .build());
@@ -532,7 +532,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent for {@link RatedFlag}.
      */
-    public static final CompositeType RATED_FLAG_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedFlag", "Flag with rate support")
+    public static final CompositeType RATED_FLAG_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedFlag", "Flag with rate support")
             .importFrom(FLAG_TYPE)
             .importFrom(RATE_TYPE)
             .build());
@@ -540,7 +540,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent for {@link RatedTimer}.
      */
-    public static final CompositeType RATED_TIMER_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedTimer", "Timing measurements with rate")
+    public static final CompositeType RATED_TIMER_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RatedTimer", "Timing measurements with rate")
             .importFrom(TIMER_TYPE)
             .importFrom(RATE_TYPE)
             .build());
@@ -548,7 +548,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent for {@link RangedGauge64}.
      */
-    public static final CompositeType RANGED_GAUGE_64_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RangedGauge64", "Gauge64 with normative range")
+    public static final CompositeType RANGED_GAUGE_64_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RangedGauge64", "Gauge64 with normative range")
             .importFrom(RANGED_TYPE)
             .importFrom(RATED_GAUGE_64_TYPE)
             .build());
@@ -556,7 +556,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent for {@link RangedGaugeFP}.
      */
-    public static final CompositeType RANGED_GAUGE_FP_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RangedGaugeFP", "GaugeFP with normative range")
+    public static final CompositeType RANGED_GAUGE_FP_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RangedGaugeFP", "GaugeFP with normative range")
             .importFrom(RANGED_TYPE)
             .importFrom(RATED_GAUGE_FP_TYPE)
             .build());
@@ -564,7 +564,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent for {@link RangedTimer}.
      */
-    public static final CompositeType RANGED_TIMER_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RangedTimer", "Timer with normative time limits")
+    public static final CompositeType RANGED_TIMER_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.RangedTimer", "Timer with normative time limits")
             .importFrom(RANGED_TYPE)
             .importFrom(RATED_TIMER_TYPE)
             .build());
@@ -572,7 +572,7 @@ public final class MetricsConverter {
     /**
      * Represents Open Type equivalent for {@link Arrivals}.
      */
-    public static final CompositeType ARRIVALS_TYPE = interfaceStaticInitialize(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Arrivals", "Queue metrics")
+    public static final CompositeType ARRIVALS_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Arrivals", "Queue metrics")
             .importFrom(RATED_TIMER_TYPE)
             .addItem(MEAN_AVAILABILITY_LAST_SECOND_FIELD, "Mean availability for the last second", SimpleType.DOUBLE)
             .addItem(MEAN_AVAILABILITY_LAST_MINUTE_FIELD, "Mean availability for the last minute", SimpleType.DOUBLE)

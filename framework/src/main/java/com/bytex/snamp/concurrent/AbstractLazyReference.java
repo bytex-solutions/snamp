@@ -21,17 +21,14 @@ import java.util.function.Supplier;
 @ThreadSafe
 abstract class AbstractLazyReference<V> extends AtomicReference<Reference<V>> implements LazyReference<V> {
     private static final long serialVersionUID = 1898537173263220348L;
-    private final Function<? super V, ? extends Reference<V>> makeRef;
 
-    AbstractLazyReference(final Function<? super V, ? extends Reference<V>> referenceCtor){
-        this.makeRef = referenceCtor;
-    }
+    abstract Reference<V> makeRef(final V value);
 
     private synchronized <I> V initAndGet(final I input, final Function<? super I, ? extends V> initializer) {
         final Reference<V> softRef = get();
         V result;
         if (softRef == null || (result = softRef.get()) == null)
-            set(makeRef.apply(result = initializer.apply(input)));
+            accept(result = initializer.apply(input));
         return result;
     }
 
@@ -46,7 +43,7 @@ abstract class AbstractLazyReference<V> extends AtomicReference<Reference<V>> im
         final Reference<V> softRef = get();
         V result;
         if (softRef == null || (result = softRef.get()) == null)
-            set(makeRef.apply(result = initializer.apply(input1, input2)));
+            accept(result = initializer.apply(input1, input2));
         return result;
     }
 
@@ -80,7 +77,7 @@ abstract class AbstractLazyReference<V> extends AtomicReference<Reference<V>> im
         final Reference<V> softRef = get();
         V result;
         if (softRef == null || (result = softRef.get()) == null)
-            set(makeRef.apply(result = initializer.get()));
+            accept(result = initializer.get());
         return result;
     }
 
@@ -98,7 +95,7 @@ abstract class AbstractLazyReference<V> extends AtomicReference<Reference<V>> im
      */
     @Override
     public final void accept(final V newValue) {
-        set(makeRef.apply(newValue));
+        set(makeRef(newValue));
     }
 
     /**

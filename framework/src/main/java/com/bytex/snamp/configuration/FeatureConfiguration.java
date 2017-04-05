@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration;
 
 import static com.bytex.snamp.MapUtils.getValue;
-import static com.bytex.snamp.MapUtils.putValue;
 
 /**
  * Represents a feature of the managed resource.
@@ -34,7 +33,7 @@ public interface FeatureConfiguration extends EntityConfiguration {
 
     default void setAutomaticallyAdded(final boolean value) {
         if (value)
-            putValue(this, AUTOMATICALLY_ADDED_KEY, Boolean.TRUE, Object::toString);
+            put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
         else
             remove(AUTOMATICALLY_ADDED_KEY);
     }

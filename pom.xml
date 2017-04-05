@@ -30,25 +30,27 @@
     <module>instrumentation/java</module>
     <module>osgi-tests</module>
     <module>infrastructure/analysis-and-operations</module>
+    <module>supervisors</module>
   </modules>
   <properties>
     <snamp.gateway.influx.version>2.0.0</snamp.gateway.influx.version>
     <eddsa.version>0.1.0</eddsa.version>
+    <snamp.supervisor.openstack.version>2.0.0</snamp.supervisor.openstack.version>
     <maven.compiler.target>1.8</maven.compiler.target>
     <snamp.version>2.0.0</snamp.version>
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
-    <snamp.stream.connector.version>2.0.0</snamp.stream.connector.version>
     <junit.version>4.12</junit.version>
-    <snmp4j.version>2.5.1</snmp4j.version>
+    <snmp4j.version>2.5.3</snmp4j.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
     <karaf.version>4.0.8</karaf.version>
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
+    <snamp.connector.stream.version>2.0.0</snamp.connector.stream.version>
     <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
     <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
     <snamp.gateways.version>2.0.0</snamp.gateways.version>
     <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
-    <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
     <snamp.scripting.version>2.0.0</snamp.scripting.version>
+    <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
     <jackson.version>1.9.13</jackson.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <snamp.security.version>2.0.0</snamp.security.version>
@@ -57,6 +59,7 @@
     <snamp.gateway.nsca.version>2.0.0</snamp.gateway.nsca.version>
     <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
+    <snamp.supervisors.version>2.0.0</snamp.supervisors.version>
     <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
     <sshj.version>0.18.0</sshj.version>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -78,12 +81,12 @@
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
     <jline.version>2.14.1</jline.version>
-    <orientdb.version>2.2.13</orientdb.version>
+    <orientdb.version>2.2.17</orientdb.version>
     <jettison.version>1.3.8</jettison.version>
     <jersey.version>1.19.3</jersey.version>
     <snamp.services.version>2.0.0</snamp.services.version>
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
-    <groovy.version>2.4.7</groovy.version>
+    <groovy.version>2.4.10</groovy.version>
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <sshd.version>0.14.0</sshd.version>
     <concurrentlinkedhashmap.version>1.4.2</concurrentlinkedhashmap.version>

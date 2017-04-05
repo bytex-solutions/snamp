@@ -69,6 +69,6 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
     public void handleNotification(final Notification notification, final Object handback) {
         notification.setSource(this);
         notification.setSequenceNumber(sequenceNumberGenerator.getAsLong());
-        fire(notification.getType(), holder -> new NotificationContainer(ArrayUtils.getFirst(holder.getNotifTypes()), notification));
+        fire(notification.getType(), holder -> ArrayUtils.getFirst(holder.getNotifTypes()).map(newNotifType -> new NotificationContainer(newNotifType, notification)).orElse(null));
     }
 }

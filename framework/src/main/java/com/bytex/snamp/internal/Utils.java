@@ -1,8 +1,8 @@
 package com.bytex.snamp.internal;
 
-import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Internal;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.SpecialUse;
 import com.google.common.base.Joiner;
 import org.osgi.framework.Bundle;
@@ -10,15 +10,17 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
+import javax.annotation.Nonnull;
 import java.lang.invoke.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -88,40 +90,16 @@ public final class Utils {
         return isInstanceOf(serviceRef, serviceType.getName());
     }
 
-    public static <V> V getWithContextClassLoader(final ClassLoader loader, final Supplier<? extends V> action) {
+    /**
+     * Opens lexical scope with overridden context class loader.
+     * @param newClassLoader Context class loader used in the lexical scope. Cannot be {@literal null}.
+     * @return Lexical scope of the overridden context class loader.
+     */
+    public static SafeCloseable withContextClassLoader(@Nonnull final ClassLoader newClassLoader){
         final Thread currentThread = Thread.currentThread();
         final ClassLoader previous = currentThread.getContextClassLoader();
-        currentThread.setContextClassLoader(loader);
-        try{
-            return action.get();
-        }
-        finally {
-            currentThread.setContextClassLoader(previous);
-        }
-    }
-
-    public static <V> V callWithContextClassLoader(final ClassLoader loader, final Callable<? extends V> action) throws Exception {
-        final Thread currentThread = Thread.currentThread();
-        final ClassLoader previous = currentThread.getContextClassLoader();
-        currentThread.setContextClassLoader(loader);
-        try{
-            return action.call();
-        }
-        finally {
-            currentThread.setContextClassLoader(previous);
-        }
-    }
-
-    public static <I, E extends Throwable> void acceptWithContextClassLoader(final ClassLoader loader, final I input, final Acceptor<? super I, E> acceptor) throws E{
-        final Thread currentThread = Thread.currentThread();
-        final ClassLoader previous = currentThread.getContextClassLoader();
-        currentThread.setContextClassLoader(loader);
-        try{
-            acceptor.accept(input);
-        }
-        finally {
-            currentThread.setContextClassLoader(previous);
-        }
+        currentThread.setContextClassLoader(newClassLoader);
+        return () -> currentThread.setContextClassLoader(previous);
     }
 
     private static String getStackTrace(StackTraceElement[] stackTrace) {
@@ -156,7 +134,7 @@ public final class Utils {
      * @return The value returned from initializer.
      * @throws ExceptionInInitializerError the exception in initializer error
      */
-    public static <T> T interfaceStaticInitialize(final Callable<T> initializer){
+    public static <T> T staticInit(final Callable<T> initializer){
         return callAndWrapException(initializer, ExceptionInInitializerError::new);
     }
 
@@ -265,5 +243,20 @@ public final class Utils {
     @SuppressWarnings("unchecked")
     public static <V> V callUnchecked(final Callable<V> callable){
         return (V) CALL_SILENT_FN.apply(callable);
+    }
+
+    public static void closeAll(final AutoCloseable... other) throws Exception {
+        Exception e = null;
+        for (final AutoCloseable closeable : other)
+            try {
+                closeable.close();
+            } catch (final Exception inner) {
+                if (e == null)
+                    e = inner;
+                else
+                    e.addSuppressed(inner);
+            }
+        if (e != null)
+            throw e;
     }
 }

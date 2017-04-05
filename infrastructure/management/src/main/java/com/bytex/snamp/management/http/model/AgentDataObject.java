@@ -1,13 +1,13 @@
 package com.bytex.snamp.management.http.model;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * @author Roman Sakno
@@ -19,31 +19,22 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
     private final Map<String, ResourceDataObject> resources;
     private final Map<String, ResourceGroupDataObject> groups;
     private final Map<String, GatewayDataObject> gateways;
+    private final Map<String, ThreadPoolDataObject> threadPools;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public AgentDataObject(){
         resources = new HashMap<>();
         groups = new HashMap<>();
         gateways = new HashMap<>();
+        threadPools = new HashMap<>();
     }
 
     public AgentDataObject(final AgentConfiguration configuration){
         super(configuration);
-        resources = importEntities(configuration, ManagedResourceConfiguration.class, ResourceDataObject::new);
-        groups = importEntities(configuration, ManagedResourceGroupConfiguration.class, ResourceGroupDataObject::new);
-        gateways = importEntities(configuration, GatewayConfiguration.class, GatewayDataObject::new);
-    }
-
-    private static <F extends EntityConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> importEntities(final AgentConfiguration template,
-                                                                                                                      final Class<F> entityType,
-                                                                                                                      final Function<? super F, DTO> dataObjectFactory) {
-        return Exportable.importEntities(template.getEntities(entityType), dataObjectFactory);
-    }
-
-    private static <F extends EntityConfiguration> void exportEntities(final Map<String, ? extends AbstractDataObject<F>> source,
-                                                                       final AgentConfiguration destination,
-                                                                       final Class<F> entityType) {
-        Exportable.exportEntities(source, destination.getEntities(entityType));
+        resources = Exportable.importEntities(configuration.getResources(), ResourceDataObject::new);
+        groups = Exportable.importEntities(configuration.getResourceGroups(), ResourceGroupDataObject::new);
+        gateways = Exportable.importEntities(configuration.getGateways(), GatewayDataObject::new);
+        threadPools = Exportable.importEntities(configuration.getThreadPools(), ThreadPoolDataObject::new);
     }
 
     /**
@@ -52,11 +43,17 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
      * @param entity Entity to modify.
      */
     @Override
-    public void exportTo(final AgentConfiguration entity) {
+    public void exportTo(@Nonnull final AgentConfiguration entity) {
         super.exportTo(entity);
-        exportEntities(resources, entity, ManagedResourceConfiguration.class);
-        exportEntities(groups, entity, ManagedResourceGroupConfiguration.class);
-        exportEntities(gateways, entity, GatewayConfiguration.class);
+        Exportable.exportEntities(resources, entity.getResources());
+        Exportable.exportEntities(groups, entity.getResourceGroups());
+        Exportable.exportEntities(gateways, entity.getGateways());
+        Exportable.exportEntities(threadPools, entity.getThreadPools());
+    }
+
+    @JsonProperty("threadPools")
+    public Map<String, ThreadPoolDataObject> getThreadPools(){
+        return threadPools;
     }
 
     @JsonProperty("resources")

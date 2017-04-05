@@ -9,7 +9,7 @@ import com.bytex.snamp.core.SnampComponentDescriptor;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.management.ManagementUtils;
-import com.bytex.snamp.management.SnampManagerImpl;
+import com.bytex.snamp.management.DefaultSnampManager;
 import com.bytex.snamp.management.http.model.AgentDataObject;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -39,7 +39,7 @@ public final class ManagementService extends AbstractManagementService {
     }
 
     private static final String INTERNAL_COMPONENT_TYPE_NAME = "Internal component";
-    private final AbstractSnampManager manager = new SnampManagerImpl();
+    private final AbstractSnampManager manager = new DefaultSnampManager();
 
     private static Map<String, String> stringifyDescription(final ConfigurationEntityDescription.ParameterDescription description) {
         return ImmutableMap.<String, String>builder()
@@ -94,6 +94,12 @@ public final class ManagementService extends AbstractManagementService {
                 output);
     }
 
+    private void fillInstalledSupervisors(final Collection<Map<String, String>> output) {
+        fillInstalledComponents(AbstractSnampManager::getInstalledSupervisors,
+                AbstractSnampManager.SupervisorDescriptor::getType,
+                output);
+    }
+
     /**
      * Returns all the snamp bundles.
      *
@@ -108,6 +114,7 @@ public final class ManagementService extends AbstractManagementService {
         fillInstalledComponents(AbstractSnampManager::getInstalledComponents, c -> INTERNAL_COMPONENT_TYPE_NAME, collection);
         fillInstalledConnectors(collection);
         fillInstalledGateways(collection);
+        fillInstalledSupervisors(collection);
         return collection;
     }
 
@@ -121,7 +128,6 @@ public final class ManagementService extends AbstractManagementService {
     @GET
     @Path("/components/connectors")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getInstalledConnectors() {
         final Collection<Map<String, String>> collection = new LinkedList<>();
         fillInstalledConnectors(collection);
@@ -137,10 +143,22 @@ public final class ManagementService extends AbstractManagementService {
     @GET
     @Path("/components/gateways")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     public Collection<Map<String, String>> getInstalledGateways() {
         final Collection<Map<String, String>> collection = new LinkedList<>();
         fillInstalledGateways(collection);
+        return collection;
+    }
+
+    /**
+     * Gets installed supervisors
+     * @return the installed supervisors.
+     */
+    @GET
+    @Path("/components/supervisors")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Collection<Map<String, String>> getInstalledSupervisors(){
+        final Collection<Map<String, String>> collection = new LinkedList<>();
+        fillInstalledSupervisors(collection);
         return collection;
     }
 
@@ -152,10 +170,9 @@ public final class ManagementService extends AbstractManagementService {
     @GET
     @Path("/restart")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response restartAllTheSystem() {
         try {
-            SnampManagerImpl.restart(getBundleContext());
+            DefaultSnampManager.restart(getBundleContext());
         } catch (final BundleException e) {
             throw new WebApplicationException(e);
         }

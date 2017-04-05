@@ -41,13 +41,13 @@ public final class SnampScriptAPI {
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     public void configure(final ConfigurationManager.ConfigurationProcessor<ScriptException> handler) throws ScriptException, IOException {
         final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
-        if (manager != null)
+        if (manager == null)
+            throw new ScriptException("SNAMP Configuration Manager is not accessible");
+        else
             try {
                 manager.get().processConfiguration(handler);
             } finally {
                 manager.release(context);
             }
-        else
-            throw new ScriptException("SNAMP Configuration Manager is not accessible");
     }
 }

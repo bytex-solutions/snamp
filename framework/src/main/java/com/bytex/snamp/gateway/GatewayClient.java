@@ -4,23 +4,19 @@ import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.EntityConfiguration;
-import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.*;
 
 import javax.management.MBeanFeatureInfo;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
-import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents a client of resource connector that can be used by gateway consumers.
@@ -52,16 +48,15 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
         return ref == null ? null : new GatewayClient(context, ref);
     }
 
-    /**
-     * Obtains a reference to the instance of gateway.
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param instanceName The name of the instance.
-     * @return A reference to the instance of gateway; or {@literal null} if instance doesn't exist.
-     */
-    @SuppressWarnings("unchecked")
+    public static GatewayFilterBuilder filterBuilder() {
+        final GatewayFilterBuilder builder = new GatewayFilterBuilder();
+        builder.setServiceType(Gateway.class);
+        return builder;
+    }
+    
     private static ServiceReference<Gateway> getGatewayInstance(final BundleContext context,
                                                                 final String instanceName) {
-        return callUnchecked(() -> Iterables.<ServiceReference>getFirst(context.getServiceReferences(Gateway.class, GatewayActivator.createFilter(instanceName)), null));
+        return filterBuilder().setInstanceName(instanceName).getServiceReference(context, Gateway.class).orElse(null);
     }
 
     /**
@@ -106,25 +101,6 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     }
 
     /**
-     * Gets a reference to the service exposed by gateway.
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param gatewayType Type of gateway.
-     * @param filter Additional service selector. May be {@literal null}.
-     * @param serviceType Requested service contract.
-     * @param <S> Type of the requested service.
-     * @return A reference to the service; or {@literal null}, if service is not available.
-     * @throws org.osgi.framework.InvalidSyntaxException Invalid filter.
-     */
-    public static <S extends FrameworkService> ServiceReference<S> getServiceReference(final BundleContext context,
-                                                                                       final String gatewayType,
-                                                                                       String filter,
-                                                                                       final Class<S> serviceType) throws InvalidSyntaxException {
-        filter = GatewayActivator.createFilter(gatewayType, filter);
-        final Collection<ServiceReference<S>> refs = context.getServiceReferences(serviceType, filter);
-        return refs.isEmpty() ? null : refs.iterator().next();
-    }
-
-    /**
      * Gets configuration descriptor for the gateway.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @param gatewayType Type of gateway.
@@ -134,22 +110,19 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
      */
     public static <T extends EntityConfiguration> ConfigurationEntityDescription<T> getConfigurationEntityDescriptor(final BundleContext context,
                                                                                                                      final String gatewayType,
-                                                                                                                     final Class<T> configurationEntity) throws UnsupportedOperationException{
-        if(context == null || configurationEntity == null) return null;
+                                                                                                                     final Class<T> configurationEntity) throws UnsupportedOperationException {
+        if (context == null || configurationEntity == null) return null;
         ServiceReference<ConfigurationEntityDescriptionProvider> ref = null;
         try {
-            ref = getServiceReference(context, gatewayType, null, ConfigurationEntityDescriptionProvider.class);
-            if(ref == null)
-                throw unsupportedServiceRequest(gatewayType, ConfigurationEntityDescriptionProvider.class);
+            ref = filterBuilder()
+                    .setGatewayType(gatewayType)
+                    .setServiceType(ConfigurationEntityDescriptionProvider.class)
+                    .getServiceReference(context, ConfigurationEntityDescriptionProvider.class)
+                    .orElseThrow(() -> unsupportedServiceRequest(gatewayType, ConfigurationEntityDescriptionProvider.class));
             final ConfigurationEntityDescriptionProvider provider = context.getService(ref);
             return provider.getDescription(configurationEntity);
-        }
-        catch (final InvalidSyntaxException ignored) {
-            ref = null;
-            return null;
-        }
-        finally {
-            if(ref != null) context.ungetService(ref);
+        } finally {
+            if (ref != null) context.ungetService(ref);
         }
     }
 
@@ -201,7 +174,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
      * @return The name of the gateway instance.
      */
     public String getInstanceName() {
-        return GatewayActivator.getGatewayInstance(this);
+        return GatewayFilterBuilder.getGatewayInstance(this);
     }
 
     public <M extends MBeanFeatureInfo, E extends Exception> boolean forEachFeature(final Class<M> featureType,

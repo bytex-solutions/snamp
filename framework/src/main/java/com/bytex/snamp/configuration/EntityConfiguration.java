@@ -20,7 +20,7 @@ public interface EntityConfiguration extends Map<String, String> {
     }
 
     default String getDescription(){
-        return get(DESCRIPTION_KEY);
+        return getOrDefault(DESCRIPTION_KEY, "");
     }
 
     default void load(final Map<String, String> parameters){

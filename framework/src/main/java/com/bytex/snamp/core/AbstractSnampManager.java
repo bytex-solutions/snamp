@@ -6,11 +6,17 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
+import com.bytex.snamp.supervision.SupervisorActivator;
+import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.SupervisorFilterBuilder;
 import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
+import com.bytex.snamp.gateway.GatewayFilterBuilder;
 import org.osgi.framework.*;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -135,6 +141,117 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
     }
 
+    private static abstract class TypedComponentDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
+        private final String componentTypeHolder;
+
+        TypedComponentDescriptor(final String systemName, @Nonnull final String componentType){
+            super(2);
+            componentTypeHolder = componentType;
+            put(componentType, systemName);
+        }
+
+        public final String getType(){
+            return get(componentTypeHolder);
+        }
+
+        final BundleContext getItselfContext(){
+            return getBundleContextOfObject(this);
+        }
+
+        abstract FilterBuilder filterBuilder();
+
+        /**
+         * Gets SNAMP component management service and pass it to the user-defined action.
+         *
+         * @param serviceType    Requested service contract.
+         * @param serviceInvoker User-defined action that is used to perform some management actions.
+         */
+        @Override
+        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
+            final FilterBuilder filter = filterBuilder().setServiceType(serviceType);
+            ServiceReference<S> ref = null;
+            try {
+                ref = filter.getServiceReference(getItselfContext(), serviceType).orElse(null);
+                if (ref == null) return false;
+                serviceInvoker.accept(getItselfContext().getService(ref));
+            } finally {
+                if (ref != null) getItselfContext().ungetService(ref);
+            }
+            return true;
+        }
+
+        /**
+         * Returns system name of the connector.
+         * @return The system name of the connector.
+         */
+        @Override
+        public String toString() {
+            return getType();
+        }
+    }
+
+    public static abstract class SupervisorDescriptor extends TypedComponentDescriptor{
+        private static final long serialVersionUID = -4684730181011108891L;
+
+        protected SupervisorDescriptor(final String systemName){
+            super(SUPERVISOR_TYPE_PROPERTY, systemName);
+        }
+
+        @Override
+        SupervisorFilterBuilder filterBuilder() {
+            return SupervisorClient.filterBuilder();
+        }
+
+        /**
+         * Gets state of the component.
+         *
+         * @return The state of the component.
+         * @see org.osgi.framework.Bundle#ACTIVE
+         * @see org.osgi.framework.Bundle#INSTALLED
+         * @see org.osgi.framework.Bundle#UNINSTALLED
+         * @see org.osgi.framework.Bundle#RESOLVED
+         * @see org.osgi.framework.Bundle#STARTING
+         * @see org.osgi.framework.Bundle#STOPPING
+         */
+        @Override
+        public int getState() {
+            return SupervisorClient.getState(getItselfContext(), getType());
+        }
+
+        /**
+         * Gets human-readable name of this component.
+         *
+         * @param loc Human-readable name of this component.
+         * @return Human-readable name of this component.
+         */
+        @Override
+        public String getName(final Locale loc) {
+            return SupervisorClient.getDisplayName(getItselfContext(), getType(), loc);
+        }
+
+        /**
+         * Gets version of this component.
+         *
+         * @return The version of this component.
+         */
+        @Override
+        public Version getVersion() {
+            return SupervisorClient.getVersion(getItselfContext(), getType());
+        }
+
+        /**
+         * Returns the localized description of this object.
+         *
+         * @param locale The locale of the description. If it is {@literal null} then returns description
+         *               in the default locale.
+         * @return The localized description of this object.
+         */
+        @Override
+        public String toString(final Locale locale) {
+            return SupervisorClient.getDescription(getItselfContext(), getType(), locale);
+        }
+    }
+
     /**
      * Represents superclass for gateway descriptor.
      * Now public because in case that is protected we received this is defined in an inaccessible class or interface
@@ -142,20 +259,16 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @since 1.0
      * @version 2.0
      */
-    public static abstract class GatewayDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
+    public static abstract class GatewayDescriptor extends TypedComponentDescriptor{
         private static final long serialVersionUID = 5641114150847940779L;
 
         protected GatewayDescriptor(final String systemName){
-            super(1);
-            put(GATEWAY_TYPE_PROPERTY, systemName);
+            super(GATEWAY_TYPE_PROPERTY, systemName);
         }
 
-        public final String getType(){
-            return get(GATEWAY_TYPE_PROPERTY);
-        }
-
-        private BundleContext getItselfContext(){
-            return getBundleContextOfObject(this);
+        @Override
+        GatewayFilterBuilder filterBuilder() {
+            return GatewayClient.filterBuilder().setGatewayType(getType());
         }
 
         /**
@@ -196,27 +309,6 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
 
         /**
-         * Gets SNAMP component management service and pass it to the user-defined action.
-         *
-         * @param serviceType    Requested service contract.
-         * @param serviceInvoker User-defined action that is used to perform some management actions.
-         */
-        @Override
-        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
-            ServiceReference<S> ref = null;
-            try {
-                ref = GatewayClient.getServiceReference(getItselfContext(), getType(), null, serviceType);
-                if (ref == null) return false;
-                serviceInvoker.accept(getItselfContext().getService(ref));
-            } catch (final InvalidSyntaxException ignored) {
-                return false;
-            } finally {
-                if (ref != null) getItselfContext().ungetService(ref);
-            }
-            return true;
-        }
-
-        /**
          * Returns the localized description of this object.
          *
          * @param locale The locale of the description. If it is {@literal null} then returns description
@@ -227,15 +319,6 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         public String toString(final Locale locale) {
             return GatewayClient.getDescription(getItselfContext(), getType(), locale);
         }
-
-        /**
-         * Returns type of gateway
-         * @return The type of gateway.
-         */
-        @Override
-        public String toString() {
-            return getType();
-        }
     }
 
     /**
@@ -245,20 +328,16 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @since 1.0
      * @version 2.0
      */
-    public static abstract class ResourceConnectorDescriptor extends HashMap<String, String> implements SnampComponentDescriptor {
+    public static abstract class ResourceConnectorDescriptor extends TypedComponentDescriptor {
         private static final long serialVersionUID = -5406342058157943559L;
 
         protected ResourceConnectorDescriptor(final String connectorName){
-            super(1);
-            put(CONNECTOR_TYPE_PROPERTY, connectorName);
+            super(CONNECTOR_TYPE_PROPERTY, connectorName);
         }
 
-        public final String getType(){
-            return get(CONNECTOR_TYPE_PROPERTY);
-        }
-
-        private BundleContext getItselfContext(){
-            return getBundleContextOfObject(this);
+        @Override
+        ManagedResourceFilterBuilder filterBuilder() {
+            return ManagedResourceConnectorClient.filterBuilder().setConnectorType(getType());
         }
 
         /**
@@ -309,36 +388,10 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         public Version getVersion() {
             return ManagedResourceConnectorClient.getVersion(getItselfContext(), getType());
         }
+    }
 
-        /**
-         * Gets SNAMP component management service and pass it to the user-defined action.
-         *
-         * @param serviceType    Requested service contract.
-         * @param serviceInvoker User-defined action that is used to perform some management actions.
-         */
-        @Override
-        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
-            ServiceReference<S> ref = null;
-            try {
-                ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getType(), null, serviceType);
-                if (ref == null) return false;
-                else serviceInvoker.accept(getItselfContext().getService(ref));
-            } catch (final InvalidSyntaxException ignored) {
-                return false;
-            } finally {
-                if (ref != null) getItselfContext().ungetService(ref);
-            }
-            return true;
-        }
-
-        /**
-         * Returns system name of the connector.
-         * @return The system name of the connector.
-         */
-        @Override
-        public String toString() {
-            return getType();
-        }
+    private BundleContext getBundleContext(){
+        return getBundleContextOfObject(this);
     }
 
     /**
@@ -346,6 +399,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @param systemName The name of the connector.
      * @return A new instance of the connector descriptor.
      */
+    @Nonnull
     protected abstract ResourceConnectorDescriptor createResourceConnectorDescriptor(final String systemName);
 
     /**
@@ -355,7 +409,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<? extends ResourceConnectorDescriptor> getInstalledResourceConnectors() {
-        final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(getBundleContextOfObject(this));
+        final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(getBundleContext());
         return systemNames.stream().map(this::createResourceConnectorDescriptor).collect(Collectors.toList());
     }
 
@@ -364,6 +418,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @param gatewayType Type of gateway.
      * @return A new instance of the gateway descriptor.
      */
+    @Nonnull
     protected abstract GatewayDescriptor createGatewayDescriptor(final String gatewayType);
 
     /**
@@ -373,8 +428,28 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<? extends GatewayDescriptor> getInstalledGateways() {
-        final Collection<String> systemNames = GatewayActivator.getInstalledGateways(getBundleContextOfObject(this));
+        final Collection<String> systemNames = GatewayActivator.getInstalledGateways(getBundleContext());
         return systemNames.stream().map(this::createGatewayDescriptor).collect(Collectors.toList());
+    }
+
+    /**
+     * Creates a new instance of the supervisor descriptor.
+     * @param supervisorType Type of supervisor.
+     * @return A new instance of the supervisor descriptor.
+     */
+    @Nonnull
+    protected abstract SupervisorDescriptor createSupervisorDescriptor(final String supervisorType);
+
+    /**
+     * Returns a read-only collection of installed supervisors.
+     *
+     * @return A read-only collection of installed supervisors.
+     * @since 2.0
+     */
+    @Override
+    public final Collection<? extends SupervisorDescriptor> getInstalledSupervisors() {
+        final Collection<String> systemNames = SupervisorActivator.getInstalledSupervisors(getBundleContext());
+        return systemNames.stream().map(this::createSupervisorDescriptor).collect(Collectors.toList());
     }
 
     /**
@@ -398,7 +473,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<? extends SnampComponentDescriptor> getInstalledComponents() {
-        final BundleContext context = getBundleContextOfObject(this);
+        final BundleContext context = getBundleContext();
         return Arrays.stream(context.getBundles())
                 .filter(AbstractSnampManager::isSnampComponent)
                 .map(bnd -> new InternalSnampComponentDescriptor(bnd.getBundleId()))

@@ -52,14 +52,14 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
             }
 
             @Override
-            public String[] suggestValues(final Map<String, String> connectionOptions, final Locale loc) throws Exception {
+            public Set<String> suggestValues(final Map<String, String> connectionOptions, final Locale loc) throws Exception {
                 final Set<String> result = new HashSet<>(10);
                 final Enumeration<NetworkInterface> nics = NetworkInterface.getNetworkInterfaces();
                 while (nics.hasMoreElements())
                     result.addAll(nics.nextElement().getInterfaceAddresses().stream()
                             .map(iface -> iface.getAddress().getHostAddress())
                             .collect(Collectors.toList()));
-                return result.stream().toArray(String[]::new);
+                return result;
             }
         }
 

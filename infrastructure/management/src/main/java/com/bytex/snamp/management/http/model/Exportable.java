@@ -2,6 +2,7 @@ package com.bytex.snamp.management.http.model;
 
 import com.bytex.snamp.FactoryMap;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
  * @since 2.0
  */
 interface Exportable<E> {
-    void exportTo(final E output);
+    void exportTo(@Nonnull final E output);
 
     static <F, DTO extends Exportable<F>> Map<String, DTO> importEntities(final Map<String, ? extends F> entities,
                                                                           final Function<? super F, DTO> dataObjectFactory) {

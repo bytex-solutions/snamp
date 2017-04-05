@@ -4,6 +4,7 @@ import com.bytex.snamp.connector.metrics.MetricsSupport;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -49,7 +50,7 @@ public final class AggregationTest extends Assert {
          * @return An instance of the requested object; or {@literal null} if object is not available.
          */
         @Override
-        public <T> T queryObject(final Class<T> objectType) {
+        public <T> T queryObject(@Nonnull final Class<T> objectType) {
             return queryObject(objectType, fallback);
         }
     }

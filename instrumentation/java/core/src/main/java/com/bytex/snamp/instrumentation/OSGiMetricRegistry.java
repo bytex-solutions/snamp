@@ -109,7 +109,7 @@ public class OSGiMetricRegistry extends MetricRegistry {
     private static final class ReporterServiceDiscovery implements Iterable<Reporter>{
         private final BundleContext context;
 
-        private ReporterServiceDiscovery(final BundleContext context){
+        ReporterServiceDiscovery(final BundleContext context){
             if(context == null)
                 throw new IllegalArgumentException("context cannot be null");
             this.context = context;

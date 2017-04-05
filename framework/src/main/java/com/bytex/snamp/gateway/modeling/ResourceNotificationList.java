@@ -27,6 +27,6 @@ public class ResourceNotificationList<TAccessor extends NotificationAccessor> ex
      */
     @Override
     protected String getKey(final MBeanNotificationInfo feature) {
-        return ArrayUtils.getFirst(feature.getNotifTypes());
+        return ArrayUtils.getFirst(feature.getNotifTypes()).orElseThrow(AssertionError::new);
     }
 }

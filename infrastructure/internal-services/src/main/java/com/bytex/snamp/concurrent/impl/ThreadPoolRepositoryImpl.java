@@ -6,12 +6,13 @@ import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
-import com.bytex.snamp.configuration.impl.CMThreadPoolParser;
+import com.bytex.snamp.configuration.impl.DefaultThreadPoolParser;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationException;
 
+import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
@@ -29,7 +30,7 @@ import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Acti
  * @version 1.0
  */
 public final class ThreadPoolRepositoryImpl extends AbstractAggregator implements ThreadPoolRepository, Closeable {
-    public static final String PID = CMThreadPoolParser.PID;
+    public static final String PID = DefaultThreadPoolParser.PID;
 
     private final AbstractConcurrentResourceAccessor<Map<String, ConfiguredThreadPool>> threadPools =
             new ConcurrentResourceAccessor<>(new HashMap<>());
@@ -54,6 +55,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractAggregator implement
     }
 
     @Override
+    @Nonnull
     public Iterator<String> iterator() {
         return threadPools.read(services -> ImmutableSet.copyOf(services.keySet()).iterator());
     }
@@ -82,7 +84,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractAggregator implement
                             //deserialize configuration
                             final ThreadPoolConfiguration offeredConfig;
                             try {
-                                offeredConfig = CMThreadPoolParser.deserialize(poolName, properties, getClass().getClassLoader());
+                                offeredConfig = DefaultThreadPoolParser.getInstance().deserialize(poolName, properties);
                                 assert offeredConfig != null;
                             } catch (final IOException e) {
                                 logger.log(Level.SEVERE, "Unable to read thread pool config");

@@ -1,12 +1,11 @@
 package com.bytex.snamp.connector;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.discovery.DiscoveryService;
+import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
@@ -16,7 +15,6 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
-import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -26,10 +24,13 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 1.0
  */
-public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector {
-    public ManagedResourceConnectorClient(final BundleContext context,
+public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector, SafeCloseable {
+    private final BundleContext context;
+
+    public ManagedResourceConnectorClient(@Nonnull final BundleContext context,
                                           final ServiceReference<ManagedResourceConnector> reference){
         super(context, reference);
+        this.context = context;
     }
 
     public static ManagedResourceConnectorClient tryCreate(final BundleContext context,
@@ -55,25 +56,6 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                                                    final Locale loc){
         final List<Bundle> candidates = ManagedResourceActivator.getResourceConnectorBundles(context, connectorType);
         return candidates.isEmpty() ? null : candidates.get(0).getHeaders(loc != null ? loc.toString() : null).get(header);
-    }
-
-    /**
-     * Gets a reference to the service exposed by managed resource connector.
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param connectorType The system name of the connector.
-     * @param filter Additional service selector. May be {@literal null}.
-     * @param serviceType Requested service contract.
-     * @param <S> Type of the requested service.
-     * @return A reference to the service; or {@literal null}, if service is not available.
-     * @throws org.osgi.framework.InvalidSyntaxException Invalid filter.
-     */
-    public static <S extends SupportService> ServiceReference<S> getServiceReference(final BundleContext context,
-                                                                                final String connectorType,
-                                                                                String filter,
-                                                                                final Class<S> serviceType) throws InvalidSyntaxException {
-        filter = ManagedResourceActivator.createFilter(connectorType, filter);
-        final Collection<ServiceReference<S>> refs = context.getServiceReferences(serviceType, filter);
-        return refs.isEmpty() ? null : refs.iterator().next();
     }
 
     /**
@@ -138,19 +120,17 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         if (context == null || configurationEntity == null) return null;
         ServiceReference<ConfigurationEntityDescriptionProvider> ref = null;
         try {
-            ref = getServiceReference(context, connectorType, null, ConfigurationEntityDescriptionProvider.class);
-            if (ref == null)
-                throw unsupportedServiceRequest(connectorType, ConfigurationEntityDescriptionProvider.class);
+            ref = filterBuilder()
+                    .setConnectorType(connectorType)
+                    .setServiceType(ConfigurationEntityDescriptionProvider.class)
+                    .getServiceReference(context, ConfigurationEntityDescriptionProvider.class)
+                    .orElseThrow(() -> unsupportedServiceRequest(connectorType, ConfigurationEntityDescriptionProvider.class));
             final ConfigurationEntityDescriptionProvider provider = context.getService(ref);
             return provider.getDescription(configurationEntity);
-        } catch (final InvalidSyntaxException ignored) {
-            throw unsupportedServiceRequest(connectorType, ConfigurationEntityDescriptionProvider.class);
         } finally {
             if (ref != null) context.ungetService(ref);
         }
     }
-
-
 
     /**
      * Creates a new instance of the specified connector using service {@link ManagedResourceConnectorFactoryService}.
@@ -170,13 +150,13 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                                                            final ManagedResourceInfo configuration) throws Exception {
         ServiceReference<ManagedResourceConnectorFactoryService> ref = null;
         try {
-            ref = getServiceReference(context, connectorType, null, ManagedResourceConnectorFactoryService.class);
-            if (ref == null)
-                throw unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class);
+            ref = filterBuilder()
+                    .setConnectorType(connectorType)
+                    .setServiceType(ManagedResourceConnectorFactoryService.class)
+                    .getServiceReference(context, ManagedResourceConnectorFactoryService.class)
+                    .orElseThrow(() -> unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class));
             final ManagedResourceConnectorFactoryService service = context.getService(ref);
             return service.createConnector(resourceName, configuration);
-        } catch (final InvalidSyntaxException ignored) {
-            throw unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class);
         } finally {
             if (ref != null) context.ungetService(ref);
         }
@@ -185,7 +165,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     /**
      * Discovers elements for the managed resource.
      * <p>
-     *     The connector bundle should expose {@link com.bytex.snamp.connector.discovery.DiscoveryService} service.
+     *     The connector bundle should expose {@link FeatureDiscoveryService} service.
      * </p>
      * @param context The context of the caller bundle.
      * @param connectorType The system name of the connector.
@@ -200,43 +180,19 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                                                                                   final String connectorType,
                                                                                   final String connectionString,
                                                                                   final Map<String, String> connectionOptions,
-                                                                                  final Class<T> entityType) throws UnsupportedOperationException{
-        if(context == null || entityType == null) return Collections.emptyList();
-        ServiceReference<DiscoveryService> ref = null;
+                                                                                  final Class<T> entityType) throws UnsupportedOperationException {
+        if (context == null || entityType == null) return Collections.emptyList();
+        ServiceReference<FeatureDiscoveryService> ref = null;
         try {
-            ref = getServiceReference(context, connectorType, null, DiscoveryService.class);
-            if(ref == null) throw unsupportedServiceRequest(connectorType, DiscoveryService.class);
-            final DiscoveryService service = context.getService(ref);
+            ref = filterBuilder()
+                    .setConnectorType(connectorType)
+                    .setServiceType(FeatureDiscoveryService.class)
+                    .getServiceReference(context, FeatureDiscoveryService.class)
+                    .orElseThrow(() -> unsupportedServiceRequest(connectorType, FeatureDiscoveryService.class));
+            final FeatureDiscoveryService service = context.getService(ref);
             return service.discover(connectionString, connectionOptions, entityType);
-        }
-        catch (final InvalidSyntaxException ignored) {
-            throw unsupportedServiceRequest(connectorType, DiscoveryService.class);
-        }
-        finally {
-            if(ref != null) context.ungetService(ref);
-        }
-    }
-
-    /**
-     * Gets a map of available management connector in the current OSGi environment.
-     * @param context The context of the caller bundle.
-     * @return A map of management connector references where the key of the map represents
-     *          a name of the management target.
-     */
-    @SuppressWarnings("unchecked")
-    public static Set<String> getResources(final BundleContext context) {
-        if (context == null) return Collections.emptySet();
-        else try {
-            final ServiceReference<?>[] resources =
-                    context.getAllServiceReferences(ManagedResourceConnector.class.getName(), null);
-            if (resources == null)
-                return Collections.emptySet();
-            final Set<String> result = Sets.newHashSetWithExpectedSize(resources.length);
-            for (final ServiceReference<?> reference : resources)
-                result.add(ManagedResourceActivator.getManagedResourceName((ServiceReference<ManagedResourceConnector>) reference));
-            return result;
-        } catch (final InvalidSyntaxException ignored) {
-            return Collections.emptySet();
+        } finally {
+            if (ref != null) context.ungetService(ref);
         }
     }
 
@@ -249,7 +205,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @return The connection string used by management connector.
      */
     public String getConnectionString(){
-        return ManagedResourceActivator.getConnectionString(this);
+        return ManagedResourceFilterBuilder.getConnectionString(this);
     }
 
     /**
@@ -258,7 +214,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @return The name of the management target.
      */
     public String getManagedResourceName(){
-        return ManagedResourceActivator.getManagedResourceName(this);
+        return ManagedResourceFilterBuilder.getManagedResourceName(this);
     }
 
     public String getGroupName() {
@@ -266,23 +222,22 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         return isNullOrEmpty(groupName) ? getManagedResourceName() : groupName;
     }
 
-    @SuppressWarnings("unchecked")
     private static ServiceReference<ManagedResourceConnector> getResourceConnector(final BundleContext context,
                                                                           final String resourceName) {
-        return callUnchecked(() -> Iterables.<ServiceReference>getFirst(context.getServiceReferences(ManagedResourceConnector.class, ManagedResourceActivator.createFilter(resourceName)), null));
+        return filterBuilder()
+                .setResourceName(resourceName)
+                .getServiceReference(context, ManagedResourceConnector.class)
+                .orElse(null);
     }
 
     /**
-     * Exposes a new object that listen for the managed resource connector service.
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param listener The managed resource listener. Cannot be {@literal null}.
+     * Constructs a new filter builder used to query instances of {@link ManagedResourceConnector}.
+     * @return A new filter builder.
      */
-    public static void addResourceListener(final BundleContext context, final ServiceListener listener) {
-        try {
-            context.addServiceListener(listener, ManagedResourceActivator.createFilter("*", String.format("(%s=%s)", Constants.OBJECTCLASS, ManagedResourceConnector.class.getName())));
-        } catch (final InvalidSyntaxException e) {
-            throw new AssertionError("Unable to add resource listener", e);
-        }
+    public static ManagedResourceFilterBuilder filterBuilder() {
+        final ManagedResourceFilterBuilder result = new ManagedResourceFilterBuilder();
+        result.setServiceType(ManagedResourceConnector.class);
+        return result;
     }
 
     public AttributeList getAttributes() throws ReflectionException, MBeanException {
@@ -342,7 +297,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     @Override
     public void close() {
-
+        release(context);
     }
 
     /**

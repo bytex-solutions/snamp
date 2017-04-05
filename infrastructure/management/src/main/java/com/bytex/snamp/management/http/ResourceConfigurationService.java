@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.http;
 
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.management.http.model.ResourceDataObject;
 
@@ -18,11 +19,8 @@ import javax.ws.rs.core.SecurityContext;
  */
 @Path("/configuration/resource")
 public final class ResourceConfigurationService extends TemplateConfigurationService<ManagedResourceConfiguration, ResourceDataObject> {
-    /**
-     * Instantiates a new Resource configuration service.
-     */
-    ResourceConfigurationService(){
-        super(ManagedResourceConfiguration.class);
+    ResourceConfigurationService() {
+        super(EntityMapResolver.RESOURCES);
     }
 
     @Override

@@ -20,12 +20,12 @@ final class DatabaseCredentials {
     private final char[] password;
     private final String userName;
 
-    DatabaseCredentials(final String userName, final String password) {
+    private DatabaseCredentials(final String userName, final String password) {
         this.password = Objects.requireNonNull(password).toCharArray();
         this.userName = Objects.requireNonNull(userName);
     }
 
-    DatabaseCredentials(final OServerUserConfiguration userConfiguration){
+    private DatabaseCredentials(final OServerUserConfiguration userConfiguration){
         this(userConfiguration.name, userConfiguration.password);
     }
 

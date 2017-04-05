@@ -1,6 +1,7 @@
 package com.bytex.snamp.management;
 
 import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.core.SnampManager;
@@ -23,7 +24,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.internal.Utils.acceptWithContextClassLoader;
+import static com.bytex.snamp.internal.Utils.withContextClassLoader;
 
 /**
  * Represents activator for SNAMP Management Library.
@@ -37,15 +38,15 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final ActivationProperty<Boolean> USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY = defineActivationProperty(Boolean.class, false);
     private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
-    private static final class SnampManagerProvider extends ProvidedService<SnampManager, SnampManagerImpl>{
+    private static final class SnampManagerProvider extends ProvidedService<SnampManager, DefaultSnampManager>{
 
         private SnampManagerProvider() {
             super(SnampManager.class);
         }
 
         @Override
-        protected SnampManagerImpl activateService(final Map<String, Object> identity) {
-            return new SnampManagerImpl();
+        protected DefaultSnampManager activateService(final Map<String, Object> identity) {
+            return new DefaultSnampManager();
         }
     }
 
@@ -178,9 +179,10 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
         activationProperties.publish(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
         final HttpService httpService = dependencies.getDependency(HttpService.class);
-        acceptWithContextClassLoader(getClass().getClassLoader(),
-                httpService,
-                (publisher) -> publisher.registerServlet(ManagementServlet.CONTEXT, new ManagementServlet(), new Hashtable<>(), null));
+        assert httpService != null;
+        try (final SafeCloseable ignored = withContextClassLoader(getClass().getClassLoader())) {
+            httpService.registerServlet(ManagementServlet.CONTEXT, new ManagementServlet(), new Hashtable<>(), null);
+        }
         activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, httpService);
         super.activate(context, activationProperties, dependencies);
     }

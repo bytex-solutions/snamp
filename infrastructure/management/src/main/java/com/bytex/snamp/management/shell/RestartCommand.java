@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.management.SnampManagerImpl;
+import com.bytex.snamp.management.DefaultSnampManager;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.framework.BundleException;
@@ -19,7 +19,7 @@ public final class RestartCommand extends SnampShellCommand {
 
     @Override
     public Void execute() throws BundleException {
-        SnampManagerImpl.restart(getBundleContext());
+        DefaultSnampManager.restart(getBundleContext());
         return null;
     }
 }

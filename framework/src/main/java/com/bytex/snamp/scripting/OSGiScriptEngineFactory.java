@@ -1,5 +1,6 @@
 package com.bytex.snamp.scripting;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.LazyWeakReference;
 import com.bytex.snamp.internal.Utils;
 
@@ -79,8 +80,11 @@ final class OSGiScriptEngineFactory implements ScriptEngineFactory{
         return factory.getProgram(statements);
     }
 
-    private ForwardingScriptEngine createScriptEngine(){
-        final ScriptEngine engine = Utils.getWithContextClassLoader(contextClassLoader, factory::getScriptEngine);
+    private ForwardingScriptEngine createScriptEngine() {
+        final ScriptEngine engine;
+        try (final SafeCloseable ignored = Utils.withContextClassLoader(contextClassLoader)) {
+            engine = factory.getScriptEngine();
+        }
 
         return new ForwardingScriptEngine() {
             @Override

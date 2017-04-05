@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.Stateful;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.osgi.service.cm.Configuration;
@@ -15,20 +16,21 @@ import java.util.function.BiConsumer;
  * @version 1.0
  * @since 1.0
  */
-abstract class SerializableConfigurationParser<E extends SerializableEntityConfiguration & Stateful> extends AbstractConfigurationParser<E> {
-    final String persistentID;
-    private final Class<E> entityType;
+abstract class SerializableConfigurationParser<E extends SerializableEntityConfiguration> extends AbstractConfigurationParser<E> {
+    private final String persistentID;
     private final ImmutableSet<String> excludeConfigKeys;
+    private final Class<E> entityType;
 
-    SerializableConfigurationParser(final String pid,
+    SerializableConfigurationParser(final SerializableEntityMapResolver<SerializableAgentConfiguration, E> resolver,
+                                    final String pid,
                                     final Class<E> entityType,
                                     final String... excludeConfigKeys) {
-        this.persistentID = Objects.requireNonNull(pid);
+        super(resolver);
         this.entityType = Objects.requireNonNull(entityType);
+        this.persistentID = Objects.requireNonNull(pid);
         this.excludeConfigKeys = ImmutableSet.<String>builder()
                 .add(excludeConfigKeys)
-                .add(SERVICE_PID)
-                .add(OBJECTCLASS)
+                .addAll(IGNORED_PROPERTIES)
                 .build();
     }
 
@@ -50,8 +52,8 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
         return admin.getConfiguration(persistentID, null);
     }
 
-    private E deserialize(final String itemName, final Dictionary<String, ?> properties) throws IOException {
-        return deserialize(itemName, entityType, properties, getClass().getClassLoader());
+    public final E deserialize(final String itemName, final Dictionary<String, ?> properties) throws IOException {
+        return deserialize(itemName, entityType, properties);
     }
 
     @Override
@@ -69,27 +71,27 @@ abstract class SerializableConfigurationParser<E extends SerializableEntityConfi
     }
 
     @Override
-    final void fill(final ConfigurationAdmin source, final Map<String, E> dest) throws IOException {
+    final void populateRepository(final ConfigurationAdmin source, final EntityMap<E> dest) throws IOException {
         final Dictionary<String, ?> config = getConfig(source).getProperties();
         if (config != null)
             dest.putAll(parse(config));
     }
 
-    private void saveChanges(final SerializableAgentConfiguration source, final Dictionary<String, Object> dest) throws IOException {
-        final ConfigurationEntityList<? extends E> list = source.getEntities(entityType);
+    private static <E extends SerializableEntityConfiguration> void saveChanges(final SerializableEntityMap<? extends E> list,
+                                                                                final Dictionary<String, Object> dest) throws IOException {
         //remove deleted items
         Collections.list(dest.keys()).stream()
                 .filter(destName -> !list.containsKey(destName))
                 .forEach(dest::remove);
         //save modified items
         list.modifiedEntries((itemName, itemConfig) -> {
-            dest.put(itemName, serialize(itemConfig));
+            dest.put(itemName, IOUtils.serialize(itemConfig));
             return true;
         });
     }
 
     @Override
-    final void saveChanges(final SerializableAgentConfiguration source, final ConfigurationAdmin dest) throws IOException {
+    final void saveChanges(final SerializableEntityMap<E> source, final ConfigurationAdmin dest) throws IOException {
         final Configuration config = getConfig(dest);
         Dictionary<String, Object> props = config.getProperties();
         if(props == null)

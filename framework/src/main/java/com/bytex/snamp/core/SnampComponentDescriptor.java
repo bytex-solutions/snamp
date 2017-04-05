@@ -2,6 +2,7 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Localizable;
+import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 import org.osgi.framework.Version;
 
 import java.util.Locale;
@@ -22,6 +23,11 @@ public interface SnampComponentDescriptor extends Localizable, Map<String, Strin
      * Represents name of the property that contains gateway type.
      */
     String GATEWAY_TYPE_PROPERTY = "gatewayType";
+
+    /**
+     * Represents name of the property that contains gateway type.
+     */
+    String SUPERVISOR_TYPE_PROPERTY = "supervisorType";
 
     /**
      * Represents name of the property that contains bundle identifier.
@@ -62,7 +68,7 @@ public interface SnampComponentDescriptor extends Localizable, Map<String, Strin
      * @param <E> Type of the exception that may be raised by invoker.
      * @return {@literal true}, if the requested service is invoked; otherwise, {@literal false}.
      * @throws E An exception raised by service invoker.
-     * @see com.bytex.snamp.connector.discovery.DiscoveryService
+     * @see FeatureDiscoveryService
      * @see com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider
      */
     <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E;

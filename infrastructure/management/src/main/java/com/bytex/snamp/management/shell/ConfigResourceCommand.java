@@ -9,6 +9,8 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.util.Arrays;
+
 import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -22,7 +24,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
     name = "configure-resource",
     description = "Configure managed resource")
 @Service
-public final class ConfigResourceCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
+public final class ConfigResourceCommand extends ManagedResourceConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of the resource")
     private String resourceName = "";
@@ -36,32 +38,34 @@ public final class ConfigResourceCommand extends ConfigurationCommand<ManagedRes
     private String connectionString = "";
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
+    @Option(name = "-d", aliases = {"--delete"}, description = "Delete resource")
+    private boolean del = false;
+
+    @SpecialUse(SpecialUse.Case.REFLECTION)
     @Option(name = "-p", aliases = {"-param, --parameter"}, required = false, multiValued = true, description = "Configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
+    @Option(name = "-dp", aliases = {"--delete-parameter"}, multiValued = true, description = "Configuration parameters to be deleted")
     @SpecialUse(SpecialUse.Case.REFLECTION)
-    public ConfigResourceCommand(){
-        super(ManagedResourceConfiguration.class);
-    }
+    private String[] parametersToDelete = parameters;
 
     @Override
-    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
-        if(isNullOrEmpty(resourceName)) return false;
-        final ManagedResourceConfiguration resource = configuration.getOrAdd(resourceName);
-        //setup connection type
-        if(!isNullOrEmpty(connectionType))
-            resource.setType(connectionType);
-        //setup connection string
-        if(!isNullOrEmpty(connectionString))
-            resource.setConnectionString(connectionString);
-        //setup parameters
-        if(!ArrayUtils.isNullOrEmpty(parameters))
-            for(final String pair: parameters) {
-                final StringKeyValue keyValue = StringKeyValue.parse(pair);
-                if (keyValue != null)
-                    resource.put(keyValue.getKey(), keyValue.getValue());
-            }
-        appendln(output, "Updated");
+    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> resources, final StringBuilder output) {
+        if (del)
+            resources.remove(resourceName);
+        else {
+            final ManagedResourceConfiguration resource = resources.getOrAdd(resourceName);
+            //setup connection type
+            if (!isNullOrEmpty(connectionType))
+                resource.setType(connectionType);
+            //setup connection string
+            if (!isNullOrEmpty(connectionString))
+                resource.setConnectionString(connectionString);
+            //setup parameters
+            resource.putAll(StringKeyValue.parse(parameters));
+            Arrays.stream(parametersToDelete).forEach(resource::remove);
+        }
+        appendln(output, "Resource configured successfully");
         return true;
     }
 }

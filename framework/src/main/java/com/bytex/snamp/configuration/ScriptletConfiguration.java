@@ -1,11 +1,13 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.io.IOUtils;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Map;
 
 /**
  * Represents scriptlet.
@@ -14,6 +16,43 @@ import java.net.URLConnection;
  * @since 2.0
  */
 public interface ScriptletConfiguration {
+    ScriptletConfiguration EMPTY = new ScriptletConfiguration() {
+        @Override
+        public String getLanguage() {
+            return "";
+        }
+
+        @Override
+        public void setLanguage(final String value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getScript() {
+            return "";
+        }
+
+        @Override
+        public void setScript(final String value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isURL() {
+            return false;
+        }
+
+        @Override
+        public void setURL(final boolean value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ImmutableMap<String, String> getParameters() {
+            return ImmutableMap.of();
+        }
+    };
+    
     String GROOVY_LANGUAGE = "Groovy";
     String JS_LANGUAGE = "JavaScript";
 
@@ -53,6 +92,12 @@ public interface ScriptletConfiguration {
      */
     void setURL(final boolean value);
 
+    /**
+     * Gets scriptlet context parameters.
+     * @return Context parameters.
+     */
+    Map<String, String> getParameters();
+
     default String resolveScriptBody() throws IOException {
         final String result;
         if (isURL()) {
@@ -66,5 +111,12 @@ public interface ScriptletConfiguration {
         } else
             result = getScript();
         return result;
+    }
+
+    static void fillByDefault(final ScriptletConfiguration scriptlet){
+        scriptlet.setScript("");
+        scriptlet.setURL(false);
+        scriptlet.setLanguage("");
+        scriptlet.getParameters().clear();
     }
 }

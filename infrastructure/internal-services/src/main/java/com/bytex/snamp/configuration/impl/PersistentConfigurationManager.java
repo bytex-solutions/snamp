@@ -6,6 +6,7 @@ import com.bytex.snamp.Box;
 import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -31,14 +32,6 @@ import java.util.function.Function;
 public final class PersistentConfigurationManager extends AbstractAggregator implements ConfigurationManager {
     private final ConfigurationAdmin admin;
     private final ReadWriteLock configurationLock;
-    @Aggregation(cached = true)
-    private final CMManagedResourceParserImpl resourceParser;
-    @Aggregation(cached = true)
-    private final CMGatewayParserImpl gatewayInstanceParser;
-    private final CMThreadPoolParser threadPoolParser;
-    private final CMManagedResourceGroupParser groupParser;
-    @Aggregation(cached = true)
-    private final CMManagedResourceGroupWatcherParserImpl watcherParser;
 
     /**
      * Initializes a new configuration manager.
@@ -47,69 +40,54 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     public PersistentConfigurationManager(final ConfigurationAdmin configAdmin){
         admin = Objects.requireNonNull(configAdmin, "configAdmin is null.");
         configurationLock = new ReentrantReadWriteLock();
-        resourceParser = new CMManagedResourceParserImpl();
-        gatewayInstanceParser = new CMGatewayParserImpl();
-        threadPoolParser = new CMThreadPoolParser();
-        groupParser = new CMManagedResourceGroupParser();
-        watcherParser = new CMManagedResourceGroupWatcherParserImpl();
     }
 
-    private void mergeResourcesWithGroups(final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources,
-                                          final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups) {
+    private static void mergeResourcesWithGroups(final SerializableEntityMap<SerializableManagedResourceConfiguration> resources,
+                                          final SerializableEntityMap<SerializableManagedResourceGroupConfiguration> groups) {
         //migrate attributes, events, operations and properties from modified groups into resources
         groups.modifiedEntries((groupName, groupConfig) -> {
-            resources.values().parallelStream()                 //attempt to increase performance with many registered resources
+            resources.values().stream()
                     .filter(resource -> resource.getGroupName().equals(groupName))
-                    .forEach(resource -> {
-                        //overwrite all properties in resource but hold user-defined properties
-                        resource.putAll(groupConfig);
-                        //overwrite all attributes
-                        resource.getAttributes().putAll(groupConfig.getAttributes());
-                        //overwrite all events
-                        resource.getEvents().putAll(groupConfig.getEvents());
-                        //overwrite all operations
-                        resource.getOperations().putAll(groupConfig.getOperations());
-                    });
+                    .forEach(groupConfig::fillResourceConfig);
             return true;
         });
     }
 
     private void save(final SerializableAgentConfiguration config) throws IOException {
         if (config.hasNoInnerItems()) {
-            resourceParser.removeAll(admin);
-            gatewayInstanceParser.removeAll(admin);
-            threadPoolParser.removeAll(admin);
-            groupParser.removeAll(admin);
-            watcherParser.removeAll(admin);
+            DefaultSupervisorParser.getInstance().removeAll(admin);
+            DefaultManagedResourceParser.getInstance().removeAll(admin);
+            DefaultGatewayParser.getInstance().removeAll(admin);
+            DefaultThreadPoolParser.getInstance().removeAll(admin);
+            DefaultManagedResourceGroupParser.getInstance().removeAll(admin);
         } else {
-            mergeResourcesWithGroups(config.getManagedResources(), config.getManagedResourceGroups());
-            gatewayInstanceParser.saveChanges(config, admin);
-            resourceParser.saveChanges(config, admin);
-            threadPoolParser.saveChanges(config, admin);
-            groupParser.saveChanges(config, admin);
-            watcherParser.saveChanges(config, admin);
+            mergeResourcesWithGroups(config.getResources(), config.getResourceGroups());
+            DefaultGatewayParser.getInstance().saveChanges(config, admin);
+            DefaultManagedResourceParser.getInstance().saveChanges(config, admin);
+            DefaultThreadPoolParser.getInstance().saveChanges(config, admin);
+            DefaultManagedResourceGroupParser.getInstance().saveChanges(config, admin);
+            DefaultSupervisorParser.getInstance().saveChanges(config, admin);
         }
         //save SNAMP config
-        CMAgentParserImpl.saveParameters(admin, config);
+        DefaultAgentParser.saveParameters(admin, config);
     }
 
     private <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler, final Lock synchronizer) throws E, IOException {
         //TODO: Write lock on configuration should be distributed across cluster nodes
         //obtain lock on configuration
-        try {
+        Utils.callAndWrapException(() -> {
             synchronizer.lockInterruptibly();
-        } catch (final InterruptedException e) {
-            throw new IOException(e);
-        }
+            return null;
+        }, IOException::new);   
         //Process configuration protected by lock.
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
-            gatewayInstanceParser.fill(admin, config.getGatewayInstances());
-            resourceParser.fill(admin, config.getManagedResources());
-            threadPoolParser.fill(admin, config.getThreadPools());
-            groupParser.fill(admin, config.getManagedResourceGroups());
-            watcherParser.fill(admin, config.getWatchers());
-            CMAgentParserImpl.loadParameters(admin, config);
+            DefaultGatewayParser.getInstance().populateRepository(admin, config);
+            DefaultManagedResourceParser.getInstance().populateRepository(admin, config);
+            DefaultThreadPoolParser.getInstance().populateRepository(admin, config);
+            DefaultManagedResourceGroupParser.getInstance().populateRepository(admin, config);
+            DefaultSupervisorParser.getInstance().populateRepository(admin, config);
+            DefaultAgentParser.loadParameters(admin, config);
             if (handler.process(config))
                 save(config);
         } finally {
@@ -170,5 +148,33 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private static <T> T queryParser(final Class<T> parserType) {
+        final AbstractConfigurationParser<?> result;
+        if (parserType.isInstance(DefaultSupervisorParser.getInstance()))
+            result = DefaultSupervisorParser.getInstance();
+        else if (parserType.isInstance(DefaultGatewayParser.getInstance()))
+            result = DefaultGatewayParser.getInstance();
+        else if (parserType.isInstance(DefaultThreadPoolParser.getInstance()))
+            result = DefaultThreadPoolParser.getInstance();
+        else if (parserType.isInstance(DefaultManagedResourceParser.getInstance()))
+            result = DefaultManagedResourceParser.getInstance();
+        else if (parserType.isInstance(DefaultManagedResourceGroupParser.getInstance()))
+            result = DefaultManagedResourceGroupParser.getInstance();
+        else
+            return null;
+        return parserType.cast(result);
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the aggregated object.
+     * @return An instance of the requested object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(@Nonnull final Class<T> objectType) {
+        return queryObject(objectType, PersistentConfigurationManager::queryParser);
     }
 }

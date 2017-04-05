@@ -20,4 +20,8 @@ public interface EntityMap<E extends EntityConfiguration> extends FactoryMap<Str
     default Optional<E> getIfPresent(final String entityID){
         return containsKey(entityID) ? Optional.of(get(entityID)) : Optional.empty();
     }
+
+    default void putAll(final EntityMap<?> entities) {
+        entities.forEach((name, importedEntity) -> getOrAdd(name).load(importedEntity));
+    }
 }

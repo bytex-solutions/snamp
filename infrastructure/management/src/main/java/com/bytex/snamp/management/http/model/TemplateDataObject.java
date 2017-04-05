@@ -1,11 +1,11 @@
 package com.bytex.snamp.management.http.model;
 
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.ManagedResourceTemplate;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * @author Roman Sakno
@@ -25,15 +25,9 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
 
     TemplateDataObject(final E configuration) {
         super(configuration);
-        attributes = importFeatures(configuration, AttributeConfiguration.class, AttributeDataObject::new);
-        events = importFeatures(configuration, EventConfiguration.class, EventDataObject::new);
-        operations = importFeatures(configuration, OperationConfiguration.class, OperationDataObject::new);
-    }
-
-    private static <F extends FeatureConfiguration, DTO extends AbstractDataObject<F>> Map<String, DTO> importFeatures(final ManagedResourceTemplate template,
-                                                                                                                       final Class<F> featureType,
-                                                                                                                       final Function<? super F, DTO> dataObjectFactory) {
-        return Exportable.importEntities(template.getFeatures(featureType), dataObjectFactory);
+        attributes = Exportable.importEntities(configuration.getAttributes(), AttributeDataObject::new);
+        events = Exportable.importEntities(configuration.getEvents(), EventDataObject::new);
+        operations = Exportable.importEntities(configuration.getOperations(), OperationDataObject::new);
     }
 
     /**
@@ -96,17 +90,11 @@ public abstract class TemplateDataObject<E extends ManagedResourceTemplate> exte
         this.operations.putAll(operations);
     }
 
-    private static <F extends FeatureConfiguration> void exportFeatures(final Map<String, ? extends AbstractFeatureDataObject<F>> source,
-                                                                        final ManagedResourceTemplate destination,
-                                                                        final Class<F> featureType){
-        Exportable.exportEntities(source, destination.getFeatures(featureType));
-    }
-
     @Override
-    public void exportTo(final E entity) {
+    public void exportTo(@Nonnull final E entity) {
         super.exportTo(entity);
-        exportFeatures(attributes, entity, AttributeConfiguration.class);
-        exportFeatures(events, entity, EventConfiguration.class);
-        exportFeatures(operations, entity, OperationConfiguration.class);
+        Exportable.exportEntities(attributes, entity.getAttributes());
+        Exportable.exportEntities(events, entity.getEvents());
+        Exportable.exportEntities(operations, entity.getOperations());
     }
 }

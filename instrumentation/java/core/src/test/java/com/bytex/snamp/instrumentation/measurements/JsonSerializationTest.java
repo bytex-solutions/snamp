@@ -18,7 +18,7 @@ public final class JsonSerializationTest extends Assert {
         final IntegerMeasurement original = StandardMeasurements.freeRam(100L);
         original.getAnnotations().put("key", "value");
         final ObjectMapper mapper = new ObjectMapper();
-        final Measurement actual = mapper.readValue(original.toJsonString(), Measurement.class);
+        final Measurement actual = mapper.readValue(original.toJsonString(false), Measurement.class);
         assertTrue(actual instanceof IntegerMeasurement);
         assertEquals(original.getValue(), ((IntegerMeasurement)actual).getValue());
         assertEquals(original.getTimeStamp(), actual.getTimeStamp());

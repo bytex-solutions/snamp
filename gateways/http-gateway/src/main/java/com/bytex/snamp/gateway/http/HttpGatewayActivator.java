@@ -16,7 +16,7 @@ public final class HttpGatewayActivator extends GatewayActivator<HttpGateway> {
     public HttpGatewayActivator() {
         super(HttpGatewayActivator::newGateway,
                 simpleDependencies(HttpService.class),
-                new SupportGatewayServiceManager<?, ?>[]{
+                new SupportServiceManager<?, ?>[]{
                         configurationDescriptor(HttpGatewayConfigurationDescriptor::new)
                 });
     }

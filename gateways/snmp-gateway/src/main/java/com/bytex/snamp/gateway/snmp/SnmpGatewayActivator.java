@@ -23,7 +23,7 @@ public final class SnmpGatewayActivator extends GatewayActivator<SnmpGateway> {
     public SnmpGatewayActivator() {
         super(SnmpGatewayActivator::newGateway,
                 simpleDependencies(JNDIContextManager.class, ThreadPoolRepository.class),
-                new SupportGatewayServiceManager<?, ?>[]{
+                new SupportServiceManager<?, ?>[]{
                         configurationDescriptor(SnmpGatewayDescriptionProvider::getInstance)
                 });
     }

@@ -144,7 +144,7 @@
     <dependency>
       <groupId>com.bytex.snamp</groupId>
       <artifactId>snmp4j</artifactId>
-      <version>2.5.1</version>
+      <version>2.5.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -245,7 +245,7 @@
     </dependency>
     <dependency>
       <groupId>com.bytex.snamp</groupId>
-      <artifactId>analysis-and-operations</artifactId>
+      <artifactId>default-supervisor</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
     </dependency>

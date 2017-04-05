@@ -7,9 +7,7 @@ import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import com.bytex.snamp.gateway.modeling.NotificationSet;
 import com.bytex.snamp.gateway.modeling.OperationSet;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Multimap;
-import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import java.util.Hashtable;
@@ -139,10 +137,6 @@ final class JmxGateway extends AbstractGateway {
             if (usePlatformMBean)
                 entry.getValue().register(createObjectName(rootObjectName, entry.getKey()));
             else entry.getValue().register(getBundleContext(), createObjectName(rootObjectName, entry.getKey()));
-    }
-
-    private BundleContext getBundleContext(){
-        return Utils.getBundleContextOfObject(this);
     }
 
     @Override

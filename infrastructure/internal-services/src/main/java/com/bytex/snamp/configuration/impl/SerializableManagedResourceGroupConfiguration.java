@@ -1,10 +1,8 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
-import com.bytex.snamp.configuration.OperationConfiguration;
 
 import java.util.Objects;
 
@@ -22,11 +20,25 @@ final class SerializableManagedResourceGroupConfiguration extends AbstractManage
     public SerializableManagedResourceGroupConfiguration(){
     }
 
-    private boolean equals(final ManagedResourceGroupConfiguration other){
-        return getAttributes().equals(other.getFeatures(AttributeConfiguration.class)) &&
-                getEvents().equals(other.getFeatures(EventConfiguration.class)) &&
-                getOperations().equals(other.getFeatures(OperationConfiguration.class)) &&
-                getType().equals(other.getType()) &&
+    @Override
+    public void fillResourceConfig(final ManagedResourceConfiguration resource) {
+        //overwrite all properties in resource but hold user-defined properties
+        resource.putAll(this);
+        //overwrite all attributes
+        resource.getAttributes().putAll(getAttributes());
+        //overwrite all events
+        resource.getEvents().putAll(getEvents());
+        //overwrite all operations
+        resource.getOperations().putAll(getOperations());
+        //overwrite connector type
+        resource.setType(getType());
+    }
+
+    private boolean equals(final ManagedResourceGroupConfiguration other) {
+        return other.getAttributes().equals(getAttributes()) &&
+                other.getEvents().equals(getEvents()) &&
+                other.getOperations().equals(getOperations()) &&
+                Objects.equals(other.getType(), getType()) &&
                 super.equals(other);
     }
 
