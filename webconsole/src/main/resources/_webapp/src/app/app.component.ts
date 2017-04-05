@@ -63,15 +63,6 @@ export class App {
 
     this.ws.getDataStream()
         .map((msg) => JSON.parse(msg.data))
-        .filter((msg) => (msg['@messageType'] == 'chartData'))
-        .subscribe((msg) => {
-            if (!$.isEmptyObject(msg["dataForCharts"])) {
-                this._chartService.pushNewChartData(msg.dataForCharts);
-            }
-        });
-
-    this.ws.getDataStream()
-        .map((msg) => JSON.parse(msg.data))
         .filter((msg) => msg['@messageType'] == 'log')
         .subscribe(
           (msg)=> {

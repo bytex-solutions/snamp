@@ -83496,14 +83496,6 @@ var App = (function () {
         this.ws = new angular2_websocket_1.$WebSocket("ws://localhost:8181/snamp/console/events", [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
         this.ws.getDataStream()
             .map(function (msg) { return JSON.parse(msg.data); })
-            .filter(function (msg) { return (msg['@messageType'] == 'chartData'); })
-            .subscribe(function (msg) {
-            if (!$.isEmptyObject(msg["dataForCharts"])) {
-                _this._chartService.pushNewChartData(msg.dataForCharts);
-            }
-        });
-        this.ws.getDataStream()
-            .map(function (msg) { return JSON.parse(msg.data); })
             .filter(function (msg) { return msg['@messageType'] == 'log'; })
             .subscribe(function (msg) {
             var _log = app_logService_1.SnampLog.makeFromJson(msg);
