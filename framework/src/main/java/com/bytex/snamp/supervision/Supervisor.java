@@ -56,6 +56,8 @@ public interface Supervisor extends StatefulFrameworkService, Closeable {
     @Override
     SupervisorInfo getConfiguration();
 
+
+
     void update(@Nonnull final SupervisorInfo configuration) throws Exception;
 
     /**

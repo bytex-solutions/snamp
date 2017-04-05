@@ -23,6 +23,7 @@ import java.util.Locale;
 import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Represents an abstract class for building custom management connector.
@@ -45,7 +46,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
         this(EMPTY_CONFIGURATION);
     }
 
-    protected AbstractManagedResourceConnector(final ManagedResourceInfo configuration) {
+    protected AbstractManagedResourceConnector(@Nonnull final ManagedResourceInfo configuration) {
         metrics = new LazySoftReference<>();
         setConfiguration(configuration);
     }
@@ -57,7 +58,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
     @Nonnull
     @Override
     public final ManagedResourceInfo getConfiguration() {
-        return configuration;
+        return firstNonNull(configuration, EMPTY_CONFIGURATION);
     }
 
     /**
