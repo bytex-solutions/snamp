@@ -83988,9 +83988,9 @@ var REST = (function () {
     // reset e2e view
     REST.RESET_VIEW = "/snamp/web/api/e2e/reset";
     REST.CURRENT_CONFIG = REST.ROOT_PATH + "/configuration";
-    REST.WATCHERS_LIST = REST.CFG_PATH + "/watcher";
+    REST.WATCHERS_LIST = REST.CFG_PATH + "/supervisor";
     // watchers statuses
-    REST.WATCHERS_STATUS = "/snamp/web/api/groupWatcher/groups/status";
+    REST.WATCHERS_STATUS = "/snamp/web/api/health-watcher/groups/status";
     return REST;
 }());
 exports.REST = REST;

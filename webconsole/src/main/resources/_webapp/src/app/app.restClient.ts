@@ -170,12 +170,12 @@ export class REST {
 
     public static CURRENT_CONFIG:string = REST.ROOT_PATH + "/configuration";
 
-    public static WATCHERS_LIST:string = REST.CFG_PATH + "/watcher";
+    public static WATCHERS_LIST:string = REST.CFG_PATH + "/supervisor";
 
     public static WATCHER_BY_NAME(name:string):string {
         return REST.WATCHERS_LIST + "/" + name;
     }
 
     // watchers statuses
-    public static WATCHERS_STATUS:string = "/snamp/web/api/groupWatcher/groups/status";
+    public static WATCHERS_STATUS:string = "/snamp/web/api/health-watcher/groups/status";
 }
