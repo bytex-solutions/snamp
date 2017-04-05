@@ -110,9 +110,11 @@ public final class ArrayUtils {
      * @return Empty array.
      */
     public static <T> T emptyArray(final Class<T> arrayType) {
-        if (arrayType.isArray())
-            return arrayType.cast(emptyArrayImpl(arrayType.getComponentType()));
-        else throw new IllegalArgumentException("Invalid array type: " + arrayType);
+        final Class<?> componentType = arrayType.getComponentType();
+        if (componentType == null)
+            throw new IllegalArgumentException("Invalid array type: " + arrayType);
+        else
+            return arrayType.cast(emptyArrayImpl(componentType));
     }
 
     /**
