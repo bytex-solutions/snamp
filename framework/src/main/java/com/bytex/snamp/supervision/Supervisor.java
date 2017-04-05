@@ -37,6 +37,8 @@ public interface Supervisor extends StatefulFrameworkService, Closeable {
      */
     String TYPE_CAPABILITY_ATTRIBUTE = "type";
 
+    SupervisorInfo EMPTY_CONFIGURATION = new EmptySupervisorInfo();
+
     /**
      * Gets immutable set of group members.
      * @return Immutable set of group members.

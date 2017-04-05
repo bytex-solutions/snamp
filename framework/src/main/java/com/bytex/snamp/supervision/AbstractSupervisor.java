@@ -29,7 +29,7 @@ public abstract class AbstractSupervisor extends StatefulManagedResourceTracker<
         }
 
         private SupervisorInternalState() {
-            super(new EmptySupervisorInfo());
+            super(EMPTY_CONFIGURATION);
         }
 
         @Override
