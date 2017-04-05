@@ -5,6 +5,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;
@@ -243,24 +244,18 @@ final class Bot implements ChatManagerListener, AutoCloseable {
         return notifications;
     }
 
-    /**
-     * Closes all chat sessions.
-     */
-    private synchronized void closeAllChats() {
-        final Iterator<ChatSession> sessions = this.sessions.iterator();
-        while (sessions.hasNext()) {
-            sessions.next().close();
-            sessions.remove();
-        }
-    }
 
     /**
      * Releases all resources associated with this controller.
      */
     @Override
-    public void close() throws InterruptedException {
-        closeAllChats();
-        attributes.clear();
-        notifications.clear();
+    public void close() throws Exception {
+        try {
+            Utils.closeAll(sessions.toArray(new ChatSession<?>[0]));
+        } finally {
+            sessions.clear();
+            attributes.clear();
+            notifications.clear();
+        }
     }
 }
