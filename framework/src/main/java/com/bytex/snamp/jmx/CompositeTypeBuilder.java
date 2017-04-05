@@ -7,6 +7,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeType} instances.
  * @author Roman Sakno
@@ -119,7 +121,7 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
     private static CompositeType build(final String typeName,
                                        final String typeDescription,
                                        final Map<String, ? extends CompositeTypeItem> items) throws OpenDataException {
-        final String[] itemNames = items.keySet().stream().toArray(String[]::new);
+        final String[] itemNames = items.keySet().toArray(emptyArray(String[].class));
         final String[] itemDescriptions = new String[itemNames.length];
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
         for (int i = 0; i < itemNames.length; i++) {

@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static com.bytex.snamp.Convert.toTypeToken;
 
@@ -62,16 +61,11 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
         private static OpenMBeanParameterInfoSupplier<?>[] getSignature(final XmlCommandLineToolProfile profile,
                                                                      final String description) {
             final List<String> token = profile.getReaderTemplate().extractTemplateParameters();
-            if (!token.isEmpty()) {
-                return token.stream()
-                        .map(param -> new OpenMBeanParameterInfoSupplier<>(param,
-                                String.format("Argument %s for %s", param, description),
-                                SimpleType.STRING))
-                        .collect(Collectors.toList())
-                        .toArray(new OpenMBeanParameterInfoSupplier<?>[token.size()]);
-            } else {
-                return new OpenMBeanParameterInfoSupplier[0];
-            }
+            return token.stream()
+                    .map(param -> new OpenMBeanParameterInfoSupplier<>(param,
+                            String.format("Argument %s for %s", param, description),
+                            SimpleType.STRING))
+                    .toArray(OpenMBeanParameterInfoSupplier[]::new);
         }
 
         static OpenType<?> getType(final XmlCommandLineToolProfile profile) {

@@ -25,6 +25,8 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+
 /**
  * Represents management shell.
  * @author Roman Sakno
@@ -246,7 +248,7 @@ final class ManagementShell implements Command, SessionAware {
                 matchList.add(regexMatcher.group());
             }
         }
-        return matchList.toArray(new String[matchList.size()]);
+        return matchList.toArray(emptyArray(String[].class));
     }
 
     private static Command createSshCommand(final String commandLine,

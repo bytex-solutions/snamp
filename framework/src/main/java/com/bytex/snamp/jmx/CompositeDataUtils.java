@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Provides helper methods that allows to create and
@@ -100,7 +101,7 @@ public final class CompositeDataUtils {
                                        final Map<String, ?> map,
                                        final Function<? super String, ? extends OpenType<?>> typeProvider,
                                        final Function<String, String> descriptionProvider) throws OpenDataException {
-        final String[] itemNames = map.keySet().stream().toArray(String[]::new);
+        final String[] itemNames = map.keySet().toArray(emptyArray(String[].class));
         final String[] itemDescriptions = map.keySet().stream().map(descriptionProvider).toArray(String[]::new);
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
         for (int i = 0; i < itemTypes.length; i++)

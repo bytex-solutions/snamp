@@ -9,6 +9,8 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.util.Collection;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+
 
 /**
  * The type Installed gateway attribute.
@@ -30,6 +32,6 @@ final class InstalledGatewaysAttribute extends OpenMBean.OpenAttribute<String[],
     @Override
     public String[] getValue() throws OpenDataException{
         final Collection<String> result = GatewayActivator.getInstalledGateways(Utils.getBundleContextOfObject(this));
-        return result.toArray(new String[result.size()]);
+        return result.toArray(emptyArray(String[].class));
     }
 }

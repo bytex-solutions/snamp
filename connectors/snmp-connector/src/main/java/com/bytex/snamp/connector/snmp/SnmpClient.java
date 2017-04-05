@@ -24,6 +24,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+
 /**
  * Represents SNMP client.
  * @author Roman Sakno
@@ -305,6 +307,6 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         final Collection<VariableBinding> bindings = variables.entrySet().stream()
                 .map(entry -> new VariableBinding(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
-        set(bindings.stream().toArray(VariableBinding[]::new), timeout);
+        set(bindings.toArray(emptyArray(VariableBinding[].class)), timeout);
     }
 }

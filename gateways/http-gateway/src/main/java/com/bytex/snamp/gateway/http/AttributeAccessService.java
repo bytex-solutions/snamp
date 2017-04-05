@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.http;
 
-import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import com.sun.jersey.spi.resource.Singleton;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
@@ -11,6 +10,8 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Set;
+
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 @Singleton
 @Path("/")
@@ -43,11 +44,11 @@ public final class AttributeAccessService {
         if (resourceName == null || resourceName.isEmpty()) {   //all resources with attributes
             final ObjectNode result = formatter.getNodeFactory().objectNode();
             for (final String resource : attributes.getHostedResources())
-                result.put(resource, formatter.valueToTree(attributes.getResourceAttributes(resource).stream().toArray(String[]::new)));
+                result.put(resource, formatter.valueToTree(attributes.getResourceAttributes(resource).toArray(emptyArray(String[].class))));
             return formatter.writeValueAsString(result);
         } else {
             final Set<String> result = attributes.getResourceAttributes(resourceName);
-            return formatter.writeValueAsString(result.stream().toArray(String[]::new));
+            return formatter.writeValueAsString(result.toArray(emptyArray(String[].class)));
         }
     }
 
@@ -65,6 +66,6 @@ public final class AttributeAccessService {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/resources")
     public String getResources() throws IOException {
-        return formatter.writeValueAsString(attributes.getHostedResources().stream().toArray(String[]::new));
+        return formatter.writeValueAsString(attributes.getHostedResources().toArray(emptyArray(String[].class)));
     }
 }

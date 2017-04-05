@@ -4,6 +4,8 @@ import javax.management.openmbean.*;
 import java.io.Serializable;
 import java.util.*;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+
 /**
  * Represents builder of {@link javax.management.openmbean.TabularType} instances.
  * This class cannot be inherited.
@@ -157,7 +159,7 @@ public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, I
         return new TabularType(typeName,
                 typeDescription,
                 buildRowType(),
-                indexes.stream().toArray(String[]::new));
+                indexes.toArray(emptyArray(String[].class)));
     }
 
     /**

@@ -27,6 +27,8 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+
 /**
  * Represents XMPP Bot responsible for handling humand commands
  * and managing chat sessions.
@@ -233,7 +235,7 @@ final class Bot implements ChatManagerListener, AutoCloseable {
                 matchList.add(regexMatcher.group());
             }
         }
-        return matchList.toArray(new String[matchList.size()]);
+        return matchList.toArray(emptyArray(String[].class));
     }
 
     XMPPModelOfAttributes getAttributes(){
@@ -251,7 +253,7 @@ final class Bot implements ChatManagerListener, AutoCloseable {
     @Override
     public void close() throws Exception {
         try {
-            Utils.closeAll(sessions.toArray(new ChatSession<?>[0]));
+            Utils.closeAll(sessions.toArray(emptyArray(ChatSession[].class)));
         } finally {
             sessions.clear();
             attributes.clear();
