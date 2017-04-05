@@ -4,6 +4,7 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
@@ -438,8 +439,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     } catch (final Exception e) {
                         service = null;
                         failedToUpdateService(logger, pid, properties, e);
-                    }
-                    finally {
+                    } finally {
                         logger.close();
                     }
                     if (service == null)
@@ -552,7 +552,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         boolean isUnregistered() {
-            return registration == null;
+            return serviceInstance == null;
         }
     }
 
@@ -612,8 +612,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             if (newService == null) {
                 dispose(registration);
                 registration = null;
-            }
-            else if (oldService != newService) {
+            } else if (oldService != newService) {
                 //save the identity of the service and removes registration of the previous version of service
                 final Hashtable<String, ?> identity = dispose(registration);
                 registration = new ServiceRegistrationHolder<>(serviceContract, newService, identity, super.getBundleContext());
@@ -659,15 +658,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected abstract void cleanupService(final T service,
                                                final Map<String, ?> identity) throws Exception;
 
-        private Hashtable<String, ?> dispose(final ServiceRegistrationHolder<S, T> registration) throws Exception{
+        private Hashtable<String, ?> dispose(final ServiceRegistrationHolder<S, T> registration) throws Exception {
             final T serviceInstance = registration.get();
+            assert serviceInstance != null;
             final Hashtable<String, ?> properties = registration.dumpProperties();
-            try {
-                registration.unregister();
-            }
-            finally {
-                cleanupService(serviceInstance, properties);
-            }
+            Utils.closeAll(registration::unregister, () -> cleanupService(serviceInstance, properties));
             return properties;
         }
 
