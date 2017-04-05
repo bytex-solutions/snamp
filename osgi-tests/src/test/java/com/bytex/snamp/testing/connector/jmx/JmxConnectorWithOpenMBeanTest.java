@@ -10,7 +10,6 @@ import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.google.common.collect.ImmutableMap;
@@ -289,10 +288,10 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         ManagedResourceConnectorClient.filterBuilder().addServiceListener(context, event -> {
             switch (event.getType()){
                 case ServiceEvent.UNREGISTERING:
-                    unregistered.complete(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
+                    unregistered.complete(ManagedResourceConnector.isResourceConnector(event.getServiceReference()));
                     return;
                 case ServiceEvent.REGISTERED:
-                    registered.complete(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
+                    registered.complete(ManagedResourceConnector.isResourceConnector(event.getServiceReference()));
             }
         });
         stopResourceConnector(context);

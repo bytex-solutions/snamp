@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-import static com.bytex.snamp.internal.Utils.isInstanceOf;
 
 /**
  * Provides information about active managed resources and their attributes.
@@ -121,20 +120,21 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     }
 
     private void connectorChanged(final ManagedResourceConnectorClient client, final int type) {
+        final String groupName = client.getGroupName(), resourceName = client.getManagedResourceName();
         switch (type) {
             case ServiceEvent.REGISTERED:
-                resources.write(resources -> resources.put(client.getGroupName(), client.getManagedResourceName()));
+                resources.write(resources -> resources.put(groupName, resourceName));
                 return;
             case ServiceEvent.UNREGISTERING:
             case ServiceEvent.MODIFIED_ENDMATCH:
-                resources.write(resources -> resources.remove(client.getGroupName(), client.getManagedResourceName()));
+                resources.write(resources -> resources.remove(groupName, resourceName));
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void serviceChanged(final ServiceEvent event) {
-        if (isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class))
+        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()))
             try (final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), (ServiceReference<ManagedResourceConnector>) event.getServiceReference())) {
                 connectorChanged(client, event.getType());
             }

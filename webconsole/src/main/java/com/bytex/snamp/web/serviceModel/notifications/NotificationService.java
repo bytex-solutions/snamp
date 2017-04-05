@@ -80,19 +80,23 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
             notifications.addNotificationListener(this, null, new NotificationSource(notifications, client.getManagedResourceName()));
     }
 
+    private void connectorChanged(final ManagedResourceConnectorClient client, final int type) {
+        switch (type) {
+            case ServiceEvent.UNREGISTERING:
+            case ServiceEvent.MODIFIED_ENDMATCH:
+                removeNotificationListener(client);
+                return;
+            case ServiceEvent.REGISTERED:
+                addNotificationListener(client);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public void serviceChanged(final ServiceEvent event) {
-        if (Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class)) {
+        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference())) {
             try (final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), (ServiceReference<ManagedResourceConnector>) event.getServiceReference())) {
-                switch (event.getType()) {
-                    case ServiceEvent.UNREGISTERING:
-                    case ServiceEvent.MODIFIED_ENDMATCH:
-                        removeNotificationListener(client);
-                        return;
-                    case ServiceEvent.REGISTERED:
-                        addNotificationListener(client);
-                }
+                connectorChanged(client, event.getType());
             }
         }
     }

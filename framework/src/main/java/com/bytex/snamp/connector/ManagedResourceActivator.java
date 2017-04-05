@@ -204,7 +204,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                     connector.update(newConfig.getValue());
                 } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored) {
                     //Update operation is not supported -> force recreation
-                    connector.close();
+                    //previous version of connector will be closed automatically using cleanupService
                     connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
                 }
             }
