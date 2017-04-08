@@ -31,7 +31,7 @@ public final class SpinWait {
         return timeoutInMillis;
     }
 
-    public static <V> V spinUntilNull(final Callable<? extends V> spin, final Duration timeout) throws Exception {
+    public static <V> V untilNull(final Callable<? extends V> spin, final Duration timeout) throws Exception {
         V result;
         long timeoutInMillis = timeout.toMillis();
         while ((result = spin.call()) == null)
@@ -39,7 +39,7 @@ public final class SpinWait {
         return result;
     }
 
-    public static <I, O> O spinUntilNull(final I input, final Function<? super I, ? extends O> spin, final Duration timeout) throws InterruptedException, TimeoutException {
+    public static <I, O> O untilNull(final I input, final Function<? super I, ? extends O> spin, final Duration timeout) throws InterruptedException, TimeoutException {
         O result;
         long timeoutInMillis = timeout.toMillis();
         while ((result = spin.apply(input)) == null)
@@ -47,7 +47,7 @@ public final class SpinWait {
         return result;
     }
 
-    public static <I1, I2, O> O spinUntilNull(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> spin, final Duration timeout) throws InterruptedException, TimeoutException {
+    public static <I1, I2, O> O untilNull(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> spin, final Duration timeout) throws InterruptedException, TimeoutException {
         O result;
         long timeoutInMillis = timeout.toMillis();
         while ((result = spin.apply(input1, input2)) == null)
@@ -55,7 +55,7 @@ public final class SpinWait {
         return result;
     }
 
-    public static void spinUntil(final BooleanSupplier condition, final Duration timeout) throws InterruptedException, TimeoutException {
+    public static void until(final BooleanSupplier condition, final Duration timeout) throws InterruptedException, TimeoutException {
         long timeoutInMillis = timeout.toMillis();
         while (condition.getAsBoolean())
             timeoutInMillis = spin(timeoutInMillis);

@@ -97,7 +97,7 @@ public final class UtilsTest extends Assert {
         final Executor executor = Executors.newFixedThreadPool(3);
         final AtomicInteger index = new AtomicInteger(0);
         Utils.parallelForEach(Arrays.spliterator(ArrayUtils.wrapArray(bytes)), b -> index.incrementAndGet(), executor);
-        SpinWait.spinUntil(() -> index.get() < 100, Duration.ofSeconds(2));
+        SpinWait.until(() -> index.get() < 100, Duration.ofSeconds(2));
         assertEquals(100, index.get());
     }
 

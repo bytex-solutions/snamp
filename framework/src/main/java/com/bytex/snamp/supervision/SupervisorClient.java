@@ -15,7 +15,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
+import static com.bytex.snamp.concurrent.SpinWait.untilNull;
 
 /**
  * Represents client for {@link Supervisor}.
@@ -40,7 +40,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
     public static SupervisorClient tryCreate(final BundleContext context,
                                           final String groupName,
                                           final Duration instanceTimeout) throws TimeoutException, InterruptedException{
-        final ServiceReference<Supervisor> ref = spinUntilNull(context, groupName, SupervisorClient::getSupervisorInstance, instanceTimeout);
+        final ServiceReference<Supervisor> ref = untilNull(context, groupName, SupervisorClient::getSupervisorInstance, instanceTimeout);
         return new SupervisorClient(context, ref);
     }
 

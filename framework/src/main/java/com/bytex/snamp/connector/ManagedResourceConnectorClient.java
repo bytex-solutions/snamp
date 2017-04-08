@@ -14,7 +14,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
+import static com.bytex.snamp.concurrent.SpinWait.untilNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -36,7 +36,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     public static ManagedResourceConnectorClient tryCreate(final BundleContext context,
                                                            final String resourceName,
                                                            final Duration instanceTimeout) throws TimeoutException, InterruptedException{
-        final ServiceReference<ManagedResourceConnector> ref = spinUntilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, instanceTimeout);
+        final ServiceReference<ManagedResourceConnector> ref = untilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, instanceTimeout);
         return new ManagedResourceConnectorClient(context, ref);
     }
 

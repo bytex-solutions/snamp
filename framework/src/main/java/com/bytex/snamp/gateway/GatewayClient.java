@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
+import static com.bytex.snamp.concurrent.SpinWait.untilNull;
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 
 /**
@@ -39,7 +39,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     public static GatewayClient tryCreate(final BundleContext context,
                                           final String instanceName,
                                           final Duration instanceTimeout) throws TimeoutException, InterruptedException{
-        final ServiceReference<Gateway> ref = spinUntilNull(context, instanceName, GatewayClient::getGatewayInstance, instanceTimeout);
+        final ServiceReference<Gateway> ref = untilNull(context, instanceName, GatewayClient::getGatewayInstance, instanceTimeout);
         return new GatewayClient(context, ref);
     }
 

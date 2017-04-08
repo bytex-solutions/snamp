@@ -284,7 +284,7 @@ public final class ArrayUtils {
         return equals(array1, array2, true);
     }
 
-    private static boolean equals(final Object array1, final Object array2, boolean strictComponentType) {
+    private static boolean equals(final Object array1, final Object array2, final boolean strictComponentType) {
         if (strictComponentType && !array1.getClass().getComponentType().equals(array2.getClass().getComponentType()))
             return false;
         else if (Array.getLength(array1) == Array.getLength(array2)) {
