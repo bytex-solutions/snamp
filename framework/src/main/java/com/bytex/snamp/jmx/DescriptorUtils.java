@@ -14,7 +14,6 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * Represents utility methods for working with {@link javax.management.Descriptor} instances.
@@ -160,7 +159,7 @@ public final class DescriptorUtils {
      * @return {@literal true}, if {@link Descriptor} instance has the field; otherwise, {@literal false}.
      */
     public static boolean hasField(final Descriptor descr, final String fieldName){
-        return ArrayUtils.containsAny(descr.getFieldNames(), fieldName);
+        return ArrayUtils.contains(descr.getFieldNames(), fieldName);
     }
 
     public static <T> T getDefaultValue(final Descriptor descr, final Class<T> type){

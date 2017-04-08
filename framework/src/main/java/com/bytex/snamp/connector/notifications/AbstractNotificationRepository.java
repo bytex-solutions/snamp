@@ -231,7 +231,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                                             final NotificationDescriptor metadata) throws Exception;
 
     private static boolean equals(final MBeanNotificationInfo info, final String category, final Descriptor descriptor){
-        return ArrayUtils.containsAny(info.getNotifTypes(), category) && descriptor.equals(info.getDescriptor());
+        return ArrayUtils.contains(info.getNotifTypes(), category) && descriptor.equals(info.getDescriptor());
     }
 
     private M connectAndAdd(final String category, final NotificationDescriptor descriptor) throws Exception{

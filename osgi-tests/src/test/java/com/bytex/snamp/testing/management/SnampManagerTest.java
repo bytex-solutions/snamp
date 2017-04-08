@@ -224,7 +224,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             Object installedConnectors = connection.getAttribute(commonsObj, "InstalledConnectors");
             assertNotNull(installedConnectors);
             assertTrue(installedConnectors instanceof String[]);
-            assertTrue(ArrayUtils.containsAny((String[])installedConnectors, "jmx"));
+            assertTrue(ArrayUtils.contains((String[])installedConnectors, "jmx"));
 
             // check if connector is alive
             connectorJmxRunned();

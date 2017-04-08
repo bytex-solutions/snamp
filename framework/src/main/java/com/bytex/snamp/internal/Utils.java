@@ -14,8 +14,6 @@ import javax.annotation.Nonnull;
 import java.lang.invoke.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Spliterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -77,7 +75,7 @@ public final class Utils {
 
     private static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType) {
         final Object names = serviceRef.getProperty(OBJECTCLASS);
-        return names instanceof Object[] && ArrayUtils.containsAny((Object[]) names, serviceType);
+        return names instanceof Object[] && ArrayUtils.contains((Object[]) names, serviceType);
     }
 
     /**

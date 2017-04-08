@@ -158,7 +158,7 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
             if (connector == null)
                 throw new MBeanException(new NullPointerException("Managed resource doesn't support notifications"));
             for (final MBeanNotificationInfo notification : connector.getNotificationInfo())
-                if (ArrayUtils.containsAny(notification.getNotifTypes(), notificationType)) {
+                if (ArrayUtils.contains(notification.getNotifTypes(), notificationType)) {
                     metadata = DescriptorUtils.asDictionary(notification.getDescriptor());
                     return;
                 }

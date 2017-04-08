@@ -164,22 +164,8 @@ public final class ArrayUtils {
         return result;
     }
 
-    public static boolean containsAny(final Object[] array, final Object... elements) {
-        if (array != null && elements != null)
-            for (final Object actual : array)
-                for (final Object expected : elements)
-                    if (Objects.equals(expected, actual)) return true;
-        return false;
-    }
-
-    public static boolean containsAll(final Object[] array, final Object... elements) {
-        if (array == null) return false;
-        int counter = 0;
-        for (final Object expected : elements)
-            for (final Object actual : array)
-                if (Objects.equals(expected, actual))
-                    counter += 1;
-        return counter == elements.length;
+    public static boolean contains(final Object[] array, final Object element) {
+        return find(array, element::equals).isPresent();
     }
 
     private static Object[] wrapArrayImpl(final Object primitiveArray) {
