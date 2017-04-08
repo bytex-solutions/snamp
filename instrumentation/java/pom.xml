@@ -12,6 +12,7 @@
   <artifactId>instrumentation-java</artifactId>
   <version>1.0.0</version>
   <packaging>pom</packaging>
+  <name>SNAMP Instrumentation Libraries</name>
   <modules>
     <module>core</module>
     <module>htrace</module>
