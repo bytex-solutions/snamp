@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>connectors</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>com.bytex.snamp.connectors</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>SNMP Connector</name>
     <version>${snamp.connector.snmp.version}</version>
     <description>SNMP-compliant managed resource connector</description>
-    <artifactId>snmp-connector</artifactId>
+    <artifactId>snmp</artifactId>
     <packaging>bundle</packaging>
     <build>
         <plugins>

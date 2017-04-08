@@ -3,12 +3,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp</groupId>
-    <artifactId>snamp</artifactId>
+    <groupId>com.bytex.snamp.features</groupId>
+    <artifactId>features</artifactId>
     <version>2.0.0</version>
-    <relativePath>../../pom.xml</relativePath>
   </parent>
-  <groupId>com.bytex.snamp.features</groupId>
   <artifactId>standard</artifactId>
   <version>2.0.0</version>
   <packaging>kar</packaging>

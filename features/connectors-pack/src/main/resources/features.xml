@@ -12,48 +12,48 @@
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
         <feature version="${snamp.instrumentation.version}">snamp-instrumentation</feature>
-        <bundle start="true">mvn:com.bytex.snamp/data-stream-connector/${snamp.connector.stream.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp.connectors/data-stream/${snamp.connector.stream.version}</bundle>
     </feature>
 
     <feature name="snamp-composite-connector" description="Composite Connector Karaf Feature" version="${snamp.connector.composite.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
-        <bundle start="true">mvn:com.bytex.snamp/composite-connector/${snamp.connector.composite.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp.connectors/composite/${snamp.connector.composite.version}</bundle>
     </feature>
 
     <feature name="snamp-groovy-connector" description="Groovy Resource Karaf Feature" version="${snamp.connector.groovy.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
-        <bundle start="true">mvn:com.bytex.snamp/groovy-connector/${snamp.connector.groovy.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp.connectors/groovy/${snamp.connector.groovy.version}</bundle>
     </feature>
 
     <feature name="snamp-http-acceptor" description="HTTP Acceptor Karaf Feature" version="${snamp.connector.http.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
         <feature version="${snamp.connector.stream.version}" >snamp-stream-connector</feature>
-        <bundle start="true">mvn:com.bytex.snamp/http-acceptor/${snamp.connector.http.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp.connectors/http/${snamp.connector.http.version}</bundle>
     </feature>
 
     <feature name="snamp-jmx-connector" description="JMX Connector Karaf Feature" version="${snamp.connector.jmx.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-core</feature>
-        <bundle start="true">mvn:com.bytex.snamp/jmx-connector/${snamp.connector.jmx.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp.connectors/jmx/${snamp.connector.jmx.version}</bundle>
     </feature>
 
     <feature name="snamp-modbus-connector" description="Modbus Connector Karaf Feature" version="${snamp.connector.modbus.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
-        <bundle start="true">mvn:com.bytex.snamp/modbus-connector/${snamp.connector.modbus.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp.connectors/modbus/${snamp.connector.modbus.version}</bundle>
     </feature>
 
     <feature name="snamp-rshell-connector" description="RShell Connector Karaf Feature" version="${snamp.connector.rshell.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-ssh-support</feature>
-        <bundle start="true">mvn:com.bytex.snamp/rshell-connector/${snamp.connector.rshell.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp.connectors/rshell/${snamp.connector.rshell.version}</bundle>
     </feature>
 
     <feature name="snamp-snmp-connector" description="SNMP Connector Karaf Feature" version="${snamp.connector.snmp.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-snmp-support</feature>
-        <bundle>mvn:com.bytex.snamp/snmp-connector/${snamp.connector.snmp.version}</bundle>
+        <bundle>mvn:com.bytex.snamp.connectors/snmp/${snamp.connector.snmp.version}</bundle>
     </feature>
 
     <feature name="snamp-zipkin-connector" description="Zipkin Connector Karaf Feature" version="${snamp.connector.zipkin.version}" install="auto">
@@ -61,6 +61,6 @@
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
         <feature version="${snamp.connector.stream.version}" >snamp-stream-connector</feature>
         <bundle>mvn:io.zipkin.java/zipkin/1.16.2</bundle>
-        <bundle>mvn:com.bytex.snamp/zipkin-connector/${snamp.connector.zipkin.version}</bundle>
+        <bundle>mvn:com.bytex.snamp.connectors/zipkin/${snamp.connector.zipkin.version}</bundle>
     </feature>
 </features>

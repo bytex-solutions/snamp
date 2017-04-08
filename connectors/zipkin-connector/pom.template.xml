@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>connectors</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>com.bytex.snamp.connectors</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>zipkin-connector</artifactId>
+    <artifactId>zipkin</artifactId>
     <version>${snamp.connector.zipkin.version}</version>
     <packaging>bundle</packaging>
     <name>Zipkin Connector</name>
@@ -43,8 +43,8 @@
             <artifactId>guava</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>data-stream-connector</artifactId>
+            <groupId>com.bytex.snamp.connectors</groupId>
+            <artifactId>data-stream</artifactId>
             <version>${snamp.connector.stream.version}</version>
             <scope>provided</scope>
         </dependency>

@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>connectors</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>com.bytex.snamp.connectors</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>HTTP Acceptor</name>
     <description>SNAMP Connector that accepts data using HTTP passive check</description>
-    <artifactId>http-acceptor</artifactId>
+    <artifactId>http</artifactId>
     <packaging>bundle</packaging>
     <version>${snamp.connector.http.version}</version>
     <build>
@@ -44,8 +44,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>data-stream-connector</artifactId>
+            <groupId>com.bytex.snamp.connectors</groupId>
+            <artifactId>data-stream</artifactId>
             <version>${snamp.connector.stream.version}</version>
             <scope>provided</scope>
         </dependency>

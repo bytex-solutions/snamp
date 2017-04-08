@@ -323,8 +323,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>rshell-connector</artifactId>
+            <groupId>com.bytex.snamp.connectors</groupId>
+            <artifactId>rshell</artifactId>
             <version>${snamp.connector.rshell.version}</version>
             <scope>test</scope>
         </dependency>
@@ -367,8 +367,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>modbus-connector</artifactId>
+            <groupId>com.bytex.snamp.connectors</groupId>
+            <artifactId>modbus</artifactId>
             <version>${snamp.connector.modbus.version}</version>
             <scope>test</scope>
         </dependency>
@@ -409,8 +409,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>zipkin-connector</artifactId>
+            <groupId>com.bytex.snamp.connectors</groupId>
+            <artifactId>zipkin</artifactId>
             <version>${snamp.connector.zipkin.version}</version>
             <scope>test</scope>
         </dependency>

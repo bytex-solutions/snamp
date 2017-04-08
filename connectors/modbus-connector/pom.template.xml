@@ -4,10 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>connectors</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>com.bytex.snamp.connectors</groupId>
         <version>2.0.0</version>
     </parent>
-    <artifactId>modbus-connector</artifactId>
+    <artifactId>modbus</artifactId>
     <modelVersion>4.0.0</modelVersion>
     <version>${snamp.connector.modbus.version}</version>
     <packaging>bundle</packaging>
