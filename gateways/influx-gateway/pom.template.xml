@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>gateways</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>com.bytex.snamp.gateways</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>InfluxDB Gateway</name>
     <description>Gateway that dumps all metrics into InfluxDB</description>
-    <artifactId>influx-gateway</artifactId>
+    <artifactId>influx</artifactId>
     <packaging>bundle</packaging>
     <version>${snamp.gateway.influx.version}</version>
     <build>

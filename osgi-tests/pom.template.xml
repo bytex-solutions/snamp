@@ -361,8 +361,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>xmpp-gateway</artifactId>
+            <groupId>com.bytex.snamp.gateways</groupId>
+            <artifactId>xmpp</artifactId>
             <version>${snamp.gateway.xmpp.version}</version>
             <scope>test</scope>
         </dependency>

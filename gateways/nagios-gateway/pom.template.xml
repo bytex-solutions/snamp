@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>gateways</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>com.bytex.snamp.gateways</groupId>
         <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -12,7 +12,7 @@
     <version>${snamp.gateway.nagios.version}</version>
     <name>Nagios ActiveCheck Gateway</name>
     <description>SNAMP Gateway for Nagios active check</description>
-    <artifactId>nagios-gateway</artifactId>
+    <artifactId>nagios</artifactId>
     <packaging>bundle</packaging>
     <build>
         <plugins>

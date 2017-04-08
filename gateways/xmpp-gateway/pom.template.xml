@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>gateways</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>com.bytex.snamp.gateways</groupId>
         <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -12,7 +12,7 @@
     <version>${snamp.gateway.xmpp.version}</version>
     <name>XMPP Gateway</name>
     <description>SNAMP Gateway for XMPP protocol</description>
-    <artifactId>xmpp-gateway</artifactId>
+    <artifactId>xmpp</artifactId>
     <packaging>bundle</packaging>
     <properties>
         <smack.version>4.1.0</smack.version>

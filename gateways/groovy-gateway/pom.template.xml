@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>gateways</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>com.bytex.snamp.gateways</groupId>
         <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>Groovy Gateway</name>
     <description>Groovy-based scripting engine for writing custom gateways</description>
-    <artifactId>groovy-gateway</artifactId>
+    <artifactId>groovy</artifactId>
     <version>${snamp.gateway.groovy.version}</version>
     <packaging>bundle</packaging>
     <build>

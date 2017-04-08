@@ -3,11 +3,11 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp</groupId>
+    <groupId>com.bytex.snamp.gateways</groupId>
     <artifactId>gateways</artifactId>
     <version>2.0.0</version>
   </parent>
-  <artifactId>nrdp-gateway</artifactId>
+  <artifactId>nrdp</artifactId>
   <version>2.0.0</version>
   <packaging>bundle</packaging>
   <name>Nagios NRDP Gateway</name>
@@ -34,7 +34,7 @@
     <dependency>
       <groupId>ch.shamu</groupId>
       <artifactId>jsend-nrdp</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.3</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
