@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-connectors">
-    <repository>mvn:com.bytex.snamp/core-features/${snamp.version}/xml/features</repository>
+    <repository>mvn:com.bytex.snamp.features/core/${snamp.version}/xml/features</repository>
 
     <feature name="snamp-default-supervisor" description="SNAMP Default Supervisor" version="${snamp.supervisors.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>

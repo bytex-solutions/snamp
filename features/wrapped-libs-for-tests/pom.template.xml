@@ -11,6 +11,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Wrapped Libraries</name>
     <description>A set of wrapped libraries</description>
+    <groupId>com.bytex.snamp.features</groupId>
     <artifactId>wrapped-libs-for-tests</artifactId>
     <packaging>kar</packaging>
     <build>

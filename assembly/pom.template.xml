@@ -89,24 +89,24 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.bytex.snamp</groupId>
-                                    <artifactId>connectors-pack</artifactId>
+                                    <groupId>com.bytex.snamp.features</groupId>
+                                    <artifactId>connectors</artifactId>
                                     <version>${snamp.connectors.version}</version>
                                     <type>kar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.bytex.snamp</groupId>
-                                    <artifactId>gateways-pack</artifactId>
+                                    <groupId>com.bytex.snamp.features</groupId>
+                                    <artifactId>gateways</artifactId>
                                     <version>${snamp.gateways.version}</version>
                                     <type>kar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.bytex.snamp</groupId>
-                                    <artifactId>standard-features</artifactId>
+                                    <groupId>com.bytex.snamp.features</groupId>
+                                    <artifactId>standard</artifactId>
                                     <version>${snamp.version}</version>
                                     <type>kar</type>
                                     <overWrite>true</overWrite>
@@ -137,8 +137,8 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>core-features</artifactId>
+            <groupId>com.bytex.snamp.features</groupId>
+            <artifactId>core</artifactId>
             <version>${snamp.version}</version>
             <type>xml</type>
             <classifier>features</classifier>

@@ -11,7 +11,7 @@ import java.nio.file.Paths;
  * @since 2.0
  */
 enum SnampGroupId {
-    FEATURES("com", "bytex", "snamp");
+    FEATURES("com", "bytex", "snamp", "features");
 
     private final String[] relativePath;
 

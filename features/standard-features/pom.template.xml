@@ -11,7 +11,8 @@
     <modelVersion>4.0.0</modelVersion>
     <name>SNAMP Standard Features</name>
     <description>SNAMP Standard Features</description>
-    <artifactId>standard-features</artifactId>
+    <groupId>com.bytex.snamp.features</groupId>
+    <artifactId>standard</artifactId>
     <packaging>kar</packaging>
     <version>${snamp.version}</version>
     <build>

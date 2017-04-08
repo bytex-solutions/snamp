@@ -8,6 +8,7 @@
     <version>2.0.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
+  <groupId>com.bytex.snamp.features</groupId>
   <artifactId>wrapped-libs-for-tests</artifactId>
   <packaging>kar</packaging>
   <name>Wrapped Libraries</name>
