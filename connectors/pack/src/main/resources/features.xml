@@ -18,13 +18,13 @@
     <feature name="snamp-composite-connector" description="Composite Connector Karaf Feature" version="${snamp.connector.composite.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
-        <bundle start="true">mvn:com.bytex.snamp/composite-connector/${project.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/composite-connector/${snamp.connector.composite.version}</bundle>
     </feature>
 
     <feature name="snamp-groovy-connector" description="Groovy Resource Karaf Feature" version="${snamp.connector.groovy.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
-        <bundle start="true">mvn:com.bytex.snamp/groovy-connector/${project.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/groovy-connector/${snamp.connector.groovy.version}</bundle>
     </feature>
 
     <feature name="snamp-http-acceptor" description="HTTP Acceptor Karaf Feature" version="${snamp.connector.http.version}" install="auto">
