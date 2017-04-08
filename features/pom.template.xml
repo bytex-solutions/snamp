@@ -17,5 +17,6 @@
         <module>standard-features</module>
         <module>wrapped-libs-for-tests</module>
         <module>connectors-pack</module>
+        <module>gateways-pack</module>
     </modules>
 </project>
