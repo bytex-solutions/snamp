@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>supervisors</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>com.bytex.snamp.supervisors</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>Default Supervisor</name>
     <description>A framework for building custom supervisors</description>
-    <artifactId>default-supervisor</artifactId>
+    <artifactId>default</artifactId>
     <version>${snamp.supervisors.version}</version>
     <packaging>bundle</packaging>
     <build>
