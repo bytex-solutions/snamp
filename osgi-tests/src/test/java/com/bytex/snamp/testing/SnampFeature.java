@@ -32,22 +32,26 @@ public enum SnampFeature {
     MODBUS_CONNECTOR("connectors-pack", "2.0.0", "snamp-default-supervisor", "snamp-modbus-connector"),
     STANDARD_TOOLS("standard-features", "2.0.0", "snamp-management", "snamp-analysis-and-operations", "snamp-web-console");
 
+    private static final String FEATURES_FILE_NAME = "features.xml";
     final String[] featureNames;
+    private final SnampGroupId groupId;
     private final String artifactId;
     final String version;
 
-    SnampFeature(final String artifactId, final String version, final String... featureNames){
+    SnampFeature(final String artifactId, final String version, final String... featureNames) {
         this.artifactId = artifactId;
         this.version = version;
         this.featureNames = Objects.requireNonNull(featureNames);
+        groupId = SnampGroupId.FEATURES;
     }
 
-    private String getArtifactAbsoluteFileName(final String featureFileName){
-        return TestUtils.join(new String[]{artifactId, version, featureFileName}, '-');
+    String getFeatureFile(){
+        final String artifactFileName = TestUtils.join(new String[]{artifactId, version, FEATURES_FILE_NAME}, '-');
+        return TestUtils.join(new String[]{groupId.getAbsolutePath(), artifactId, version, artifactFileName}, '/');
     }
 
-    public String getAbsoluteRepositoryPath(final String repositoryLocation,
-                                            final String featureFileName){
-        return TestUtils.join(new String[]{repositoryLocation, artifactId, version, getArtifactAbsoluteFileName(featureFileName)}, '/');
+    @Override
+    public String toString() {
+        return groupId.toString() + ':' + artifactId;
     }
 }

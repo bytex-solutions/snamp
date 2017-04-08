@@ -1,10 +1,6 @@
 package com.bytex.snamp.testing;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -36,14 +32,5 @@ final class TestUtils {
         }
         while (clazz != null);
         return result;
-    }
-
-    /**
-     * Gets path to the Maven local repository.
-     * @return The path to the Maven local repository.
-     */
-    static Path getMavenLocalRepository() throws MalformedURLException {
-        final String localRepository = System.getProperty("mavenLocalRepository", "");
-        return localRepository.isEmpty() ? null : Paths.get(new File(localRepository).toURI());
     }
 }
