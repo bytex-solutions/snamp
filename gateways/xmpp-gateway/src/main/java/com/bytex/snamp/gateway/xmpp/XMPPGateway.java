@@ -8,8 +8,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import org.jivesoftware.smack.AbstractXMPPConnection;
-import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.initializer.SmackInitializer;
 import org.jivesoftware.smack.java7.Java7SmackInitializer;
@@ -18,8 +16,6 @@ import org.jivesoftware.smack.packet.Presence;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
@@ -73,7 +69,7 @@ final class XMPPGateway extends AbstractGateway {
     }
 
     @Override
-    protected void start(final Map<String, String> parameters) throws AbsentXMPPConfigurationParameterException, IOException, XMPPException, SmackException, GeneralSecurityException {
+    protected void start(final Map<String, String> parameters) throws Exception {
         connection = XMPPGatewayConfigurationProvider.createConnection(parameters);
         connection.connect();
         connection.login();

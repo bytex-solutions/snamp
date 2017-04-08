@@ -17,6 +17,9 @@ final class UnknownCommand extends AbstractCommand {
 
     @Override
     protected Message doCommand(final CommandLine command) {
-        return new Message(String.format("Oops! Unsupported command %s", commandName), Message.Type.error);
+        final Message message = new Message();
+        message.setBody(String.format("Oops! Unsupported command %s", commandName));
+        message.setType(Message.Type.error);
+        return message;
     }
 }

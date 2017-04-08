@@ -26,7 +26,7 @@ final class ExitCommand extends AbstractCommand {
     protected Message doCommand(final CommandLine command) throws CommandException {
         try {
             chatSession.sendMessage("Bye!");
-        } catch (SmackException.NotConnectedException e) {
+        } catch (SmackException.NotConnectedException | InterruptedException e) {
             throw new CommandException(e);
         }
         finally {

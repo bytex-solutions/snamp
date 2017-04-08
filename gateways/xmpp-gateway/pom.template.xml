@@ -15,7 +15,7 @@
     <artifactId>xmpp</artifactId>
     <packaging>bundle</packaging>
     <properties>
-        <smack.version>4.1.0</smack.version>
+        <smack.version>4.2.0</smack.version>
     </properties>
     <build>
         <plugins>

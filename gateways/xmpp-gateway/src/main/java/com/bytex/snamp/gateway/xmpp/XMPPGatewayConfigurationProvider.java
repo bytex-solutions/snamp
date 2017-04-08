@@ -6,7 +6,7 @@ import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription
 import com.bytex.snamp.jmx.DescriptorUtils;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.java7.Java7HostnameVerifier;
+import org.jivesoftware.smack.java7.XmppHostnameVerifier;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 
@@ -79,7 +79,7 @@ public final class XMPPGatewayConfigurationProvider extends ConfigurationEntityD
                 XMPPTCPConnectionConfiguration.builder()
                         .setUsernameAndPassword(userName, password)
                         .setResource("Work")
-                        .setServiceName(domain)
+                        .setXmppDomain(domain)
                         .setPort(port)
                         .setConnectTimeout(connectionTimeout)
                         .setSendPresence(true)
@@ -100,7 +100,7 @@ public final class XMPPGatewayConfigurationProvider extends ConfigurationEntityD
                 builder.setKeystorePath(isNullOrEmpty(keystorePath) ? System.getProperty("javax.net.ssl.keyStore") : keystorePath)
                         .setKeystoreType(isNullOrEmpty(keystoreType) ? KeyStore.getDefaultType() : keystoreType)
                         .setCustomSSLContext(SSLContext.getDefault())
-                        .setHostnameVerifier(new Java7HostnameVerifier());
+                        .setHostnameVerifier(new XmppHostnameVerifier());
             }
         }
         else builder.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
