@@ -214,13 +214,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>com.bytex.snamp.osgi</groupId>
             <artifactId>snmp4j</artifactId>
             <version>${snmp4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>com.bytex.snamp.osgi</groupId>
             <artifactId>sshj</artifactId>
             <version>${sshj.version}</version>
             <scope>test</scope>

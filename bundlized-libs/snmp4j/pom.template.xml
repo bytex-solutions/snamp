@@ -3,10 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.bytex.snamp</groupId>
-        <artifactId>snamp</artifactId>
+        <groupId>com.bytex.snamp.osgi</groupId>
+        <artifactId>bundlized-libs</artifactId>
         <version>2.0.0</version>
-        <relativePath>../../../pom.xml</relativePath>
     </parent>
     <artifactId>snmp4j</artifactId>
     <version>${snmp4j.version}</version>

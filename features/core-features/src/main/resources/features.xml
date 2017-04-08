@@ -74,11 +74,11 @@
     <feature name="snamp-ssh-support" description="Set of Java libraries for SSH" version="${project.version}">
         <feature version="${project.version}" >snamp-security</feature>
         <bundle>mvn:net.i2p.crypto/eddsa/${eddsa.version}</bundle>
-        <bundle>mvn:com.bytex.snamp/sshj/${sshj.version}</bundle>
+        <bundle>mvn:com.bytex.snamp.osgi/sshj/${sshj.version}</bundle>
     </feature>
 
     <feature name="snamp-snmp-support" description="Set of Java libraries for SNMPv2/SNMPv3" version="${project.version}">
-        <bundle>mvn:com.bytex.snamp/snmp4j/${snmp4j.version}</bundle>
+        <bundle>mvn:com.bytex.snamp.osgi/snmp4j/${snmp4j.version}</bundle>
     </feature>
 
     <feature name="snamp-instrumentation" description="SNAMP instrumentation library" version="${snamp.instrumentation.version}">

@@ -43,7 +43,7 @@
       </dependency>
       <dependency>
           <scope>provided</scope>
-          <groupId>com.bytex.snamp</groupId>
+          <groupId>com.bytex.snamp.osgi</groupId>
           <artifactId>snmp4j</artifactId>
           <version>${snmp4j.version}</version>
       </dependency>
