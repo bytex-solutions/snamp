@@ -144,7 +144,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         return new NotificationSettings();
     }
 
-    @Path("/notificationTypes")
+    @Path("/types")
     @Produces(MediaType.APPLICATION_JSON)
     public Set<String> getAvailableNotifications() {
         final NotificationTypeAggregator notificationTypes = new NotificationTypeAggregator();
