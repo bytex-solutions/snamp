@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.attributes.checkers;
 
+import com.bytex.snamp.SpecialUse;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
@@ -17,6 +18,11 @@ public final class ConstantAttributePredicate implements ColoredAttributePredica
 
     public ConstantAttributePredicate(final boolean value){
         this.value = value;
+    }
+
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
+    public ConstantAttributePredicate(){
+        this(false);
     }
 
     @Override

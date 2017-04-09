@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.attributes.checkers;
 
+import com.bytex.snamp.SpecialUse;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
@@ -70,6 +71,7 @@ public final class NumberComparatorPredicate implements ColoredAttributePredicat
         this.value = value;
     }
 
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public NumberComparatorPredicate(){
         this(Operator.EQUAL, Double.NaN);
     }

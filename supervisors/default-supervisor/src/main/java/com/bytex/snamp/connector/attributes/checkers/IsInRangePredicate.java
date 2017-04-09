@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.attributes.checkers;
 
+import com.bytex.snamp.SpecialUse;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
@@ -27,6 +28,7 @@ public final class IsInRangePredicate implements ColoredAttributePredicate {
         this.toInclusive = toInclusive;
     }
 
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public IsInRangePredicate(){
         this(Double.NaN, false, Double.NaN, false);
     }
