@@ -18,6 +18,7 @@
         <bundle>wrap:mvn:org.apache.kafka/kafka-clients/0.8.2.2$Export-Package=org.apache.kafka.*;version="0.8.2.2"</bundle>
         <bundle>mvn:io.zipkin.reporter/zipkin-sender-urlconnection/0.6.9</bundle>
         <bundle>mvn:io.zipkin.reporter/zipkin-sender-kafka08/0.6.9</bundle>
+        <bundle>mvn:com.bytex.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
         <bundle>mvn:com.bytex.snamp.instrumentation/http-reporter/${snamp.instrumentation.version}</bundle>
     </feature>
 </features>
