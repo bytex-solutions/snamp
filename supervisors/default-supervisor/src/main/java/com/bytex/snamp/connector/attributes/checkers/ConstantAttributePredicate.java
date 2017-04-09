@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.attributes.checkers;
 
-import com.bytex.snamp.SpecialUse;
+import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
@@ -14,15 +14,12 @@ import java.util.function.BooleanSupplier;
  */
 @JsonTypeName("constant")
 public final class ConstantAttributePredicate implements ColoredAttributePredicate, BooleanSupplier {
+    private static final String VALUE_PROPERTY = "value";
     private final boolean value;
 
-    public ConstantAttributePredicate(final boolean value){
+    @JsonCreator
+    public ConstantAttributePredicate(@JsonProperty(VALUE_PROPERTY) final boolean value){
         this.value = value;
-    }
-
-    @SpecialUse(SpecialUse.Case.SERIALIZATION)
-    public ConstantAttributePredicate(){
-        this(false);
     }
 
     @Override
@@ -31,7 +28,7 @@ public final class ConstantAttributePredicate implements ColoredAttributePredica
     }
 
     @Override
-    @JsonProperty("value")
+    @JsonProperty(VALUE_PROPERTY)
     public boolean getAsBoolean() {
         return value;
     }
