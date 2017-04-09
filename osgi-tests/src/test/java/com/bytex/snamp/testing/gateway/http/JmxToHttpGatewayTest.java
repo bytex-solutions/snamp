@@ -225,11 +225,6 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
     }
 
     @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
-    @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
         super.beforeStartTest(context);
         beforeCleanupTest(context);

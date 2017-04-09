@@ -122,8 +122,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
      * debugger will be attached.
      * @return {@literal true} to enable debugging; otherwise, {@literal false}.
      */
-    protected boolean enableRemoteDebugging(){
-        return false;
+    private static boolean enableRemoteDebugging(){
+        return Boolean.getBoolean("com.bytex.snamp.testing.debug");
     }
 
     private Option[] configureTestingRuntimeImpl() {

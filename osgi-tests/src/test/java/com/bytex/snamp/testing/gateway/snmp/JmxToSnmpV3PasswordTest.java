@@ -189,11 +189,6 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, BigInteger.class));
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void testForTableProperty() throws Exception {
         final SnmpTable table = new AbstractSnmpTable(Boolean.class, Integer.class, String.class) {

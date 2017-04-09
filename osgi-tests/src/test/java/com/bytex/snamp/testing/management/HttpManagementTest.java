@@ -71,11 +71,6 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         mapper = new ObjectMapper();
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return true;
-    }
-
     /**
      * Login with valid credentials.
      *

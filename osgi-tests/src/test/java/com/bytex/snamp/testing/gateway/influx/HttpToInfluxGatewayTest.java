@@ -93,11 +93,6 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
         super.afterCleanupTest(context);
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void measurementTest() throws IOException, InterruptedException, TimeoutException {
         final IntegerMeasurement measurement = StandardMeasurements.usedRAM(100500L);

@@ -24,11 +24,6 @@ import java.util.concurrent.TimeoutException;
  */
 @SnampDependencies({SnampFeature.GROOVY_CONNECTOR, SnampFeature.HTTP_ACCEPTOR})
 public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest {
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void changeTypeTest() throws IOException, TimeoutException, InterruptedException, JMException {
         final String RESOURCE_NAME = "connector";

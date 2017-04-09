@@ -63,11 +63,6 @@ public final class NrdpGatewayTest extends AbstractJmxConnectorTest<TestOpenMBea
         }
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void testIntAttribute() throws Exception {
         final ManagedResourceConnector connector = getManagementConnector();

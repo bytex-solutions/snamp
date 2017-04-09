@@ -316,11 +316,6 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
     }
 
     @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
-    @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
         final GatewayConfiguration gatewayInstance =
                 config.getGateways().getOrAdd("gatewayInst");

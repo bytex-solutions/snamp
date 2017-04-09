@@ -27,11 +27,6 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
     }
 
     @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
-    @Override
     protected ModbusSlave createSlaveDevice() {
         final ModbusSlave result =  ModbusTransportType.TCP.createSlave(3967);
         result.setUnitID(UNIT_ID);

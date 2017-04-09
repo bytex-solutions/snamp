@@ -162,11 +162,6 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, String.class));
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void testForDatePropertyRFC1903HumanReadable() throws IOException, InterruptedException {
         final Calendar cal = Calendar.getInstance();

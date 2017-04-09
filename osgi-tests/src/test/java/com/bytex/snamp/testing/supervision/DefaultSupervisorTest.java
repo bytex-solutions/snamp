@@ -37,11 +37,6 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return true;
-    }
-
     @Test
     public void defaultSupervisorConfigTest() {
         final ConfigurationEntityDescription<SupervisorConfiguration> description =

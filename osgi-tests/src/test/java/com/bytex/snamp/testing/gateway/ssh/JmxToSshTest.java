@@ -70,11 +70,6 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         }
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void integerTest() throws IOException {
         testScalarAttribute("3.0", "42", Objects::equals);

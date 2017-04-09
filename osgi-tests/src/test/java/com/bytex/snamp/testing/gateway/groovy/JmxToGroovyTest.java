@@ -45,11 +45,6 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         return "file:" + getProjectRootDir() + File.separator + "sample-groovy-scripts/";
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void stringAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = DistributedServices.getProcessLocalCommunicator(COMMUNICATION_CHANNEL);

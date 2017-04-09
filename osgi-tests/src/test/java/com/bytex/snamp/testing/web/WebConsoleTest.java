@@ -232,11 +232,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         authenticator = new TestAuthenticator();
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
                                                            final String authenticationToken,
                                                            final Acceptor<? super W, E> testBody,

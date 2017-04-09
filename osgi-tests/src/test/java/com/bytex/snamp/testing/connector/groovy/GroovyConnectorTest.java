@@ -146,9 +146,4 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
                 "groovy.errors.tolerance"
         ));
     }
-
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return true;
-    }
 }

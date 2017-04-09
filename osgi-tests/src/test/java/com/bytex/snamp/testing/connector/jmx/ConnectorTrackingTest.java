@@ -123,11 +123,6 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         return (Boolean)tryStartMethod.invoke(gatewayInstance, parameters);
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void simpleTrackingTest() throws Exception {
         final TestGateway gateway = new TestGateway();

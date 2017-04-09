@@ -252,11 +252,6 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
-    @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("snmp-notif");
         event.setAlternativeName("1.7.1");

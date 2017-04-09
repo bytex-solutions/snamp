@@ -39,11 +39,6 @@ public final class SyslogGatewayTest extends AbstractJmxConnectorTest<TestOpenMB
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void testIntAttribute() throws JMException, IOException, InterruptedException {
         final ManagedResourceConnector connector = getManagementConnector();

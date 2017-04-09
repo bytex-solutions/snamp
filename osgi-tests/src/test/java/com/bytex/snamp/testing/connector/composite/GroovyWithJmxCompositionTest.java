@@ -29,11 +29,6 @@ public final class GroovyWithJmxCompositionTest extends AbstractCompositeConnect
         ));
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     private static String buildConnectionString() {
         return "jmx:=" +
                 AbstractJmxConnectorTest.getConnectionString() +

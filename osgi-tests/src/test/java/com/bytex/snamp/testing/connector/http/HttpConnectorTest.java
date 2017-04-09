@@ -29,11 +29,6 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
                 "HttpAcceptorParser.groovy");
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void testLastValueExtraction2() throws IOException, JMException, InterruptedException {
         final IntegerMeasurement measurement1 = StandardMeasurements.freeRam(41L);

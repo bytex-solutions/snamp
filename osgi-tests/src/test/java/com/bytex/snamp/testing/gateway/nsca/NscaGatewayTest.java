@@ -45,11 +45,6 @@ public final class NscaGatewayTest extends AbstractJmxConnectorTest<TestOpenMBea
         rnd = new Random(42L);
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void testIntAttribute() throws JMException, IOException {
         final ManagedResourceConnector connector = getManagementConnector();

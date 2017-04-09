@@ -43,11 +43,6 @@ public class HttpReporterTest extends AbstractHttpConnectorTest {
     }
 
     @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
-    @Override
     protected void beforeStartTest(final BundleContext context) throws URISyntaxException {
         registry = new MetricRegistry(new HttpReporter("http://localhost:8181", null));
     }

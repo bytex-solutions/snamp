@@ -68,10 +68,6 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
                 EmbeddedADSVerTrunk.PRIVACY_KEY,
                 PrivAES128.ID);
     }
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
 
     @Test
     public void testForStringProperty() throws IOException, InterruptedException {

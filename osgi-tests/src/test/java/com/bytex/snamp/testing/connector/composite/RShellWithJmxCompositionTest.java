@@ -59,11 +59,6 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
         beanInstance = new TestOpenMBean();
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void stringAttributeTest() throws JMException {
         testAttribute("str", TypeToken.of(String.class), "Frank Underwood");

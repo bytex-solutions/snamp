@@ -16,10 +16,6 @@ import java.io.IOException;
  */
 @SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.STANDARD_TOOLS})
 public final class AddRemoveConnectorTest extends AbstractSnampIntegrationTest {
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return true;
-    }
 
     @Test
     public void addRemoveConnectorTest() throws IOException, InterruptedException {

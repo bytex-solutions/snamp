@@ -60,11 +60,6 @@ public class ZipkinConnectorTest extends AbstractZipkinConnectorTest {
         kafka = null;
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
 
     @Test
     public void kafkaTest() throws JMException, InterruptedException {

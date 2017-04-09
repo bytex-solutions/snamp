@@ -12,6 +12,7 @@
   <description>Tests for connectors/gateways</description>
   <properties>
     <exam.version>4.9.1</exam.version>
+    <remote.debugging>false</remote.debugging>
   </properties>
   <dependencies>
     <dependency>
@@ -400,9 +401,19 @@
             <pax.exam.osgi.unresolved.fail>true</pax.exam.osgi.unresolved.fail>
             <mavenLocalRepository>${settings.localRepository}</mavenLocalRepository>
             <com.bytex.snamp.testing.project.dir>${project.parent.basedir}</com.bytex.snamp.testing.project.dir>
+            <com.bytex.snamp.testing.debug>${remote.debugging}</com.bytex.snamp.testing.debug>
           </systemPropertyVariables>
         </configuration>
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>Enable Remote Debugging</id>
+      <activation />
+      <properties>
+        <remote.debugging>true</remote.debugging>
+      </properties>
+    </profile>
+  </profiles>
 </project>

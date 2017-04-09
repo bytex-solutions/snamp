@@ -127,11 +127,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         }
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void adapterSnmpRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(getConnectionString()), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {

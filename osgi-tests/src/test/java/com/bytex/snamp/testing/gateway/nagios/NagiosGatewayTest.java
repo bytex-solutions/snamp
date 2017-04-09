@@ -152,11 +152,6 @@ public final class NagiosGatewayTest extends AbstractJmxConnectorTest<TestOpenMB
     }
 
     @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
-    @Override
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         final GatewayConfiguration nagiosGateway = gateways.getOrAdd(INSTANCE_NAME);
         nagiosGateway.setType(GATEWAY_NAME);

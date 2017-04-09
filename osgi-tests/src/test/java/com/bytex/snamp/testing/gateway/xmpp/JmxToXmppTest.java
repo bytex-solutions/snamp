@@ -75,11 +75,6 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
         serverParameters.put("allowUnsafeCertificate", "true");
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     private void testAttribute(final String attributeID,
                                final String value,
                                final Equator<String> equator) throws Exception{

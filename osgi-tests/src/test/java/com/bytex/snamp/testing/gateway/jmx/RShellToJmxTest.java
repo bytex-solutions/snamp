@@ -66,11 +66,6 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     }
 
     @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
-    @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
         super.beforeStartTest(context);
         beforeCleanupTest(context);

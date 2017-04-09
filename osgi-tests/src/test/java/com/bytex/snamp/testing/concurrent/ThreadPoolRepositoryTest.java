@@ -31,11 +31,6 @@ public final class ThreadPoolRepositoryTest extends AbstractSnampIntegrationTest
     }
 
     @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
-    @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
         config.getThreadPools().getOrAdd(POOL_NAME);
     }

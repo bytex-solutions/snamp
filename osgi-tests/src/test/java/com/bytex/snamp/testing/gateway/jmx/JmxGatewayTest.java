@@ -88,11 +88,6 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
         testJmxAttribute(new Attribute("1.0", "Frank Underwood"));
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void testBooleanProperty() throws BundleException, JMException, IOException {
         testJmxAttribute(new Attribute("2.0", Boolean.TRUE));

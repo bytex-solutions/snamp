@@ -43,11 +43,6 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     }
 
     @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
-    @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         // Linux operation
         attributes.getOrAdd("ms").setAlternativeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));

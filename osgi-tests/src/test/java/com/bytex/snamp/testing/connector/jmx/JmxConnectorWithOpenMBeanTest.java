@@ -140,11 +140,6 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         }
     }
 
-    @Override
-    protected boolean enableRemoteDebugging() {
-        return false;
-    }
-
     @Test
     public void simulateConnectionAbortTest() throws TimeoutException,
             InterruptedException,
