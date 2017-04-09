@@ -7,9 +7,13 @@ import org.codehaus.jackson.node.ArrayNode;
 
 import javax.management.Notification;
 import javax.management.ObjectName;
-import javax.management.openmbean.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.TabularData;
 import java.nio.*;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * @author Roman Sakno
@@ -127,5 +131,16 @@ public final class JsonUtils extends SimpleModule {
         for(int i = 0; i < jsonArray.size(); i++)
             result[i] = (byte) jsonArray.get(i).asInt();
         return result;
+    }
+
+    public static Optional<JsonNode> find(final ArrayNode array, final Predicate<? super JsonNode> filter){
+        for(final JsonNode node: array)
+            if(filter.test(node))
+                return Optional.of(node);
+        return Optional.empty();
+    }
+
+    public static boolean contains(final ArrayNode array, final JsonNode node){
+        return find(array, node::equals).isPresent();
     }
 }

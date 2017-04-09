@@ -19,6 +19,7 @@ import com.bytex.snamp.instrumentation.reporters.http.HttpReporter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.bytex.snamp.json.JsonUtils;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -233,7 +234,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
@@ -411,6 +412,15 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         assertEquals(GROUP_NAME, result.get(0).asText());
         result = httpGet("/health-watcher/groups/status", authenticationToken);
         assertNotNull(result);
+    }
+
+    @Test
+    public void notificationTypesTest() throws IOException{
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        JsonNode result = httpGet("/notifications/types", authenticationToken);
+        assertTrue(result.isArray());
+        assertTrue(result instanceof ArrayNode);
+        assertTrue(JsonUtils.contains((ArrayNode)result, new TextNode(AttributeChangeNotification.ATTRIBUTE_CHANGE)));
     }
 
     @Test
