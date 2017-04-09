@@ -53,7 +53,7 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
                 try {
                     connectorChanged(client, ServiceEvent.REGISTERED);
                 } finally {
-                    client.release(context);
+                    client.close();
                 }
         }
     }
@@ -70,7 +70,7 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
             try {
                 return ArrayUtils.transform(client.getMBeanInfo().getAttributes(), AttributeInformation.class, AttributeInformation::new);
             } finally {
-                client.release(getBundleContext());
+                client.close();
             }
     }
 

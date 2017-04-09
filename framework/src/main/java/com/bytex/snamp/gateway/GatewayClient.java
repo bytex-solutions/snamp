@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.EntityConfiguration;
@@ -9,6 +10,7 @@ import com.bytex.snamp.core.SupportService;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.*;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanFeatureInfo;
 import java.time.Duration;
 import java.util.List;
@@ -25,25 +27,28 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
  * @version 2.0
  * @since 1.0
  */
-public final class GatewayClient extends ServiceHolder<Gateway> {
+public final class GatewayClient extends ServiceHolder<Gateway> implements SafeCloseable {
+    private final BundleContext context;
+
     /**
      * Initializes a new gateway client.
      *
      * @param context    The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
      */
-    public GatewayClient(final BundleContext context, final ServiceReference<Gateway> serviceRef) {
+    public GatewayClient(@Nonnull final BundleContext context, final ServiceReference<Gateway> serviceRef) {
         super(context, serviceRef);
+        this.context = context;
     }
 
-    public static GatewayClient tryCreate(final BundleContext context,
+    public static GatewayClient tryCreate(@Nonnull final BundleContext context,
                                           final String instanceName,
                                           final Duration instanceTimeout) throws TimeoutException, InterruptedException{
         final ServiceReference<Gateway> ref = untilNull(context, instanceName, GatewayClient::getGatewayInstance, instanceTimeout);
         return new GatewayClient(context, ref);
     }
 
-    public static GatewayClient tryCreate(final BundleContext context, final String instanceName) {
+    public static GatewayClient tryCreate(@Nonnull final BundleContext context, final String instanceName) {
         final ServiceReference<Gateway> ref = getGatewayInstance(context, instanceName);
         return ref == null ? null : new GatewayClient(context, ref);
     }
@@ -194,5 +199,13 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     @Override
     public String toString() {
         return getInstanceName();
+    }
+
+    /**
+     * Releases all resources associated with this object.
+     */
+    @Override
+    public void close() {
+        release(context);
     }
 }

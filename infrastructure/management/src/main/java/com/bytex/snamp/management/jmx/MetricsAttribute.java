@@ -44,7 +44,7 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
                 try {
                     return connector.queryObject(MetricsSupport.class);
                 } finally {
-                    connector.release(context);
+                    connector.close();
                 }
         }
     }
@@ -64,7 +64,7 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
                             .cell(METRICS_CELL, SummaryMetricsAttribute.collectMetrics(metrics))
                             .flush();
                 } finally {
-                    connector.release(context);
+                    connector.close();
                 }
         }
         return rows.build();

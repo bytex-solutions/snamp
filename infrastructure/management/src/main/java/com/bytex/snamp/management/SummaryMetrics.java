@@ -46,7 +46,7 @@ public final class SummaryMetrics extends ImmutableMetrics {
                             try {
                                 metrics = connector.queryObject(MetricsSupport.class);
                             } finally {
-                                connector.release(context);
+                                connector.close();
                             }
                         return metrics == null ?
                                 Stream.empty() :

@@ -166,7 +166,7 @@ public enum FeatureType {
                     return true;
                 });
             } finally {
-                client.release(context);
+                client.close();
             }
         return result;
     }

@@ -70,7 +70,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             assertEquals(TEST_RESOURCE_NAME, status.getResourceName());
             assertTrue(status.isCritical());
         } finally {
-            supervisor.release(getTestBundleContext());
+            supervisor.close();
         }
     }
 
@@ -93,7 +93,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             assertEquals(TEST_RESOURCE_NAME, status.getResourceName());
             assertTrue(status.isCritical());
         } finally {
-            supervisor.release(getTestBundleContext());
+            supervisor.close();
         }
     }
 

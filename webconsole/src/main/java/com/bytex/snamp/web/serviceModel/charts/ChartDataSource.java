@@ -53,7 +53,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
             } catch (final JMException e) {
                 throw new WebApplicationException(e);
             } finally {
-                client.release(context); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
+                client.close(); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
             }
 
             for (final Chart chart : charts) {

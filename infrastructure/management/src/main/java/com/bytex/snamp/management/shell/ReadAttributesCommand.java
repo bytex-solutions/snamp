@@ -76,7 +76,7 @@ public final class ReadAttributesCommand extends SnampShellCommand  {
                 else readAttributes(client, attributes, session.getConsole());
                 return null;
             } finally {
-                client.release(getBundleContext());
+                client.close();
             }
     }
 }

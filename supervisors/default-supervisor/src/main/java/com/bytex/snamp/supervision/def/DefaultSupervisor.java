@@ -10,7 +10,6 @@ import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.AbstractSupervisor;
-import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -78,16 +77,15 @@ public class DefaultSupervisor extends AbstractSupervisor {
         final DefaultHealthStatusProvider provider = healthStatusProvider;
         if (provider == null)
             return;
-        final BundleContext context = getBundleContext();
         for (final String resourceName : getResources()) {
-            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName);
             if (client == null)
                 getLogger().info(String.format("Resource %s is missing. Skip health check", resourceName));
             else try {
                 final HealthStatus status = provider.updateStatus(resourceName, client);
                 getLogger().fine(() -> String.format("Health status for resource %s is %s", resourceName, status));
             } finally {
-                client.release(context);
+                client.close();
             }
         }
     }

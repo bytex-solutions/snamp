@@ -40,7 +40,7 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
             final Object attribute = client.getAttribute("DummyAttribute");
             assertTrue(attribute instanceof Integer);
         } finally {
-            client.release(getTestBundleContext());
+            client.close();
         }
         //let's change type of the connector
         final String COMPONENT_NAME = "javaApp";
@@ -71,7 +71,7 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
             final Object attribute = client.getAttribute("longValue");
             assertEquals(42L, attribute);
         } finally {
-            client.release(getTestBundleContext());
+            client.close();
         }
     }
 

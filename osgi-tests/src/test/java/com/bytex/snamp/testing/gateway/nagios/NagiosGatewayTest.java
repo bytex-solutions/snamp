@@ -143,11 +143,12 @@ public final class NagiosGatewayTest extends AbstractJmxConnectorTest<TestOpenMB
     @Test
     public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final GatewayClient client = GatewayClient.tryCreate(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
+        assertNotNull(client);
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("path") instanceof String &&
                     bindingInfo.getProperty(Gateway.FeatureBindingInfo.MAPPED_TYPE) instanceof String));
         } finally {
-            client.release(getTestBundleContext());
+            client.close();
         }
     }
 

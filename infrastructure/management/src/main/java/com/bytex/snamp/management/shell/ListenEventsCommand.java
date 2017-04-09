@@ -116,7 +116,7 @@ public final class ListenEventsCommand extends SnampShellCommand {
                         session.getConsole());
                 return null;
             } finally {
-                client.release(getBundleContext());
+                client.close();
             }
     }
 }

@@ -205,7 +205,7 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
             try {
                 acceptor.accept(client.getService());
             } finally {
-                client.release(context);
+                client.close();
             }
     }
 

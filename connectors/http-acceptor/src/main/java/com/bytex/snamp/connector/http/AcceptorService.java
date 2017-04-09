@@ -83,7 +83,7 @@ public final class AcceptorService {
                 final String connectorType = client.getConnectorType();
                 if (Objects.equals(httpAcceptorType, connectorType))
                     sources.add(resourceName);
-                client.release(context);
+                client.close();
             }
         }
         final String responseBody = String.format("HTTP Acceptor, version=%s, sources=%s", version, sources);
@@ -130,7 +130,7 @@ public final class AcceptorService {
             } catch (final Exception e) {
                 response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString()).build();
             } finally {
-                client.release(getBundleContext());
+                client.close();
             }
         return response;
     }

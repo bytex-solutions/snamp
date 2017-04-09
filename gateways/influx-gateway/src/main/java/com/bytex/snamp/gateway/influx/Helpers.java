@@ -39,7 +39,7 @@ final class Helpers {
             try {
                 return client.getProperties(Helpers::propertyFilter, Objects::toString);
             } finally {
-                client.release(context);
+                client.close();
             }
     }
 

@@ -132,7 +132,7 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
                             try {
                                 removeResource(client);
                             } finally {
-                                client.release(context);
+                                client.close();
                             }
                     }
                 } finally {
@@ -180,7 +180,7 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
                         try {
                             addResource(client);
                         } finally {
-                            client.release(context);
+                            client.close();
                         }
                 }
                 start(newConfiguration);

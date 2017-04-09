@@ -144,7 +144,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
             try {
                 return client.getConfiguration();
             } finally {
-                client.release(context);
+                client.close();
             }
     }
 

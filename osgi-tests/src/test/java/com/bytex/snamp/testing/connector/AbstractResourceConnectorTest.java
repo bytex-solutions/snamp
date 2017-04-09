@@ -82,7 +82,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     public static void waitForConnector(final Duration timeout,
                                   final String resourceName,
                                   final BundleContext context) throws TimeoutException, InterruptedException {
-        ManagedResourceConnectorClient.tryCreate(context, resourceName, timeout).release(context);
+        ManagedResourceConnectorClient.tryCreate(context, resourceName, timeout).close();
     }
 
     public static void waitForNoConnector(final Duration timeout,
@@ -93,7 +93,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
             if (client == null)
                 return false;
             else {
-                client.release(context);
+                client.close();
                 return true;
             }
         }, timeout);
