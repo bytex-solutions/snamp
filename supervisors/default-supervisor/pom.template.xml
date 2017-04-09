@@ -38,7 +38,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>snamp-${project.artifactId}-supervisor</Bundle-SymbolicName>
                         <Export-Package>
                             com.bytex.snamp.connector.health.triggers;
                             com.bytex.snamp.connector.attributes.checkers;

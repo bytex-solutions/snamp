@@ -100,7 +100,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     private static final String JMX_CONNECTOR_TYPE = "jmx";
     private static final String HTTP_ACCEPTOR_TYPE = "http";
 
-    private static final String ADAPTER_NAME = "http";
     private static final String TEST_PARAMETER = "testParameter";
 
     private static final String FIRST_BEAN_NAME = BEAN_NAME + "_1";
@@ -234,7 +233,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
@@ -560,12 +559,12 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        beanMap.entrySet().forEach(entry -> {
+        beanMap.forEach((key, value) -> {
             try {
-                if(mbs.isRegistered(entry.getKey())) {
-                    mbs.unregisterMBean(entry.getKey());
+                if (mbs.isRegistered(key)) {
+                    mbs.unregisterMBean(key);
                 } else {
-                    mbs.registerMBean(entry.getValue(), entry.getKey());
+                    mbs.registerMBean(value, key);
                 }
             } catch (final JMException e) {
                 fail(e.getMessage());
@@ -603,15 +602,15 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startConnectors(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, () -> {
-            GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(HTTP_ACCEPTOR_TYPE, () -> {
+            GatewayActivator.enableGateway(context, HTTP_ACCEPTOR_TYPE);
             return null;
         }, Duration.ofSeconds(30));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, HTTP_ACCEPTOR_TYPE);
         stopConnectors(context);
     }
 
@@ -631,13 +630,13 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     private void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         GatewayConfiguration adapter = gateways.getOrAdd(ADAPTER_INSTANCE_NAME);
-        adapter.setType(ADAPTER_NAME);
+        adapter.setType(HTTP_ACCEPTOR_TYPE);
         adapter.put(TEST_PARAMETER, "parameter");
         adapter.put("socketTimeout", "5000");
 
         // second instance of gateways for better console default content (dummyTest support)
         adapter = gateways.getOrAdd("new_http_adapter");
-        adapter.setType(ADAPTER_NAME);
+        adapter.setType(HTTP_ACCEPTOR_TYPE);
         adapter.put(TEST_PARAMETER, "parameter");
         adapter.put("socketTimeout", "5000");
     }

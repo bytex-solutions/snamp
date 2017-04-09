@@ -31,7 +31,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>snamp-${project.artifactId}-connector</Bundle-SymbolicName>
                         <Export-Package>com.bytex.snamp.connector.dataStream.*</Export-Package>
                     </instructions>
                 </configuration>
