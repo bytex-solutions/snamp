@@ -409,7 +409,7 @@
   </build>
   <profiles>
     <profile>
-      <id>Enable Remote Debugging</id>
+      <id>Remote Debug</id>
       <activation />
       <properties>
         <remote.debugging>true</remote.debugging>
