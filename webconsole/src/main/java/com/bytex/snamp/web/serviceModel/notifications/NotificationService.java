@@ -23,6 +23,7 @@ import javax.management.ListenerNotFoundException;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import javax.management.NotificationListener;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -146,6 +147,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
 
     @Path("/types")
     @Produces(MediaType.APPLICATION_JSON)
+    @GET
     public Set<String> getAvailableNotifications() {
         final NotificationTypeAggregator notificationTypes = new NotificationTypeAggregator();
         final BundleContext context = getBundleContext();
