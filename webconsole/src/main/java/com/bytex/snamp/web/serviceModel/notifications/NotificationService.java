@@ -1,5 +1,8 @@
 package com.bytex.snamp.web.serviceModel.notifications;
 
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
@@ -17,10 +20,16 @@ import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
 import javax.management.ListenerNotFoundException;
+import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,6 +54,20 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         @JsonSerialize(using = NotificationSerializer.class)
         public Notification getNotification(){
             return notification;
+        }
+    }
+
+    private static final class NotificationTypeAggregator extends HashSet<String> implements Acceptor<NotificationSupport, ExceptionPlaceholder>{
+        private static final long serialVersionUID = 2963785216575253227L;
+
+        NotificationTypeAggregator(){
+            super(30);
+        }
+
+        @Override
+        public void accept(final NotificationSupport notifications) {
+            for (final MBeanNotificationInfo notificationInfo : notifications.getNotificationInfo())
+                Collections.addAll(this, notificationInfo.getNotifTypes());
         }
     }
 
@@ -110,7 +133,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
                 try {
                     addNotificationListener(client);
                 } finally {
-                    client.release(context);
+                    client.close();
                 }
         }
     }
@@ -119,6 +142,23 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
     @Override
     protected NotificationSettings createUserData() {
         return new NotificationSettings();
+    }
+
+    @Path("/notificationTypes")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<String> getAvailableNotifications() {
+        final NotificationTypeAggregator notificationTypes = new NotificationTypeAggregator();
+        final BundleContext context = getBundleContext();
+        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
+            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+            if (client != null)
+                try {
+                    Aggregator.queryAndAccept(client, NotificationSupport.class, notificationTypes);
+                } finally {
+                    client.close();
+                }
+        }
+        return notificationTypes;
     }
 
     private void handleNotification(final WebConsoleSession session, final NotificationSource sender, final Notification notification) {
