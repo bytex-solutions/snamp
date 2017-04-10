@@ -16,5 +16,6 @@
     <description>Pack of standard SNAMP supervisors</description>
     <modules>
         <module>default-supervisor</module>
+        <module>openstack-supervisor</module>
     </modules>
 </project>

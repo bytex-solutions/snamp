@@ -33,6 +33,7 @@
     <sshj.version>0.18.0</sshj.version>
     <netty.version>3.10.6.Final</netty.version>
     <orientdb.version>2.2.17</orientdb.version>
+    <opestack4j.version>3.0.3</opestack4j.version>
       <jsr305.version>3.0.1</jsr305.version>
     <concurrentlinkedhashmap.version>1.4.2</concurrentlinkedhashmap.version>
       <!--Versioning of SNAMP Components-->

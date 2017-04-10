@@ -138,17 +138,18 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
     }
 
+    //do not change to private class due to bug with lambda expressions in Java
     public static abstract class TypedComponentDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
+        private static final long serialVersionUID = 4377144410734844053L;
         private final String componentTypeHolder;
 
-        TypedComponentDescriptor(final String systemName, @Nonnull final String componentType){
+        TypedComponentDescriptor(final String componentTypeHolder, @Nonnull final String systemName) {
             super(2);
-            componentTypeHolder = componentType;
-            put(componentType, systemName);
+            put(this.componentTypeHolder = componentTypeHolder, systemName);
         }
 
         public final String getType(){
-            return componentTypeHolder;
+            return getOrDefault(componentTypeHolder, "");
         }
 
         final BundleContext getItselfContext(){
