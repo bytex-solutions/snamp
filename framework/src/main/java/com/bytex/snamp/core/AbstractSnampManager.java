@@ -17,10 +17,7 @@ import com.bytex.snamp.gateway.GatewayFilterBuilder;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
@@ -141,7 +138,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
     }
 
-    private static abstract class TypedComponentDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
+    public static abstract class TypedComponentDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
         private final String componentTypeHolder;
 
         TypedComponentDescriptor(final String systemName, @Nonnull final String componentType){
@@ -151,7 +148,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
 
         public final String getType(){
-            return get(componentTypeHolder);
+            return componentTypeHolder;
         }
 
         final BundleContext getItselfContext(){

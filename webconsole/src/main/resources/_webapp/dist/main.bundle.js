@@ -84772,6 +84772,7 @@ var ApiClient = (function () {
             window.location.href = "login.html?tokenExpired=true";
         }
         else {
+            console.log("Error occured: ", error);
             return Observable_1.Observable.empty();
         }
     };
