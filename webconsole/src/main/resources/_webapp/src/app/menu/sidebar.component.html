@@ -35,12 +35,6 @@
               <li><a (click)="newDashboard()">+ New dashboard</a></li>
             </ul>
           </li>
-          <li><a id="watchersli" (click)="anchorClicked($event)"><i class="fa fa-eye"></i> Watchers<span id="watcherschevron" class="fa fa-chevron-down"></span></a>
-            <ul class="nav child_menu">
-              <li routerLinkActive="activeLi"  [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Setup</a></li>
-              <li routerLinkActive="activeLi"  [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Statuses</a></li>
-            </ul>
-          </li>
           <li><a id="homeli" (click)="anchorClicked($event)"><i class="fa fa-home"></i> Configure<span id="homechevron" class="fa fa-chevron-down"></span></a>
             <ul class="nav child_menu">
               <li routerLinkActive="activeLi"><a routerLink="gateways" routerLinkActive="active">Gateways</a></li>
@@ -49,10 +43,12 @@
               <li routerLinkActive="activeLi"><a routerLink="snampcfg" routerLinkActive="active">SNAMP components</a></li>
               <li routerLinkActive="activeLi"><a routerLink="logview" routerLinkActive="active">Log view</a></li>
               <li routerLinkActive="activeLi"><a routerLink="configuration" routerLinkActive="active">Save/restore</a></li>
+              <li routerLinkActive="activeLi"  [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Supervisor - Health statuses</a></li>
             </ul>
           </li>
           <li><a id="analysisli" (click)="anchorClicked($event)"><i class="fa fa-search "></i> Analysis<span id="analysischevron" class="fa fa-chevron-down"></span></a>
             <ul class="nav child_menu">
+              <li routerLinkActive="activeLi"  [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Healt statuses</a></li>
               <li *ngFor="let _view of views"
                   routerLinkActive="activeLi">
                 <a [routerLink]="['view', _view]" routerLinkActive="active">
