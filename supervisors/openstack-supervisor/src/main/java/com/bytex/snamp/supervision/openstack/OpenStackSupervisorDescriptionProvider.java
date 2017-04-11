@@ -2,6 +2,7 @@ package com.bytex.snamp.supervision.openstack;
 
 import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.supervision.def.DefaultSupervisorConfigurationDescriptionProvider;
+import org.openstack4j.api.client.CloudProvider;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -18,7 +19,11 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
 
     private static final String USER_NAME_PARAM = "userName";
     private static final String PASSWORD_PARAM = "password";
+    private static final String ENDPOINT_PARAM = "api-endpoint";
     private static final String KEYSTONE_VER_PARAM = "keystone";
+    private static final String CLOUD_PROVIDER_PARAM = "cloudProvider";
+    private static final String DOMAIN_PARAM = "domain";
+    private static final String PROJECT_PARAM = "project";    //project name or tenant name
 
     private static final LazyStrongReference<OpenStackSupervisorDescriptionProvider> INSTANCE = new LazyStrongReference<>();
 
@@ -56,5 +61,29 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
     String parsePassword(final Map<String, String> configuration) throws OpenStackAbsentConfigurationParameterException {
         return getValue(configuration, PASSWORD_PARAM, Function.identity())
                 .orElseThrow(() -> new OpenStackAbsentConfigurationParameterException(PASSWORD_PARAM));
+    }
+
+    String parseApiEndpoint(final Map<String, String> configuration) throws OpenStackAbsentConfigurationParameterException {
+        return getValue(configuration, ENDPOINT_PARAM, Function.identity())
+                .orElseThrow(() -> new OpenStackAbsentConfigurationParameterException(ENDPOINT_PARAM));
+    }
+
+    CloudProvider parseCloudProvider(final Map<String, String> configuration){
+        switch (configuration.getOrDefault(CLOUD_PROVIDER_PARAM, "").toLowerCase()){
+            case "rackspace":
+                return CloudProvider.RACKSPACE;
+            case "hpcloud":
+                return CloudProvider.HPCLOUD;
+            default:
+                return CloudProvider.UNKNOWN;
+        }
+    }
+
+    String parseDomain(final Map<String, String> configuration){
+        return configuration.getOrDefault(DOMAIN_PARAM, "");
+    }
+
+    String parseProject(final Map<String, String> configuration){
+        return configuration.getOrDefault(PROJECT_PARAM, "");
     }
 }
