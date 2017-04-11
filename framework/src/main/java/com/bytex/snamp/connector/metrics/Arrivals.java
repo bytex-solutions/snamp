@@ -11,7 +11,7 @@ public interface Arrivals extends RatedTimer {
 
     double getInstantAvailability();
 
-    long getChannels();
+    int getChannels();
 
     /**
      * Gets ratio between summary duration of all requests and server uptime.

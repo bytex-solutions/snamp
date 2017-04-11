@@ -185,8 +185,8 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
         return getFieldIfPresent(descriptor, RANGE_END_PARAM, DataStreamConnectorConfigurationDescriptionProvider::objToDuration, DSConnectorAbsentConfigurationParameterException::new);
     }
 
-    static long parseChannels(final AttributeDescriptor descriptor){
-        return getField(descriptor, CHANNELS_PARAM, Convert::toLong).orElse(1L);
+    static int parseChannels(final AttributeDescriptor descriptor){
+        return getField(descriptor, CHANNELS_PARAM, Convert::toInt).orElse(1);
     }
 
     public SyntheticAttributeFactory parseGaugeType(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException, ParseException {
