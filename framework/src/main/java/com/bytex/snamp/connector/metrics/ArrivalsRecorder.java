@@ -64,8 +64,10 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
     }
 
     private static double fact(long i) {
-        if(i > 170)     //170! is the maximum factorial value for DOUBLE data type
+        if (i > 170)     //170! is the maximum factorial value for DOUBLE data type
             return Double.POSITIVE_INFINITY;
+        else if (i < 2)
+            return 1D;
         double result = 1D;
         while (i > 1)
             result *= i--;
