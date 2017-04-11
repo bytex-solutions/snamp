@@ -189,7 +189,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
         //handback is always of type NotificationSource. See addNotificationListener
-        if (handback instanceof NotificationSource)
+        if (handback instanceof NotificationSource && isInitialized())
             handleNotification((NotificationSource) handback, notification);
     }
 
