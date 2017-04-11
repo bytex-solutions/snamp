@@ -90,7 +90,7 @@ public enum Severity {
      */
     public static Severity resolve(final int value){
         for(final Severity sev: ALL_VALUES)
-            if(sev.level == value)
+            if(sev.getLevel() == value)
                 return sev;
         return UNKNOWN;
     }

@@ -24,6 +24,7 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
     private static final String CLOUD_PROVIDER_PARAM = "cloudProvider";
     private static final String DOMAIN_PARAM = "domain";
     private static final String PROJECT_PARAM = "project";    //project name or tenant name
+    private static final String ELASTMAN_PARAM = "elasticityManagement";
 
     private static final LazyStrongReference<OpenStackSupervisorDescriptionProvider> INSTANCE = new LazyStrongReference<>();
 
@@ -85,5 +86,9 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
 
     String parseProject(final Map<String, String> configuration){
         return configuration.getOrDefault(PROJECT_PARAM, "");
+    }
+
+    boolean isElasticityManagementEnabled(final Map<String, String> configuration) {
+        return getValue(configuration, ELASTMAN_PARAM, Boolean::parseBoolean).orElse(false);
     }
 }

@@ -50,6 +50,7 @@ final class OpenStackSupervisor extends DefaultSupervisor {
             final String message = String.format("OpenStack installation %s doesn't support Compute service. Supervisor for group %s is not started", openStackClient.getEndpoint(), groupName);
             throw new OS4JException(message);
         }
+        final boolean enableElastMan = parser.isElasticityManagementEnabled(configuration);
         super.start(configuration);
     }
 
