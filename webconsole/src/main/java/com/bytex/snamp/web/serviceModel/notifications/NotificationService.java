@@ -6,11 +6,13 @@ import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.NotificationSerializer;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.osgi.framework.BundleContext;
@@ -47,12 +49,21 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
     public final class NotificationMessage extends WebConsoleServiceMessage{
         private static final long serialVersionUID = -9189834497935677635L;
         private final Notification notification;
+        private final Severity severity;
 
-        private NotificationMessage(final Notification notification) {
-            this.notification = Objects.requireNonNull(notification);
+        private NotificationMessage(@Nonnull final Notification notification, @Nonnull final Severity severity) {
+            this.notification = notification;
+            this.severity = severity;
+        }
+
+        @JsonProperty
+        @JsonSerialize(using = SeveritySerializer.class)
+        public Severity getSeverity() {
+            return severity;
         }
 
         @JsonSerialize(using = NotificationSerializer.class)
+        @JsonProperty
         public Notification getNotification(){
             return notification;
         }
@@ -166,8 +177,9 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
     private void handleNotification(final WebConsoleSession session, final NotificationSource sender, final Notification notification) {
         notification.setSource(sender.getResourceName());
         final NotificationSettings settings = getUserData(session);
-        if (settings.isNotificationEnabled(sender, notification))
-            session.sendMessage(new NotificationMessage(notification));
+        final Severity severity = sender.getSeverity(notification);
+        if (settings.isNotificationEnabled(notification, severity))
+            session.sendMessage(new NotificationMessage(notification, severity));
     }
 
     private void handleNotification(final NotificationSource sender, final Notification notification) {

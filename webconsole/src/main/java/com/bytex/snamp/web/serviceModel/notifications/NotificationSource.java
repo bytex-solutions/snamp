@@ -1,6 +1,8 @@
 package com.bytex.snamp.web.serviceModel.notifications;
 
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.Severity;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
@@ -17,11 +19,12 @@ final class NotificationSource {
         this.notificationSupport = support;
     }
 
-    String getResourceName(){
-        return resourceName;
+    Severity getSeverity(final Notification notification) {
+        final MBeanNotificationInfo metadata = notificationSupport.getNotificationInfo(notification.getType());
+        return metadata == null ? Severity.UNKNOWN : NotificationDescriptor.getSeverity(metadata);
     }
 
-    MBeanNotificationInfo getNotificationMetadata(final Notification notification){
-        return notificationSupport.getNotificationInfo(notification.getType());
+    String getResourceName() {
+        return resourceName;
     }
 }

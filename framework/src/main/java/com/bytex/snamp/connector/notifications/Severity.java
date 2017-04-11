@@ -13,11 +13,6 @@ import java.util.Objects;
  */
 public enum Severity {
     /**
-     * Severity is unknown.
-     */
-    UNKNOWN(-1, "unknown"),
-
-    /**
      * A "panic" condition usually affecting multiple apps/servers/sites.
      * At this level it would usually notify all tech staff on call.
      */
@@ -62,7 +57,12 @@ public enum Severity {
     /**
      * Info useful to developers for debugging the application, not useful during operations.
      */
-    DEBUG(7, "debug");
+    DEBUG(7, "debug"),
+
+    /**
+     * Severity is unknown.
+     */
+    UNKNOWN(Integer.MAX_VALUE, "unknown");
 
     private static final ImmutableSortedSet<Severity> ALL_VALUES = ImmutableSortedSet.copyOf(values());
     private final int level;
@@ -77,7 +77,7 @@ public enum Severity {
      * Gets severity level.
      * @return The severity level.
      */
-    public int getLevel(){
+    public final int getLevel(){
         return level;
     }
 
@@ -96,38 +96,43 @@ public enum Severity {
 
     public static Severity resolve(String value) {
         value = value.toLowerCase();
-        for(final Severity severity: ALL_VALUES)
-            if(Objects.equals(severity.toString(), value))
-                return severity;
         switch (value) {
             case "0": //jmx severity level
             case "emerg":
-                return Severity.PANIC;
+                return PANIC;
             case "1": //jmx severity level
-                return Severity.ALERT;
+                return ALERT;
             case "2": //jmx severity level
             case "crit":
-                return Severity.CRITICAL;
+                return CRITICAL;
             case "3": //jmx severity level
             case "err":
-                return Severity.ERROR;
+                return ERROR;
             case "4": //jmx severity level
-                return Severity.WARNING;
+                return WARNING;
             case "5": //jmx severity level
-                return Severity.NOTICE;
+                return NOTICE;
             case "6": //jmx severity level
             case "info":
-                return Severity.INFO;
+                return INFO;
             case "7": //jmx severity level
-                return Severity.DEBUG;
+                return DEBUG;
             case "": //jmx severity level
+                return UNKNOWN;
             default:
-                return Severity.UNKNOWN;
+                for (final Severity severity : ALL_VALUES)
+                    if (Objects.equals(severity.toString(), value))
+                        return severity;
         }
+        return UNKNOWN;
+    }
+
+    public final boolean isAllowed(final Severity actual){
+        return compareTo(actual) >= 0;
     }
 
     @Override
-    public String toString(){
+    public final String toString(){
         return strval;
     }
 }

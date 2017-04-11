@@ -16,7 +16,7 @@ public class SyntheticNotificationInfo extends AbstractNotificationInfo implemen
     private static final long serialVersionUID = -3224023906663012968L;
     private NotificationFilter filter;
 
-    protected SyntheticNotificationInfo(final String notifType, final Class<? extends Notification> notificationType, final String description, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
+    SyntheticNotificationInfo(final String notifType, final Class<? extends Notification> notificationType, final String description, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
         super(notifType, description, notificationType, descriptor);
         filter = n -> true;
     }

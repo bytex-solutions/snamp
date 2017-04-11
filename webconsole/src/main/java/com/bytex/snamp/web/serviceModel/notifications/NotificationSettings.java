@@ -20,13 +20,11 @@ import java.util.Set;
 @JsonTypeName("notificationSettings")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 public final class NotificationSettings {
-    private Severity severity = Severity.NOTICE;
+    private Severity severity = Severity.WARNING;
     private final Set<String> notificationTypes = new HashSet<>();
 
-    boolean isNotificationEnabled(final NotificationSource source, final Notification notification) {
-        final MBeanNotificationInfo metadata = source.getNotificationMetadata(notification);
-        final Severity actualSeverity = metadata == null ? Severity.UNKNOWN : NotificationDescriptor.getSeverity(metadata);
-        return actualSeverity.compareTo(severity) <= 0 && (notificationTypes.isEmpty() || notificationTypes.contains(notification.getType()));
+    boolean isNotificationEnabled(final Notification notification, final Severity severity) {
+        return this.severity.isAllowed(severity) && (notificationTypes.isEmpty() || notificationTypes.contains(notification.getType()));
     }
 
     @JsonProperty("notificationTypes")

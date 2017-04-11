@@ -78,18 +78,18 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
     @Override
     protected SyntheticNotificationInfo connectNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
         final SyntheticNotificationInfo result;
-        switch (metadata.getName(notifType)){
+        switch (metadata.getName(notifType)) {
             case AttributeChangeNotification.ATTRIBUTE_CHANGE:
-                result = new SyntheticNotificationInfo(notifType, AttributeChangeNotification.class, "Occurs when one of registered attribute will be changed", metadata);
+                result = new AttributeChangeNotificationInfo(metadata);
                 break;
             case TimeMeasurementNotification.TYPE:
-                result = new SyntheticNotificationInfo(notifType, TimeMeasurementNotification.class, "Occurs when time measurement will be supplied", metadata);
+                result = new TimeMeasurementNotificationInfo(metadata);
                 break;
             case SpanNotification.TYPE:
-                result = new SyntheticNotificationInfo(notifType, SpanNotification.class, "Occurs when span will be occurred", metadata);
+                result = new SpanNotificationInfo(metadata);
                 break;
             case ValueMeasurementNotification.TYPE:
-                result = new SyntheticNotificationInfo(notifType, ValueMeasurementNotification.class, "Occurs when instant measurement will be supplied", metadata);
+                result = new ValueMeasurementNotificationInfo(metadata);
                 break;
             default:
                 result = new SyntheticNotificationInfo(notifType, metadata);
