@@ -1,7 +1,6 @@
 import { AbstractNotification } from "./abstract.notification";
 
 export class HealthStatusNotification extends AbstractNotification {
-
     htmlDetails(): string {
         return undefined;
     }
@@ -11,7 +10,5 @@ export class HealthStatusNotification extends AbstractNotification {
     }
 
     fillFromJson(json: any): void {
-        return undefined;
     }
-
 }

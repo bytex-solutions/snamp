@@ -1,8 +1,7 @@
-import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
-import { SnampLog, SnampLogService } from '../services/app.logService';
+import { SnampLogService } from '../services/app.logService';
 
 import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
@@ -21,8 +20,7 @@ export class SnampCfgComponent implements OnInit {
   constructor(apiClient: ApiClient,
               overlay: Overlay,
               vcRef: ViewContainerRef,
-              private modal: Modal,
-              private _snampLogService:SnampLogService) {
+              private modal: Modal) {
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
    }

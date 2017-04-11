@@ -37547,10 +37547,9 @@ exports.GatewaysComponent = GatewaysComponent;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
 var SnampLogViewComponent = (function () {
-    function SnampLogViewComponent(apiClient, _snampLogService) {
+    function SnampLogViewComponent(_snampLogService) {
         this._snampLogService = _snampLogService;
         this.rows = [];
         this.settings = {
@@ -37580,7 +37579,6 @@ var SnampLogViewComponent = (function () {
                 perPage: 8
             }
         };
-        this.http = apiClient;
     }
     SnampLogViewComponent.prototype.ngOnInit = function () {
         var _this = this;
@@ -37602,10 +37600,10 @@ var SnampLogViewComponent = (function () {
             moduleId: module.i,
             template: __webpack_require__("./src/app/configuration/templates/snamplogview.html")
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _b) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _a) || Object])
     ], SnampLogViewComponent);
     return SnampLogViewComponent;
-    var _a, _b;
+    var _a;
 }());
 exports.SnampLogViewComponent = SnampLogViewComponent;
 
@@ -38077,13 +38075,11 @@ exports.RGroupsComponent = RGroupsComponent;
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
-var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 var SnampCfgComponent = (function () {
-    function SnampCfgComponent(apiClient, overlay, vcRef, modal, _snampLogService) {
+    function SnampCfgComponent(apiClient, overlay, vcRef, modal) {
         this.modal = modal;
-        this._snampLogService = _snampLogService;
         this.components = [];
         this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
@@ -38154,10 +38150,10 @@ var SnampCfgComponent = (function () {
             template: __webpack_require__("./src/app/configuration/templates/snampcfg.html"),
             styles: [__webpack_require__("./src/app/configuration/templates/css/snampcfg.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _e) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object])
     ], SnampCfgComponent);
     return SnampCfgComponent;
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d;
 }());
 exports.SnampCfgComponent = SnampCfgComponent;
 var SnampComponent = (function () {

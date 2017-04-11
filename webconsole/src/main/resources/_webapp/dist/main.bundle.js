@@ -84150,6 +84150,7 @@ __webpack_require__("./node_modules/pnotify/src/pnotify.buttons.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.desktop.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var index_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
+var factory_1 = __webpack_require__("./src/app/services/model/factory.ts");
 var App = (function () {
     function App(overlay, title, vcRef, modal, _snampLogService, _router) {
         this.modal = modal;
@@ -84175,7 +84176,7 @@ var App = (function () {
             .map(function (msg) { console.log(msg); return JSON.parse(msg.data); })
             .filter(function (msg) { return msg['@messageType'] == 'log'; })
             .subscribe(function (msg) {
-            var _log = app_logService_1.SnampLog.makeFromJson(msg);
+            var _log = factory_1.Factory.makeFromJson(msg);
             _this._snampLogService.pushLog(_log);
             // do not show notifications in case we are inside of snamp configuration (there is a table with notifications)
             if (_this._router.url.indexOf('/snampcfg') < 0) {
@@ -87291,7 +87292,7 @@ var TopNavBar = (function () {
         this.modal.alert()
             .size('lg')
             .title("Details for notification")
-            .body(app_logService_1.SnampLog.htmlDetails(logEntry))
+            .body(logEntry.htmlDetails())
             .isBlocking(false)
             .keyboard(27)
             .open();
@@ -87937,13 +87938,10 @@ exports.ViewService = ViewService;
 /***/ },
 
 /***/ "./src/app/services/model/abstract.notification.ts":
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 "use strict";
 "use strict";
-var log_notification_1 = __webpack_require__("./src/app/services/model/log.notification.ts");
-var health_status_notification_1 = __webpack_require__("./src/app/services/model/health.status.notification.ts");
-var resource_notification_1 = __webpack_require__("./src/app/services/model/resource.notification.ts");
 var AbstractNotification = (function () {
     function AbstractNotification() {
         this._id = AbstractNotification.newGuid();
@@ -87989,11 +87987,38 @@ var AbstractNotification = (function () {
         get: function () {
             return this._type;
         },
+        set: function (value) {
+            this._type = value;
+        },
         enumerable: true,
         configurable: true
     });
-    AbstractNotification.fillFromJson = function (_json) {
-        var _notification = undefined;
+    AbstractNotification.newGuid = function () {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    };
+    return AbstractNotification;
+}());
+exports.AbstractNotification = AbstractNotification;
+
+
+/***/ },
+
+/***/ "./src/app/services/model/factory.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var log_notification_1 = __webpack_require__("./src/app/services/model/log.notification.ts");
+var health_status_notification_1 = __webpack_require__("./src/app/services/model/health.status.notification.ts");
+var resource_notification_1 = __webpack_require__("./src/app/services/model/resource.notification.ts");
+var Factory = (function () {
+    function Factory() {
+    }
+    Factory.makeFromJson = function (_json) {
+        var _notification;
         switch (_json['@messageType']) {
             case "log":
                 _notification = new log_notification_1.LogNotification();
@@ -88008,17 +88033,12 @@ var AbstractNotification = (function () {
                 throw new Error("Could not recognize notification of type: " + _json['@messageType']);
         }
         _notification.fillFromJson(_json);
+        _notification.type = _json['@messageType'];
         return _notification;
     };
-    AbstractNotification.newGuid = function () {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    };
-    return AbstractNotification;
+    return Factory;
 }());
-exports.AbstractNotification = AbstractNotification;
+exports.Factory = Factory;
 
 
 /***/ },
@@ -88041,7 +88061,6 @@ var HealthStatusNotification = (function (_super) {
         return undefined;
     };
     HealthStatusNotification.prototype.fillFromJson = function (json) {
-        return undefined;
     };
     return HealthStatusNotification;
 }(abstract_notification_1.AbstractNotification));
@@ -88124,14 +88143,12 @@ var ResourceNotification = (function (_super) {
         _super.apply(this, arguments);
     }
     ResourceNotification.prototype.htmlDetails = function () {
-        return undefined;
+        return "";
     };
     ResourceNotification.prototype.shortDescription = function () {
-        return undefined;
+        return "";
     };
-    ResourceNotification.prototype.fillFromJson = function (json) {
-        return undefined;
-    };
+    ResourceNotification.prototype.fillFromJson = function (json) { };
     return ResourceNotification;
 }(abstract_notification_1.AbstractNotification));
 exports.ResourceNotification = ResourceNotification;

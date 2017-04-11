@@ -3,15 +3,13 @@ import { AbstractNotification } from "./abstract.notification";
 export class ResourceNotification extends AbstractNotification {
 
     htmlDetails(): string {
-        return undefined;
+        return "";
     }
 
     shortDescription(): string {
-        return undefined;
+        return "";
     }
 
-    fillFromJson(json: any): void {
-        return undefined;
-    }
+    fillFromJson(json: any): void {}
 
 }

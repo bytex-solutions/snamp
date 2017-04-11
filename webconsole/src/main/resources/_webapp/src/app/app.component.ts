@@ -1,6 +1,6 @@
 import { Component, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import 'style!css!less!font-awesome-webpack/font-awesome-styles.loader!font-awesome-webpack/font-awesome.config.js';
-import { SnampLog, SnampLogService } from './services/app.logService';
+import { SnampLogService } from './services/app.logService';
 import { Title }  from '@angular/platform-browser';
 
 import { $WebSocket } from 'angular2-websocket/angular2-websocket';
@@ -18,6 +18,8 @@ import {
   TwoButtonPresetBuilder,
   PromptPresetBuilder
 } from 'angular2-modal/plugins/bootstrap/index';
+import {AbstractNotification} from "./services/model/abstract.notification";
+import {Factory} from "./services/model/factory";
 
 
 @Component({
@@ -61,7 +63,7 @@ export class App {
         .filter((msg) => msg['@messageType'] == 'log')
         .subscribe(
           (msg)=> {
-              let _log:SnampLog = SnampLog.makeFromJson(msg);
+              let _log:AbstractNotification = Factory.makeFromJson(msg);
               this._snampLogService.pushLog(_log);
 
               // do not show notifications in case we are inside of snamp configuration (there is a table with notifications)

@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { ApiClient, REST } from '../services/app.restClient';
-import { Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
-import { SnampLog, SnampLogService } from '../services/app.logService';
+import { SnampLogService } from '../services/app.logService';
 
-import { Ng2SmartTableModule, LocalDataSource } from 'ng2-smart-table';
+import { LocalDataSource } from 'ng2-smart-table';
+import {AbstractNotification} from "../services/model/abstract.notification";
 
 @Component({
   moduleId: module.id,
@@ -12,52 +10,48 @@ import { Ng2SmartTableModule, LocalDataSource } from 'ng2-smart-table';
 })
 export class SnampLogViewComponent implements OnInit {
 
-  private http:ApiClient;
-  source: LocalDataSource;
+    source: LocalDataSource;
+    public rows = [];
 
-  public rows = [];
+     public settings = {
+         columns: {
+           level: {
+             title: 'Level'
+           },
+           message: {
+             title: 'Message'
+           },
+           localTime: {
+             title: 'Timestamp',
+             filter: false,
+             sortDirection: 'desc '
+           },
+           shortDetailsHtml: {
+              title: 'Details',
+              type: 'html'
+           }
+        },
+         actions: {
+            add: false,
+            edit: false,
+            delete: false
+         },
+         pager: {
+            perPage: 8
+         }
+     };
 
-  public settings = {
-     columns: {
-       level: {
-         title: 'Level'
-       },
-       message: {
-         title: 'Message'
-       },
-       localTime: {
-         title: 'Timestamp',
-         filter: false,
-         sortDirection: 'desc '
-       },
-       shortDetailsHtml: {
-          title: 'Details',
-          type: 'html'
-       }
-     },
-     actions: {
-        add: false,
-        edit: false,
-        delete: false
-     },
-     pager: {
-        perPage: 8
-     }
-  };
+    constructor(private _snampLogService:SnampLogService) {}
 
-  constructor(apiClient: ApiClient, private _snampLogService:SnampLogService) {
-        this.http = apiClient;
-   }
-
-   ngOnInit() {
+    ngOnInit() {
         this._snampLogService.getLogObs()
-             .subscribe((newLog:SnampLog) => {
+             .subscribe((newLog:AbstractNotification) => {
                   this.source.add(newLog);
                   this.source.refresh();
            });
-   }
+     }
 
-   clearAllLogs() {
+    clearAllLogs() {
       $('#overlay').fadeIn();
       this._snampLogService.clear();
       this.source.empty();

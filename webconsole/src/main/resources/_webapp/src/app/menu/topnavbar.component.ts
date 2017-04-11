@@ -1,6 +1,6 @@
 import { Component, ChangeDetectorRef, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import { CookieService } from 'angular2-cookie/core';
-import { SnampLog, SnampLogService } from '../services/app.logService';
+import { SnampLogService } from '../services/app.logService';
 
 import {
   Modal,
@@ -10,6 +10,7 @@ import {
 } from 'angular2-modal/plugins/bootstrap/index';
 
 import { Overlay } from 'angular2-modal';
+import {AbstractNotification} from "../services/model/abstract.notification";
 
 @Component({
   selector: 'topnav-bar',
@@ -20,7 +21,7 @@ import { Overlay } from 'angular2-modal';
 })
 export class TopNavBar {
 
-    public logs:SnampLog[] = [];
+    public logs:AbstractNotification[] = [];
 
     constructor(overlay: Overlay,
                 vcRef: ViewContainerRef,
@@ -55,17 +56,17 @@ export class TopNavBar {
       this.logs = [];
     }
 
-    clickDetails(logEntry:SnampLog) {
+    clickDetails(logEntry:AbstractNotification) {
        this.modal.alert()
            .size('lg')
            .title("Details for notification")
-           .body(SnampLog.htmlDetails(logEntry))
+           .body(logEntry.htmlDetails())
            .isBlocking(false)
            .keyboard(27)
            .open();
     }
 
-    removeMessage(log:SnampLog) {
+    removeMessage(log:AbstractNotification) {
         var liElement = $("#" + log.id);
         let _thisReference = this;
         liElement.slideUp("slow", function() {
@@ -80,7 +81,7 @@ export class TopNavBar {
 
     ngAfterViewInit() {
        this._snampLogService.getLogObs()
-          .subscribe((newLog:SnampLog) => {
+          .subscribe((newLog:AbstractNotification) => {
             this.logs.unshift(newLog);
             this.cd.detectChanges();
         });
