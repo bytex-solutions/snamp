@@ -1,12 +1,9 @@
 import { Component, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import 'style!css!less!font-awesome-webpack/font-awesome-styles.loader!font-awesome-webpack/font-awesome.config.js';
-import { LocalStorageService } from 'angular-2-local-storage';
 import { SnampLog, SnampLogService } from './app.logService';
-import { ChartService } from './app.chartService';
-import { ViewService } from './app.viewService';
 import { Title }  from '@angular/platform-browser';
 
-import { $WebSocket, WebSocketConfig } from 'angular2-websocket/angular2-websocket';
+import { $WebSocket } from 'angular2-websocket/angular2-websocket';
 import { Router } from '@angular/router';
 
 var PNotify = require("pnotify/src/pnotify.js");
@@ -37,9 +34,7 @@ export class App {
               vcRef: ViewContainerRef,
               private modal: Modal,
               private _snampLogService: SnampLogService,
-              private _router: Router,
-              private _chartService:ChartService,
-              private _viewService:ViewService) {
+              private _router: Router) {
        title.setTitle("SNAMP web console");
        overlay.defaultViewContainer = vcRef;
   }
@@ -62,7 +57,7 @@ export class App {
         {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true});
 
     this.ws.getDataStream()
-        .map((msg) => JSON.parse(msg.data))
+        .map((msg) => { console.log(msg); return JSON.parse(msg.data); })
         .filter((msg) => msg['@messageType'] == 'log')
         .subscribe(
           (msg)=> {
