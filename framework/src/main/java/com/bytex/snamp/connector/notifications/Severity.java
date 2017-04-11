@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.notifications;
 import com.google.common.collect.ImmutableSortedSet;
 
 import java.util.Objects;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Represents severity of the event.
@@ -95,7 +96,7 @@ public enum Severity {
     }
 
     public static Severity resolve(String value) {
-        value = value.toLowerCase();
+        value = nullToEmpty(value).toLowerCase();
         switch (value) {
             case "0": //jmx severity level
             case "emerg":
