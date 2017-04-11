@@ -1,10 +1,10 @@
 import { NgModule }      from '@angular/core';
 import { CommonModule }  from '@angular/common';
-import { ApiClient }     from '../app.restClient';
+import { ApiClient }     from '../services/app.restClient';
 import { TooltipModule } from 'ng2-tooltip';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
-import { PanelComponent } from '../panel.component';
+import { PanelComponent } from '../controls/panel.component';
 import { Routes, RouterModule } from '@angular/router';
 import { ModalModule } from 'angular2-modal';
 import {

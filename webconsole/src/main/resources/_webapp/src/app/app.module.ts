@@ -11,18 +11,18 @@ import { App } from './app.component';
 import { Footer } from './controls/footer.component';
 import { Sidebar } from './menu/sidebar.component';
 import { TopNavBar } from './menu/topnavbar.component';
-import { UsernameComponent } from './app.username';
-import { SnampLogService } from './app.logService';
-import { ChartService } from './app.chartService';
-import { ViewService } from './app.viewService';
+import { UsernameComponent } from './controls/app.username';
+import { SnampLogService } from './services/app.logService';
+import { ChartService } from './services/app.chartService';
+import { ViewService } from './services/app.viewService';
 import { FontAwesomeDirective } from 'ng2-fontawesome';
-import { ApiClient } from './app.restClient'
+import { ApiClient } from './services/app.restClient'
 import { CookieService } from 'angular2-cookie/core';
 import { DropdownModule } from "ng2-dropdown";
 
-import { UiSwitchComponent } from './ui-switch.component';
+import { UiSwitchComponent } from './controls/ui-switch.component';
 
-import { PanelComponent } from './panel.component';
+import { PanelComponent } from './controls/panel.component';
 
 import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './configuration/configuration.pipes';
 import { InlineEditComponent } from './controls/inline-edit.component';

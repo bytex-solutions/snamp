@@ -1,12 +1,12 @@
 import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
-import { ApiClient, REST } from '../app.restClient';
+import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
 import { AttributeInformation } from './model/attribute';
 
-import { ChartService } from '../app.chartService';
+import { ChartService } from '../services/app.chartService';
 import { Factory } from './model/objectFactory';
 import { AbstractChart } from './model/abstract.chart';
 

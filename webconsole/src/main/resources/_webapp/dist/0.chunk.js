@@ -37379,7 +37379,7 @@ module.exports = "<table class=\"table\">\r\n    <thead>\r\n    <tr>\r\n        
 "use strict";
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 __webpack_require__("./node_modules/rxjs/Rx.js");
 var FullSaveComponent = (function () {
     function FullSaveComponent(apiClient) {
@@ -37444,7 +37444,7 @@ exports.FullSaveComponent = FullSaveComponent;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_gateway_1 = __webpack_require__("./src/app/configuration/model/model.gateway.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/map.js");
 __webpack_require__("./node_modules/rxjs/add/operator/do.js");
@@ -37547,8 +37547,8 @@ exports.GatewaysComponent = GatewaysComponent;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
-var app_logService_1 = __webpack_require__("./src/app/app.logService.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
+var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
 var SnampLogViewComponent = (function () {
     function SnampLogViewComponent(apiClient, _snampLogService) {
         this._snampLogService = _snampLogService;
@@ -37619,7 +37619,7 @@ exports.SnampLogViewComponent = SnampLogViewComponent;
 "use strict";
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var common_1 = __webpack_require__("./node_modules/@angular/common/index.js");
 var forms_1 = __webpack_require__("./node_modules/@angular/forms/index.js");
 var configuration_gateways_1 = __webpack_require__("./src/app/configuration/configuration.gateways.ts");
@@ -37747,7 +37747,7 @@ exports.FullSaveModule = FullSaveModule;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_resource_1 = __webpack_require__("./src/app/configuration/model/model.resource.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/map.js");
 __webpack_require__("./node_modules/rxjs/add/operator/do.js");
@@ -37932,7 +37932,7 @@ exports.ResourcesComponent = ResourcesComponent;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_resourceGroup_1 = __webpack_require__("./src/app/configuration/model/model.resourceGroup.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/map.js");
 __webpack_require__("./node_modules/rxjs/add/operator/do.js");
@@ -38076,8 +38076,8 @@ exports.RGroupsComponent = RGroupsComponent;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
-var app_logService_1 = __webpack_require__("./src/app/app.logService.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
+var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 var SnampCfgComponent = (function () {

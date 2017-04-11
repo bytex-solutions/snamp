@@ -1,6 +1,6 @@
 import { TypedEntity } from './model.typedEntity';
 import { KeyValue } from './model.entity';
-import { ApiClient } from '../../app.restClient';
+import { ApiClient } from '../../services/app.restClient';
 import { Attribute } from './model.attribute';
 import { ParamDescriptor } from './model.paramDescriptor';
 import { Event } from './model.event';

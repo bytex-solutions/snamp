@@ -1,6 +1,6 @@
 import { Component, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import 'style!css!less!font-awesome-webpack/font-awesome-styles.loader!font-awesome-webpack/font-awesome.config.js';
-import { SnampLog, SnampLogService } from './app.logService';
+import { SnampLog, SnampLogService } from './services/app.logService';
 import { Title }  from '@angular/platform-browser';
 
 import { $WebSocket } from 'angular2-websocket/angular2-websocket';

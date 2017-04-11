@@ -84126,234 +84126,6 @@ exports.Factory = Factory;
 
 /***/ },
 
-/***/ "./src/app/app.chartService.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
-var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
-var dashboard_1 = __webpack_require__("./src/app/charts/model/dashboard.ts");
-var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
-var objectFactory_1 = __webpack_require__("./src/app/charts/model/objectFactory.ts");
-var chart_data_1 = __webpack_require__("./src/app/charts/model/chart.data.ts");
-__webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
-__webpack_require__("./node_modules/rxjs/add/operator/cache.js");
-__webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
-__webpack_require__("./node_modules/rxjs/add/observable/from.js");
-__webpack_require__("./node_modules/rxjs/add/observable/of.js");
-var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
-var ChartService = (function () {
-    function ChartService(localStorageService, _http, _router) {
-        this.localStorageService = localStorageService;
-        this._http = _http;
-        this._router = _router;
-        this.MAX_SIZE = 10000;
-        this.SPLICE_COUNT = 30; // h  ow many elements will we delete from the end of the array
-        this.RECENT_COUNT = 15; // default count of the recent message
-        this.KEY_DATA = "snampChartData";
-        this.chartSubjects = {};
-        this.loadDashboard();
-        if (this.localStorageService.get(this.KEY_DATA) == undefined) {
-            this.localStorageService.set(this.KEY_DATA, {});
-        }
-    }
-    ChartService.prototype.getCharts = function () {
-        return this._dashboard.charts;
-    };
-    ChartService.prototype.getChartsByGroupName = function (groupName) {
-        return this._dashboard.charts.filter(function (_ch) { return (_ch.getGroupName() == groupName); });
-    };
-    ChartService.prototype.getGroups = function () {
-        return this.groups;
-    };
-    ChartService.prototype.addNewGroup = function (groupName) {
-        this._dashboard.groups.push(groupName);
-        this.saveDashboard();
-    };
-    ChartService.prototype.receiveChartDataForCharts = function (_chs) {
-        var _this = this;
-        var _chArrJson = [];
-        for (var i = 0; i < _chs.length; i++) {
-            _chArrJson.push(_chs[i].toJSON());
-        }
-        this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, _chArrJson)
-            .map(function (res) { return res.json(); })
-            .subscribe(function (data) {
-            console.log(data);
-            _this.pushNewChartData(data);
-        });
-    };
-    ChartService.prototype.receiveChartDataForGroupName = function (gn) {
-        this.receiveChartDataForCharts(this.getChartsByGroupName(gn));
-    };
-    ChartService.prototype.loadDashboard = function () {
-        var _this = this;
-        console.log("Loading some dashboard...");
-        var _res = this._http.get(app_restClient_1.REST.CHART_DASHBOARD)
-            .map(function (res) {
-            console.log("Result of dashboard request is: ", res);
-            return res.json();
-        }).publishLast().refCount();
-        this.groups = _res.map(function (data) {
-            if (data["groups"] == undefined) {
-                return [];
-            }
-            else {
-                return data["groups"];
-            }
-            ;
-        });
-        _res.subscribe(function (data) {
-            _this._dashboard = new dashboard_1.Dashboard();
-            _this.chartSubjects = {};
-            var _chartData = {}; //this.getEntireChartData();
-            if (data.charts.length > 0) {
-                for (var i = 0; i < data.charts.length; i++) {
-                    var _currentChart = objectFactory_1.Factory.chartFromJSON(data.charts[i]);
-                    _this.chartSubjects[_currentChart.name] = new Subject_1.Subject();
-                    // append the existent chart data from LC to chart from the backend
-                    if (_chartData != undefined && _chartData[_currentChart.name] != undefined) {
-                    }
-                    _currentChart.subscribeToSubject(_this.chartSubjects[_currentChart.name]);
-                    _this._dashboard.charts.push(_currentChart);
-                }
-            }
-            _this._dashboard.groups = data.groups;
-            console.log(_this._dashboard);
-        });
-    };
-    ChartService.prototype.saveDashboard = function () {
-        console.log("Saving some dashboard... ");
-        this._http.put(app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .subscribe(function (data) {
-            console.log("Dashboard has been saved successfully");
-        });
-    };
-    ChartService.prototype.pushNewChartData = function (_data) {
-        // load data from localStorage, create one if no data exists
-        var _dataNow = this.getEntireChartData();
-        if (_dataNow == undefined) {
-            _dataNow = {};
-        }
-        // loop through all the data we have received
-        for (var _currentChartName in _data) {
-            // create a chart data instances
-            var _d = _data[_currentChartName];
-            for (var i = 0; i < _d.length; i++) {
-                var _chartData = chart_data_1.ChartData.fromJSON(_d[i]);
-                // notify all the components that something has changed
-                if (this.chartSubjects[_currentChartName] != undefined) {
-                    this.chartSubjects[_currentChartName].next(_chartData);
-                }
-                // check if our localStorage contains the data for this chart
-                if (_dataNow[_currentChartName] == undefined) {
-                    _dataNow[_currentChartName] = [];
-                }
-                // append this data for this data array
-                if (_chartData.chartType == abstract_chart_1.AbstractChart.LINE) {
-                    // in case of line - we just push the value
-                    _dataNow[_currentChartName].push(_chartData);
-                }
-                else {
-                    // otherwise - we replace existent value or append it if nothing exists
-                    var _found = false;
-                    for (var j = 0; j < _dataNow[_currentChartName].length; j++) {
-                        if (_dataNow[_currentChartName][j].instanceName == _chartData.instanceName) {
-                            _found = true;
-                            _dataNow[_currentChartName][j] = _chartData;
-                            break;
-                        }
-                    }
-                    if (!_found) {
-                        _dataNow[_currentChartName].push(_chartData);
-                    }
-                }
-            }
-        }
-        // save data back to localStorage
-        this.localStorageService.set(this.KEY_DATA, _dataNow);
-    };
-    ChartService.prototype.hasChartWithName = function (name) {
-        var _value = false;
-        for (var i = 0; i < this._dashboard.charts.length; i++) {
-            if (this._dashboard.charts[i].name == name) {
-                _value = true;
-                break;
-            }
-        }
-        return _value;
-    };
-    ChartService.prototype.newChart = function (chart) {
-        if (this.hasChartWithName(chart.name)) {
-            throw new Error("Chart with that name already exists!");
-        }
-        else {
-            console.log("New created chart is: ", chart);
-            this._dashboard.charts.push(chart);
-            this.chartSubjects[chart.name] = new Subject_1.Subject();
-            chart.subscribeToSubject(this.chartSubjects[chart.name]);
-            this.saveDashboard();
-        }
-    };
-    ChartService.prototype.removeChart = function (chartName) {
-        for (var i = 0; i < this._dashboard.charts.length; i++) {
-            if (this._dashboard.charts[i].name == chartName) {
-                // remove the chart from the dashboard
-                this._dashboard.charts.splice(i, 1);
-                // nullify the corresppnding subject
-                this.chartSubjects[chartName] = undefined;
-                // remove localStorage data for this chart
-                var _dataLC = this.localStorageService.get(this.KEY_DATA);
-                if (_dataLC != undefined && _dataLC[chartName] != undefined) {
-                    _dataLC[chartName] = undefined;
-                    this.localStorageService.set(this.KEY_DATA, _dataLC);
-                }
-                // save the dashboard
-                this.saveDashboard();
-                return;
-            }
-        }
-        throw new Error("Could not find a chart " + chartName);
-    };
-    ChartService.prototype.getObservableForChart = function (name) {
-        if (this.chartSubjects[name] != undefined) {
-            return this.chartSubjects[name].asObservable().share();
-        }
-        else {
-            throw new Error("Cannot find any subject for chart " + name);
-        }
-    };
-    ChartService.prototype.getEntireChartData = function () {
-        var _object = this.localStorageService.get(this.KEY_DATA);
-        var _value = {};
-        if (_object != undefined) {
-            for (var _element in _object) {
-                var _newChartDataArray = [];
-                if (_object[_element] instanceof Array) {
-                    for (var i = 0; i < _object[_element].length; i++) {
-                        _newChartDataArray.push(chart_data_1.ChartData.fromJSON(_object[_element][i]));
-                    }
-                }
-                _value[_element] = _newChartDataArray;
-            }
-        }
-        return _value;
-    };
-    ChartService = __decorate([
-        core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object, (typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object, (typeof (_c = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _c) || Object])
-    ], ChartService);
-    return ChartService;
-    var _a, _b, _c;
-}());
-exports.ChartService = ChartService;
-
-
-/***/ },
-
 /***/ "./src/app/app.component.html":
 /***/ function(module, exports) {
 
@@ -84368,7 +84140,7 @@ module.exports = "<side-bar></side-bar>\r\n<topnav-bar></topnav-bar>\r\n<router-
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 __webpack_require__("./node_modules/style-loader/index.js!./node_modules/css-loader/index.js!./node_modules/less-loader/index.js!./node_modules/font-awesome-webpack/font-awesome-styles.loader.js!./node_modules/font-awesome-webpack/font-awesome.config.js");
-var app_logService_1 = __webpack_require__("./src/app/app.logService.ts");
+var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
 var platform_browser_1 = __webpack_require__("./node_modules/@angular/platform-browser/index.js");
 var angular2_websocket_1 = __webpack_require__("./node_modules/angular2-websocket/angular2-websocket.js");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
@@ -84458,140 +84230,6 @@ exports.App = App;
 
 /***/ },
 
-/***/ "./src/app/app.logService.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
-var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
-var SnampLogService = (function () {
-    function SnampLogService(localStorageService) {
-        this.localStorageService = localStorageService;
-        this.MAX_SIZE = 300;
-        this.SPLICE_COUNT = 30; // how many elements will we delete from the end of the array
-        this.RECENT_COUNT = 15; // default count of the recent message
-        this.KEY = "snampLogs";
-        var welcomeMessage = new SnampLog();
-        welcomeMessage.message = "SNAMP WEB UI has started successfully";
-        this.logObs = new Subject_1.Subject();
-    }
-    SnampLogService.prototype.getLogObs = function () {
-        return this.logObs.asObservable().share();
-    };
-    SnampLogService.prototype.getArray = function () {
-        var logArray = this.localStorageService.get(this.KEY);
-        if (logArray == undefined || logArray.length == 0) {
-            this.localStorageService.set(this.KEY, []);
-            logArray = [];
-        }
-        if (logArray.length >= this.MAX_SIZE) {
-            logArray.splice((-1) * this.SPLICE_COUNT, this.SPLICE_COUNT);
-            this.localStorageService.set(this.KEY, logArray);
-        }
-        return logArray;
-    };
-    SnampLogService.prototype.ngOnInit = function () {
-        var welcomeMessage = new SnampLog();
-        welcomeMessage.message = "SNAMP WEB UI has started successfully";
-        this.pushLog(welcomeMessage);
-    };
-    SnampLogService.prototype.pushLog = function (log) {
-        var logArray = this.getArray();
-        logArray.unshift(log);
-        this.localStorageService.set(this.KEY, logArray);
-        this.logObs.next(log);
-    };
-    SnampLogService.prototype.getLastLogs = function (count) {
-        var _count = count ? count : this.RECENT_COUNT;
-        var logArray = this.getArray();
-        if (logArray.length < _count) {
-            return logArray;
-        }
-        else {
-            return logArray.slice((-1) * _count);
-        }
-    };
-    SnampLogService.prototype.getAllLogsJSON = function () {
-        return this.getArray().reverse();
-    };
-    SnampLogService.prototype.clear = function () {
-        this.localStorageService.clearAll();
-    };
-    SnampLogService = __decorate([
-        core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object])
-    ], SnampLogService);
-    return SnampLogService;
-    var _a;
-}());
-exports.SnampLogService = SnampLogService;
-var SnampLog = (function () {
-    function SnampLog() {
-        this.message = "No message available";
-        this.timestamp = (new Date()).toString();
-        this.localTime = new Date();
-        this.level = "INFO";
-        this.details = {};
-        this.stacktrace = "No stacktrace is available";
-        this.id = SnampLog.newGuid();
-    }
-    SnampLog.makeFromJson = function (_json) {
-        var _instance = new SnampLog();
-        if (_json["message"] != undefined) {
-            _instance.message = _json["message"];
-        }
-        if (_json["timestamp"] != undefined) {
-            _instance.timestamp = _json["timestamp"];
-        }
-        if (_json["level"] != undefined) {
-            _instance.level = _json["level"];
-        }
-        if (_json["stacktrace"] != undefined) {
-            _instance.stacktrace = _json["stacktrace"];
-        }
-        if (_json["details"] != undefined && !$.isEmptyObject(_json["details"])) {
-            _instance.details = _json["details"];
-            var _details = "";
-            for (var key in _json.details) {
-                _details += "<strong>" + key + ": </strong>" + _json.details[key] + "<br/>";
-            }
-            _instance.shortDetailsHtml = _details;
-        }
-        return _instance;
-    };
-    SnampLog.prototype.htmlDetails = function () {
-        return SnampLog.htmlDetails(this);
-    };
-    SnampLog.htmlDetails = function (_object) {
-        var _details = "";
-        _details += "<strong>Message: </strong>" + _object.message + "<br/>";
-        _details += "<strong>Timestamp: </strong>" + _object.timestamp + "<br/>";
-        if (_object.stacktrace != "No stacktrace is available") {
-            _details += "<strong>Stacktrace: </strong>" + _object.stacktrace + "<br/>";
-        }
-        _details += "<strong>Level: </strong>" + _object.level + "<br/>";
-        if (_object.details && !$.isEmptyObject(_object.details)) {
-            _details += "<strong>Details</strong></br/>";
-            _details += _object.shortDetailsHtml;
-        }
-        return _details;
-    };
-    SnampLog.newGuid = function () {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    };
-    return SnampLog;
-}());
-exports.SnampLog = SnampLog;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
-
-/***/ },
-
 /***/ "./src/app/app.module.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -84609,16 +84247,16 @@ var app_component_1 = __webpack_require__("./src/app/app.component.ts");
 var footer_component_1 = __webpack_require__("./src/app/controls/footer.component.ts");
 var sidebar_component_1 = __webpack_require__("./src/app/menu/sidebar.component.ts");
 var topnavbar_component_1 = __webpack_require__("./src/app/menu/topnavbar.component.ts");
-var app_username_1 = __webpack_require__("./src/app/app.username.ts");
-var app_logService_1 = __webpack_require__("./src/app/app.logService.ts");
-var app_chartService_1 = __webpack_require__("./src/app/app.chartService.ts");
-var app_viewService_1 = __webpack_require__("./src/app/app.viewService.ts");
+var app_username_1 = __webpack_require__("./src/app/controls/app.username.ts");
+var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
+var app_chartService_1 = __webpack_require__("./src/app/services/app.chartService.ts");
+var app_viewService_1 = __webpack_require__("./src/app/services/app.viewService.ts");
 var ng2_fontawesome_1 = __webpack_require__("./node_modules/ng2-fontawesome/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
 var ng2_dropdown_1 = __webpack_require__("./node_modules/ng2-dropdown/index.js");
-var ui_switch_component_1 = __webpack_require__("./src/app/ui-switch.component.ts");
-var panel_component_1 = __webpack_require__("./src/app/panel.component.ts");
+var ui_switch_component_1 = __webpack_require__("./src/app/controls/ui-switch.component.ts");
+var panel_component_1 = __webpack_require__("./src/app/controls/panel.component.ts");
 var configuration_pipes_1 = __webpack_require__("./src/app/configuration/configuration.pipes.ts");
 var inline_edit_component_1 = __webpack_require__("./src/app/controls/inline-edit.component.ts");
 var parameters_table_component_1 = __webpack_require__("./src/app/configuration/components/parameters-table.component.ts");
@@ -84735,168 +84373,6 @@ exports.SharedConfigurationModule = SharedConfigurationModule;
 
 /***/ },
 
-/***/ "./src/app/app.restClient.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var http_1 = __webpack_require__("./node_modules/@angular/http/index.js");
-var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
-var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
-__webpack_require__("./node_modules/rxjs/add/observable/throw.js");
-__webpack_require__("./node_modules/rxjs/add/observable/empty.js");
-__webpack_require__("./node_modules/rxjs/add/operator/catch.js");
-var ApiClient = (function () {
-    function ApiClient(http, _cookieService) {
-        this.http = http;
-        this._cookieService = _cookieService;
-    }
-    ApiClient.prototype.createAuthorizationHeader = function () {
-        var headers = new http_1.Headers();
-        headers.append('Authorization', 'Bearer ' +
-            this._cookieService.get("snamp-auth-token"));
-        headers.append('Content-type', 'application/json');
-        return headers;
-    };
-    ApiClient.prototype.handleError = function (error) {
-        $('#overlay').fadeOut();
-        // In a real world app, we might use a remote logging infrastructure
-        var errMsg;
-        if (error instanceof http_1.Response && error.status == 401) {
-            console.log("Auth is not working.", error);
-            window.location.href = "login.html?tokenExpired=true";
-        }
-        else {
-            console.log("Error occured: ", error);
-            return Observable_1.Observable.empty();
-        }
-    };
-    ApiClient.prototype.get = function (url) {
-        return this.http.get(url, {
-            headers: this.createAuthorizationHeader()
-        }).catch(this.handleError);
-    };
-    ApiClient.prototype.getIgnoreErrors = function (url) {
-        return this.http.get(url, {
-            headers: this.createAuthorizationHeader()
-        });
-    };
-    ApiClient.prototype.put = function (url, data) {
-        return this.http.put(url, data, {
-            headers: this.createAuthorizationHeader()
-        }).catch(this.handleError);
-    };
-    ApiClient.prototype.post = function (url, data) {
-        return this.http.post(url, data, {
-            headers: this.createAuthorizationHeader()
-        }).catch(this.handleError);
-    };
-    ApiClient.prototype.delete = function (url) {
-        return this.http.delete(url, {
-            headers: this.createAuthorizationHeader()
-        }).catch(this.handleError);
-    };
-    ApiClient = __decorate([
-        core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof http_1.Http !== 'undefined' && http_1.Http) === 'function' && _a) || Object, (typeof (_b = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _b) || Object])
-    ], ApiClient);
-    return ApiClient;
-    var _a, _b;
-}());
-exports.ApiClient = ApiClient;
-var REST = (function () {
-    function REST() {
-    }
-    REST.AVAILABLE_ENTITIES_BY_TYPE = function (entityType) {
-        return REST.ROOT_PATH + "/" + "components/" + encodeURIComponent(entityType) + "s";
-    };
-    REST.ENABLE_COMPONENT = function (componentClass, componentType) {
-        return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/enable";
-    };
-    REST.DISABLE_COMPONENT = function (componentClass, componentType) {
-        return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/disable";
-    };
-    REST.GATEWAY_BY_NAME = function (name) {
-        return REST.GATEWAY_CONFIG + "/" + encodeURIComponent(name);
-    };
-    REST.RESOURCE_BY_NAME = function (name) {
-        return REST.RESOURCE_CONFIG + "/" + encodeURIComponent(name);
-    };
-    REST.GATEWAY_TYPE = function (name) {
-        return REST.GATEWAY_BY_NAME(name) + "/type";
-    };
-    REST.RESOURCE_TYPE = function (name) {
-        return REST.RESOURCE_BY_NAME(name) + "/type";
-    };
-    REST.ENTITY_PARAMETERS_DESCRIPTION = function (entityClass, entityType) {
-        return REST.ROOT_PATH + "/components/" + encodeURIComponent(entityClass) + "s/" + encodeURIComponent(entityType) + "/description";
-    };
-    REST.SUBENTITY_PARAMETERS_DESCRIPTION = function (entityType, entityClass) {
-        return REST.ROOT_PATH + "/components/connectors/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/description";
-    };
-    REST.BINDINGS = function (gatewayName, bindingEntityType) {
-        return REST.GATEWAY_BY_NAME(gatewayName) + "/" + encodeURIComponent(bindingEntityType) + "/bindings";
-    };
-    REST.ENTITY_PARAMETERS = function (entityClass, entityName, key) {
-        return REST.CFG_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityName) + "/parameters/" + encodeURIComponent(key);
-    };
-    REST.RESOURCE_CONNECTION_STRING = function (entityName) {
-        return REST.RESOURCE_BY_NAME(entityName) + "/connectionString";
-    };
-    REST.RESOURCE_GROUP = function (name) {
-        return REST.RESOURCE_BY_NAME(name) + "/group";
-    };
-    REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME = function (entityType, name, entityName) {
-        return REST.RESOURCE_BY_NAME(name) + "/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityName);
-    };
-    REST.RESOURCE_SUBENTITY = function (resourceName, entityType) {
-        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/description";
-    };
-    REST.CHART_INSTANCES = function (componentName) {
-        return "/snamp/web/api/managedResources?component=" + encodeURIComponent(componentName);
-    };
-    REST.CHART_METRICS_BY_COMPONENT = function (componentName) {
-        return "/snamp/web/api/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";
-    };
-    REST.CHART_METRICS_BY_INSTANCE = function (instanceName) {
-        return "/snamp/web/api/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
-    };
-    REST.WATCHER_BY_NAME = function (name) {
-        return REST.WATCHERS_LIST + "/" + name;
-    };
-    REST.ROOT_PATH = "/snamp/management";
-    REST.CFG_PATH = REST.ROOT_PATH + "/configuration";
-    REST.GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";
-    REST.RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
-    REST.RGROUP_CONFIG = REST.CFG_PATH + "/resourceGroup";
-    REST.AVAILABLE_GATEWAY_LIST = REST.ROOT_PATH + "/components/gateways";
-    REST.AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/components/connectors";
-    REST.AVAILABLE_COMPONENT_LIST = REST.ROOT_PATH + "/components";
-    REST.RGROUP_LIST = REST.RGROUP_CONFIG + "/list";
-    // web console api (chart related and others)
-    REST.CHART_DASHBOARD = "/snamp/web/api/charts/settings";
-    // web console api (chart related and others)
-    REST.CHARTS_COMPUTE = "/snamp/web/api/charts/compute";
-    REST.CHART_COMPONENTS = "/snamp/web/api/managedResources/components";
-    // web console api (view related and others)
-    REST.VIEWS_DASHBOARD = "/snamp/web/api/e2e/settings";
-    // compute e2e view
-    REST.COMPUTE_VIEW = "/snamp/web/api/e2e/compute";
-    // reset e2e view
-    REST.RESET_VIEW = "/snamp/web/api/e2e/reset";
-    REST.CURRENT_CONFIG = REST.ROOT_PATH + "/configuration";
-    REST.WATCHERS_LIST = REST.CFG_PATH + "/supervisor";
-    // watchers statuses
-    REST.WATCHERS_STATUS = "/snamp/web/api/health-watcher/groups/status";
-    return REST;
-}());
-exports.REST = REST;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
-
-/***/ },
-
 /***/ "./src/app/app.routes.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -84930,171 +84406,6 @@ exports.ROUTES = [
             module.exports = result.toString();
         }
     
-
-/***/ },
-
-/***/ "./src/app/app.username.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
-__webpack_require__("./node_modules/rxjs/add/operator/map.js");
-__webpack_require__("./node_modules/rxjs/add/operator/do.js");
-__webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
-var UsernameComponent = (function () {
-    function UsernameComponent(apiClient) {
-        var _this = this;
-        this.apiClient = apiClient;
-        apiClient.get('/snamp/security/login/username')
-            .map(function (res) { return res.text(); })
-            .subscribe(function (res) {
-            _this.username = res;
-            // until we got the very first authenticated response from the service -
-            // all the layout will be hided with overlay
-            $('#overlay').fadeOut();
-        }, function (err) {
-            if (err.status == 500) {
-                window.location.href = "login.html?tokenExpired=true";
-            }
-        });
-    }
-    UsernameComponent = __decorate([
-        core_1.Component({
-            selector: 'username',
-            template: '{{username}}'
-        }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
-    ], UsernameComponent);
-    return UsernameComponent;
-    var _a;
-}());
-exports.UsernameComponent = UsernameComponent;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
-
-/***/ },
-
-/***/ "./src/app/app.viewService.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
-var dashboard_1 = __webpack_require__("./src/app/analysis/model/dashboard.ts");
-var objectFactory_1 = __webpack_require__("./src/app/analysis/model/objectFactory.ts");
-__webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
-__webpack_require__("./node_modules/rxjs/add/operator/cache.js");
-__webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
-__webpack_require__("./node_modules/rxjs/add/observable/from.js");
-__webpack_require__("./node_modules/rxjs/add/observable/of.js");
-var ViewService = (function () {
-    function ViewService(_http) {
-        this._http = _http;
-        this.viewNames = new Subject_1.Subject();
-        this.loadDashboard();
-    }
-    ViewService.prototype.getViews = function () {
-        return this._dashboard.views;
-    };
-    ViewService.prototype.getViewNames = function () {
-        return this.viewNames.asObservable().share();
-    };
-    ViewService.prototype.loadDashboard = function () {
-        var _this = this;
-        console.log("Loading some dashboard for views...");
-        var _res = this._http.get(app_restClient_1.REST.VIEWS_DASHBOARD)
-            .map(function (res) {
-            console.log("Result of dashboard request is: ", res);
-            return res.json();
-        }).publishLast().refCount();
-        _res.subscribe(function (data) {
-            _this._dashboard = new dashboard_1.Dashboard();
-            _this.viewNames.next(data.views.map(function (_d) { return _d.name; }));
-            if (data.views.length > 0) {
-                for (var i = 0; i < data.views.length; i++) {
-                    var _currentView = objectFactory_1.Factory.viewFromJSON(data.views[i]);
-                    _this._dashboard.views.push(_currentView);
-                }
-            }
-            console.log(_this._dashboard);
-        });
-    };
-    ViewService.prototype.saveDashboard = function () {
-        console.log("Saving some dashboard... ");
-        this._http.put(app_restClient_1.REST.VIEWS_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .subscribe(function (data) {
-            console.log("Dashboard has been saved successfully");
-        });
-    };
-    ViewService.prototype.newView = function (view) {
-        if (this.hasViewWithName(view.name)) {
-            throw new Error("View with that name already exists!");
-        }
-        else {
-            console.log("New created view is: ", view);
-            this._dashboard.views.push(view);
-            this.viewNames.next(this._dashboard.views.map(function (data) { return data.name; }));
-            this.saveDashboard();
-        }
-    };
-    ViewService.prototype.removeView = function (viewName) {
-        for (var i = 0; i < this._dashboard.views.length; i++) {
-            if (this._dashboard.views[i].name == viewName) {
-                // remove the view from the dashboard
-                this._dashboard.views.splice(i, 1);
-                // save the dashboard
-                this.saveDashboard();
-                return;
-            }
-        }
-        throw new Error("Could not find a view " + viewName);
-    };
-    ViewService.prototype.getDataForView = function (view) {
-        return this._http.post(app_restClient_1.REST.COMPUTE_VIEW, view.toJSON())
-            .map(function (data) { return data.json(); });
-    };
-    ViewService.prototype.resetView = function (view) {
-        return this._http.post(app_restClient_1.REST.RESET_VIEW, view.toJSON())
-            .map(function (data) { return data.text(); });
-    };
-    ViewService.prototype.getViewByName = function (name) {
-        var result = undefined;
-        for (var i = 0; i < this._dashboard.views.length; i++) {
-            if (this._dashboard.views[i].name == name) {
-                result = this._dashboard.views[i];
-                break;
-            }
-        }
-        if (result == undefined) {
-            throw new Error("Could not find a view with name" + name);
-        }
-        else {
-            return result;
-        }
-    };
-    ViewService.prototype.hasViewWithName = function (name) {
-        var _value = false;
-        for (var i = 0; i < this._dashboard.views.length; i++) {
-            if (this._dashboard.views[i].name == name) {
-                _value = true;
-                break;
-            }
-        }
-        return _value;
-    };
-    ViewService = __decorate([
-        core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
-    ], ViewService);
-    return ViewService;
-    var _a;
-}());
-exports.ViewService = ViewService;
-
 
 /***/ },
 
@@ -86135,7 +85446,7 @@ exports.VerticalBarChartOfAttributeValues = VerticalBarChartOfAttributeValues;
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
 var model_gateway_1 = __webpack_require__("./src/app/configuration/model/model.gateway.ts");
@@ -86301,7 +85612,7 @@ var EntityDescriptor = (function () {
 "use strict";
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
 var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
@@ -86465,7 +85776,7 @@ exports.ParametersTable = ParametersTable;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
 var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
 var model_attribute_1 = __webpack_require__("./src/app/configuration/model/model.attribute.ts");
@@ -87040,7 +86351,7 @@ exports.Event = Event;
 "use strict";
 "use strict";
 var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
 var model_binding_1 = __webpack_require__("./src/app/configuration/model/model.binding.ts");
 __webpack_require__("./node_modules/rxjs/add/observable/throw.js");
@@ -87261,7 +86572,7 @@ exports.Resource = Resource;
 "use strict";
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
 var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
 var SubEntity = (function (_super) {
     __extends(SubEntity, _super);
@@ -87311,7 +86622,7 @@ exports.SubEntity = SubEntity;
 "use strict";
 "use strict";
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
-var app_restClient_1 = __webpack_require__("./src/app/app.restClient.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
 var TypedEntity = (function (_super) {
     __extends(TypedEntity, _super);
@@ -87375,6 +86686,49 @@ var TypedEntity = (function (_super) {
 }(model_entity_1.Entity));
 exports.TypedEntity = TypedEntity;
 
+
+/***/ },
+
+/***/ "./src/app/controls/app.username.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
+__webpack_require__("./node_modules/rxjs/add/operator/map.js");
+__webpack_require__("./node_modules/rxjs/add/operator/do.js");
+__webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
+var UsernameComponent = (function () {
+    function UsernameComponent(apiClient) {
+        var _this = this;
+        this.apiClient = apiClient;
+        apiClient.get('/snamp/security/login/username')
+            .map(function (res) { return res.text(); })
+            .subscribe(function (res) {
+            _this.username = res;
+            // until we got the very first authenticated response from the service -
+            // all the layout will be hided with overlay
+            $('#overlay').fadeOut();
+        }, function (err) {
+            if (err.status == 500) {
+                window.location.href = "login.html?tokenExpired=true";
+            }
+        });
+    }
+    UsernameComponent = __decorate([
+        core_1.Component({
+            selector: 'username',
+            template: '{{username}}'
+        }), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
+    ], UsernameComponent);
+    return UsernameComponent;
+    var _a;
+}());
+exports.UsernameComponent = UsernameComponent;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -87527,267 +86881,14 @@ exports.InlineEditComponent = InlineEditComponent;
 
 /***/ },
 
-/***/ "./src/app/environment.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-// Angular 2
-// rc2 workaround
-var platform_browser_1 = __webpack_require__("./node_modules/@angular/platform-browser/index.js");
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-// Environment Providers
-var PROVIDERS = [];
-// Angular debug tools in the dev console
-// https://github.com/angular/angular/blob/86405345b781a9dc2438c0fbe3e9409245647019/TOOLS_JS.md
-var _decorateModuleRef = function identity(value) { return value; };
-if (false) {
-    // Production
-    platform_browser_1.disableDebugTools();
-    core_1.enableProdMode();
-    PROVIDERS = PROVIDERS.slice();
-}
-else {
-    _decorateModuleRef = function (modRef) {
-        var appRef = modRef.injector.get(core_1.ApplicationRef);
-        var cmpRef = appRef.components[0];
-        var _ng = window.ng;
-        platform_browser_1.enableDebugTools(cmpRef);
-        window.ng.probe = _ng.probe;
-        window.ng.coreTokens = _ng.coreTokens;
-        return modRef;
-    };
-    // Development
-    PROVIDERS = PROVIDERS.slice();
-}
-exports.decorateModuleRef = _decorateModuleRef;
-exports.ENV_PROVIDERS = PROVIDERS.slice();
-
-
-/***/ },
-
-/***/ "./src/app/index.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-__export(__webpack_require__("./src/app/app.module.ts"));
-
-
-/***/ },
-
-/***/ "./src/app/menu/sidebar.component.html":
-/***/ function(module, exports) {
-
-module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <!-- menu profile quick info -->\r\n    <div class=\"profile\">\r\n      <div class=\"profile_pic\">\r\n        <img src=\"assets/img/anyUser.png\" alt=\"...\" class=\"img-circle profile_img\">\r\n      </div>\r\n      <div class=\"profile_info\">\r\n        <span>Welcome,</span>\r\n        <h2><username></username></h2>\r\n      </div>\r\n    </div>\r\n    <!-- /menu profile quick info -->\r\n\r\n    <br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n              <li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisor - Health statuses</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Healt statuses</a></li>\r\n              <li *ngFor=\"let _view of views\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
-
-/***/ },
-
-/***/ "./src/app/menu/sidebar.component.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_viewService_1 = __webpack_require__("./src/app/app.viewService.ts");
-var app_chartService_1 = __webpack_require__("./src/app/app.chartService.ts");
-var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
-__webpack_require__("./node_modules/rxjs/add/observable/of.js");
-var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
-var Sidebar = (function () {
-    function Sidebar(_viewService, _chartService, modal, _router) {
-        this._viewService = _viewService;
-        this._chartService = _chartService;
-        this.modal = modal;
-        this._router = _router;
-        this.views = [];
-        this.groupNames = [];
-    }
-    Sidebar.prototype.ngOnInit = function () {
-        var _this = this;
-        this._viewService.getViewNames().subscribe(function (data) {
-            _this.views = data;
-        });
-        this._chartService.getGroups().subscribe(function (data) {
-            _this.groupNames = data;
-        });
-    };
-    Sidebar.prototype.ngAfterViewInit = function () {
-    };
-    Sidebar.prototype.anchorClicked = function (event) {
-        var target = event.target || event.srcElement || event.currentTarget;
-        var idAttr = $(target).attr("id");
-        var $li = $('#' + idAttr.replace("chevron", "li")).parent();
-        if ($li.is('.active')) {
-            $li.removeClass('active active-sm');
-            $('ul:first', $li).slideUp();
-        }
-        else {
-            // prevent closing menu if we are on child menu
-            if (!$li.parent().is('.child_menu')) {
-                $('#sidebar-menu').find('li').removeClass('active active-sm');
-                $('#sidebar-menu').find('li ul').slideUp();
-            }
-            $li.addClass('active');
-            $('ul:first', $li).slideDown();
-        }
-    };
-    Sidebar.prototype.newDashboard = function () {
-        var _this = this;
-        this.modal.prompt()
-            .className('default')
-            .message('New dashboard')
-            .placeholder('Please set the name for a new dashboard')
-            .open()
-            .then(function (dialog) { return dialog.result; })
-            .then(function (result) {
-            console.log("result", result);
-            _this._chartService.addNewGroup(result);
-            _this._router.navigateByUrl('/charts/' + result);
-        });
-    };
-    Sidebar = __decorate([
-        core_1.Component({
-            selector: 'side-bar',
-            styles: [__webpack_require__("./src/app/app.style.css"), __webpack_require__("./src/app/menu/vex.css")],
-            template: __webpack_require__("./src/app/menu/sidebar.component.html"),
-            encapsulation: core_1.ViewEncapsulation.None,
-            entryComponents: [
-                vex_1.DialogFormModal
-            ]
-        }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _a) || Object, (typeof (_b = typeof app_chartService_1.ChartService !== 'undefined' && app_chartService_1.ChartService) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object, (typeof (_d = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _d) || Object])
-    ], Sidebar);
-    return Sidebar;
-    var _a, _b, _c, _d;
-}());
-exports.Sidebar = Sidebar;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
-
-/***/ },
-
-/***/ "./src/app/menu/topnavbar.component.html":
-/***/ function(module, exports) {
-
-module.exports = "<div class=\"top_nav\">\r\n  <div class=\"nav_menu\">\r\n    <nav>\r\n      <div class=\"nav toggle\">\r\n        <a id=\"menu_toggle\" (click)=\"toggleClicked($event)\"><i fa [icon]=\"'bars'\"></i></a>\r\n      </div>\r\n      <ul class=\"nav navbar-nav navbar-right\">\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"user-profile dropdown-toggle\" dropdown-open id=\"userProfileDropdown\">\r\n            <img src=\"assets/img/anyUser.png\" alt=\"\">\r\n            <username></username>\r\n          </a>\r\n          <ul class=\"dropdown-menu dropdown-usermenu pull-right\" aria-labelledby=\"userProfileDropdown\">\r\n            <li><a href=\"javascript:;\">Profile</a></li>\r\n            <li><a href=\"https://snamp.bytex.solutions/docs/latest/main.md.html\" target=\"_blank\">Help</a></li>\r\n            <li><a href=\"login.html\" (click)=\"clearCookie()\"><i class=\"fa fa-sign-out pull-right\"></i> Log Out</a></li>\r\n          </ul>\r\n        </li>\r\n\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"dropdown-toggle info-number\" dropdown-open id=\"userNotificaion\">\r\n            <i class=\"fa fa-envelope-o\"></i>\r\n            <span class=\"badge bg-green\">{{logs.length}}</span>\r\n          </a>\r\n          <ul id=\"menu1\" class=\"dropdown-menu list-unstyled msg_list\" dropdown-not-closable-zone>\r\n            <li *ngIf=\"logs && logs.length > 0\">\r\n              <div class=\"text-center\">\r\n                <a (click)=\"clearAlerts()\">\r\n                  <strong>Clear alerts</strong>\r\n                  <i class=\"fa fa-remove\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n            <li *ngFor=\"let log of logs\" [attr.id]=\"log.id\">\r\n              <a class=\"exitIcon\" (click)=\"removeMessage(log)\"><i class=\"glyphicon glyphicon-remove-circle\"></i></a>\r\n              <a (click)=\"clickDetails(log)\">\r\n                <span class=\"image\"><i class=\"fa fa-info fa-3\" aria-hidden=\"true\"></i></span>\r\n                <span>\r\n                  <span style=\"text-transform: uppercase;\">{{log.level}}</span>\r\n\r\n                  <span class=\"time\">{{log.localTime | amTimeAgo}}</span>\r\n                </span>\r\n                <span class=\"message\">\r\n                  {{log.message}}\r\n                </span>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <div class=\"text-center\">\r\n                <a href=\"/snamp/#/snamplogview\">\r\n                  <strong>See All Alerts</strong>\r\n                  <i class=\"fa fa-angle-right\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n          </ul>\r\n        </li>\r\n      </ul>\r\n    </nav>\r\n  </div>\r\n</div>\r\n"
-
-/***/ },
-
-/***/ "./src/app/menu/topnavbar.component.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
-var app_logService_1 = __webpack_require__("./src/app/app.logService.ts");
-var index_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
-var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
-var TopNavBar = (function () {
-    function TopNavBar(overlay, vcRef, _cookieService, _snampLogService, cd, modal) {
-        this._cookieService = _cookieService;
-        this._snampLogService = _snampLogService;
-        this.cd = cd;
-        this.modal = modal;
-        this.logs = [];
-        overlay.defaultViewContainer = vcRef;
-    }
-    TopNavBar.prototype.clearCookie = function () {
-        this._cookieService.removeAll();
-        this._snampLogService.clear();
-    };
-    TopNavBar.prototype.toggleClicked = function (event) {
-        var target = event.srcElement.id;
-        var body = $('body');
-        var menu = $('#sidebar-menu');
-        if (body.hasClass('nav-md')) {
-            menu.find('li.active ul').hide();
-            menu.find('li.active').addClass('active-sm').removeClass('active');
-        }
-        else {
-            menu.find('li.active-sm ul').show();
-            menu.find('li.active-sm').addClass('active').removeClass('active-sm');
-        }
-        body.toggleClass('nav-md nav-sm');
-    };
-    TopNavBar.prototype.clearAlerts = function () {
-        this.logs = [];
-    };
-    TopNavBar.prototype.clickDetails = function (logEntry) {
-        this.modal.alert()
-            .size('lg')
-            .title("Details for notification")
-            .body(app_logService_1.SnampLog.htmlDetails(logEntry))
-            .isBlocking(false)
-            .keyboard(27)
-            .open();
-    };
-    TopNavBar.prototype.removeMessage = function (log) {
-        var liElement = $("#" + log.id);
-        var _thisReference = this;
-        liElement.slideUp("slow", function () {
-            for (var i = 0; i < _thisReference.logs.length; i++) {
-                if (_thisReference.logs[i].id == log.id) {
-                    _thisReference.logs.splice(i, 1);
-                    break;
-                }
-            }
-        });
-    };
-    TopNavBar.prototype.ngAfterViewInit = function () {
-        var _this = this;
-        this._snampLogService.getLogObs()
-            .subscribe(function (newLog) {
-            _this.logs.unshift(newLog);
-            _this.cd.detectChanges();
-        });
-    };
-    TopNavBar = __decorate([
-        core_1.Component({
-            selector: 'topnav-bar',
-            providers: [core_2.CookieService],
-            styles: [__webpack_require__("./src/app/app.style.css")],
-            template: __webpack_require__("./src/app/menu/topnavbar.component.html"),
-            encapsulation: core_1.ViewEncapsulation.None
-        }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _b) || Object, (typeof (_c = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _c) || Object, (typeof (_d = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _e) || Object, (typeof (_f = typeof index_1.Modal !== 'undefined' && index_1.Modal) === 'function' && _f) || Object])
-    ], TopNavBar);
-    return TopNavBar;
-    var _a, _b, _c, _d, _e, _f;
-}());
-exports.TopNavBar = TopNavBar;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
-
-/***/ },
-
-/***/ "./src/app/menu/vex.css":
-/***/ function(module, exports, __webpack_require__) {
-
-
-        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/menu/vex.css");
-
-        if (typeof result === "string") {
-            module.exports = result;
-        } else {
-            module.exports = result.toString();
-        }
-    
-
-/***/ },
-
-/***/ "./src/app/panel.component.html":
+/***/ "./src/app/controls/panel.component.html":
 /***/ function(module, exports) {
 
 module.exports = "<div class=\"col-md-{{column}} col-sm-{{column}} col-xs-{{column}}\">\r\n  <div class=\"x_panel tile\">\r\n    <div class=\"x_title\">\r\n      <h2><i *ngIf=\"icon != undefined\" class=\"fa fa-{{icon}}\"></i>{{header}}</h2>\r\n      <ul class=\"nav navbar-right panel_toolbox\">\r\n        <li>\r\n          <a class=\"collapse-link\" (click)=\"collapseClicked($event)\"><i class=\"fa fa-chevron-up\"></i></a>\r\n        </li>\r\n        <li *ngIf=\"showCloseButton\">\r\n          <a class=\"close-link\" (click)=\"closeClicked($event)\"><i class=\"fa fa-close\"></i></a>\r\n        </li>\r\n      </ul>\r\n      <div class=\"clearfix\"></div>\r\n    </div>\r\n    <div class=\"x_content\">\r\n      <ng-content></ng-content>\r\n    </div>\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
-/***/ "./src/app/panel.component.ts":
+/***/ "./src/app/controls/panel.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87838,7 +86939,7 @@ var PanelComponent = (function () {
         core_1.Component({
             moduleId: module.i,
             selector: 'panel',
-            template: __webpack_require__("./src/app/panel.component.html"),
+            template: __webpack_require__("./src/app/controls/panel.component.html"),
         }), 
         __metadata('design:paramtypes', [])
     ], PanelComponent);
@@ -87850,7 +86951,7 @@ exports.PanelComponent = PanelComponent;
 
 /***/ },
 
-/***/ "./src/app/ui-switch.component.ts":
+/***/ "./src/app/controls/ui-switch.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87992,6 +87093,905 @@ var UiSwitchComponent = (function () {
     return UiSwitchComponent;
 }());
 exports.UiSwitchComponent = UiSwitchComponent;
+
+
+/***/ },
+
+/***/ "./src/app/environment.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+// Angular 2
+// rc2 workaround
+var platform_browser_1 = __webpack_require__("./node_modules/@angular/platform-browser/index.js");
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+// Environment Providers
+var PROVIDERS = [];
+// Angular debug tools in the dev console
+// https://github.com/angular/angular/blob/86405345b781a9dc2438c0fbe3e9409245647019/TOOLS_JS.md
+var _decorateModuleRef = function identity(value) { return value; };
+if (false) {
+    // Production
+    platform_browser_1.disableDebugTools();
+    core_1.enableProdMode();
+    PROVIDERS = PROVIDERS.slice();
+}
+else {
+    _decorateModuleRef = function (modRef) {
+        var appRef = modRef.injector.get(core_1.ApplicationRef);
+        var cmpRef = appRef.components[0];
+        var _ng = window.ng;
+        platform_browser_1.enableDebugTools(cmpRef);
+        window.ng.probe = _ng.probe;
+        window.ng.coreTokens = _ng.coreTokens;
+        return modRef;
+    };
+    // Development
+    PROVIDERS = PROVIDERS.slice();
+}
+exports.decorateModuleRef = _decorateModuleRef;
+exports.ENV_PROVIDERS = PROVIDERS.slice();
+
+
+/***/ },
+
+/***/ "./src/app/index.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+__export(__webpack_require__("./src/app/app.module.ts"));
+
+
+/***/ },
+
+/***/ "./src/app/menu/sidebar.component.html":
+/***/ function(module, exports) {
+
+module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <!-- menu profile quick info -->\r\n    <div class=\"profile\">\r\n      <div class=\"profile_pic\">\r\n        <img src=\"assets/img/anyUser.png\" alt=\"...\" class=\"img-circle profile_img\">\r\n      </div>\r\n      <div class=\"profile_info\">\r\n        <span>Welcome,</span>\r\n        <h2><username></username></h2>\r\n      </div>\r\n    </div>\r\n    <!-- /menu profile quick info -->\r\n\r\n    <br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n              <li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisor - Health statuses</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Healt statuses</a></li>\r\n              <li *ngFor=\"let _view of views\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
+
+/***/ },
+
+/***/ "./src/app/menu/sidebar.component.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var app_viewService_1 = __webpack_require__("./src/app/services/app.viewService.ts");
+var app_chartService_1 = __webpack_require__("./src/app/services/app.chartService.ts");
+var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
+__webpack_require__("./node_modules/rxjs/add/observable/of.js");
+var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+var Sidebar = (function () {
+    function Sidebar(_viewService, _chartService, modal, _router) {
+        this._viewService = _viewService;
+        this._chartService = _chartService;
+        this.modal = modal;
+        this._router = _router;
+        this.views = [];
+        this.groupNames = [];
+    }
+    Sidebar.prototype.ngOnInit = function () {
+        var _this = this;
+        this._viewService.getViewNames().subscribe(function (data) {
+            _this.views = data;
+        });
+        this._chartService.getGroups().subscribe(function (data) {
+            _this.groupNames = data;
+        });
+    };
+    Sidebar.prototype.ngAfterViewInit = function () {
+    };
+    Sidebar.prototype.anchorClicked = function (event) {
+        var target = event.target || event.srcElement || event.currentTarget;
+        var idAttr = $(target).attr("id");
+        var $li = $('#' + idAttr.replace("chevron", "li")).parent();
+        if ($li.is('.active')) {
+            $li.removeClass('active active-sm');
+            $('ul:first', $li).slideUp();
+        }
+        else {
+            // prevent closing menu if we are on child menu
+            if (!$li.parent().is('.child_menu')) {
+                $('#sidebar-menu').find('li').removeClass('active active-sm');
+                $('#sidebar-menu').find('li ul').slideUp();
+            }
+            $li.addClass('active');
+            $('ul:first', $li).slideDown();
+        }
+    };
+    Sidebar.prototype.newDashboard = function () {
+        var _this = this;
+        this.modal.prompt()
+            .className('default')
+            .message('New dashboard')
+            .placeholder('Please set the name for a new dashboard')
+            .open()
+            .then(function (dialog) { return dialog.result; })
+            .then(function (result) {
+            console.log("result", result);
+            _this._chartService.addNewGroup(result);
+            _this._router.navigateByUrl('/charts/' + result);
+        });
+    };
+    Sidebar = __decorate([
+        core_1.Component({
+            selector: 'side-bar',
+            styles: [__webpack_require__("./src/app/app.style.css"), __webpack_require__("./src/app/menu/vex.css")],
+            template: __webpack_require__("./src/app/menu/sidebar.component.html"),
+            encapsulation: core_1.ViewEncapsulation.None,
+            entryComponents: [
+                vex_1.DialogFormModal
+            ]
+        }), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _a) || Object, (typeof (_b = typeof app_chartService_1.ChartService !== 'undefined' && app_chartService_1.ChartService) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object, (typeof (_d = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _d) || Object])
+    ], Sidebar);
+    return Sidebar;
+    var _a, _b, _c, _d;
+}());
+exports.Sidebar = Sidebar;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/menu/topnavbar.component.html":
+/***/ function(module, exports) {
+
+module.exports = "<div class=\"top_nav\">\r\n  <div class=\"nav_menu\">\r\n    <nav>\r\n      <div class=\"nav toggle\">\r\n        <a id=\"menu_toggle\" (click)=\"toggleClicked($event)\"><i fa [icon]=\"'bars'\"></i></a>\r\n      </div>\r\n      <ul class=\"nav navbar-nav navbar-right\">\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"user-profile dropdown-toggle\" dropdown-open id=\"userProfileDropdown\">\r\n            <img src=\"assets/img/anyUser.png\" alt=\"\">\r\n            <username></username>\r\n          </a>\r\n          <ul class=\"dropdown-menu dropdown-usermenu pull-right\" aria-labelledby=\"userProfileDropdown\">\r\n            <li><a href=\"javascript:;\">Profile</a></li>\r\n            <li><a href=\"https://snamp.bytex.solutions/docs/latest/main.md.html\" target=\"_blank\">Help</a></li>\r\n            <li><a href=\"login.html\" (click)=\"clearCookie()\"><i class=\"fa fa-sign-out pull-right\"></i> Log Out</a></li>\r\n          </ul>\r\n        </li>\r\n\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"dropdown-toggle info-number\" dropdown-open id=\"userNotificaion\">\r\n            <i class=\"fa fa-envelope-o\"></i>\r\n            <span class=\"badge bg-green\">{{logs.length}}</span>\r\n          </a>\r\n          <ul id=\"menu1\" class=\"dropdown-menu list-unstyled msg_list\" dropdown-not-closable-zone>\r\n            <li *ngIf=\"logs && logs.length > 0\">\r\n              <div class=\"text-center\">\r\n                <a (click)=\"clearAlerts()\">\r\n                  <strong>Clear alerts</strong>\r\n                  <i class=\"fa fa-remove\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n            <li *ngFor=\"let log of logs\" [attr.id]=\"log.id\">\r\n              <a class=\"exitIcon\" (click)=\"removeMessage(log)\"><i class=\"glyphicon glyphicon-remove-circle\"></i></a>\r\n              <a (click)=\"clickDetails(log)\">\r\n                <span class=\"image\"><i class=\"fa fa-info fa-3\" aria-hidden=\"true\"></i></span>\r\n                <span>\r\n                  <span style=\"text-transform: uppercase;\">{{log.level}}</span>\r\n\r\n                  <span class=\"time\">{{log.localTime | amTimeAgo}}</span>\r\n                </span>\r\n                <span class=\"message\">\r\n                  {{log.message}}\r\n                </span>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <div class=\"text-center\">\r\n                <a href=\"/snamp/#/snamplogview\">\r\n                  <strong>See All Alerts</strong>\r\n                  <i class=\"fa fa-angle-right\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n          </ul>\r\n        </li>\r\n      </ul>\r\n    </nav>\r\n  </div>\r\n</div>\r\n"
+
+/***/ },
+
+/***/ "./src/app/menu/topnavbar.component.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
+var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
+var index_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
+var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
+var TopNavBar = (function () {
+    function TopNavBar(overlay, vcRef, _cookieService, _snampLogService, cd, modal) {
+        this._cookieService = _cookieService;
+        this._snampLogService = _snampLogService;
+        this.cd = cd;
+        this.modal = modal;
+        this.logs = [];
+        overlay.defaultViewContainer = vcRef;
+    }
+    TopNavBar.prototype.clearCookie = function () {
+        this._cookieService.removeAll();
+        this._snampLogService.clear();
+    };
+    TopNavBar.prototype.toggleClicked = function (event) {
+        var target = event.srcElement.id;
+        var body = $('body');
+        var menu = $('#sidebar-menu');
+        if (body.hasClass('nav-md')) {
+            menu.find('li.active ul').hide();
+            menu.find('li.active').addClass('active-sm').removeClass('active');
+        }
+        else {
+            menu.find('li.active-sm ul').show();
+            menu.find('li.active-sm').addClass('active').removeClass('active-sm');
+        }
+        body.toggleClass('nav-md nav-sm');
+    };
+    TopNavBar.prototype.clearAlerts = function () {
+        this.logs = [];
+    };
+    TopNavBar.prototype.clickDetails = function (logEntry) {
+        this.modal.alert()
+            .size('lg')
+            .title("Details for notification")
+            .body(app_logService_1.SnampLog.htmlDetails(logEntry))
+            .isBlocking(false)
+            .keyboard(27)
+            .open();
+    };
+    TopNavBar.prototype.removeMessage = function (log) {
+        var liElement = $("#" + log.id);
+        var _thisReference = this;
+        liElement.slideUp("slow", function () {
+            for (var i = 0; i < _thisReference.logs.length; i++) {
+                if (_thisReference.logs[i].id == log.id) {
+                    _thisReference.logs.splice(i, 1);
+                    break;
+                }
+            }
+        });
+    };
+    TopNavBar.prototype.ngAfterViewInit = function () {
+        var _this = this;
+        this._snampLogService.getLogObs()
+            .subscribe(function (newLog) {
+            _this.logs.unshift(newLog);
+            _this.cd.detectChanges();
+        });
+    };
+    TopNavBar = __decorate([
+        core_1.Component({
+            selector: 'topnav-bar',
+            providers: [core_2.CookieService],
+            styles: [__webpack_require__("./src/app/app.style.css")],
+            template: __webpack_require__("./src/app/menu/topnavbar.component.html"),
+            encapsulation: core_1.ViewEncapsulation.None
+        }), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _b) || Object, (typeof (_c = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _c) || Object, (typeof (_d = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _e) || Object, (typeof (_f = typeof index_1.Modal !== 'undefined' && index_1.Modal) === 'function' && _f) || Object])
+    ], TopNavBar);
+    return TopNavBar;
+    var _a, _b, _c, _d, _e, _f;
+}());
+exports.TopNavBar = TopNavBar;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/menu/vex.css":
+/***/ function(module, exports, __webpack_require__) {
+
+
+        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/menu/vex.css");
+
+        if (typeof result === "string") {
+            module.exports = result;
+        } else {
+            module.exports = result.toString();
+        }
+    
+
+/***/ },
+
+/***/ "./src/app/services/app.chartService.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
+var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
+var dashboard_1 = __webpack_require__("./src/app/charts/model/dashboard.ts");
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var objectFactory_1 = __webpack_require__("./src/app/charts/model/objectFactory.ts");
+var chart_data_1 = __webpack_require__("./src/app/charts/model/chart.data.ts");
+__webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
+__webpack_require__("./node_modules/rxjs/add/operator/cache.js");
+__webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
+__webpack_require__("./node_modules/rxjs/add/observable/from.js");
+__webpack_require__("./node_modules/rxjs/add/observable/of.js");
+var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
+var ChartService = (function () {
+    function ChartService(localStorageService, _http, _router) {
+        this.localStorageService = localStorageService;
+        this._http = _http;
+        this._router = _router;
+        this.MAX_SIZE = 10000;
+        this.SPLICE_COUNT = 30; // h  ow many elements will we delete from the end of the array
+        this.RECENT_COUNT = 15; // default count of the recent message
+        this.KEY_DATA = "snampChartData";
+        this.chartSubjects = {};
+        this.loadDashboard();
+        if (this.localStorageService.get(this.KEY_DATA) == undefined) {
+            this.localStorageService.set(this.KEY_DATA, {});
+        }
+    }
+    ChartService.prototype.getCharts = function () {
+        return this._dashboard.charts;
+    };
+    ChartService.prototype.getChartsByGroupName = function (groupName) {
+        return this._dashboard.charts.filter(function (_ch) { return (_ch.getGroupName() == groupName); });
+    };
+    ChartService.prototype.getGroups = function () {
+        return this.groups;
+    };
+    ChartService.prototype.addNewGroup = function (groupName) {
+        this._dashboard.groups.push(groupName);
+        this.saveDashboard();
+    };
+    ChartService.prototype.receiveChartDataForCharts = function (_chs) {
+        var _this = this;
+        var _chArrJson = [];
+        for (var i = 0; i < _chs.length; i++) {
+            _chArrJson.push(_chs[i].toJSON());
+        }
+        this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, _chArrJson)
+            .map(function (res) { return res.json(); })
+            .subscribe(function (data) {
+            console.log(data);
+            _this.pushNewChartData(data);
+        });
+    };
+    ChartService.prototype.receiveChartDataForGroupName = function (gn) {
+        this.receiveChartDataForCharts(this.getChartsByGroupName(gn));
+    };
+    ChartService.prototype.loadDashboard = function () {
+        var _this = this;
+        console.log("Loading some dashboard...");
+        var _res = this._http.get(app_restClient_1.REST.CHART_DASHBOARD)
+            .map(function (res) {
+            console.log("Result of dashboard request is: ", res);
+            return res.json();
+        }).publishLast().refCount();
+        this.groups = _res.map(function (data) {
+            if (data["groups"] == undefined) {
+                return [];
+            }
+            else {
+                return data["groups"];
+            }
+            ;
+        });
+        _res.subscribe(function (data) {
+            _this._dashboard = new dashboard_1.Dashboard();
+            _this.chartSubjects = {};
+            var _chartData = {}; //this.getEntireChartData();
+            if (data.charts.length > 0) {
+                for (var i = 0; i < data.charts.length; i++) {
+                    var _currentChart = objectFactory_1.Factory.chartFromJSON(data.charts[i]);
+                    _this.chartSubjects[_currentChart.name] = new Subject_1.Subject();
+                    // append the existent chart data from LC to chart from the backend
+                    if (_chartData != undefined && _chartData[_currentChart.name] != undefined) {
+                    }
+                    _currentChart.subscribeToSubject(_this.chartSubjects[_currentChart.name]);
+                    _this._dashboard.charts.push(_currentChart);
+                }
+            }
+            _this._dashboard.groups = data.groups;
+            console.log(_this._dashboard);
+        });
+    };
+    ChartService.prototype.saveDashboard = function () {
+        console.log("Saving some dashboard... ");
+        this._http.put(app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
+            .subscribe(function (data) {
+            console.log("Dashboard has been saved successfully");
+        });
+    };
+    ChartService.prototype.pushNewChartData = function (_data) {
+        // load data from localStorage, create one if no data exists
+        var _dataNow = this.getEntireChartData();
+        if (_dataNow == undefined) {
+            _dataNow = {};
+        }
+        // loop through all the data we have received
+        for (var _currentChartName in _data) {
+            // create a chart data instances
+            var _d = _data[_currentChartName];
+            for (var i = 0; i < _d.length; i++) {
+                var _chartData = chart_data_1.ChartData.fromJSON(_d[i]);
+                // notify all the components that something has changed
+                if (this.chartSubjects[_currentChartName] != undefined) {
+                    this.chartSubjects[_currentChartName].next(_chartData);
+                }
+                // check if our localStorage contains the data for this chart
+                if (_dataNow[_currentChartName] == undefined) {
+                    _dataNow[_currentChartName] = [];
+                }
+                // append this data for this data array
+                if (_chartData.chartType == abstract_chart_1.AbstractChart.LINE) {
+                    // in case of line - we just push the value
+                    _dataNow[_currentChartName].push(_chartData);
+                }
+                else {
+                    // otherwise - we replace existent value or append it if nothing exists
+                    var _found = false;
+                    for (var j = 0; j < _dataNow[_currentChartName].length; j++) {
+                        if (_dataNow[_currentChartName][j].instanceName == _chartData.instanceName) {
+                            _found = true;
+                            _dataNow[_currentChartName][j] = _chartData;
+                            break;
+                        }
+                    }
+                    if (!_found) {
+                        _dataNow[_currentChartName].push(_chartData);
+                    }
+                }
+            }
+        }
+        // save data back to localStorage
+        this.localStorageService.set(this.KEY_DATA, _dataNow);
+    };
+    ChartService.prototype.hasChartWithName = function (name) {
+        var _value = false;
+        for (var i = 0; i < this._dashboard.charts.length; i++) {
+            if (this._dashboard.charts[i].name == name) {
+                _value = true;
+                break;
+            }
+        }
+        return _value;
+    };
+    ChartService.prototype.newChart = function (chart) {
+        if (this.hasChartWithName(chart.name)) {
+            throw new Error("Chart with that name already exists!");
+        }
+        else {
+            console.log("New created chart is: ", chart);
+            this._dashboard.charts.push(chart);
+            this.chartSubjects[chart.name] = new Subject_1.Subject();
+            chart.subscribeToSubject(this.chartSubjects[chart.name]);
+            this.saveDashboard();
+        }
+    };
+    ChartService.prototype.removeChart = function (chartName) {
+        for (var i = 0; i < this._dashboard.charts.length; i++) {
+            if (this._dashboard.charts[i].name == chartName) {
+                // remove the chart from the dashboard
+                this._dashboard.charts.splice(i, 1);
+                // nullify the corresppnding subject
+                this.chartSubjects[chartName] = undefined;
+                // remove localStorage data for this chart
+                var _dataLC = this.localStorageService.get(this.KEY_DATA);
+                if (_dataLC != undefined && _dataLC[chartName] != undefined) {
+                    _dataLC[chartName] = undefined;
+                    this.localStorageService.set(this.KEY_DATA, _dataLC);
+                }
+                // save the dashboard
+                this.saveDashboard();
+                return;
+            }
+        }
+        throw new Error("Could not find a chart " + chartName);
+    };
+    ChartService.prototype.getObservableForChart = function (name) {
+        if (this.chartSubjects[name] != undefined) {
+            return this.chartSubjects[name].asObservable().share();
+        }
+        else {
+            throw new Error("Cannot find any subject for chart " + name);
+        }
+    };
+    ChartService.prototype.getEntireChartData = function () {
+        var _object = this.localStorageService.get(this.KEY_DATA);
+        var _value = {};
+        if (_object != undefined) {
+            for (var _element in _object) {
+                var _newChartDataArray = [];
+                if (_object[_element] instanceof Array) {
+                    for (var i = 0; i < _object[_element].length; i++) {
+                        _newChartDataArray.push(chart_data_1.ChartData.fromJSON(_object[_element][i]));
+                    }
+                }
+                _value[_element] = _newChartDataArray;
+            }
+        }
+        return _value;
+    };
+    ChartService = __decorate([
+        core_1.Injectable(), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object, (typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object, (typeof (_c = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _c) || Object])
+    ], ChartService);
+    return ChartService;
+    var _a, _b, _c;
+}());
+exports.ChartService = ChartService;
+
+
+/***/ },
+
+/***/ "./src/app/services/app.logService.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
+var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
+var SnampLogService = (function () {
+    function SnampLogService(localStorageService) {
+        this.localStorageService = localStorageService;
+        this.MAX_SIZE = 300;
+        this.SPLICE_COUNT = 30; // how many elements will we delete from the end of the array
+        this.RECENT_COUNT = 15; // default count of the recent message
+        this.KEY = "snampLogs";
+        var welcomeMessage = new SnampLog();
+        welcomeMessage.message = "SNAMP WEB UI has started successfully";
+        this.logObs = new Subject_1.Subject();
+    }
+    SnampLogService.prototype.getLogObs = function () {
+        return this.logObs.asObservable().share();
+    };
+    SnampLogService.prototype.getArray = function () {
+        var logArray = this.localStorageService.get(this.KEY);
+        if (logArray == undefined || logArray.length == 0) {
+            this.localStorageService.set(this.KEY, []);
+            logArray = [];
+        }
+        if (logArray.length >= this.MAX_SIZE) {
+            logArray.splice((-1) * this.SPLICE_COUNT, this.SPLICE_COUNT);
+            this.localStorageService.set(this.KEY, logArray);
+        }
+        return logArray;
+    };
+    SnampLogService.prototype.ngOnInit = function () {
+        var welcomeMessage = new SnampLog();
+        welcomeMessage.message = "SNAMP WEB UI has started successfully";
+        this.pushLog(welcomeMessage);
+    };
+    SnampLogService.prototype.pushLog = function (log) {
+        var logArray = this.getArray();
+        logArray.unshift(log);
+        this.localStorageService.set(this.KEY, logArray);
+        this.logObs.next(log);
+    };
+    SnampLogService.prototype.getLastLogs = function (count) {
+        var _count = count ? count : this.RECENT_COUNT;
+        var logArray = this.getArray();
+        if (logArray.length < _count) {
+            return logArray;
+        }
+        else {
+            return logArray.slice((-1) * _count);
+        }
+    };
+    SnampLogService.prototype.getAllLogsJSON = function () {
+        return this.getArray().reverse();
+    };
+    SnampLogService.prototype.clear = function () {
+        this.localStorageService.clearAll();
+    };
+    SnampLogService = __decorate([
+        core_1.Injectable(), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object])
+    ], SnampLogService);
+    return SnampLogService;
+    var _a;
+}());
+exports.SnampLogService = SnampLogService;
+var SnampLog = (function () {
+    function SnampLog() {
+        this.message = "No message available";
+        this.timestamp = (new Date()).toString();
+        this.localTime = new Date();
+        this.level = "INFO";
+        this.details = {};
+        this.stacktrace = "No stacktrace is available";
+        this.id = SnampLog.newGuid();
+    }
+    SnampLog.makeFromJson = function (_json) {
+        var _instance = new SnampLog();
+        if (_json["message"] != undefined) {
+            _instance.message = _json["message"];
+        }
+        if (_json["timestamp"] != undefined) {
+            _instance.timestamp = _json["timestamp"];
+        }
+        if (_json["level"] != undefined) {
+            _instance.level = _json["level"];
+        }
+        if (_json["stacktrace"] != undefined) {
+            _instance.stacktrace = _json["stacktrace"];
+        }
+        if (_json["details"] != undefined && !$.isEmptyObject(_json["details"])) {
+            _instance.details = _json["details"];
+            var _details = "";
+            for (var key in _json.details) {
+                _details += "<strong>" + key + ": </strong>" + _json.details[key] + "<br/>";
+            }
+            _instance.shortDetailsHtml = _details;
+        }
+        return _instance;
+    };
+    SnampLog.prototype.htmlDetails = function () {
+        return SnampLog.htmlDetails(this);
+    };
+    SnampLog.htmlDetails = function (_object) {
+        var _details = "";
+        _details += "<strong>Message: </strong>" + _object.message + "<br/>";
+        _details += "<strong>Timestamp: </strong>" + _object.timestamp + "<br/>";
+        if (_object.stacktrace != "No stacktrace is available") {
+            _details += "<strong>Stacktrace: </strong>" + _object.stacktrace + "<br/>";
+        }
+        _details += "<strong>Level: </strong>" + _object.level + "<br/>";
+        if (_object.details && !$.isEmptyObject(_object.details)) {
+            _details += "<strong>Details</strong></br/>";
+            _details += _object.shortDetailsHtml;
+        }
+        return _details;
+    };
+    SnampLog.newGuid = function () {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    };
+    return SnampLog;
+}());
+exports.SnampLog = SnampLog;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/services/app.restClient.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var http_1 = __webpack_require__("./node_modules/@angular/http/index.js");
+var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
+var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
+__webpack_require__("./node_modules/rxjs/add/observable/throw.js");
+__webpack_require__("./node_modules/rxjs/add/observable/empty.js");
+__webpack_require__("./node_modules/rxjs/add/operator/catch.js");
+var ApiClient = (function () {
+    function ApiClient(http, _cookieService) {
+        this.http = http;
+        this._cookieService = _cookieService;
+    }
+    ApiClient.prototype.createAuthorizationHeader = function () {
+        var headers = new http_1.Headers();
+        headers.append('Authorization', 'Bearer ' +
+            this._cookieService.get("snamp-auth-token"));
+        headers.append('Content-type', 'application/json');
+        return headers;
+    };
+    ApiClient.prototype.handleError = function (error) {
+        $('#overlay').fadeOut();
+        // In a real world app, we might use a remote logging infrastructure
+        var errMsg;
+        if (error instanceof http_1.Response && error.status == 401) {
+            console.log("Auth is not working.", error);
+            window.location.href = "login.html?tokenExpired=true";
+        }
+        else {
+            console.log("Error occured: ", error);
+            return Observable_1.Observable.empty();
+        }
+    };
+    ApiClient.prototype.get = function (url) {
+        return this.http.get(url, {
+            headers: this.createAuthorizationHeader()
+        }).catch(this.handleError);
+    };
+    ApiClient.prototype.getIgnoreErrors = function (url) {
+        return this.http.get(url, {
+            headers: this.createAuthorizationHeader()
+        });
+    };
+    ApiClient.prototype.put = function (url, data) {
+        return this.http.put(url, data, {
+            headers: this.createAuthorizationHeader()
+        }).catch(this.handleError);
+    };
+    ApiClient.prototype.post = function (url, data) {
+        return this.http.post(url, data, {
+            headers: this.createAuthorizationHeader()
+        }).catch(this.handleError);
+    };
+    ApiClient.prototype.delete = function (url) {
+        return this.http.delete(url, {
+            headers: this.createAuthorizationHeader()
+        }).catch(this.handleError);
+    };
+    ApiClient = __decorate([
+        core_1.Injectable(), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof http_1.Http !== 'undefined' && http_1.Http) === 'function' && _a) || Object, (typeof (_b = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _b) || Object])
+    ], ApiClient);
+    return ApiClient;
+    var _a, _b;
+}());
+exports.ApiClient = ApiClient;
+var REST = (function () {
+    function REST() {
+    }
+    REST.AVAILABLE_ENTITIES_BY_TYPE = function (entityType) {
+        return REST.ROOT_PATH + "/" + "components/" + encodeURIComponent(entityType) + "s";
+    };
+    REST.ENABLE_COMPONENT = function (componentClass, componentType) {
+        return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/enable";
+    };
+    REST.DISABLE_COMPONENT = function (componentClass, componentType) {
+        return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/disable";
+    };
+    REST.GATEWAY_BY_NAME = function (name) {
+        return REST.GATEWAY_CONFIG + "/" + encodeURIComponent(name);
+    };
+    REST.RESOURCE_BY_NAME = function (name) {
+        return REST.RESOURCE_CONFIG + "/" + encodeURIComponent(name);
+    };
+    REST.GATEWAY_TYPE = function (name) {
+        return REST.GATEWAY_BY_NAME(name) + "/type";
+    };
+    REST.RESOURCE_TYPE = function (name) {
+        return REST.RESOURCE_BY_NAME(name) + "/type";
+    };
+    REST.ENTITY_PARAMETERS_DESCRIPTION = function (entityClass, entityType) {
+        return REST.ROOT_PATH + "/components/" + encodeURIComponent(entityClass) + "s/" + encodeURIComponent(entityType) + "/description";
+    };
+    REST.SUBENTITY_PARAMETERS_DESCRIPTION = function (entityType, entityClass) {
+        return REST.ROOT_PATH + "/components/connectors/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/description";
+    };
+    REST.BINDINGS = function (gatewayName, bindingEntityType) {
+        return REST.GATEWAY_BY_NAME(gatewayName) + "/" + encodeURIComponent(bindingEntityType) + "/bindings";
+    };
+    REST.ENTITY_PARAMETERS = function (entityClass, entityName, key) {
+        return REST.CFG_PATH + "/" + encodeURIComponent(entityClass) + "/" + encodeURIComponent(entityName) + "/parameters/" + encodeURIComponent(key);
+    };
+    REST.RESOURCE_CONNECTION_STRING = function (entityName) {
+        return REST.RESOURCE_BY_NAME(entityName) + "/connectionString";
+    };
+    REST.RESOURCE_GROUP = function (name) {
+        return REST.RESOURCE_BY_NAME(name) + "/group";
+    };
+    REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME = function (entityType, name, entityName) {
+        return REST.RESOURCE_BY_NAME(name) + "/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityName);
+    };
+    REST.RESOURCE_SUBENTITY = function (resourceName, entityType) {
+        return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/description";
+    };
+    REST.CHART_INSTANCES = function (componentName) {
+        return "/snamp/web/api/managedResources?component=" + encodeURIComponent(componentName);
+    };
+    REST.CHART_METRICS_BY_COMPONENT = function (componentName) {
+        return "/snamp/web/api/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";
+    };
+    REST.CHART_METRICS_BY_INSTANCE = function (instanceName) {
+        return "/snamp/web/api/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
+    };
+    REST.WATCHER_BY_NAME = function (name) {
+        return REST.WATCHERS_LIST + "/" + name;
+    };
+    REST.ROOT_PATH = "/snamp/management";
+    REST.CFG_PATH = REST.ROOT_PATH + "/configuration";
+    REST.GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";
+    REST.RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
+    REST.RGROUP_CONFIG = REST.CFG_PATH + "/resourceGroup";
+    REST.AVAILABLE_GATEWAY_LIST = REST.ROOT_PATH + "/components/gateways";
+    REST.AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/components/connectors";
+    REST.AVAILABLE_COMPONENT_LIST = REST.ROOT_PATH + "/components";
+    REST.RGROUP_LIST = REST.RGROUP_CONFIG + "/list";
+    // web console api (chart related and others)
+    REST.CHART_DASHBOARD = "/snamp/web/api/charts/settings";
+    // web console api (chart related and others)
+    REST.CHARTS_COMPUTE = "/snamp/web/api/charts/compute";
+    REST.CHART_COMPONENTS = "/snamp/web/api/managedResources/components";
+    // web console api (view related and others)
+    REST.VIEWS_DASHBOARD = "/snamp/web/api/e2e/settings";
+    // compute e2e view
+    REST.COMPUTE_VIEW = "/snamp/web/api/e2e/compute";
+    // reset e2e view
+    REST.RESET_VIEW = "/snamp/web/api/e2e/reset";
+    REST.CURRENT_CONFIG = REST.ROOT_PATH + "/configuration";
+    REST.WATCHERS_LIST = REST.CFG_PATH + "/supervisor";
+    // watchers statuses
+    REST.WATCHERS_STATUS = "/snamp/web/api/health-watcher/groups/status";
+    return REST;
+}());
+exports.REST = REST;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/services/app.viewService.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
+var dashboard_1 = __webpack_require__("./src/app/analysis/model/dashboard.ts");
+var objectFactory_1 = __webpack_require__("./src/app/analysis/model/objectFactory.ts");
+__webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
+__webpack_require__("./node_modules/rxjs/add/operator/cache.js");
+__webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
+__webpack_require__("./node_modules/rxjs/add/observable/from.js");
+__webpack_require__("./node_modules/rxjs/add/observable/of.js");
+var ViewService = (function () {
+    function ViewService(_http) {
+        this._http = _http;
+        this.viewNames = new Subject_1.Subject();
+        this.loadDashboard();
+    }
+    ViewService.prototype.getViews = function () {
+        return this._dashboard.views;
+    };
+    ViewService.prototype.getViewNames = function () {
+        return this.viewNames.asObservable().share();
+    };
+    ViewService.prototype.loadDashboard = function () {
+        var _this = this;
+        console.log("Loading some dashboard for views...");
+        var _res = this._http.get(app_restClient_1.REST.VIEWS_DASHBOARD)
+            .map(function (res) {
+            console.log("Result of dashboard request is: ", res);
+            return res.json();
+        }).publishLast().refCount();
+        _res.subscribe(function (data) {
+            _this._dashboard = new dashboard_1.Dashboard();
+            _this.viewNames.next(data.views.map(function (_d) { return _d.name; }));
+            if (data.views.length > 0) {
+                for (var i = 0; i < data.views.length; i++) {
+                    var _currentView = objectFactory_1.Factory.viewFromJSON(data.views[i]);
+                    _this._dashboard.views.push(_currentView);
+                }
+            }
+            console.log(_this._dashboard);
+        });
+    };
+    ViewService.prototype.saveDashboard = function () {
+        console.log("Saving some dashboard... ");
+        this._http.put(app_restClient_1.REST.VIEWS_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
+            .subscribe(function (data) {
+            console.log("Dashboard has been saved successfully");
+        });
+    };
+    ViewService.prototype.newView = function (view) {
+        if (this.hasViewWithName(view.name)) {
+            throw new Error("View with that name already exists!");
+        }
+        else {
+            console.log("New created view is: ", view);
+            this._dashboard.views.push(view);
+            this.viewNames.next(this._dashboard.views.map(function (data) { return data.name; }));
+            this.saveDashboard();
+        }
+    };
+    ViewService.prototype.removeView = function (viewName) {
+        for (var i = 0; i < this._dashboard.views.length; i++) {
+            if (this._dashboard.views[i].name == viewName) {
+                // remove the view from the dashboard
+                this._dashboard.views.splice(i, 1);
+                // save the dashboard
+                this.saveDashboard();
+                return;
+            }
+        }
+        throw new Error("Could not find a view " + viewName);
+    };
+    ViewService.prototype.getDataForView = function (view) {
+        return this._http.post(app_restClient_1.REST.COMPUTE_VIEW, view.toJSON())
+            .map(function (data) { return data.json(); });
+    };
+    ViewService.prototype.resetView = function (view) {
+        return this._http.post(app_restClient_1.REST.RESET_VIEW, view.toJSON())
+            .map(function (data) { return data.text(); });
+    };
+    ViewService.prototype.getViewByName = function (name) {
+        var result = undefined;
+        for (var i = 0; i < this._dashboard.views.length; i++) {
+            if (this._dashboard.views[i].name == name) {
+                result = this._dashboard.views[i];
+                break;
+            }
+        }
+        if (result == undefined) {
+            throw new Error("Could not find a view with name" + name);
+        }
+        else {
+            return result;
+        }
+    };
+    ViewService.prototype.hasViewWithName = function (name) {
+        var _value = false;
+        for (var i = 0; i < this._dashboard.views.length; i++) {
+            if (this._dashboard.views[i].name == name) {
+                _value = true;
+                break;
+            }
+        }
+        return _value;
+    };
+    ViewService = __decorate([
+        core_1.Injectable(), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
+    ], ViewService);
+    return ViewService;
+    var _a;
+}());
+exports.ViewService = ViewService;
 
 
 /***/ },

@@ -1,5 +1,5 @@
 import { SubEntity } from './model.subEntity';
-import { ApiClient } from '../../app.restClient';
+import { ApiClient } from '../../services/app.restClient';
 
 export class Attribute extends SubEntity {
     public rwto:number = 0; // read/write timeout

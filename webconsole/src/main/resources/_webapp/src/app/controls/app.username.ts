@@ -1,5 +1,5 @@
 import { Component} from '@angular/core';
-import { ApiClient } from './app.restClient';
+import { ApiClient } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 

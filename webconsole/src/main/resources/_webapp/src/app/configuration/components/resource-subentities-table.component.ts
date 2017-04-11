@@ -1,6 +1,6 @@
 import { Component, Input ,ViewChild, ElementRef, OnInit } from '@angular/core';
 
-import { ApiClient, REST } from '../../app.restClient';
+import { ApiClient, REST } from '../../services/app.restClient';
 import { KeyValue, Entity } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
 import { SubEntity } from '../model/model.subEntity';

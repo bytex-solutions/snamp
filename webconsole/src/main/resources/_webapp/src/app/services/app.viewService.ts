@@ -4,9 +4,9 @@ import { Response } from '@angular/http';
 import { Subject } from 'rxjs/Subject';
 import { ApiClient, REST } from './app.restClient';
 
-import { Dashboard } from './analysis/model/dashboard';
-import { E2EView } from './analysis/model/abstract.e2e.view';
-import { Factory } from './analysis/model/objectFactory';
+import { Dashboard } from '../analysis/model/dashboard';
+import { E2EView } from '../analysis/model/abstract.e2e.view';
+import { Factory } from '../analysis/model/objectFactory';
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';

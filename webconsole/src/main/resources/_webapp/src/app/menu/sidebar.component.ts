@@ -1,6 +1,6 @@
 import { Component, ViewEncapsulation } from '@angular/core';
-import { ViewService } from '../app.viewService';
-import { ChartService } from '../app.chartService';
+import { ViewService } from '../services/app.viewService';
+import { ChartService } from '../services/app.chartService';
 import { Observable } from 'rxjs/Observable';
 import { Router } from '@angular/router';
 import 'rxjs/add/observable/of';

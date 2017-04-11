@@ -1,5 +1,5 @@
 import { TypedEntity } from './model.typedEntity';
-import { ApiClient, REST } from '../../app.restClient';
+import { ApiClient, REST } from '../../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Binding } from './model.binding';

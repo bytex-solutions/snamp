@@ -7,10 +7,10 @@ import { ApiClient, REST } from './app.restClient';
 
 import { $WebSocket } from 'angular2-websocket/angular2-websocket';
 
-import { Dashboard } from './charts/model/dashboard';
-import { AbstractChart } from './charts/model/abstract.chart';
-import { Factory } from './charts/model/objectFactory';
-import { ChartData } from './charts/model/chart.data';
+import { Dashboard } from '../charts/model/dashboard';
+import { AbstractChart } from '../charts/model/abstract.chart';
+import { Factory } from '../charts/model/objectFactory';
+import { ChartData } from '../charts/model/chart.data';
 
 import { ActivatedRoute } from '@angular/router';
 

@@ -1,6 +1,6 @@
 import { Component, ChangeDetectorRef, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import { CookieService } from 'angular2-cookie/core';
-import { SnampLog, SnampLogService } from '..//app.logService';
+import { SnampLog, SnampLogService } from '../services/app.logService';
 
 import {
   Modal,

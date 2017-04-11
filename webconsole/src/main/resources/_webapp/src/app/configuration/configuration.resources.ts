@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
-import { ApiClient, REST } from '../app.restClient';
+import { ApiClient, REST } from '../services/app.restClient';
 import { Resource } from './model/model.resource';
 import { KeyValue } from './model/model.entity';
 import { Binding } from './model/model.binding';

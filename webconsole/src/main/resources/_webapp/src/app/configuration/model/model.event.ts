@@ -1,5 +1,5 @@
 import { SubEntity } from './model.subEntity';
-import { ApiClient } from '../../app.restClient';
+import { ApiClient } from '../../services/app.restClient';
 
 export class Event extends SubEntity {
     constructor(http:ApiClient, resourceType:string, name:string, jsonObject:any) {

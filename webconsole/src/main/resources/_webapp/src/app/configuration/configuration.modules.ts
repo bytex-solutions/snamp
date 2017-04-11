@@ -1,5 +1,5 @@
 import { NgModule }      from '@angular/core';
-import { ApiClient }     from '../app.restClient';
+import { ApiClient }     from '../services/app.restClient';
 import { CommonModule }       from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GatewaysComponent }  from './configuration.gateways';

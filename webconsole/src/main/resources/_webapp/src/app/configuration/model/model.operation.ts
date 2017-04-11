@@ -1,5 +1,5 @@
 import { SubEntity } from './model.subEntity';
-import { ApiClient } from '../../app.restClient';
+import { ApiClient } from '../../services/app.restClient';
 
 export class Operation extends SubEntity {
     public invokto:number = 0; // invocation timeout

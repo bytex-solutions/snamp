@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, EventEmitter, Output } from '@angular/core';
 import { TypedEntity } from '../model/model.typedEntity';
 
-import { ApiClient, REST } from '../../app.restClient';
+import { ApiClient, REST } from '../../services/app.restClient';
 import { KeyValue, Entity } from '../model/model.entity';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Response } from '@angular/http';
