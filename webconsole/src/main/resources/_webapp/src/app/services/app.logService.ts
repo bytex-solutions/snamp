@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { LocalStorageService } from 'angular-2-local-storage';
 import { Subject } from 'rxjs/Subject';
+import { AbstractNotification } from "./model/abstract.notification";
+import { LogNotification } from "./model/log.notification";
 
 @Injectable()
 export class SnampLogService {
@@ -9,20 +11,20 @@ export class SnampLogService {
     private SPLICE_COUNT:number = 30; // how many elements will we delete from the end of the array
     private RECENT_COUNT:number = 15; // default count of the recent message
     private KEY:string = "snampLogs";
-    private logObs:Subject<SnampLog>;
+    private logObs:Subject<AbstractNotification>;
 
     constructor(private localStorageService: LocalStorageService) {
-          let welcomeMessage:SnampLog = new SnampLog();
+          let welcomeMessage:AbstractNotification = new LogNotification();
           welcomeMessage.message = "SNAMP WEB UI has started successfully";
-          this.logObs = new Subject<SnampLog>();
+          this.logObs = new Subject<AbstractNotification>();
     }
 
-    public getLogObs():Observable<SnampLog> {
+    public getLogObs():Observable<AbstractNotification> {
         return this.logObs.asObservable().share();
     }
 
-    private getArray():SnampLog[] {
-         let logArray:SnampLog[] = <SnampLog[]>this.localStorageService.get(this.KEY);
+    private getArray():AbstractNotification[] {
+         let logArray:AbstractNotification[] = <AbstractNotification[]>this.localStorageService.get(this.KEY);
          if (logArray == undefined || logArray.length == 0) {
               this.localStorageService.set(this.KEY, []);
               logArray = [];
@@ -35,21 +37,21 @@ export class SnampLogService {
     }
 
     ngOnInit() {
-        let welcomeMessage:SnampLog = new SnampLog();
+        let welcomeMessage:AbstractNotification = new LogNotification();
         welcomeMessage.message = "SNAMP WEB UI has started successfully";
         this.pushLog(welcomeMessage);
     }
 
-    public pushLog(log:SnampLog) {
-        let logArray:SnampLog[] = this.getArray();
+    public pushLog(log:AbstractNotification) {
+        let logArray:AbstractNotification[] = this.getArray();
         logArray.unshift(log);
         this.localStorageService.set(this.KEY, logArray);
         this.logObs.next(log);
     }
 
-    public getLastLogs(count?:number):SnampLog[] {
+    public getLastLogs(count?:number):AbstractNotification[] {
         let _count:number = count ? count : this.RECENT_COUNT;
-        let logArray:SnampLog[] = this.getArray();
+        let logArray:AbstractNotification[] = this.getArray();
         if (logArray.length < _count) {
             return logArray;
         } else {
@@ -64,67 +66,4 @@ export class SnampLogService {
     public clear() {
         this.localStorageService.clearAll();
     }
-}
-
-export class SnampLog {
-  public message:string = "No message available";
-  public timestamp:string = (new Date()).toString();
-  public localTime:Date = new Date();
-  public level:string = "INFO";
-  public details:any = {};
-  public stacktrace:string = "No stacktrace is available";
-  public id:string = SnampLog.newGuid();
-  public shortDetailsHtml:string;
-
-  public static makeFromJson(_json:any):SnampLog {
-     let _instance:SnampLog = new SnampLog();
-     if (_json["message"] != undefined) {
-        _instance.message = _json["message"];
-     }
-     if (_json["timestamp"] != undefined) {
-        _instance.timestamp = _json["timestamp"];
-     }
-     if (_json["level"] != undefined) {
-        _instance.level = _json["level"];
-     }
-     if (_json["stacktrace"] != undefined) {
-        _instance.stacktrace = _json["stacktrace"];
-     }
-     if (_json["details"] != undefined && !$.isEmptyObject(_json["details"])) {
-        _instance.details = _json["details"];
-
-         let _details:string = "";
-          for (let key in _json.details) {
-             _details += "<strong>" + key + ": </strong>" + _json.details[key] + "<br/>"
-          }
-          _instance.shortDetailsHtml = _details;
-     }
-     return _instance;
-  }
-
-  public htmlDetails():string { // cannot be used in case we restore these objects from localstorage
-    return SnampLog.htmlDetails(this);
-  }
-
-  public static htmlDetails(_object:SnampLog):string {
-    let _details:string = "";
-     _details += "<strong>Message: </strong>" + _object.message + "<br/>";
-     _details += "<strong>Timestamp: </strong>" + _object.timestamp + "<br/>";
-     if (_object.stacktrace != "No stacktrace is available") {
-        _details += "<strong>Stacktrace: </strong>" + _object.stacktrace + "<br/>";
-     }
-     _details += "<strong>Level: </strong>" + _object.level + "<br/>";
-     if (_object.details && !$.isEmptyObject(_object.details)) {
-        _details += "<strong>Details</strong></br/>";
-        _details += _object.shortDetailsHtml;
-     }
-     return _details;
-  }
-
-   static newGuid() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-          return v.toString(16);
-      });
-   }
 }

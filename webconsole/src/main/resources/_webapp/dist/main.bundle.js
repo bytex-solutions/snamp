@@ -87582,10 +87582,11 @@ exports.ChartService = ChartService;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
+"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
 var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
+var log_notification_1 = __webpack_require__("./src/app/services/model/log.notification.ts");
 var SnampLogService = (function () {
     function SnampLogService(localStorageService) {
         this.localStorageService = localStorageService;
@@ -87593,7 +87594,7 @@ var SnampLogService = (function () {
         this.SPLICE_COUNT = 30; // how many elements will we delete from the end of the array
         this.RECENT_COUNT = 15; // default count of the recent message
         this.KEY = "snampLogs";
-        var welcomeMessage = new SnampLog();
+        var welcomeMessage = new log_notification_1.LogNotification();
         welcomeMessage.message = "SNAMP WEB UI has started successfully";
         this.logObs = new Subject_1.Subject();
     }
@@ -87613,7 +87614,7 @@ var SnampLogService = (function () {
         return logArray;
     };
     SnampLogService.prototype.ngOnInit = function () {
-        var welcomeMessage = new SnampLog();
+        var welcomeMessage = new log_notification_1.LogNotification();
         welcomeMessage.message = "SNAMP WEB UI has started successfully";
         this.pushLog(welcomeMessage);
     };
@@ -87647,68 +87648,7 @@ var SnampLogService = (function () {
     var _a;
 }());
 exports.SnampLogService = SnampLogService;
-var SnampLog = (function () {
-    function SnampLog() {
-        this.message = "No message available";
-        this.timestamp = (new Date()).toString();
-        this.localTime = new Date();
-        this.level = "INFO";
-        this.details = {};
-        this.stacktrace = "No stacktrace is available";
-        this.id = SnampLog.newGuid();
-    }
-    SnampLog.makeFromJson = function (_json) {
-        var _instance = new SnampLog();
-        if (_json["message"] != undefined) {
-            _instance.message = _json["message"];
-        }
-        if (_json["timestamp"] != undefined) {
-            _instance.timestamp = _json["timestamp"];
-        }
-        if (_json["level"] != undefined) {
-            _instance.level = _json["level"];
-        }
-        if (_json["stacktrace"] != undefined) {
-            _instance.stacktrace = _json["stacktrace"];
-        }
-        if (_json["details"] != undefined && !$.isEmptyObject(_json["details"])) {
-            _instance.details = _json["details"];
-            var _details = "";
-            for (var key in _json.details) {
-                _details += "<strong>" + key + ": </strong>" + _json.details[key] + "<br/>";
-            }
-            _instance.shortDetailsHtml = _details;
-        }
-        return _instance;
-    };
-    SnampLog.prototype.htmlDetails = function () {
-        return SnampLog.htmlDetails(this);
-    };
-    SnampLog.htmlDetails = function (_object) {
-        var _details = "";
-        _details += "<strong>Message: </strong>" + _object.message + "<br/>";
-        _details += "<strong>Timestamp: </strong>" + _object.timestamp + "<br/>";
-        if (_object.stacktrace != "No stacktrace is available") {
-            _details += "<strong>Stacktrace: </strong>" + _object.stacktrace + "<br/>";
-        }
-        _details += "<strong>Level: </strong>" + _object.level + "<br/>";
-        if (_object.details && !$.isEmptyObject(_object.details)) {
-            _details += "<strong>Details</strong></br/>";
-            _details += _object.shortDetailsHtml;
-        }
-        return _details;
-    };
-    SnampLog.newGuid = function () {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    };
-    return SnampLog;
-}());
-exports.SnampLog = SnampLog;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -87992,6 +87932,209 @@ var ViewService = (function () {
     var _a;
 }());
 exports.ViewService = ViewService;
+
+
+/***/ },
+
+/***/ "./src/app/services/model/abstract.notification.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var log_notification_1 = __webpack_require__("./src/app/services/model/log.notification.ts");
+var health_status_notification_1 = __webpack_require__("./src/app/services/model/health.status.notification.ts");
+var resource_notification_1 = __webpack_require__("./src/app/services/model/resource.notification.ts");
+var AbstractNotification = (function () {
+    function AbstractNotification() {
+        this._id = AbstractNotification.newGuid();
+        this._message = "No message available";
+        this._timestamp = new Date();
+        this._level = "INFO";
+    }
+    Object.defineProperty(AbstractNotification.prototype, "level", {
+        get: function () {
+            return this._level;
+        },
+        set: function (value) {
+            this._level = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AbstractNotification.prototype, "timestamp", {
+        get: function () {
+            return this._timestamp;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AbstractNotification.prototype, "message", {
+        get: function () {
+            return this._message;
+        },
+        set: function (value) {
+            this._message = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AbstractNotification.prototype, "id", {
+        get: function () {
+            return this._id;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AbstractNotification.prototype, "type", {
+        get: function () {
+            return this._type;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    AbstractNotification.fillFromJson = function (_json) {
+        var _notification = undefined;
+        switch (_json['@messageType']) {
+            case "log":
+                _notification = new log_notification_1.LogNotification();
+                break;
+            case "healthStatusChanged":
+                _notification = new health_status_notification_1.HealthStatusNotification();
+                break;
+            case "resourceNotification":
+                _notification = new resource_notification_1.ResourceNotification();
+                break;
+            default:
+                throw new Error("Could not recognize notification of type: " + _json['@messageType']);
+        }
+        _notification.fillFromJson(_json);
+        return _notification;
+    };
+    AbstractNotification.newGuid = function () {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    };
+    return AbstractNotification;
+}());
+exports.AbstractNotification = AbstractNotification;
+
+
+/***/ },
+
+/***/ "./src/app/services/model/health.status.notification.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/abstract.notification.ts");
+var HealthStatusNotification = (function (_super) {
+    __extends(HealthStatusNotification, _super);
+    function HealthStatusNotification() {
+        _super.apply(this, arguments);
+    }
+    HealthStatusNotification.prototype.htmlDetails = function () {
+        return undefined;
+    };
+    HealthStatusNotification.prototype.shortDescription = function () {
+        return undefined;
+    };
+    HealthStatusNotification.prototype.fillFromJson = function (json) {
+        return undefined;
+    };
+    return HealthStatusNotification;
+}(abstract_notification_1.AbstractNotification));
+exports.HealthStatusNotification = HealthStatusNotification;
+
+
+/***/ },
+
+/***/ "./src/app/services/model/log.notification.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/abstract.notification.ts");
+var LogNotification = (function (_super) {
+    __extends(LogNotification, _super);
+    function LogNotification() {
+        _super.call(this);
+        this.stacktrace = "No stacktrace is available";
+        this.shortDetailsHtml = undefined;
+        this.details = {};
+        this.serverTimeStamp = undefined;
+    }
+    LogNotification.prototype.htmlDetails = function () {
+        var _details = "";
+        _details += "<strong>Message: </strong>" + this.message + "<br/>";
+        _details += "<strong>Timestamp: </strong>" + this.timestamp + "<br/>";
+        if (this.stacktrace != "No stacktrace is available") {
+            _details += "<strong>Stacktrace: </strong>" + this.stacktrace + "<br/>";
+        }
+        _details += "<strong>Level: </strong>" + this.level + "<br/>";
+        if (this.details && !$.isEmptyObject(this.details)) {
+            _details += "<strong>Details</strong></br/>";
+            _details += this.shortDetailsHtml;
+        }
+        return _details;
+    };
+    LogNotification.prototype.shortDescription = function () {
+        return this.shortDetailsHtml;
+    };
+    LogNotification.prototype.fillFromJson = function (_json) {
+        if (_json["message"] != undefined) {
+            this.message = _json["message"];
+        }
+        if (_json["timestamp"] != undefined) {
+            this.serverTimeStamp = _json["timestamp"];
+        }
+        if (_json["level"] != undefined) {
+            this.level = _json["level"];
+        }
+        if (_json["stacktrace"] != undefined) {
+            this.stacktrace = _json["stacktrace"];
+        }
+        if (_json["details"] != undefined && !$.isEmptyObject(_json["details"])) {
+            this.details = _json["details"];
+            var _details = "";
+            for (var key in _json.details) {
+                _details += "<strong>" + key + ": </strong>" + _json.details[key] + "<br/>";
+            }
+            this.shortDetailsHtml = _details;
+        }
+    };
+    return LogNotification;
+}(abstract_notification_1.AbstractNotification));
+exports.LogNotification = LogNotification;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/services/model/resource.notification.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/abstract.notification.ts");
+var ResourceNotification = (function (_super) {
+    __extends(ResourceNotification, _super);
+    function ResourceNotification() {
+        _super.apply(this, arguments);
+    }
+    ResourceNotification.prototype.htmlDetails = function () {
+        return undefined;
+    };
+    ResourceNotification.prototype.shortDescription = function () {
+        return undefined;
+    };
+    ResourceNotification.prototype.fillFromJson = function (json) {
+        return undefined;
+    };
+    return ResourceNotification;
+}(abstract_notification_1.AbstractNotification));
+exports.ResourceNotification = ResourceNotification;
 
 
 /***/ },
