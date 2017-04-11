@@ -143,7 +143,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         private static final long serialVersionUID = 4377144410734844053L;
         private final String componentTypeHolder;
 
-        TypedComponentDescriptor(final String componentTypeHolder, @Nonnull final String systemName) {
+        private TypedComponentDescriptor(final String componentTypeHolder, @Nonnull final String systemName) {
             super(2);
             put(this.componentTypeHolder = componentTypeHolder, systemName);
         }
