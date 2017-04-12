@@ -5,6 +5,13 @@ import { StatusFactory } from "../healtstatus/factory";
 
 export class HealthStatusNotification extends AbstractNotification {
 
+    /**
+     1) example:
+        {"@messageType":"healthStatusChanged","previousStatus":{"@type":"InvalidAttributeValue","resourceName":"node#1","critical":true,"attributeName":"CPU","attributeValue":89.4655},"newStatus":{"@type":"OK"}}
+     2) example:
+        {"@messageType":"healthStatusChanged","previousStatus":{"@type":"OK"},"newStatus":{"@type":"InvalidAttributeValue","resourceName":"node#1","critical":true,"attributeName":"CPU","attributeValue":89.4655}}
+     */
+
     private prevStatus:HealthStatus;
     private currentStatus:HealthStatus;
 
@@ -28,17 +35,11 @@ export class HealthStatusNotification extends AbstractNotification {
 
     fillFromJson(_json: any): void {
         if (_json["previousStatus"] != undefined) {
-            this.prevStatus = StatusFactory.healthStatusFromJSON("previousStatus", _json["previousStatus"]);
+            this.prevStatus = StatusFactory.healthStatusFromJSON(_json["previousStatus"]['@type'], _json["previousStatus"]);
         }
         if (_json["newStatus"] != undefined) {
-            this.currentStatus = StatusFactory.healthStatusFromJSON("newStatus", _json["newStatus"]);
+            this.currentStatus = StatusFactory.healthStatusFromJSON(_json["newStatus"]['@type'], _json["newStatus"]);
         }
+        this.level = "WARN"; // always make it quite important (because no level is being received from backend)
     }
 }
-
-/**
- 1) example:
-        {"@messageType":"healthStatusChanged","previousStatus":{"@type":"InvalidAttributeValue","resourceName":"node#1","critical":true,"attributeName":"CPU","attributeValue":89.4655},"newStatus":{"@type":"OK"}}
- 2) example:
-        {"@messageType":"healthStatusChanged","previousStatus":{"@type":"OK"},"newStatus":{"@type":"InvalidAttributeValue","resourceName":"node#1","critical":true,"attributeName":"CPU","attributeValue":89.4655}}
- */

@@ -60,7 +60,7 @@ export class App {
 
     this.ws.getDataStream()
         .map((msg) => { console.log(msg); return JSON.parse(msg.data); })
-        .filter((msg) => (msg['@messageType'] == 'log' || msg['@messageType'] == 'healthStatusChanged'))
+        //.filter((msg) => (msg['@messageType'] == 'log' || msg['@messageType'] == 'healthStatusChanged'))
         .subscribe(
           (msg)=> {
               let _log:AbstractNotification = NotificationFactory.makeFromJson(msg);
@@ -76,11 +76,12 @@ export class App {
                   }
                   var notice = new PNotify({
                        title: _log.level,
-                       text: _log.message  + "<a class='details'>Details</a>",
+                       text: _log.shortDescription()  + "<a class='details'>Details</a>",
                        type: _log.level,
                        hide: false,
                        styling: 'bootstrap3',
                        addclass: "stack-bottomright",
+                       animate_speed: "fast",
                        stack: this.stack_bottomright
                    });
 

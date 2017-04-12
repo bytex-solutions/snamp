@@ -84174,7 +84174,6 @@ var App = (function () {
         this.ws = new angular2_websocket_1.$WebSocket("ws://localhost:8181/snamp/console/events", [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
         this.ws.getDataStream()
             .map(function (msg) { console.log(msg); return JSON.parse(msg.data); })
-            .filter(function (msg) { return (msg['@messageType'] == 'log' || msg['@messageType'] == 'healthStatusChanged'); })
             .subscribe(function (msg) {
             var _log = factory_1.NotificationFactory.makeFromJson(msg);
             _this._snampLogService.pushLog(_log);
@@ -84187,11 +84186,12 @@ var App = (function () {
                 }
                 var notice = new PNotify({
                     title: _log.level,
-                    text: _log.message + "<a class='details'>Details</a>",
+                    text: _log.shortDescription() + "<a class='details'>Details</a>",
                     type: _log.level,
                     hide: false,
                     styling: 'bootstrap3',
                     addclass: "stack-bottomright",
+                    animate_speed: "fast",
                     stack: _this.stack_bottomright
                 });
                 var _thisReference = _this;
@@ -87244,7 +87244,7 @@ exports.Sidebar = Sidebar;
 /***/ "./src/app/menu/topnavbar.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"top_nav\">\r\n  <div class=\"nav_menu\">\r\n    <nav>\r\n      <div class=\"nav toggle\">\r\n        <a id=\"menu_toggle\" (click)=\"toggleClicked($event)\"><i fa [icon]=\"'bars'\"></i></a>\r\n      </div>\r\n      <ul class=\"nav navbar-nav navbar-right\">\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"user-profile dropdown-toggle\" dropdown-open id=\"userProfileDropdown\">\r\n            <img src=\"assets/img/anyUser.png\" alt=\"\">\r\n            <username></username>\r\n          </a>\r\n          <ul class=\"dropdown-menu dropdown-usermenu pull-right\" aria-labelledby=\"userProfileDropdown\">\r\n            <li><a href=\"javascript:;\">Profile</a></li>\r\n            <li><a href=\"https://snamp.bytex.solutions/docs/latest/main.md.html\" target=\"_blank\">Help</a></li>\r\n            <li><a href=\"login.html\" (click)=\"clearCookie()\"><i class=\"fa fa-sign-out pull-right\"></i> Log Out</a></li>\r\n          </ul>\r\n        </li>\r\n\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"dropdown-toggle info-number\" dropdown-open id=\"userNotificaion\">\r\n            <i class=\"fa fa-envelope-o\"></i>\r\n            <span class=\"badge bg-green\">{{logs.length}}</span>\r\n          </a>\r\n          <ul id=\"menu1\" class=\"dropdown-menu list-unstyled msg_list\" dropdown-not-closable-zone>\r\n            <li *ngIf=\"logs && logs.length > 0\">\r\n              <div class=\"text-center\">\r\n                <a (click)=\"clearAlerts()\">\r\n                  <strong>Clear alerts</strong>\r\n                  <i class=\"fa fa-remove\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n            <li *ngFor=\"let log of logs\" [attr.id]=\"log.id\">\r\n              <a class=\"exitIcon\" (click)=\"removeMessage(log)\"><i class=\"glyphicon glyphicon-remove-circle\"></i></a>\r\n              <a (click)=\"clickDetails(log)\">\r\n                <span class=\"image\"><i class=\"fa fa-info fa-3\" aria-hidden=\"true\"></i></span>\r\n                <span>\r\n                  <span style=\"text-transform: uppercase;\">{{log.level}}</span>\r\n\r\n                  <span class=\"time\">{{log.localTime | amTimeAgo}}</span>\r\n                </span>\r\n                <span class=\"message\">\r\n                  {{log.message}}\r\n                </span>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <div class=\"text-center\">\r\n                <a href=\"/snamp/#/snamplogview\">\r\n                  <strong>See All Alerts</strong>\r\n                  <i class=\"fa fa-angle-right\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n          </ul>\r\n        </li>\r\n      </ul>\r\n    </nav>\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"top_nav\">\r\n  <div class=\"nav_menu\">\r\n    <nav>\r\n      <div class=\"nav toggle\">\r\n        <a id=\"menu_toggle\" (click)=\"toggleClicked($event)\"><i fa [icon]=\"'bars'\"></i></a>\r\n      </div>\r\n      <ul class=\"nav navbar-nav navbar-right\">\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"user-profile dropdown-toggle\" dropdown-open id=\"userProfileDropdown\">\r\n            <img src=\"assets/img/anyUser.png\" alt=\"\">\r\n            <username></username>\r\n          </a>\r\n          <ul class=\"dropdown-menu dropdown-usermenu pull-right\" aria-labelledby=\"userProfileDropdown\">\r\n            <li><a href=\"javascript:;\">Profile</a></li>\r\n            <li><a href=\"https://snamp.bytex.solutions/docs/latest/main.md.html\" target=\"_blank\">Help</a></li>\r\n            <li><a href=\"login.html\" (click)=\"clearCookie()\"><i class=\"fa fa-sign-out pull-right\"></i> Log Out</a></li>\r\n          </ul>\r\n        </li>\r\n\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"dropdown-toggle info-number\" dropdown-open id=\"userNotificaion\">\r\n            <i class=\"fa fa-envelope-o\"></i>\r\n            <span class=\"badge bg-green\">{{logs.length}}</span>\r\n          </a>\r\n          <ul id=\"menu1\" class=\"dropdown-menu list-unstyled msg_list\" dropdown-not-closable-zone>\r\n            <li *ngIf=\"logs && logs.length > 0\">\r\n              <div class=\"text-center\">\r\n                <a (click)=\"clearAlerts()\">\r\n                  <strong>Clear alerts</strong>\r\n                  <i class=\"fa fa-remove\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n            <li *ngFor=\"let log of logs\" [attr.id]=\"log.id\">\r\n              <a class=\"exitIcon\" (click)=\"removeMessage(log)\"><i class=\"glyphicon glyphicon-remove-circle\"></i></a>\r\n              <a (click)=\"clickDetails(log)\">\r\n                <span class=\"image\"><i class=\"fa fa-info fa-3\" aria-hidden=\"true\"></i></span>\r\n                <span>\r\n                  <span style=\"text-transform: uppercase;\">{{log.level}}</span>\r\n\r\n                  <span class=\"time\">{{log.localTime | amTimeAgo}}</span>\r\n                </span>\r\n                <span class=\"message\">\r\n                  {{log.shortDescription()}}\r\n                </span>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <div class=\"text-center\">\r\n                <a href=\"/snamp/#/snamplogview\">\r\n                  <strong>See All Alerts</strong>\r\n                  <i class=\"fa fa-angle-right\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n          </ul>\r\n        </li>\r\n      </ul>\r\n    </nav>\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
@@ -87958,7 +87958,7 @@ var ConnectionProblem = (function (_super) {
     };
     ConnectionProblem.prototype.htmlDetails = function () {
         var _details = "";
-        _details += "<strong>Watcher name: </strong>" + this.name + "<br/>";
+        _details += "<strong>Name: </strong>" + this.name + "<br/>";
         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
         _details += "<strong>IO Exception: </strong>" + this.ioException + "<br/>";
@@ -88076,7 +88076,7 @@ var InvalidAttributeValue = (function (_super) {
     };
     InvalidAttributeValue.prototype.htmlDetails = function () {
         var _details = "";
-        _details += "<strong>Watcher name: </strong>" + this.name + "<br/>";
+        _details += "<strong>Name: </strong>" + this.name + "<br/>";
         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
         _details += "<strong>Attribute name: </strong>" + this.attribute.name + "<br/>";
@@ -88142,7 +88142,7 @@ var OkStatus = (function (_super) {
         return "n/a";
     };
     OkStatus.prototype.htmlDetails = function () {
-        return "<strong>Everything is fine</strong>";
+        return "<strong>Everything is fine</strong></br>";
     };
     return OkStatus;
 }(health_status_1.HealthStatus));
@@ -88172,7 +88172,7 @@ var ResourceIsNotAvailable = (function (_super) {
     };
     ResourceIsNotAvailable.prototype.htmlDetails = function () {
         var _details = "";
-        _details += "<strong>Watcher name: </strong>" + this.name + "<br/>";
+        _details += "<strong>Name: </strong>" + this.name + "<br/>";
         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
         _details += "<strong>JMX Exception: </strong>" + this.jmxError + "<br/>";
@@ -88318,21 +88318,16 @@ var HealthStatusNotification = (function (_super) {
     };
     HealthStatusNotification.prototype.fillFromJson = function (_json) {
         if (_json["previousStatus"] != undefined) {
-            this.prevStatus = factory_1.StatusFactory.healthStatusFromJSON("previousStatus", _json["previousStatus"]);
+            this.prevStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["previousStatus"]['@type'], _json["previousStatus"]);
         }
         if (_json["newStatus"] != undefined) {
-            this.currentStatus = factory_1.StatusFactory.healthStatusFromJSON("newStatus", _json["newStatus"]);
+            this.currentStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["newStatus"]['@type'], _json["newStatus"]);
         }
+        this.level = "WARN"; // always make it quite important (because no level is being received from backend)
     };
     return HealthStatusNotification;
 }(abstract_notification_1.AbstractNotification));
 exports.HealthStatusNotification = HealthStatusNotification;
-/**
- 1) example:
-        {"@messageType":"healthStatusChanged","previousStatus":{"@type":"InvalidAttributeValue","resourceName":"node#1","critical":true,"attributeName":"CPU","attributeValue":89.4655},"newStatus":{"@type":"OK"}}
- 2) example:
-        {"@messageType":"healthStatusChanged","previousStatus":{"@type":"OK"},"newStatus":{"@type":"InvalidAttributeValue","resourceName":"node#1","critical":true,"attributeName":"CPU","attributeValue":89.4655}}
- */ 
 
 
 /***/ },
@@ -88367,7 +88362,7 @@ var LogNotification = (function (_super) {
         return _details;
     };
     LogNotification.prototype.shortDescription = function () {
-        return this.shortDetailsHtml;
+        return this.message;
     };
     LogNotification.prototype.fillFromJson = function (_json) {
         if (_json["message"] != undefined) {
@@ -88403,24 +88398,82 @@ exports.LogNotification = LogNotification;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
 var ResourceNotification = (function (_super) {
     __extends(ResourceNotification, _super);
     function ResourceNotification() {
-        _super.apply(this, arguments);
+        _super.call(this);
+        this.sequenceNumber = 0;
+        this.source = "n/a";
+        this.sourceObjectName = "n/a";
+        this.serverTime = new Date().getTime();
+        this.userData = {};
     }
+    /**
+     * 1) example:
+     *    "{"@messageType":"resourceNotification","notification":{"source":"paypal","type":"com.bytex.snamp.measurement.span","sequenceNumber":232,"timeStamp":1491912868821,"message":"Span detected","userData":{}}}"
+     * fields (jmx type_
+     *     new ObjectStreamField("message", String.class),
+     *     new ObjectStreamField("sequenceNumber", Long.TYPE),
+     *     new ObjectStreamField("source", Object.class),
+     *     new ObjectStreamField("sourceObjectName", ObjectName.class),
+     *     new ObjectStreamField("timeStamp", Long.TYPE),
+     *     new ObjectStreamField("type", String.class),
+     *     new ObjectStreamField("userData", Object.class)
+     */
     ResourceNotification.prototype.htmlDetails = function () {
-        return "";
+        var _details = "";
+        _details += "<strong>Type: </strong>" + this.type + "<br/>";
+        _details += "<strong>Message: </strong>" + this.message + "<br/>";
+        _details += "<strong>Timestamp: </strong>" + this.timestamp + "<br/>";
+        _details += "<strong>Server time: </strong>" + this.serverTime + "<br/>";
+        _details += "<strong>Sequence number: </strong>" + this.sequenceNumber + "<br/>";
+        if (this.sourceObjectName != "n/a") {
+            _details += "<strong>Source object name: </strong>" + this.sourceObjectName + "<br/>";
+        }
+        if (true) {
+            _details += "<strong>Source: </strong>" + this.source + "<br/>";
+        }
+        if (!$.isEmptyObject(this.userData)) {
+            _details += "<strong>User data: </strong>" + this.userData + "<br/>";
+        }
+        return _details;
     };
     ResourceNotification.prototype.shortDescription = function () {
-        return "";
+        return this.message;
     };
-    ResourceNotification.prototype.fillFromJson = function (json) { };
+    ResourceNotification.prototype.fillFromJson = function (_json) {
+        if (_json["message"] != undefined) {
+            this.message = _json["message"];
+        }
+        if (_json["timestamp"] != undefined) {
+            this.serverTime = _json["timestamp"];
+        }
+        if (_json["level"] != undefined) {
+            this.level = _json["level"];
+        }
+        if (_json["source"] != undefined) {
+            this.source = _json["source"];
+        }
+        if (_json["sourceObjectName"] != undefined) {
+            this.sourceObjectName = _json["sourceObjectName"];
+        }
+        if (_json["type"] != undefined) {
+            this.type = _json["type"];
+        }
+        if (_json["sequenceNumber"] != undefined) {
+            this.sequenceNumber = _json["sequenceNumber"];
+        }
+        if (_json["userData"] != undefined) {
+            this.userData = _json["userData"];
+        }
+    };
     return ResourceNotification;
 }(abstract_notification_1.AbstractNotification));
 exports.ResourceNotification = ResourceNotification;
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 

@@ -31,7 +31,7 @@ export class LogNotification extends AbstractNotification {
     }
 
     shortDescription(): string {
-        return this.shortDetailsHtml;
+        return this.message;
     }
 
     fillFromJson(_json: any): void {

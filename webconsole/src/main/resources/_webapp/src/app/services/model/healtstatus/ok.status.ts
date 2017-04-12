@@ -16,6 +16,6 @@ export class OkStatus extends HealthStatus {
     }
 
     public htmlDetails():string {
-        return "<strong>Everything is fine</strong>"
+        return "<strong>Everything is fine</strong></br>"
     }
 }

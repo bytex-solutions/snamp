@@ -14,7 +14,7 @@ export class ConnectionProblem extends MalfunctionStatus {
 
     public htmlDetails():string {
         let _details:string = "";
-         _details += "<strong>Watcher name: </strong>" + this.name + "<br/>";
+         _details += "<strong>Name: </strong>" + this.name + "<br/>";
          _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
          _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
          _details += "<strong>IO Exception: </strong>" + this.ioException + "<br/>";
