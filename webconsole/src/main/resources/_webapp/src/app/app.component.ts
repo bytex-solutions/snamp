@@ -67,7 +67,7 @@ export class App {
               this._snampLogService.pushLog(_log);
 
               // do not show notifications in case we are inside of snamp configuration (there is a table with notifications)
-              if (this._router.url.indexOf('/snampcfg') < 0) {
+              if (this._router.url.indexOf('/logview') < 0) {
 
                   // limit the notifications maximum count
                   if (this.notificationCount > 3) {

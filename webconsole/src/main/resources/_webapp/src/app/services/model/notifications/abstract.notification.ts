@@ -6,6 +6,11 @@ export abstract class AbstractNotification {
     private _id:string;
     private _type:string;
 
+    // meta fields for caching details (when there is no possibility to call the function)
+    private _savedMessage:string;
+    private _savedDetails:string;
+    private _savedTimestamp:number;
+
     abstract htmlDetails():string;
     abstract shortDescription():string;
     abstract fillFromJson(json: any):void;
@@ -48,6 +53,30 @@ export abstract class AbstractNotification {
         this._message = "No message available";
         this._timestamp = new Date();
         this._level = "INFO";
+    }
+
+    get savedMessage(): string {
+        return this._savedMessage;
+    }
+
+    set savedMessage(value: string) {
+        this._savedMessage = value;
+    }
+
+    get savedDetails(): string {
+        return this._savedDetails;
+    }
+
+    set savedDetails(value: string) {
+        this._savedDetails = value;
+    }
+
+    get savedTimestamp(): number {
+        return this._savedTimestamp;
+    }
+
+    set savedTimestamp(value: number) {
+        this._savedTimestamp = value;
     }
 
     static newGuid() {

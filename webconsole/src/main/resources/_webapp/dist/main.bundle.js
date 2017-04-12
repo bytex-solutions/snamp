@@ -84178,7 +84178,7 @@ var App = (function () {
             var _log = factory_1.NotificationFactory.makeFromJson(msg);
             _this._snampLogService.pushLog(_log);
             // do not show notifications in case we are inside of snamp configuration (there is a table with notifications)
-            if (_this._router.url.indexOf('/snampcfg') < 0) {
+            if (_this._router.url.indexOf('/logview') < 0) {
                 // limit the notifications maximum count
                 if (_this.notificationCount > 3) {
                     PNotify.removeAll();
@@ -88237,6 +88237,36 @@ var AbstractNotification = (function () {
         },
         set: function (value) {
             this._type = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AbstractNotification.prototype, "savedMessage", {
+        get: function () {
+            return this._savedMessage;
+        },
+        set: function (value) {
+            this._savedMessage = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AbstractNotification.prototype, "savedDetails", {
+        get: function () {
+            return this._savedDetails;
+        },
+        set: function (value) {
+            this._savedDetails = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AbstractNotification.prototype, "savedTimestamp", {
+        get: function () {
+            return this._savedTimestamp;
+        },
+        set: function (value) {
+            this._savedTimestamp = value;
         },
         enumerable: true,
         configurable: true

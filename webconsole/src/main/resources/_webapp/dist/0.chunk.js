@@ -37548,24 +37548,33 @@ exports.GatewaysComponent = GatewaysComponent;
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
+var ng2_smart_table_1 = __webpack_require__("./node_modules/ng2-smart-table/build/ng2-smart-table.js");
 var SnampLogViewComponent = (function () {
     function SnampLogViewComponent(_snampLogService) {
         this._snampLogService = _snampLogService;
         this.rows = [];
         this.settings = {
             columns: {
+                savedTimestamp: {
+                    title: 'Timestamp',
+                    filter: false,
+                    sortDirection: 'desc'
+                },
                 level: {
                     title: 'Level'
                 },
-                message: {
+                savedMessage: {
                     title: 'Message'
                 },
-                localTime: {
-                    title: 'Timestamp',
-                    filter: false,
-                    sortDirection: 'desc '
+                timestamp: {
+                    title: 'Date and time',
+                    filter: false
                 },
-                shortDetailsHtml: {
+                type: {
+                    title: 'Type',
+                    type: 'html'
+                },
+                savedDetails: {
                     title: 'Details',
                     type: 'html'
                 }
@@ -37576,7 +37585,7 @@ var SnampLogViewComponent = (function () {
                 delete: false
             },
             pager: {
-                perPage: 8
+                perPage: 20
             }
         };
     }
@@ -37584,7 +37593,15 @@ var SnampLogViewComponent = (function () {
         var _this = this;
         this._snampLogService.getLogObs()
             .subscribe(function (newLog) {
-            _this.source.add(newLog);
+            newLog.savedMessage = newLog.shortDescription();
+            newLog.savedDetails = newLog.htmlDetails();
+            newLog.savedTimestamp = newLog.timestamp.getTime();
+            if (_this.source == undefined) {
+                _this.source = new ng2_smart_table_1.LocalDataSource(new Array(newLog));
+            }
+            else {
+                _this.source.add(newLog);
+            }
             _this.source.refresh();
         });
     };

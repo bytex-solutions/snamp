@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { SnampLogService } from '../services/app.logService';
 
 import { LocalDataSource } from 'ng2-smart-table';
-import {AbstractNotification} from "../services/model/notifications/abstract.notification";
+import { AbstractNotification } from "../services/model/notifications/abstract.notification";
 
 @Component({
   moduleId: module.id,
@@ -15,21 +15,29 @@ export class SnampLogViewComponent implements OnInit {
 
      public settings = {
          columns: {
-           level: {
-             title: 'Level'
-           },
-           message: {
-             title: 'Message'
-           },
-           localTime: {
-             title: 'Timestamp',
-             filter: false,
-             sortDirection: 'desc '
-           },
-           shortDetailsHtml: {
-              title: 'Details',
-              type: 'html'
-           }
+               savedTimestamp: {
+                   title: 'Timestamp',
+                   filter: false,
+                   sortDirection: 'desc'
+               },
+               level: {
+                 title: 'Level'
+               },
+               savedMessage: {
+                 title: 'Message'
+               },
+               timestamp: {
+                 title: 'Date and time',
+                 filter: false
+               },
+               type: {
+                  title: 'Type',
+                  type: 'html'
+               },
+               savedDetails: {
+                   title: 'Details',
+                   type: 'html'
+               }
         },
          actions: {
             add: false,
@@ -37,7 +45,7 @@ export class SnampLogViewComponent implements OnInit {
             delete: false
          },
          pager: {
-            perPage: 8
+            perPage: 20
          }
      };
 
@@ -46,8 +54,15 @@ export class SnampLogViewComponent implements OnInit {
     ngOnInit() {
         this._snampLogService.getLogObs()
              .subscribe((newLog:AbstractNotification) => {
-                  this.source.add(newLog);
-                  this.source.refresh();
+                 newLog.savedMessage = newLog.shortDescription();
+                 newLog.savedDetails = newLog.htmlDetails();
+                 newLog.savedTimestamp = newLog.timestamp.getTime();
+                 if (this.source == undefined) {
+                     this.source = new LocalDataSource(new Array(newLog));
+                 } else {
+                     this.source.add(newLog);
+                 }
+                 this.source.refresh();
            });
      }
 
@@ -59,3 +74,4 @@ export class SnampLogViewComponent implements OnInit {
       $('#overlay').fadeOut();
    }
 }
+
