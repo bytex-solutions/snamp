@@ -13,19 +13,19 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-final class OpenStackAuthenticatorV3 extends OpenStackAuthenticator<V3> {
+final class OpenStackClientV3Provider extends OpenStackClientProvider<V3> {
     static final String VERSION = "V3";
     private String domainName;
     private Identifier project;
 
     @Override
-    OpenStackAuthenticatorV3 setDomain(final String value) {
+    OpenStackClientV3Provider setDomain(final String value) {
         domainName = value;
         return this;
     }
 
     @Override
-    OpenStackAuthenticator<V3> setProject(final String value) {
+    OpenStackClientProvider<V3> setProject(final String value) {
         project = isNullOrEmpty(value) ? null : Identifier.byName(value);
         return this;  //nothing to do
     }

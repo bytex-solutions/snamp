@@ -45,7 +45,7 @@ final class OpenStackSupervisor extends DefaultSupervisor {
                 .setPassword(parser.parsePassword(configuration))
                 .setDomain(parser.parseDomain(configuration))
                 .setProject(parser.parseProject(configuration))
-                .authenticate();
+                .get();
         if (!openStackClient.supportsCompute()) {    //Compute is not supported. Shutting down.
             final String message = String.format("OpenStack installation %s doesn't support Compute service. Supervisor for group %s is not started", openStackClient.getEndpoint(), groupName);
             throw new OS4JException(message);

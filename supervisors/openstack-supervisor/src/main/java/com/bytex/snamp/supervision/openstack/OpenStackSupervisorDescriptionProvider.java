@@ -44,13 +44,13 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
         return INSTANCE.lazyGet(OpenStackSupervisorDescriptionProvider::new);
     }
 
-    OpenStackAuthenticator parseAuthenticator(final Map<String, String> configuration) {
-        switch (configuration.getOrDefault(KEYSTONE_VER_PARAM, OpenStackAuthenticatorV3.VERSION)) {
-            case OpenStackAuthenticatorV2.VERSION:
-                return new OpenStackAuthenticatorV2();
-            case OpenStackAuthenticatorV3.VERSION:
+    OpenStackClientProvider parseAuthenticator(final Map<String, String> configuration) {
+        switch (configuration.getOrDefault(KEYSTONE_VER_PARAM, OpenStackClientV3Provider.VERSION)) {
+            case OpenStackClientV2Provider.VERSION:
+                return new OpenStackClientV2Provider();
+            case OpenStackClientV3Provider.VERSION:
             default:
-                return new OpenStackAuthenticatorV3();
+                return new OpenStackClientV3Provider();
         }
     }
 

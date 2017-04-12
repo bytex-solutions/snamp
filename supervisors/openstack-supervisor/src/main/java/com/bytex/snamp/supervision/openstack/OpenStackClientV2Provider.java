@@ -12,17 +12,17 @@ import static com.google.common.base.Strings.emptyToNull;
  * @version 1.0
  * @since 1.0
  */
-final class OpenStackAuthenticatorV2 extends OpenStackAuthenticator<V2> {
+final class OpenStackClientV2Provider extends OpenStackClientProvider<V2> {
     static final String VERSION = "V2";
     private String tenantName;
 
     @Override
-    OpenStackAuthenticatorV2 setDomain(@Nonnull final String domain) {
+    OpenStackClientV2Provider setDomain(@Nonnull final String domain) {
         return this;    //nothing to do because domains are not supported in V2
     }
 
     @Override
-    OpenStackAuthenticatorV2 setProject(final String value) {
+    OpenStackClientV2Provider setProject(final String value) {
         tenantName = emptyToNull(value);
         return this;
     }
