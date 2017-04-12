@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { LocalStorageService } from 'angular-2-local-storage';
 import { Subject } from 'rxjs/Subject';
-import { AbstractNotification } from "./model/abstract.notification";
-import { LogNotification } from "./model/log.notification";
+import { AbstractNotification } from "./model/notifications/abstract.notification";
+import { LogNotification } from "./model/notifications/log.notification";
 
 @Injectable()
 export class SnampLogService {

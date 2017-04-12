@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { SnampLogService } from '../services/app.logService';
 
 import { LocalDataSource } from 'ng2-smart-table';
-import {AbstractNotification} from "../services/model/abstract.notification";
+import {AbstractNotification} from "../services/model/notifications/abstract.notification";
 
 @Component({
   moduleId: module.id,

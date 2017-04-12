@@ -84150,7 +84150,7 @@ __webpack_require__("./node_modules/pnotify/src/pnotify.buttons.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.desktop.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var index_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
-var factory_1 = __webpack_require__("./src/app/services/model/factory.ts");
+var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
 var App = (function () {
     function App(overlay, title, vcRef, modal, _snampLogService, _router) {
         this.modal = modal;
@@ -87587,7 +87587,7 @@ exports.ChartService = ChartService;
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
 var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
-var log_notification_1 = __webpack_require__("./src/app/services/model/log.notification.ts");
+var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
 var SnampLogService = (function () {
     function SnampLogService(localStorageService) {
         this.localStorageService = localStorageService;
@@ -87937,7 +87937,7 @@ exports.ViewService = ViewService;
 
 /***/ },
 
-/***/ "./src/app/services/model/abstract.notification.ts":
+/***/ "./src/app/services/model/notifications/abstract.notification.ts":
 /***/ function(module, exports) {
 
 "use strict";
@@ -88006,14 +88006,14 @@ exports.AbstractNotification = AbstractNotification;
 
 /***/ },
 
-/***/ "./src/app/services/model/factory.ts":
+/***/ "./src/app/services/model/notifications/factory.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var log_notification_1 = __webpack_require__("./src/app/services/model/log.notification.ts");
-var health_status_notification_1 = __webpack_require__("./src/app/services/model/health.status.notification.ts");
-var resource_notification_1 = __webpack_require__("./src/app/services/model/resource.notification.ts");
+var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
+var health_status_notification_1 = __webpack_require__("./src/app/services/model/notifications/health.status.notification.ts");
+var resource_notification_1 = __webpack_require__("./src/app/services/model/notifications/resource.notification.ts");
 var Factory = (function () {
     function Factory() {
     }
@@ -88043,12 +88043,12 @@ exports.Factory = Factory;
 
 /***/ },
 
-/***/ "./src/app/services/model/health.status.notification.ts":
+/***/ "./src/app/services/model/notifications/health.status.notification.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var abstract_notification_1 = __webpack_require__("./src/app/services/model/abstract.notification.ts");
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
 var HealthStatusNotification = (function (_super) {
     __extends(HealthStatusNotification, _super);
     function HealthStatusNotification() {
@@ -88065,16 +88065,22 @@ var HealthStatusNotification = (function (_super) {
     return HealthStatusNotification;
 }(abstract_notification_1.AbstractNotification));
 exports.HealthStatusNotification = HealthStatusNotification;
+/**
+ 1) example:
+        {"@messageType":"healthStatusChanged","previousStatus":{"@type":"InvalidAttributeValue","resourceName":"node#1","critical":true,"attributeName":"CPU","attributeValue":89.4655},"newStatus":{"@type":"OK"}}
+ 2) example:
+        {"@messageType":"healthStatusChanged","previousStatus":{"@type":"OK"},"newStatus":{"@type":"InvalidAttributeValue","resourceName":"node#1","critical":true,"attributeName":"CPU","attributeValue":89.4655}}
+ */ 
 
 
 /***/ },
 
-/***/ "./src/app/services/model/log.notification.ts":
+/***/ "./src/app/services/model/notifications/log.notification.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
-var abstract_notification_1 = __webpack_require__("./src/app/services/model/abstract.notification.ts");
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
 var LogNotification = (function (_super) {
     __extends(LogNotification, _super);
     function LogNotification() {
@@ -88131,12 +88137,12 @@ exports.LogNotification = LogNotification;
 
 /***/ },
 
-/***/ "./src/app/services/model/resource.notification.ts":
+/***/ "./src/app/services/model/notifications/resource.notification.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var abstract_notification_1 = __webpack_require__("./src/app/services/model/abstract.notification.ts");
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
 var ResourceNotification = (function (_super) {
     __extends(ResourceNotification, _super);
     function ResourceNotification() {

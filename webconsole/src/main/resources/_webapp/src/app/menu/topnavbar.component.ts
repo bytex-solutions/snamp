@@ -10,7 +10,7 @@ import {
 } from 'angular2-modal/plugins/bootstrap/index';
 
 import { Overlay } from 'angular2-modal';
-import {AbstractNotification} from "../services/model/abstract.notification";
+import { AbstractNotification } from "../services/model/notifications/abstract.notification";
 
 @Component({
   selector: 'topnav-bar',

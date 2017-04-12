@@ -18,8 +18,8 @@ import {
   TwoButtonPresetBuilder,
   PromptPresetBuilder
 } from 'angular2-modal/plugins/bootstrap/index';
-import {AbstractNotification} from "./services/model/abstract.notification";
-import {Factory} from "./services/model/factory";
+import {AbstractNotification} from "./services/model/notifications/abstract.notification";
+import {Factory} from "./services/model/notifications/factory";
 
 
 @Component({
