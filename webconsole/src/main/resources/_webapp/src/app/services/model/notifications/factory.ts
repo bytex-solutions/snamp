@@ -3,7 +3,7 @@ import { LogNotification } from "./log.notification";
 import { HealthStatusNotification } from "./health.status.notification";
 import { ResourceNotification } from "./resource.notification";
 
-export class Factory {
+export class NotificationFactory {
     public static makeFromJson(_json:any):AbstractNotification {
         let _notification:AbstractNotification;
         switch (_json['@messageType']) {

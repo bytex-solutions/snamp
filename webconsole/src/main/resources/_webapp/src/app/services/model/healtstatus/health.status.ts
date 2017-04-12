@@ -8,6 +8,7 @@ export abstract class HealthStatus {
     public code:number = -1;
     public resourceName:string = "";
     public name:string = "";
+    public innerType:string = HealthStatus.OK_TYPE;
 
     public abstract isCritical():boolean;
     public abstract represent():string;

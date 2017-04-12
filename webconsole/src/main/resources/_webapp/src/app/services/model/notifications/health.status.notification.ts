@@ -1,15 +1,38 @@
 import { AbstractNotification } from "./abstract.notification";
+import { HealthStatus } from "../healtstatus/health.status";
+import { OkStatus } from "../healtstatus/ok.status";
+import { StatusFactory } from "../healtstatus/factory";
 
 export class HealthStatusNotification extends AbstractNotification {
+
+    private prevStatus:HealthStatus;
+    private currentStatus:HealthStatus;
+
+    constructor() {
+        super();
+        this.prevStatus = new OkStatus;
+        this.currentStatus = new OkStatus;
+    }
+
     htmlDetails(): string {
-        return undefined;
+        let _details:string =  "The status before: <br/>";
+        _details += this.prevStatus.htmlDetails();
+        _details += "Current status: <br/>";
+        _details += this.currentStatus.htmlDetails();
+        return _details;
     }
 
     shortDescription(): string {
-        return undefined;
+        return "Previous status: " + this.prevStatus.innerType + " , current status: " + this.currentStatus.innerType;
     }
 
-    fillFromJson(json: any): void {
+    fillFromJson(_json: any): void {
+        if (_json["previousStatus"] != undefined) {
+            this.prevStatus = StatusFactory.healthStatusFromJSON("previousStatus", _json["previousStatus"]);
+        }
+        if (_json["newStatus"] != undefined) {
+            this.currentStatus = StatusFactory.healthStatusFromJSON("newStatus", _json["newStatus"]);
+        }
     }
 }
 

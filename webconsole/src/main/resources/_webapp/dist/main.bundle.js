@@ -84174,9 +84174,9 @@ var App = (function () {
         this.ws = new angular2_websocket_1.$WebSocket("ws://localhost:8181/snamp/console/events", [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
         this.ws.getDataStream()
             .map(function (msg) { console.log(msg); return JSON.parse(msg.data); })
-            .filter(function (msg) { return msg['@messageType'] == 'log'; })
+            .filter(function (msg) { return (msg['@messageType'] == 'log' || msg['@messageType'] == 'healthStatusChanged'); })
             .subscribe(function (msg) {
-            var _log = factory_1.Factory.makeFromJson(msg);
+            var _log = factory_1.NotificationFactory.makeFromJson(msg);
             _this._snampLogService.pushLog(_log);
             // do not show notifications in case we are inside of snamp configuration (there is a table with notifications)
             if (_this._router.url.indexOf('/snampcfg') < 0) {
@@ -87937,6 +87937,254 @@ exports.ViewService = ViewService;
 
 /***/ },
 
+/***/ "./src/app/services/model/healtstatus/connection.problem.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var malfunction_status_1 = __webpack_require__("./src/app/services/model/healtstatus/malfunction.status.ts");
+var ConnectionProblem = (function (_super) {
+    __extends(ConnectionProblem, _super);
+    function ConnectionProblem() {
+        _super.apply(this, arguments);
+        this.code = 1;
+        this.ioException = "";
+    }
+    ConnectionProblem.prototype.represent = function () {
+        return "Connection problems detected. Caused by " + this.ioException;
+    };
+    ConnectionProblem.prototype.getShortDescription = function () {
+        return "Connection problems";
+    };
+    ConnectionProblem.prototype.htmlDetails = function () {
+        var _details = "";
+        _details += "<strong>Watcher name: </strong>" + this.name + "<br/>";
+        _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
+        _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+        _details += "<strong>IO Exception: </strong>" + this.ioException + "<br/>";
+        return _details;
+    };
+    return ConnectionProblem;
+}(malfunction_status_1.MalfunctionStatus));
+exports.ConnectionProblem = ConnectionProblem;
+
+
+/***/ },
+
+/***/ "./src/app/services/model/healtstatus/factory.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var health_status_1 = __webpack_require__("./src/app/services/model/healtstatus/health.status.ts");
+var ok_status_1 = __webpack_require__("./src/app/services/model/healtstatus/ok.status.ts");
+var resource_na_status_1 = __webpack_require__("./src/app/services/model/healtstatus/resource.na.status.ts");
+var connection_problem_status_1 = __webpack_require__("./src/app/services/model/healtstatus/connection.problem.status.ts");
+var invalid_attribute_value_status_1 = __webpack_require__("./src/app/services/model/healtstatus/invalid.attribute.value.status.ts");
+var malfunction_status_1 = __webpack_require__("./src/app/services/model/healtstatus/malfunction.status.ts");
+var StatusFactory = (function () {
+    function StatusFactory() {
+    }
+    StatusFactory.parseAllStatuses = function (json) {
+        var _value = [];
+        for (var key in json) {
+            _value.push(StatusFactory.healthStatusFromJSON(key, json[key]));
+        }
+        return _value;
+    };
+    StatusFactory.healthStatusFromJSON = function (name, json) {
+        var _value = undefined;
+        switch (json["@type"]) {
+            case health_status_1.HealthStatus.OK_TYPE:
+                _value = new ok_status_1.OkStatus();
+                break;
+            case health_status_1.HealthStatus.RESOURCE_NA_TYPE:
+                _value = new resource_na_status_1.ResourceIsNotAvailable();
+                _value.jmxError = json["error"];
+                break;
+            case health_status_1.HealthStatus.CONNECTION_PROBLEM_TYPE:
+                _value = new connection_problem_status_1.ConnectionProblem();
+                _value.ioException = json["error"];
+                break;
+            case health_status_1.HealthStatus.ATTRIBUTE_VALUE_PROBLEM_TYPE:
+                _value = new invalid_attribute_value_status_1.InvalidAttributeValue();
+                _value.attribute.name = json["attributeName"];
+                _value.attribute.value = json["attributeValue"];
+                break;
+            default:
+                throw new Error("Cannot recognize type of health status: " + json["@type"]);
+        }
+        _value.name = name;
+        _value.innerType = json["@type"];
+        _value.resourceName = json["resourceName"];
+        if (_value instanceof malfunction_status_1.MalfunctionStatus) {
+            _value.critical = json["critical"];
+        }
+        return _value;
+    };
+    return StatusFactory;
+}());
+exports.StatusFactory = StatusFactory;
+
+
+/***/ },
+
+/***/ "./src/app/services/model/healtstatus/health.status.ts":
+/***/ function(module, exports) {
+
+"use strict";
+"use strict";
+var HealthStatus = (function () {
+    function HealthStatus() {
+        this.code = -1;
+        this.resourceName = "";
+        this.name = "";
+        this.innerType = HealthStatus.OK_TYPE;
+    }
+    HealthStatus.prototype.details = function () {
+        return this.represent() + " (Click for details)";
+    };
+    HealthStatus.OK_TYPE = "OK";
+    HealthStatus.RESOURCE_NA_TYPE = "ResourceIsNotAvailable";
+    HealthStatus.CONNECTION_PROBLEM_TYPE = "ConnectionProblem";
+    HealthStatus.ATTRIBUTE_VALUE_PROBLEM_TYPE = "InvalidAttributeValue";
+    return HealthStatus;
+}());
+exports.HealthStatus = HealthStatus;
+
+
+/***/ },
+
+/***/ "./src/app/services/model/healtstatus/invalid.attribute.value.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var malfunction_status_1 = __webpack_require__("./src/app/services/model/healtstatus/malfunction.status.ts");
+var InvalidAttributeValue = (function (_super) {
+    __extends(InvalidAttributeValue, _super);
+    function InvalidAttributeValue() {
+        _super.apply(this, arguments);
+        this.code = 3;
+        this.attribute = new AttributeWithValue();
+    }
+    InvalidAttributeValue.prototype.represent = function () {
+        return "Invalid attribute (" + this.attribute.name + ")  value: " + this.attribute.value;
+    };
+    InvalidAttributeValue.prototype.getShortDescription = function () {
+        return "Invalid attribute";
+    };
+    InvalidAttributeValue.prototype.htmlDetails = function () {
+        var _details = "";
+        _details += "<strong>Watcher name: </strong>" + this.name + "<br/>";
+        _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
+        _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+        _details += "<strong>Attribute name: </strong>" + this.attribute.name + "<br/>";
+        _details += "<strong>Attribute value: </strong>" + this.attribute.value + "<br/>";
+        return _details;
+    };
+    return InvalidAttributeValue;
+}(malfunction_status_1.MalfunctionStatus));
+exports.InvalidAttributeValue = InvalidAttributeValue;
+var AttributeWithValue = (function () {
+    function AttributeWithValue() {
+        this.name = "";
+        this.value = undefined;
+    }
+    return AttributeWithValue;
+}());
+exports.AttributeWithValue = AttributeWithValue;
+
+
+/***/ },
+
+/***/ "./src/app/services/model/healtstatus/malfunction.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var health_status_1 = __webpack_require__("./src/app/services/model/healtstatus/health.status.ts");
+var MalfunctionStatus = (function (_super) {
+    __extends(MalfunctionStatus, _super);
+    function MalfunctionStatus() {
+        _super.apply(this, arguments);
+        this.critical = false;
+    }
+    MalfunctionStatus.prototype.isCritical = function () {
+        return this.critical;
+    };
+    return MalfunctionStatus;
+}(health_status_1.HealthStatus));
+exports.MalfunctionStatus = MalfunctionStatus;
+
+
+/***/ },
+
+/***/ "./src/app/services/model/healtstatus/ok.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var health_status_1 = __webpack_require__("./src/app/services/model/healtstatus/health.status.ts");
+var OkStatus = (function (_super) {
+    __extends(OkStatus, _super);
+    function OkStatus() {
+        _super.apply(this, arguments);
+        this.code = 0;
+    }
+    OkStatus.prototype.isCritical = function () {
+        return false;
+    };
+    OkStatus.prototype.represent = function () {
+        return "Everything is fine";
+    };
+    OkStatus.prototype.getShortDescription = function () {
+        return "n/a";
+    };
+    OkStatus.prototype.htmlDetails = function () {
+        return "<strong>Everything is fine</strong>";
+    };
+    return OkStatus;
+}(health_status_1.HealthStatus));
+exports.OkStatus = OkStatus;
+
+
+/***/ },
+
+/***/ "./src/app/services/model/healtstatus/resource.na.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var malfunction_status_1 = __webpack_require__("./src/app/services/model/healtstatus/malfunction.status.ts");
+var ResourceIsNotAvailable = (function (_super) {
+    __extends(ResourceIsNotAvailable, _super);
+    function ResourceIsNotAvailable() {
+        _super.apply(this, arguments);
+        this.code = 2;
+        this.jmxError = "";
+    }
+    ResourceIsNotAvailable.prototype.represent = function () {
+        return "Resource " + this.resourceName + " is not available. Caused by: " + this.jmxError;
+    };
+    ResourceIsNotAvailable.prototype.getShortDescription = function () {
+        return "Resource is not available";
+    };
+    ResourceIsNotAvailable.prototype.htmlDetails = function () {
+        var _details = "";
+        _details += "<strong>Watcher name: </strong>" + this.name + "<br/>";
+        _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
+        _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+        _details += "<strong>JMX Exception: </strong>" + this.jmxError + "<br/>";
+        return _details;
+    };
+    return ResourceIsNotAvailable;
+}(malfunction_status_1.MalfunctionStatus));
+exports.ResourceIsNotAvailable = ResourceIsNotAvailable;
+
+
+/***/ },
+
 /***/ "./src/app/services/model/notifications/abstract.notification.ts":
 /***/ function(module, exports) {
 
@@ -88014,10 +88262,10 @@ exports.AbstractNotification = AbstractNotification;
 var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
 var health_status_notification_1 = __webpack_require__("./src/app/services/model/notifications/health.status.notification.ts");
 var resource_notification_1 = __webpack_require__("./src/app/services/model/notifications/resource.notification.ts");
-var Factory = (function () {
-    function Factory() {
+var NotificationFactory = (function () {
+    function NotificationFactory() {
     }
-    Factory.makeFromJson = function (_json) {
+    NotificationFactory.makeFromJson = function (_json) {
         var _notification;
         switch (_json['@messageType']) {
             case "log":
@@ -88036,9 +88284,9 @@ var Factory = (function () {
         _notification.type = _json['@messageType'];
         return _notification;
     };
-    return Factory;
+    return NotificationFactory;
 }());
-exports.Factory = Factory;
+exports.NotificationFactory = NotificationFactory;
 
 
 /***/ },
@@ -88049,18 +88297,32 @@ exports.Factory = Factory;
 "use strict";
 "use strict";
 var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
+var ok_status_1 = __webpack_require__("./src/app/services/model/healtstatus/ok.status.ts");
+var factory_1 = __webpack_require__("./src/app/services/model/healtstatus/factory.ts");
 var HealthStatusNotification = (function (_super) {
     __extends(HealthStatusNotification, _super);
     function HealthStatusNotification() {
-        _super.apply(this, arguments);
+        _super.call(this);
+        this.prevStatus = new ok_status_1.OkStatus;
+        this.currentStatus = new ok_status_1.OkStatus;
     }
     HealthStatusNotification.prototype.htmlDetails = function () {
-        return undefined;
+        var _details = "The status before: <br/>";
+        _details += this.prevStatus.htmlDetails();
+        _details += "Current status: <br/>";
+        _details += this.currentStatus.htmlDetails();
+        return _details;
     };
     HealthStatusNotification.prototype.shortDescription = function () {
-        return undefined;
+        return "Previous status: " + this.prevStatus.innerType + " , current status: " + this.currentStatus.innerType;
     };
-    HealthStatusNotification.prototype.fillFromJson = function (json) {
+    HealthStatusNotification.prototype.fillFromJson = function (_json) {
+        if (_json["previousStatus"] != undefined) {
+            this.prevStatus = factory_1.StatusFactory.healthStatusFromJSON("previousStatus", _json["previousStatus"]);
+        }
+        if (_json["newStatus"] != undefined) {
+            this.currentStatus = factory_1.StatusFactory.healthStatusFromJSON("newStatus", _json["newStatus"]);
+        }
     };
     return HealthStatusNotification;
 }(abstract_notification_1.AbstractNotification));

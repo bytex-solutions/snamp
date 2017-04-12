@@ -18,8 +18,8 @@ import {
   TwoButtonPresetBuilder,
   PromptPresetBuilder
 } from 'angular2-modal/plugins/bootstrap/index';
-import {AbstractNotification} from "./services/model/notifications/abstract.notification";
-import {Factory} from "./services/model/notifications/factory";
+import { AbstractNotification } from "./services/model/notifications/abstract.notification";
+import { NotificationFactory } from "./services/model/notifications/factory";
 
 
 @Component({
@@ -60,10 +60,10 @@ export class App {
 
     this.ws.getDataStream()
         .map((msg) => { console.log(msg); return JSON.parse(msg.data); })
-        .filter((msg) => msg['@messageType'] == 'log')
+        .filter((msg) => (msg['@messageType'] == 'log' || msg['@messageType'] == 'healthStatusChanged'))
         .subscribe(
           (msg)=> {
-              let _log:AbstractNotification = Factory.makeFromJson(msg);
+              let _log:AbstractNotification = NotificationFactory.makeFromJson(msg);
               this._snampLogService.pushLog(_log);
 
               // do not show notifications in case we are inside of snamp configuration (there is a table with notifications)

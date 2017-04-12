@@ -1,22 +1,18 @@
-import { Component, OnInit, ViewEncapsulation, ViewContainerRef } from '@angular/core';
+import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
-
-import { Factory } from './model/factory';
-import { Watcher } from './model/watcher';
-
-import { HealthStatus } from './model/health.status';
+import { HealthStatus } from '../services/model/healtstatus/health.status';
 
 import 'rxjs/add/operator/publishLast';
 
-import { overlayConfigFactory, Overlay } from "angular2-modal";
+import { Overlay } from "angular2-modal";
 import {
   Modal,
   OneButtonPresetBuilder,
   TwoButtonPresetBuilder,
   PromptPresetBuilder
 } from 'angular2-modal/plugins/bootstrap/index';
+import {StatusFactory} from "../services/model/healtstatus/factory";
 
 
 @Component({
@@ -44,8 +40,7 @@ export class WatcherDashboard implements OnInit {
               _thisReference.http.get(REST.WATCHERS_STATUS)
                  .map((res:Response) => res.json())
                  .subscribe((data) => {
-                    _thisReference.statuses = Factory.parseAllStatuses(data);
-                    console.log(_thisReference.statuses);
+                    _thisReference.statuses = StatusFactory.parseAllStatuses(data);
                  });
          }, 2000);
    }
