@@ -161,7 +161,10 @@
                             org.slf4j,
                             org.slf4j.helpers,
                             com.google.common.base,
-                            com.google.common.collect
+                            com.google.common.collect,
+                            com.google.common.net,
+                            com.google.common.io,
+                            org.w3c.dom
                         </Import-Package>
                     </instructions>
                 </configuration>
