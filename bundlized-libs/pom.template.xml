@@ -15,5 +15,6 @@
     <modules>
         <module>snmp4j</module>
         <module>sshj</module>
+        <module>openstack4j</module>
     </modules>
 </project>

@@ -27,7 +27,6 @@
       <groupId>org.pacesys</groupId>
       <artifactId>openstack4j-core</artifactId>
       <version>3.0.3</version>
-      <classifier>withdeps</classifier>
       <scope>provided</scope>
     </dependency>
     <dependency>

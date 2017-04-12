@@ -3,8 +3,9 @@ package com.bytex.snamp.supervision.openstack;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.def.DefaultSupervisor;
-import org.openstack4j.api.OSClient;
+import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
+import org.openstack4j.openstack.OSFactory;
 
 import java.time.Duration;
 
@@ -37,19 +38,19 @@ final class OpenStackSupervisor extends DefaultSupervisor {
     @Override
     protected void start(final SupervisorInfo configuration) throws Exception {
         final OpenStackSupervisorDescriptionProvider parser = OpenStackSupervisorDescriptionProvider.getInstance();
-        final OSClient<?> openStackClient = parser
-                .parseAuthenticator(configuration)
-                .setCloudProvider(parser.parseCloudProvider(configuration))
-                .setEndpoint(parser.parseApiEndpoint(configuration))
-                .setUserName(parser.parseUserName(configuration))
-                .setPassword(parser.parsePassword(configuration))
-                .setDomain(parser.parseDomain(configuration))
-                .setProject(parser.parseProject(configuration))
-                .get();
+        final OSClientV3 openStackClient = OSFactory.builderV3()
+                .provider(parser.parseCloudProvider(configuration))
+                .endpoint(parser.parseApiEndpoint(configuration))
+                .scopeToProject(parser.parseProject(configuration), parser.parseProjectDomain(configuration))
+                .credentials(parser.parseUserName(configuration), parser.parsePassword(configuration), parser.parseUserDomain(configuration))
+                .authenticate();
+        //setup region
+        parser.parseRegion(configuration).ifPresent(openStackClient::useRegion);
         if (!openStackClient.supportsCompute()) {    //Compute is not supported. Shutting down.
             final String message = String.format("OpenStack installation %s doesn't support Compute service. Supervisor for group %s is not started", openStackClient.getEndpoint(), groupName);
             throw new OS4JException(message);
         }
+
         final boolean enableElastMan = parser.isElasticityManagementEnabled(configuration);
         super.start(configuration);
     }

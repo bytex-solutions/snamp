@@ -10,7 +10,7 @@
 
     <feature name="snamp-openstack-supervisor" description="SNAMP supervisor for OpenStack environment" version="${snamp.supervisor.openstack.version}" install="auto">
         <feature version="${snamp.supervisors.version}" >snamp-default-supervisor</feature>
-        <bundle start="true">mvn:org.pacesys/openstack4j-core/${opestack4j.version}/jar/withdeps</bundle>
+        <bundle>mvn:com.bytex.snamp/openstack4j/${openstack4j.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp.supervisors/openstack/${snamp.supervisor.openstack.version}</bundle>
     </feature>
 

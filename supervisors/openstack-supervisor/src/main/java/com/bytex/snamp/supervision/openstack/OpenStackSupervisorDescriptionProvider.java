@@ -3,8 +3,10 @@ package com.bytex.snamp.supervision.openstack;
 import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.supervision.def.DefaultSupervisorConfigurationDescriptionProvider;
 import org.openstack4j.api.client.CloudProvider;
+import org.openstack4j.model.common.Identifier;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static com.bytex.snamp.MapUtils.getValue;
@@ -19,12 +21,16 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
 
     private static final String USER_NAME_PARAM = "userName";
     private static final String PASSWORD_PARAM = "password";
-    private static final String ENDPOINT_PARAM = "api-endpoint";
-    private static final String KEYSTONE_VER_PARAM = "keystone";
+    private static final String ENDPOINT_PARAM = "authURL";
     private static final String CLOUD_PROVIDER_PARAM = "cloudProvider";
-    private static final String DOMAIN_PARAM = "domain";
-    private static final String PROJECT_PARAM = "project";    //project name or tenant name
+    private static final String USER_DOMAIN_PARAM = "userDomain";
+    private static final String PROJECT_PARAM = "project";
+    private static final String PROJECT_DOMAIN_PARAM = "projectDomain";
+    private static final String REGION_PARAM = "region";
     private static final String ELASTMAN_PARAM = "elasticityManagement";
+
+    private final Identifier defaultDomain;
+    private final Identifier demoProject;
 
     private static final LazyStrongReference<OpenStackSupervisorDescriptionProvider> INSTANCE = new LazyStrongReference<>();
 
@@ -38,20 +44,12 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
 
     private OpenStackSupervisorDescriptionProvider(){
         super(new SupervisorDescription());
+        defaultDomain = Identifier.byName("default");   //as in devstack
+        demoProject = Identifier.byName("demo");        //as in devstack
     }
 
     static OpenStackSupervisorDescriptionProvider getInstance(){
         return INSTANCE.lazyGet(OpenStackSupervisorDescriptionProvider::new);
-    }
-
-    OpenStackClientProvider parseAuthenticator(final Map<String, String> configuration) {
-        switch (configuration.getOrDefault(KEYSTONE_VER_PARAM, OpenStackClientV3Provider.VERSION)) {
-            case OpenStackClientV2Provider.VERSION:
-                return new OpenStackClientV2Provider();
-            case OpenStackClientV3Provider.VERSION:
-            default:
-                return new OpenStackClientV3Provider();
-        }
     }
 
     String parseUserName(final Map<String, String> configuration) throws OpenStackAbsentConfigurationParameterException {
@@ -80,15 +78,23 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
         }
     }
 
-    String parseDomain(final Map<String, String> configuration){
-        return configuration.getOrDefault(DOMAIN_PARAM, "");
+    Identifier parseUserDomain(final Map<String, String> configuration) {
+        return getValue(configuration, USER_DOMAIN_PARAM, Identifier::byName).orElse(defaultDomain);
     }
 
-    String parseProject(final Map<String, String> configuration){
-        return configuration.getOrDefault(PROJECT_PARAM, "");
+    Identifier parseProject(final Map<String, String> configuration){
+        return getValue(configuration, PROJECT_PARAM, Identifier::byName).orElse(demoProject);
+    }
+
+    Identifier parseProjectDomain(final Map<String, String> configuration){
+        return getValue(configuration, PROJECT_DOMAIN_PARAM, Identifier::byName).orElse(defaultDomain);
     }
 
     boolean isElasticityManagementEnabled(final Map<String, String> configuration) {
         return getValue(configuration, ELASTMAN_PARAM, Boolean::parseBoolean).orElse(false);
+    }
+
+    Optional<String> parseRegion(final Map<String, String> configuration){
+        return getValue(configuration, REGION_PARAM, Function.identity());
     }
 }

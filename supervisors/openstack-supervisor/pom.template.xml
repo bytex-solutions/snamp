@@ -61,8 +61,7 @@
         <dependency>
             <groupId>org.pacesys</groupId>
             <artifactId>openstack4j-core</artifactId>
-            <version>${opestack4j.version}</version>
-            <classifier>withdeps</classifier>
+            <version>${openstack4j.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
