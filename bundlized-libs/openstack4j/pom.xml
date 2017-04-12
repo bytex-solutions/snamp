@@ -169,7 +169,9 @@
                             org.openstack4j.openstack.networking.domain,
                             org.openstack4j.openstack.networking.domain.ext</Export-Package>
             <Import-Package>org.slf4j,
-                            org.slf4j.helpers</Import-Package>
+                            org.slf4j.helpers,
+                            com.google.common.base,
+                            com.google.common.collect</Import-Package>
           </instructions>
         </configuration>
       </plugin>
