@@ -13,12 +13,13 @@
   </organization>
   <modules>
     <module>framework</module>
+    <module>bundlized-libs</module>
+    <module>instrumentation/java</module>
+    <module>infrastructure/json-helpers</module>
+    <module>infrastructure/analysis-and-operations</module>
     <module>supervisors</module>
     <module>connectors</module>
     <module>gateways</module>
-    <module>instrumentation/java</module>
-    <module>bundlized-libs</module>
-    <module>infrastructure/json-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
     <module>infrastructure/security</module>
@@ -27,7 +28,6 @@
     <module>webconsole</module>
     <module>features</module>
     <module>osgi-tests</module>
-    <module>infrastructure/analysis-and-operations</module>
   </modules>
   <properties>
     <snamp.gateway.influx.version>2.0.0</snamp.gateway.influx.version>

@@ -173,5 +173,11 @@
             <version>${openstack4j.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.pacesys.openstack4j.connectors</groupId>
+            <artifactId>openstack4j-http-connector</artifactId>
+            <version>${openstack4j.version}</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>
