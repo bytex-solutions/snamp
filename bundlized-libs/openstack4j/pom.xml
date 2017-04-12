@@ -153,7 +153,15 @@
                             org.openstack4j.openstack.storage.object.domain,
                             org.openstack4j.openstack.storage.object.functions,
                             org.openstack4j.openstack.storage.block.domain,
-                            org.openstack4j.openstack.storage.block.builder</Export-Package>
+                            org.openstack4j.openstack.storage.block.builder,
+                            org.openstack4j.openstack.tacker.domain,
+                            org.openstack4j.openstack.tacker.builders,
+                            org.openstack4j.openstack.telemetry.domain,
+                            org.openstack4j.openstack.telemetry.builder,
+                            org.openstack4j.openstack.client,
+                            org.openstack4j.openstack.networking.builder,
+                            org.openstack4j.openstack.networking.domain,
+                            org.openstack4j.openstack.networking.domain.ext</Export-Package>
             <Import-Package>org.slf4j,
                             org.slf4j.helpers</Import-Package>
           </instructions>
