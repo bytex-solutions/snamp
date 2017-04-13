@@ -686,7 +686,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
             });
             watcher.getHealthCheckConfig().getAttributeCheckers().addAndConsume("CPU", scriptlet -> {
                 scriptlet.setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
-                scriptlet.setScript("attributeValue > 12 ? OK : MALFUNCTION");
+                scriptlet.setScript("attributeValue > 3 ? OK : MALFUNCTION");
             });
             watcher.getHealthCheckConfig().getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
             watcher.getHealthCheckConfig().getTrigger().setScript(groovyTrigger);

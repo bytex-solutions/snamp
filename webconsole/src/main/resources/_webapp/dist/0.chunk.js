@@ -37545,23 +37545,99 @@ exports.GatewaysComponent = GatewaysComponent;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
+__webpack_require__("./node_modules/select2/dist/js/select2.js");
 var SnampLogSettingsComponent = (function () {
-    function SnampLogSettingsComponent() {
+    function SnampLogSettingsComponent(http) {
+        this.http = http;
+        this.level = "DEBUG";
+        this.allowedTypes = [];
+        this.availableTypes = [];
+        this.selectedAllTypes = true;
+        this.severities = ["panic", "alert", "critical", "error",
+            "warning", "notice", "informational", "debug"];
     }
-    SnampLogSettingsComponent.prototype.ngOnInit = function () { };
+    SnampLogSettingsComponent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.http.get(app_restClient_1.REST.NOTIFICATIONS_SETTINGS)
+            .map(function (res) { return res.json(); })
+            .subscribe(function (data) {
+            console.log("Current notification settings are: ", data);
+            _this.level = data["severity"];
+            _this.allowedTypes = data["notificationTypes"];
+            _this.selectedAllTypes = (_this.allowedTypes.length == 0);
+            if (!_this.selectedAllTypes) {
+                $("#typesSelect").val(_this.allowedTypes);
+                _this.initSelect2();
+                $("#typesSelect").fadeIn("fast");
+                $("#typesSelect").val(_this.allowedTypes).trigger('change');
+            }
+        });
+        this.http.get(app_restClient_1.REST.NOTIFICATIONS_TYPES)
+            .map(function (res) { return res.json(); })
+            .subscribe(function (data) {
+            _this.availableTypes = data;
+        });
+    };
+    SnampLogSettingsComponent.prototype.initSelect2 = function () {
+        var _select = $("#typesSelect");
+        var _thisReference = this;
+        _select.select2({
+            placeholder: "Select types of notifications from the dropdown",
+            allowClear: true
+        });
+        _select.on('change', function (e) {
+            _thisReference.onTypeSelect($(e.target).val());
+        });
+    };
+    SnampLogSettingsComponent.prototype.triggerShowTypes = function (event) {
+        var _select = $("#typesSelect");
+        this.selectedAllTypes = event;
+        if (event == false) {
+            this.initSelect2();
+            _select.fadeIn("fast");
+        }
+        else {
+            _select.fadeOut("fast", function () {
+                _select.select2("destroy");
+            });
+        }
+    };
+    SnampLogSettingsComponent.prototype.onTypeSelect = function (types) {
+        this.allowedTypes = types;
+    };
+    SnampLogSettingsComponent.prototype.saveNotificationSettings = function () {
+        var _settings = {};
+        _settings["@type"] = "notificationSettings";
+        if (this.selectedAllTypes) {
+            _settings["notificationTypes"] = [];
+        }
+        else {
+            _settings["notificationTypes"] = this.allowedTypes;
+        }
+        _settings["severity"] = this.level;
+        this.http.put(app_restClient_1.REST.NOTIFICATIONS_SETTINGS, _settings)
+            .map(function (res) { return res.text(); })
+            .subscribe(function (data) {
+            console.log("Notification settings has been stored: ", data);
+        });
+    };
     SnampLogSettingsComponent = __decorate([
         core_1.Component({
             moduleId: module.i,
-            template: __webpack_require__("./src/app/configuration/templates/logset.html")
+            template: __webpack_require__("./src/app/configuration/templates/logset.html"),
+            styles: [".hided: { display: none }"]
         }), 
-        __metadata('design:paramtypes', [])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
     ], SnampLogSettingsComponent);
     return SnampLogSettingsComponent;
+    var _a;
 }());
 exports.SnampLogSettingsComponent = SnampLogSettingsComponent;
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -38377,7 +38453,7 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949
 /***/ "./src/app/configuration/templates/logset.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Notification settings</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Main settings'\" [column]=\"'12'\">\r\n\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Notification settings</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n      <div class=\"row\">\r\n          <panel [header]=\"'Main settings'\" [column]=\"'6'\">\r\n            <div class=\"row\">\r\n              <div class=\"col-md-12 col-sm-12 col-xs-12 text-center\" *ngIf=\"allowedTypes == undefined\">\r\n                <strong>No allowed notification types are found - might be a server error</strong>\r\n              </div>\r\n\r\n              <div class=\"item form-group\" *ngIf=\"allowedTypes\">\r\n                <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"typesSelect\"\r\n                        style=\"margin-top: 7px;\">\r\n                  Allowed notifications <span class=\"required\">*</span>\r\n                </label>\r\n\r\n                <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                  Select all\r\n                  <ui-switch\r\n                          [(ngModel)]=\"selectedAllTypes\"\r\n                          (change)=\"triggerShowTypes($event)\"\r\n                          [size]=\"'small'\">\r\n                  </ui-switch>\r\n                  <br/>\r\n                  <select class=\"select2_multiple form-control\" id=\"typesSelect\" [(ngModel)]=\"allowedTypes\" style=\"display: none;\" multiple=\"multiple\">\r\n                    <option *ngFor=\"let type of availableTypes\">{{type}}</option>\r\n                  </select>\r\n                </div>\r\n              </div>\r\n            </div>\r\n            <div class=\"row\" style=\"margin-top: 20px;\">\r\n              <div class=\"item form-group\">\r\n                <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"severitySelect\"\r\n                        style=\"margin-top: 7px;\">\r\n                  Severity <span class=\"required\">*</span>\r\n                </label>\r\n                <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                  <select class=\"form-control\" [(ngModel)]=\"level\" id=\"severitySelect\">\r\n                    <option *ngFor=\"let severity of severities\" [ngValue]=\"severity\">{{severity}}</option>\r\n                  </select>\r\n                </div>\r\n              </div>\r\n            </div>\r\n            <div class=\"row\" style=\"margin-top: 15px\">\r\n              <button\r\n                      type=\"button\"\r\n                      class=\"btn btn-primary col-md-3\"\r\n                      (click)=\"saveNotificationSettings()\">\r\n                Save settings\r\n              </button>\r\n            </div>\r\n          </panel>\r\n      </div>\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 

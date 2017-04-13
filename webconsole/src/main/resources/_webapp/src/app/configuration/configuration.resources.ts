@@ -1,10 +1,7 @@
 import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Resource } from './model/model.resource';
-import { KeyValue } from './model/model.entity';
-import { Binding } from './model/model.binding';
 import { Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';

@@ -179,4 +179,8 @@ export class REST {
 
     // watchers statuses
     public static WATCHERS_STATUS:string = "/snamp/web/api/health-watcher/groups/status";
+
+    // notification settings
+    public static NOTIFICATIONS_SETTINGS:string = "/snamp/web/api/notifications/settings";
+    public static NOTIFICATIONS_TYPES:string = "/snamp/web/api/notifications/types";
 }

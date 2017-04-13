@@ -8,11 +8,59 @@
 
     <div class="clearfix"></div>
 
-    <div class="row" style="margin-top: 30px">
-        <panel [header]="'Main settings'" [column]="'12'">
+      <div class="row">
+          <panel [header]="'Main settings'" [column]="'6'">
+            <div class="row">
+              <div class="col-md-12 col-sm-12 col-xs-12 text-center" *ngIf="allowedTypes == undefined">
+                <strong>No allowed notification types are found - might be a server error</strong>
+              </div>
 
-        </panel>
-    </div>
+              <div class="item form-group" *ngIf="allowedTypes">
+                <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="typesSelect"
+                        style="margin-top: 7px;">
+                  Allowed notifications <span class="required">*</span>
+                </label>
 
+                <div class="col-md-6 col-sm-6 col-xs-12" >
+                  Select all
+                  <ui-switch
+                          [(ngModel)]="selectedAllTypes"
+                          (change)="triggerShowTypes($event)"
+                          [size]="'small'">
+                  </ui-switch>
+                  <br/>
+                  <select class="select2_multiple form-control" id="typesSelect" [(ngModel)]="allowedTypes" style="display: none;" multiple="multiple">
+                    <option *ngFor="let type of availableTypes">{{type}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="row" style="margin-top: 20px;">
+              <div class="item form-group">
+                <label
+                        class="control-label col-md-3 col-sm-3 col-xs-12"
+                        for="severitySelect"
+                        style="margin-top: 7px;">
+                  Severity <span class="required">*</span>
+                </label>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <select class="form-control" [(ngModel)]="level" id="severitySelect">
+                    <option *ngFor="let severity of severities" [ngValue]="severity">{{severity}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="row" style="margin-top: 15px">
+              <button
+                      type="button"
+                      class="btn btn-primary col-md-3"
+                      (click)="saveNotificationSettings()">
+                Save settings
+              </button>
+            </div>
+          </panel>
+      </div>
   </div>
 </div>

@@ -87808,6 +87808,9 @@ var REST = (function () {
     REST.WATCHERS_LIST = REST.CFG_PATH + "/supervisor";
     // watchers statuses
     REST.WATCHERS_STATUS = "/snamp/web/api/health-watcher/groups/status";
+    // notification settings
+    REST.NOTIFICATIONS_SETTINGS = "/snamp/web/api/notifications/settings";
+    REST.NOTIFICATIONS_TYPES = "/snamp/web/api/notifications/types";
     return REST;
 }());
 exports.REST = REST;
