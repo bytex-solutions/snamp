@@ -8,7 +8,9 @@ import com.bytex.snamp.core.LoggingScope;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
-
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -33,6 +35,10 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
     }
 
     private final LazyStrongReference<Filter> resourceFilterCache = new LazyStrongReference<>();
+    /**
+     * Represents a thread-safe set of tracked resources.
+     */
+    protected final Set<String> trackedResources = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     protected final BundleContext getBundleContext(){
         return getBundleContextOfObject(this);
@@ -64,16 +70,18 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
     public final void serviceChanged(final ServiceEvent event) {
         //use cached version of filter
         final Filter filter = resourceFilterCache.lazyGet(this, tracker -> tracker.createResourceFilter().get());
-        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()) && filter.match(event.getServiceReference())) {
+        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()) && filter.match(event.getServiceReference()))
             try (final LoggingScope logger = TrackerLoggingScope.connectorChangesDetected(this);
                  final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), (ServiceReference<ManagedResourceConnector>) event.getServiceReference())) {
                 switch (event.getType()) {
                     case ServiceEvent.MODIFIED_ENDMATCH:
                     case ServiceEvent.UNREGISTERING:
+                        trackedResources.remove(client.getManagedResourceName());
                         removeResource(client);
                         return;
                     case ServiceEvent.REGISTERED:
                         addResource(client);
+                        trackedResources.add(client.getManagedResourceName());
                         return;
                     default:
                         logger.info(String.format("Unexpected event %s captured by tracker %s for resource %s",
@@ -82,7 +90,6 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
                                 client.getManagedResourceName()));
                 }
             }
-        }
     }
 
     /**
