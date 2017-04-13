@@ -76,8 +76,11 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
                 switch (event.getType()) {
                     case ServiceEvent.MODIFIED_ENDMATCH:
                     case ServiceEvent.UNREGISTERING:
-                        trackedResources.remove(client.getManagedResourceName());
-                        removeResource(client);
+                        try {
+                            removeResource(client);
+                        } finally {
+                            trackedResources.remove(client.getManagedResourceName());
+                        }
                         return;
                     case ServiceEvent.REGISTERED:
                         addResource(client);
