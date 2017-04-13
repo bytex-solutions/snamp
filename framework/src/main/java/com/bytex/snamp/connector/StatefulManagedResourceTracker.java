@@ -119,13 +119,13 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
     }
 
     private synchronized void doStop() throws Exception {
-        getBundleContext().removeServiceListener(this);
+        final BundleContext context = getBundleContext();
+        context.removeServiceListener(this);
         final InternalState<C> currentState = mutableState;
         switch (currentState.state) {
             case STARTED:
                 try {
                     stop();
-                    final BundleContext context = getBundleContext();
                     for (final String resourceName : createResourceFilter().getResources(context)) {
                         final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
                         if (client != null)
@@ -137,6 +137,7 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
                     }
                 } finally {
                     mutableState = currentState.transition(FrameworkServiceState.STOPPED);
+                    trackedResources.clear();
                 }
                 stopped();
         }
@@ -174,19 +175,24 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
                 final ManagedResourceFilterBuilder filter = createResourceFilter();
                 //explore all available resources
                 final BundleContext context = getBundleContext();
-                for (final String resourceName : filter.getResources(context)) {
-                    final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-                    if (client != null)
-                        try {
-                            addResource(client);
-                        } finally {
-                            client.close();
-                        }
-                }
-                start(newConfiguration);
-                mutableState = currentState.transition(FrameworkServiceState.STARTED).setConfiguration(newConfiguration);
-                started();
                 filter.addServiceListener(context, this);
+                try {
+                    for (final String resourceName : filter.getResources(context)) {
+                        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+                        if (client != null)
+                            try {
+                                addResource(client);
+                            } finally {
+                                client.close();
+                            }
+                    }
+                    start(newConfiguration);
+                    mutableState = currentState.transition(FrameworkServiceState.STARTED).setConfiguration(newConfiguration);
+                    started();
+                } catch (final Exception e) {
+                    context.removeServiceListener(this);    //remove subscription when exception to avoid memory leaks
+                    throw e;
+                }
         }
     }
 
@@ -227,7 +233,6 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
         try {
             doStop();
         } finally {
-            trackedResources.clear();
             mutableState = mutableState.transition(FrameworkServiceState.CLOSED);
             clearCache();
         }
