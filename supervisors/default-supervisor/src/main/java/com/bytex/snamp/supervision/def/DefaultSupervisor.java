@@ -10,6 +10,7 @@ import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.AbstractSupervisor;
+import com.bytex.snamp.supervision.health.HealthStatusProvider;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -123,7 +124,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
     }
 
     /**
-     * Initializes implementation of {@link com.bytex.snamp.supervision.HealthStatusProvider} provided
+     * Initializes implementation of {@link HealthStatusProvider} provided
      * by this supervisor using supplied configuration.
      * @param healthCheckInfo Health check configuration.
      * @throws ScriptletCompilationException Unable to compile one or more scriptlets (triggers or attribute checkers).

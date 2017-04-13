@@ -1,7 +1,8 @@
-package com.bytex.snamp.supervision;
+package com.bytex.snamp.supervision.health;
 
 import com.bytex.snamp.Stateful;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.supervision.SupervisorService;
 
 /**
  * Represents health check service used to supervise groups of managed resources.

@@ -1,4 +1,6 @@
-package com.bytex.snamp.supervision;
+package com.bytex.snamp.supervision.elasticity;
+
+import com.bytex.snamp.supervision.SupervisorService;
 
 /**
  * Represents elasticity manager for group of resources.

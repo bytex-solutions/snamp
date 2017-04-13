@@ -3,6 +3,8 @@ package com.bytex.snamp.supervision;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.core.StatefulFrameworkService;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.supervision.elasticity.ElasticityManager;
+import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleRevision;

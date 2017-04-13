@@ -1,4 +1,4 @@
-package com.bytex.snamp.supervision;
+package com.bytex.snamp.supervision.health;
 
 import com.bytex.snamp.connector.health.HealthStatus;
 

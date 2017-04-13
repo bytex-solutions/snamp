@@ -9,9 +9,9 @@ import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.connector.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.supervision.HealthStatusChangedEvent;
-import com.bytex.snamp.supervision.HealthStatusEventListener;
-import com.bytex.snamp.supervision.HealthStatusProvider;
+import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
+import com.bytex.snamp.supervision.health.HealthStatusEventListener;
+import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;

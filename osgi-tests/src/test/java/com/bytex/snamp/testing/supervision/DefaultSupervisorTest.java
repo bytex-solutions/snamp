@@ -9,7 +9,7 @@ import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.InvalidAttributeValue;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.io.IOUtils;
-import com.bytex.snamp.supervision.HealthStatusProvider;
+import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;

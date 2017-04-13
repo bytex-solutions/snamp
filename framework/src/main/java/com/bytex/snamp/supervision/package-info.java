@@ -6,7 +6,7 @@
  * @version 2.0
  * @since 2.0
  * @see com.bytex.snamp.supervision.Supervisor
- * @see com.bytex.snamp.supervision.HealthStatusProvider
- * @see com.bytex.snamp.supervision.ElasticityManager
+ * @see com.bytex.snamp.supervision.health.HealthStatusProvider
+ * @see com.bytex.snamp.supervision.elasticity.ElasticityManager
  */
 package com.bytex.snamp.supervision;

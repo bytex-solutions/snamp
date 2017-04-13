@@ -5,6 +5,8 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
+import com.bytex.snamp.supervision.elasticity.ElasticityManager;
+import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.*;
 
