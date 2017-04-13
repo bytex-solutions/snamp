@@ -6,6 +6,7 @@ import com.bytex.snamp.supervision.def.DefaultSupervisor;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
 import org.openstack4j.openstack.OSFactory;
+import org.openstack4j.api.types.ServiceType;
 
 import java.time.Duration;
 
@@ -26,6 +27,10 @@ final class OpenStackSupervisor extends DefaultSupervisor {
         return OpenStackSupervisorDescriptionProvider.getInstance().parseCheckPeriod(configuration);
     }
 
+    private static boolean isClusteringSupported(final OSClientV3 client){
+        return client.getSupportedServices().contains(ServiceType.CLUSTERING);
+    }
+
     /**
      * Starts the tracking resources.
      * <p>
@@ -44,10 +49,8 @@ final class OpenStackSupervisor extends DefaultSupervisor {
                 .scopeToProject(parser.parseProject(configuration), parser.parseProjectDomain(configuration))
                 .credentials(parser.parseUserName(configuration), parser.parsePassword(configuration), parser.parseUserDomain(configuration))
                 .authenticate();
-        //setup region
-        parser.parseRegion(configuration).ifPresent(openStackClient::useRegion);
-        if (!openStackClient.supportsCompute()) {    //Compute is not supported. Shutting down.
-            final String message = String.format("OpenStack installation %s doesn't support Compute service. Supervisor for group %s is not started", openStackClient.getEndpoint(), groupName);
+        if (!isClusteringSupported(openStackClient)) {    //Compute is not supported. Shutting down.
+            final String message = String.format("OpenStack installation %s doesn't support clustering via Senlin. Supervisor for group %s is not started", openStackClient.getEndpoint(), groupName);
             throw new OS4JException(message);
         }
 
