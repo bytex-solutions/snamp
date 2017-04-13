@@ -41,9 +41,14 @@
               <li routerLinkActive="activeLi"><a routerLink="resources" routerLinkActive="active">Resources</a></li>
               <li routerLinkActive="activeLi"><a routerLink="rgroups" routerLinkActive="active">Resource groups</a></li>
               <li routerLinkActive="activeLi"><a routerLink="snampcfg" routerLinkActive="active">SNAMP components</a></li>
-              <li routerLinkActive="activeLi"><a routerLink="logview" routerLinkActive="active">Log view</a></li>
               <li routerLinkActive="activeLi"><a routerLink="configuration" routerLinkActive="active">Save/restore</a></li>
               <li routerLinkActive="activeLi"  [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Supervisor - Health statuses</a></li>
+            </ul>
+          </li>
+          <li><a id="logsli" (click)="anchorClicked($event)"><i class="fa fa-commenting-o"></i> Notifications<span id="logschevron" class="fa fa-chevron-down"></span></a>
+            <ul class="nav child_menu">
+              <li routerLinkActive="activeLi"><a routerLink="logview" routerLinkActive="active">Log view</a></li>
+              <li routerLinkActive="activeLi"><a routerLink="notification-setup" routerLinkActive="active">Settings</a></li>
             </ul>
           </li>
           <li><a id="analysisli" (click)="anchorClicked($event)"><i class="fa fa-search "></i> Analysis<span id="analysischevron" class="fa fa-chevron-down"></span></a>

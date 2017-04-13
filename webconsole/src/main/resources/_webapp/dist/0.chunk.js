@@ -37541,6 +37541,30 @@ exports.GatewaysComponent = GatewaysComponent;
 
 /***/ },
 
+/***/ "./src/app/configuration/configuration.logsettings.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var SnampLogSettingsComponent = (function () {
+    function SnampLogSettingsComponent() {
+    }
+    SnampLogSettingsComponent.prototype.ngOnInit = function () { };
+    SnampLogSettingsComponent = __decorate([
+        core_1.Component({
+            moduleId: module.i,
+            template: __webpack_require__("./src/app/configuration/templates/logset.html")
+        }), 
+        __metadata('design:paramtypes', [])
+    ], SnampLogSettingsComponent);
+    return SnampLogSettingsComponent;
+}());
+exports.SnampLogSettingsComponent = SnampLogSettingsComponent;
+
+
+/***/ },
+
 /***/ "./src/app/configuration/configuration.logview.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -37643,6 +37667,7 @@ var configuration_rgroups_1 = __webpack_require__("./src/app/configuration/confi
 var configuration_snampcfg_1 = __webpack_require__("./src/app/configuration/configuration.snampcfg.ts");
 var configuration_logview_1 = __webpack_require__("./src/app/configuration/configuration.logview.ts");
 var configuration_fullsave_1 = __webpack_require__("./src/app/configuration/configuration.fullsave.ts");
+var configuration_logsettings_1 = __webpack_require__("./src/app/configuration/configuration.logsettings.ts");
 var http_1 = __webpack_require__("./node_modules/@angular/http/index.js");
 var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
 var binding_table_component_1 = __webpack_require__("./src/app/configuration/components/binding-table.component.ts");
@@ -37752,6 +37777,20 @@ var FullSaveModule = (function () {
     return FullSaveModule;
 }());
 exports.FullSaveModule = FullSaveModule;
+var NotificationsModule = (function () {
+    function NotificationsModule() {
+    }
+    NotificationsModule = __decorate([
+        core_1.NgModule({
+            imports: IMPORTS.concat([router_1.RouterModule.forChild([{ path: '', component: configuration_logsettings_1.SnampLogSettingsComponent }])]),
+            declarations: [configuration_logsettings_1.SnampLogSettingsComponent],
+            providers: PROVIDERS
+        }), 
+        __metadata('design:paramtypes', [])
+    ], NotificationsModule);
+    return NotificationsModule;
+}());
+exports.NotificationsModule = NotificationsModule;
 
 
 /***/ },
@@ -38332,6 +38371,13 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 140
 /***/ function(module, exports) {
 
 module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Gateways configuration</h3>\r\n      </div>\r\n\r\n      <div class=\"title_right\">\r\n        <div class=\"col-md-8 col-sm-8 col-xs-12 form-group pull-right top_search\">\r\n            <div class=\"row\">\r\n              <div class=\"col-md-3\">\r\n                <h5>Choose gateway</h5>\r\n              </div>\r\n              <div class=\"col-md-6\">\r\n                <select\r\n                  id=\"gatewaySelection\"\r\n                  class=\"select2_group form-control\">\r\n                  <optgroup label=\"Gateways\" *ngIf=\"gateways.length > 0\">\r\n                    <option\r\n                      *ngFor=\"let gateway of gateways\"\r\n                      [value]=\"gateway.name\">\r\n                      {{gateway.name}}\r\n                    </option>\r\n                  </optgroup>\r\n                </select>\r\n              </div>\r\n              <div class=\"col-md-2\">\r\n                <newEntity\r\n                  [entities]=\"gateways\"\r\n                  (onSave)=\"initSelectionComponent()\"\r\n                  [type]=\"'gateway'\">\r\n                </newEntity>\r\n              </div>\r\n            </div>\r\n        </div>\r\n      </div>\r\n\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"gateways && gateways.length > 0\">\r\n\r\n        <div class=\"col-md-8 leftAlign\">\r\n\r\n            <div class=\"row\">\r\n              <panel [header]=\"'Gateway type'\" [column]=\"'12'\">\r\n                <select disabled\r\n                        id=\"entityType\"\r\n                        [(ngModel)]=\"activeGateway.type\"\r\n                        (change)=\"changeType($event)\"\r\n                        style=\"height: auto;\"\r\n                        class=\"form-control\">\r\n                  <option\r\n                    *ngFor=\"let gateway of availableGateways\"\r\n                    [value]=\"gateway.type\">\r\n                    {{gateway.name}}\r\n                  </option>\r\n                </select>\r\n              </panel>\r\n            </div>\r\n\r\n            <div class=\"row\">\r\n              <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n                  <parameters [entity]=\"activeGateway\"></parameters>\r\n              </panel>\r\n            </div>\r\n\r\n        </div>\r\n\r\n        <panel [header]=\"'Binding information'\" [column]=\"'4'\">\r\n                  <div class=\"panel-group group-accordeon\" id=\"accordionBindings\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                      <div class=\"panel panel-default\"  *ngIf=\"activeGateway.attributes.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                                      Attributes\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.attributes\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                      <div class=\"panel panel-default\" *ngIf=\"activeGateway.events.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                                      Events\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.events\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                      <div class=\"panel panel-default\" *ngIf=\"activeGateway.operations.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                                      Operations\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.operations\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                  </div>\r\n              </panel>\r\n\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n\r\n"
+
+/***/ },
+
+/***/ "./src/app/configuration/templates/logset.html":
+/***/ function(module, exports) {
+
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Notification settings</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Main settings'\" [column]=\"'12'\">\r\n\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
