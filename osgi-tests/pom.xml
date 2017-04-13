@@ -18,29 +18,29 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.21</version>
+      <version>1.7.13</version>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf.package</groupId>
       <artifactId>org.apache.karaf.package.core</artifactId>
-      <version>4.0.8</version>
+      <version>4.0.9</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf</groupId>
       <artifactId>org.apache.karaf.util</artifactId>
-      <version>4.0.8</version>
+      <version>4.0.9</version>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf.deployer</groupId>
       <artifactId>org.apache.karaf.deployer.features</artifactId>
-      <version>4.0.8</version>
+      <version>4.0.9</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf</groupId>
       <artifactId>apache-karaf</artifactId>
-      <version>4.0.8</version>
+      <version>4.0.9</version>
       <type>tar.gz</type>
       <scope>test</scope>
       <exclusions>
@@ -307,7 +307,7 @@
     <dependency>
       <groupId>org.apache.karaf.shell</groupId>
       <artifactId>org.apache.karaf.shell.console</artifactId>
-      <version>4.0.8</version>
+      <version>4.0.9</version>
       <scope>test</scope>
     </dependency>
     <dependency>
