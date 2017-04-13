@@ -13,7 +13,7 @@
     <description>Tests for connectors/gateways</description>
     <artifactId>osgi-tests</artifactId>
     <properties>
-        <exam.version>4.9.1</exam.version>
+        <exam.version>4.10.0</exam.version>
         <remote.debugging>false</remote.debugging>
     </properties>
     <build>

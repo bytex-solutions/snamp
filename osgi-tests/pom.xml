@@ -11,7 +11,7 @@
   <name>SNAMP Integration Tests</name>
   <description>Tests for connectors/gateways</description>
   <properties>
-    <exam.version>4.9.1</exam.version>
+    <exam.version>4.10.0</exam.version>
     <remote.debugging>false</remote.debugging>
   </properties>
   <dependencies>
@@ -61,7 +61,7 @@
     <dependency>
       <groupId>org.ops4j.pax.exam</groupId>
       <artifactId>pax-exam-inject</artifactId>
-      <version>4.9.1</version>
+      <version>4.10.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -73,7 +73,7 @@
     <dependency>
       <groupId>org.ops4j.pax.exam</groupId>
       <artifactId>pax-exam-invoker-junit</artifactId>
-      <version>4.9.1</version>
+      <version>4.10.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -97,7 +97,7 @@
     <dependency>
       <groupId>org.ops4j.pax.exam</groupId>
       <artifactId>pax-exam-container-karaf</artifactId>
-      <version>4.9.1</version>
+      <version>4.10.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -121,7 +121,7 @@
     <dependency>
       <groupId>org.ops4j.pax.exam</groupId>
       <artifactId>pax-exam-junit4</artifactId>
-      <version>4.9.1</version>
+      <version>4.10.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
