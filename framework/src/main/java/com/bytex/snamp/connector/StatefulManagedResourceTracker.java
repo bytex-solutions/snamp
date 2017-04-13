@@ -227,6 +227,7 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
         try {
             doStop();
         } finally {
+            trackedResources.clear();
             mutableState = mutableState.transition(FrameworkServiceState.CLOSED);
             clearCache();
         }
