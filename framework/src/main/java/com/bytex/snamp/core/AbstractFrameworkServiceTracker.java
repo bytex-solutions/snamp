@@ -32,7 +32,7 @@ public abstract class AbstractFrameworkServiceTracker<S extends FrameworkService
         }
 
         static TrackerLoggingScope serviceChanged(final AbstractAggregator requester) {
-            return new TrackerLoggingScope(requester, "processResourceConnectorChanges");
+            return new TrackerLoggingScope(requester, "processServiceChanged");
         }
     }
 
