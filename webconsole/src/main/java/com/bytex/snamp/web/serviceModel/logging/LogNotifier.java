@@ -42,10 +42,6 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
         wcBundleName = Utils.getBundleContextOfObject(this).getBundle().getSymbolicName();
     }
 
-    private BundleContext getBundleContext(){
-        return getBundleContextOfObject(this);
-    }
-
     @Override
     protected void initialize() {
         final Hashtable<String, String> identity = new Hashtable<>();

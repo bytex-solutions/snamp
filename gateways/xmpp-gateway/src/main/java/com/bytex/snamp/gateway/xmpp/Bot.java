@@ -163,14 +163,14 @@ final class Bot implements ChatManagerListener, AutoCloseable {
         @Override
         public void handleNotification(final NotificationEvent event) {
             final ExpressionBasedDescriptorFilter filter = notificationFilter.get();
-            if(filter == null || filter.match(event.getSource())) {
+            if(filter == null || filter.match(event.getMetadata())) {
                 final Chat chat = get();
                 if(chat == null) return;
                 final Message message = new Message();
                 message.setSubject("Notification");
                 message.setBody(XMPPNotificationAccessor.toString(event.getNotification()));
                 final Collection<ExtensionElement> extras = new LinkedList<>();
-                XMPPNotificationAccessor.createExtensions(event.getSource(), extras);
+                XMPPNotificationAccessor.createExtensions(event.getMetadata(), extras);
                 message.addExtensions(extras);
                 try {
                     chat.sendMessage(message);
@@ -185,10 +185,10 @@ final class Bot implements ChatManagerListener, AutoCloseable {
     private final XMPPModelOfAttributes attributes;
     private final XMPPModelOfNotifications notifications;
 
-    Bot(final ExecutorService threadPool){
+    Bot(){
         sessions = new LinkedList<>();
         this.attributes = new XMPPModelOfAttributes();
-        this.notifications = new XMPPModelOfNotifications(threadPool);
+        this.notifications = new XMPPModelOfNotifications();
     }
 
     private synchronized ChatSession chatCreatedImpl(final Chat chat){

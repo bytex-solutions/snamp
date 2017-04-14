@@ -31,10 +31,6 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         super(Dashboard.class);
     }
 
-    private BundleContext getBundleContext(){
-        return getBundleContextOfObject(this);
-    }
-
     @POST
     @Path("/compute")
     @Produces(MediaType.APPLICATION_JSON)

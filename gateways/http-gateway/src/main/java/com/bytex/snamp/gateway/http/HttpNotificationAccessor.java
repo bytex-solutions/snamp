@@ -12,19 +12,10 @@ import javax.management.Notification;
  * @since 1.0
  */
 final class HttpNotificationAccessor extends NotificationRouter implements HttpAccessor {
-    private final String resourceName;
-
     HttpNotificationAccessor(final String resourceName,
                              final MBeanNotificationInfo metadata,
                              final NotificationListener destination) {
-        super(metadata, destination);
-        this.resourceName = resourceName;
-    }
-
-    @Override
-    protected Notification intercept(final Notification notification) {
-        notification.setSource(resourceName);
-        return notification;
+        super(resourceName, metadata, destination);
     }
 
     @Override

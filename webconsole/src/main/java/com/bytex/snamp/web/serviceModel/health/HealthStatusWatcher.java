@@ -103,10 +103,6 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
             }
     }
 
-    private BundleContext getBundleContext(){
-        return Utils.getBundleContextOfObject(this);
-    }
-
     @Override
     protected void initialize() {
         for (final String groupName : getGroups()) {
@@ -116,10 +112,6 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
             else
                 addHealthStatusListener(client);
         }
-    }
-
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForBundle(getBundleContext());
     }
 
     @GET

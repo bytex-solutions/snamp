@@ -19,16 +19,23 @@ public final class NotificationListenerInvokerFactory {
         throw new InstantiationError();
     }
 
-    private static Consumer<? super NotificationListener> consumerOf(final Notification n, final Object handback){
-        return listener -> listener.handleNotification(n, handback);
+    private static Consumer<? super NotificationListener> consumerOf(final Notification n, final Object handback) {
+        return listener -> {
+            final Object origin = n.getSource();
+            listener.handleNotification(n, handback);
+            n.setSource(origin);
+        };
     }
 
-    private static Consumer<? super NotificationListener> consumerOf(final Notification n, final Object handback, final ExceptionHandler handler){
+    private static Consumer<? super NotificationListener> consumerOf(final Notification n, final Object handback, final ExceptionHandler handler) {
         return listener -> {
+            final Object origin = n.getSource();
             try {
                 listener.handleNotification(n, handback);
-            } catch (final Throwable e){
+            } catch (final Throwable e) {
                 handler.handle(e, listener);
+            } finally {
+                n.setSource(origin);
             }
         };
     }

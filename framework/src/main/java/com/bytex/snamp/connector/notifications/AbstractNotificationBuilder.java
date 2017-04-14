@@ -15,11 +15,24 @@ import java.util.function.Supplier;
  * @since 2.0
  */
 public abstract class AbstractNotificationBuilder<N extends Notification> implements Supplier<N>, Stateful {
-    private final AtomicLong sequenceNumber = new AtomicLong(0L);
-    private String message = "";
-    private long timeStamp = 0L;
-    private Object source = null;
-    private Object userData = null;
+    private final AtomicLong sequenceNumber;
+    private String message;
+    private long timeStamp;
+    private Object source;
+    private Object userData;
+
+    protected AbstractNotificationBuilder() {
+        sequenceNumber = new AtomicLong(0L);
+        message = "";
+    }
+
+    protected AbstractNotificationBuilder(final N notification){
+        sequenceNumber = new AtomicLong(notification.getSequenceNumber());
+        message = notification.getMessage();
+        timeStamp = notification.getTimeStamp();
+        source = notification.getSource();
+        userData = notification.getUserData();
+    }
 
     /**
      * Gets type of notification.

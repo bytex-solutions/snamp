@@ -17,19 +17,10 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
  * Provides transformation between notification of the resource and NSCA protocol.
  */
 final class NSCANotificationAccessor extends NotificationRouter implements FeatureBindingInfo<MBeanNotificationInfo> {
-    final String resourceName;
-
     <L extends ThreadSafeObject & NotificationListener> NSCANotificationAccessor(final String resourceName,
                                                                                  final MBeanNotificationInfo metadata,
                                                                                  final L listener) {
-        super(metadata, listener);
-        this.resourceName = resourceName;
-    }
-
-    @Override
-    protected Notification intercept(final Notification notification) {
-        notification.setSource(resourceName);
-        return notification;
+        super(resourceName, metadata, listener);
     }
 
     static int getLevel(final MBeanNotificationInfo metadata) {

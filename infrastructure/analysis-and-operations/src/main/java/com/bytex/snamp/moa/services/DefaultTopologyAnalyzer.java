@@ -8,9 +8,11 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.core.FilterBuilder;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
+import org.osgi.framework.Filter;
 
 import javax.annotation.Nonnull;
 import javax.management.ListenerNotFoundException;
@@ -26,10 +28,13 @@ import java.util.logging.Level;
  */
 final class DefaultTopologyAnalyzer extends AbstractManagedResourceTracker implements TopologyAnalyzer, SafeCloseable, NotificationListener {
     private final FilteredGraphOfComponents graph;
+    private final Filter resourceFilter;
 
     DefaultTopologyAnalyzer(final long historySize){
         graph = new FilteredGraphOfComponents(historySize);
-        createResourceFilter().addServiceListener(getBundleContext(), this);
+        final FilterBuilder builder = ManagedResourceConnectorClient.filterBuilder();
+        builder.addServiceListener(getBundleContext(), this);
+        resourceFilter = builder.get();
     }
 
     /**
@@ -66,11 +71,11 @@ final class DefaultTopologyAnalyzer extends AbstractManagedResourceTracker imple
             getLogger().info(String.format("Resource %s is already detached from the topology analyzer", resourceName));
         }
     }
-    
+
     @Nonnull
     @Override
-    protected ManagedResourceFilterBuilder createResourceFilter() {
-        return ManagedResourceConnectorClient.filterBuilder();
+    protected Filter getResourceFilter() {
+        return resourceFilter;
     }
 
     private void addNotificationListener(final NotificationSupport support){

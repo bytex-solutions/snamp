@@ -24,7 +24,6 @@ import java.util.Map;
  */
 final class XMPPNotificationAccessor extends NotificationRouter {
     static final String LISTEN_COMMAND_PATTERN = "notifs %s";
-    final String resourceName;
     private static final ObjectMapper FORMATTER;
 
     static {
@@ -35,14 +34,7 @@ final class XMPPNotificationAccessor extends NotificationRouter {
     XMPPNotificationAccessor(final MBeanNotificationInfo metadata,
                              final NotificationListener listener,
                              final String resourceName) {
-        super(metadata, listener);
-        this.resourceName = resourceName;
-    }
-
-    @Override
-    protected Notification intercept(final Notification notification) {
-        notification.setSource(resourceName);
-        return notification;
+        super(resourceName, metadata, listener);
     }
 
     static void createExtensions(final MBeanNotificationInfo metadata,

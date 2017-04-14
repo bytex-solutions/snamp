@@ -1,17 +1,12 @@
 package com.bytex.snamp.web.serviceModel.commons;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
-import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
-import com.google.common.base.Strings;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.osgi.framework.*;
 
 import javax.ws.rs.*;
@@ -19,8 +14,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Optional;
-
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import java.util.Set;
+import java.util.logging.Level;
 
 /**
  * Provides information about active managed resources and their attributes.
@@ -29,16 +24,14 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  */
 @Path("/")
-public final class ManagedResourceInformationService extends AbstractWebConsoleService implements ServiceListener, Constants {
+public final class ManagedResourceInformationService extends AbstractWebConsoleService implements Constants {
     public static final String NAME = "managedResources";
     public static final String URL_CONTEXT = "/managedResources";
 
-    //(componentType, resourceName)
-    private final AbstractConcurrentResourceAccessor<Multimap<String, String>> resources;
+    private final ResourceGroupTracker tracker;
 
     public ManagedResourceInformationService() {
-        resources = new ConcurrentResourceAccessor<>(HashMultimap.create());
-        ManagedResourceConnectorClient.filterBuilder().addServiceListener(getBundleContext(), this);
+        tracker = new ResourceGroupTracker();
     }
 
     /**
@@ -46,15 +39,10 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
      */
     @Override
     protected void initialize() {
-        final BundleContext context = getBundleContext();
-        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
-            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-            if (client != null)
-                try {
-                    connectorChanged(client, ServiceEvent.REGISTERED);
-                } finally {
-                    client.close();
-                }
+        try {
+            tracker.start();
+        } catch (final Exception e) {
+            getLogger().log(Level.SEVERE, "Unable to start tracking resources", e);
         }
     }
 
@@ -103,47 +91,18 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/components")
-    public String[] getGroups() {
-        return resources.read(resources -> resources.keySet().stream().toArray(String[]::new));
+    public Set<String> getGroups() {
+        return tracker.getGroups();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String[] getInstances(@QueryParam("component") @DefaultValue("") final String componentName) {
-        return Strings.isNullOrEmpty(componentName) ?
-                resources.read(resources -> resources.values().stream().toArray(String[]::new)) :
-                resources.read(resources -> resources.get(componentName).stream().toArray(String[]::new));
-    }
-
-    private BundleContext getBundleContext(){
-        return getBundleContextOfObject(this);
-    }
-
-    private void connectorChanged(final ManagedResourceConnectorClient client, final int type) {
-        final String groupName = client.getGroupName(), resourceName = client.getManagedResourceName();
-        switch (type) {
-            case ServiceEvent.REGISTERED:
-                resources.write(resources -> resources.put(groupName, resourceName));
-                return;
-            case ServiceEvent.UNREGISTERING:
-            case ServiceEvent.MODIFIED_ENDMATCH:
-                resources.write(resources -> resources.remove(groupName, resourceName));
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void serviceChanged(final ServiceEvent event) {
-        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()))
-            try (final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), (ServiceReference<ManagedResourceConnector>) event.getServiceReference())) {
-                connectorChanged(client, event.getType());
-            }
+    public Set<String> getInstances(@QueryParam("component") @DefaultValue("") final String groupName) {
+        return tracker.getResources(groupName);
     }
 
     @Override
     public void close() throws Exception {
-        if (isInitialized())
-            getBundleContext().removeServiceListener(this);
-        super.close();
+        Utils.closeAll(tracker, super::close);
     }
 }

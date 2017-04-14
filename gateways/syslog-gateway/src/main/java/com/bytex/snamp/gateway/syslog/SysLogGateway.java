@@ -49,10 +49,9 @@ final class SysLogGateway extends AbstractGateway {
 
         @Override
         public void handleNotification(final NotificationEvent event) {
-            final String resourceName = (String)event.getNotification().getSource();
-            final Severity severity = SysLogNotificationAccessor.getSeverity(event.getSource());
-            final Facility facility = SysLogNotificationAccessor.getFacility(event.getSource());
-            final String applicationName = SysLogNotificationAccessor.getApplicationName(event.getSource(), resourceName);
+            final Severity severity = SysLogNotificationAccessor.getSeverity(event.getMetadata());
+            final Facility facility = SysLogNotificationAccessor.getFacility(event.getMetadata());
+            final String applicationName = SysLogNotificationAccessor.getApplicationName(event.getMetadata(), event.getResourceName());
             final ConcurrentSyslogMessageSender checkSender = this.checkSender;
             if (checkSender != null){
                 final SyslogMessage message = new SyslogMessage()

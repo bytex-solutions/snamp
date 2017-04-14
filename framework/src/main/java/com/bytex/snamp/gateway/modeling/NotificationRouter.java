@@ -3,6 +3,7 @@ package com.bytex.snamp.gateway.modeling;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.lang.ref.WeakReference;
@@ -16,18 +17,26 @@ import java.lang.ref.WeakReference;
  */
 public class NotificationRouter extends NotificationAccessor {
     private final WeakReference<NotificationListener> weakListener;
+    private final String resourceName;
 
     /**
      * Initializes a new notification router.
      * <p>
      *     Note that the notification router holds a weak reference
+     * @param resourceName Name of the managed resource bounded to this router.
      * @param metadata The metadata of the notification. Cannot be {@literal null}.
      * @param destination The notification acceptor.
      */
-    public NotificationRouter(final MBeanNotificationInfo metadata,
+    public NotificationRouter(@Nonnull final String resourceName,
+                              final MBeanNotificationInfo metadata,
                               final NotificationListener destination) {
         super(metadata);
         this.weakListener = new WeakReference<>(destination);
+        this.resourceName = resourceName;
+    }
+
+    public final String getResourceName(){
+        return resourceName;
     }
 
     @Override
@@ -35,21 +44,9 @@ public class NotificationRouter extends NotificationAccessor {
         weakListener.clear();
     }
 
-    /**
-     * Intercepts notification.
-     * <p>
-     *     You can use this method to modify the original notification object
-     *     before routing.
-     * @param notification The notification.
-     * @return The modified notification.
-     */
-    protected Notification intercept(final Notification notification){
-        return notification;
-    }
-
     protected NotificationEvent createNotificationEvent(final Notification notification,
                                                         final Object handback){
-        return new NotificationEvent(getMetadata(), notification);
+        return new NotificationEvent(resourceName, getMetadata(), notification);
     }
 
     /**
@@ -60,6 +57,6 @@ public class NotificationRouter extends NotificationAccessor {
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
         final NotificationListener listener = weakListener.get();
-        if(listener != null) listener.handleNotification(createNotificationEvent(intercept(notification), handback));
+        if (listener != null) listener.handleNotification(createNotificationEvent(notification, handback));
     }
 }

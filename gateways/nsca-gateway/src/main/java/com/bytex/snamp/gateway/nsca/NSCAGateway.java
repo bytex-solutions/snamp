@@ -53,13 +53,12 @@ final class NSCAGateway extends AbstractGateway {
 
         @Override
         public void handleNotification(final NotificationEvent event) {
-            final int level = NSCANotificationAccessor.getLevel(event.getSource());
-            final String resourceName = (String)event.getNotification().getSource();
-            final String serviceName = NSCANotificationAccessor.getServiceName(event.getSource());
+            final int level = NSCANotificationAccessor.getLevel(event.getMetadata());
+            final String serviceName = NSCANotificationAccessor.getServiceName(event.getMetadata());
             final MessagePayload payload = new MessagePayload();
             payload.setLevel(level);
             payload.setMessage(event.getNotification().getMessage());
-            payload.setMessage(resourceName);
+            payload.setMessage(event.getResourceName());
             payload.setServiceName(serviceName);
             final ConcurrentPassiveCheckSender checkSender = this.checkSender;
             if (checkSender != null)

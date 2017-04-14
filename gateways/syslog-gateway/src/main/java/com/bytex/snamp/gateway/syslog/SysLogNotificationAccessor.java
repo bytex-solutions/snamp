@@ -20,19 +20,11 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 final class SysLogNotificationAccessor extends NotificationRouter implements FeatureBindingInfo<MBeanNotificationInfo> {
     private static final String FACILITY_PARAM = "facility";
     private static final String SEVERITY_PARAM = "severity";
-    final String resourceName;
 
     SysLogNotificationAccessor(final String resourceName,
                                final MBeanNotificationInfo metadata,
                                final NotificationListener destination) {
-        super(metadata, destination);
-        this.resourceName = resourceName;
-    }
-
-    @Override
-    protected Notification intercept(final Notification notification) {
-        notification.setSource(resourceName);
-        return notification;
+        super(resourceName, metadata, destination);
     }
 
     static Severity getSeverity(final MBeanNotificationInfo metadata){

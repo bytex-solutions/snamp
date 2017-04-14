@@ -1,8 +1,10 @@
 package com.bytex.snamp.connector;
 
+import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.StatefulFrameworkService;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Filter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -76,6 +78,7 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
 
     private volatile InternalState<C> mutableState;
     private final C initialConfig;
+    private final LazyStrongReference<Filter> resourceFilterCache = new LazyStrongReference<>();
 
     protected StatefulManagedResourceTracker(@Nonnull final InternalState<C> initialState){
         mutableState = initialState;
@@ -138,6 +141,7 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
                 } finally {
                     mutableState = currentState.transition(FrameworkServiceState.STOPPED);
                     trackedResources.clear();
+                    resourceFilterCache.reset();
                 }
                 stopped();
         }
@@ -162,9 +166,14 @@ public abstract class StatefulManagedResourceTracker<C extends Map<String, Strin
      * @return A filter used to query managed resource connectors from OSGi environment.
      */
     @Nonnull
-    @Override
     protected ManagedResourceFilterBuilder createResourceFilter() {
         return ManagedResourceConnectorClient.filterBuilder();
+    }
+
+    @Nonnull
+    @Override
+    protected final Filter getResourceFilter() {
+        return resourceFilterCache.lazyGet(this, tracker -> tracker.createResourceFilter().get());
     }
 
     private synchronized void doStart(final C newConfiguration) throws Exception {

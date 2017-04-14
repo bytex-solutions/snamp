@@ -1,13 +1,18 @@
 package com.bytex.snamp.web.serviceModel;
 
 import com.bytex.snamp.WeakEventListenerList;
+import com.bytex.snamp.core.LoggerProvider;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.osgi.framework.BundleContext;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
+
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * @author Roman Sakno
@@ -73,6 +78,14 @@ public abstract class AbstractWebConsoleService implements WebConsoleService {
             }
         }
         service.forEachSession(new WebConsoleSessionTask(), executor);
+    }
+
+    protected final Logger getLogger(){
+        return LoggerProvider.getLoggerForObject(this);
+    }
+
+    protected final BundleContext getBundleContext(){
+        return getBundleContextOfObject(this);
     }
 
     /**

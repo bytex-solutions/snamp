@@ -5,12 +5,17 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.notifications.NotificationBuilder;
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.core.LoggerProvider;
+import com.bytex.snamp.gateway.NotificationEvent;
+import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.NotificationSerializer;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
+import com.bytex.snamp.web.serviceModel.ManagedResourceTrackerSlim;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
@@ -24,15 +29,11 @@ import javax.annotation.Nonnull;
 import javax.management.ListenerNotFoundException;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
-import javax.management.NotificationListener;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,7 +42,7 @@ import java.util.logging.Logger;
  * Provides delivery of all notifications to the web console.
  */
 @Path("/")
-public final class NotificationService extends AbstractPrincipalBoundedService<NotificationSettings> implements NotificationListener, ServiceListener {
+public final class NotificationService extends AbstractPrincipalBoundedService<NotificationSettings> implements NotificationListener {
     public static final String NAME = "notifications";
     public static final String URL_CONTEXT = '/' + NAME;
 
@@ -83,70 +84,32 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         }
     }
 
-    private final ExecutorService threadPool;
+    private final NotificationHub hub;
 
     public NotificationService(final ExecutorService threadPool) {
         super(NotificationSettings.class);
-        this.threadPool = Objects.requireNonNull(threadPool);
-        ManagedResourceConnectorClient.filterBuilder().addServiceListener(getBundleContext(), this);
+        hub = new NotificationHub(this);
     }
 
-    private BundleContext getBundleContext(){
-        return Utils.getBundleContextOfObject(this);
+    private void handleNotification(final WebConsoleSession session, final Notification notification, final Severity severity) {
+        final NotificationSettings settings = getUserData(session);
+        if (settings.isNotificationEnabled(notification, severity))
+            session.sendMessage(new NotificationMessage(notification, severity));
     }
 
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForBundle(getBundleContext());
-    }
-
-    private void removeNotificationListener(final ManagedResourceConnectorClient client) {
-        final NotificationSupport notifications = client.queryObject(NotificationSupport.class);
-        if (notifications != null)
-            try {
-                notifications.removeNotificationListener(this);
-            } catch (final ListenerNotFoundException e) {
-                getLogger().log(Level.WARNING, e.getMessage(), e);
-            }
-    }
-
-    private void addNotificationListener(final ManagedResourceConnectorClient client){
-        final NotificationSupport notifications = client.queryObject(NotificationSupport.class);
-        if (notifications != null)
-            notifications.addNotificationListener(this, null, new NotificationSource(notifications, client.getManagedResourceName()));
-    }
-
-    private void connectorChanged(final ManagedResourceConnectorClient client, final int type) {
-        switch (type) {
-            case ServiceEvent.UNREGISTERING:
-            case ServiceEvent.MODIFIED_ENDMATCH:
-                removeNotificationListener(client);
-                return;
-            case ServiceEvent.REGISTERED:
-                addNotificationListener(client);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
     @Override
-    public void serviceChanged(final ServiceEvent event) {
-        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference())) {
-            try (final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), (ServiceReference<ManagedResourceConnector>) event.getServiceReference())) {
-                connectorChanged(client, event.getType());
-            }
-        }
+    public void handleNotification(final NotificationEvent event) {
+        final Notification notification = new NotificationBuilder(event.getNotification()).setSource(event.getResourceName()).get();
+        final Severity severity = NotificationDescriptor.getSeverity(event.getMetadata());
+        forEachSession(session -> handleNotification(session, notification, severity));
     }
 
     @Override
     protected void initialize() {
-        final BundleContext context = getBundleContext();
-        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
-            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-            if (client != null)
-                try {
-                    addNotificationListener(client);
-                } finally {
-                    client.close();
-                }
+        try {
+            hub.start();
+        } catch (final Exception e) {
+            getLogger().log(Level.SEVERE, "Unable to start notification listener service", e);
         }
     }
 
@@ -174,28 +137,8 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         return notificationTypes;
     }
 
-    private void handleNotification(final WebConsoleSession session, final NotificationSource sender, final Notification notification) {
-        notification.setSource(sender.getResourceName());
-        final NotificationSettings settings = getUserData(session);
-        final Severity severity = sender.getSeverity(notification);
-        if (settings.isNotificationEnabled(notification, severity))
-            session.sendMessage(new NotificationMessage(notification, severity));
-    }
-
-    private void handleNotification(final NotificationSource sender, final Notification notification) {
-        forEachSession(this, (service, session) -> service.handleNotification(session, sender, notification), threadPool);
-    }
-
-    @Override
-    public void handleNotification(final Notification notification, final Object handback) {
-        //handback is always of type NotificationSource. See addNotificationListener
-        if (isInitialized() && handback instanceof NotificationSource)
-            handleNotification((NotificationSource) handback, notification);
-    }
-
     @Override
     public void close() throws Exception {
-        getBundleContext().removeServiceListener(this);
-        super.close();
+        Utils.closeAll(hub, super::close);
     }
 }

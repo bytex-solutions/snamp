@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 
 import javax.management.Notification;

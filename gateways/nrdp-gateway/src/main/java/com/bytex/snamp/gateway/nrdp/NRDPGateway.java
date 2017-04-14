@@ -52,12 +52,11 @@ final class NRDPGateway extends AbstractGateway {
 
         @Override
         public void handleNotification(final NotificationEvent event) {
-            final State level = NRDPNotificationAccessor.getLevel(event.getSource());
-            final String resourceName = (String)event.getNotification().getSource();
-            final String serviceName = NRDPNotificationAccessor.getServiceName(event.getSource());
+            final State level = NRDPNotificationAccessor.getLevel(event.getMetadata());
+            final String serviceName = NRDPNotificationAccessor.getServiceName(event.getMetadata());
             final ConcurrentPassiveCheckSender checkSender = this.checkSender;
             if (checkSender != null)
-                checkSender.send(new NagiosCheckResult(resourceName,
+                checkSender.send(new NagiosCheckResult(event.getResourceName(),
                         serviceName,
                         level,
                         event.getNotification().getMessage()));

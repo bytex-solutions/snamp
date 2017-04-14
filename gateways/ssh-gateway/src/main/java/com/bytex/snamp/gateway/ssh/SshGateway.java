@@ -2,6 +2,8 @@ package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.notifications.NotificationBuilder;
+import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationEventBox;
@@ -65,10 +67,9 @@ final class SshGateway extends AbstractGateway implements GatewayController {
             return new SshNotificationAccessor(metadata, mailbox, resourceName);
         }
 
-        private Notification poll(final ExpressionBasedDescriptorFilter filter) {
+        private NotificationEvent poll(final ExpressionBasedDescriptorFilter filter) {
             final NotificationEvent event = mailbox.poll();
-            return filter == null || filter.match(event.getSource()) ?
-                    event.getNotification() : null;
+            return filter == null || filter.match(event.getMetadata()) ? event : null;
         }
     }
 
@@ -414,7 +415,11 @@ final class SshGateway extends AbstractGateway implements GatewayController {
 
     @Override
     public Notification poll(final ExpressionBasedDescriptorFilter filter) {
-        return notifications.poll(filter);
+        final NotificationEvent event = notifications.poll(filter);
+        if (event == null)
+            return null;
+        else     //deep clone of the notification to avoid concurrent modification via setSource
+            return new NotificationBuilder(event.getNotification()).setSource(event.getResourceName()).get();
     }
 
     @SuppressWarnings("unchecked")

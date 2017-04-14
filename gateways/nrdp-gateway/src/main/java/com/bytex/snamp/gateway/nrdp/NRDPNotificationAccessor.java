@@ -17,19 +17,10 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
  * Provides transformation between notification of the connected resource and NRDP protocol.
  */
 final class NRDPNotificationAccessor extends NotificationRouter implements FeatureBindingInfo<MBeanNotificationInfo> {
-    final String resourceName;
-
     <L extends ThreadSafeObject & NotificationListener> NRDPNotificationAccessor(final String resourceName,
                                                                                  final MBeanNotificationInfo metadata,
                                                                                  final L listener) {
-        super(metadata, listener);
-        this.resourceName = resourceName;
-    }
-
-    @Override
-    protected Notification intercept(final Notification notification) {
-        notification.setSource(resourceName);
-        return notification;
+        super(resourceName, metadata, listener);
     }
 
     static State getLevel(final MBeanNotificationInfo metadata) {

@@ -34,10 +34,10 @@ final class XMPPGateway extends AbstractGateway {
     private AbstractXMPPConnection connection;
     private final Bot chatBot;
 
-    XMPPGateway(final String instanceName, final ExecutorService threadPool) {
+    XMPPGateway(final String instanceName) {
         super(instanceName);
         connection = null;
-        chatBot = new Bot(threadPool);
+        chatBot = new Bot();
     }
 
     @SuppressWarnings("unchecked")

@@ -34,7 +34,6 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
         }
     }
 
-    private final LazyStrongReference<Filter> resourceFilterCache = new LazyStrongReference<>();
     /**
      * Represents a thread-safe set of tracked resources.
      */
@@ -58,7 +57,7 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
      * @implSpec This operation must be idempotent and return the same filter for every call.
      */
     @Nonnull
-    protected abstract FilterBuilder createResourceFilter();
+    protected abstract Filter getResourceFilter();
 
     /**
      * Captures reference to the managed resource connector.
@@ -69,8 +68,7 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
     @Override
     public final void serviceChanged(final ServiceEvent event) {
         //use cached version of filter
-        final Filter filter = resourceFilterCache.lazyGet(this, tracker -> tracker.createResourceFilter().get());
-        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()) && filter.match(event.getServiceReference()))
+        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()) && getResourceFilter().match(event.getServiceReference()))
             try (final LoggingScope logger = TrackerLoggingScope.connectorChangesDetected(this);
                  final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getBundleContext(), (ServiceReference<ManagedResourceConnector>) event.getServiceReference())) {
                 switch (event.getType()) {
@@ -93,14 +91,5 @@ public abstract class AbstractManagedResourceTracker extends AbstractAggregator 
                                 client.getManagedResourceName()));
                 }
             }
-    }
-
-    /**
-     * Clears internal cache with aggregated objects.
-     */
-    @Override
-    protected final void clearCache() {
-        resourceFilterCache.reset();
-        super.clearCache();
     }
 }

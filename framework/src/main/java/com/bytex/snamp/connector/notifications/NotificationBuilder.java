@@ -13,7 +13,16 @@ import java.util.Objects;
  */
 @NotThreadSafe
 public class NotificationBuilder extends AbstractNotificationBuilder<Notification> {
-    private String type = "";
+    private String type;
+
+    public NotificationBuilder(){
+        type = "";
+    }
+
+    public NotificationBuilder(final Notification notification) {
+        super(notification);
+        type = notification.getType();
+    }
 
     public final NotificationBuilder setType(final String value){
         type = Objects.requireNonNull(value);

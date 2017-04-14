@@ -293,8 +293,7 @@ public abstract class AbstractAggregator implements Aggregator {
     /**
      * Clears internal cache with aggregated objects.
      */
-    @OverridingMethodsMustInvokeSuper
-    protected void clearCache(){
+    protected final void clearCache(){
         providers.invalidateAll();
     }
 

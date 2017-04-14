@@ -46,11 +46,10 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
             then(Closures.toNotificationHandler(listener));
         }
 
-        private void onSuccess(final MBeanNotificationInfo metadata,
-                               final Notification notif){
+        void onSuccess(final NotificationEvent event){
             final NotificationListener listener = this.handler.get();
             if(listener != null)
-                listener.handleNotification(new NotificationEvent(metadata, notif));
+                listener.handleNotification(event);
         }
     }
 
@@ -77,11 +76,10 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
             return when(Closures.toPredicate(condition));
         }
 
-        private void process(final MBeanNotificationInfo metadata,
-                             final Notification notif){
+        private void process(final NotificationEvent event){
             handlers.stream()
-                    .filter(statement -> statement.test(notif))
-                    .forEach(statement -> statement.onSuccess(metadata, notif));
+                    .filter(statement -> statement.test(event.getNotification()))
+                    .forEach(statement -> statement.onSuccess(event));
         }
     }
 
@@ -112,13 +110,8 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
      */
     @Override
     public final void handleNotification(final NotificationEvent event) {
-        handleNotification(event.getSource(), event.getNotification());
-    }
-
-    public final void handleNotification(final MBeanNotificationInfo metadata,
-                                         final Notification notif){
         selectionStatements.stream()
-                .filter(stmt -> stmt.match(metadata))
-                .forEach(stmt -> stmt.process(metadata, notif));
+                .filter(stmt -> stmt.match(event.getMetadata()))
+                .forEach(stmt -> stmt.process(event));
     }
 }

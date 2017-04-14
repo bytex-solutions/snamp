@@ -1,7 +1,10 @@
 package com.bytex.snamp.gateway.xmpp;
 
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.gateway.modeling.MulticastNotificationListener;
+import com.bytex.snamp.WeakEventListener;
+import com.bytex.snamp.WeakEventListenerList;
+import com.bytex.snamp.gateway.NotificationEvent;
+import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.NotificationSet;
 import com.bytex.snamp.gateway.modeling.ResourceFeatureList;
 import com.bytex.snamp.gateway.modeling.ResourceNotificationList;
@@ -11,7 +14,6 @@ import javax.management.MBeanNotificationInfo;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -25,14 +27,60 @@ import static com.bytex.snamp.concurrent.LockManager.lockAndApply;
  * @version 2.0
  * @since 1.0
  */
-final class XMPPModelOfNotifications extends MulticastNotificationListener implements NotificationSet<XMPPNotificationAccessor> {
+final class XMPPModelOfNotifications  implements NotificationSet<XMPPNotificationAccessor>, NotificationListener {
+    private static final class WeakNotificationListener extends WeakEventListener<NotificationListener, NotificationEvent> implements NotificationListener{
+        private WeakNotificationListener(final NotificationListener listener) {
+            super(listener);
+        }
+
+        @Override
+        protected void invoke(final NotificationListener listener, final NotificationEvent event) {
+            listener.handleNotification(event);
+        }
+
+        @Override
+        public void handleNotification(final NotificationEvent event) {
+            invoke(event);
+        }
+    }
+
+    private static final class NotificationListenerList extends WeakEventListenerList<NotificationListener, NotificationEvent> {
+        @Override
+        protected WeakNotificationListener createWeakEventListener(final NotificationListener listener) {
+            return new WeakNotificationListener(listener);
+        }
+    }
+
     private final Map<String, ResourceNotificationList<XMPPNotificationAccessor>> notifications;
     private final ReadWriteLock lock;
+    private final NotificationListenerList listeners;
 
-    XMPPModelOfNotifications(final ExecutorService threadPool){
-        super(threadPool);
+    XMPPModelOfNotifications(){
         notifications = new HashMap<>(10);
         lock = new ReentrantReadWriteLock();
+        listeners = new NotificationListenerList();
+    }
+
+    /**
+     * Adds a new notification listener to this collection.
+     * @param listener A new notification listener to add. Cannot be {@literal null}.
+     */
+    public final void addNotificationListener(final NotificationListener listener) {
+        listeners.add(listener);
+    }
+
+    public final boolean removeNotificationListener(final NotificationListener listener) {
+        return listeners.remove(listener);
+    }
+
+    /**
+     * Handles notifications.
+     *
+     * @param event Notification event.
+     */
+    @Override
+    public final void handleNotification(final NotificationEvent event) {
+        listeners.fire(event);
     }
 
     private XMPPNotificationAccessor enableNotificationsImpl(final String resourceName,
@@ -81,7 +129,7 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
     }
 
     void clear() throws InterruptedException {
-        removeAll();
+        listeners.clear();
         lockAndAccept(lock.writeLock(), notifications, notifs -> {
             notifs.values().forEach(ResourceFeatureList::clear);
             notifs.clear();
@@ -94,7 +142,7 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
         try {
             for (final ResourceNotificationList<XMPPNotificationAccessor> list : notifications.values())
                 for (final XMPPNotificationAccessor accessor : list.values())
-                    if (!notificationReader.accept(accessor.resourceName, accessor)) return false;
+                    if (!notificationReader.accept(accessor.getResourceName(), accessor)) return false;
         } finally {
             readLock.unlock();
         }

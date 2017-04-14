@@ -1,5 +1,6 @@
 package com.bytex.snamp.gateway;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.util.EventObject;
@@ -13,17 +14,34 @@ import java.util.Objects;
 public class NotificationEvent extends EventObject {
     private static final long serialVersionUID = 3190524304810877055L;
     private final Notification notification;
+    private final String resourceName;
+    private final MBeanNotificationInfo metadata;
 
     /**
      * Constructs a prototypical Event.
      *
-     * @param source The object on which the Event initially occurred.
+     * @param metadata The object on which the Event initially occurred.
      * @throws IllegalArgumentException if source is null.
      */
-    public NotificationEvent(final MBeanNotificationInfo source,
-                             final Notification notification) {
-        super(source);
-        this.notification = Objects.requireNonNull(notification);
+    public NotificationEvent(@Nonnull final String resourceName,
+                             @Nonnull final MBeanNotificationInfo metadata,
+                             @Nonnull final Notification notification) {
+        super(resourceName);
+        this.notification = notification;
+        this.resourceName = resourceName;
+        this.metadata = metadata;
+    }
+
+    public final String getResourceName(){
+        return resourceName;
+    }
+
+    /**
+     * Gets metadata of the notification.
+     * @return Notification metadata.
+     */
+    public final MBeanNotificationInfo getMetadata(){
+        return metadata;
     }
 
     /**
@@ -40,8 +58,7 @@ public class NotificationEvent extends EventObject {
      * @return The object on which the Event initially occurred.
      */
     @Override
-    public final MBeanNotificationInfo getSource() {
-        assert source instanceof MBeanNotificationInfo: source;
-        return (MBeanNotificationInfo) source;
+    public final Object getSource() {
+        return notification.getSource();
     }
 }

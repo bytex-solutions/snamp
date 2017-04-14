@@ -1,9 +1,6 @@
 package com.bytex.snamp.internal;
 
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
-import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.*;
 import com.bytex.snamp.concurrent.SpinWait;
 import org.junit.Assert;
 import org.junit.Test;
@@ -109,5 +106,36 @@ public final class UtilsTest extends Assert {
         }, () -> {
             throw new IllegalArgumentException();
         });
+    }
+
+    @Test
+    public void superCloseTest() throws Exception{
+        class MyClass implements AutoCloseable{
+            boolean baseClosed;
+
+            @Override
+            public void close() throws Exception {
+                baseClosed = true;
+            }
+        }
+
+
+        final class DerivedClass extends MyClass{
+            boolean derivedClosed;
+
+            private void closeDerived(){
+                derivedClosed = true;
+            }
+
+            @Override
+            public void close() throws Exception {
+                Utils.closeAll(super::close, this::closeDerived);
+            }
+        }
+
+        final DerivedClass instance = new DerivedClass();
+        instance.close();
+        assertTrue(instance.baseClosed);
+        assertTrue(instance.derivedClosed);
     }
 }

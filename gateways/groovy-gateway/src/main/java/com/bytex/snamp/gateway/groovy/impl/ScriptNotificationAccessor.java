@@ -16,23 +16,10 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
  * @since 1.0
  */
 final class ScriptNotificationAccessor extends NotificationRouter implements FeatureBindingInfo<MBeanNotificationInfo> {
-    private final String resourceName;
-
     ScriptNotificationAccessor(final String resourceName,
                                final MBeanNotificationInfo metadata,
                                final NotificationListener destination) {
-        super(metadata, destination);
-        this.resourceName = resourceName;
-    }
-
-    public String getResourceName(){
-        return resourceName;
-    }
-
-    @Override
-    protected Notification intercept(final Notification notification) {
-        notification.setSource(resourceName);
-        return notification;
+        super(resourceName, metadata, destination);
     }
 
     /**

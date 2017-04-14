@@ -42,14 +42,20 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
             return true;
         }
 
-        @Override
-        public final void handleNotification(final NotificationEvent event) {
-            if (isConnected() && isAllowed(event.getNotification()))
+        private void handleNotification(final Notification notification) {
+            if (isConnected() && isAllowed(notification))
                 try {
-                    getRemote().sendString(formatter.writeValueAsString(event.getNotification()), this);
+                    getRemote().sendString(formatter.writeValueAsString(notification), this);
                 } catch (final IOException e) {
                     throw new UncheckedIOException(e);
                 }
+        }
+
+        @Override
+        public final void handleNotification(final NotificationEvent event) {
+            final Notification notification = event.getNotification();
+            notification.setSource(event.getResourceName());
+            handleNotification(notification);
         }
 
         @Override

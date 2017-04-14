@@ -13,19 +13,11 @@ import java.util.Map;
  */
 final class SshNotificationAccessor extends NotificationRouter implements SshNotificationMapping {
     static final String LISTEN_COMMAND_PATTERN = "notifs %s";
-    final String resourceName;
 
     SshNotificationAccessor(final MBeanNotificationInfo metadata,
                             final NotificationEventBox mailbox,
                             final String resourceName) {
-        super(metadata, mailbox);
-        this.resourceName = resourceName;
-    }
-
-    @Override
-    protected Notification intercept(final Notification notification) {
-        notification.setSource(resourceName);
-        return notification;
+        super(resourceName, metadata, mailbox);
     }
 
     String getListenCommand(){
