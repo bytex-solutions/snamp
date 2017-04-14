@@ -306,20 +306,30 @@ public abstract class AbstractGateway extends StatefulManagedResourceTracker<Map
     @Override
     @OverridingMethodsMustInvokeSuper
     protected synchronized void addResource(final ManagedResourceConnectorClient connector) {
-        //add gateway as a listener
-        connector.addResourceEventListener(this);
-        //expose all features
         final String resourceName = connector.getManagedResourceName();
-        exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
-        exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
-        exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
+        if (trackedResources.contains(resourceName)) {
+            getLogger().info(String.format("Resource %s is already attached to gateway %s", resourceName, instanceName));
+        } else {
+            //add gateway as a listener
+            connector.addResourceEventListener(this);
+            //expose all features
+            exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
+            exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
+            exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
+
+        }
     }
 
     @Override
     @OverridingMethodsMustInvokeSuper
     protected synchronized void removeResource(final ManagedResourceConnectorClient connector) {
-        connector.removeResourceEventListener(this);
-        removeAllFeaturesImpl(connector.getManagedResourceName()).forEach(FeatureAccessor::close);
+        final String resourceName = connector.getManagedResourceName();
+        if (trackedResources.contains(resourceName)) {
+            connector.removeResourceEventListener(this);
+            removeAllFeaturesImpl(resourceName).forEach(FeatureAccessor::close);
+        } else {
+            getLogger().info(String.format("Resource %s is already detached from gateway %s", resourceName, instanceName));
+        }
     }
 
     /**

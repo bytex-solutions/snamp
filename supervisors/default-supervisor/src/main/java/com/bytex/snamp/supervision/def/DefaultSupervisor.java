@@ -92,12 +92,24 @@ public class DefaultSupervisor extends AbstractSupervisor {
     }
 
     @Override
+    protected void addResource(final ManagedResourceConnectorClient connector) {
+        final String resourceName = connector.getManagedResourceName();
+        if (trackedResources.contains(resourceName)) {
+            getLogger().info(String.format("Resource %s is already attached to supervisor %s", resourceName, groupName));
+        }
+    }
+
+    @Override
     @OverridingMethodsMustInvokeSuper
     protected void removeResource(final ManagedResourceConnectorClient connector) {
-        super.removeResource(connector);
-        final DefaultHealthStatusProvider provider = healthStatusProvider;
-        if (provider != null)
-            provider.removeResource(connector.getManagedResourceName());
+        final String resourceName = connector.getManagedResourceName();
+        if (trackedResources.contains(resourceName)) {
+            final DefaultHealthStatusProvider provider = healthStatusProvider;
+            if (provider != null)
+                provider.removeResource(resourceName);
+        } else {
+            getLogger().info(String.format("Resource %s is already detached from supervisor %s", resourceName, groupName));
+        }
     }
 
     /**

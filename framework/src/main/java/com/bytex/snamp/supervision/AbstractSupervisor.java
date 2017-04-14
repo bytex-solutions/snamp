@@ -57,14 +57,12 @@ public abstract class AbstractSupervisor extends StatefulManagedResourceTracker<
         }
     }
 
-    private final Set<String> resources;
     protected final String groupName;
     protected final String supervisorType;
 
     protected AbstractSupervisor(final String groupName) {
         super(new SupervisorInternalState());
         this.groupName = nullToEmpty(groupName);
-        resources = Collections.newSetFromMap(new ConcurrentHashMap<>());
         supervisorType = Supervisor.getSupervisorType(getClass());
     }
 
@@ -78,18 +76,6 @@ public abstract class AbstractSupervisor extends StatefulManagedResourceTracker<
         return ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName);
     }
 
-    @Override
-    @OverridingMethodsMustInvokeSuper
-    protected void addResource(final ManagedResourceConnectorClient connector) {
-        resources.add(connector.getManagedResourceName());
-    }
-
-    @Override
-    @OverridingMethodsMustInvokeSuper
-    protected void removeResource(final ManagedResourceConnectorClient connector) {
-        resources.remove(connector.getManagedResourceName());
-    }
-
     /**
      * Gets immutable set of group members.
      *
@@ -98,7 +84,7 @@ public abstract class AbstractSupervisor extends StatefulManagedResourceTracker<
     @Override
     @Nonnull
     public final Set<String> getResources() {
-        return resources;
+        return trackedResources;
     }
 
     @Override
