@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
 import javax.management.InstanceNotFoundException;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ final class HealthStatusEventHub extends AbstractStatefulFrameworkServiceTracker
      * @param serviceClient Service client.
      */
     @Override
-    protected synchronized void addService(final SupervisorClient serviceClient) {
+    protected synchronized void addService(@WillNotClose final SupervisorClient serviceClient) {
         if (!trackedServices.contains(getServiceId(serviceClient)))
             Aggregator.queryAndAccept(serviceClient, HealthStatusProvider.class, provider -> provider.addHealthStatusEventListener(this));
     }
@@ -48,7 +49,7 @@ final class HealthStatusEventHub extends AbstractStatefulFrameworkServiceTracker
      * @param serviceClient Service client.
      */
     @Override
-    protected synchronized void removeService(final SupervisorClient serviceClient) {
+    protected synchronized void removeService(@WillNotClose final SupervisorClient serviceClient) {
         if (trackedServices.contains(getServiceId(serviceClient)))
             Aggregator.queryAndAccept(serviceClient, HealthStatusProvider.class, provider -> provider.removeHealthStatusEventListener(this));
     }
@@ -60,7 +61,7 @@ final class HealthStatusEventHub extends AbstractStatefulFrameworkServiceTracker
     }
 
     @Override
-    protected String getServiceId(final SupervisorClient client) {
+    protected String getServiceId(@WillNotClose final SupervisorClient client) {
         return client.getGroupName();
     }
 

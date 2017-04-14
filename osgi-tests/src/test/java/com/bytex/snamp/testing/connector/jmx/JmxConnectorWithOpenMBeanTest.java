@@ -10,6 +10,7 @@ import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.google.common.collect.ImmutableMap;
@@ -18,6 +19,7 @@ import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceReference;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -275,6 +277,10 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         testAttribute("1.0", TypeToken.of(String.class), "Frank Underwood");
     }
 
+    private static boolean isResourceConnector(final ServiceReference<?> serviceRef){
+        return Utils.isInstanceOf(serviceRef, ManagedResourceConnector.class);
+    }
+
     @Test
     public void testForResourceConnectorListener() throws Exception {
         final BundleContext context = getTestBundleContext();
@@ -283,10 +289,10 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         ManagedResourceConnectorClient.filterBuilder().addServiceListener(context, event -> {
             switch (event.getType()){
                 case ServiceEvent.UNREGISTERING:
-                    unregistered.complete(ManagedResourceConnector.isResourceConnector(event.getServiceReference()));
+                    unregistered.complete(isResourceConnector(event.getServiceReference()));
                     return;
                 case ServiceEvent.REGISTERED:
-                    registered.complete(ManagedResourceConnector.isResourceConnector(event.getServiceReference()));
+                    registered.complete(isResourceConnector(event.getServiceReference()));
             }
         });
         stopResourceConnector(context);

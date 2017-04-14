@@ -6,6 +6,7 @@ import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
 import javax.management.InstanceNotFoundException;
 import java.util.Collections;
 import java.util.Set;
@@ -58,13 +59,13 @@ public abstract class AbstractFrameworkServiceTracker<S extends FrameworkService
      * Invoked when new service is detected.
      * @param serviceClient Service client.
      */
-    protected abstract void addService(final C serviceClient);
+    protected abstract void addService(@WillNotClose final C serviceClient);
 
     /**
      * Invoked when service is removed from OSGi Service registry.
      * @param serviceClient Service client.
      */
-    protected abstract void removeService(final C serviceClient);
+    protected abstract void removeService(@WillNotClose final C serviceClient);
 
     /**
      * Returns filter used to query managed resource connectors from OSGi environment.
@@ -77,7 +78,7 @@ public abstract class AbstractFrameworkServiceTracker<S extends FrameworkService
     @Nonnull
     protected abstract C createClient(final ServiceReference<S> serviceRef) throws InstanceNotFoundException;
 
-    protected abstract String getServiceId(final C client);
+    protected abstract String getServiceId(@WillNotClose final C client);
 
     static void logInvalidServiceRef(final Logger logger, final InstanceNotFoundException e){
         logger.log(Level.SEVERE, "Service reference is no longer valid", e);

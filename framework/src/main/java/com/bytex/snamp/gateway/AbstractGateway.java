@@ -16,6 +16,7 @@ import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import javax.annotation.WillNotClose;
 import javax.management.*;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -326,7 +327,7 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected void addResource(final String resourceName, final ManagedResourceConnector connector){
+    protected void addResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector){
         //add gateway as a listener
         connector.addResourceEventListener(this);
         //expose all features
@@ -336,7 +337,7 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
     }
 
     @Override
-    protected final synchronized void addService(final ManagedResourceConnectorClient connector) {
+    protected final synchronized void addService(@WillNotClose final ManagedResourceConnectorClient connector) {
         final String resourceName = getServiceId(connector);
         if (trackedServices.contains(resourceName))
             getLogger().info(String.format("Resource %s is already attached to gateway %s", resourceName, instanceName));
@@ -345,13 +346,13 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected void removeResource(final String resourceName, final ManagedResourceConnector connector){
+    protected void removeResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector){
         connector.removeResourceEventListener(this);
         removeAllFeaturesImpl(resourceName).forEach(FeatureAccessor::close);
     }
 
     @Override
-    protected final synchronized void removeService(final ManagedResourceConnectorClient connector) {
+    protected final synchronized void removeService(@WillNotClose final ManagedResourceConnectorClient connector) {
         final String resourceName = getServiceId(connector);
         if (trackedServices.contains(resourceName))
             removeResource(resourceName, connector);

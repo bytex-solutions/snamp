@@ -2,9 +2,9 @@ package com.bytex.snamp.connector.notifications;
 
 import com.bytex.snamp.Stateful;
 
+import javax.annotation.Nonnull;
 import javax.management.Notification;
 import java.util.Date;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
@@ -49,8 +49,8 @@ public abstract class AbstractNotificationBuilder<N extends Notification> implem
         return autoIncrement ? sequenceNumber.getAndIncrement() : sequenceNumber.get();
     }
 
-    public final AbstractNotificationBuilder<N> setMessage(final String value){
-        message = Objects.requireNonNull(value);
+    public final AbstractNotificationBuilder<N> setMessage(@Nonnull final String value){
+        message = value;
         return this;
     }
 
@@ -75,8 +75,8 @@ public abstract class AbstractNotificationBuilder<N extends Notification> implem
         return setTimeStamp(System.currentTimeMillis());
     }
 
-    public final AbstractNotificationBuilder<N> setSource(final Object value){
-        source = Objects.requireNonNull(value);
+    public final AbstractNotificationBuilder<N> setSource(@Nonnull final Object value){
+        source = value;
         return this;
     }
 

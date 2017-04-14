@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
 import javax.management.InstanceNotFoundException;
 import java.util.Map;
 
@@ -30,11 +31,11 @@ public abstract class AbstractManagedResourceTracker<V> extends AbstractStateful
     }
 
     @Override
-    protected final String getServiceId(final ManagedResourceConnectorClient client) {
+    protected final String getServiceId(@WillNotClose final ManagedResourceConnectorClient client) {
         return client.getManagedResourceName();
     }
 
-    protected abstract void addResource(final ManagedResourceConnectorClient client);
+    protected abstract void addResource(@WillNotClose final ManagedResourceConnectorClient client);
 
     /**
      * Invoked when new service is detected.
@@ -42,12 +43,12 @@ public abstract class AbstractManagedResourceTracker<V> extends AbstractStateful
      * @param serviceClient Service client.
      */
     @Override
-    protected synchronized final void addService(final ManagedResourceConnectorClient serviceClient) {
+    protected synchronized final void addService(@WillNotClose final ManagedResourceConnectorClient serviceClient) {
         if(!trackedServices.contains(getServiceId(serviceClient)))
             addResource(serviceClient);
     }
 
-    protected abstract void removeResource(final ManagedResourceConnectorClient client);
+    protected abstract void removeResource(@WillNotClose final ManagedResourceConnectorClient client);
 
     /**
      * Invoked when service is removed from OSGi Service registry.
@@ -55,7 +56,7 @@ public abstract class AbstractManagedResourceTracker<V> extends AbstractStateful
      * @param serviceClient Service client.
      */
     @Override
-    protected synchronized final void removeService(final ManagedResourceConnectorClient serviceClient) {
+    protected synchronized final void removeService(@WillNotClose final ManagedResourceConnectorClient serviceClient) {
         if(trackedServices.contains(getServiceId(serviceClient)))
             removeResource(serviceClient);
     }

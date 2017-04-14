@@ -1,8 +1,8 @@
 package com.bytex.snamp.connector.notifications;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.management.Notification;
-import java.util.Objects;
 
 /**
  * Represents builder of {@link Notification} objects.
@@ -24,8 +24,8 @@ public class NotificationBuilder extends AbstractNotificationBuilder<Notificatio
         type = notification.getType();
     }
 
-    public final NotificationBuilder setType(final String value){
-        type = Objects.requireNonNull(value);
+    public final NotificationBuilder setType(@Nonnull final String value){
+        type = value;
         return this;
     }
 

@@ -9,6 +9,7 @@ import com.bytex.snamp.core.FrameworkServiceState;
 import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;
 import java.util.Map;
@@ -83,11 +84,11 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
     }
 
     @Override
-    protected final String getServiceId(final ManagedResourceConnectorClient client) {
+    protected final String getServiceId(@WillNotClose final ManagedResourceConnectorClient client) {
         return client.getManagedResourceName();
     }
 
-    protected abstract void addResource(final String resourceName, final ManagedResourceConnector connector);
+    protected abstract void addResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector);
 
     /**
      * Invoked when new service is detected.
@@ -95,7 +96,7 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
      * @param serviceClient Service client.
      */
     @Override
-    protected final synchronized void addService(final ManagedResourceConnectorClient serviceClient) {
+    protected final synchronized void addService(@WillNotClose final ManagedResourceConnectorClient serviceClient) {
         final String resourceName = getServiceId(serviceClient);
         if (trackedServices.contains(resourceName))
             getLogger().info(String.format("Resource %s is already attached to supervisor %s", resourceName, groupName));
@@ -103,7 +104,7 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
             addResource(resourceName, serviceClient);
     }
 
-    protected abstract void removeResource(final String resourceName, final ManagedResourceConnector connector);
+    protected abstract void removeResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector);
 
     /**
      * Invoked when service is removed from OSGi Service registry.
@@ -111,7 +112,7 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
      * @param serviceClient Service client.
      */
     @Override
-    protected final synchronized void removeService(final ManagedResourceConnectorClient serviceClient) {
+    protected final synchronized void removeService(@WillNotClose final ManagedResourceConnectorClient serviceClient) {
         final String resourceName = getServiceId(serviceClient);
         if (trackedServices.contains(resourceName))
             removeResource(resourceName, serviceClient);

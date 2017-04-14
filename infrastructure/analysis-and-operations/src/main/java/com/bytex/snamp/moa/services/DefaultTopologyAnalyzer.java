@@ -16,6 +16,7 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
 import javax.management.InstanceNotFoundException;
 import javax.management.ListenerNotFoundException;
 import javax.management.Notification;
@@ -77,7 +78,7 @@ final class DefaultTopologyAnalyzer extends AbstractFrameworkServiceTracker<Mana
     }
 
     @Override
-    protected synchronized void addService(final ManagedResourceConnectorClient connector) {
+    protected synchronized void addService(@WillNotClose final ManagedResourceConnectorClient connector) {
         final String resourceName = getServiceId(connector);
         if (trackedServices.contains(resourceName)) {
             getLogger().info(String.format("Resource %s is already attached to the topology analyzer", resourceName));
@@ -88,7 +89,7 @@ final class DefaultTopologyAnalyzer extends AbstractFrameworkServiceTracker<Mana
     }
 
     @Override
-    protected synchronized void removeService(final ManagedResourceConnectorClient connector) {
+    protected synchronized void removeService(@WillNotClose final ManagedResourceConnectorClient connector) {
         final String resourceName = getServiceId(connector);
         if (trackedServices.contains(resourceName)) {
             Aggregator.queryAndAccept(connector, NotificationSupport.class, this::removeNotificationListener);

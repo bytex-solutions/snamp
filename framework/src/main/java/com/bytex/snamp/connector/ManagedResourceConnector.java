@@ -6,10 +6,8 @@ import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.FrameworkService;
-import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleRevision;
 
 import javax.annotation.Nonnull;
@@ -131,10 +129,6 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
 
     static boolean isResourceConnectorBundle(final Bundle bnd) {
         return bnd != null && !isNullOrEmpty(getConnectorType(bnd));
-    }
-
-    static boolean isResourceConnector(final ServiceReference<?> ref){
-        return Utils.isInstanceOf(ref, ManagedResourceConnector.class) && isResourceConnectorBundle(ref.getBundle());
     }
 
     /**
