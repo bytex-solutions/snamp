@@ -19,7 +19,7 @@ public abstract class ManagedResourceTrackerSlim extends StatefulManagedResource
         super(new InternalState<>(ImmutableMap.of()));
     }
 
-    public final void start() throws Exception {
-        start(ImmutableMap.of());
+    public final void startTracking() throws Exception {
+        update(ImmutableMap.of());
     }
 }

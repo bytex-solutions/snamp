@@ -40,7 +40,7 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     @Override
     protected void initialize() {
         try {
-            tracker.start();
+            tracker.startTracking();
         } catch (final Exception e) {
             getLogger().log(Level.SEVERE, "Unable to start tracking resources", e);
         }

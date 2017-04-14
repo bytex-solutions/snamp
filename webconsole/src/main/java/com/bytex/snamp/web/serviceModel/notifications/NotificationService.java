@@ -107,7 +107,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
     @Override
     protected void initialize() {
         try {
-            hub.start();
+            hub.startTracking();
         } catch (final Exception e) {
             getLogger().log(Level.SEVERE, "Unable to start notification listener service", e);
         }
