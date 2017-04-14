@@ -31,8 +31,8 @@
                           [size]="'small'">
                   </ui-switch>
                   <br/>
-                  <select class="select2_multiple form-control" id="typesSelect" [(ngModel)]="allowedTypes" style="display: none;" multiple="multiple">
-                    <option *ngFor="let type of availableTypes">{{type}}</option>
+                  <select class="select2_multiple form-control" id="typesSelect" style="display: none;" multiple="multiple">
+                    <option *ngFor="let type of availableTypes" [ngValue]="type" [attr.selected]="isSelected(type) ? true : null">{{type}}</option>
                   </select>
                 </div>
               </div>

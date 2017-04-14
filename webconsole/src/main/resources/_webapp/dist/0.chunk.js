@@ -37569,10 +37569,8 @@ var SnampLogSettingsComponent = (function () {
             _this.allowedTypes = data["notificationTypes"];
             _this.selectedAllTypes = (_this.allowedTypes.length == 0);
             if (!_this.selectedAllTypes) {
-                $("#typesSelect").val(_this.allowedTypes);
                 _this.initSelect2();
                 $("#typesSelect").fadeIn("fast");
-                $("#typesSelect").val(_this.allowedTypes).trigger('change');
             }
         });
         this.http.get(app_restClient_1.REST.NOTIFICATIONS_TYPES)
@@ -37584,6 +37582,8 @@ var SnampLogSettingsComponent = (function () {
     SnampLogSettingsComponent.prototype.initSelect2 = function () {
         var _select = $("#typesSelect");
         var _thisReference = this;
+        //_select.val(this.allowedTypes);
+        //console.log(_select.val());
         _select.select2({
             placeholder: "Select types of notifications from the dropdown",
             allowClear: true
@@ -37623,6 +37623,9 @@ var SnampLogSettingsComponent = (function () {
             .subscribe(function (data) {
             console.log("Notification settings has been stored: ", data);
         });
+    };
+    SnampLogSettingsComponent.prototype.isSelected = function (type) {
+        return this.allowedTypes.indexOf(type) >= 0;
     };
     SnampLogSettingsComponent = __decorate([
         core_1.Component({
@@ -38453,7 +38456,7 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949
 /***/ "./src/app/configuration/templates/logset.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Notification settings</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n      <div class=\"row\">\r\n          <panel [header]=\"'Main settings'\" [column]=\"'6'\">\r\n            <div class=\"row\">\r\n              <div class=\"col-md-12 col-sm-12 col-xs-12 text-center\" *ngIf=\"allowedTypes == undefined\">\r\n                <strong>No allowed notification types are found - might be a server error</strong>\r\n              </div>\r\n\r\n              <div class=\"item form-group\" *ngIf=\"allowedTypes\">\r\n                <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"typesSelect\"\r\n                        style=\"margin-top: 7px;\">\r\n                  Allowed notifications <span class=\"required\">*</span>\r\n                </label>\r\n\r\n                <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                  Select all\r\n                  <ui-switch\r\n                          [(ngModel)]=\"selectedAllTypes\"\r\n                          (change)=\"triggerShowTypes($event)\"\r\n                          [size]=\"'small'\">\r\n                  </ui-switch>\r\n                  <br/>\r\n                  <select class=\"select2_multiple form-control\" id=\"typesSelect\" [(ngModel)]=\"allowedTypes\" style=\"display: none;\" multiple=\"multiple\">\r\n                    <option *ngFor=\"let type of availableTypes\">{{type}}</option>\r\n                  </select>\r\n                </div>\r\n              </div>\r\n            </div>\r\n            <div class=\"row\" style=\"margin-top: 20px;\">\r\n              <div class=\"item form-group\">\r\n                <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"severitySelect\"\r\n                        style=\"margin-top: 7px;\">\r\n                  Severity <span class=\"required\">*</span>\r\n                </label>\r\n                <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                  <select class=\"form-control\" [(ngModel)]=\"level\" id=\"severitySelect\">\r\n                    <option *ngFor=\"let severity of severities\" [ngValue]=\"severity\">{{severity}}</option>\r\n                  </select>\r\n                </div>\r\n              </div>\r\n            </div>\r\n            <div class=\"row\" style=\"margin-top: 15px\">\r\n              <button\r\n                      type=\"button\"\r\n                      class=\"btn btn-primary col-md-3\"\r\n                      (click)=\"saveNotificationSettings()\">\r\n                Save settings\r\n              </button>\r\n            </div>\r\n          </panel>\r\n      </div>\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Notification settings</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n      <div class=\"row\">\r\n          <panel [header]=\"'Main settings'\" [column]=\"'6'\">\r\n            <div class=\"row\">\r\n              <div class=\"col-md-12 col-sm-12 col-xs-12 text-center\" *ngIf=\"allowedTypes == undefined\">\r\n                <strong>No allowed notification types are found - might be a server error</strong>\r\n              </div>\r\n\r\n              <div class=\"item form-group\" *ngIf=\"allowedTypes\">\r\n                <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"typesSelect\"\r\n                        style=\"margin-top: 7px;\">\r\n                  Allowed notifications <span class=\"required\">*</span>\r\n                </label>\r\n\r\n                <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                  Select all\r\n                  <ui-switch\r\n                          [(ngModel)]=\"selectedAllTypes\"\r\n                          (change)=\"triggerShowTypes($event)\"\r\n                          [size]=\"'small'\">\r\n                  </ui-switch>\r\n                  <br/>\r\n                  <select class=\"select2_multiple form-control\" id=\"typesSelect\" style=\"display: none;\" multiple=\"multiple\">\r\n                    <option *ngFor=\"let type of availableTypes\" [ngValue]=\"type\" [attr.selected]=\"isSelected(type) ? true : null\">{{type}}</option>\r\n                  </select>\r\n                </div>\r\n              </div>\r\n            </div>\r\n            <div class=\"row\" style=\"margin-top: 20px;\">\r\n              <div class=\"item form-group\">\r\n                <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"severitySelect\"\r\n                        style=\"margin-top: 7px;\">\r\n                  Severity <span class=\"required\">*</span>\r\n                </label>\r\n                <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                  <select class=\"form-control\" [(ngModel)]=\"level\" id=\"severitySelect\">\r\n                    <option *ngFor=\"let severity of severities\" [ngValue]=\"severity\">{{severity}}</option>\r\n                  </select>\r\n                </div>\r\n              </div>\r\n            </div>\r\n            <div class=\"row\" style=\"margin-top: 15px\">\r\n              <button\r\n                      type=\"button\"\r\n                      class=\"btn btn-primary col-md-3\"\r\n                      (click)=\"saveNotificationSettings()\">\r\n                Save settings\r\n              </button>\r\n            </div>\r\n          </panel>\r\n      </div>\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
