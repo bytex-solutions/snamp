@@ -47,14 +47,24 @@ final class DefaultTopologyAnalyzer extends AbstractManagedResourceTracker imple
 
     @Override
     protected void addResource(final ManagedResourceConnectorClient connector) {
-        graph.add(connector.getGroupName());
-        Aggregator.queryAndAccept(connector, NotificationSupport.class, this::addNotificationListener);
+        final String resourceName = connector.getManagedResourceName();
+        if (trackedResources.contains(resourceName)) {
+            getLogger().info(String.format("Resource %s is already attached to the topology analyzer", resourceName));
+        } else {
+            graph.add(connector.getGroupName());
+            Aggregator.queryAndAccept(connector, NotificationSupport.class, this::addNotificationListener);
+        }
     }
 
     @Override
     protected void removeResource(final ManagedResourceConnectorClient connector) {
-        Aggregator.queryAndAccept(connector, NotificationSupport.class, this::removeNotificationListener);
-        graph.remove(connector.getGroupName());
+        final String resourceName = connector.getManagedResourceName();
+        if (trackedResources.contains(resourceName)) {
+            Aggregator.queryAndAccept(connector, NotificationSupport.class, this::removeNotificationListener);
+            graph.remove(connector.getGroupName());
+        } else {
+            getLogger().info(String.format("Resource %s is already detached from the topology analyzer", resourceName));
+        }
     }
     
     @Nonnull
