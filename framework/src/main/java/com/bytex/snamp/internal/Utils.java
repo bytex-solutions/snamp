@@ -4,7 +4,6 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.SpecialUse;
-import com.google.common.base.Joiner;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -19,6 +18,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -100,29 +100,6 @@ public final class Utils {
         return () -> currentThread.setContextClassLoader(previous);
     }
 
-    private static String getStackTrace(StackTraceElement[] stackTrace) {
-        if (stackTrace.length > 0)
-            stackTrace = ArrayUtils.remove(stackTrace, 0);
-        return Joiner.on(System.lineSeparator()).join(stackTrace);
-    }
-
-    /**
-     * Gets the stack trace in the form of the single string.
-     * @return The current stack trace.
-     */
-    public static String getStackTrace(){
-        return getStackTrace(Thread.currentThread().getStackTrace());
-    }
-
-    /**
-     * Gets the stack trace in the form of the single string.
-     * @param e An exception that holds its stack trace.
-     * @return The stack trace associated with exception.
-     */
-    public static String getStackTrace(final Throwable e){
-        return getStackTrace(e.getStackTrace());
-    }
-
     /**
      * Used to initialize static fields in interfaces
      * when initialization code may throw exception.
@@ -144,12 +121,12 @@ public final class Utils {
         }
     }
 
-    private static java.util.function.Supplier reflectGetter(final MethodHandles.Lookup lookup,
-                                                               final Object owner,
-                                                               final MethodHandle getter) throws ReflectiveOperationException {
+    private static Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
+                                          final Object owner,
+                                          final MethodHandle getter) throws ReflectiveOperationException {
         final MethodType invokedType = owner == null ?
-                MethodType.methodType(java.util.function.Supplier.class) :
-                MethodType.methodType(java.util.function.Supplier.class, owner.getClass());
+                MethodType.methodType(Supplier.class) :
+                MethodType.methodType(Supplier.class, owner.getClass());
 
         try {
             final CallSite site = LambdaMetafactory.metafactory(lookup, "get",
@@ -157,7 +134,7 @@ public final class Utils {
                     MethodType.methodType(Object.class),
                     getter,
                     MethodType.methodType(getter.type().returnType()));
-            return (java.util.function.Supplier<?>) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
+            return (Supplier<?>) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
         } catch (final LambdaConversionException e){
             throw new ReflectiveOperationException(e);
         } catch (final Throwable e){
@@ -165,7 +142,7 @@ public final class Utils {
         }
     }
 
-    public static java.util.function.Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
+    public static Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
                                                             final Object owner,
                                                             final Method getter) throws ReflectiveOperationException {
         return reflectGetter(lookup, owner, lookup.unreflect(getter));
@@ -199,7 +176,7 @@ public final class Utils {
         }
     }
 
-    public static java.util.function.Consumer reflectSetter(final MethodHandles.Lookup lookup,
+    public static Consumer reflectSetter(final MethodHandles.Lookup lookup,
                                                                final Object owner,
                                                                final Method setter) throws ReflectiveOperationException {
         return reflectSetter(lookup, owner, lookup.unreflect(setter));
@@ -243,9 +220,14 @@ public final class Utils {
         return (V) CALL_SILENT_FN.apply(callable);
     }
 
-    public static void closeAll(final AutoCloseable... other) throws Exception {
+    /**
+     * Closes many resources in guaranteed manner.
+     * @param resources A set of resources to close.
+     * @throws Exception One or more resource throw exception when closing.
+     */
+    public static void closeAll(final AutoCloseable... resources) throws Exception {
         Exception e = null;
-        for (final AutoCloseable closeable : other)
+        for (final AutoCloseable closeable : resources)
             try {
                 closeable.close();
             } catch (final Exception inner) {
