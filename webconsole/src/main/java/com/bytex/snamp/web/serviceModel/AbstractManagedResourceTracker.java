@@ -42,7 +42,7 @@ public abstract class AbstractManagedResourceTracker<V> extends AbstractStateful
      * @param serviceClient Service client.
      */
     @Override
-    protected final void addService(final ManagedResourceConnectorClient serviceClient) {
+    protected synchronized final void addService(final ManagedResourceConnectorClient serviceClient) {
         if(!trackedServices.contains(getServiceId(serviceClient)))
             addResource(serviceClient);
     }
@@ -55,7 +55,7 @@ public abstract class AbstractManagedResourceTracker<V> extends AbstractStateful
      * @param serviceClient Service client.
      */
     @Override
-    protected final void removeService(final ManagedResourceConnectorClient serviceClient) {
+    protected synchronized final void removeService(final ManagedResourceConnectorClient serviceClient) {
         if(trackedServices.contains(getServiceId(serviceClient)))
             removeResource(serviceClient);
     }

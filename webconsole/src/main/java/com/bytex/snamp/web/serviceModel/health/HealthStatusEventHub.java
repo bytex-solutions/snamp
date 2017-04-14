@@ -37,7 +37,7 @@ final class HealthStatusEventHub extends AbstractStatefulFrameworkServiceTracker
      * @param serviceClient Service client.
      */
     @Override
-    protected void addService(final SupervisorClient serviceClient) {
+    protected synchronized void addService(final SupervisorClient serviceClient) {
         if (!trackedServices.contains(getServiceId(serviceClient)))
             Aggregator.queryAndAccept(serviceClient, HealthStatusProvider.class, provider -> provider.addHealthStatusEventListener(this));
     }
@@ -48,7 +48,7 @@ final class HealthStatusEventHub extends AbstractStatefulFrameworkServiceTracker
      * @param serviceClient Service client.
      */
     @Override
-    protected void removeService(final SupervisorClient serviceClient) {
+    protected synchronized void removeService(final SupervisorClient serviceClient) {
         if (trackedServices.contains(getServiceId(serviceClient)))
             Aggregator.queryAndAccept(serviceClient, HealthStatusProvider.class, provider -> provider.removeHealthStatusEventListener(this));
     }

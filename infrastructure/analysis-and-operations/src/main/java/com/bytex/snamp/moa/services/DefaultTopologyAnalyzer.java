@@ -77,7 +77,7 @@ final class DefaultTopologyAnalyzer extends AbstractFrameworkServiceTracker<Mana
     }
 
     @Override
-    protected void addService(final ManagedResourceConnectorClient connector) {
+    protected synchronized void addService(final ManagedResourceConnectorClient connector) {
         final String resourceName = getServiceId(connector);
         if (trackedServices.contains(resourceName)) {
             getLogger().info(String.format("Resource %s is already attached to the topology analyzer", resourceName));
@@ -88,7 +88,7 @@ final class DefaultTopologyAnalyzer extends AbstractFrameworkServiceTracker<Mana
     }
 
     @Override
-    protected void removeService(final ManagedResourceConnectorClient connector) {
+    protected synchronized void removeService(final ManagedResourceConnectorClient connector) {
         final String resourceName = getServiceId(connector);
         if (trackedServices.contains(resourceName)) {
             Aggregator.queryAndAccept(connector, NotificationSupport.class, this::removeNotificationListener);
