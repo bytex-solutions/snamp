@@ -1,7 +1,6 @@
 package com.bytex.snamp.web.serviceModel.health;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.bytex.snamp.supervision.Supervisor;
 import com.bytex.snamp.supervision.SupervisorClient;
@@ -95,6 +94,6 @@ final class HealthStatusEventHub extends AbstractStatefulFrameworkServiceTracker
     }
 
     void startTracking(@Nonnull final HealthStatusEventListener destination) throws Exception {
-        update(new SingletonMap<>("destination", destination));
+        update(ImmutableMap.of("destination", destination));
     }
 }

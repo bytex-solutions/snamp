@@ -1,11 +1,11 @@
 package com.bytex.snamp.web.serviceModel.notifications;
 
-import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.web.serviceModel.AbstractManagedResourceTracker;
+import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
 import javax.management.ListenerNotFoundException;
@@ -59,6 +59,6 @@ final class NotificationHub extends AbstractManagedResourceTracker<NotificationL
     }
 
     void startTracking(@Nonnull final NotificationListener destination) throws Exception {
-        update(new SingletonMap<>("destination", destination));
+        update(ImmutableMap.of("destination", destination));
     }
 }
