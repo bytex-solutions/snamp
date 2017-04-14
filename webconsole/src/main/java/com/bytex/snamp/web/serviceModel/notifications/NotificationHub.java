@@ -1,31 +1,23 @@
 package com.bytex.snamp.web.serviceModel.notifications;
 
+import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.gateway.NotificationEvent;
-import com.bytex.snamp.web.serviceModel.ManagedResourceTrackerSlim;
+import com.bytex.snamp.gateway.NotificationListener;
+import com.bytex.snamp.web.serviceModel.AbstractManagedResourceTracker;
 
 import javax.annotation.Nonnull;
 import javax.management.ListenerNotFoundException;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
-import javax.management.NotificationListener;
-import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.logging.Level;
 
 /**
  * Represents notification hub used to listen notifications from all managed resources.
  */
-final class NotificationHub extends ManagedResourceTrackerSlim implements NotificationListener {
-    private final WeakReference<com.bytex.snamp.gateway.NotificationListener> listener;
-
-    NotificationHub(@Nonnull final com.bytex.snamp.gateway.NotificationListener listener){
-        this.listener = new WeakReference<>(listener);
-    }
-
+final class NotificationHub extends AbstractManagedResourceTracker<NotificationListener> implements javax.management.NotificationListener {
     @Override
     protected void addResource(final ManagedResourceConnectorClient client) {
         final NotificationSupport notifications = client.queryObject(NotificationSupport.class);
@@ -46,23 +38,27 @@ final class NotificationHub extends ManagedResourceTrackerSlim implements Notifi
 
     @Override
     protected void stop() {
-        listener.clear();
     }
 
     @Override
-    protected void start(final Map<String, String> configuration) throws Exception {
+    protected void start(final Map<String, NotificationListener> configuration) {
 
+    }
+
+    private void handleNotification(final NotificationEvent event){
+        getConfiguration().values().forEach(listener -> listener.handleNotification(event));
     }
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        final com.bytex.snamp.gateway.NotificationListener listener = this.listener.get();
-        if (listener != null) {
-            assert handback instanceof String;  //handback is always resourceName
-            assert notification.getSource() instanceof NotificationSupport;
-            final String resourceName = (String) handback;
-            final MBeanNotificationInfo metadata = ((NotificationSupport) notification.getSource()).getNotificationInfo(notification.getType());
-            listener.handleNotification(new NotificationEvent(resourceName, metadata, notification));
-        }
+        assert handback instanceof String;  //handback is always resourceName
+        assert notification.getSource() instanceof NotificationSupport;
+        final String resourceName = (String) handback;
+        final MBeanNotificationInfo metadata = ((NotificationSupport) notification.getSource()).getNotificationInfo(notification.getType());
+        handleNotification(new NotificationEvent(resourceName, metadata, notification));
+    }
+
+    void startTracking(@Nonnull final NotificationListener destination) throws Exception {
+        update(new SingletonMap<>("destination", destination));
     }
 }

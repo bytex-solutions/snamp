@@ -28,7 +28,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     private final BundleContext context;
 
     public ManagedResourceConnectorClient(@Nonnull final BundleContext context,
-                                          final ServiceReference<ManagedResourceConnector> reference){
+                                          final ServiceReference<ManagedResourceConnector> reference) throws InstanceNotFoundException {
         super(context, reference);
         this.context = context;
     }
@@ -37,12 +37,22 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                                                            final String resourceName,
                                                            final Duration instanceTimeout) throws TimeoutException, InterruptedException{
         final ServiceReference<ManagedResourceConnector> ref = untilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, instanceTimeout);
-        return new ManagedResourceConnectorClient(context, ref);
+        try {
+            return new ManagedResourceConnectorClient(context, ref);
+        } catch (final InstanceNotFoundException e) {
+            return null;
+        }
     }
 
     public static ManagedResourceConnectorClient tryCreate(final BundleContext context, final String resourceName) {
         final ServiceReference<ManagedResourceConnector> ref = getResourceConnector(context, resourceName);
-        return ref == null ? null : new ManagedResourceConnectorClient(context, ref);
+        if (ref == null)
+            return null;
+        else try {
+            return new ManagedResourceConnectorClient(context, ref);
+        } catch (final InstanceNotFoundException e) {
+            return null;
+        }
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String connectorType,

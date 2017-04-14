@@ -3,18 +3,20 @@ package com.bytex.snamp.moa.services;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.connector.AbstractManagedResourceTracker;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.core.AbstractFrameworkServiceTracker;
 import com.bytex.snamp.core.FilterBuilder;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import org.osgi.framework.Filter;
+import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
+import javax.management.InstanceNotFoundException;
 import javax.management.ListenerNotFoundException;
 import javax.management.Notification;
 import javax.management.NotificationListener;
@@ -26,11 +28,12 @@ import java.util.logging.Level;
  * @version 2.0
  * @since 2.0
  */
-final class DefaultTopologyAnalyzer extends AbstractManagedResourceTracker implements TopologyAnalyzer, SafeCloseable, NotificationListener {
+final class DefaultTopologyAnalyzer extends AbstractFrameworkServiceTracker<ManagedResourceConnector, ManagedResourceConnectorClient> implements TopologyAnalyzer, SafeCloseable, NotificationListener {
     private final FilteredGraphOfComponents graph;
     private final Filter resourceFilter;
 
     DefaultTopologyAnalyzer(final long historySize){
+        super(ManagedResourceConnector.class);
         graph = new FilteredGraphOfComponents(historySize);
         final FilterBuilder builder = ManagedResourceConnectorClient.filterBuilder();
         builder.addServiceListener(getBundleContext(), this);
@@ -50,10 +53,33 @@ final class DefaultTopologyAnalyzer extends AbstractManagedResourceTracker imple
         graph.forEach(visitor);
     }
 
+    /**
+     * Returns filter used to query managed resource connectors from OSGi environment.
+     *
+     * @return A filter used to query managed resource connectors from OSGi environment.
+     * @implSpec This operation must be idempotent and return the same filter for every call.
+     */
+    @Nonnull
     @Override
-    protected void addResource(final ManagedResourceConnectorClient connector) {
-        final String resourceName = connector.getManagedResourceName();
-        if (trackedResources.contains(resourceName)) {
+    protected Filter getServiceFilter() {
+        return resourceFilter;
+    }
+
+    @Nonnull
+    @Override
+    protected ManagedResourceConnectorClient createClient(final ServiceReference<ManagedResourceConnector> serviceRef) throws InstanceNotFoundException {
+        return new ManagedResourceConnectorClient(getBundleContext(), serviceRef);
+    }
+
+    @Override
+    protected String getServiceId(final ManagedResourceConnectorClient client) {
+        return client.getManagedResourceName();
+    }
+
+    @Override
+    protected void addService(final ManagedResourceConnectorClient connector) {
+        final String resourceName = getServiceId(connector);
+        if (trackedServices.contains(resourceName)) {
             getLogger().info(String.format("Resource %s is already attached to the topology analyzer", resourceName));
         } else {
             graph.add(connector.getGroupName());
@@ -62,20 +88,14 @@ final class DefaultTopologyAnalyzer extends AbstractManagedResourceTracker imple
     }
 
     @Override
-    protected void removeResource(final ManagedResourceConnectorClient connector) {
-        final String resourceName = connector.getManagedResourceName();
-        if (trackedResources.contains(resourceName)) {
+    protected void removeService(final ManagedResourceConnectorClient connector) {
+        final String resourceName = getServiceId(connector);
+        if (trackedServices.contains(resourceName)) {
             Aggregator.queryAndAccept(connector, NotificationSupport.class, this::removeNotificationListener);
             graph.remove(connector.getGroupName());
         } else {
             getLogger().info(String.format("Resource %s is already detached from the topology analyzer", resourceName));
         }
-    }
-
-    @Nonnull
-    @Override
-    protected Filter getResourceFilter() {
-        return resourceFilter;
     }
 
     private void addNotificationListener(final NotificationSupport support){

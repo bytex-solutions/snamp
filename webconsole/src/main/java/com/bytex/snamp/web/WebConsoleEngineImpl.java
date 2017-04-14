@@ -97,17 +97,20 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
             switch (type) {
                 case ServiceEvent.MODIFIED_ENDMATCH:
                 case ServiceEvent.UNREGISTERING:
-                    final String name = WebConsoleServiceReference.getName(serviceRef);
+                    String name = WebConsoleServiceReference.getName(serviceRef);
                     WebConsoleServiceReference holder = services.remove(name);
                     if (holder != null)
                         holder.close();
                     break;
                 case ServiceEvent.REGISTERED:
-                    final WebConsoleServiceReference reference = WebConsoleServiceReference.isResourceModel(serviceRef) ?
-                            new WebConsoleServiceServlet(getBundleContext(), serviceRef, securityFilter) :
-                            new WebConsoleServiceHolder(getBundleContext(), serviceRef);
-                    reference.activate();
-                    services.put(reference);
+                    name = WebConsoleServiceReference.getName(serviceRef);
+                    if (!services.containsKey(name)) {
+                        final WebConsoleServiceReference reference = WebConsoleServiceReference.isResourceModel(serviceRef) ?
+                                new WebConsoleServiceServlet(getBundleContext(), serviceRef, securityFilter) :
+                                new WebConsoleServiceHolder(getBundleContext(), serviceRef);
+                        reference.activate();
+                        services.put(reference);
+                    }
                     break;
                 case ServiceEvent.MODIFIED:
 

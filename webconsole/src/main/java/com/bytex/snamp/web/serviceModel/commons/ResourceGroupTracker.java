@@ -3,8 +3,9 @@ package com.bytex.snamp.web.serviceModel.commons;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.web.serviceModel.ManagedResourceTrackerSlim;
+import com.bytex.snamp.web.serviceModel.AbstractManagedResourceTracker;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
@@ -16,7 +17,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Used for tracking resources and collect them by groups.
  */
-final class ResourceGroupTracker extends ManagedResourceTrackerSlim {
+final class ResourceGroupTracker extends AbstractManagedResourceTracker<Void> {
     //(componentType, resourceName)
     private final AbstractConcurrentResourceAccessor<Multimap<String, String>> resources = new ConcurrentResourceAccessor<>(HashMultimap.create());
 
@@ -45,8 +46,12 @@ final class ResourceGroupTracker extends ManagedResourceTrackerSlim {
     }
 
     @Override
-    protected void start(final Map<String, String> configuration) {
+    protected void start(final Map<String, Void> configuration) {
 
+    }
+
+    void startTracking() throws Exception{
+        update(ImmutableMap.of());
     }
 
     ImmutableSet<String> getResources(final String groupName) {

@@ -4,6 +4,7 @@ import com.bytex.snamp.EntryReader;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
+import javax.management.InstanceNotFoundException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,9 +32,13 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * Initializes a new service reference holder.
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
+     * @throws InstanceNotFoundException Service is no longer available from the specified reference.
      */
-    public ServiceHolder(@Nonnull final BundleContext context, @Nonnull final ServiceReference<S> serviceRef) {
-        serviceImpl = context.getService(this.serviceRef = serviceRef);
+    public ServiceHolder(@Nonnull final BundleContext context, @Nonnull final ServiceReference<S> serviceRef) throws InstanceNotFoundException {
+        this.serviceRef = serviceRef;
+        serviceImpl = context.getService(serviceRef);
+        if (serviceImpl == null)
+            throw new InstanceNotFoundException(String.format("Service reference '%s' is no longer valid", serviceRef));
     }
 
     /**
@@ -44,9 +49,15 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @return A reference to OSGi service; or {@literal null}, if service was not registered.
      * @since 1.2
      */
-    public static <S> ServiceHolder<S> tryCreate(@Nonnull final BundleContext context, final Class<S> serviceType){
+    public static <S> ServiceHolder<S> tryCreate(@Nonnull final BundleContext context, final Class<S> serviceType) {
         final ServiceReference<S> serviceRef = context.getServiceReference(serviceType);
-        return serviceRef != null ? new ServiceHolder<>(context, serviceRef) : null;
+        if (serviceRef == null)
+            return null;
+        else try {
+            return new ServiceHolder<>(context, serviceRef);
+        } catch (final InstanceNotFoundException e) {
+            return null;
+        }
     }
 
     /**

@@ -11,6 +11,7 @@ import com.google.common.collect.Multimap;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanFeatureInfo;
 import java.time.Duration;
 import java.util.List;
@@ -35,8 +36,9 @@ public final class GatewayClient extends ServiceHolder<Gateway> implements SafeC
      *
      * @param context    The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
+     * @throws InstanceNotFoundException Gateway instance is no longer available from the specified reference.
      */
-    public GatewayClient(@Nonnull final BundleContext context, final ServiceReference<Gateway> serviceRef) {
+    public GatewayClient(@Nonnull final BundleContext context, final ServiceReference<Gateway> serviceRef) throws InstanceNotFoundException {
         super(context, serviceRef);
         this.context = context;
     }
@@ -45,12 +47,22 @@ public final class GatewayClient extends ServiceHolder<Gateway> implements SafeC
                                           final String instanceName,
                                           final Duration instanceTimeout) throws TimeoutException, InterruptedException{
         final ServiceReference<Gateway> ref = untilNull(context, instanceName, GatewayClient::getGatewayInstance, instanceTimeout);
-        return new GatewayClient(context, ref);
+        try {
+            return new GatewayClient(context, ref);
+        } catch (final InstanceNotFoundException e) {
+            return null;
+        }
     }
 
     public static GatewayClient tryCreate(@Nonnull final BundleContext context, final String instanceName) {
         final ServiceReference<Gateway> ref = getGatewayInstance(context, instanceName);
-        return ref == null ? null : new GatewayClient(context, ref);
+        if (ref == null)
+            return null;
+        else try {
+            return new GatewayClient(context, ref);
+        } catch (final InstanceNotFoundException e) {
+            return null;
+        }
     }
 
     public static GatewayFilterBuilder filterBuilder() {

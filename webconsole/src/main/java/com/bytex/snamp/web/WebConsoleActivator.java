@@ -47,16 +47,14 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     //=============Predefined services for WebConsole======
     private static final class NotificationServiceProvider extends ProvidedService<WebConsoleService, NotificationService>{
         private NotificationServiceProvider(){
-            super(WebConsoleService.class, simpleDependencies(ThreadPoolRepository.class));
+            super(WebConsoleService.class);
         }
 
         @Override
         protected NotificationService activateService(final Map<String, Object> identity) throws Exception {
             identity.put(WebConsoleService.NAME, NotificationService.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, NotificationService.URL_CONTEXT);
-            final ThreadPoolRepository repository = dependencies.getDependency(ThreadPoolRepository.class);
-            assert repository != null;
-            return new NotificationService(repository.getThreadPool(THREAD_POOL_NAME, true));
+            return new NotificationService();
         }
     }
 

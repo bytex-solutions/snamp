@@ -3,6 +3,7 @@ package com.bytex.snamp.supervision.def;
 import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
 import com.bytex.snamp.connector.health.HealthStatus;
@@ -92,24 +93,16 @@ public class DefaultSupervisor extends AbstractSupervisor {
     }
 
     @Override
-    protected void addResource(final ManagedResourceConnectorClient connector) {
-        final String resourceName = connector.getManagedResourceName();
-        if (trackedResources.contains(resourceName)) {
-            getLogger().info(String.format("Resource %s is already attached to supervisor %s", resourceName, groupName));
-        }
+    protected void addResource(final String resourceName, final ManagedResourceConnector connector) {
+
     }
 
     @Override
     @OverridingMethodsMustInvokeSuper
-    protected void removeResource(final ManagedResourceConnectorClient connector) {
-        final String resourceName = connector.getManagedResourceName();
-        if (trackedResources.contains(resourceName)) {
-            final DefaultHealthStatusProvider provider = healthStatusProvider;
-            if (provider != null)
-                provider.removeResource(resourceName);
-        } else {
-            getLogger().info(String.format("Resource %s is already detached from supervisor %s", resourceName, groupName));
-        }
+    protected void removeResource(final String resourceName, final ManagedResourceConnector connector) {
+        final DefaultHealthStatusProvider provider = healthStatusProvider;
+        if (provider != null)
+            provider.removeResource(resourceName);
     }
 
     /**

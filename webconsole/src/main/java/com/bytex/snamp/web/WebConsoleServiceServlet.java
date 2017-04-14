@@ -14,6 +14,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 
+import javax.management.InstanceNotFoundException;
 import javax.servlet.Servlet;
 import javax.ws.rs.core.Application;
 import java.util.Hashtable;
@@ -43,7 +44,7 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
     }
 
     WebConsoleServiceServlet(final BundleContext context, final ServiceReference<WebConsoleService> serviceReference,
-                             final WebSecurityFilter securityFilter) {
+                             final WebSecurityFilter securityFilter) throws InstanceNotFoundException {
         this(new ServiceHolder<>(context, serviceReference), securityFilter);
     }
 
@@ -84,13 +85,19 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
             service.attachSession(listener);
     }
 
-    @Override
-    public void close() {
+    private void unregister(){
         if (registration != null) {
             registration.unregister();
             registration = null;
         }
+    }
+
+    private void releaseService(){
         serviceHolder.release(getBundleContext());
-        destroy();
+    }
+
+    @Override
+    public void close() throws Exception {
+        Utils.closeAll(this::unregister, this::releaseService, this::destroy);
     }
 }

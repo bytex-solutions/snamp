@@ -2,15 +2,15 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
+import javax.management.InstanceNotFoundException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -40,7 +40,7 @@ public abstract class AbstractFrameworkServiceTracker<S extends FrameworkService
      * Represents a thread-safe set of tracked services.
      */
     protected final Set<String> trackedServices = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    private final Class<S> serviceContract;
+    final Class<S> serviceContract;
 
     protected AbstractFrameworkServiceTracker(@Nonnull final Class<S> serviceContract){
         this.serviceContract = serviceContract;
@@ -74,9 +74,14 @@ public abstract class AbstractFrameworkServiceTracker<S extends FrameworkService
     @Nonnull
     protected abstract Filter getServiceFilter();
 
-    protected abstract C createClient(final ServiceReference<S> serviceRef);
+    @Nonnull
+    protected abstract C createClient(final ServiceReference<S> serviceRef) throws InstanceNotFoundException;
 
     protected abstract String getServiceId(final C client);
+
+    static void logInvalidServiceRef(final Logger logger, final InstanceNotFoundException e){
+        logger.log(Level.SEVERE, "Service reference is no longer valid", e);
+    }
 
     /**
      * Captures reference to the managed resource connector.
@@ -86,9 +91,9 @@ public abstract class AbstractFrameworkServiceTracker<S extends FrameworkService
     @SuppressWarnings("unchecked")
     @Override
     public final void serviceChanged(final ServiceEvent event) {
-        if (Utils.isInstanceOf(event.getServiceReference(), serviceContract) && getServiceFilter().match(event.getServiceReference()))
-            try (final LoggingScope logger = TrackerLoggingScope.serviceChanged(this);
-                 final C client = createClient((ServiceReference<S>) event.getServiceReference())) {
+        if (Utils.isInstanceOf(event.getServiceReference(), serviceContract) && getServiceFilter().match(event.getServiceReference())) {
+            final LoggingScope logger = TrackerLoggingScope.serviceChanged(this);
+            try (final C client = createClient((ServiceReference<S>) event.getServiceReference())) {
                 final String serviceId = getServiceId(client);
                 switch (event.getType()) {
                     case ServiceEvent.MODIFIED_ENDMATCH:
@@ -109,6 +114,11 @@ public abstract class AbstractFrameworkServiceTracker<S extends FrameworkService
                                 toString(),
                                 serviceId));
                 }
+            } catch (final InstanceNotFoundException e){
+                logInvalidServiceRef(logger, e);
+            } finally {
+                logger.close();
             }
+        }
     }
 }

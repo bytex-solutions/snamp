@@ -8,15 +8,15 @@ import com.bytex.snamp.connector.notifications.NotificationModifiedEvent;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationModifiedEvent;
 import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.*;
+import org.osgi.framework.ServiceReference;
 
+import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanFeatureInfo;
-import javax.management.MBeanNotificationInfo;
-import javax.management.MBeanOperationInfo;
+import javax.management.*;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -31,7 +31,7 @@ import java.util.stream.Stream;
  * @since 1.0
  * @version 2.0
  */
-public abstract class AbstractGateway extends StatefulManagedResourceTracker<Map<String, String>> implements Gateway, ResourceEventListener{
+public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTracker<ManagedResourceConnector, ManagedResourceConnectorClient, Map<String, String>> implements Gateway, ResourceEventListener{
     @FunctionalInterface
     private interface FeatureModifiedEventFactory<S, F extends MBeanFeatureInfo>{
         FeatureModifiedEvent<F> createEvent(final S sender,
@@ -138,7 +138,7 @@ public abstract class AbstractGateway extends StatefulManagedResourceTracker<Map
      * @param instanceName The name of the gateway instance.
      */
     protected AbstractGateway(final String instanceName) {
-        super(new InternalState<>(ImmutableMap.of()));
+        super(ManagedResourceConnector.class, new InternalState<>(ImmutableMap.of()));
         this.instanceName = instanceName;
         gatewayType = Gateway.getGatewayType(getClass()).intern();
     }
@@ -304,32 +304,59 @@ public abstract class AbstractGateway extends StatefulManagedResourceTracker<Map
     }
 
     @Override
-    @OverridingMethodsMustInvokeSuper
-    protected synchronized void addResource(final ManagedResourceConnectorClient connector) {
-        final String resourceName = connector.getManagedResourceName();
-        if (trackedResources.contains(resourceName)) {
-            getLogger().info(String.format("Resource %s is already attached to gateway %s", resourceName, instanceName));
-        } else {
-            //add gateway as a listener
-            connector.addResourceEventListener(this);
-            //expose all features
-            exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
-            exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
-            exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
+    protected final String getServiceId(final ManagedResourceConnectorClient client) {
+        return client.getManagedResourceName();
+    }
 
-        }
+    /**
+     * Returns filter used to query services from OSGi Service Registry.
+     *
+     * @return A filter used to query services from OSGi Service Registry.
+     */
+    @Nonnull
+    @Override
+    protected ManagedResourceFilterBuilder createServiceFilter() {
+        return ManagedResourceConnectorClient.filterBuilder();
+    }
+
+    @Nonnull
+    @Override
+    protected final ManagedResourceConnectorClient createClient(final ServiceReference<ManagedResourceConnector> serviceRef) throws InstanceNotFoundException {
+        return new ManagedResourceConnectorClient(getBundleContext(), serviceRef);
+    }
+
+    @OverridingMethodsMustInvokeSuper
+    protected void addResource(final String resourceName, final ManagedResourceConnector connector){
+        //add gateway as a listener
+        connector.addResourceEventListener(this);
+        //expose all features
+        exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
+        exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
+        exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
     }
 
     @Override
+    protected final synchronized void addService(final ManagedResourceConnectorClient connector) {
+        final String resourceName = getServiceId(connector);
+        if (trackedServices.contains(resourceName))
+            getLogger().info(String.format("Resource %s is already attached to gateway %s", resourceName, instanceName));
+        else
+            addResource(resourceName, connector);
+    }
+
     @OverridingMethodsMustInvokeSuper
-    protected synchronized void removeResource(final ManagedResourceConnectorClient connector) {
-        final String resourceName = connector.getManagedResourceName();
-        if (trackedResources.contains(resourceName)) {
-            connector.removeResourceEventListener(this);
-            removeAllFeaturesImpl(resourceName).forEach(FeatureAccessor::close);
-        } else {
+    protected void removeResource(final String resourceName, final ManagedResourceConnector connector){
+        connector.removeResourceEventListener(this);
+        removeAllFeaturesImpl(resourceName).forEach(FeatureAccessor::close);
+    }
+
+    @Override
+    protected final synchronized void removeService(final ManagedResourceConnectorClient connector) {
+        final String resourceName = getServiceId(connector);
+        if (trackedServices.contains(resourceName))
+            removeResource(resourceName, connector);
+        else
             getLogger().info(String.format("Resource %s is already detached from gateway %s", resourceName, instanceName));
-        }
     }
 
     /**

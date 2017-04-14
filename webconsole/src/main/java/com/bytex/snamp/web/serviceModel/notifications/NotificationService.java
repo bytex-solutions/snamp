@@ -3,40 +3,33 @@ package com.bytex.snamp.web.serviceModel.notifications;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.notifications.Severity;
-import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.NotificationSerializer;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
-import com.bytex.snamp.web.serviceModel.ManagedResourceTrackerSlim;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
-import javax.management.ListenerNotFoundException;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Provides delivery of all notifications to the web console.
@@ -86,9 +79,9 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
 
     private final NotificationHub hub;
 
-    public NotificationService(final ExecutorService threadPool) {
+    public NotificationService() {
         super(NotificationSettings.class);
-        hub = new NotificationHub(this);
+        hub = new NotificationHub();
     }
 
     private void handleNotification(final WebConsoleSession session, final Notification notification, final Severity severity) {
@@ -107,7 +100,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
     @Override
     protected void initialize() {
         try {
-            hub.startTracking();
+            hub.startTracking(this);
         } catch (final Exception e) {
             getLogger().log(Level.SEVERE, "Unable to start notification listener service", e);
         }

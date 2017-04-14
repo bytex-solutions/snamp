@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
+import javax.management.InstanceNotFoundException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
@@ -33,22 +34,33 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
      *
      * @param context    The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
+     * @throws InstanceNotFoundException Service is no longer available from the specified reference.
      */
-    public SupervisorClient(@Nonnull final BundleContext context, final ServiceReference<Supervisor> serviceRef) {
+    public SupervisorClient(@Nonnull final BundleContext context, final ServiceReference<Supervisor> serviceRef) throws InstanceNotFoundException {
         super(context, serviceRef);
         this.context = context;
     }
 
     public static SupervisorClient tryCreate(final BundleContext context,
                                           final String groupName,
-                                          final Duration instanceTimeout) throws TimeoutException, InterruptedException{
+                                          final Duration instanceTimeout) throws TimeoutException, InterruptedException {
         final ServiceReference<Supervisor> ref = untilNull(context, groupName, SupervisorClient::getSupervisorInstance, instanceTimeout);
-        return new SupervisorClient(context, ref);
+        try {
+            return new SupervisorClient(context, ref);
+        } catch (InstanceNotFoundException e) {
+            return null;
+        }
     }
 
     public static SupervisorClient tryCreate(final BundleContext context, final String groupName) {
         final ServiceReference<Supervisor> ref = getSupervisorInstance(context, groupName);
-        return ref == null ? null : new SupervisorClient(context, ref);
+        if (ref == null)
+            return null;
+        else try {
+            return new SupervisorClient(context, ref);
+        } catch (final InstanceNotFoundException e) {
+            return null;
+        }
     }
 
     /**

@@ -6,6 +6,7 @@ import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
+import javax.management.InstanceNotFoundException;
 import java.util.Objects;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Objects;
 final class WebConsoleServiceHolder extends ServiceHolder<WebConsoleService> implements WebConsoleServiceReference {
     private final String serviceName;
 
-    WebConsoleServiceHolder(final BundleContext context, final ServiceReference<WebConsoleService> serviceRef){
+    WebConsoleServiceHolder(final BundleContext context, final ServiceReference<WebConsoleService> serviceRef) throws InstanceNotFoundException {
         super(context, serviceRef);
         serviceName = Objects.toString(serviceRef.getProperty(WebConsoleService.NAME));
     }

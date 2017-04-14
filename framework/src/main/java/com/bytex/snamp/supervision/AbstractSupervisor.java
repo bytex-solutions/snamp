@@ -1,18 +1,18 @@
 package com.bytex.snamp.supervision;
 
 import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
-import com.bytex.snamp.connector.StatefulManagedResourceTracker;
+import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.bytex.snamp.core.FrameworkServiceState;
+import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
-import javax.annotation.OverridingMethodsMustInvokeSuper;
+import javax.management.InstanceNotFoundException;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Strings.nullToEmpty;
 
@@ -22,7 +22,7 @@ import static com.google.common.base.Strings.nullToEmpty;
  * @version 2.0
  * @since 2.0
  */
-public abstract class AbstractSupervisor extends StatefulManagedResourceTracker<SupervisorInfo> implements Supervisor {
+public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServiceTracker<ManagedResourceConnector, ManagedResourceConnectorClient, SupervisorInfo> implements Supervisor {
     private static final class SupervisorInternalState extends InternalState<SupervisorInfo>{
         private SupervisorInternalState(@Nonnull final FrameworkServiceState state, @Nonnull final SupervisorInfo params) {
             super(state, params);
@@ -52,7 +52,7 @@ public abstract class AbstractSupervisor extends StatefulManagedResourceTracker<
         }
 
         @Override
-        protected boolean configurationAreEqual(final Map<String, String> other) {
+        protected boolean configurationAreEqual(final Map<String, ?> other) {
             return other instanceof SupervisorInfo && configurationAreEqual((SupervisorInfo) other);
         }
     }
@@ -61,7 +61,7 @@ public abstract class AbstractSupervisor extends StatefulManagedResourceTracker<
     protected final String supervisorType;
 
     protected AbstractSupervisor(final String groupName) {
-        super(new SupervisorInternalState());
+        super(ManagedResourceConnector.class, new SupervisorInternalState());
         this.groupName = nullToEmpty(groupName);
         supervisorType = Supervisor.getSupervisorType(getClass());
     }
@@ -72,8 +72,51 @@ public abstract class AbstractSupervisor extends StatefulManagedResourceTracker<
      */
     @Nonnull
     @Override
-    protected final ManagedResourceFilterBuilder createResourceFilter() {
+    protected final ManagedResourceFilterBuilder createServiceFilter() {
         return ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName);
+    }
+
+    @Nonnull
+    @Override
+    protected final ManagedResourceConnectorClient createClient(final ServiceReference<ManagedResourceConnector> serviceRef) throws InstanceNotFoundException {
+        return new ManagedResourceConnectorClient(getBundleContext(), serviceRef);
+    }
+
+    @Override
+    protected final String getServiceId(final ManagedResourceConnectorClient client) {
+        return client.getManagedResourceName();
+    }
+
+    protected abstract void addResource(final String resourceName, final ManagedResourceConnector connector);
+
+    /**
+     * Invoked when new service is detected.
+     *
+     * @param serviceClient Service client.
+     */
+    @Override
+    protected final synchronized void addService(final ManagedResourceConnectorClient serviceClient) {
+        final String resourceName = getServiceId(serviceClient);
+        if (trackedServices.contains(resourceName))
+            getLogger().info(String.format("Resource %s is already attached to supervisor %s", resourceName, groupName));
+        else
+            addResource(resourceName, serviceClient);
+    }
+
+    protected abstract void removeResource(final String resourceName, final ManagedResourceConnector connector);
+
+    /**
+     * Invoked when service is removed from OSGi Service registry.
+     *
+     * @param serviceClient Service client.
+     */
+    @Override
+    protected final synchronized void removeService(final ManagedResourceConnectorClient serviceClient) {
+        final String resourceName = getServiceId(serviceClient);
+        if (trackedServices.contains(resourceName))
+            removeResource(resourceName, serviceClient);
+        else
+            getLogger().info(String.format("Resource %s is already detached from supervisor %s", resourceName, groupName));
     }
 
     /**
@@ -84,7 +127,7 @@ public abstract class AbstractSupervisor extends StatefulManagedResourceTracker<
     @Override
     @Nonnull
     public final Set<String> getResources() {
-        return trackedResources;
+        return trackedServices;
     }
 
     @Override

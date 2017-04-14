@@ -4,20 +4,15 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
-import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.supervision.*;
+import com.bytex.snamp.supervision.Supervisor;
+import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.HealthStatusEventListener;
-import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceReference;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -25,7 +20,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Represents notification service.
@@ -34,7 +29,7 @@ import java.util.logging.Logger;
  * @version 2.0
  */
 @Path("/")
-public final class HealthStatusWatcher extends AbstractWebConsoleService implements HealthStatusEventListener, ServiceListener {
+public final class HealthStatusWatcher extends AbstractWebConsoleService implements HealthStatusEventListener {
     public static final String NAME = "health-watcher";
     public static final String URL_CONTEXT = '/' + NAME;
 
@@ -72,45 +67,18 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
         }
     }
 
+    private final HealthStatusEventHub hub;
+
     public HealthStatusWatcher(){
-        SupervisorClient.filterBuilder().addServiceListener(getBundleContext(), this);
-    }
-
-    private void removeHealthStatusListener(final Supervisor supervisor) {
-        Aggregator.queryAndAccept(supervisor, HealthStatusProvider.class, provider -> provider.removeHealthStatusEventListener(this));
-    }
-
-    private void addHealthStatusListener(final Supervisor supervisor) {
-        Aggregator.queryAndAccept(supervisor, HealthStatusProvider.class, provider -> provider.addHealthStatusEventListener(this));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void serviceChanged(final ServiceEvent event) {
-        if (Utils.isInstanceOf(event.getServiceReference(), Supervisor.class))
-            try (final SupervisorClient client = new SupervisorClient(getBundleContext(), (ServiceReference<Supervisor>) event.getServiceReference())) {
-                switch (event.getType()) {
-                    case ServiceEvent.MODIFIED_ENDMATCH:
-                    case ServiceEvent.UNREGISTERING:
-                        removeHealthStatusListener(client);
-                        return;
-                    case ServiceEvent.REGISTERED:
-                        addHealthStatusListener(client);
-                        return;
-                    default:
-                        getLogger().warning(String.format("Unknown event type %s detected by HealthStatusWatcher", event.getType()));
-                }
-            }
+        hub = new HealthStatusEventHub();
     }
 
     @Override
     protected void initialize() {
-        for (final String groupName : getGroups()) {
-            final SupervisorClient client = SupervisorClient.tryCreate(getBundleContext(), groupName);
-            if (client == null)
-                getLogger().warning(String.format("Supervisor for group %s cannot be resolved", groupName));
-            else
-                addHealthStatusListener(client);
+        try {
+            hub.startTracking(this);
+        } catch (final Exception e) {
+            getLogger().log(Level.SEVERE, "Unable to start tracking health status", e);
         }
     }
 
@@ -146,7 +114,6 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
 
     @Override
     public void close() throws Exception {
-        getBundleContext().removeServiceListener(this);
-        super.close();
+        Utils.closeAll(hub, super::close);
     }
 }
