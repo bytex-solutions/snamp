@@ -1,10 +1,7 @@
 package com.bytex.snamp.connector.notifications;
 
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.*;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.metrics.NotificationMetric;
 import com.bytex.snamp.connector.metrics.NotificationMetricRecorder;
 import com.bytex.snamp.core.LoggerProvider;
@@ -14,6 +11,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.*;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -30,7 +28,7 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 2.0
  */
-public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport {
+public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport, Aggregator {
     /**
      * Represents batch notification sender.
      * This class cannot be inherited or instantiated directly from your code.
@@ -88,7 +86,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final KeyedObjects<String, M> notifications;
     private final NotificationListenerList listeners;
     private final NotificationMetricRecorder metrics;
-    private Object notificationSource;
+    private Aggregator notificationSource;
     private final boolean expandable;
 
     /**
@@ -134,7 +132,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         collector.notifications.clear();    //help GC
     }
 
-    protected final Object getSource(){
+    protected final Aggregator getSource(){
         return MoreObjects.firstNonNull(notificationSource, this);
     }
 
@@ -142,8 +140,13 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * Defines source for all outbound notifications emitted by this object.
      * @param value A source for all notifications. Cannot be {@literal null}.
      */
-    public final void setSource(final ManagedResourceConnector value){
-        notificationSource = Objects.requireNonNull(value);
+    @Override
+    public final void setSource(@Nonnull final Aggregator value) {
+        final NotificationSupport support = value.queryObject(NotificationSupport.class);
+        if (this != support)
+            throw new IllegalArgumentException("Source object doesn't provide valid object of type NotificationSupport");
+        else
+            notificationSource = value;
     }
 
     /**
@@ -471,13 +474,32 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the requested object.
+     * @return An instance of the aggregated object; or {@literal null} if object is not available.
+     */
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    public <T> T queryObject(@Nonnull final Class<T> objectType) {
+        final Object result;
+        if (objectType.isInstance(this))
+            result = this;
+        else if (objectType.isInstance(metrics))
+            result = metrics;
+        else
+            return null;
+        return objectType.cast(result);
+    }
+
+    /**
      * Removes all notifications from this repository.
      */
     @Override
     public void close() {
         listeners.clear();
         notificationSource = null;
+        metrics.reset();
         super.close();
     }
-
 }

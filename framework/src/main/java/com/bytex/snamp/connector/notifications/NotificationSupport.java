@@ -1,9 +1,11 @@
 package com.bytex.snamp.connector.notifications;
 
 
+import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.ManagedResourceAggregatedService;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
 import java.util.Collection;
@@ -78,6 +80,14 @@ public interface NotificationSupport extends NotificationBroadcaster, ManagedRes
      * @since 2.0
      */
     boolean canExpandNotifications();
+
+    /**
+     * Defines source for all outbound notifications.
+     * @param source Source for all outbound notifications. Cannot be {@literal null}.
+     * @throws IllegalArgumentException Source object doesn't provide {@link NotificationSupport} object.
+     * @implSpec Object of type {@link Aggregator} should provide {@link NotificationSupport} object.
+     */
+    void setSource(@Nonnull final Aggregator source);
 
     /**
      * Populate this repository with notifications.

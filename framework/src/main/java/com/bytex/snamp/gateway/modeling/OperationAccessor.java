@@ -64,6 +64,7 @@ public abstract class OperationAccessor extends FeatureAccessor<MBeanOperationIn
 
     @Override
     public final boolean processEvent(final FeatureModifiedEvent<MBeanOperationInfo> event) {
+        assert event.getSource() instanceof OperationSupport;
         switch (event.getType()){
             case ADDED:
                 connect((OperationSupport)event.getSource());

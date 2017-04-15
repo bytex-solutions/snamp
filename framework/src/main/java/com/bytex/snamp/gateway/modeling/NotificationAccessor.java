@@ -1,14 +1,14 @@
 package com.bytex.snamp.gateway.modeling;
 
+import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.notifications.TypeBasedNotificationFilter;
 
-import javax.management.ListenerNotFoundException;
-import javax.management.MBeanNotificationInfo;
-import javax.management.NotificationFilter;
-import javax.management.NotificationListener;
+import javax.annotation.Nonnull;
+import javax.management.*;
+import java.util.Optional;
 
 /**
  * Exposes access to the individual notification.
@@ -30,6 +30,7 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
 
     @Override
     public final boolean processEvent(final FeatureModifiedEvent<MBeanNotificationInfo> event) {
+        assert event.getSource() instanceof NotificationSupport;
         switch (event.getType()) {
             case ADDED:
                 connect((NotificationSupport) event.getSource());
@@ -100,5 +101,21 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
     public static <N extends NotificationAccessor> N remove(final Iterable<N> attributes,
                                                          final MBeanNotificationInfo metadata){
         return FeatureAccessor.remove(attributes, metadata);
+    }
+
+    /**
+     * Extracts object from notification source.
+     * @param n Notification object. Cannot be {@literal null}.
+     * @param objectType Type of requested object. Cannot be {@literal null}.
+     * @param <T> Type of requested object.
+     * @return Requested object.
+     * @see NotificationSupport#setSource(Aggregator) 
+     */
+    public static <T> Optional<T> extractFromNotification(@Nonnull final Notification n, @Nonnull final Class<T> objectType){
+        if(n.getSource() instanceof Aggregator){
+            final Aggregator source = (Aggregator) n.getSource();
+            return Optional.ofNullable(source.queryObject(objectType));
+        }
+        return Optional.empty();
     }
 }

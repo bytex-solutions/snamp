@@ -49,6 +49,7 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
         return message -> {
             if (message.isRemote() && message.getPayload() instanceof Notification) {
                 final Notification n = (Notification) message.getPayload();
+                assert n.getSource() instanceof String; //see notificationInterceptor
                 return Objects.equals(resourceName, n.getSource());
             } else
                 return false;
@@ -79,13 +80,18 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
             fireListeners((Notification) message.getPayload());
     }
 
+    private static Consumer<Notification> notificationInterceptor(final String resourceName,
+                                                                  final Consumer<? super Notification> sender){
+        return (Notification n) -> {
+            n = new NotificationBuilder(n).setSource(resourceName).get();
+            sender.accept(n);
+        };
+    }
+
     @Override
     protected final void interceptFire(final Collection<? extends Notification> notifications) {
         //send all notifications to other nodes across cluster.
-        notifications.forEach(n -> {
-                n.setSource(getResourceName());  //avoid serialization problems
-                sender.accept(n);
-        });
+        notifications.forEach(notificationInterceptor(getResourceName(), sender));
     }
 
     @Override

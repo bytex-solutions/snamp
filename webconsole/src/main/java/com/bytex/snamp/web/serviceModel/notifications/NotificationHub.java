@@ -9,10 +9,11 @@ import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
 import javax.management.ListenerNotFoundException;
-import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.util.Map;
 import java.util.logging.Level;
+
+import static com.bytex.snamp.gateway.modeling.NotificationAccessor.extractFromNotification;
 
 /**
  * Represents notification hub used to listen notifications from all managed resources.
@@ -52,10 +53,10 @@ final class NotificationHub extends AbstractManagedResourceTracker<NotificationL
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
         assert handback instanceof String;  //handback is always resourceName
-        assert notification.getSource() instanceof NotificationSupport;
         final String resourceName = (String) handback;
-        final MBeanNotificationInfo metadata = ((NotificationSupport) notification.getSource()).getNotificationInfo(notification.getType());
-        handleNotification(new NotificationEvent(resourceName, metadata, notification));
+        extractFromNotification(notification, NotificationSupport.class)
+                .map(support -> support.getNotificationInfo(notification.getType()))
+                .ifPresent(metadata -> handleNotification(new NotificationEvent(resourceName, metadata, notification)));
     }
 
     void startTracking(@Nonnull final NotificationListener destination) throws Exception {

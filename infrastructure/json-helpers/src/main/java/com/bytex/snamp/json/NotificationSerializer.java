@@ -38,7 +38,7 @@ public final class NotificationSerializer extends JsonSerializer<Notification> {
     @Override
     public void serialize(final Notification src, final JsonGenerator jgen, final SerializerProvider provider) throws IOException {
         final ObjectNode node = ThreadLocalJsonFactory.getFactory().objectNode();
-        node.put(SOURCE, new POJONode(src.getSource()));
+        node.put(SOURCE, ThreadLocalJsonFactory.getFactory().textNode(src.getSource().toString()));
         node.put(NOTIF_TYPE, src.getType());
         node.put(SEQUENCE_NUMBER, src.getSequenceNumber());
         if (timeStampAsString)
