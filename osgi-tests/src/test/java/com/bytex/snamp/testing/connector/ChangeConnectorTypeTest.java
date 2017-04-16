@@ -35,12 +35,11 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
             connector.getAttributes().getOrAdd("DummyAttribute").put("configParam", "value");
             return true;
         });
-        ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2));
-        try{
+
+        try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2))
+                .orElseThrow(AssertionError::new)) {
             final Object attribute = client.getAttribute("DummyAttribute");
             assertTrue(attribute instanceof Integer);
-        } finally {
-            client.close();
         }
         //let's change type of the connector
         final String COMPONENT_NAME = "javaApp";
@@ -61,8 +60,8 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
                     });
             return true;
         });
-        client = ManagedResourceConnectorClient.tryCreate(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2));
-        try{
+        try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2))
+                .orElseThrow(AssertionError::new)) {
             final IntegerMeasurement measurement = StandardMeasurements.freeRam(42L);
             measurement.setInstanceName(INSTANCE_NAME);
             measurement.setComponentName(COMPONENT_NAME);
@@ -70,8 +69,6 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
             Thread.sleep(2_000);
             final Object attribute = client.getAttribute("longValue");
             assertEquals(42L, attribute);
-        } finally {
-            client.close();
         }
     }
 

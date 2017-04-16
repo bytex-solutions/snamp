@@ -5,6 +5,7 @@ import com.bytex.snamp.connector.metrics.*;
 import org.osgi.framework.BundleContext;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -38,16 +39,14 @@ public final class SummaryMetrics extends ImmutableMetrics {
         final <O> Stream<O> toStream(final Function<? super M, ? extends O> reader) {
             return ManagedResourceConnectorClient.filterBuilder().getResources(context).stream()
                     .flatMap(resourceName -> {
-                        final ManagedResourceConnectorClient connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+                        final Optional<ManagedResourceConnectorClient> connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
                         MetricsSupport metrics;
-                        if (connector == null)
-                            metrics = null;
-                        else
-                            try {
-                                metrics = connector.queryObject(MetricsSupport.class);
-                            } finally {
-                                connector.close();
+                        if (connector.isPresent())
+                            try (final ManagedResourceConnectorClient client = connector.get()) {
+                                metrics = client.queryObject(MetricsSupport.class);
                             }
+                        else
+                            metrics = null;
                         return metrics == null ?
                                 Stream.empty() :
                                 StreamSupport.stream(metrics.getMetrics(metricsType).spliterator(), false).map(reader);

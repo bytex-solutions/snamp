@@ -14,8 +14,6 @@ import javax.ws.rs.core.MediaType;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-
 /**
  * Represents source of charts data.
  * @author Roman Sakno
@@ -38,26 +36,24 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
     public Map<String, Collection<ChartData>> getChartData(final Chart[] charts) throws WebApplicationException {
         final BundleContext context = getBundleContext();
         final Multimap<String, ChartData> result = HashMultimap.create(charts.length, 3);
-        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
-            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-            if (client == null)
-                continue;
-            final AttributeList attributes;
-            final String instanceName = client.getManagedResourceName();
-            try {
-                attributes = client.getAttributes();
-            } catch (final JMException e) {
-                throw new WebApplicationException(e);
-            } finally {
-                client.close(); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
-            }
+        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context))
+            ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
+                final AttributeList attributes;
+                final String instanceName = client.getManagedResourceName();
+                try {
+                    attributes = client.getAttributes();
+                } catch (final JMException e) {
+                    throw new WebApplicationException(e);
+                } finally {
+                    client.close(); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
+                }
 
-            for (final Chart chart : charts) {
-                final String chartName = chart.getName();
-                if (chart instanceof ChartOfAttributeValues)
-                    ((ChartOfAttributeValues) chart).fillCharData(instanceName, attributes, data -> result.put(chartName, data));
-            }
-        }
+                for (final Chart chart : charts) {
+                    final String chartName = chart.getName();
+                    if (chart instanceof ChartOfAttributeValues)
+                        ((ChartOfAttributeValues) chart).fillCharData(instanceName, attributes, data -> result.put(chartName, data));
+                }
+            });
         return result.asMap();
     }
 

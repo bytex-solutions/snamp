@@ -13,6 +13,7 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularType;
+import java.util.Optional;
 
 import static com.bytex.snamp.jmx.OpenMBean.OpenAttribute;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -36,17 +37,11 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
     public static MetricsSupport getMetrics(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
         if (isNullOrEmpty(resourceName))
             return new SummaryMetrics(context);
-        else {
-            final ManagedResourceConnectorClient connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-            if (connector == null)
-                throw new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName));
-            else
-                try {
-                    return connector.queryObject(MetricsSupport.class);
-                } finally {
-                    connector.close();
-                }
-        }
+        else
+            try (final ManagedResourceConnectorClient connector = ManagedResourceConnectorClient.tryCreate(context, resourceName)
+                    .orElseThrow(() -> new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName)))) {
+                return connector.queryObject(MetricsSupport.class);
+            }
     }
 
     @Override
@@ -54,17 +49,15 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
         final BundleContext context = Utils.getBundleContextOfObject(this);
         final TabularDataBuilderRowFill rows = new TabularDataBuilderRowFill(TYPE);
         for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
-            final ManagedResourceConnectorClient connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-            if (connector != null)
-                try {
-                    final MetricsSupport metrics = connector.queryObject(MetricsSupport.class);
+            final Optional<ManagedResourceConnectorClient> connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+            if (connector.isPresent())
+                try(final ManagedResourceConnectorClient client = connector.get()) {
+                    final MetricsSupport metrics = client.queryObject(MetricsSupport.class);
                     if (metrics == null) continue;
                     rows.newRow()
                             .cell(RESOURCE_NAME_CELL, resourceName)
                             .cell(METRICS_CELL, SummaryMetricsAttribute.collectMetrics(metrics))
                             .flush();
-                } finally {
-                    connector.close();
                 }
         }
         return rows.build();

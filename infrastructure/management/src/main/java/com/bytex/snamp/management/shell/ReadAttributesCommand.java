@@ -56,27 +56,23 @@ public final class ReadAttributesCommand extends SnampShellCommand  {
 
     @Override
     public Void execute() throws JMException, InterruptedException {
-        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName);
-        if (client == null)
-            throw new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName));
-        else
-            try {
-                String[] attributes = this.attributes;
-                if (ArrayUtils.isNullOrEmpty(attributes))
-                    attributes = getNames(client.getMBeanInfo().getAttributes());
-                //read attributes infinitely
-                if (readPeriodMillis > 0) {
-                    session.getConsole().println("Press CTRL+C to stop reading attributes");
-                    while (!Thread.interrupted()) {
-                        readAttributes(client, attributes, session.getConsole());
-                        Thread.sleep(readPeriodMillis);//InterruptedException when CTRL+C was pressed
-                    }
+        try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName)
+                .orElseThrow(() -> new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName)))) {
+            String[] attributes = this.attributes;
+            if (ArrayUtils.isNullOrEmpty(attributes))
+                attributes = getNames(client.getMBeanInfo().getAttributes());
+            //read attributes infinitely
+            if (readPeriodMillis > 0) {
+                session.getConsole().println("Press CTRL+C to stop reading attributes");
+                while (!Thread.interrupted()) {
+                    readAttributes(client, attributes, session.getConsole());
+                    Thread.sleep(readPeriodMillis);//InterruptedException when CTRL+C was pressed
                 }
-                //read attributes and exit
-                else readAttributes(client, attributes, session.getConsole());
-                return null;
-            } finally {
-                client.close();
             }
+            //read attributes and exit
+            else
+                readAttributes(client, attributes, session.getConsole());
+            return null;
+        }
     }
 }

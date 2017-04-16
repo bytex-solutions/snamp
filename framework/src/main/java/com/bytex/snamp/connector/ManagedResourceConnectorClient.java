@@ -33,25 +33,25 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         this.context = context;
     }
 
-    public static ManagedResourceConnectorClient tryCreate(final BundleContext context,
+    public static Optional<ManagedResourceConnectorClient> tryCreate(final BundleContext context,
                                                            final String resourceName,
                                                            final Duration instanceTimeout) throws TimeoutException, InterruptedException{
         final ServiceReference<ManagedResourceConnector> ref = untilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, instanceTimeout);
         try {
-            return new ManagedResourceConnectorClient(context, ref);
+            return Optional.of(new ManagedResourceConnectorClient(context, ref));
         } catch (final InstanceNotFoundException e) {
-            return null;
+            return Optional.empty();
         }
     }
 
-    public static ManagedResourceConnectorClient tryCreate(final BundleContext context, final String resourceName) {
+    public static Optional<ManagedResourceConnectorClient> tryCreate(final BundleContext context, final String resourceName) {
         final ServiceReference<ManagedResourceConnector> ref = getResourceConnector(context, resourceName);
         if (ref == null)
-            return null;
+            return Optional.empty();
         else try {
-            return new ManagedResourceConnectorClient(context, ref);
+            return Optional.of(new ManagedResourceConnectorClient(context, ref));
         } catch (final InstanceNotFoundException e) {
-            return null;
+            return Optional.empty();
         }
     }
 

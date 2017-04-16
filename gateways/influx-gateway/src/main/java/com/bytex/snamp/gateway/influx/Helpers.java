@@ -9,6 +9,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author Roman Sakno
@@ -32,15 +33,13 @@ final class Helpers {
     }
 
     static Map<String, String> extractTags(final BundleContext context, final String resourceName) {
-        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-        if (client == null)
-            return new HashMap<>();
-        else
-            try {
-                return client.getProperties(Helpers::propertyFilter, Objects::toString);
-            } finally {
-                client.close();
+        final Optional<ManagedResourceConnectorClient> client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+        if (client.isPresent())
+            try (final ManagedResourceConnectorClient connector = client.get()) {
+                return connector.getProperties(Helpers::propertyFilter, Objects::toString);
             }
+        else
+            return new HashMap<>();
     }
 
     static Map<String, Object> toScalar(final Object value){

@@ -101,22 +101,17 @@ public final class ListenEventsCommand extends SnampShellCommand {
 
     @Override
     public Void execute() throws JMException, InterruptedException {
-        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName);
-        if (client == null)
-            throw new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName));
-        else
-            try {
-                String[] categories = this.categories;
-                if (ArrayUtils.isNullOrEmpty(categories))
-                    categories = getNames(client.getMBeanInfo().getNotifications());
-                listenEvents(client.queryObject(NotificationSupport.class),
-                        categories,
-                        capacity,
-                        Duration.ofMillis(listenPeriodMillis),
-                        session.getConsole());
-                return null;
-            } finally {
-                client.close();
-            }
+        try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName)
+                .orElseThrow(() -> new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName)))) {
+            String[] categories = this.categories;
+            if (ArrayUtils.isNullOrEmpty(categories))
+                categories = getNames(client.getMBeanInfo().getNotifications());
+            listenEvents(client.queryObject(NotificationSupport.class),
+                    categories,
+                    capacity,
+                    Duration.ofMillis(listenPeriodMillis),
+                    session.getConsole());
+            return null;
+        }
     }
 }

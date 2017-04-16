@@ -2,6 +2,7 @@ package com.bytex.snamp.testing.connector;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Convert;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceActivator;
@@ -82,29 +83,23 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     public static void waitForConnector(final Duration timeout,
                                   final String resourceName,
                                   final BundleContext context) throws TimeoutException, InterruptedException {
-        ManagedResourceConnectorClient.tryCreate(context, resourceName, timeout).close();
+        ManagedResourceConnectorClient.tryCreate(context, resourceName, timeout).ifPresent(SafeCloseable::close);
     }
 
     public static void waitForNoConnector(final Duration timeout,
                                            final String resourceName,
                                            final BundleContext context) throws TimeoutException, InterruptedException {
         SpinWait.until(() -> {
-            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-            if (client == null)
-                return false;
-            else {
-                client.close();
-                return true;
-            }
+            final Optional<ManagedResourceConnectorClient> client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+            client.ifPresent(SafeCloseable::close);
+            return client.isPresent();
         }, timeout);
     }
 
     protected final ManagedResourceConnector getManagementConnector() throws InstanceNotFoundException {
-        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getTestBundleContext(), TEST_RESOURCE_NAME);
-        if (client == null)
-            throw new InstanceNotFoundException(String.format("Resource %s doesn't exist", TEST_RESOURCE_NAME));
-        else
-            managedResourceConnectors.push(client);
+        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getTestBundleContext(), TEST_RESOURCE_NAME)
+                .orElseThrow(() -> new InstanceNotFoundException(String.format("Resource %s doesn't exist", TEST_RESOURCE_NAME)));
+        managedResourceConnectors.push(client);
         return client;
     }
 

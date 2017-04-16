@@ -17,10 +17,7 @@ import org.xml.sax.SAXException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.io.StringReader;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -77,15 +74,13 @@ public final class AcceptorService {
         final String httpAcceptorType = ManagedResourceConnector.getConnectorType(HttpAcceptor.class);
         final Set<String> sources = new HashSet<>();
         final BundleContext context = getBundleContext();
-        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context)) {
-            final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-            if (client != null) {
+        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context))
+            ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
                 final String connectorType = client.getConnectorType();
                 if (Objects.equals(httpAcceptorType, connectorType))
                     sources.add(resourceName);
                 client.close();
-            }
-        }
+            });
         final String responseBody = String.format("HTTP Acceptor, version=%s, sources=%s", version, sources);
         return Response.ok()
                 .entity(responseBody)
@@ -117,21 +112,17 @@ public final class AcceptorService {
     public Response acceptMeasurement(@Context final HttpHeaders headers, final Measurement measurement) {
         //find the appropriate connector and redirect
         final BundleContext context = getBundleContext();
-        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, measurement.getInstanceName());
+        final Optional<ManagedResourceConnectorClient> client = ManagedResourceConnectorClient.tryCreate(context, measurement.getInstanceName());
         Response response;
-        if (client == null)
-            response = Response.status(Response.Status.NOT_FOUND).build();
-        else
-            try {
-                if (Aggregator.queryAndAccept(client, DataStreamConnector.class, acceptor -> acceptor.dispatch(wrapHeaders(headers), measurement)))
-                    response = Response.noContent().build();
-                else
-                    response = Response.status(Response.Status.BAD_REQUEST).entity("Resource %s is not data stream processor").build();
+        if (client.isPresent())
+            try (final ManagedResourceConnectorClient connector = client.get()) {
+                response = Aggregator.queryAndAccept(connector, DataStreamConnector.class, acceptor -> acceptor.dispatch(wrapHeaders(headers), measurement)) ?
+                        Response.noContent().build() :
+                        Response.status(Response.Status.BAD_REQUEST).entity("Resource %s is not data stream processor").build();
             } catch (final Exception e) {
                 response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString()).build();
-            } finally {
-                client.close();
             }
+        else response = Response.status(Response.Status.NOT_FOUND).build();
         return response;
     }
 

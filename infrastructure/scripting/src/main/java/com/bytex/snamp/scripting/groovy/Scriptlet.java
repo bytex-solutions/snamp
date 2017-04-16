@@ -198,15 +198,10 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
     private <E extends Throwable> void processResourceConnector(final String resourceName,
                                                                        final Acceptor<ManagedResourceConnector, E> acceptor) throws E, InstanceNotFoundException {
         final BundleContext context = getBundleContext();
-        final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-        if (client == null)
-            throw new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName));
-        else
-            try {
-                acceptor.accept(client.getService());
-            } finally {
-                client.close();
-            }
+        try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName)
+                .orElseThrow(() -> new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName)))) {
+            acceptor.accept(client.getService());
+        }
     }
 
     /**
