@@ -15,6 +15,7 @@ import javax.management.InstanceNotFoundException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
@@ -41,26 +42,26 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
         this.context = context;
     }
 
-    public static SupervisorClient tryCreate(final BundleContext context,
-                                          final String groupName,
-                                          final Duration instanceTimeout) throws TimeoutException, InterruptedException {
+    public static Optional<SupervisorClient> tryCreate(final BundleContext context,
+                                     final String groupName,
+                                     final Duration instanceTimeout) throws TimeoutException, InterruptedException {
         final ServiceReference<Supervisor> ref = untilNull(context, groupName, SupervisorClient::getSupervisorInstance, instanceTimeout);
         try {
-            return new SupervisorClient(context, ref);
+            return Optional.of(new SupervisorClient(context, ref));
         } catch (InstanceNotFoundException e) {
-            return null;
+            return Optional.empty();
         }
     }
 
-    public static SupervisorClient tryCreate(final BundleContext context, final String groupName) {
-        final ServiceReference<Supervisor> ref = getSupervisorInstance(context, groupName);
-        if (ref == null)
-            return null;
-        else try {
-            return new SupervisorClient(context, ref);
-        } catch (final InstanceNotFoundException e) {
-            return null;
-        }
+    public static Optional<SupervisorClient> tryCreate(final BundleContext context, final String groupName) {
+        return Optional.ofNullable(getSupervisorInstance(context, groupName))
+                .map(ref -> {
+                    try {
+                        return new SupervisorClient(context, ref);
+                    } catch (final InstanceNotFoundException e) {
+                        return null;
+                    }
+                });
     }
 
     /**

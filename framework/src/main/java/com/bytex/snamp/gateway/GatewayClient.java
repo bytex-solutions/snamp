@@ -16,6 +16,7 @@ import javax.management.MBeanFeatureInfo;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.concurrent.SpinWait.untilNull;
@@ -43,26 +44,26 @@ public final class GatewayClient extends ServiceHolder<Gateway> implements SafeC
         this.context = context;
     }
 
-    public static GatewayClient tryCreate(@Nonnull final BundleContext context,
-                                          final String instanceName,
-                                          final Duration instanceTimeout) throws TimeoutException, InterruptedException{
+    public static Optional<GatewayClient> tryCreate(@Nonnull final BundleContext context,
+                                     final String instanceName,
+                                     final Duration instanceTimeout) throws TimeoutException, InterruptedException {
         final ServiceReference<Gateway> ref = untilNull(context, instanceName, GatewayClient::getGatewayInstance, instanceTimeout);
         try {
-            return new GatewayClient(context, ref);
+            return Optional.of(new GatewayClient(context, ref));
         } catch (final InstanceNotFoundException e) {
-            return null;
+            return Optional.empty();
         }
     }
 
-    public static GatewayClient tryCreate(@Nonnull final BundleContext context, final String instanceName) {
-        final ServiceReference<Gateway> ref = getGatewayInstance(context, instanceName);
-        if (ref == null)
-            return null;
-        else try {
-            return new GatewayClient(context, ref);
-        } catch (final InstanceNotFoundException e) {
-            return null;
-        }
+    public static Optional<GatewayClient> tryCreate(@Nonnull final BundleContext context, final String instanceName) {
+        return Optional.ofNullable(getGatewayInstance(context, instanceName))
+                .map(ref -> {
+                    try {
+                        return new GatewayClient(context, ref);
+                    } catch (final InstanceNotFoundException e) {
+                        return null;
+                    }
+                });
     }
 
     public static GatewayFilterBuilder filterBuilder() {

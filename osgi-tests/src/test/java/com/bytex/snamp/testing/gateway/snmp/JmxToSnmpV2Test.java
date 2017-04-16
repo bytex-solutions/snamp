@@ -401,24 +401,18 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final GatewayClient client = GatewayClient.tryCreate(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
-        assertNotNull(client);
-        try {
+        try (final GatewayClient client = GatewayClient.tryCreate(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2))
+                .orElseThrow(AssertionError::new)) {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty(Gateway.FeatureBindingInfo.MAPPED_TYPE) instanceof Enum &&
                     bindingInfo.getProperty("OID") instanceof OID));
-        } finally {
-            client.close();
         }
     }
 
     @Test
     public void notificationsBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final GatewayClient client = GatewayClient.tryCreate(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
-        assertNotNull(client);
-        try {
+        try (final GatewayClient client = GatewayClient.tryCreate(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2))
+                .orElseThrow(AssertionError::new)) {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("OID") instanceof OID));
-        } finally {
-            client.close();
         }
     }
 

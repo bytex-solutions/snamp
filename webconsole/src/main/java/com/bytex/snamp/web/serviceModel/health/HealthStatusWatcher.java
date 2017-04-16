@@ -94,16 +94,11 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
     @Produces(MediaType.APPLICATION_JSON)
     public StatusOfGroups getStatus() {
         final StatusOfGroups result = new StatusOfGroups();
-        for(final String groupName: getGroups()) {
-            final SupervisorClient client = SupervisorClient.tryCreate(getBundleContext(), groupName);
-            if (client == null)
-                getLogger().warning(String.format("Supervisor for group %s cannot be resolved", groupName));
-            else try {
+        for (final String groupName : getGroups())
+            SupervisorClient.tryCreate(getBundleContext(), groupName).ifPresent(client -> {
                 result.putStatus(groupName, client);
-            } finally {
                 client.close();
-            }
-        }
+            });
         return result;
     }
 

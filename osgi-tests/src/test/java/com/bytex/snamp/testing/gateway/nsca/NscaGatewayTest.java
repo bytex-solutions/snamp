@@ -78,12 +78,9 @@ public final class NscaGatewayTest extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final GatewayClient client = GatewayClient.tryCreate(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
-        assertNotNull(client);
-        try {
+        try (final GatewayClient client = GatewayClient.tryCreate(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2))
+                .orElseThrow(AssertionError::new)) {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo != null));
-        } finally {
-            client.close();
         }
     }
 

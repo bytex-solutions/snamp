@@ -46,9 +46,8 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
 
     @Test
     public void coloredCheckerTest() throws JMException, InterruptedException {
-        final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME);
-        assertNotNull(supervisor);
-        try{
+        try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
+                .orElseThrow(AssertionError::new)) {
             assertTrue(supervisor.get().getResources().contains(TEST_RESOURCE_NAME));
 
             testAttribute("3.0", TypeToken.of(Integer.class), 90);
@@ -69,16 +68,13 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             assertTrue(status instanceof InvalidAttributeValue);
             assertEquals(TEST_RESOURCE_NAME, status.getResourceName());
             assertTrue(status.isCritical());
-        } finally {
-            supervisor.close();
         }
     }
 
     @Test
     public void groovyCheckerTest() throws JMException, InterruptedException {
-        final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME);
-        assertNotNull(supervisor);
-        try {
+        try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
+                .orElseThrow(AssertionError::new)) {
             assertTrue(supervisor.get().getResources().contains(TEST_RESOURCE_NAME));
 
             testAttribute("8.0", TypeToken.of(Float.class), 40F);
@@ -92,8 +88,6 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             assertTrue(status instanceof InvalidAttributeValue);
             assertEquals(TEST_RESOURCE_NAME, status.getResourceName());
             assertTrue(status.isCritical());
-        } finally {
-            supervisor.close();
         }
     }
 

@@ -45,14 +45,14 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     }
 
     public static Optional<ManagedResourceConnectorClient> tryCreate(final BundleContext context, final String resourceName) {
-        final ServiceReference<ManagedResourceConnector> ref = getResourceConnector(context, resourceName);
-        if (ref == null)
-            return Optional.empty();
-        else try {
-            return Optional.of(new ManagedResourceConnectorClient(context, ref));
-        } catch (final InstanceNotFoundException e) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(getResourceConnector(context, resourceName))
+                .map(ref -> {
+                    try {
+                        return new ManagedResourceConnectorClient(context, ref);
+                    } catch (final InstanceNotFoundException e) {
+                        return null;
+                    }
+                });
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String connectorType,

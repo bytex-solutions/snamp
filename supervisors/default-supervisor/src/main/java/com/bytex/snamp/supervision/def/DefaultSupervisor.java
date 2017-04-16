@@ -17,7 +17,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.SupervisorInfo.HealthCheckInfo;
@@ -80,16 +79,16 @@ public class DefaultSupervisor extends AbstractSupervisor {
         final DefaultHealthStatusProvider provider = healthStatusProvider;
         if (provider == null)
             return;
-        for (final String resourceName : getResources()) {
-            final Optional<ManagedResourceConnectorClient> client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName);
-            if (client.isPresent())
-                try (final ManagedResourceConnectorClient connector = client.get()) {
-                    final HealthStatus status = provider.updateStatus(resourceName, connector);
-                    getLogger().fine(String.format("Health status for resource %s is %s", resourceName, status));
+        for (final String resourceName : getResources())
+            ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName).ifPresent(client -> {
+                final HealthStatus status;
+                try {
+                    status = provider.updateStatus(resourceName, client);
+                } finally {
+                    client.close();
                 }
-            else
-                getLogger().info(String.format("Resource %s is missing. Skip health check", resourceName));
-        }
+                getLogger().fine(String.format("Health status for resource %s is %s", resourceName, status));
+            });
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
 import java.util.concurrent.Callable;
@@ -31,6 +32,7 @@ public final class SpinWait {
         return timeoutInMillis;
     }
 
+    @Nonnull
     public static <V> V untilNull(final Callable<? extends V> spin, final Duration timeout) throws Exception {
         V result;
         long timeoutInMillis = timeout.toMillis();
@@ -39,6 +41,7 @@ public final class SpinWait {
         return result;
     }
 
+    @Nonnull
     public static <I, O> O untilNull(final I input, final Function<? super I, ? extends O> spin, final Duration timeout) throws InterruptedException, TimeoutException {
         O result;
         long timeoutInMillis = timeout.toMillis();
@@ -47,6 +50,7 @@ public final class SpinWait {
         return result;
     }
 
+    @Nonnull
     public static <I1, I2, O> O untilNull(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> spin, final Duration timeout) throws InterruptedException, TimeoutException {
         O result;
         long timeoutInMillis = timeout.toMillis();
