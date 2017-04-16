@@ -38,7 +38,7 @@ final class RangedGaugeIntFunction extends AggregationFunction<CompositeData> {
     @Override
     public CompositeData eval(final EvaluationContext context, final Object... args) {
         if(args.length > 0)
-            gaugeFP.accept(Convert.toLong(args[0]));
+            gaugeFP.accept(Convert.toLong(args[0]).orElseThrow(NumberFormatException::new));
         return fromRanged64(gaugeFP);
     }
 }

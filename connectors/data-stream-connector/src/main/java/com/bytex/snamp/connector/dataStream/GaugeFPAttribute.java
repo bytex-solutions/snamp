@@ -1,9 +1,9 @@
 package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.instrumentation.measurements.jmx.ValueMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RatedGaugeFPRecorder;
 import com.bytex.snamp.instrumentation.measurements.FloatingPointMeasurement;
+import com.bytex.snamp.instrumentation.measurements.jmx.ValueMeasurementNotification;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;

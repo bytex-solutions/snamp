@@ -210,7 +210,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
     public void metricsTest() throws InstanceNotFoundException {
         final ManagedResourceConnector connector = getManagementConnector();
         try{
-            assertNotNull(connector.queryObject(MetricsSupport.class));
+            assertTrue(connector.queryObject(MetricsSupport.class).isPresent());
         }
         finally {
             releaseManagementConnector();

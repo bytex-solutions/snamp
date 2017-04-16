@@ -1,5 +1,6 @@
 package com.bytex.snamp.web;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.core.LoggingScope;
@@ -20,6 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SignatureException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -145,8 +147,8 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
     }
 
     @Override
-    public <T> T queryObject(@Nonnull final Class<T> objectType) {
-        return objectType.isInstance(this) ? objectType.cast(this) : null;
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        return Convert.toType(this, objectType);
     }
 
     @Override

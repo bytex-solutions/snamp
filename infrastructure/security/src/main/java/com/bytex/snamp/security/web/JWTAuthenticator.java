@@ -7,7 +7,8 @@ import javax.security.auth.login.AccountException;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.Principal;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 

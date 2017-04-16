@@ -38,7 +38,7 @@ final class FlagFunction extends AggregationFunction<CompositeData> {
     @Override
     public CompositeData eval(final EvaluationContext context, final Object... args) {
         if(args.length > 0)
-            flag.accept(Convert.toBoolean(args[0]));
+            flag.accept(Convert.toBoolean(args[0]).orElseThrow(NumberFormatException::new));
         return fromFlag(flag);
     }
 }

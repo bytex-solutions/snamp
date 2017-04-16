@@ -1,6 +1,5 @@
 package com.bytex.snamp.web.serviceModel.notifications;
 
-import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.Severity;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
@@ -8,7 +7,6 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.util.HashSet;
 import java.util.Objects;

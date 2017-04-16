@@ -22,11 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SignatureException;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.LongSupplier;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -130,8 +126,9 @@ final class JwtPrincipal implements Principal {
         else
             throw new JWTVerifyException("Roles are not specified");
 
-        createdAt = MapUtils.getValueAsLong(claims, ISSUED_AT_FIELD, Convert::toLong).orElse(0L);
-        expiredAt = MapUtils.getValueAsLong(claims, EXPIRATION_FIELD, Convert::toLong).orElse(0L);
+
+        createdAt = Convert.toLong(claims.get(ISSUED_AT_FIELD)).orElse(0L);
+        expiredAt = Convert.toLong(claims.get(EXPIRATION_FIELD)).orElse(0L);
     }
 
     @Override

@@ -27,19 +27,12 @@ final class AliasAttribute extends AbstractCompositeAttribute implements Composi
 
 
     Object getValue(final AttributeSupportProvider provider) throws Exception {
-        final AttributeSupport support = provider.getAttributeSupport(connectorType);
-        if(support == null)
-            throw attributeNotFound(connectorType, getName());
-        else
-            return getValue(support);
+        return getValue(provider.getAttributeSupport(connectorType)
+                .orElseThrow(() -> attributeNotFound(connectorType, getName())));
     }
 
     void setValue(final AttributeSupportProvider provider, final Object value) throws AttributeNotFoundException, MBeanException, InvalidAttributeValueException, ReflectionException {
-        final AttributeSupport support = provider.getAttributeSupport(connectorType);
-        if (support == null)
-            throw attributeNotFound(connectorType, getName());
-        else
-            setValue(support, value);
+        setValue(provider.getAttributeSupport(connectorType).orElseThrow(() -> attributeNotFound(connectorType, getName())), value);
     }
 
     private Object getValue(final AttributeSupport support) throws AttributeNotFoundException, MBeanException, ReflectionException {

@@ -82,7 +82,7 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> {
      */
     @Override
     public Object remove(final Object itemName) {
-        return Convert.toType(itemName, String.class, this::remove);
+        return remove(Convert.toType(itemName, String.class).orElseThrow(ClassCastException::new));
     }
 
     /**

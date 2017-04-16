@@ -55,7 +55,9 @@ enum OctetStringConversionFormat implements SnmpObjectConverter<OctetString> {
     BYTE_ARRAY(SnmpConnectorHelpers.arrayType(SimpleType.BYTE, true)) {
         @Override
         public OctetString convert(final Object value) throws InvalidAttributeValueException {
-            return Convert.toType(value, byte[].class, OctetString::fromByteArray, v -> new OctetString(Objects.toString(v, "")));
+            return Convert.toType(value, byte[].class)
+                    .map(OctetString::fromByteArray)
+                    .orElseGet(() -> new OctetString(Objects.toString(value, "")));
         }
 
         @Override

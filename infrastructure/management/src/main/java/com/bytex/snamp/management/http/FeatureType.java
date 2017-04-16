@@ -1,12 +1,18 @@
 package com.bytex.snamp.management.http;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMapResolver;
+import com.bytex.snamp.configuration.FeatureConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceTemplate;
 import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.management.http.model.*;
 import org.osgi.framework.BundleContext;
 
-import javax.management.*;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanNotificationInfo;
+import javax.management.MBeanOperationInfo;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;

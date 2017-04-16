@@ -4,7 +4,6 @@ import javax.annotation.Nonnull;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.util.EventObject;
-import java.util.Objects;
 
 /**
  * @author Roman Sakno

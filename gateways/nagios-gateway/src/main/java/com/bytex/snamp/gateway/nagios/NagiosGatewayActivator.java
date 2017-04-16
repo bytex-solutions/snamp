@@ -21,6 +21,6 @@ public final class NagiosGatewayActivator extends GatewayActivator<NagiosGateway
     @SuppressWarnings("unchecked")
     private static NagiosGateway newGateway(final String instanceName,
                                             final DependencyManager dependencies) {
-        return new NagiosGateway(instanceName, dependencies.getDependency(HttpService.class));
+        return new NagiosGateway(instanceName, dependencies.getDependency(HttpService.class).orElseThrow(AssertionError::new));
     }
 }

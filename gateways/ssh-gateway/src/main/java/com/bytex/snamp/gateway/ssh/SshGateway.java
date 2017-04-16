@@ -3,7 +3,6 @@ package com.bytex.snamp.gateway.ssh;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
-import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationEventBox;

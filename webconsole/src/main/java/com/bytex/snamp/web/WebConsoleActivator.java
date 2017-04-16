@@ -9,9 +9,9 @@ import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
 import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
+import com.bytex.snamp.web.serviceModel.health.HealthStatusWatcher;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
 import com.bytex.snamp.web.serviceModel.notifications.NotificationService;
-import com.bytex.snamp.web.serviceModel.health.HealthStatusWatcher;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.http.HttpService;
@@ -85,7 +85,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         protected E2EDataSource activateService(final Map<String, Object> identity) throws IOException {
             identity.put(WebConsoleService.NAME, E2EDataSource.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, E2EDataSource.URL_CONTEXT);
-            return new E2EDataSource(dependencies.getDependency(TopologyAnalyzer.class));
+            return new E2EDataSource(dependencies.getDependency(TopologyAnalyzer.class).orElseThrow(AssertionError::new));
         }
 
         @Override
@@ -152,8 +152,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         protected LogNotifier activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, LogNotifier.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, LogNotifier.URL_CONTEXT);
-            final ThreadPoolRepository repository = dependencies.getDependency(ThreadPoolRepository.class);
-            assert repository != null;
+            final ThreadPoolRepository repository = dependencies.getDependency(ThreadPoolRepository.class).orElseThrow(AssertionError::new);
             return new LogNotifier(repository.getThreadPool(THREAD_POOL_NAME, true));
         }
 

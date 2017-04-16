@@ -114,8 +114,8 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
 
     @Override
     public CharSequence execute() throws InstanceNotFoundException {
-        final MetricsSupport metrics = MetricsAttribute.getMetrics(resourceName, getBundleContext());
-        if (metrics == null) return "Metrics are not supported";
-        return resetMetrics ? resetMetrics(metrics) : collectMetrics(metrics);
+        return MetricsAttribute.getMetrics(resourceName, getBundleContext())
+                .map(metrics -> resetMetrics ? resetMetrics(metrics) : collectMetrics(metrics))
+                .orElse("Metrics are not supported");
     }
 }

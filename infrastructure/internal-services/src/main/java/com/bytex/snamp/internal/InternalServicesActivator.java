@@ -36,10 +36,9 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
             super(ConfigurationManager.class, simpleDependencies(ConfigurationAdmin.class));
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         protected PersistentConfigurationManager activateService(final Map<String, Object> identity) {
-            return new PersistentConfigurationManager(dependencies.getDependency(ConfigurationAdmin.class));
+            return new PersistentConfigurationManager(dependencies.getDependency(ConfigurationAdmin.class).orElseThrow(AssertionError::new));
         }
     }
 
@@ -51,7 +50,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         @SuppressWarnings("unchecked")
         @Override
         protected GridMember activateService(final Map<String, Object> identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
-            final HazelcastInstance hazelcast = dependencies.getDependency(HazelcastInstance.class);
+            final HazelcastInstance hazelcast = dependencies.getDependency(HazelcastInstance.class).orElseThrow(AssertionError::new);
             final GridMember member = new GridMember(hazelcast);
             member.start();
             return member;

@@ -5,8 +5,8 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.def.DefaultSupervisor;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
-import org.openstack4j.openstack.OSFactory;
 import org.openstack4j.api.types.ServiceType;
+import org.openstack4j.openstack.OSFactory;
 
 import java.time.Duration;
 

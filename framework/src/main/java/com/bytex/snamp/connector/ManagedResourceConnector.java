@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
@@ -12,8 +11,10 @@ import org.osgi.framework.wiring.BundleRevision;
 
 import javax.annotation.Nonnull;
 import javax.management.*;
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -143,31 +144,27 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
     }
 
     default boolean canExpand(final Class<? extends MBeanFeatureInfo> featureType) {
-        final Supplier<Boolean> FALLBACK = () -> Boolean.FALSE;
         if (featureType.equals(MBeanAttributeInfo.class))
-            return Aggregator.queryAndApply(this, AttributeSupport.class, AttributeSupport::canExpandAttributes, FALLBACK);
+            return queryObject(AttributeSupport.class).map(AttributeSupport::canExpandAttributes).orElse(false);
         else if (featureType.equals(MBeanNotificationInfo.class))
-            return Aggregator.queryAndApply(this, NotificationSupport.class, NotificationSupport::canExpandNotifications, FALLBACK);
+            return queryObject(NotificationSupport.class).map(NotificationSupport::canExpandNotifications).orElse(false);
         else if (featureType.equals(MBeanOperationInfo.class))
-            return Aggregator.queryAndApply(this, OperationSupport.class, OperationSupport::canExpandOperations, FALLBACK);
+            return queryObject(AttributeSupport.class).map(AttributeSupport::canExpandAttributes).orElse(false);
         else
-            return FALLBACK.get();
+            return false;
     }
 
     default Collection<? extends MBeanFeatureInfo> expandAll() {
         final List<MBeanFeatureInfo> result = new LinkedList<>();
-        result.addAll(Aggregator.queryAndApply(this,
-                AttributeSupport.class,
-                attributeSupport -> attributeSupport.canExpandAttributes() ? attributeSupport.expandAttributes() : Collections.emptyList(),
-                Collections::emptyList));
-        result.addAll(Aggregator.queryAndApply(this,
-                NotificationSupport.class,
-                notificationSupport -> notificationSupport.canExpandNotifications() ? notificationSupport.expandNotifications() : Collections.emptyList(),
-                Collections::emptyList));
-        result.addAll(Aggregator.queryAndApply(this,
-                OperationSupport.class,
-                operationSupport -> operationSupport.canExpandOperations() ? operationSupport.expandOperations() : Collections.emptyList(),
-                Collections::emptyList));
+        queryObject(AttributeSupport.class)
+                .map(AttributeSupport::expandAttributes)
+                .ifPresent(result::addAll);
+        queryObject(NotificationSupport.class)
+                .map(NotificationSupport::expandNotifications)
+                .ifPresent(result::addAll);
+        queryObject(OperationSupport.class)
+                .map(OperationSupport::expandOperations)
+                .ifPresent(result::addAll);
         return result;
     }
 }

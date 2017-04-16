@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.influx;
 
-import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.modeling.AttributeSet;
@@ -9,9 +8,13 @@ import com.bytex.snamp.instrumentation.measurements.Measurement;
 import com.bytex.snamp.instrumentation.measurements.Span;
 import com.bytex.snamp.instrumentation.measurements.TimeMeasurement;
 import com.bytex.snamp.instrumentation.measurements.ValueMeasurement;
+import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
 import org.influxdb.dto.Point;
 
-import javax.management.*;
+import javax.management.AttributeChangeNotification;
+import javax.management.JMException;
+import javax.management.MBeanNotificationInfo;
+import javax.management.Notification;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

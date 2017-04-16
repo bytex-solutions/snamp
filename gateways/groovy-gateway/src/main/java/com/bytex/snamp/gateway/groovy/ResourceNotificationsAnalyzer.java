@@ -7,7 +7,6 @@ import com.bytex.snamp.gateway.NotificationListener;
 import groovy.lang.Closure;
 import org.osgi.framework.InvalidSyntaxException;
 
-import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.util.*;
 import java.util.function.Predicate;

@@ -19,22 +19,27 @@ import static com.bytex.snamp.gateway.modeling.NotificationAccessor.extractFromN
  * Represents notification hub used to listen notifications from all managed resources.
  */
 final class NotificationHub extends AbstractManagedResourceTracker<NotificationListener> implements javax.management.NotificationListener {
+    private void addNotificationListener(final NotificationSupport support, final String resourceName){
+        support.addNotificationListener(this, null, resourceName);
+    }
+
     @Override
     protected void addResource(final ManagedResourceConnectorClient client) {
-        final NotificationSupport notifications = client.queryObject(NotificationSupport.class);
-        if (notifications != null)
-            notifications.addNotificationListener(this, null, client.getManagedResourceName());
+        client.queryObject(NotificationSupport.class)
+                .ifPresent(support -> addNotificationListener(support, client.getManagedResourceName()));
+    }
+
+    private void removeNotificationListener(final NotificationSupport support){
+        try {
+            support.removeNotificationListener(this);
+        } catch (final ListenerNotFoundException e) {
+            getLogger().log(Level.WARNING, e.getMessage(), e);
+        }
     }
 
     @Override
     protected void removeResource(final ManagedResourceConnectorClient client) {
-        final NotificationSupport notifications = client.queryObject(NotificationSupport.class);
-        if (notifications != null)
-            try {
-                notifications.removeNotificationListener(this);
-            } catch (final ListenerNotFoundException e) {
-                getLogger().log(Level.WARNING, e.getMessage(), e);
-            }
+        client.queryObject(NotificationSupport.class).ifPresent(this::removeNotificationListener);
     }
 
     @Override

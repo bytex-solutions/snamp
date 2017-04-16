@@ -9,6 +9,7 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
+
 import static com.google.common.base.Strings.nullToEmpty;
 
 /**

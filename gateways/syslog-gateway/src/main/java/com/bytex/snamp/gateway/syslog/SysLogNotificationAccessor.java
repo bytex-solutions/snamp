@@ -8,7 +8,6 @@ import com.cloudbees.syslog.Severity;
 import com.google.common.collect.ImmutableSet;
 
 import javax.management.MBeanNotificationInfo;
-import javax.management.Notification;
 
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 

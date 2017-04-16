@@ -13,10 +13,7 @@ import com.google.common.collect.Sets;
 import org.osgi.framework.BundleContext;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents composition of managed resource connectors.
@@ -78,23 +75,23 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
         writeLock.accept(SingleResourceGroup.INSTANCE, connectors, connectors -> retainConnectors(connectors, set), (Duration) null);
     }
 
-    private <T> T queryObject(final String connectorType, final Class<T> objectType){
-        final ManagedResourceConnector connector = readLock.apply(SingleResourceGroup.INSTANCE, connectors, connectorType, Map::get);
-        return connector != null ? connector.queryObject(objectType) : null;
+    private <T> Optional<T> queryObject(final String connectorType, final Class<T> objectType) {
+        return Optional.ofNullable(readLock.apply(SingleResourceGroup.INSTANCE, connectors, connectorType, Map::get))
+                .flatMap(connector -> connector.queryObject(objectType));
     }
 
     @Override
-    public AttributeSupport getAttributeSupport(final String connectorType) {
+    public Optional<AttributeSupport> getAttributeSupport(final String connectorType) {
         return queryObject(connectorType, AttributeSupport.class);
     }
 
     @Override
-    public NotificationSupport getNotificationSupport(final String connectorType) {
+    public Optional<NotificationSupport> getNotificationSupport(final String connectorType) {
         return queryObject(connectorType, NotificationSupport.class);
     }
 
     @Override
-    public OperationSupport getOperationSupport(final String connectorType) {
+    public Optional<OperationSupport> getOperationSupport(final String connectorType) {
         return queryObject(connectorType, OperationSupport.class);
     }
 

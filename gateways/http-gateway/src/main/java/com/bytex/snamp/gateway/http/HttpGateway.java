@@ -7,6 +7,7 @@ import com.google.common.collect.Multimap;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
@@ -14,7 +15,6 @@ import javax.servlet.ServletException;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -29,9 +29,9 @@ final class HttpGateway extends AbstractGateway {
     private final HttpModelOfAttributes attributes;
     private final HttpModelOfNotifications notifications;
 
-    HttpGateway(final String instanceName, final HttpService servletPublisher) {
+    HttpGateway(final String instanceName, @Nonnull final HttpService servletPublisher) {
         super(instanceName);
-        publisher = Objects.requireNonNull(servletPublisher, "servletPublisher is null.");
+        publisher = servletPublisher;
         attributes = new HttpModelOfAttributes();
         notifications = new HttpModelOfNotifications();
     }

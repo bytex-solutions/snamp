@@ -3,12 +3,12 @@ package com.bytex.snamp.connector.dataStream.groovy;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.dataStream.NotificationParser;
 import com.bytex.snamp.connector.dataStream.NotificationParserChain;
+import com.bytex.snamp.connector.notifications.NotificationBuilder;
+import com.bytex.snamp.instrumentation.measurements.*;
 import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.instrumentation.measurements.jmx.TimeMeasurementNotification;
 import com.bytex.snamp.instrumentation.measurements.jmx.ValueMeasurementNotification;
-import com.bytex.snamp.connector.notifications.NotificationBuilder;
-import com.bytex.snamp.instrumentation.measurements.*;
 import com.bytex.snamp.scripting.groovy.Scriptlet;
 
 import javax.management.Notification;

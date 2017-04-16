@@ -34,8 +34,8 @@ public final class Activator extends AbstractServiceLibrary {
 
         @Override
         protected final T activateService(final Map<String, Object> identity) throws Exception {
-            final ConfigurationManager manager = dependencies.getDependency(ConfigurationManager.class);
-            assert manager != null;
+            final ConfigurationManager manager = dependencies.getDependency(ConfigurationManager.class)
+                    .orElseThrow(AssertionError::new);
             final ImmutableMap<String, String> configuration = manager.transformConfiguration(ImmutableMap::copyOf);
             return activateService(identity, configuration);
         }

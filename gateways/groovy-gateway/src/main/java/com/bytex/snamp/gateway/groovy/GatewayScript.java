@@ -9,6 +9,7 @@ import groovy.lang.Closure;
 
 import javax.management.JMException;
 import java.time.Duration;
+import java.util.Optional;
 
 /**
  * Represents an abstract class for gateway automation script.
@@ -23,9 +24,9 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
         return (GroovyManagementModel) super.getProperty(MODEL_GLOBAL_VAR);
     }
 
-    private <T> T queryModelObject(final Class<T> objectType){
-        final GroovyManagementModel model = getModel();
-        return model != null ? model.queryObject(objectType) : null;
+    private <T> Optional<T> queryModelObject(final Class<T> objectType){
+        return Optional.ofNullable(getModel())
+                .flatMap(model -> model.queryObject(objectType));
     }
 
     private static void processAttributes(final AttributesRootAPI model, final Closure<?> closure) throws JMException {
@@ -48,9 +49,9 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void processAttributes(final Closure<?> closure) throws JMException {
-        final AttributesRootAPI model = queryModelObject(AttributesRootAPI.class);
-        if (model != null)
-            processAttributes(model, closure);
+        final Optional<AttributesRootAPI> model = queryModelObject(AttributesRootAPI.class);
+        if (model.isPresent())
+            processAttributes(model.get(), closure);
     }
 
     private static void processEvents(final EventsRootAPI model, final Closure<?> closure) throws JMException {
@@ -73,9 +74,9 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void processEvents(final Closure<?> closure) throws JMException {
-        final EventsRootAPI model = queryModelObject(EventsRootAPI.class);
-        if(model != null)
-            processEvents(model, closure);
+        final Optional<EventsRootAPI> model = queryModelObject(EventsRootAPI.class);
+        if(model.isPresent())
+            processEvents(model.get(), closure);
     }
 
     /**
@@ -96,8 +97,9 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final ResourceAttributesAnalyzer<?> attributesAnalyzer(final Duration checkPeriod) {
-        final AttributesRootAPI model = queryModelObject(AttributesRootAPI.class);
-        return model != null ? model.attributesAnalyzer(checkPeriod) : null;
+        return queryModelObject(AttributesRootAPI.class)
+                .map(model -> model.attributesAnalyzer(checkPeriod))
+                .orElseThrow(AssertionError::new);
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
@@ -107,8 +109,7 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final ResourceNotificationsAnalyzer eventsAnalyzer() {
-        final EventsRootAPI model = queryModelObject(EventsRootAPI.class);
-        return model != null ? model.eventsAnalyzer() : null;
+        return queryModelObject(EventsRootAPI.class).map(EventsRootAPI::eventsAnalyzer).orElseThrow(AssertionError::new);
     }
 
     /**

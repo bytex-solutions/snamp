@@ -15,6 +15,7 @@ import org.apache.sshd.server.ExitCallback;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -52,20 +53,20 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
         this.context = Objects.requireNonNull(context, "context is null.");
     }
 
-    protected final <T> T getService(final Class<T> serviceType){
+    protected final <T> Optional<T> getService(final Class<T> serviceType){
         return context.queryObject(serviceType);
     }
 
     protected final GatewayController getGatewayController(){
-        return getService(CommandExecutionContext.CONTROLLER);
+        return getService(CommandExecutionContext.CONTROLLER).orElseThrow(AssertionError::new);
     }
 
     protected final ExecutorService getExecutionService(){
-        return getService(CommandExecutionContext.EXECUTOR);
+        return getService(CommandExecutionContext.EXECUTOR).orElseThrow(AssertionError::new);
     }
 
     protected final InputStream getConsoleInputStream(){
-        return getService(InputStream.class);
+        return getService(InputStream.class).orElseThrow(AssertionError::new);
     }
 
     protected abstract Options getCommandOptions();

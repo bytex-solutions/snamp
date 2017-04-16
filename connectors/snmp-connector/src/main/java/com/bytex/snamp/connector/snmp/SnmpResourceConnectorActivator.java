@@ -45,8 +45,8 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     private static SnmpResourceConnector createConnector(final String resourceName,
                                                          final ManagedResourceInfo configuration,
                                                          final DependencyManager dependencies) throws IOException {
-        final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class);
-        assert configManager != null;
+        final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class)
+                .orElseThrow(AssertionError::new);
 
         final SnmpResourceConnector result =
                 new SnmpResourceConnector(resourceName,
@@ -58,8 +58,8 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
 
     private static SnmpFeatureDiscoveryService newDiscoveryService(final DependencyManager dependencies) throws IOException {
         @SuppressWarnings("unchecked")
-        final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class);
-        assert configManager != null;
+        final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class)
+                .orElseThrow(AssertionError::new);
         return new SnmpFeatureDiscoveryService(configManager.transformConfiguration(SnmpResourceConnectorActivator::getDiscoveryTimeout));
     }
 }

@@ -21,6 +21,7 @@ import javax.management.*;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -103,7 +104,9 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
 
         @Override
         public final void accept(final ManagedResourceConnector connector) throws E {
-            accept(connector.queryObject(NotificationSupport.class));
+            final Optional<NotificationSupport> support = connector.queryObject(NotificationSupport.class);
+            if(support.isPresent())
+                accept(support.get());
         }
     }
 

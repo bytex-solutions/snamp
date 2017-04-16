@@ -9,6 +9,7 @@ import com.ghgande.j2mod.modbus.Modbus;
 
 import javax.management.Descriptor;
 import java.util.Map;
+import java.util.OptionalInt;
 
 import static com.bytex.snamp.MapUtils.getValueAsInt;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
@@ -46,7 +47,8 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseOffset(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException{
-        return getFieldIfPresent(descriptor,OFFSET_PARAM, Convert::toInt, ModbusAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor,OFFSET_PARAM, Convert::toInt, ModbusAbsentConfigurationParameterException::new)
+                .orElseThrow(NumberFormatException::new);
     }
 
     static boolean hasCount(final Descriptor descriptor){
@@ -54,11 +56,14 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseCount(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException{
-        return getFieldIfPresent(descriptor, COUNT_PARAM, Convert::toInt, ModbusAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, COUNT_PARAM, Convert::toInt, ModbusAbsentConfigurationParameterException::new)
+                .orElseThrow(NumberFormatException::new);
     }
 
-    static int parseUnitID(final Descriptor descriptor){
-        return getField(descriptor, UNIT_ID_PARAM, Convert::toInt).orElse(Modbus.DEFAULT_UNIT_ID);
+    static int parseUnitID(final Descriptor descriptor) {
+        return getField(descriptor, UNIT_ID_PARAM, Convert::toInt)
+                .orElseGet(OptionalInt::empty)
+                .orElse(Modbus.DEFAULT_UNIT_ID);
     }
 
     static int parseConnectionTimeout(final Map<String, String> parameters){
@@ -70,6 +75,7 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseRecordSize(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RECORD_SIZE_PARAM, Convert::toInt, ModbusAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, RECORD_SIZE_PARAM, Convert::toInt, ModbusAbsentConfigurationParameterException::new)
+                .orElseThrow(NumberFormatException::new);
     }
 }

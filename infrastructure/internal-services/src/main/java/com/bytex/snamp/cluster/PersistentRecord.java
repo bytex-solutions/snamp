@@ -9,7 +9,10 @@ import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.db.record.ORecordElement;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.Map;
 import java.util.Objects;
 
@@ -162,7 +165,8 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
 
     @Override
     public long getAsLong() {
-        return Convert.toLong(PersistentFieldDefinition.LONG_VALUE.getField(this));
+        return Convert.toLong(PersistentFieldDefinition.LONG_VALUE.getField(this))
+                .orElseThrow(NumberFormatException::new);
     }
 
     @Override
@@ -172,7 +176,8 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
 
     @Override
     public double getAsDouble() {
-        return Convert.toDouble(PersistentFieldDefinition.DOUBLE_VALUE.getField(this));
+        return Convert.toDouble(PersistentFieldDefinition.DOUBLE_VALUE.getField(this))
+                .orElseThrow(NumberFormatException::new);
     }
 
     @Override

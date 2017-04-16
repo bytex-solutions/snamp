@@ -316,14 +316,12 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     public void notificationTest() throws Exception {
         final ManagedResourceConnector connector = getManagementConnector();
         try {
-            final NotificationSupport notifications = connector.queryObject(NotificationSupport.class);
-            assertNotNull(notifications);
+            final NotificationSupport notifications = connector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
             assertNotNull(notifications.getNotificationInfo("snmp-notif"));
             final CompletableFuture<Notification> trap = new CompletableFuture<>();
             notifications.addNotificationListener((notification, handback) -> trap.complete(notification), null, null);
             //obtain client addresses
-            final Address[] addresses = connector.queryObject(Address[].class);
-            assertNotNull(addresses);
+            final Address[] addresses = connector.queryObject(Address[].class).orElseThrow(AssertionError::new);
             assertEquals(1, addresses.length);
             assertTrue(addresses[0] instanceof UdpAddress);
             final Notification n = trap.get(6, TimeUnit.SECONDS);

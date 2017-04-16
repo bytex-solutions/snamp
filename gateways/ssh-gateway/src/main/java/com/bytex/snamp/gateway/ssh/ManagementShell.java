@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -58,7 +59,7 @@ final class ManagementShell implements Command, SessionAware {
         }
 
         @Override
-        public <T> T queryObject(@Nonnull final Class<T> objectType) {
+        public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
             return aggregator.queryObject(objectType);
         }
     }

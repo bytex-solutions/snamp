@@ -39,7 +39,7 @@ public final class GroovyWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Test
     public void operationTest() throws JMException {
-        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class);
+        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
         try{
             final Object result = operationSupport.invoke("groovyOp", new Long[]{12L, 2L}, new String[0]);
             assertTrue(result instanceof Long);

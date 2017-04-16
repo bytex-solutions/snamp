@@ -9,7 +9,7 @@ import java.io.ObjectOutput;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.google.common.base.Strings.*;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Represents configuration of the management information provider. This class cannot be inherited.

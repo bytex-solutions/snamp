@@ -9,7 +9,6 @@ import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Map;
 import java.util.function.Function;
 
 /**

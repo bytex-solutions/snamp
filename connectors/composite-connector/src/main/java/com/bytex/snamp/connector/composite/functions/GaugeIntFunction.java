@@ -37,7 +37,7 @@ public class GaugeIntFunction extends AggregationFunction<CompositeData> {
     @Override
     public CompositeData eval(final EvaluationContext context, final Object... args) {
         if (args.length > 0)
-            gauge64.accept(Convert.toLong(args[0]));
+            gauge64.accept(Convert.toLong(args[0]).orElseThrow(NumberFormatException::new));
         return fromGauge64(gauge64);
     }
 }

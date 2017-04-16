@@ -2,7 +2,6 @@ package com.bytex.snamp.web.serviceModel.notifications;
 
 import com.bytex.snamp.connector.notifications.Severity;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 

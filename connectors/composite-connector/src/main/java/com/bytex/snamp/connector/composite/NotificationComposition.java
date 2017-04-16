@@ -7,6 +7,7 @@ import com.google.common.collect.Multimap;
 
 import javax.management.*;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,9 +54,8 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
     @Override
     protected CompositeNotification connectNotifications(final String notifType, final NotificationDescriptor metadata) throws MBeanException, ReflectionException, AbsentCompositeConfigurationParameterException {
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(metadata);
-        final NotificationSupport support = provider.getNotificationSupport(connectorType);
-        if (support == null)
-            throw new MBeanException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support notifications", connectorType)));
+        final NotificationSupport support = provider.getNotificationSupport(connectorType)
+                .orElseThrow(() -> new MBeanException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support notifications", connectorType))));
         final MBeanNotificationInfo underlyingNotif = support.enableNotifications(notifType, metadata);
         if (underlyingNotif == null)
             throw new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable notification '%s'", connectorType, notifType)));
@@ -73,16 +73,17 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
 
     @Override
     protected void disconnectNotifications(final CompositeNotification metadata) {
-        final NotificationSupport support = provider.getNotificationSupport(metadata.getConnectorType());
-        if (support != null)
+        final Optional<NotificationSupport> support = provider.getNotificationSupport(metadata.getConnectorType());
+        support.ifPresent(notificationSupport -> {
             for (final String notifType : metadata.getNotifTypes())
-                support.disableNotifications(notifType);
+                notificationSupport.disableNotifications(notifType);
+        });
         //update state of subscription
         for (final String notifType : metadata.getNotifTypes())
             subscription.remove(metadata.getConnectorType(), notifType);
-        if (support != null && subscription.get(metadata.getConnectorType()).isEmpty())
+        if (support.isPresent() && subscription.get(metadata.getConnectorType()).isEmpty())
             try {
-                support.removeNotificationListener(this);
+                support.get().removeNotificationListener(this);
             } catch (final ListenerNotFoundException e) {
                 getLogger().log(Level.SEVERE, String.format("Unable to unsubscribe normally from notifications provided by connector '%s'. Subscription state: %s", metadata.getConnectorType(), subscription));
             }

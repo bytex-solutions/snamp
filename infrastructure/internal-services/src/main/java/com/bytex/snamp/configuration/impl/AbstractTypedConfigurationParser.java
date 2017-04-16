@@ -19,8 +19,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.bytex.snamp.MapUtils.getValue;
-import static com.google.common.collect.Iterators.forEnumeration;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Iterators.forEnumeration;
 
 /**
  * @author Roman Sakno

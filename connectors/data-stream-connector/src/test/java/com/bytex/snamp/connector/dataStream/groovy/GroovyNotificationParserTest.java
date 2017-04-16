@@ -1,10 +1,10 @@
 package com.bytex.snamp.connector.dataStream.groovy;
 
 import com.bytex.snamp.connector.dataStream.NotificationParser;
-import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
-import com.bytex.snamp.instrumentation.measurements.jmx.ValueMeasurementNotification;
 import com.bytex.snamp.instrumentation.measurements.BooleanMeasurement;
 import com.bytex.snamp.instrumentation.measurements.IntegerMeasurement;
+import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
+import com.bytex.snamp.instrumentation.measurements.jmx.ValueMeasurementNotification;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;

@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.notifications;
 import com.google.common.collect.ImmutableSortedSet;
 
 import java.util.Objects;
+
 import static com.google.common.base.Strings.nullToEmpty;
 
 /**

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -273,15 +274,15 @@ public final class GridMember implements ClusterMember, AutoCloseable {
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(@Nonnull final Class<T> objectType) {
-        final Object result;
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        final Optional<?> result;
         if (objectType.isInstance(this))
-            result = this;
+            result = Optional.of(this);
         else if (objectType.isInstance(hazelcast))
-            result = hazelcast;
+            result = Optional.of(hazelcast);
         else
-            return null;
-        return objectType.cast(result);
+            result = Optional.empty();
+        return result.map(objectType::cast);
     }
 
     //only for testing purposes

@@ -8,7 +8,6 @@ import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.google.common.collect.ImmutableSet;
 
 import javax.management.MBeanNotificationInfo;
-import javax.management.Notification;
 import java.util.Set;
 
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;

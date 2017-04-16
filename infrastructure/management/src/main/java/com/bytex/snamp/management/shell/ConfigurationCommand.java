@@ -4,7 +4,6 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.ServiceHolder;
 
 import java.io.IOException;
-import java.util.Objects;
 
 /**
  * @author Roman Sakno

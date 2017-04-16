@@ -17,6 +17,7 @@ import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 import static com.bytex.snamp.MapUtils.getValueAsLong;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
@@ -162,11 +163,13 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
     }
 
     static long parseRangeStartAsLong(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_START_PARAM, Convert::toLong, DSConnectorAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, RANGE_START_PARAM, Convert::toLong, DSConnectorAbsentConfigurationParameterException::new)
+                .orElseThrow(NumberFormatException::new);
     }
 
     static long parseRangeEndAsLong(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException {
-        return getFieldIfPresent(descriptor, RANGE_END_PARAM, Convert::toLong, DSConnectorAbsentConfigurationParameterException::new);
+        return getFieldIfPresent(descriptor, RANGE_END_PARAM, Convert::toLong, DSConnectorAbsentConfigurationParameterException::new)
+                .orElseThrow(NumberFormatException::new);
     }
 
     static double parseRangeStartAsDouble(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException {
@@ -185,8 +188,10 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
         return getFieldIfPresent(descriptor, RANGE_END_PARAM, DataStreamConnectorConfigurationDescriptionProvider::objToDuration, DSConnectorAbsentConfigurationParameterException::new);
     }
 
-    static int parseChannels(final AttributeDescriptor descriptor){
-        return getField(descriptor, CHANNELS_PARAM, Convert::toInt).orElse(1);
+    static int parseChannels(final AttributeDescriptor descriptor) {
+        return getField(descriptor, CHANNELS_PARAM, Convert::toInt)
+                .orElseGet(OptionalInt::empty)
+                .orElse(1);
     }
 
     public SyntheticAttributeFactory parseGaugeType(final AttributeDescriptor descriptor) throws DSConnectorAbsentConfigurationParameterException, ParseException {

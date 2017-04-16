@@ -12,7 +12,9 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Map;
 import java.util.Objects;
-import static com.google.common.base.Strings.*;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Represents serializable configuration of the supervisor.

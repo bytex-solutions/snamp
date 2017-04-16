@@ -1,6 +1,5 @@
 package com.bytex.snamp.web.serviceModel.health;
 
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
@@ -62,7 +61,7 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
         private static final long serialVersionUID = 2645921325913575632L;
 
         void putStatus(final String groupName, final Supervisor supervisor) {
-            final HealthStatus status = Aggregator.queryAndApply(supervisor, HealthCheckSupport.class, HealthCheckSupport::getStatus).orElseGet(OkStatus::new);
+            final HealthStatus status = supervisor.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new);
             put(groupName, status);
         }
     }

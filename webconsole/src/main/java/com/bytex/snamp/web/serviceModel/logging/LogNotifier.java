@@ -7,7 +7,6 @@ import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import org.ops4j.pax.logging.PaxLoggingService;
 import org.ops4j.pax.logging.spi.PaxAppender;
 import org.ops4j.pax.logging.spi.PaxLoggingEvent;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import javax.annotation.Nonnull;
@@ -16,7 +15,6 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Provides notification about logs.
@@ -78,9 +76,7 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
         return new LoggingSettings();
     }
 
-    @Override
-    public void close() throws Exception {
-        super.close();
+    private void removeRegistration(){
         final ServiceRegistration<?> reg = appenderRegistration;
         try {
             if (reg != null)
@@ -88,5 +84,10 @@ public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSe
         } finally {
             appenderRegistration = null;
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        Utils.closeAll(super::close, this::removeRegistration);
     }
 }

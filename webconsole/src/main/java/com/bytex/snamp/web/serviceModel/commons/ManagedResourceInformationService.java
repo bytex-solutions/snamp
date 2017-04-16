@@ -7,7 +7,7 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
-import org.osgi.framework.*;
+import org.osgi.framework.Constants;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

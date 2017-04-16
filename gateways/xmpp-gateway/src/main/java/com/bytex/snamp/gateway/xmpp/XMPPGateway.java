@@ -17,7 +17,6 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 /**

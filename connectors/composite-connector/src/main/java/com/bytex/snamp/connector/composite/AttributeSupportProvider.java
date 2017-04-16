@@ -2,6 +2,8 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 
+import java.util.Optional;
+
 /**
  * @author Roman Sakno
  * @version 2.0
@@ -9,5 +11,5 @@ import com.bytex.snamp.connector.attributes.AttributeSupport;
  */
 @FunctionalInterface
 interface AttributeSupportProvider {
-    AttributeSupport getAttributeSupport(final String connectorType);
+    Optional<AttributeSupport> getAttributeSupport(final String connectorType);
 }

@@ -166,8 +166,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     public void testForMetrics() throws Exception {
         final ManagedResourceConnector client = getManagementConnector();
         try {
-            final MetricsSupport metrics = client.queryObject(MetricsSupport.class);
-            assertNotNull(metrics);
+            final MetricsSupport metrics = client.queryObject(MetricsSupport.class).orElseThrow(AssertionError::new);
             assertTrue(metrics.getMetrics(AttributeMetric.class).iterator().hasNext());
             //read and write attributes
             booleanAttributeTest();
@@ -182,7 +181,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Test
     public void operationTest() throws JMException {
-        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class);
+        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
         try{
             final Object result = operationSupport.invoke("rev", new Object[]{new byte[]{1, 2, 3}}, new String[0]);
             assertTrue(result instanceof byte[]);
@@ -195,7 +194,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Test
     public void notificationTest() throws JMException, InterruptedException {
-        final NotificationSupport notificationSupport = getManagementConnector().queryObject(NotificationSupport.class);
+        final NotificationSupport notificationSupport = getManagementConnector().queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
         try{
             final Mailbox mailbox = MailboxFactory.newMailbox();
             notificationSupport.addNotificationListener(mailbox, null, null);

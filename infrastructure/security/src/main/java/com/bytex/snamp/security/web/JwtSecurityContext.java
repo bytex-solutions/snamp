@@ -4,15 +4,12 @@ import com.auth0.jwt.JWTVerifyException;
 import com.bytex.snamp.core.LoggerProvider;
 import com.sun.jersey.api.core.HttpRequestContext;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Logger;
 

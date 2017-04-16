@@ -12,6 +12,7 @@ import javax.management.ReflectionException;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -86,8 +87,8 @@ public class SyntheticAttributeRepository extends DistributedAttributeRepository
      * @return Serializable state of the attribute; or {@literal null}, if attribute doesn't support synchronization across cluster.
      */
     @Override
-    protected final Serializable takeSnapshot(final SyntheticAttribute attribute) {
-        return Convert.toType(attribute, DistributedAttribute.class, DistributedAttribute::takeSnapshot, attr -> null);
+    protected final Optional<? extends Serializable> takeSnapshot(final SyntheticAttribute attribute) {
+        return Convert.toType(attribute, DistributedAttribute.class).map(DistributedAttribute::takeSnapshot);
     }
 
     /**

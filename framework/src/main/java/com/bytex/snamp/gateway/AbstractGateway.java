@@ -297,11 +297,11 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
                                                                 final Aggregator connector,
                                                                 final Class<S> supportType,
                                                                 final Function<? super S, F[]> features,
-                                                                final FeatureModifiedEventFactory<S, F> eventFactory){
-        final S support = connector.queryObject(supportType);
-        if(support != null)
-            for(final F feature: features.apply(support))
+                                                                final FeatureModifiedEventFactory<S, F> eventFactory) {
+        connector.queryObject(supportType).ifPresent(support -> {
+            for (final F feature : features.apply(support))
                 featureModified(eventFactory.createEvent(support, resourceName, feature));
+        });
     }
 
     @Override

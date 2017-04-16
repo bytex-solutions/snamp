@@ -1,11 +1,13 @@
 package com.bytex.snamp.supervision.def;
 
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
-import com.bytex.snamp.connector.health.*;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
+import com.bytex.snamp.connector.health.ResourceIsNotAvailable;
 import com.bytex.snamp.connector.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
@@ -20,6 +22,7 @@ import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.JMException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -105,22 +108,22 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
 
     public HealthStatus updateStatus(final String resourceName, final ManagedResourceConnector connector) {
         //1. Using health check provided by connector itself
-        HealthStatus newStatus = Aggregator.queryAndApply(connector, HealthCheckSupport.class, HealthCheckSupport::getStatus)
+        HealthStatus newStatus = connector.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus)
                 .orElseGet(() -> new OkStatus(resourceName));
         if (!(newStatus instanceof OkStatus))
             return updateStatus(newStatus);
         //2. read attributes from connector
         final AttributeList attributes;
         {
-            final AttributeSupport support = connector.queryObject(AttributeSupport.class);
-            if (support == null)
-                attributes = new AttributeList();
-            else
+            final Optional<AttributeSupport> support = connector.queryObject(AttributeSupport.class);
+            if (support.isPresent())
                 try {
-                    attributes = support.getAttributes();
+                    attributes = support.get().getAttributes();
                 } catch (final JMException e) {
                     return updateStatus(resourceName, e);
                 }
+            else
+                attributes = new AttributeList();
         }
         //3. update health status using attribute checkers
         for (final Attribute attribute : attributes.asList()) {

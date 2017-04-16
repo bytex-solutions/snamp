@@ -5,8 +5,6 @@ import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
-import java.time.Duration;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.*;
 

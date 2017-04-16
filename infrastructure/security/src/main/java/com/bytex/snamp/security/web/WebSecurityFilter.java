@@ -17,9 +17,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SignatureException;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.LinkedList;
 import java.util.Objects;
 import java.util.logging.Logger;
 

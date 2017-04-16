@@ -115,11 +115,9 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     @Test
     public void notificationTest() throws Exception {
         final ManagedResourceConnector resourceConnector = getManagementConnector();
-        final NotificationSupport notificationSupport = resourceConnector.queryObject(NotificationSupport.class);
-        final AttributeSupport attributeSupport = resourceConnector.queryObject(AttributeSupport.class);
+        final NotificationSupport notificationSupport = resourceConnector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
+        final AttributeSupport attributeSupport = resourceConnector.queryObject(AttributeSupport.class).orElseThrow(AssertionError::new);
         try {
-            assertNotNull(notificationSupport);
-            assertNotNull(attributeSupport);
             assertEquals(2, notificationSupport.getNotificationInfo().length);
             final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
             final Mailbox listener2 = MailboxFactory.newMailbox("20.1");
@@ -148,12 +146,10 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
             ExecutionException,
             JMException {
         final ManagedResourceConnector resourceConnector = getManagementConnector();
-        final NotificationSupport notificationSupport = resourceConnector.queryObject(NotificationSupport.class);
-        final AttributeSupport attributeSupport = resourceConnector.queryObject(AttributeSupport.class);
-        final OperationSupport operationSupport = resourceConnector.queryObject(OperationSupport.class);
+        final NotificationSupport notificationSupport = resourceConnector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
+        final AttributeSupport attributeSupport = resourceConnector.queryObject(AttributeSupport.class).orElseThrow(AssertionError::new);
+        final OperationSupport operationSupport = resourceConnector.queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
         try {
-            assertNotNull(notificationSupport);
-            assertNotNull(attributeSupport);
             assertEquals(2, notificationSupport.getNotificationInfo().length);
             final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
             final Mailbox listener2 = MailboxFactory.newMailbox("20.1");
@@ -180,7 +176,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public void operationTest() throws Exception{
-        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class);
+        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
         try{
             final byte[] array = new byte[]{1, 4, 9};
             final Object result = operationSupport.invoke("res", new Object[]{array}, new String[]{byte[].class.getName()});
@@ -223,8 +219,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     public void testForMetrics() throws Exception {
         final ManagedResourceConnector client = getManagementConnector();
         try {
-            final MetricsSupport metrics = client.queryObject(MetricsSupport.class);
-            assertNotNull(metrics);
+            final MetricsSupport metrics = client.queryObject(MetricsSupport.class).orElseThrow(AssertionError::new);
             assertTrue(metrics.getMetrics(AttributeMetric.class).iterator().hasNext());
             assertTrue(metrics.getMetrics(NotificationMetric.class).iterator().hasNext());
             assertTrue(metrics.getMetrics(OperationMetric.class).iterator().hasNext());

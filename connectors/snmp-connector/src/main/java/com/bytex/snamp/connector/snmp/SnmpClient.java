@@ -167,8 +167,15 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             }
 
             @Override
-            public <T> T queryObject(@Nonnull final Class<T> objectType) {
-                return objectType.isInstance(threadPool) ? objectType.cast(threadPool) : null;
+            public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+                final Optional<?> result;
+                if (objectType.isInstance(this))
+                    result = Optional.of(this);
+                else if (objectType.isInstance(threadPool))
+                    result = Optional.of(threadPool);
+                else
+                    result = Optional.empty();
+                return result.map(objectType::cast);
             }
         };
     }
@@ -203,8 +210,15 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             }
 
             @Override
-            public <T> T queryObject(@Nonnull final Class<T> objectType) {
-                return objectType.isInstance(threadPool) ? objectType.cast(threadPool) : null;
+            public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+                final Optional<?> result;
+                if(objectType.isInstance(this))
+                    result = Optional.of(this);
+                else if(objectType.isInstance(threadPool))
+                    result = Optional.of(threadPool);
+                else
+                    result = Optional.empty();
+                return result.map(objectType::cast);
             }
         };
     }

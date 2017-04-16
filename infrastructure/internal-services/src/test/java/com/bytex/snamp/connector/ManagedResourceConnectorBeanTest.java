@@ -174,7 +174,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         //enables notifications
         assertNotNull(connector.getNotificationSupport().enableNotifications("propertyChanged", makeEventConfig("propertyChanged")));
         final Mailbox listener = MailboxFactory.newMailbox();
-        connector.queryObject(NotificationSupport.class).addNotificationListener(listener, listener, null);
+        connector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new).addNotificationListener(listener, listener, null);
         assertEquals(connector.getProperty1(), connector.getAttribute("p1"));
         connector.setAttribute(new AttributeValue("p1", "1234567890", SimpleType.STRING));
         final Notification n = listener.poll(10, TimeUnit.SECONDS);

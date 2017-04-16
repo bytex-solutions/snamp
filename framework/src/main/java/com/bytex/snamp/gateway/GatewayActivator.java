@@ -259,10 +259,9 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         activationProperties.publish(GATEWAY_TYPE_HOLDER, gatewayType);
         activationProperties.publish(LOGGER_HOLDER, logger);
         {
-            final ConfigurationManager configurationManager = dependencies.getDependency(ConfigurationManager.class);
-            assert configurationManager != null;
-            final CMGatewayParser parser = configurationManager.queryObject(CMGatewayParser.class);
-            assert parser != null : "CMGatewayParser is not supported";
+            final CMGatewayParser parser = dependencies.getDependency(ConfigurationManager.class)
+                    .flatMap(manager -> manager.queryObject(CMGatewayParser.class))
+                    .orElseThrow(AssertionError::new);
             activationProperties.publish(GATEWAY_PARSER_HOLDER, parser);
         }
         logger.info(String.format("Activating gateway of type %s", gatewayType));

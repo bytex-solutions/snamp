@@ -133,9 +133,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
 
         @Override
         protected boolean handleService(final FrameworkMBean mbean, final LogEntry entry) {
-            final LogListener listener = mbean.queryObject(LogListener.class);
-            if (listener != null)
-                listener.logged(entry);
+            mbean.queryObject(LogListener.class).ifPresent(listener -> listener.logged(entry));
             return true;
         }
 
@@ -178,8 +176,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     @Override
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
         activationProperties.publish(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
-        final HttpService httpService = dependencies.getDependency(HttpService.class);
-        assert httpService != null;
+        final HttpService httpService = dependencies.getDependency(HttpService.class).orElseThrow(AssertionError::new);
         try (final SafeCloseable ignored = withContextClassLoader(getClass().getClassLoader())) {
             httpService.registerServlet(ManagementServlet.CONTEXT, new ManagementServlet(), new Hashtable<>(), null);
         }

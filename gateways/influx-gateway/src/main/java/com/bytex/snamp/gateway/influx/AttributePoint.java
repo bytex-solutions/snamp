@@ -28,7 +28,7 @@ final class AttributePoint extends AttributeAccessor {
         final Map fields;
         switch (type = getType()) {
             case DATE:
-                fields = Helpers.toScalar(Convert.toDate(getValue()).getTime());
+                fields = Helpers.toScalar(Convert.toDate(getValue()).orElseThrow(InvalidAttributeValueException::new).getTime());
                 break;
             case CHAR:
                 fields = Helpers.toScalar(String.valueOf(getValue()));

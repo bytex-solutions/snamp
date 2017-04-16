@@ -34,8 +34,7 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
 
     @Override
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
-        final HttpService publisher = dependencies.getDependency(HttpService.class);
-        assert publisher != null;
+        final HttpService publisher = dependencies.getDependency(HttpService.class).orElseThrow(AssertionError::new);
         activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, publisher);
         //register servlet
         publisher.registerServlet(JerseyServletContainer.CONTEXT, new JerseyServletContainer(), new Hashtable<>(), null);

@@ -126,7 +126,9 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
     }
 
     static boolean useRegexpOption(final Descriptor options) {
-        return getField(options, USE_REGEXP_PARAM, Convert::toBoolean).orElse(false);
+        return getField(options, USE_REGEXP_PARAM, Convert::toBoolean)
+                .orElseGet(Optional::empty)
+                .orElse(false);
     }
 
     static boolean checkSignature(final Descriptor options,

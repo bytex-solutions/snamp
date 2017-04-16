@@ -97,7 +97,7 @@ final class DescriptorDictionary extends Dictionary<String, Object> {
      */
     @Override
     public Object get(final Object key) {
-        return Convert.toType(key, String.class, this::get);
+        return get(Convert.toType(key, String.class).orElseThrow(ClassCastException::new));
     }
 
     /**
@@ -154,6 +154,6 @@ final class DescriptorDictionary extends Dictionary<String, Object> {
      */
     @Override
     public Object remove(final Object key) {
-        return Convert.toType(key, String.class, this::remove);
+        return remove(Convert.toType(key, String.class).orElseThrow(ClassCastException::new));
     }
 }

@@ -233,10 +233,9 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         activationProperties.publish(SUPERVISOR_TYPE_HOLDER, supervisorType);
         activationProperties.publish(LOGGER_HOLDER, logger);
         {
-            final ConfigurationManager configurationManager = dependencies.getDependency(ConfigurationManager.class);
-            assert configurationManager != null;
-            final CMSupervisorParser parser = configurationManager.queryObject(CMSupervisorParser.class);
-            assert parser != null : "Supervisor parser is not supported";
+            final CMSupervisorParser parser = dependencies.getDependency(ConfigurationManager.class)
+                    .flatMap(manager -> manager.queryObject(CMSupervisorParser.class))
+                    .orElseThrow(AssertionError::new);
             activationProperties.publish(SUPERVISOR_PARSER_HOLDER, parser);
         }
         logger.info(String.format("Activating supervisor of type %s", supervisorType));

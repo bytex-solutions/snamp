@@ -7,17 +7,20 @@ import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
-import com.bytex.snamp.supervision.SupervisorActivator;
-import com.bytex.snamp.supervision.SupervisorClient;
-import com.bytex.snamp.supervision.SupervisorFilterBuilder;
 import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.gateway.GatewayFilterBuilder;
+import com.bytex.snamp.supervision.SupervisorActivator;
+import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.SupervisorFilterBuilder;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;

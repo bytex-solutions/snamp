@@ -280,6 +280,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         try {
             connector
                     .queryObject(NotificationSupport.class)
+                    .orElseThrow(AssertionError::new)
                     .addNotificationListener(listener, listener, null);
             sender.accept(connector);
         } finally {

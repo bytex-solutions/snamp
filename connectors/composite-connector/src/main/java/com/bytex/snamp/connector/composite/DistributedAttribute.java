@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
+import javax.annotation.Nonnull;
 import javax.management.DescriptorRead;
 import java.io.Serializable;
 
@@ -12,6 +13,7 @@ interface DistributedAttribute extends DescriptorRead {
     boolean isReadable();
     boolean isWritable();
     boolean isIs();
+    @Nonnull
     Serializable takeSnapshot();
-    void loadFromSnapshot(final Serializable state);
+    void loadFromSnapshot(@Nonnull final Serializable state);
 }

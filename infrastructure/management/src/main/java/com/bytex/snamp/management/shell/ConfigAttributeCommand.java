@@ -2,7 +2,10 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceTemplate;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;

@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.composite;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.AbstractMetric;
 
+import javax.annotation.Nonnull;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import java.io.Serializable;
@@ -38,13 +39,14 @@ abstract class MetricAttribute<M extends AbstractMetric> extends AbstractComposi
     abstract CompositeData getValue(final M metric);
 
     @Override
+    @Nonnull
     public final M takeSnapshot() {
         return metric;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void loadFromSnapshot(final Serializable state) {
+    public void loadFromSnapshot(@Nonnull final Serializable state) {
         if (isInstance.test(state))
             metric = (M) state;
     }

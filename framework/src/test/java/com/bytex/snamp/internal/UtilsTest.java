@@ -1,6 +1,9 @@
 package com.bytex.snamp.internal;
 
-import com.bytex.snamp.*;
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.SpinWait;
 import org.junit.Assert;
 import org.junit.Test;

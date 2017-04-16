@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 import javax.annotation.Nonnull;

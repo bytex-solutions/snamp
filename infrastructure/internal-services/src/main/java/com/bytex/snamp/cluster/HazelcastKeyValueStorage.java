@@ -96,7 +96,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
 
         @Override
         public long getAsLong() {
-            return Convert.toLong(getValue());
+            return Convert.toLong(getValue()).orElseThrow(NumberFormatException::new);
         }
 
         @Override
@@ -106,7 +106,7 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
 
         @Override
         public double getAsDouble() {
-            return Convert.toDouble(getValue());
+            return Convert.toDouble(getValue()).orElseThrow(NumberFormatException::new);
         }
 
         @Override

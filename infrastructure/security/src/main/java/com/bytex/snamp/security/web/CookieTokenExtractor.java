@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Cookie;
 import java.util.Objects;
 import java.util.Optional;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**

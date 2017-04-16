@@ -21,7 +21,8 @@ import java.security.KeyStore;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.bytex.snamp.MapUtils.*;
+import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.MapUtils.getValueAsInt;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**

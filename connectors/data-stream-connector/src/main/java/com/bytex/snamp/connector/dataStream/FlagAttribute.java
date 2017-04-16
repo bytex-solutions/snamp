@@ -1,9 +1,9 @@
 package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.instrumentation.measurements.jmx.ValueMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RatedFlagRecorder;
 import com.bytex.snamp.instrumentation.measurements.BooleanMeasurement;
+import com.bytex.snamp.instrumentation.measurements.jmx.ValueMeasurementNotification;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;

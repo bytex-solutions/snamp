@@ -111,11 +111,12 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
      * @return Requested object.
      * @see NotificationSupport#setSource(Aggregator) 
      */
-    public static <T> Optional<T> extractFromNotification(@Nonnull final Notification n, @Nonnull final Class<T> objectType){
-        if(n.getSource() instanceof Aggregator){
-            final Aggregator source = (Aggregator) n.getSource();
-            return Optional.ofNullable(source.queryObject(objectType));
-        }
-        return Optional.empty();
+    public static <T> Optional<T> extractFromNotification(@Nonnull final Notification n, @Nonnull final Class<T> objectType) {
+        if (objectType.isInstance(n))
+            return Optional.of(n).map(objectType::cast);
+        else if (n.getSource() instanceof Aggregator)
+            return ((Aggregator) n.getSource()).queryObject(objectType);
+        else
+            return Optional.empty();
     }
 }

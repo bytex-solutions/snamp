@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.bytex.snamp.connector.attributes.AttributeSupport.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -130,8 +131,9 @@ public class AttributeDescriptor extends ImmutableDescriptor implements FeatureD
     }
 
     public static Duration getReadWriteTimeout(final Descriptor metadata) {
-        final Object timeout = metadata.getFieldValue(READ_WRITE_TIMEOUT_FIELD);
-        return timeout == null ? null : Convert.toDuration(timeout);
+        return Optional.ofNullable(metadata.getFieldValue(READ_WRITE_TIMEOUT_FIELD))
+                .flatMap(Convert::toDuration)
+                .orElse(null);
     }
 
     public static Duration getReadWriteTimeout(final MBeanAttributeInfo metadata){

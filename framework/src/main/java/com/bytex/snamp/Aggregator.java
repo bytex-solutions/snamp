@@ -2,10 +2,7 @@ package com.bytex.snamp;
 
 
 import javax.annotation.Nonnull;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Represents an object that aggregates another objects.<br/>
@@ -37,11 +34,12 @@ public interface Aggregator {
      */
     Aggregator EMPTY = new Aggregator() {
         @Override
-        public <T> T queryObject(@Nonnull final Class<T> objectType) {
-            return null;
+        public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+            return Optional.empty();
         }
 
         @Override
+        @Nonnull
         public Aggregator compose(@Nonnull final Aggregator other) {
             return other;
         }
@@ -52,38 +50,27 @@ public interface Aggregator {
      *
      * @param objectType Type of the requested object.
      * @param <T>        Type of the aggregated object.
-     * @return An instance of the aggregated object; or {@literal null} if object is not available.
+     * @return An instance of the aggregated object.
      */
-    <T> T queryObject(@Nonnull final Class<T> objectType);
+    <T> Optional<T> queryObject(@Nonnull final Class<T> objectType);
 
+    @Nonnull
     default Aggregator compose(@Nonnull final Aggregator other) {
         final class AggregatorComposition implements Aggregator {
             @Override
-            public <T> T queryObject(@Nonnull final Class<T> objectType) {
-                final T obj = Aggregator.this.queryObject(objectType);
-                return obj == null ? other.queryObject(objectType) : obj;
+            public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+                final Optional<T> obj = Aggregator.this.queryObject(objectType);
+                return obj.isPresent() ? obj : other.queryObject(objectType);
             }
         }
 
         return new AggregatorComposition();
     }
 
-    static <I, O> Optional<O> queryAndApply(final Aggregator a, final Class<I> type, final Function<? super I, ? extends O> processing) {
-        final I obj = a.queryObject(type);
-        return obj == null ? Optional.empty() : Optional.of(processing.apply(obj));
-    }
-
-    static <I, O> O queryAndApply(final Aggregator a, final Class<I> type, final Function<? super I, ? extends O> processing, final Supplier<? extends O> fallback) {
-        return queryAndApply(a, type, processing).orElseGet(fallback);
-    }
-
     static <I, E extends Throwable> boolean queryAndAccept(final Aggregator a, final Class<I> type, final Acceptor<? super I, E> processing) throws E {
-        final I obj = a.queryObject(type);
-        if (obj == null)
-            return false;
-        else {
-            processing.accept(obj);
-            return true;
-        }
+        final Optional<I> obj = a.queryObject(type);
+        if (obj.isPresent())
+            processing.accept(obj.get());
+        return obj.isPresent();
     }
 }

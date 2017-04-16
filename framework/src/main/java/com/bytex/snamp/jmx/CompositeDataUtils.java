@@ -17,8 +17,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Provides helper methods that allows to create and

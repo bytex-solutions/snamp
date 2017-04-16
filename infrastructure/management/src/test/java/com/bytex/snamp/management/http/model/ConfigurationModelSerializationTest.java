@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.http.model;
 
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.impl.SerializableAgentConfiguration;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;

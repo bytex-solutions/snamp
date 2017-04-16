@@ -7,6 +7,8 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 import javax.annotation.Nonnull;
 import javax.management.Attribute;
 
+import java.util.OptionalDouble;
+
 import static com.bytex.snamp.Convert.toDouble;
 
 /**
@@ -57,9 +59,9 @@ public final class NumberComparatorPredicate implements ColoredAttributePredicat
 
         abstract boolean test(final double actual, final double expected);
 
-        final boolean test(final Attribute attribute, final double value){
-            final double actual = toDouble(attribute.getValue());
-            return test(actual, value);
+        final boolean test(final Attribute attribute, final double value) {
+            final OptionalDouble actual = toDouble(attribute.getValue());
+            return actual.isPresent() && test(actual.getAsDouble(), value);
         }
     }
 

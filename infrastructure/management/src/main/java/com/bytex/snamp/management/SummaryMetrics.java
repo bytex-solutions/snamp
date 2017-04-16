@@ -38,19 +38,18 @@ public final class SummaryMetrics extends ImmutableMetrics {
 
         final <O> Stream<O> toStream(final Function<? super M, ? extends O> reader) {
             return ManagedResourceConnectorClient.filterBuilder().getResources(context).stream()
-                    .flatMap(resourceName -> {
+                    .map(resourceName -> {
                         final Optional<ManagedResourceConnectorClient> connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
-                        MetricsSupport metrics;
                         if (connector.isPresent())
                             try (final ManagedResourceConnectorClient client = connector.get()) {
-                                metrics = client.queryObject(MetricsSupport.class);
+                                return client.queryObject(MetricsSupport.class);
                             }
                         else
-                            metrics = null;
-                        return metrics == null ?
-                                Stream.empty() :
-                                StreamSupport.stream(metrics.getMetrics(metricsType).spliterator(), false).map(reader);
-                    });
+                            return Optional.<MetricsSupport>empty();
+                    })
+                    .filter(Optional::<MetricsSupport>isPresent)
+                    .map(Optional::<MetricsSupport>get)
+                    .flatMap(support -> StreamSupport.stream(support.getMetrics(metricsType).spliterator(), false).map(reader));
         }
 
         @Override

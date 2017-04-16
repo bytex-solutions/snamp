@@ -16,12 +16,8 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.*;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -52,7 +48,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     OBJECT_NAME("objectname", SimpleType.OBJECTNAME) {
         @Override
         public ObjectName convert(final Object value) throws ClassCastException {
-            return Convert.toType(value, ObjectName.class, Function.identity(), v -> WellKnownType.parseObjectName(v.toString()));
+            return Convert.toType(value, ObjectName.class).orElseGet(() -> WellKnownType.parseObjectName(value.toString()));
         }
     },
 
@@ -71,8 +67,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
      */
     BYTE("int8", SimpleType.BYTE) {
         @Override
-        public Byte convert(final Object value) {
-            return Convert.toByte(value);
+        public Byte convert(final Object value) throws ClassCastException {
+            return Convert.toByte(value, CONVERSION_EXCEPTION);
         }
     },
 
@@ -81,8 +77,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
      */
     CHAR("char", SimpleType.CHARACTER) {
         @Override
-        public Character convert(final Object value) {
-            return Convert.toChar(value);
+        public Character convert(final Object value) throws ClassCastException {
+            return Convert.toChar(value, CONVERSION_EXCEPTION);
         }
     },
 
@@ -91,8 +87,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
      */
     SHORT("int16", SimpleType.SHORT) {
         @Override
-        public Short convert(final Object value) {
-            return Convert.toShort(value);
+        public Short convert(final Object value) throws ClassCastException {
+            return Convert.toShort(value, CONVERSION_EXCEPTION);
         }
     },
 
@@ -102,7 +98,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     INT("int32", SimpleType.INTEGER) {
         @Override
         public Integer convert(final Object value) throws ClassCastException {
-            return Convert.toInt(value);
+            return Convert.toInt(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -112,7 +108,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     LONG("int64", SimpleType.LONG) {
         @Override
         public Long convert(final Object value) throws ClassCastException {
-            return Convert.toLong(value);
+            return Convert.toLong(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -122,7 +118,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     BOOL("bool", SimpleType.BOOLEAN) {
         @Override
         public Boolean convert(final Object value) throws ClassCastException {
-            return Convert.toBoolean(value);
+            return Convert.toBoolean(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -132,7 +128,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     FLOAT("float32", SimpleType.FLOAT) {
         @Override
         public Float convert(final Object value) throws ClassCastException {
-            return Convert.toFloat(value);
+            return Convert.toFloat(value, CONVERSION_EXCEPTION);
         }
     },
 
@@ -142,7 +138,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     DOUBLE("float64", SimpleType.DOUBLE) {
         @Override
         public Double convert(final Object value) throws ClassCastException {
-            return Convert.toDouble(value);
+            return Convert.toDouble(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -152,7 +148,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     DATE("datetime", SimpleType.DATE) {
         @Override
         public Date convert(final Object value) throws ClassCastException {
-            return Convert.toDate(value);
+            return Convert.toDate(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -162,7 +158,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     BIG_INT("bigint", SimpleType.BIGINTEGER) {
         @Override
         public BigInteger convert(final Object value) throws ClassCastException {
-            return Convert.toBigInteger(value);
+            return Convert.toBigInteger(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -172,7 +168,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     BIG_DECIMAL("bigdecimal", SimpleType.BIGDECIMAL) {
         @Override
         public BigDecimal convert(final Object value) throws ClassCastException {
-            return Convert.toBigDecimal(value);
+            return Convert.toBigDecimal(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -182,7 +178,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     BYTE_BUFFER("buffer(int8)", ByteBuffer.class) {
         @Override
         public ByteBuffer convert(final Object value) throws ClassCastException {
-            return Convert.toByteBuffer(value);
+            return Convert.toByteBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -192,7 +188,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     CHAR_BUFFER("buffer(char)", CharBuffer.class) {
         @Override
         public CharBuffer convert(final Object value) throws ClassCastException {
-            return Convert.toCharBuffer(value);
+            return Convert.toCharBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -202,7 +198,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     SHORT_BUFFER("buffer(int16)", ShortBuffer.class) {
         @Override
         public ShortBuffer convert(final Object value) throws ClassCastException {
-            return Convert.toShortBuffer(value);
+            return Convert.toShortBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -212,7 +208,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     INT_BUFFER("buffer(int32)", IntBuffer.class) {
         @Override
         public IntBuffer convert(final Object value) throws ClassCastException {
-            return Convert.toIntBuffer(value);
+            return Convert.toIntBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -222,7 +218,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     LONG_BUFFER("buffer(int64)", LongBuffer.class) {
         @Override
         public LongBuffer convert(final Object value) throws ClassCastException {
-            return Convert.toLongBuffer(value);
+            return Convert.toLongBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -232,7 +228,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     FLOAT_BUFFER("buffer(float32)", FloatBuffer.class) {
         @Override
         public FloatBuffer convert(final Object value) throws ClassCastException {
-            return Convert.toFloatBuffer(value);
+            return Convert.toFloatBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -242,7 +238,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     DOUBLE_BUFFER("buffer(float64)", DoubleBuffer.class) {
         @Override
         public DoubleBuffer convert(final Object value) throws ClassCastException {
-            return Convert.toDoubleBuffer(value);
+            return Convert.toDoubleBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -252,7 +248,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     BYTE_ARRAY("array(int8)", SimpleType.BYTE, true) {
         @Override
         public byte[] convert(final Object value) throws ClassCastException {
-            return Convert.toByteArray(value);
+            return Convert.toByteArray(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -262,7 +258,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     WRAPPED_BYTE_ARRAY("array(int8&)", SimpleType.BYTE, false) {
         @Override
         public Byte[] convert(final Object value) throws ClassCastException {
-            return value instanceof Byte[] ? (Byte[]) value : ArrayUtils.wrapArray(Convert.toByteArray(value));
+            return Convert.toType(value, Byte[].class)
+                    .orElseGet(() -> Convert.toByteArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
         }
     },
 
@@ -272,7 +269,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     CHAR_ARRAY("array(char)", SimpleType.CHARACTER, true) {
         @Override
         public char[] convert(final Object value) throws ClassCastException {
-            return Convert.toCharArray(value);
+            return Convert.toCharArray(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -282,7 +279,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     WRAPPED_CHAR_ARRAY("array(char&)", SimpleType.CHARACTER, false) {
         @Override
         public Character[] convert(final Object value) throws ClassCastException {
-            return value instanceof Character[] ? (Character[]) value : ArrayUtils.wrapArray(Convert.toCharArray(value));
+            return Convert.toType(value, Character[].class)
+                    .orElseGet(() -> Convert.toCharArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
         }
     },
 
@@ -292,7 +290,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     SHORT_ARRAY("array(int16)", SimpleType.SHORT, true) {
         @Override
         public short[] convert(final Object value) throws ClassCastException {
-            return Convert.toShortArray(value);
+            return Convert.toShortArray(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -302,7 +300,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     WRAPPED_SHORT_ARRAY("array(int16&)", SimpleType.SHORT, false) {
         @Override
         public Short[] convert(final Object value) throws ClassCastException {
-            return value instanceof Short[] ? (Short[]) value : ArrayUtils.wrapArray(Convert.toShortArray(value));
+            return Convert.toType(value, Short[].class)
+                    .orElseGet(() -> Convert.toShortArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
         }
     },
 
@@ -312,7 +311,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     INT_ARRAY("array(int32)", SimpleType.INTEGER, true) {
         @Override
         public int[] convert(final Object value) throws ClassCastException {
-            return Convert.toIntArray(value);
+            return Convert.toIntArray(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -322,7 +321,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     WRAPPED_INT_ARRAY("array(int32&)", SimpleType.INTEGER, false) {
         @Override
         public Integer[] convert(final Object value) throws ClassCastException {
-            return value instanceof Integer[] ? (Integer[]) value : ArrayUtils.wrapArray(Convert.toIntArray(value));
+            return Convert.toType(value, Integer[].class)
+                    .orElseGet(() -> Convert.toIntArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
         }
     },
 
@@ -332,7 +332,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     LONG_ARRAY("array(int64)", SimpleType.LONG, true) {
         @Override
         public long[] convert(final Object value) throws ClassCastException {
-            return Convert.toLongArray(value);
+            return Convert.toLongArray(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -342,7 +342,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     WRAPPED_LONG_ARRAY("array(int64&)", SimpleType.LONG, false) {
         @Override
         public Long[] convert(final Object value) throws ClassCastException {
-            return value instanceof Long[] ? (Long[]) value : ArrayUtils.wrapArray(Convert.toLongArray(value));
+            return Convert.toType(value, Long[].class)
+                    .orElseGet(() -> Convert.toLongArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
         }
     },
 
@@ -352,7 +353,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     BOOL_ARRAY("array(bool)", SimpleType.BOOLEAN, true) {
         @Override
         public boolean[] convert(final Object value) throws ClassCastException {
-            return Convert.toBooleanArray(value);
+            return Convert.toBooleanArray(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -362,7 +363,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     WRAPPED_BOOL_ARRAY("array(bool&)", SimpleType.BOOLEAN, false) {
         @Override
         public Boolean[] convert(final Object value) throws ClassCastException {
-            return value instanceof Boolean[] ? (Boolean[]) value : ArrayUtils.wrapArray(Convert.toBooleanArray(value));
+            return Convert.toType(value, Boolean[].class)
+                    .orElseGet(() -> Convert.toBooleanArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
         }
     },
 
@@ -372,7 +374,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     FLOAT_ARRAY("array(float32)", SimpleType.FLOAT, true) {
         @Override
         public float[] convert(final Object value) throws ClassCastException {
-            return Convert.toFloatArray(value);
+            return Convert.toFloatArray(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -382,7 +384,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     WRAPPED_FLOAT_ARRAY("array(float32&)", SimpleType.FLOAT, false) {
         @Override
         public Float[] convert(final Object value) throws ClassCastException {
-            return value instanceof Float[] ? (Float[]) value : ArrayUtils.wrapArray(Convert.toFloatArray(value));
+            return Convert.toType(value, Float[].class)
+                    .orElseGet(() -> Convert.toFloatArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
         }
     },
 
@@ -392,7 +395,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     DOUBLE_ARRAY("array(float64)", SimpleType.DOUBLE, true) {
         @Override
         public double[] convert(final Object value) throws ClassCastException {
-            return Convert.toDoubleArray(value);
+            return Convert.toDoubleArray(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -402,7 +405,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     WRAPPED_DOUBLE_ARRAY("array(float64&)", SimpleType.DOUBLE, false) {
         @Override
         public Double[] convert(final Object value) throws ClassCastException {
-            return value instanceof Double[] ? (Double[]) value : ArrayUtils.wrapArray(Convert.toDoubleArray(value));
+            return Convert.toType(value, Double[].class)
+                    .orElseGet(() -> Convert.toDoubleArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
         }
     },
 
@@ -412,7 +416,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     STRING_ARRAY("array(string)", SimpleType.STRING, false) {
         @Override
         public String[] convert(final Object value) throws ClassCastException {
-            return Convert.toStringArray(value);
+            return Convert.toStringArray(value).orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -422,12 +426,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     DATE_ARRAY("array(datetime)", SimpleType.DATE, false) {
         @Override
         public Date[] convert(final Object value) throws ClassCastException {
-            if(value instanceof Date[])
-                return (Date[]) value;
-            else if(value instanceof Object[])
-                return ArrayUtils.transform((Object[]) value, Date.class, Convert::toDate);
-            else
-                return new Date[]{ Convert.toDate(value) };
+            return Convert.toArray(value, Date[].class, Convert::toDate)
+                    .orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -437,12 +437,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     BIG_INT_ARRAY("array(bigint)", SimpleType.BIGINTEGER, false) {
         @Override
         public BigInteger[] convert(final Object value) throws ClassCastException {
-            if(value instanceof BigInteger[])
-                return (BigInteger[]) value;
-            else if(value instanceof Object[])
-                return ArrayUtils.transform((Object[]) value, BigInteger.class, Convert::toBigInteger);
-            else
-                return new BigInteger[]{ Convert.toBigInteger(value) };
+            return Convert.toArray(value, BigInteger[].class, Convert::toBigInteger)
+                    .orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -452,12 +448,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     BIG_DECIMAL_ARRAY("array(bigdecimal)", SimpleType.BIGDECIMAL, false) {
         @Override
         public BigDecimal[] convert(final Object value) throws ClassCastException {
-            if(value instanceof BigDecimal[])
-                return (BigDecimal[]) value;
-            else if(value instanceof Object[])
-                return ArrayUtils.transform((Object[]) value, BigDecimal.class, Convert::toBigDecimal);
-            else
-                return new BigDecimal[]{ Convert.toBigDecimal(value) };
+            return Convert.toArray(value, BigDecimal[].class, Convert::toBigDecimal)
+                    .orElseThrow(CONVERSION_EXCEPTION);
         }
     },
 
@@ -467,9 +459,10 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     OBJECT_NAME_ARRAY("array(objectname)", SimpleType.OBJECTNAME, false) {
         @Override
         public ObjectName[] convert(final Object value) throws ClassCastException {
-            return value instanceof ObjectName[] ?
-                    (ObjectName[]) value :
-                    ArrayUtils.transform(Convert.toStringArray(value), ObjectName.class, WellKnownType::parseObjectName);
+            return Convert.toType(value, ObjectName[].class)
+                    .orElseGet(() -> Convert.toStringArray(value)
+                            .map(strings -> ArrayUtils.transform(strings, ObjectName.class, WellKnownType::parseObjectName))
+                            .orElseThrow(CONVERSION_EXCEPTION));
         }
     },
 
@@ -560,6 +553,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     private static final LoadingCache<Object, WellKnownType> CACHE =
             CacheBuilder.newBuilder().weakKeys().build(new WellKnownTypeCacheLoader());
 
+    private static final Supplier<ClassCastException> CONVERSION_EXCEPTION = () -> new ClassCastException("Unsupported conversion");
     private final OpenType<?> openType;
     private final Class<?> javaType;
     private final String displayName;

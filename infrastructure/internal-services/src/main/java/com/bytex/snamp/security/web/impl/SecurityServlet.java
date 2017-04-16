@@ -5,11 +5,9 @@ import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.HttpRequestContext;
 import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitializer;
-import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 import javax.ws.rs.core.Application;
-import java.util.logging.Logger;
 
 /**
  * Provides access to login endpoint.

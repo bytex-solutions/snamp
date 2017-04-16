@@ -12,6 +12,7 @@ import org.osgi.framework.wiring.BundleRevision;
 import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -71,7 +72,7 @@ public interface Supervisor extends StatefulFrameworkService, Closeable {
      * @see ElasticityManager
      */
     @Override
-    <T> T queryObject(@Nonnull final Class<T> objectType);
+    <T> Optional<T> queryObject(@Nonnull final Class<T> objectType);
 
     static String getSupervisorType(final Bundle bnd) {
         final BundleRevision revision = bnd.adapt(BundleRevision.class);

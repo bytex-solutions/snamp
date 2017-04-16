@@ -93,11 +93,10 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
     }
 
     private void sync(final String storageKey, final M attribute) {
-        if (isActiveNode(getBundleContext())) {   //save snapshot of the active node into cluster-wide storage
-            final Serializable snapshot = takeSnapshot(attribute);
-            if (snapshot != null)
-                storage.updateOrCreateRecord(storageKey, KeyValueStorage.SerializableRecordView.class, record -> record.setValue(snapshot));
-        } else     //passive node should reload its state from the storage
+        if (isActiveNode(getBundleContext()))    //save snapshot of the active node into cluster-wide storage
+            takeSnapshot(attribute)
+                    .ifPresent(serializable -> storage.updateOrCreateRecord(storageKey, KeyValueStorage.SerializableRecordView.class, record -> record.setValue(serializable)));
+        else     //passive node should reload its state from the storage
             storage.getRecord(storageKey, KeyValueStorage.SerializableRecordView.class).ifPresent(record -> loadFromSnapshot(attribute, record.getValue()));
     }
 
@@ -121,7 +120,7 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
      * @param attribute The attribute that should be synchronized across cluster.
      * @return Serializable state of the attribute; or {@literal null}, if attribute doesn't support synchronization across cluster.
      */
-    protected abstract Serializable takeSnapshot(final M attribute);
+    protected abstract Optional<? extends Serializable> takeSnapshot(final M attribute);
 
     /**
      * Initializes state of the attribute using its serializable snapshot.

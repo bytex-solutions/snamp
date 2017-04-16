@@ -116,8 +116,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements FeatureD
     }
 
     public static Duration getInvocationTimeout(final Descriptor descriptor){
-        final Object fieldValue = descriptor.getFieldValue(INVOCATION_TIMEOUT_FIELD);
-        return fieldValue == null ? null :Convert.toDuration(fieldValue);
+        return Convert.toDuration(descriptor.getFieldValue(INVOCATION_TIMEOUT_FIELD)).orElse(null);
     }
 
     public final Duration getInvocationTimeout(){

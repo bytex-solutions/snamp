@@ -1,7 +1,10 @@
 package com.bytex.snamp.supervision;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.bytex.snamp.configuration.SupervisorConfiguration;
+import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
@@ -207,9 +210,8 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
      * @see ElasticityManager
      */
     @Override
-    public <T> T queryObject(@Nonnull final Class<T> objectType) {
-        final Supervisor service = get();
-        return service == null ? null : service.queryObject(objectType);
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        return Optional.ofNullable(get()).flatMap(supervisor -> supervisor.queryObject(objectType));
     }
 
     @Override

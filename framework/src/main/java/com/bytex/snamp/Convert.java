@@ -2,12 +2,14 @@ package com.bytex.snamp;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.io.Buffers;
+import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.Chars;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 import com.google.common.reflect.TypeToken;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
@@ -16,9 +18,7 @@ import java.math.BigInteger;
 import java.nio.*;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.*;
 
 /**
@@ -32,16 +32,8 @@ public final class Convert {
     private static abstract class TypeConverter<C> extends ClassMap<C> {
         private static final long serialVersionUID = -2745877310143387409L;
 
-        private Optional<C> getConverter(final Object value) {
+        Optional<C> getConverter(final Object value) {
             return Optional.ofNullable(getOrAdd(value.getClass()));
-        }
-
-        private <E extends Throwable> C getConverter(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{
-            final Optional<C> converter = getConverter(value);
-            if(converter.isPresent())
-                return converter.get();
-            else
-                throw exceptionFactory.apply(value);
         }
     }
 
@@ -53,42 +45,62 @@ public final class Convert {
             return this;
         }
 
-        @SuppressWarnings("unchecked")
-        private <E extends Throwable> int convert(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-            return super.getConverter(value, exceptionFactory).applyAsInt(value);
+        OptionalInt convert(final Object value) {
+            final Optional<ToIntFunction> converter = getConverter(value);
+            OptionalInt result = OptionalInt.empty();
+            if(converter.isPresent()) {
+                @SuppressWarnings("unchecked") final int i = converter.get().applyAsInt(value);
+                result = OptionalInt.of(i);
+            }
+            return result;
         }
     }
 
     private static final class ToLongConverter extends TypeConverter<ToLongFunction>{
         private static final long serialVersionUID = 1973865787305278420L;
 
-        private <T> ToLongConverter addConverter(final Class<T> type, final ToLongFunction<? super T> converter){
+        <T> ToLongConverter addConverter(final Class<T> type, final ToLongFunction<? super T> converter){
             put(type, converter);
             return this;
         }
 
-        @SuppressWarnings("unchecked")
-        private <E extends Throwable> long convert(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-            return super.getConverter(value, exceptionFactory).applyAsLong(value);
+        OptionalLong convert(final Object value) {
+            final Optional<ToLongFunction> converter = getConverter(value);
+            OptionalLong result = OptionalLong.empty();
+            if(converter.isPresent()) {
+                @SuppressWarnings("unchecked") final long i = converter.get().applyAsLong(value);
+                result = OptionalLong.of(i);
+            }
+            return result;
         }
     }
 
     private static final class ToDoubleConverter extends TypeConverter<ToDoubleFunction>{
         private static final long serialVersionUID = 7425665427678455939L;
 
-        private <T> ToDoubleConverter addConverter(final Class<T> type, final ToDoubleFunction<? super T> converter){
+        <T> ToDoubleConverter addConverter(final Class<T> type, final ToDoubleFunction<? super T> converter){
             put(type, converter);
             return this;
         }
 
-        @SuppressWarnings("unchecked")
-        private <E extends Throwable> double convert(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-            return super.getConverter(value, exceptionFactory).applyAsDouble(value);
+        OptionalDouble convert(final Object value) {
+            final Optional<ToDoubleFunction> converter = getConverter(value);
+            OptionalDouble result = OptionalDouble.empty();
+            if (converter.isPresent()) {
+                @SuppressWarnings("unchecked") final double f = converter.get().applyAsDouble(value);
+                result = OptionalDouble.of(f);
+            }
+            return result;
         }
     }
 
     private static final class ToTypeConverter<O> extends TypeConverter<Function> {
         private static final long serialVersionUID = 3279547883268029767L;
+        private final Class<O> outputType;
+
+        ToTypeConverter(@Nonnull final Class<O> type){
+            outputType = type;
+        }
 
         private <I> ToTypeConverter<O> addConverter(final Class<I> type, final Function<? super I, ? extends O> converter) {
             put(type, converter);
@@ -96,17 +108,14 @@ public final class Convert {
         }
 
         @SuppressWarnings("unchecked")
-        private <E extends Throwable> O convert(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-            return (O) super.getConverter(value, exceptionFactory).apply(value);
+        Optional<O> convert(final Object value) {
+            return getConverter(value).flatMap(c -> toType(value, outputType));
         }
 
-        @SuppressWarnings("unchecked")
-        private <E extends Throwable, F> O convert(final Object value,
-                                                   final Function<Object, ? extends E> exceptionFactory,
-                                                   final ToTypeConverter<F> fallback,
-                                                   final Function<? super F, ? extends O> fallbackConverter) throws E{
-            final Optional<Function> converter = super.getConverter(value);
-            return converter.isPresent() ? (O) converter.get().apply(value) : fallbackConverter.apply(fallback.convert(value, exceptionFactory));
+        Optional<O> convert(final Object value,
+                                 final Function<Object, Optional<O>> fallback) {
+            final Optional<O> result = convert(value);
+            return result.isPresent() ? result : fallback.apply(value);
         }
     }
 
@@ -226,7 +235,7 @@ public final class Convert {
                 .addConverter(BigInteger.class, v -> v.toString().charAt(0))
                 .addConverter(BigDecimal.class, v -> v.toString().charAt(0));
 
-        TO_BIG_INTEGER = new ToTypeConverter<BigInteger>()
+        TO_BIG_INTEGER = new ToTypeConverter<>(BigInteger.class)
                 .addConverter(BigInteger.class, Function.identity())
                 .<Character>addConverter(Character.class, BigInteger::valueOf)
                 .addConverter(Long.class, BigInteger::valueOf)
@@ -241,7 +250,7 @@ public final class Convert {
                 .addConverter(Instant.class, v -> BigInteger.valueOf(v.toEpochMilli()))
                 .addConverter(Duration.class, v -> BigInteger.valueOf(v.toMillis()));
 
-        TO_BIG_DECIMAL = new ToTypeConverter<BigDecimal>()
+        TO_BIG_DECIMAL = new ToTypeConverter<>(BigDecimal.class)
                 .addConverter(BigDecimal.class, Function.identity())
                 .addConverter(Character.class, BigDecimal::valueOf)
                 .addConverter(Long.class, BigDecimal::valueOf)
@@ -256,7 +265,7 @@ public final class Convert {
                 .addConverter(Instant.class, v -> BigDecimal.valueOf(v.toEpochMilli()))
                 .addConverter(Duration.class, v -> BigDecimal.valueOf(v.toMillis()));
 
-        TO_BOOLEAN = new ToTypeConverter<Boolean>()
+        TO_BOOLEAN = new ToTypeConverter<>(Boolean.class)
                 .addConverter(Boolean.class, Function.identity())
                 .addConverter(Character.class, v -> v != '\0')
                 .addConverter(Long.class, Convert::intToBoolean)
@@ -271,7 +280,7 @@ public final class Convert {
                 .addConverter(Date.class, v -> v.getTime() > 0)
                 .addConverter(Duration.class, v -> v.compareTo(Duration.ZERO) > 0);
 
-        TO_DATE = new ToTypeConverter<Date>()
+        TO_DATE = new ToTypeConverter<>(Date.class)
                 .addConverter(Date.class, Function.identity())
                 .addConverter(Long.class, Date::new)
                 .addConverter(Integer.class, Date::new)
@@ -281,7 +290,7 @@ public final class Convert {
                 .addConverter(Duration.class, v -> new Date(v.toMillis()))
                 .addConverter(Instant.class, Date::from);
 
-        TO_BYTE_BUFFER = new ToTypeConverter<ByteBuffer>()
+        TO_BYTE_BUFFER = new ToTypeConverter<>(ByteBuffer.class)
                 .addConverter(ByteBuffer.class, Function.identity())
                 .addConverter(ShortBuffer.class, Buffers::toByteBuffer)
                 .addConverter(IntBuffer.class, Buffers::toByteBuffer)
@@ -291,22 +300,21 @@ public final class Convert {
                 .addConverter(DoubleBuffer.class, Buffers::toByteBuffer)
                 .addConverter(Byte.class, Buffers::wrap);
 
-        TO_CHAR_BUFFER = new ToTypeConverter<CharBuffer>()
+        TO_CHAR_BUFFER = new ToTypeConverter<>(CharBuffer.class)
                 .addConverter(CharBuffer.class, Function.identity())
                 .addConverter(ByteBuffer.class, ByteBuffer::asCharBuffer)
                 .addConverter(Character.class, Buffers::wrap)
                 .addConverter(String.class, CharBuffer::wrap)
-                .addConverter(char[].class, CharBuffer::wrap)
-                .addConverter(Object.class, v -> toByteBuffer(v).asCharBuffer());
+                .addConverter(char[].class, CharBuffer::wrap);
 
-        TO_SHORT_BUFFER = new ToTypeConverter<ShortBuffer>()
+        TO_SHORT_BUFFER = new ToTypeConverter<>(ShortBuffer.class)
                 .addConverter(ShortBuffer.class, Function.identity())
                 .addConverter(ByteBuffer.class, ByteBuffer::asShortBuffer)
                 .addConverter(Short.class, Buffers::wrap)
                 .addConverter(Byte.class, b -> Buffers.wrap(b.shortValue()))
                 .addConverter(short[].class, ShortBuffer::wrap);
 
-        TO_INT_BUFFER = new ToTypeConverter<IntBuffer>()
+        TO_INT_BUFFER = new ToTypeConverter<>(IntBuffer.class)
                 .addConverter(IntBuffer.class, Function.identity())
                 .addConverter(ByteBuffer.class, ByteBuffer::asIntBuffer)
                 .addConverter(Integer.class, Buffers::wrap)
@@ -316,7 +324,7 @@ public final class Convert {
                 .addConverter(Character.class, c -> Buffers.wrap((int) c))
                 .addConverter(int[].class, IntBuffer::wrap);
 
-        TO_LONG_BUFFER = new ToTypeConverter<LongBuffer>()
+        TO_LONG_BUFFER = new ToTypeConverter<>(LongBuffer.class)
                 .addConverter(LongBuffer.class, Function.identity())
                 .addConverter(ByteBuffer.class, ByteBuffer::asLongBuffer)
                 .addConverter(Long.class, Buffers::wrap)
@@ -328,7 +336,7 @@ public final class Convert {
                 .addConverter(Character.class, c -> Buffers.wrap((long) c))
                 .addConverter(long[].class, LongBuffer::wrap);
 
-        TO_FLOAT_BUFFER = new ToTypeConverter<FloatBuffer>()
+        TO_FLOAT_BUFFER = new ToTypeConverter<>(FloatBuffer.class)
                 .addConverter(FloatBuffer.class, Function.identity())
                 .addConverter(ByteBuffer.class, ByteBuffer::asFloatBuffer)
                 .addConverter(Integer.class, i -> Buffers.wrap(i.floatValue()))
@@ -337,7 +345,7 @@ public final class Convert {
                 .addConverter(Character.class, c -> Buffers.wrap((float) c))
                 .addConverter(float[].class, FloatBuffer::wrap);
 
-        TO_DOUBLE_BUFFER = new ToTypeConverter<DoubleBuffer>()
+        TO_DOUBLE_BUFFER = new ToTypeConverter<>(DoubleBuffer.class)
                 .addConverter(DoubleBuffer.class, Function.identity())
                 .addConverter(ByteBuffer.class, ByteBuffer::asDoubleBuffer)
                 .addConverter(Long.class, l -> Buffers.wrap(l.doubleValue()))
@@ -347,7 +355,7 @@ public final class Convert {
                 .addConverter(Character.class, c -> Buffers.wrap((double) c))
                 .addConverter(double[].class, DoubleBuffer::wrap);
 
-        TO_BYTE_ARRAY = new ToTypeConverter<byte[]>()
+        TO_BYTE_ARRAY = new ToTypeConverter<>(byte[].class)
                 .addConverter(byte[].class, Function.identity())
                 .addConverter(Byte[].class, ArrayUtils::unwrapArray)
                 .addConverter(short[].class, ArrayUtils::toByteArray)
@@ -376,7 +384,7 @@ public final class Convert {
                 .addConverter(BigInteger.class, BigInteger::toByteArray)
                 .addConverter(ByteBuffer.class, Buffers::readRemaining);
 
-        TO_CHAR_ARRAY = new ToTypeConverter<char[]>()
+        TO_CHAR_ARRAY = new ToTypeConverter<>(char[].class)
                 .addConverter(Character.class, c -> new char[]{c})
                 .addConverter(char[].class, Function.identity())
                 .addConverter(byte[].class, ArrayUtils::toCharArray)
@@ -384,7 +392,7 @@ public final class Convert {
                 .addConverter(CharBuffer.class, Buffers::readRemaining)
                 .addConverter(String.class, String::toCharArray);
 
-        TO_SHORT_ARRAY = new ToTypeConverter<short[]>()
+        TO_SHORT_ARRAY = new ToTypeConverter<>(short[].class)
                 .addConverter(Short.class, c -> new short[]{c})
                 .addConverter(Byte.class, b -> new short[]{b})
                 .addConverter(short[].class, Function.identity())
@@ -392,7 +400,7 @@ public final class Convert {
                 .addConverter(Short[].class, ArrayUtils::unwrapArray)
                 .addConverter(ShortBuffer.class, Buffers::readRemaining);
 
-        TO_INT_ARRAY = new ToTypeConverter<int[]>()
+        TO_INT_ARRAY = new ToTypeConverter<>(int[].class)
                 .addConverter(Integer.class, i -> new int[]{i})
                 .addConverter(Short.class, c -> new int[]{c})
                 .addConverter(Byte.class, b -> new int[]{b})
@@ -402,7 +410,7 @@ public final class Convert {
                 .addConverter(Integer[].class, ArrayUtils::unwrapArray)
                 .addConverter(IntBuffer.class, Buffers::readRemaining);
 
-        TO_LONG_ARRAY = new ToTypeConverter<long[]>()
+        TO_LONG_ARRAY = new ToTypeConverter<>(long[].class)
                 .addConverter(Long.class, l -> new long[]{l})
                 .addConverter(Integer.class, i -> new long[]{i})
                 .addConverter(Short.class, c -> new long[]{c})
@@ -413,7 +421,7 @@ public final class Convert {
                 .addConverter(Long[].class, ArrayUtils::unwrapArray)
                 .addConverter(LongBuffer.class, Buffers::readRemaining);
 
-        TO_FLOAT_ARRAY = new ToTypeConverter<float[]>()
+        TO_FLOAT_ARRAY = new ToTypeConverter<>(float[].class)
                 .addConverter(Float.class, f -> new float[]{f})
                 .addConverter(Integer.class, i -> new float[]{i})
                 .addConverter(Short.class, c -> new float[]{c})
@@ -424,7 +432,7 @@ public final class Convert {
                 .addConverter(Float[].class, ArrayUtils::unwrapArray)
                 .addConverter(FloatBuffer.class, Buffers::readRemaining);
 
-        TO_DOUBLE_ARRAY = new ToTypeConverter<double[]>()
+        TO_DOUBLE_ARRAY = new ToTypeConverter<>(double[].class)
                 .addConverter(Float.class, f -> new double[]{f})
                 .addConverter(Double.class, d -> new double[]{d})
                 .addConverter(Long.class, l -> new double[]{l})
@@ -437,7 +445,7 @@ public final class Convert {
                 .addConverter(Double[].class, ArrayUtils::unwrapArray)
                 .addConverter(DoubleBuffer.class, Buffers::readRemaining);
 
-        TO_STRING_ARRAY = new ToTypeConverter<String[]>()
+        TO_STRING_ARRAY = new ToTypeConverter<>(String[].class)
                 .addConverter(String[].class, Function.identity())
                 .addConverter(byte[].class, array -> ArrayUtils.transformByteArray(array, String.class, Integer::toString))
                 .addConverter(Byte[].class, array -> ArrayUtils.transform(array, String.class, Integer::toString))
@@ -463,7 +471,7 @@ public final class Convert {
                 .addConverter(Object[].class, array -> ArrayUtils.transform(array, String.class, Objects::toString))
                 .addConverter(Object.class, v -> new String[]{v.toString()});
 
-        TO_BOOL_ARRAY = new ToTypeConverter<boolean[]>()
+        TO_BOOL_ARRAY = new ToTypeConverter<>(boolean[].class)
                 .addConverter(Boolean.class, b -> new boolean[]{b})
                 .addConverter(Character.class, v -> new boolean[]{v != '\0'})
                 .addConverter(Long.class, v -> new boolean[]{intToBoolean(v)})
@@ -480,7 +488,7 @@ public final class Convert {
                 .addConverter(byte[].class, ArrayUtils::toBoolArray)
                 .addConverter(Boolean[].class, ArrayUtils::unwrapArray);
 
-        TO_DURATION = new ToTypeConverter<Duration>()
+        TO_DURATION = new ToTypeConverter<>(Duration.class)
                 .addConverter(Duration.class, Function.identity())
                 .addConverter(Number.class, n -> Duration.ofNanos(n.longValue()))
                 .addConverter(String.class, Duration::parse)
@@ -544,275 +552,160 @@ public final class Convert {
         else throw new OpenDataException(String.format("Unable cast %s to %s", value, type));
     }
 
-    public static <C, I, O> O toType(final C input,
-                                     final Class<I> expectedType,
-                                     final Function<? super I, ? extends O> then,
-                                     final Function<? super C, ? extends O> fallback){
-        return expectedType.isInstance(input) ? then.apply(expectedType.cast(input)) : fallback.apply(input);
+    public static <I> Optional<I> toType(final Object obj,
+                                         @Nonnull final Class<I> expectedType) {
+        return Optional.ofNullable(obj).filter(expectedType::isInstance).map(expectedType::cast);
     }
 
-    public static <C, I, O> O toType(final C input,
-                                     final Class<I> expectedType,
-                                     final Function<? super I, ? extends O> then){
-        return expectedType.isInstance(input) ? then.apply(expectedType.cast(input)) : null;
+    public static OptionalInt toInt(final Object value){
+        return getInstance().TO_INT.convert(value);
     }
 
-    public static <C, I> int toInt(final C input,
-                                   final Class<I> expectedType,
-                                   final ToIntFunction<? super I> then,
-                                   final ToIntFunction<? super C> fallback){
-        return expectedType.isInstance(input) ? then.applyAsInt(expectedType.cast(input)) : fallback.applyAsInt(input);
+    public static byte toByte(final Object value, final byte defval){
+        return (byte) getInstance().TO_BYTE.convert(value).orElse(defval);
     }
 
-    public static <E extends Throwable> int toInt(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        return getInstance().TO_INT.convert(value, exceptionFactory);
+    public static <E extends Throwable> byte toByte(final Object value, final Supplier<? extends E> exceptionFactory) throws E{
+        return (byte) getInstance().TO_BYTE.convert(value).orElseThrow(exceptionFactory);
     }
 
-    public static int toInt(final Object value) {
-        return toInt(value, v -> new ClassCastException(String.format("Unable to convert '%s' to integer", v)));
+    public static short toShort(final Object value, final short defval){
+        return (short) getInstance().TO_SHORT.convert(value).orElse(defval);
     }
 
-    public static <E extends Throwable> byte toByte(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{
-        return (byte) getInstance().TO_BYTE.convert(value, exceptionFactory);
+    public static <E extends Throwable> short toShort(final Object value, final Supplier<? extends E> exceptionFactory) throws E{
+        return (short) getInstance().TO_SHORT.convert(value).orElseThrow(exceptionFactory);
     }
 
-    public static byte toByte(final Object value){
-        return toByte(value, v -> new ClassCastException(String.format("Unable to convert '%s' to byte", v)));
+    public static OptionalLong toLong(final Object value){
+        return getInstance().TO_LONG.convert(value);
     }
 
-    public static <E extends Throwable> short toShort(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{
-        return (short) getInstance().TO_SHORT.convert(value, exceptionFactory);
+    public static OptionalDouble toDouble(final Object value){
+        return getInstance().TO_DOUBLE.convert(value);
     }
 
-    public static short toShort(final Object value){
-        return toShort(value, v -> new ClassCastException(String.format("Unable to convert '%s' to short", v)));
+    public static float toFloat(final Object value, final short defval){
+        return (float) getInstance().TO_FLOAT.convert(value).orElse(defval);
     }
 
-    public static <C, I> long toLong(final C input,
-                                     final Class<I> expectedType,
-                                     final ToLongFunction<? super I> then,
-                                     final ToLongFunction<? super C> fallback){
-        return expectedType.isInstance(input) ? then.applyAsLong(expectedType.cast(input)) : fallback.applyAsLong(input);
+    public static <E extends Throwable> float toFloat(final Object value, final Supplier<? extends E> exceptionFactory) throws E{
+        return (float) getInstance().TO_FLOAT.convert(value).orElseThrow(exceptionFactory);
     }
 
-    public static <E extends Throwable> long toLong(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{
-        return getInstance().TO_LONG.convert(value, exceptionFactory);
+    public static Optional<BigInteger> toBigInteger(final Object value){
+        return getInstance().TO_BIG_INTEGER.convert(value);
     }
 
-    public static long toLong(final Object value){
-        return toLong(value, v -> new ClassCastException(String.format("Unable to convert '%s' to long", v)));
+    public static Optional<BigDecimal> toBigDecimal(final Object value) {
+        return getInstance().TO_BIG_DECIMAL.convert(value);
     }
 
-    public static <C, I> double toDouble(final C input,
-                                         final Class<I> expectedType,
-                                         final ToDoubleFunction<? super I> then,
-                                         final ToDoubleFunction<? super C> fallback){
-        return expectedType.isInstance(input) ? then.applyAsDouble(expectedType.cast(input)) : fallback.applyAsDouble(input);
+    public static Optional<Boolean> toBoolean(final Object value){
+        return getInstance().TO_BOOLEAN.convert(value);
     }
 
-    public static <E extends Throwable> double toDouble(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{
-        return getInstance().TO_DOUBLE.convert(value, exceptionFactory);
+    public static char toChar(final Object value, final char defval){
+        return (char) getInstance().TO_CHAR.convert(value).orElse(defval);
     }
 
-    public static double toDouble(final Object value){
-        return toDouble(value, v -> new ClassCastException(String.format("Unable to convert '%s' to double", v)));
+    public static <E extends Throwable> char toChar(final Object value, final Supplier<? extends E> exceptionFactory) throws E{
+        return (char) getInstance().TO_CHAR.convert(value).orElseThrow(exceptionFactory);
     }
 
-    public static <E extends Throwable> float toFloat(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{
-        return (float) getInstance().TO_FLOAT.convert(value, exceptionFactory);
+    public static Optional<Date> toDate(final Object value) {
+        return getInstance().TO_DATE.convert(value);
     }
 
-    public static float toFloat(final Object value){
-        return toFloat(value, v -> new ClassCastException(String.format("Unable to convert '%s' to float", v)));
+    public static Optional<byte[]> toByteArray(final Object value){
+        return getInstance().TO_BYTE_ARRAY.convert(value);
     }
 
-    public static <E extends Throwable> BigInteger toBigInteger(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{
-        return getInstance().TO_BIG_INTEGER.convert(value, exceptionFactory);
+    public static Optional<ByteBuffer> toByteBuffer(final Object value){
+        return getInstance().TO_BYTE_BUFFER.convert(value, v -> toByteArray(v).map(ByteBuffer::wrap));
     }
 
-    public static BigInteger toBigInteger(final Object value){
-        return toBigInteger(value, v -> new ClassCastException(String.format("Unable to convert '%s' to BigInteger", v)));
+    public static Optional<CharBuffer> toCharBuffer(final Object value){
+        return getInstance().TO_CHAR_BUFFER.convert(value, v -> toByteBuffer(v).map(ByteBuffer::asCharBuffer));
     }
 
-    public static <E extends Throwable> BigDecimal toBigDecimal(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        return getInstance().TO_BIG_DECIMAL.convert(value, exceptionFactory);
+    public static Optional<ShortBuffer> toShortBuffer(final Object value) {
+        return getInstance().TO_SHORT_BUFFER.convert(value, v -> toByteBuffer(v).map(ByteBuffer::asShortBuffer));
     }
 
-    public static BigDecimal toBigDecimal(final Object value) {
-        return toBigDecimal(value, v -> new ClassCastException(String.format("Unable to convert '%s' to BigDecimal", v)));
+    public static Optional<IntBuffer> toIntBuffer(final Object value){
+        return getInstance().TO_INT_BUFFER.convert(value, v -> toByteBuffer(v).map(ByteBuffer::asIntBuffer));
     }
 
-    public static <E extends Throwable> boolean toBoolean(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{
-        return getInstance().TO_BOOLEAN.convert(value, exceptionFactory);
+    public static Optional<LongBuffer> toLongBuffer(final Object value){
+        return getInstance().TO_LONG_BUFFER.convert(value, v -> toByteBuffer(v).map(ByteBuffer::asLongBuffer));
     }
 
-    public static boolean toBoolean(final Object value){
-        return toBoolean(value, v -> new ClassCastException(String.format("Unable to convert '%s' to boolean", v)));
+    public static Optional<FloatBuffer> toFloatBuffer(final Object value){
+        return getInstance().TO_FLOAT_BUFFER.convert(value, v -> toByteBuffer(v).map(ByteBuffer::asFloatBuffer));
     }
 
-    public static <E extends Throwable> char toChar(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        return (char) getInstance().TO_CHAR.convert(value, exceptionFactory);
+    public static Optional<DoubleBuffer> toDoubleBuffer(final Object value){
+        return getInstance().TO_DOUBLE_BUFFER.convert(value, v -> toByteBuffer(v).map(ByteBuffer::asDoubleBuffer));
     }
 
-    public static char toChar(final Object value) {
-        return toChar(value, v -> new ClassCastException(String.format("Unable to convert '%s' to character", v)));
+    public static Optional<char[]> toCharArray(final Object value){
+        return getInstance().TO_CHAR_ARRAY.convert(value, v -> toByteArray(v).map(ArrayUtils::toCharArray));
     }
 
-    public static <E extends Throwable> Date toDate(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        return getInstance().TO_DATE.convert(value, exceptionFactory);
+    public static Optional<short[]> toShortArray(final Object value){
+        return getInstance().TO_SHORT_ARRAY.convert(value, v -> toByteArray(v).map(ArrayUtils::toShortArray));
     }
 
-    public static Date toDate(final Object value) {
-        return toDate(value, v -> new ClassCastException(String.format("Unable to convert '%s' to Date", v)));
+    public static Optional<int[]> toIntArray(final Object value){
+        return getInstance().TO_INT_ARRAY.convert(value, v -> toByteArray(v).map(ArrayUtils::toIntArray));
     }
 
-    public static <E extends Throwable> ByteBuffer toByteBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_BYTE_BUFFER.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, ByteBuffer::wrap);
+    public static Optional<long[]> toLongArray(final Object value){
+        return getInstance().TO_LONG_ARRAY.convert(value, v -> toByteArray(v).map(ArrayUtils::toLongArray));
     }
 
-    public static ByteBuffer toByteBuffer(final Object value){
-        return toByteBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to ByteBuffer", v)));
+    public static Optional<float[]> toFloatArray(final Object value){
+        return getInstance().TO_FLOAT_ARRAY.convert(value, v -> toByteArray(v).map(ArrayUtils::toFloatArray));
     }
 
-    public static <E extends Throwable> CharBuffer toCharBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_CHAR_BUFFER.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, bytes -> ByteBuffer.wrap(bytes).asCharBuffer());
+    public static Optional<double[]> toDoubleArray(final Object value){
+        return getInstance().TO_DOUBLE_ARRAY.convert(value, v -> toByteArray(v).map(ArrayUtils::toDoubleArray));
     }
 
-    public static CharBuffer toCharBuffer(final Object value){
-        return toCharBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to CharBuffer", v)));
+    public static Optional<String[]> toStringArray(final Object value) {
+        return getInstance().TO_STRING_ARRAY.convert(value);
     }
 
-    public static <E extends Throwable> ShortBuffer toShortBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_SHORT_BUFFER.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, bytes -> ByteBuffer.wrap(bytes).asShortBuffer());
+    public static Optional<boolean[]> toBooleanArray(final Object value){
+        return getInstance().TO_BOOL_ARRAY.convert(value, v -> toByteArray(v).map(ArrayUtils::toBoolArray));
     }
 
-    public static ShortBuffer toShortBuffer(final Object value){
-        return toShortBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to ShortBuffer", v)));
+    public static Optional<Duration> toDuration(final Object value){
+        return getInstance().TO_DURATION.convert(value);
     }
 
-    public static <E extends Throwable> IntBuffer toIntBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_INT_BUFFER.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, bytes -> ByteBuffer.wrap(bytes).asIntBuffer());
-    }
-
-    public static IntBuffer toIntBuffer(final Object value){
-        return toIntBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to IntBuffer", v)));
-    }
-
-    public static <E extends Throwable> LongBuffer toLongBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_LONG_BUFFER.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, bytes -> ByteBuffer.wrap(bytes).asLongBuffer());
-    }
-
-    public static LongBuffer toLongBuffer(final Object value){
-        return toLongBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to LongBuffer", v)));
-    }
-
-    public static <E extends Throwable> FloatBuffer toFloatBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_FLOAT_BUFFER.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, bytes -> ByteBuffer.wrap(bytes).asFloatBuffer());
-    }
-
-    public static FloatBuffer toFloatBuffer(final Object value){
-        return toFloatBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to FloatBuffer", v)));
-    }
-
-    public static <E extends Throwable> DoubleBuffer toDoubleBuffer(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_DOUBLE_BUFFER.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, bytes -> ByteBuffer.wrap(bytes).asDoubleBuffer());
-    }
-
-    public static DoubleBuffer toDoubleBuffer(final Object value){
-        return toDoubleBuffer(value, v -> new ClassCastException(String.format("Unable to convert '%s' to DoubleBuffer", v)));
-    }
-
-    public static <E extends Throwable> byte[] toByteArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        return getInstance().TO_BYTE_ARRAY.convert(value, exceptionFactory);
-    }
-
-    public static byte[] toByteArray(final Object value){
-        return toByteArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of bytes", v)));
-    }
-
-    public static <E extends Throwable> char[] toCharArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_CHAR_ARRAY.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, ArrayUtils::toCharArray);
-    }
-
-    public static char[] toCharArray(final Object value){
-        return toCharArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of chars", v)));
-    }
-
-    public static <E extends Throwable> short[] toShortArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_SHORT_ARRAY.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, ArrayUtils::toShortArray);
-    }
-
-    public static short[] toShortArray(final Object value){
-        return toShortArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of 16-bit signed values", v)));
-    }
-
-    public static <E extends Throwable> int[] toIntArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_INT_ARRAY.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, ArrayUtils::toIntArray);
-    }
-
-    public static int[] toIntArray(final Object value){
-        return toIntArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of 32-bit signed values", v)));
-    }
-
-    public static <E extends Throwable> long[] toLongArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_LONG_ARRAY.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, ArrayUtils::toLongArray);
-    }
-
-    public static long[] toLongArray(final Object value){
-        return toLongArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of 64-bit signed values", v)));
-    }
-
-    public static <E extends Throwable> float[] toFloatArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_FLOAT_ARRAY.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, ArrayUtils::toFloatArray);
-    }
-
-    public static float[] toFloatArray(final Object value){
-        return toFloatArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of floating-point values with single precision", v)));
-    }
-
-    public static <E extends Throwable> double[] toDoubleArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_DOUBLE_ARRAY.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, ArrayUtils::toDoubleArray);
-    }
-
-    public static double[] toDoubleArray(final Object value){
-        return toDoubleArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of floating-point values with double precision", v)));
-    }
-
-    public static <E extends Throwable> String[] toStringArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        return getInstance().TO_STRING_ARRAY.convert(value, exceptionFactory);
-    }
-
-    public static String[] toStringArray(final Object value){
-        return toStringArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of strings", v)));
-    }
-
-    public static <E extends Throwable> boolean[] toBooleanArray(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E {
-        final Convert converter = getInstance();
-        return converter.TO_BOOL_ARRAY.convert(value, exceptionFactory, converter.TO_BYTE_ARRAY, ArrayUtils::toBoolArray);
-    }
-
-    public static boolean[] toBooleanArray(final Object value){
-        return toBooleanArray(value, v -> new ClassCastException(String.format("Unable to convert '%s' to array of booleans", v)));
-    }
-
-    public static <E extends Throwable> Duration toDuration(final Object value, final Function<Object, ? extends E> exceptionFactory) throws E{
-        return getInstance().TO_DURATION.convert(value, exceptionFactory);
-    }
-
-    public static Duration toDuration(final Object value){
-        return toDuration(value, v -> new ClassCastException(String.format("Unable to convert '%s' to Duration", v)));
+    public static <T> Optional<T[]> toArray(final Object value, final Class<T[]> arrayType,
+                                            final Function<Object, Optional<T>> converter) {
+        Optional<T[]> resultArray = toType(value, arrayType);
+        if (resultArray.isPresent())
+            return resultArray;
+        else if (value instanceof Object[]) {
+            final Object[] array = (Object[]) value;
+            final Object[] result = ObjectArrays.newArray(arrayType.getComponentType(), array.length);
+            for (int i = 0; i < result.length; i++) {
+                final Optional<T> item = converter.apply(array[i]);
+                if (item.isPresent())
+                    result[i] = item.get();
+                else
+                    return Optional.empty();
+            }
+            return toType(result, arrayType);
+        } else
+            return converter.apply(value).flatMap(i -> {
+                final Object[] result = ObjectArrays.newArray(arrayType.getComponentType(), 1);
+                result[0] = i;
+                return toType(result, arrayType);
+            });
     }
 }

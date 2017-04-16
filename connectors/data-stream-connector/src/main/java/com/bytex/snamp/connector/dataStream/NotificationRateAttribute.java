@@ -1,8 +1,8 @@
 package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
 import com.bytex.snamp.connector.metrics.RateRecorder;
+import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.Notification;

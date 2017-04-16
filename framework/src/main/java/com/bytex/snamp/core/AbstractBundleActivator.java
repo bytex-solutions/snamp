@@ -510,12 +510,12 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @return Search result; or {@literal null} if dependency not found.
          */
         @SuppressWarnings("unchecked")
-        public <S> RequiredService<S> getDependency(final Class<S> serviceContract,
-                                                    final Predicate<? super RequiredService<S>> filter){
-            for(final RequiredService<?> dependency: this)
-                if(Objects.equals(dependency.dependencyContract, serviceContract) && filter.test((RequiredService<S>) dependency))
-                    return (RequiredService<S>) dependency;
-            return null;
+        public <S> Optional<RequiredService<S>> getDependency(final Class<S> serviceContract,
+                                                    final Predicate<? super RequiredService<S>> filter) {
+            for (final RequiredService<?> dependency : this)
+                if (Objects.equals(dependency.dependencyContract, serviceContract) && filter.test((RequiredService<S>) dependency))
+                    return Optional.of((RequiredService<S>) dependency);
+            return Optional.empty();
         }
 
         /**
@@ -524,9 +524,12 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @param <S> Type of the service contract.
          * @return The resolved service; or {@literal null} if it is not available.
          */
-        public <S> S getDependency(final Class<S> serviceContract){
-            final RequiredService<S> found = getDependency(serviceContract, rs -> rs instanceof RequiredServiceAccessor<?>);
-            return found instanceof RequiredServiceAccessor<?> ? serviceContract.cast(((RequiredServiceAccessor<?>) found).serviceInstance) : null;
+        public <S> Optional<S> getDependency(final Class<S> serviceContract) {
+            return getDependency(serviceContract, rs -> rs instanceof RequiredServiceAccessor<?>)
+                    .map(RequiredServiceAccessor.class::cast)
+                    .map(found -> found.serviceInstance)
+                    .filter(serviceContract::isInstance)
+                    .map(serviceContract::cast);
         }
 
         public <S> boolean add(final Class<S> serviceType) {
@@ -785,7 +788,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
             @Override
             public Object get(final Object key) {
-                return Convert.toType(key, String.class, this::get);
+                return get(Convert.toType(key, String.class).orElseThrow(ClassCastException::new));
             }
 
             @Override

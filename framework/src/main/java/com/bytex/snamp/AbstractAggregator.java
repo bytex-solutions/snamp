@@ -7,7 +7,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -17,6 +16,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
@@ -313,18 +313,20 @@ public abstract class AbstractAggregator implements Aggregator {
         boolean cached() default false;
     }
 
-    protected final <T> T queryObject(final Class<T> objectType, final Aggregator fallback) {
+    protected final <T> Optional<T> queryObject(final Class<T> objectType, @Nonnull final Aggregator fallback) {
+        Optional<T> result;
         try {
             //try to load from cache
-            return objectType.cast(providers.get(objectType).get(this));
+            result = Convert.toType(providers.get(objectType).get(this), objectType);
         } catch (final ExecutionException e) {
             if (e.getCause() instanceof AggregationNotFoundException)
-                return fallback.queryObject(objectType);
+                result = fallback.queryObject(objectType);
             else
                 throw new AggregationException(e.getCause());
         } catch (final ReflectiveOperationException | ClassCastException e) {
             throw new AggregationException(e);
         }
+        return result;
     }
 
     public static AggregationBuilder builder(){
@@ -332,12 +334,13 @@ public abstract class AbstractAggregator implements Aggregator {
     }
 
     @Override
+    @Nonnull
     public final AbstractAggregator compose(@Nonnull final Aggregator other) {
         final class AggregatorComposition extends AbstractAggregator {
             @Override
-            public <T> T queryObject(@Nonnull final Class<T> objectType) {
-                final T obj = AbstractAggregator.this.queryObject(objectType);
-                return obj == null ? other.queryObject(objectType) : obj;
+            public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+                final Optional<T> obj = AbstractAggregator.this.queryObject(objectType);
+                return obj.isPresent() ? obj : other.queryObject(objectType);
             }
         }
 
@@ -352,7 +355,7 @@ public abstract class AbstractAggregator implements Aggregator {
      * @return An instance of the requested object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(@Nonnull final Class<T> objectType) {
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
         return queryObject(objectType, EMPTY);
     }
 }

@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.core.AbstractSnampManager;
 import com.bytex.snamp.jmx.FrameworkMBean;
 import com.bytex.snamp.jmx.OpenMBean;
@@ -11,6 +12,7 @@ import org.osgi.service.log.LogService;
 import javax.annotation.Nonnull;
 import javax.management.openmbean.OpenDataException;
 import java.time.Duration;
+import java.util.Optional;
 
 /**
  * @author Roman Sakno
@@ -73,7 +75,7 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(@Nonnull final Class<T> objectType) {
-        return objectType.isInstance(this) ? objectType.cast(this) : null;
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        return Convert.toType(this, objectType);
     }
 }

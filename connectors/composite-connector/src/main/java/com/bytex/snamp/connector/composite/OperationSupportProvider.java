@@ -2,6 +2,8 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.operations.OperationSupport;
 
+import java.util.Optional;
+
 /**
  * @author Roman Sakno
  * @version 2.0
@@ -9,5 +11,5 @@ import com.bytex.snamp.connector.operations.OperationSupport;
  */
 @FunctionalInterface
 interface OperationSupportProvider {
-    OperationSupport getOperationSupport(final String connectorType);
+    Optional<OperationSupport> getOperationSupport(final String connectorType);
 }

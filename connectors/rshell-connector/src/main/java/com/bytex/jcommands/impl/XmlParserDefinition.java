@@ -174,7 +174,7 @@ public class XmlParserDefinition {
 
         @Override
         public BigInteger parseAsBigInteger(final String input) throws ParseException {
-            return Convert.toBigInteger(input);
+            return Convert.toBigInteger(input).orElseThrow(() -> new ParseException(input, 0));
         }
 
         @Override

@@ -105,7 +105,7 @@ final class InMemoryRecord extends AtomicReference<Serializable> implements Reco
 
     @Override
     public long getAsLong() {
-        return Convert.toLong(getValue());
+        return Convert.toLong(getValue()).orElseThrow(NumberFormatException::new);
     }
 
     @Override
@@ -115,7 +115,7 @@ final class InMemoryRecord extends AtomicReference<Serializable> implements Reco
 
     @Override
     public double getAsDouble() {
-        return Convert.toDouble(getValue());
+        return Convert.toDouble(getValue()).orElseThrow(NumberFormatException::new);
     }
 
     @Override

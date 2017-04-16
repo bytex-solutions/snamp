@@ -3,7 +3,6 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;

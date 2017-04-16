@@ -76,7 +76,7 @@ enum TableRowStatus {
         return value != null ? parse(value.toInt()) : ACTIVE;
     }
 
-    public static TableRowStatus parse(final Variable value){
-        return Convert.toType(value, Integer32.class, TableRowStatus::parse, v -> ACTIVE);
+    public static TableRowStatus parse(final Variable value) {
+        return Convert.toType(value, Integer32.class).map(TableRowStatus::parse).orElse(ACTIVE);
     }
 }

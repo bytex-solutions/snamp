@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
@@ -318,10 +319,10 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
         return getValue();
     }
 
-    private static BigDecimal toBigDecimal(Object value,
-                                           final DecimalFormat format) throws ParseException {
+    private static Optional<BigDecimal> toBigDecimal(Object value,
+                                         final DecimalFormat format) throws ParseException {
         if(value == null)
-            return null;
+            return Optional.empty();
         else if(value instanceof String)
             value = format.parse((String)value);
         return Convert.toBigDecimal(value);
@@ -329,12 +330,12 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
 
     protected final boolean isInRange(final Number value,
                                       final DecimalFormat format) throws ParseException {
-        final BigDecimal minValue = toBigDecimal(DescriptorUtils.getRawMinValue(getMetadata().getDescriptor()),
+        final Optional<BigDecimal> minValue = toBigDecimal(DescriptorUtils.getRawMinValue(getMetadata().getDescriptor()),
                 format);
-        final BigDecimal maxValue = toBigDecimal(DescriptorUtils.getRawMaxValue(getMetadata().getDescriptor()),
+        final Optional<BigDecimal> maxValue = toBigDecimal(DescriptorUtils.getRawMaxValue(getMetadata().getDescriptor()),
                 format);
-        final BigDecimal actualValue = toBigDecimal(value, format);
-        return !(minValue != null && actualValue.compareTo(minValue) <= 0) && !(maxValue != null && actualValue.compareTo(maxValue) >= 0);
+        final BigDecimal actualValue = toBigDecimal(value, format).orElseThrow(() -> new ParseException(value.toString(), 0));
+        return !(minValue.isPresent() && actualValue.compareTo(minValue.get()) <= 0) && !(maxValue.isPresent() && actualValue.compareTo(maxValue.get()) >= 0);
     }
 
     public static int removeAll(final Iterable<? extends AttributeAccessor> attributes,

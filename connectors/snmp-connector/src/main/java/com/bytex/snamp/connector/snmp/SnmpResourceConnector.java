@@ -90,7 +90,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                     SnmpNotificationInfo.class,
                     false);
             this.client = client;
-            final Executor executor = client.read(cl -> cl.queryObject(Executor.class));
+            final Executor executor = client.read(cl -> cl.queryObject(Executor.class)).orElseThrow(AssertionError::new);
             sequenceNumberGenerator = DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
             listenerInvoker = createListenerInvoker(executor, getLogger());
         }
@@ -511,7 +511,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             super(resourceName, SnmpAttributeInfo.class, expandable);
             this.client = client;
             this.discoveryTimeout = Objects.requireNonNull(discoveryTimeout);
-            this.executor = client.read(cl -> cl.queryObject(ExecutorService.class));
+            this.executor = client.read(cl -> cl.queryObject(ExecutorService.class)).orElseThrow(AssertionError::new);
         }
 
         private Address[] getClientAddresses(){
@@ -670,8 +670,15 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        public <T> T queryObject(@Nonnull final Class<T> objectType) {
-            return objectType.isAssignableFrom(Address[].class) ? objectType.cast(getClientAddresses()) : null;
+        public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+            final Optional<?> result;
+            if (objectType.isInstance(this))
+                result = Optional.of(this);
+            else if (objectType.isAssignableFrom(Address[].class))
+                result = Optional.of(getClientAddresses());
+            else
+                result = Optional.empty();
+            return result.map(objectType::cast);
         }
     }
 
@@ -730,6 +737,13 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         removeResourceEventListener(listener, attributes, notifications);
     }
 
+    private void closeClient() throws IOException {
+        client.write(client -> {
+            client.close();
+            return null;
+        });
+    }
+
     /**
      * Releases all resources associated with this connector.
      *
@@ -737,13 +751,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
      */
     @Override
     public void close() throws Exception {
-        super.close();
-        attributes.close();
-        notifications.close();
-        client.write(client -> {
-                client.close();
-                return null;
-        });
+        Utils.closeAll(super::close, attributes, notifications, this::closeClient);
     }
 
     /**
@@ -753,7 +761,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
      * @return An instance of the requested object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(@Nonnull final Class<T> objectType) {
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
         return queryObject(objectType, attributes);
     }
 

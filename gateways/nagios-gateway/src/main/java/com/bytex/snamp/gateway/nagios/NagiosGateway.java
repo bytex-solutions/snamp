@@ -8,11 +8,11 @@ import com.google.common.collect.Multimap;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.servlet.ServletException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -25,10 +25,10 @@ final class NagiosGateway extends AbstractGateway {
     private final HttpService publisher;
 
     NagiosGateway(final String instanceName,
-                  final HttpService servletPublisher) {
+                  @Nonnull final HttpService servletPublisher) {
         super(instanceName);
         service = new NagiosActiveCheckService();
-        publisher = Objects.requireNonNull(servletPublisher);
+        publisher = servletPublisher;
     }
 
     @SuppressWarnings("unchecked")

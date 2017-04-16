@@ -14,6 +14,7 @@ import javax.management.openmbean.SimpleType;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -81,8 +82,9 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
      * @return Serializable state of the attribute; or {@literal null}, if attribute doesn't support synchronization across cluster.
      */
     @Override
-    protected Serializable takeSnapshot(final AbstractCompositeAttribute attribute) {
-        return Convert.toType(attribute, DistributedAttribute.class, DistributedAttribute::takeSnapshot);
+    protected Optional<? extends Serializable> takeSnapshot(final AbstractCompositeAttribute attribute) {
+        return Convert.toType(attribute, DistributedAttribute.class)
+                .map(DistributedAttribute::takeSnapshot);
     }
 
     /**
@@ -109,11 +111,9 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
      */
     @Override
     protected void disconnectAttribute(final AbstractCompositeAttribute attributeInfo) {
-        if (attributeInfo instanceof CompositeFeature) {
-            final AttributeSupport support = attributeSupportProvider.getAttributeSupport(((CompositeFeature) attributeInfo).getConnectorType());
-            if (support != null)
-                support.removeAttribute(attributeInfo.getName());
-        }
+        if (attributeInfo instanceof CompositeFeature)
+            attributeSupportProvider.getAttributeSupport(((CompositeFeature) attributeInfo).getConnectorType())
+                    .ifPresent(support -> support.removeAttribute(attributeInfo.getName()));
     }
 
     @Override
@@ -121,7 +121,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
                                                           final AttributeDescriptor descriptor) throws Exception {
         if (CompositeResourceConfigurationDescriptor.isRateFormula(descriptor)) //rate attribute
             return new NotificationRateAttribute(attributeName, descriptor);
-        else if(CompositeResourceConfigurationDescriptor.isGroovyFormula(descriptor))   //groovy attribute
+        else if (CompositeResourceConfigurationDescriptor.isGroovyFormula(descriptor))   //groovy attribute
             return new GroovyAttribute(attributeName, scriptLoader, descriptor);
         //aggregation
         final AggregationFunction<?> function = CompositeResourceConfigurationDescriptor.parseFormula(descriptor);
@@ -129,17 +129,14 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
             return new AggregationAttribute(attributeName, function, this, descriptor);
         //regular attribute
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(descriptor);
-        final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType);
-        if (support == null)
-            throw new ReflectionException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support attributes", connectorType)));
-        else {
-            //process regular attribute
-            final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor);
-            if (underlyingAttribute == null)
-                throw AliasAttribute.attributeNotFound(connectorType, attributeName);
-            //check whether the type of function is compatible with type of attribute
-            return new AliasAttribute(connectorType, underlyingAttribute);
-        }
+        final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType)
+                .orElseThrow(() -> new ReflectionException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support attributes", connectorType))));
+        //process regular attribute
+        final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor);
+        if (underlyingAttribute == null)
+            throw AliasAttribute.attributeNotFound(connectorType, attributeName);
+        //check whether the type of function is compatible with type of attribute
+        return new AliasAttribute(connectorType, underlyingAttribute);
     }
 
 

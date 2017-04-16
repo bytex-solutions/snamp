@@ -2,6 +2,8 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 
+import java.util.Optional;
+
 /**
  * @author Roman Sakno
  * @version 2.0
@@ -9,5 +11,5 @@ import com.bytex.snamp.connector.notifications.NotificationSupport;
  */
 @FunctionalInterface
 interface NotificationSupportProvider {
-    NotificationSupport getNotificationSupport(final String connectorType);
+    Optional<NotificationSupport> getNotificationSupport(final String connectorType);
 }

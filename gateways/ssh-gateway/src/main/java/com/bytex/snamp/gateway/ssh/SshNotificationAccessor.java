@@ -5,7 +5,6 @@ import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.bytex.snamp.jmx.DescriptorUtils;
 
 import javax.management.MBeanNotificationInfo;
-import javax.management.Notification;
 import java.util.Map;
 
 /**

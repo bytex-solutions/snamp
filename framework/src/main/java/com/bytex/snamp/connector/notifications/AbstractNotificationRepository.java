@@ -1,6 +1,9 @@
 package com.bytex.snamp.connector.notifications;
 
-import com.bytex.snamp.*;
+import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.NotificationMetric;
 import com.bytex.snamp.connector.metrics.NotificationMetricRecorder;
@@ -142,11 +145,10 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final void setSource(@Nonnull final Aggregator value) {
-        final NotificationSupport support = value.queryObject(NotificationSupport.class);
-        if (this != support)
-            throw new IllegalArgumentException("Source object doesn't provide valid object of type NotificationSupport");
-        else
+        if (value.queryObject(NotificationSupport.class).filter(this::equals).isPresent())
             notificationSource = value;
+        else
+            throw new IllegalArgumentException("Source object doesn't provide valid object of type NotificationSupport");
     }
 
     /**
@@ -481,15 +483,15 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     @OverridingMethodsMustInvokeSuper
-    public <T> T queryObject(@Nonnull final Class<T> objectType) {
-        final Object result;
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        final Optional<?> result;
         if (objectType.isInstance(this))
-            result = this;
+            result = Optional.of(this);
         else if (objectType.isInstance(metrics))
-            result = metrics;
+            result = Optional.of(metrics);
         else
-            return null;
-        return objectType.cast(result);
+            result = Optional.empty();
+        return result.map(objectType::cast);
     }
 
     /**

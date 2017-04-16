@@ -1,8 +1,8 @@
 package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.instrumentation.measurements.jmx.TimeMeasurementNotification;
 import com.bytex.snamp.connector.metrics.RangedTimerRecorder;
+import com.bytex.snamp.instrumentation.measurements.jmx.TimeMeasurementNotification;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.openmbean.CompositeData;

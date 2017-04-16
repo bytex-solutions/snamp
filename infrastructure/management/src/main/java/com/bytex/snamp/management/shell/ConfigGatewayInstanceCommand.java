@@ -8,10 +8,10 @@ import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 import java.util.Arrays;
 
+import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**

@@ -6,6 +6,8 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 
 import javax.management.Attribute;
 
+import java.util.OptionalDouble;
+
 import static com.bytex.snamp.Convert.toDouble;
 
 /**
@@ -33,13 +35,15 @@ public final class IsInRangePredicate implements ColoredAttributePredicate {
         this(Double.NaN, false, Double.NaN, false);
     }
 
+    private boolean test(final double actual) {
+        return (fromInclusive ? Double.compare(actual, from) >= 0 : Double.compare(actual, from) > 0) &&
+                (toInclusive ? Double.compare(actual, to) <= 0 : Double.compare(actual, to) < 0);
+    }
+
     @Override
     public boolean test(final Attribute attribute) {
-        final double actual = toDouble(attribute.getValue());
-        boolean result = fromInclusive ? Double.compare(actual, from) >= 0 : Double.compare(actual, from) > 0;
-        if (result)
-            result = toInclusive ? Double.compare(actual, to) <= 0 : Double.compare(actual, to) < 0;
-        return result;
+        final OptionalDouble actual = toDouble(attribute.getValue());
+        return actual.isPresent() && test(actual.getAsDouble());
     }
 
     @JsonProperty("rangeStart")

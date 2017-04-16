@@ -11,7 +11,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Objects;
 
 /**
  * @author Roman Sakno
@@ -25,9 +24,9 @@ public final class E2EDataSource extends ComputingService<E2EView, Object, Dashb
 
     private final TopologyAnalyzer analyzer;
 
-    public E2EDataSource(final TopologyAnalyzer topologyAnalyzer) throws IOException {
+    public E2EDataSource(@Nonnull final TopologyAnalyzer topologyAnalyzer) throws IOException {
         super(Dashboard.class);
-        analyzer = Objects.requireNonNull(topologyAnalyzer);
+        analyzer = topologyAnalyzer;
     }
 
     @Override

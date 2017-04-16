@@ -2,15 +2,10 @@ package com.bytex.snamp.connector.zipkin
 
 import com.bytex.snamp.ArrayUtils
 import com.bytex.snamp.instrumentation.Identifier
-
 import com.google.common.net.InetAddresses
 import org.apache.thrift.protocol.TBinaryProtocol
 import org.apache.thrift.transport.TMemoryInputTransport
-import zipkin.Annotation
-import zipkin.BinaryAnnotation
-import zipkin.Constants
-import zipkin.Endpoint
-import zipkin.Span
+import zipkin.*
 
 import java.util.concurrent.TimeUnit
 

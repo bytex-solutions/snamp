@@ -432,10 +432,9 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, connectorType);
         activationProperties.publish(LOGGER_HOLDER, logger);
         {
-            final ConfigurationManager configurationManager = dependencies.getDependency(ConfigurationManager.class);
-            assert configurationManager != null;
-            final CMManagedResourceParser parser = configurationManager.queryObject(CMManagedResourceParser.class);
-            assert parser != null : "CMManagedResourceParser is not supported";
+            final CMManagedResourceParser parser = dependencies.getDependency(ConfigurationManager.class)
+                    .flatMap(manager -> manager.queryObject(CMManagedResourceParser.class))
+                    .orElseThrow(AssertionError::new);
             activationProperties.publish(MANAGED_RESOURCE_PARSER_HOLDER, parser);
         }
         logger.info(String.format("Activating resource connector of type %s", connectorType));

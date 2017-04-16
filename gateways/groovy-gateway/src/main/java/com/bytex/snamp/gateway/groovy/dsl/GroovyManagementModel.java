@@ -1,12 +1,14 @@
 package com.bytex.snamp.gateway.groovy.dsl;
 
 import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import groovy.lang.GroovyObjectSupport;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
@@ -19,8 +21,8 @@ public abstract class GroovyManagementModel extends GroovyObjectSupport implemen
     private final Cache<String, GroovyManagedResource> cache = CacheBuilder.newBuilder().maximumSize(15).build();
 
     @Override
-    public <T> T queryObject(@Nonnull final Class<T> objectType) {
-        return objectType.isInstance(this) ? objectType.cast(this) : null;
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        return Convert.toType(this, objectType);
     }
 
     private GroovyManagedResource getOrPutResource(final String resourceName) {

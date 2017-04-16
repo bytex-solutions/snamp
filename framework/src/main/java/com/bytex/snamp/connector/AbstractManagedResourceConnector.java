@@ -20,6 +20,7 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.*;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
@@ -101,10 +102,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      */
     @Override
     public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
-        if(attributeSupport != null)
-            return attributeSupport.getAttribute(attribute);
-        else throw JMExceptionUtils.attributeNotFound(attribute);
+        final Optional<AttributeSupport> attributeSupport = queryObject(AttributeSupport.class);
+        if(attributeSupport.isPresent())
+            return attributeSupport.get().getAttribute(attribute);
+        else
+            throw JMExceptionUtils.attributeNotFound(attribute);
     }
 
     /**
@@ -120,10 +122,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      */
     @Override
     public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
-        if(attributeSupport != null)
-            attributeSupport.setAttribute(attribute);
-        else throw JMExceptionUtils.attributeNotFound(attribute.getName());
+        final Optional<AttributeSupport> attributeSupport = queryObject(AttributeSupport.class);
+        if (attributeSupport.isPresent())
+            attributeSupport.get().setAttribute(attribute);
+        else
+            throw JMExceptionUtils.attributeNotFound(attribute.getName());
     }
 
     /**
@@ -135,8 +138,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      */
     @Override
     public AttributeList getAttributes(final String[] attributes) {
-        final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
-        return attributeSupport != null ? attributeSupport.getAttributes(attributes) : new AttributeList();
+        return queryObject(AttributeSupport.class)
+                .map(support -> support.getAttributes(attributes))
+                .orElseGet(AttributeList::new);
     }
 
     /**
@@ -149,8 +153,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      */
     @Override
     public AttributeList setAttributes(final AttributeList attributes) {
-        final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
-        return attributeSupport != null ? attributeSupport.setAttributes(attributes) : new AttributeList();
+        return queryObject(AttributeSupport.class)
+                .map(support -> support.setAttributes(attributes))
+                .orElseGet(AttributeList::new);
     }
 
     /**
@@ -169,10 +174,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      */
     @Override
     public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
-        final OperationSupport ops = queryObject(OperationSupport.class);
-        if(ops != null)
-            return ops.invoke(actionName, params, signature);
-        else throw new MBeanException(new UnsupportedOperationException("Operation invocation is not supported."));
+        final Optional<OperationSupport> ops = queryObject(OperationSupport.class);
+        if (ops.isPresent())
+            return ops.get().invoke(actionName, params, signature);
+        else
+            throw new MBeanException(new UnsupportedOperationException("Operation invocation is not supported."));
     }
 
     private String getClassName(){
@@ -196,8 +202,9 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      * @return An array of supported attributes.
      */
     public MBeanAttributeInfo[] getAttributeInfo() {
-        final AttributeSupport attributes = queryObject(AttributeSupport.class);
-        return attributes != null ? attributes.getAttributeInfo() : emptyArray(MBeanAttributeInfo[].class);
+        return queryObject(AttributeSupport.class)
+                .map(AttributeSupport::getAttributeInfo)
+                .orElse(emptyArray(MBeanAttributeInfo[].class));
     }
 
     /**
@@ -205,17 +212,19 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
      * @return An array of supported notifications.
      */
     public MBeanNotificationInfo[] getNotificationInfo(){
-        final NotificationSupport notifs = queryObject(NotificationSupport.class);
-        return notifs != null ? notifs.getNotificationInfo() : emptyArray(MBeanNotificationInfo[].class);
+        return queryObject(NotificationSupport.class)
+                .map(NotificationSupport::getNotificationInfo)
+                .orElse(emptyArray(MBeanNotificationInfo[].class));
     }
 
     /**
      * Gets an array of supported operations.
      * @return An array of supported operations.
      */
-    public MBeanOperationInfo[] getOperationInfo(){
-        final OperationSupport ops = queryObject(OperationSupport.class);
-        return ops != null ? ops.getOperationInfo() : emptyArray(MBeanOperationInfo[].class);
+    public MBeanOperationInfo[] getOperationInfo() {
+        return queryObject(OperationSupport.class)
+                .map(OperationSupport::getOperationInfo)
+                .orElse(emptyArray(MBeanOperationInfo[].class));
     }
 
     /**

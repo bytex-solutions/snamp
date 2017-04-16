@@ -251,8 +251,8 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     }
 
     public AttributeList getAttributes() throws ReflectionException, MBeanException {
-        final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
-        return attributeSupport == null ? new AttributeList() : attributeSupport.getAttributes();
+        final Optional<AttributeSupport> attributeSupport = queryObject(AttributeSupport.class);
+        return attributeSupport.isPresent()? attributeSupport.get().getAttributes() : new AttributeList();
     }
 
     /**
@@ -262,9 +262,8 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(@Nonnull final Class<T> objectType) {
-        final ManagedResourceConnector connector = getService();
-        return connector != null ? connector.queryObject(objectType) : null;
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        return Optional.ofNullable(get()).flatMap(connector -> connector.queryObject(objectType));
     }
 
     /**

@@ -1,19 +1,14 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.FactoryMap;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.io.IOUtils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import java.io.*;
 import java.util.Arrays;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;

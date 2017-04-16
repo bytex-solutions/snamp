@@ -99,8 +99,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void notificationTest() throws Exception {
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try{
-            final NotificationSupport notificationSupport = groovyConnector.queryObject(NotificationSupport.class);
-            assertNotNull(notificationSupport);
+            final NotificationSupport notificationSupport = groovyConnector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
             final Mailbox listener = MailboxFactory.newMailbox(n -> n.getType().equals("GroovyEvent"));
             notificationSupport.addNotificationListener(listener, listener, null);
             final Notification notif = listener.poll(2, TimeUnit.SECONDS);
@@ -116,8 +115,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void operationTest() throws JMException {
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try {
-            final OperationSupport operations = groovyConnector.queryObject(OperationSupport.class);
-            assertNotNull(operations);
+            final OperationSupport operations = groovyConnector.queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
             final Object value = operations.invoke("CustomOperation", new Long[]{38L, 90L}, new String[]{Long.class.getName(), Long.class.getName()});
             assertTrue(value instanceof Long);
             assertEquals(128L, value);

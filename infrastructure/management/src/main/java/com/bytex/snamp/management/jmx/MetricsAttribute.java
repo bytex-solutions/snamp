@@ -34,9 +34,9 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
         super("Metrics", TYPE);
     }
 
-    public static MetricsSupport getMetrics(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
+    public static Optional<MetricsSupport> getMetrics(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
         if (isNullOrEmpty(resourceName))
-            return new SummaryMetrics(context);
+            return Optional.of(new SummaryMetrics(context));
         else
             try (final ManagedResourceConnectorClient connector = ManagedResourceConnectorClient.tryCreate(context, resourceName)
                     .orElseThrow(() -> new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName)))) {
@@ -52,12 +52,12 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
             final Optional<ManagedResourceConnectorClient> connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
             if (connector.isPresent())
                 try(final ManagedResourceConnectorClient client = connector.get()) {
-                    final MetricsSupport metrics = client.queryObject(MetricsSupport.class);
-                    if (metrics == null) continue;
-                    rows.newRow()
-                            .cell(RESOURCE_NAME_CELL, resourceName)
-                            .cell(METRICS_CELL, SummaryMetricsAttribute.collectMetrics(metrics))
-                            .flush();
+                    final Optional<MetricsSupport> metrics = client.queryObject(MetricsSupport.class);
+                    if (metrics.isPresent())
+                        rows.newRow()
+                                .cell(RESOURCE_NAME_CELL, resourceName)
+                                .cell(METRICS_CELL, SummaryMetricsAttribute.collectMetrics(metrics.get()))
+                                .flush();
                 }
         }
         return rows.build();

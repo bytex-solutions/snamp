@@ -12,6 +12,7 @@ import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Reference;
 import org.apache.karaf.shell.api.console.Session;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import java.io.PrintStream;
 import java.time.Duration;
@@ -71,15 +72,11 @@ public final class ListenEventsCommand extends SnampShellCommand {
         return result;
     }
 
-    private static void listenEvents(final NotificationSupport notifSupport,
+    private static void listenEvents(@Nonnull final NotificationSupport notifSupport,
                                      final String[] categories,
                                      final int capacity,
                                      final Duration timeout,
                                      final PrintStream output) throws ListenerNotFoundException, InterruptedException {
-        if (notifSupport == null) {
-            output.println("Notifications are not supported");
-            return;
-        }
         output.println("Press CTRL+C to stop listening");
         final Mailbox mailbox = MailboxFactory.newFixedSizeMailbox(capacity);
         notifSupport.addNotificationListener(mailbox, new AllowedCategories(categories), null);
@@ -106,11 +103,15 @@ public final class ListenEventsCommand extends SnampShellCommand {
             String[] categories = this.categories;
             if (ArrayUtils.isNullOrEmpty(categories))
                 categories = getNames(client.getMBeanInfo().getNotifications());
-            listenEvents(client.queryObject(NotificationSupport.class),
-                    categories,
-                    capacity,
-                    Duration.ofMillis(listenPeriodMillis),
-                    session.getConsole());
+            final Optional<NotificationSupport> support = client.queryObject(NotificationSupport.class);
+            if (support.isPresent())
+                listenEvents(support.get(),
+                        categories,
+                        capacity,
+                        Duration.ofMillis(listenPeriodMillis),
+                        session.getConsole());
+            else
+                session.getConsole().println("Notifications are not supported");
             return null;
         }
     }

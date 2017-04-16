@@ -8,7 +8,6 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.jsendnsca.core.MessagePayload;
 
 import javax.management.MBeanNotificationInfo;
-import javax.management.Notification;
 import java.util.Set;
 
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;

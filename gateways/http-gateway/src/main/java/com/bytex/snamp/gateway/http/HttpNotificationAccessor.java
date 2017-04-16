@@ -4,7 +4,6 @@ import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.NotificationRouter;
 
 import javax.management.MBeanNotificationInfo;
-import javax.management.Notification;
 
 /**
  * @author Roman Sakno

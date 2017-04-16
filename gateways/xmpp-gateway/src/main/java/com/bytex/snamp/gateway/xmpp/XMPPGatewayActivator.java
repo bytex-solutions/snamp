@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.xmpp;
 
-import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.gateway.GatewayActivator;
 
 /**

@@ -15,6 +15,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -150,21 +151,21 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         }
     }
 
-    private static <T> T queryParser(final Class<T> parserType) {
-        final AbstractConfigurationParser<?> result;
+    private static <T> Optional<T> queryParser(final Class<T> parserType) {
+        final Optional<?> result;
         if (parserType.isInstance(DefaultSupervisorParser.getInstance()))
-            result = DefaultSupervisorParser.getInstance();
+            result = Optional.of(DefaultSupervisorParser.getInstance());
         else if (parserType.isInstance(DefaultGatewayParser.getInstance()))
-            result = DefaultGatewayParser.getInstance();
+            result = Optional.of(DefaultGatewayParser.getInstance());
         else if (parserType.isInstance(DefaultThreadPoolParser.getInstance()))
-            result = DefaultThreadPoolParser.getInstance();
+            result = Optional.of(DefaultThreadPoolParser.getInstance());
         else if (parserType.isInstance(DefaultManagedResourceParser.getInstance()))
-            result = DefaultManagedResourceParser.getInstance();
+            result = Optional.of(DefaultManagedResourceParser.getInstance());
         else if (parserType.isInstance(DefaultManagedResourceGroupParser.getInstance()))
-            result = DefaultManagedResourceGroupParser.getInstance();
+            result = Optional.of(DefaultManagedResourceGroupParser.getInstance());
         else
-            return null;
-        return parserType.cast(result);
+            result = Optional.empty();
+        return result.map(parserType::cast);
     }
 
     /**
@@ -174,7 +175,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      * @return An instance of the requested object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(@Nonnull final Class<T> objectType) {
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
         return queryObject(objectType, PersistentConfigurationManager::queryParser);
     }
 }
