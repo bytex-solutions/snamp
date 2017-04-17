@@ -17,7 +17,7 @@ export class SnampLogSettingsComponent implements OnInit {
     private selectedAllTypes:boolean = true;
 
     private severities:string[] = ["panic", "alert", "critical", "error",
-            "warning", "notice", "informational", "debug"];
+            "warning", "notice", "informational", "debug", "unknown"];
 
     constructor(private http:ApiClient) {}
 

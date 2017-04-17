@@ -37557,7 +37557,7 @@ var SnampLogSettingsComponent = (function () {
         this.availableTypes = [];
         this.selectedAllTypes = true;
         this.severities = ["panic", "alert", "critical", "error",
-            "warning", "notice", "informational", "debug"];
+            "warning", "notice", "informational", "debug", "unknown"];
     }
     SnampLogSettingsComponent.prototype.ngOnInit = function () {
         var _this = this;
