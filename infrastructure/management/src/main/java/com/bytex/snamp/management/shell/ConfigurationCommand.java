@@ -4,6 +4,7 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.ServiceHolder;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * @author Roman Sakno
@@ -15,15 +16,18 @@ abstract class ConfigurationCommand<E extends EntityConfiguration> extends Snamp
 
     @Override
     public final CharSequence execute() throws Exception {
-        final ServiceHolder<ConfigurationManager> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
-        if (adminRef != null)
+        final Optional<ServiceHolder<ConfigurationManager>> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+        if (adminRef.isPresent()) {
+            final ServiceHolder<ConfigurationManager> admin = adminRef.get();
             try {
                 final StringBuilder output = new StringBuilder(64);
-                adminRef.get().processConfiguration(config -> doExecute(apply(config), output));
+                admin.get().processConfiguration(config -> doExecute(apply(config), output));
                 return output;
             } finally {
-                adminRef.release(getBundleContext());
+                admin.release(getBundleContext());
             }
-        else throw new IOException("Configuration storage is not available");
+        }
+        else
+            throw new IOException("Configuration storage is not available");
     }
 }

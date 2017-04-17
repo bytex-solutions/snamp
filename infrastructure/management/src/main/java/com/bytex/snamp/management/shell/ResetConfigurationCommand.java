@@ -6,6 +6,7 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Resets SNAMP configuration.
@@ -20,18 +21,20 @@ import java.io.IOException;
 public final class ResetConfigurationCommand extends SnampShellCommand  {
     @Override
     public CharSequence execute() throws IOException {
-        final ServiceHolder<ConfigurationManager> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
-        if (adminRef != null)
+        final Optional<ServiceHolder<ConfigurationManager>> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+        if (adminRef.isPresent()) {
+            final ServiceHolder<ConfigurationManager> admin = adminRef.get();
             try {
                 final StringBuilder output = new StringBuilder(64);
-                adminRef.get().processConfiguration(config -> {
+                admin.get().processConfiguration(config -> {
                     config.clear();
                     return true;
                 });
                 return output;
             } finally {
-                adminRef.release(getBundleContext());
+                admin.release(getBundleContext());
             }
-        else throw new IOException("Configuration storage is not available");
+        } else
+            throw new IOException("Configuration storage is not available");
     }
 }

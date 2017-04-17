@@ -36,15 +36,15 @@ public interface ThreadPoolRepository extends SupportService, ManagedService, It
      * @param useDefaultIfNotExists {@literal true} to return default thread pool if requested thread pool doesn't exist; {@literal false} to return null if requested thread pool doesn't exist.
      * @return Thread pool associated with the specified name.
      */
-    static ExecutorService getThreadPool(final BundleContext context, final String name, final boolean useDefaultIfNotExists){
-        final ServiceHolder<ThreadPoolRepository> repository = ServiceHolder.tryCreate(context, ThreadPoolRepository.class);
-        if (repository != null)
+    static ExecutorService getThreadPool(final BundleContext context, final String name, final boolean useDefaultIfNotExists) {
+        return ServiceHolder.tryCreate(context, ThreadPoolRepository.class).map(repository -> {
             try {
                 return repository.get().getThreadPool(name, useDefaultIfNotExists);
             } finally {
                 repository.release(context);
             }
-        else return null;
+        })
+                .orElse(null);
     }
 
     static ExecutorService getDefaultThreadPool(final BundleContext context){

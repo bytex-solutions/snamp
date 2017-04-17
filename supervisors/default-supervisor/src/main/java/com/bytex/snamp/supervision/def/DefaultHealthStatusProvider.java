@@ -21,7 +21,6 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.JMException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -39,11 +38,16 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         private final HealthStatus previousStatus;
         private final HealthStatus newStatus;
 
-        private DefaultHealthStatusChangedEvent(final HealthStatus newStatus,
-                                   final HealthStatus previousStatus) {
+        private DefaultHealthStatusChangedEvent(@Nonnull final HealthStatus newStatus,
+                                   @Nonnull final HealthStatus previousStatus) {
             super(DefaultHealthStatusProvider.this);
-            this.previousStatus = Objects.requireNonNull(previousStatus);
-            this.newStatus = Objects.requireNonNull(newStatus);
+            this.previousStatus = previousStatus;
+            this.newStatus = newStatus;
+        }
+
+        @Override
+        public String getGroupName() {
+            return DefaultHealthStatusProvider.this.getGroupName();
         }
 
         @Override
@@ -66,12 +70,18 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     private final WeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent> listeners;
     private volatile HealthStatus status;
     private HealthStatusTrigger trigger;
+    private final String groupName;
 
-    public DefaultHealthStatusProvider() {
+    public DefaultHealthStatusProvider(@Nonnull final String groupName) {
         checkers = new ConcurrentHashMap<>();
         status = new OkStatus();
         trigger = HealthStatusTrigger.IDENTITY;
         listeners = WeakEventListenerList.create(HealthStatusEventListener::statusChanged);
+        this.groupName = groupName;
+    }
+
+    public final String getGroupName(){
+        return groupName;
     }
 
     public final void setTrigger(@Nonnull final HealthStatusTrigger value){

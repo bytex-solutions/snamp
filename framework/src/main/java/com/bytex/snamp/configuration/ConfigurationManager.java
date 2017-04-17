@@ -79,18 +79,16 @@ public interface ConfigurationManager extends FrameworkService {
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      * @since 1.2
      */
-    static <E extends EntityConfiguration> E createEntityConfiguration(final ClassLoader context, final Class<E> entityType){
-        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
-        if(manager != null)
-            try{
+    static <E extends EntityConfiguration> E createEntityConfiguration(final ClassLoader context, final Class<E> entityType) {
+        return ServiceHolder.tryCreate(context, ConfigurationManager.class).map(manager -> {
+            try {
                 return manager.get().transformConfiguration(config -> config.createEntityConfiguration(entityType));
-            }
-            catch (final IOException ignored){
+            } catch (final IOException ignored) {
                 return null;
-            }
-            finally {
+            } finally {
                 manager.release(context);
             }
-        else return null;
+        })
+                .orElse(null);
     }
 }

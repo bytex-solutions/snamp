@@ -345,17 +345,16 @@ final class SnmpHelpers {
     }
 
     static Supplier<OID> getOidGenerator(final BundleContext context) {
-        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
-        String prefix = "1.1";
-        if (manager != null)
+        final String prefix = ServiceHolder.tryCreate(context, ConfigurationManager.class).map(manager -> {
             try {
-                prefix = manager.get().transformConfiguration(config -> config.get(AUTO_PREFIX_PROPERTY));
+                return manager.get().transformConfiguration(config -> config.get(AUTO_PREFIX_PROPERTY));
             } catch (final IOException e) {
                 LoggerProvider.getLoggerForBundle(context).log(Level.SEVERE, "Unable to get SNAMP configuration manager", e);
             } finally {
                 manager.release(context);
             }
-
+            return null;
+        }).orElse("1.1");
         final OID oidPrefix = new OID(firstNonNull(prefix, "1.1"));
         return () -> generateOID(oidPrefix);
     }

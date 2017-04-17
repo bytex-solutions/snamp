@@ -32,6 +32,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
 
         @Override
+        @Nonnull
         protected SerializableOperationConfiguration createValue() {
             final SerializableOperationConfiguration result = new SerializableOperationConfiguration();
             result.markAsModified();
@@ -47,6 +48,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
 
         @Override
+        @Nonnull
         protected SerializableAttributeConfiguration createValue() {
             final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
             result.markAsModified();
@@ -62,6 +64,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
 
         @Override
+        @Nonnull
         protected SerializableEventConfiguration createValue() {
             final SerializableEventConfiguration result = new SerializableEventConfiguration();
             result.markAsModified();

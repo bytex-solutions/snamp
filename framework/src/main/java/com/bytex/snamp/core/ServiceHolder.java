@@ -5,10 +5,7 @@ import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
 import javax.management.InstanceNotFoundException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -49,15 +46,15 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @return A reference to OSGi service; or {@literal null}, if service was not registered.
      * @since 1.2
      */
-    public static <S> ServiceHolder<S> tryCreate(@Nonnull final BundleContext context, final Class<S> serviceType) {
-        final ServiceReference<S> serviceRef = context.getServiceReference(serviceType);
-        if (serviceRef == null)
-            return null;
-        else try {
-            return new ServiceHolder<>(context, serviceRef);
-        } catch (final InstanceNotFoundException e) {
-            return null;
-        }
+    public static <S> Optional<ServiceHolder<S>> tryCreate(@Nonnull final BundleContext context, final Class<S> serviceType) {
+        return Optional.ofNullable(context.getServiceReference(serviceType))
+                .map(ref -> {
+                    try {
+                        return new ServiceHolder<>(context, ref);
+                    } catch (final InstanceNotFoundException e) {
+                        return null;
+                    }
+                });
     }
 
     /**
@@ -69,13 +66,12 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @return A reference to OSGi or local service; or {@literal null}, if service was not registered.
      * @since 1.2
      */
-    public static <S> ServiceHolder<S> tryCreate(final ClassLoader context, final Class<S> serviceType){
-        if(context instanceof BundleReference)
-            return tryCreate(getBundleContext((BundleReference)context), serviceType);
-        else {
-            final LocalServiceReference<S> serviceRef = LocalServiceReference.resolve(context, serviceType);
-            return serviceRef != null ? new ServiceHolder<>(serviceRef) : null;
-        }
+    public static <S> Optional<ServiceHolder<S>> tryCreate(final ClassLoader context, final Class<S> serviceType) {
+        if (context instanceof BundleReference)
+            return tryCreate(getBundleContext((BundleReference) context), serviceType);
+        else
+            return Optional.ofNullable(LocalServiceReference.resolve(context, serviceType))
+                    .map(ServiceHolder::new);
     }
 
     private static BundleContext getBundleContext(final BundleReference bundleRef){

@@ -2,6 +2,8 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents collection of gateways.
  */
@@ -13,6 +15,7 @@ final class GatewayMap extends SerializableEntityMap<SerializableGatewayConfigur
     }
 
     @Override
+    @Nonnull
     protected SerializableGatewayConfiguration createValue() {
         final SerializableGatewayConfiguration result = new SerializableGatewayConfiguration();
         result.markAsModified();

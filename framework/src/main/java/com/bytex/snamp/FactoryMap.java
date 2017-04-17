@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -16,6 +17,7 @@ public interface FactoryMap<K, V> extends Map<K, V> {
      * @param key Key of the item.
      * @return Existing or newly created value of associated with the key.
      */
+    @Nonnull
     V getOrAdd(final K key);
 
     default boolean addAndConsume(final K key, final Consumer<? super V> handler) {

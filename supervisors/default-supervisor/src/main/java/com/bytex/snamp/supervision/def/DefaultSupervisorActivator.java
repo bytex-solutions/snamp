@@ -13,7 +13,8 @@ public final class DefaultSupervisorActivator extends SupervisorActivator<Defaul
 
     @SpecialUse(SpecialUse.Case.OSGi)
     public DefaultSupervisorActivator() {
-        super(DefaultSupervisorActivator::createSupervisor, configurationDescriptor(DefaultSupervisorConfigurationDescriptionProvider::new));
+        super(DefaultSupervisorActivator::createSupervisor,
+                configurationDescriptor(DefaultSupervisorConfigurationDescriptionProvider::new));
     }
 
     private static DefaultSupervisor createSupervisor(final String groupName,

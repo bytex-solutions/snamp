@@ -57,7 +57,7 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
         //setup InfluxDB emulation service
-        httpService = ServiceHolder.tryCreate(context, HttpService.class);
+        httpService = ServiceHolder.tryCreate(context, HttpService.class).orElseThrow(AssertionError::new);
         assertNotNull(httpService);
         httpService.get().registerServlet(InfluxPingServlet.CONTEXT, new InfluxPingServlet(), new Hashtable(), null);
         httpService.get().registerServlet(InfluxQueryServlet.CONTEXT, new InfluxQueryServlet(), new Hashtable(), null);

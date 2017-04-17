@@ -2,6 +2,8 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents list of managed resource groups.
  * This class cannot be inherited.
@@ -17,6 +19,7 @@ final class ResourceGroupMap extends SerializableEntityMap<SerializableManagedRe
     }
 
     @Override
+    @Nonnull
     protected SerializableManagedResourceGroupConfiguration createValue() {
         final SerializableManagedResourceGroupConfiguration result = new SerializableManagedResourceGroupConfiguration();
         result.markAsModified();

@@ -11,6 +11,7 @@ import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.AbstractSupervisor;
+import com.bytex.snamp.supervision.discovery.rest.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 
 import javax.annotation.Nonnull;
@@ -57,6 +58,8 @@ public class DefaultSupervisor extends AbstractSupervisor {
     private AttributeCheckerFactory checkerFactory;
     @Aggregation    //non-cached
     private TriggerFactory triggerFactory;
+    @Aggregation
+    private DefaultResourceDiscoveryService discoveryService;
     private HealthStatusUpdater updater;
 
     public DefaultSupervisor(final String groupName){
@@ -73,6 +76,10 @@ public class DefaultSupervisor extends AbstractSupervisor {
 
     protected final void setHealthStatusProvider(@Nonnull final DefaultHealthStatusProvider value){
         healthStatusProvider = value;
+    }
+
+    protected final void setDiscoveryService(@Nonnull final DefaultResourceDiscoveryService discoveryService){
+        this.discoveryService = discoveryService;
     }
 
     private void updateHealthStatus() {
@@ -93,7 +100,9 @@ public class DefaultSupervisor extends AbstractSupervisor {
 
     @Override
     protected void addResource(final String resourceName, final ManagedResourceConnector connector) {
-
+        final DefaultResourceDiscoveryService discoveryService = this.discoveryService;
+        if (discoveryService != null)
+            discoveryService.resourceRegistered(resourceName);
     }
 
     @Override
@@ -102,6 +111,9 @@ public class DefaultSupervisor extends AbstractSupervisor {
         final DefaultHealthStatusProvider provider = healthStatusProvider;
         if (provider != null)
             provider.removeResource(resourceName);
+        final DefaultResourceDiscoveryService discoveryService = this.discoveryService;
+        if(discoveryService != null)
+            discoveryService.resourceRemoved(resourceName);
     }
 
     /**
@@ -114,12 +126,13 @@ public class DefaultSupervisor extends AbstractSupervisor {
     @Override
     protected void stop() throws Exception {
         try {
-            Utils.closeAll(updater::terminate, healthStatusProvider);
+            Utils.closeAll(updater::terminate, healthStatusProvider, discoveryService);
         } finally {
             updater = null;
             healthStatusProvider = null;
             triggerFactory = null;
             checkerFactory = null;
+            discoveryService = null;
         }
     }
 
@@ -155,7 +168,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
     @Override
     protected void start(final SupervisorInfo configuration) throws Exception {
         setCheckerFactory(new AttributeCheckerFactory());
-        setHealthStatusProvider(new DefaultHealthStatusProvider());
+        setHealthStatusProvider(new DefaultHealthStatusProvider(groupName));
         setTriggerFactory(new TriggerFactory());
         setupHealthCheck(configuration.getHealthCheckConfig());
         //start updater thread

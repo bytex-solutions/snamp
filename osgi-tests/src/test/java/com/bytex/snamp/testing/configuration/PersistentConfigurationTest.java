@@ -17,8 +17,8 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
 
     @Test
     public void groupConfigurationTest() throws Exception {
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationManager.class);
-        assertNotNull(admin);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationManager.class)
+                .orElseThrow(AssertionError::new);
         try {
             admin.get().processConfiguration(currentConfig -> {
                 //resource without group
@@ -64,8 +64,8 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
 
     @Test
     public void configurationTest() throws Exception {
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationManager.class);
-        assertNotNull(admin);
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationManager.class)
+                .orElseThrow(AssertionError::new);
         try{
             admin.get().processConfiguration(currentConfig -> {
                 assertNotNull(currentConfig);

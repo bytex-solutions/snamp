@@ -19,8 +19,8 @@ public final class ThreadPoolRepositoryTest extends AbstractSnampIntegrationTest
 
     @Test
     public void checkThreadPoolConfigTest() throws InterruptedException {
-        final ServiceHolder<ThreadPoolRepository> repository = ServiceHolder.tryCreate(getTestBundleContext(), ThreadPoolRepository.class);
-        assertNotNull(repository);
+        final ServiceHolder<ThreadPoolRepository> repository = ServiceHolder.tryCreate(getTestBundleContext(), ThreadPoolRepository.class)
+                .orElseThrow(AssertionError::new);
         try{
             final ExecutorService service = repository.get().getThreadPool(POOL_NAME, false);
             assertNotNull(service);

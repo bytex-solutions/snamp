@@ -346,33 +346,35 @@ public final class ManagementService extends AbstractManagementService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public AgentDataObject getConfiguration() {
-        final ServiceHolder<ConfigurationManager> configManager = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
-        if (configManager != null)
+        final BundleContext context = getBundleContext();
+        return ServiceHolder.tryCreate(context, ConfigurationManager.class).map(manager -> {
             try {
-                return configManager.get().transformConfiguration(AgentDataObject::new);
+                return manager.get().transformConfiguration(AgentDataObject::new);
             } catch (final IOException e) {
                 throw new WebApplicationException(e);
+            } finally {
+                manager.release(context);
             }
-        else
-            throw configurationManagerIsNotAvailable();
+        }).orElseThrow(ManagementService::configurationManagerIsNotAvailable);
     }
 
     @Path("/configuration")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void setConfiguration(final AgentDataObject newConfig) {
-        final ServiceHolder<ConfigurationManager> configManager = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
-        if (configManager != null)
+        final BundleContext context = getBundleContext();
+        ServiceHolder.tryCreate(context, ConfigurationManager.class).ifPresent(manager -> {
             try {
-                configManager.get().processConfiguration(existingConfig -> {
+                manager.get().processConfiguration(existingConfig -> {
                     existingConfig.clear();
                     newConfig.exportTo(existingConfig);
                     return true;
                 });
             } catch (final IOException e) {
                 throw new WebApplicationException(e);
+            } finally {
+                manager.release(context);
             }
-        else
-            throw configurationManagerIsNotAvailable();
+        });
     }
 }

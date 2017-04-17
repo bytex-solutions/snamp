@@ -60,26 +60,25 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/components/{componentName}/attributes")
     public AttributeInformation[] getGroupAttributes(@PathParam("componentName") final String componentName) {
-        final ServiceHolder<ConfigurationManager> configurationManager = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
-        if (configurationManager != null)
-            try {
-                final Optional<? extends ManagedResourceGroupConfiguration> group = configurationManager.get().transformConfiguration(config -> config.getResourceGroups().getIfPresent(componentName));
-                if(group.isPresent())
-                    return group.get().getAttributes()
-                            .entrySet()
-                            .stream()
-                            .map(entry -> new AttributeInformation(entry.getKey(), entry.getValue()))
-                            .toArray(AttributeInformation[]::new);
-                else
-                    throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity(String.format("Component/group %s not found", componentName)).build());
-            } catch (final IOException e) {
-                throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-            }
-            finally {
-                configurationManager.release(getBundleContext());
-            }
-        else
-            throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ConfigurationManager is not available").build());
+        return ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class)
+                .map(configurationManager -> {
+                    try {
+                        final Optional<? extends ManagedResourceGroupConfiguration> group = configurationManager.get().transformConfiguration(config -> config.getResourceGroups().getIfPresent(componentName));
+                        if (group.isPresent())
+                            return group.get().getAttributes()
+                                    .entrySet()
+                                    .stream()
+                                    .map(entry -> new AttributeInformation(entry.getKey(), entry.getValue()))
+                                    .toArray(AttributeInformation[]::new);
+                        else
+                            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity(String.format("Component/group %s not found", componentName)).build());
+                    } catch (final IOException e) {
+                        throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+                    } finally {
+                        configurationManager.release(getBundleContext());
+                    }
+                })
+                .orElseThrow(() -> new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ConfigurationManager is not available").build()));
     }
 
     @GET

@@ -5,6 +5,7 @@ import com.bytex.snamp.FactoryMap;
 import com.bytex.snamp.Stateful;
 import com.bytex.snamp.io.SerializableMap;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -48,6 +49,7 @@ abstract class SerializableFactoryMap<K, V extends Modifiable & Stateful> extend
         values().forEach(SerializableFactoryMap::reset);//BANANA: Bug in JDK, can't replace with Stateful::reset
     }
 
+    @Nonnull
     abstract V createValue();
 
     @Override
@@ -69,6 +71,7 @@ abstract class SerializableFactoryMap<K, V extends Modifiable & Stateful> extend
     }
 
     @Override
+    @Nonnull
     public final V getOrAdd(final K entityID) {
         final V result;
         if (containsKey(entityID))

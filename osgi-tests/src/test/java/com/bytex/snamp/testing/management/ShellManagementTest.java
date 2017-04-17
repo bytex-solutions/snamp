@@ -26,8 +26,8 @@ import java.util.concurrent.Future;
 @SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_GATEWAY})
 public final class ShellManagementTest extends AbstractSnampIntegrationTest {
     private Object runCommand(String command) throws Exception{
-        final ServiceHolder<CommandProcessor> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), CommandProcessor.class);
-        assertNotNull(processorRef);
+        final ServiceHolder<CommandProcessor> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), CommandProcessor.class)
+                .orElseThrow(AssertionError::new);
         // On windows we have path separator that conflicts with escape symbols
         if (OperatingSystem.isWindows()) {
             command = command.replace("\\", "\\\\");
@@ -61,10 +61,10 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
         final Object result = runCommand("snamp:thread-pool-add -m 3 -M 5 -t 2000 tp1");
         assertTrue(result instanceof CharSequence);
         Thread.sleep(1000); //adding thread pool is async operation
-        final ServiceHolder<ThreadPoolRepository> threadPoolRepo = ServiceHolder.tryCreate(getTestBundleContext(), ThreadPoolRepository.class);
-        final ServiceHolder<ConfigurationManager> configManager = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationManager.class);
-        assertNotNull(threadPoolRepo);
-        assertNotNull(configManager);
+        final ServiceHolder<ThreadPoolRepository> threadPoolRepo = ServiceHolder.tryCreate(getTestBundleContext(), ThreadPoolRepository.class)
+                .orElseThrow(AssertionError::new);
+        final ServiceHolder<ConfigurationManager> configManager = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationManager.class)
+                .orElseThrow(AssertionError::new);
         try{
             final ThreadPoolConfiguration config = configManager.get().transformConfiguration(cfg -> cfg.getThreadPools().get("tp1"));
             assertEquals(ThreadPoolConfiguration.INFINITE_QUEUE_SIZE, config.getQueueSize());

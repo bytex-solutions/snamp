@@ -86,7 +86,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      * @since 1.2
      */
     @Override
-    public final synchronized boolean removeIf(final Predicate<? super L> filter) {
+    public final synchronized boolean removeIf(@Nonnull final Predicate<? super L> filter) {
         if(isEmpty())
             return false;
         @SuppressWarnings("unchecked")
@@ -156,7 +156,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      */
     @Override
     @SuppressWarnings("unchecked")
-    public final synchronized boolean add(final L listener) {
+    public final synchronized boolean add(@Nonnull final L listener) {
         final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length + 1];
         int outputIndex = 0;
         //remove dead references
@@ -176,12 +176,12 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
      */
     @Override
-    public final boolean remove(final Object listener) {
+    public final boolean remove(@Nonnull final Object listener) {
         return removeIf(listener::equals);
     }
 
     @Override
-    public final boolean contains(final Object listener) {
+    public final boolean contains(@Nonnull final Object listener) {
         final WeakEventListener<?, ?>[] snapshot = listeners;
         for (final WeakEventListener<?, ?> listenerRef : snapshot)
             if (Objects.equals(listener, listenerRef.get()))

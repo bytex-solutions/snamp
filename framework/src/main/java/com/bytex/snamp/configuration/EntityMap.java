@@ -2,6 +2,7 @@ package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.FactoryMap;
 
+import javax.annotation.Nonnull;
 import java.util.Optional;
 
 /**
@@ -15,6 +16,7 @@ public interface EntityMap<E extends EntityConfiguration> extends FactoryMap<Str
      * @return Configuration entity from the catalog.
      */
     @Override
+    @Nonnull
     E getOrAdd(final String entityID);
 
     default Optional<E> getIfPresent(final String entityID){

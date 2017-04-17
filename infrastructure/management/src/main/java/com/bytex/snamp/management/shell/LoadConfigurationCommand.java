@@ -12,6 +12,7 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
+import java.util.Optional;
 
 /**
  * Loads configuration from file.
@@ -41,14 +42,17 @@ public final class LoadConfigurationCommand extends SnampShellCommand {
 
     @Override
     public Object execute() throws Exception {
-        final ServiceHolder<ConfigurationManager> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
-        if (adminRef != null)
+        final Optional<ServiceHolder<ConfigurationManager>> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+        if (adminRef.isPresent()) {
+            final ServiceHolder<ConfigurationManager> admin = adminRef.get();
             try {
-                adminRef.get().processConfiguration(config -> loadConfiguration(config, fileName));
+                admin.get().processConfiguration(config -> loadConfiguration(config, fileName));
                 return "Configuration saved successfully";
             } finally {
-                adminRef.release(getBundleContext());
+                admin.release(getBundleContext());
             }
-        else throw new IOException("Configuration storage is not available");
+        }
+        else
+            throw new IOException("Configuration storage is not available");
     }
 }

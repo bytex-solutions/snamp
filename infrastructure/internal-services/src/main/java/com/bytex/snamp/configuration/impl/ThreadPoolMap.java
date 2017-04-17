@@ -2,6 +2,8 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents a set of configured thread pools.
  * @since 2.0
@@ -16,6 +18,7 @@ final class ThreadPoolMap extends SerializableEntityMap<SerializableThreadPoolCo
     }
 
     @Override
+    @Nonnull
     protected SerializableThreadPoolConfiguration createValue() {
         final SerializableThreadPoolConfiguration result = new SerializableThreadPoolConfiguration();
         result.markAsModified();

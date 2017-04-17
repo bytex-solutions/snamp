@@ -116,15 +116,13 @@ public final class DistributedServices {
     private static <S> S processClusterNode(final BundleContext context,
                                             final Function<? super ClusterMember, S> processor,
                                             final Supplier<S> def) {
-        if(context == null) return def.get();
-        final ServiceHolder<ClusterMember> holder = ServiceHolder.tryCreate(context, ClusterMember.class);
-        if (holder != null)
+        return ServiceHolder.tryCreate(context, ClusterMember.class).map(holder -> {
             try {
                 return processor.apply(holder.getService());
             } finally {
                 holder.release(context);
             }
-        else return def.get();
+        }).orElseGet(def);
     }
 
     public static <S extends SharedObject> S getDistributedObject(final BundleContext context,

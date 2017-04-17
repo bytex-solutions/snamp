@@ -37,6 +37,10 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
         entityMapResolver = Objects.requireNonNull(resolver);
     }
 
+    private static WebApplicationException configurationManagerIsMissing(){
+        return new WebApplicationException(new AssertionError("Configuration manager is not available"));
+    }
+
     /**
      * Read configuration and return the result
      * @param handler lambda for reading in a appropriate way
@@ -45,16 +49,17 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
      * @throws WebApplicationException required by configuration admin
      */
      static  <R> R readOnlyActions(final BundleContext context, final Function<? super AgentConfiguration, R> handler) throws WebApplicationException {
-        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(context, ConfigurationManager.class);
-        assert admin != null;
-        try {
-            return admin.get().transformConfiguration(handler); // readConfiguration ничего не возвращает и в acceptor передать Box нельзя.
-        } catch (final IOException exception) {
-            throw new WebApplicationException(exception);
-        } finally {
-            admin.release(context);
-        }
-    }
+         return ServiceHolder.tryCreate(context, ConfigurationManager.class)
+                 .map(admin -> {
+                     try {
+                         return admin.get().transformConfiguration(handler); // readConfiguration ничего не возвращает и в acceptor передать Box нельзя.
+                     } catch (final IOException exception) {
+                         throw new WebApplicationException(exception);
+                     } finally {
+                         admin.release(context);
+                     }
+                 }).orElseThrow(AbstractEntityConfigurationService::configurationManagerIsMissing);
+     }
 
     /**
      * Performs the processing of the configuration
@@ -66,15 +71,15 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
                                      final SecurityContext security,
                                      final ConfigurationManager.ConfigurationProcessor<WebApplicationException> handler) throws WebApplicationException {
          Role.ADMIN.authorize(security, true);
-         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(context, ConfigurationManager.class);
-         assert admin != null;
-         try {
-             admin.get().processConfiguration(handler);
-         } catch (final IOException exception) {
-             throw new WebApplicationException(exception);
-         } finally {
-             admin.release(context);
-         }
+         ServiceHolder.tryCreate(context, ConfigurationManager.class).ifPresent(admin -> {
+             try {
+                 admin.get().processConfiguration(handler);
+             } catch (final IOException exception) {
+                 throw new WebApplicationException(exception);
+             } finally {
+                 admin.release(context);
+             }
+         });
          return Response.noContent().build();
      }
 

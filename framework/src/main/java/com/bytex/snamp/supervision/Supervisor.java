@@ -5,6 +5,7 @@ import com.bytex.snamp.core.StatefulFrameworkService;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
+import com.bytex.snamp.supervision.discovery.ResourceDiscoveryService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleRevision;
@@ -70,6 +71,7 @@ public interface Supervisor extends StatefulFrameworkService, Closeable {
      * @return Supervisor service; or {@literal null} if service is not supported.
      * @see HealthStatusProvider
      * @see ElasticityManager
+     * @see ResourceDiscoveryService
      */
     @Override
     <T> Optional<T> queryObject(@Nonnull final Class<T> objectType);

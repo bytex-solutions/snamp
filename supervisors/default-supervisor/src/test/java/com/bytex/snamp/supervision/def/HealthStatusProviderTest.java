@@ -35,6 +35,10 @@ public class HealthStatusProviderTest extends Assert {
         private final AttributeCheckerFactory checkerFactory = new AttributeCheckerFactory();
         private final TriggerFactory triggerFactory = new TriggerFactory();
 
+        private TestHealthStatusProvider(@Nonnull final String groupName) {
+            super(groupName);
+        }
+
         void setupHealthCheck(@Nonnull final SupervisorInfo.HealthCheckInfo healthCheckInfo) throws ScriptletCompilationException {
             setTrigger(triggerFactory.compile(healthCheckInfo.getTrigger()));
             removeCheckers();
@@ -90,7 +94,7 @@ public class HealthStatusProviderTest extends Assert {
             checker.setYellowPredicate(new IsInRangePredicate(1000D, true, 2000D, true));
             checker.configureScriptlet(scriptlet);
         });
-        final TestHealthStatusProvider watcher = new TestHealthStatusProvider();
+        final TestHealthStatusProvider watcher = new TestHealthStatusProvider("myGroup");
         watcher.setupHealthCheck(watcherConfiguration.getHealthCheckConfig());
         final TestResourceConnector connector = new TestResourceConnector();
         Aggregator.queryAndAccept(connector, AttributeSupport.class, attributes -> {

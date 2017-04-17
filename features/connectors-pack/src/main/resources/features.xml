@@ -5,6 +5,7 @@
     <feature name="snamp-default-supervisor" description="SNAMP Default Supervisor" version="${snamp.supervisors.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
         <bundle start="true">mvn:com.bytex.snamp.supervisors/default/${snamp.supervisors.version}</bundle>
     </feature>
 

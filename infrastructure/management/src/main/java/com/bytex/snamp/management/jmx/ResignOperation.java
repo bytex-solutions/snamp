@@ -25,16 +25,16 @@ public final class ResignOperation extends OpenMBean.OpenOperation<Boolean, Simp
     }
 
     public static boolean resign(final BundleContext context) {
-        final ServiceHolder<ClusterMember> nodeService = ServiceHolder.tryCreate(context, ClusterMember.class);
-        if (nodeService != null)
-            try {
-                nodeService.getService().resign();
-                return true;
-            } catch (final IllegalArgumentException e) {
-                return false;
-            } finally {
-                nodeService.release(context);
-            }
-        else return false;
+        return ServiceHolder.tryCreate(context, ClusterMember.class)
+                .map(nodeService -> {
+                    try {
+                        nodeService.getService().resign();
+                        return true;
+                    } catch (final IllegalArgumentException e) {
+                        return false;
+                    } finally {
+                        nodeService.release(context);
+                    }
+                }).orElse(false);
     }
 }

@@ -282,15 +282,17 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
 
     @Override
     public final ManagedResourceConfiguration getResourceConfiguration(final String resourceName) throws IOException {
-        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
-        if (manager == null)
-            return null;
-        else
+        final Optional<ServiceHolder<ConfigurationManager>> managerRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+        if (managerRef.isPresent()) {
+            final ServiceHolder<ConfigurationManager> manager = managerRef.get();
             try {
                 return manager.get().transformConfiguration(config -> config.getResources().get(resourceName));
             } finally {
                 manager.release(getBundleContext());
             }
+        }
+        else
+            return null;
     }
 
     @Override

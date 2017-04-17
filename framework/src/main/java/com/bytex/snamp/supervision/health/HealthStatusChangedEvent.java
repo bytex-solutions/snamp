@@ -25,4 +25,6 @@ public abstract class HealthStatusChangedEvent extends EventObject {
     public abstract HealthStatus getNewStatus();
 
     public abstract HealthStatus getPreviousStatus();
+
+    public abstract String getGroupName();
 }

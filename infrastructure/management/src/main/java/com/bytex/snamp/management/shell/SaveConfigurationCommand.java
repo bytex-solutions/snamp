@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
 import java.io.*;
+import java.util.Optional;
 
 /**
  * Saves configuration into file.
@@ -39,14 +40,17 @@ public final class SaveConfigurationCommand extends SnampShellCommand {
 
     @Override
     public Object execute() throws Exception {
-        final ServiceHolder<ConfigurationManager> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
-        if (adminRef != null)
+        final Optional<ServiceHolder<ConfigurationManager>> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+
+        if (adminRef.isPresent()) {
+            final ServiceHolder<ConfigurationManager> admin = adminRef.get();
             try {
-                adminRef.get().readConfiguration(config -> saveConfiguration(config, fileName));
+                admin.get().readConfiguration(config -> saveConfiguration(config, fileName));
                 return "Configuration saved successfully";
             } finally {
-                adminRef.release(getBundleContext());
+                admin.release(getBundleContext());
             }
-        else throw new IOException("Configuration storage is not available");
+        } else
+            throw new IOException("Configuration storage is not available");
     }
 }

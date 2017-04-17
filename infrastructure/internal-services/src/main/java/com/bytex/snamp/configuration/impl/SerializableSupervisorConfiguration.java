@@ -55,6 +55,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
         }
 
         @Override
+        @Nonnull
         SerializableScriptletConfiguration createValue() {
             return new SerializableScriptletConfiguration();
         }

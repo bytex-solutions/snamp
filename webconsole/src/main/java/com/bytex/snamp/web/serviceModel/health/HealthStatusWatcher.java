@@ -1,5 +1,6 @@
 package com.bytex.snamp.web.serviceModel.health;
 
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
@@ -37,20 +38,30 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
         private static final long serialVersionUID = -9201166624972276258L;
         private final HealthStatus previousStatus;
         private final HealthStatus newStatus;
+        private final String groupName;
 
         private GroupStatusChangedMessage(final HealthStatusChangedEvent event) {
             this.previousStatus = event.getPreviousStatus();
             this.newStatus = event.getNewStatus();
+            this.groupName = event.getGroupName();
+        }
+
+        @JsonProperty
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
+        public String getGroupName(){
+            return groupName;
         }
 
         @JsonProperty
         @JsonSerialize(using = HealthStatusSerializer.class)
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public HealthStatus getPreviousStatus(){
             return previousStatus;
         }
 
         @JsonProperty
         @JsonSerialize(using = HealthStatusSerializer.class)
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public HealthStatus getNewStatus(){
             return newStatus;
         }

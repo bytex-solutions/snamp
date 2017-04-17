@@ -2,6 +2,8 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
 
+import javax.annotation.Nonnull;
+
 /**
  * Serializable collection of managed resources.
  */
@@ -13,6 +15,7 @@ final class ManagedResourceMap extends SerializableEntityMap<SerializableManaged
     }
 
     @Override
+    @Nonnull
     protected SerializableManagedResourceConfiguration createValue() {
         final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
         result.markAsModified();
