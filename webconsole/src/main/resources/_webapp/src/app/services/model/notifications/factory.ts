@@ -2,7 +2,7 @@ import { AbstractNotification } from "./abstract.notification";
 import { LogNotification } from "./log.notification";
 import { HealthStatusNotification } from "./health.status.notification";
 import { ResourceNotification } from "./resource.notification";
-import { StatusFactory } from "../healtstatus/factory";
+import { StatusFactory } from "../healthstatus/factory";
 
 export class NotificationFactory {
     public static makeFromJson(_json:any):AbstractNotification {

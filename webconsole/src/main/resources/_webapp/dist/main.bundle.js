@@ -87154,7 +87154,7 @@ __export(__webpack_require__("./src/app/app.module.ts"));
 /***/ "./src/app/menu/sidebar.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <!-- menu profile quick info -->\r\n    <div class=\"profile\">\r\n      <div class=\"profile_pic\">\r\n        <img src=\"assets/img/anyUser.png\" alt=\"...\" class=\"img-circle profile_img\">\r\n      </div>\r\n      <div class=\"profile_info\">\r\n        <span>Welcome,</span>\r\n        <h2><username></username></h2>\r\n      </div>\r\n    </div>\r\n    <!-- /menu profile quick info -->\r\n\r\n    <br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n              <li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisor - Health statuses</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"logsli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-commenting-o\"></i> Notifications<span id=\"logschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"notification-setup\" routerLinkActive=\"active\">Settings</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Healt statuses</a></li>\r\n              <li *ngFor=\"let _view of views\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <!-- menu profile quick info -->\r\n    <div class=\"profile\">\r\n      <div class=\"profile_pic\">\r\n        <img src=\"assets/img/anyUser.png\" alt=\"...\" class=\"img-circle profile_img\">\r\n      </div>\r\n      <div class=\"profile_info\">\r\n        <span>Welcome,</span>\r\n        <h2><username></username></h2>\r\n      </div>\r\n    </div>\r\n    <!-- /menu profile quick info -->\r\n\r\n    <br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n              <li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisor - Health statuses</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"logsli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-commenting-o\"></i> Notifications<span id=\"logschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"notification-setup\" routerLinkActive=\"active\">Settings</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" (click)=\"anchorClicked($event)\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Health statuses</a></li>\r\n              <li *ngFor=\"let _view of views\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
@@ -87945,12 +87945,12 @@ exports.ViewService = ViewService;
 
 /***/ },
 
-/***/ "./src/app/services/model/healtstatus/connection.problem.status.ts":
+/***/ "./src/app/services/model/healthstatus/connection.problem.status.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var malfunction_status_1 = __webpack_require__("./src/app/services/model/healtstatus/malfunction.status.ts");
+var malfunction_status_1 = __webpack_require__("./src/app/services/model/healthstatus/malfunction.status.ts");
 var ConnectionProblem = (function (_super) {
     __extends(ConnectionProblem, _super);
     function ConnectionProblem() {
@@ -87979,17 +87979,17 @@ exports.ConnectionProblem = ConnectionProblem;
 
 /***/ },
 
-/***/ "./src/app/services/model/healtstatus/factory.ts":
+/***/ "./src/app/services/model/healthstatus/factory.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var health_status_1 = __webpack_require__("./src/app/services/model/healtstatus/health.status.ts");
-var ok_status_1 = __webpack_require__("./src/app/services/model/healtstatus/ok.status.ts");
-var resource_na_status_1 = __webpack_require__("./src/app/services/model/healtstatus/resource.na.status.ts");
-var connection_problem_status_1 = __webpack_require__("./src/app/services/model/healtstatus/connection.problem.status.ts");
-var invalid_attribute_value_status_1 = __webpack_require__("./src/app/services/model/healtstatus/invalid.attribute.value.status.ts");
-var malfunction_status_1 = __webpack_require__("./src/app/services/model/healtstatus/malfunction.status.ts");
+var health_status_1 = __webpack_require__("./src/app/services/model/healthstatus/health.status.ts");
+var ok_status_1 = __webpack_require__("./src/app/services/model/healthstatus/ok.status.ts");
+var resource_na_status_1 = __webpack_require__("./src/app/services/model/healthstatus/resource.na.status.ts");
+var connection_problem_status_1 = __webpack_require__("./src/app/services/model/healthstatus/connection.problem.status.ts");
+var invalid_attribute_value_status_1 = __webpack_require__("./src/app/services/model/healthstatus/invalid.attribute.value.status.ts");
+var malfunction_status_1 = __webpack_require__("./src/app/services/model/healthstatus/malfunction.status.ts");
 var StatusFactory = (function () {
     function StatusFactory() {
     }
@@ -88057,7 +88057,7 @@ exports.StatusFactory = StatusFactory;
 
 /***/ },
 
-/***/ "./src/app/services/model/healtstatus/health.status.ts":
+/***/ "./src/app/services/model/healthstatus/health.status.ts":
 /***/ function(module, exports) {
 
 "use strict";
@@ -88083,12 +88083,12 @@ exports.HealthStatus = HealthStatus;
 
 /***/ },
 
-/***/ "./src/app/services/model/healtstatus/invalid.attribute.value.status.ts":
+/***/ "./src/app/services/model/healthstatus/invalid.attribute.value.status.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var malfunction_status_1 = __webpack_require__("./src/app/services/model/healtstatus/malfunction.status.ts");
+var malfunction_status_1 = __webpack_require__("./src/app/services/model/healthstatus/malfunction.status.ts");
 var InvalidAttributeValue = (function (_super) {
     __extends(InvalidAttributeValue, _super);
     function InvalidAttributeValue() {
@@ -88126,12 +88126,12 @@ exports.AttributeWithValue = AttributeWithValue;
 
 /***/ },
 
-/***/ "./src/app/services/model/healtstatus/malfunction.status.ts":
+/***/ "./src/app/services/model/healthstatus/malfunction.status.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var health_status_1 = __webpack_require__("./src/app/services/model/healtstatus/health.status.ts");
+var health_status_1 = __webpack_require__("./src/app/services/model/healthstatus/health.status.ts");
 var MalfunctionStatus = (function (_super) {
     __extends(MalfunctionStatus, _super);
     function MalfunctionStatus() {
@@ -88148,12 +88148,12 @@ exports.MalfunctionStatus = MalfunctionStatus;
 
 /***/ },
 
-/***/ "./src/app/services/model/healtstatus/ok.status.ts":
+/***/ "./src/app/services/model/healthstatus/ok.status.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var health_status_1 = __webpack_require__("./src/app/services/model/healtstatus/health.status.ts");
+var health_status_1 = __webpack_require__("./src/app/services/model/healthstatus/health.status.ts");
 var OkStatus = (function (_super) {
     __extends(OkStatus, _super);
     function OkStatus() {
@@ -88179,12 +88179,12 @@ exports.OkStatus = OkStatus;
 
 /***/ },
 
-/***/ "./src/app/services/model/healtstatus/resource.na.status.ts":
+/***/ "./src/app/services/model/healthstatus/resource.na.status.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var malfunction_status_1 = __webpack_require__("./src/app/services/model/healtstatus/malfunction.status.ts");
+var malfunction_status_1 = __webpack_require__("./src/app/services/model/healthstatus/malfunction.status.ts");
 var ResourceIsNotAvailable = (function (_super) {
     __extends(ResourceIsNotAvailable, _super);
     function ResourceIsNotAvailable() {
@@ -88323,7 +88323,7 @@ exports.AbstractNotification = AbstractNotification;
 var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
 var health_status_notification_1 = __webpack_require__("./src/app/services/model/notifications/health.status.notification.ts");
 var resource_notification_1 = __webpack_require__("./src/app/services/model/notifications/resource.notification.ts");
-var factory_1 = __webpack_require__("./src/app/services/model/healtstatus/factory.ts");
+var factory_1 = __webpack_require__("./src/app/services/model/healthstatus/factory.ts");
 var NotificationFactory = (function () {
     function NotificationFactory() {
     }
@@ -88384,8 +88384,8 @@ exports.NotificationFactory = NotificationFactory;
 "use strict";
 "use strict";
 var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
-var ok_status_1 = __webpack_require__("./src/app/services/model/healtstatus/ok.status.ts");
-var factory_1 = __webpack_require__("./src/app/services/model/healtstatus/factory.ts");
+var ok_status_1 = __webpack_require__("./src/app/services/model/healthstatus/ok.status.ts");
+var factory_1 = __webpack_require__("./src/app/services/model/healthstatus/factory.ts");
 var HealthStatusNotification = (function (_super) {
     __extends(HealthStatusNotification, _super);
     function HealthStatusNotification() {

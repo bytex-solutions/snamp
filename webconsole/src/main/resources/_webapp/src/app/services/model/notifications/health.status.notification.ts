@@ -1,7 +1,7 @@
 import { AbstractNotification } from "./abstract.notification";
-import { HealthStatus } from "../healtstatus/health.status";
-import { OkStatus } from "../healtstatus/ok.status";
-import { StatusFactory } from "../healtstatus/factory";
+import { HealthStatus } from "../healthstatus/health.status";
+import { OkStatus } from "../healthstatus/ok.status";
+import { StatusFactory } from "../healthstatus/factory";
 
 export class HealthStatusNotification extends AbstractNotification {
 

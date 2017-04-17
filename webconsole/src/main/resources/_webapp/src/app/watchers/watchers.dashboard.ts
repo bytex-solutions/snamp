@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
-import { HealthStatus } from '../services/model/healtstatus/health.status';
+import { HealthStatus } from '../services/model/healthstatus/health.status';
 
 import 'rxjs/add/operator/publishLast';
 
@@ -12,7 +12,7 @@ import {
   TwoButtonPresetBuilder,
   PromptPresetBuilder
 } from 'angular2-modal/plugins/bootstrap/index';
-import {StatusFactory} from "../services/model/healtstatus/factory";
+import {StatusFactory} from "../services/model/healthstatus/factory";
 
 
 @Component({
