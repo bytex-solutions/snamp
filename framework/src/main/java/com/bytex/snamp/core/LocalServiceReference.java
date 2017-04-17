@@ -5,6 +5,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
@@ -22,12 +23,11 @@ final class LocalServiceReference<S> implements ServiceReference<S>, Supplier<S>
         this.serviceImpl = Objects.requireNonNull(service);
     }
 
-    static <S> LocalServiceReference<S> resolve(final ClassLoader context, final Class<S> serviceType) {
+    static <S> Optional<LocalServiceReference<S>> resolve(final ClassLoader context, final Class<S> serviceType) {
         final ServiceLoader<S> loader = ServiceLoader.load(serviceType, context);
-        final S serviceImpl = StreamSupport.stream(loader.spliterator(), false)
+        return StreamSupport.stream(loader.spliterator(), false)
                 .findFirst()
-                .orElseGet(() -> null);
-        return serviceImpl == null ? null : new LocalServiceReference<>(serviceImpl);
+                .map(LocalServiceReference::new);
     }
 
     @Override

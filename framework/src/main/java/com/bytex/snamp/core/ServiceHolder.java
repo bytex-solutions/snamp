@@ -20,8 +20,8 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
     private final ServiceReference<S> serviceRef;
     private S serviceImpl;
 
-    private ServiceHolder(final LocalServiceReference<S> localRef){
-        serviceRef = Objects.requireNonNull(localRef);
+    private ServiceHolder(@Nonnull final LocalServiceReference<S> localRef){
+        serviceRef = localRef;
         serviceImpl = localRef.get();
     }
 
@@ -70,8 +70,7 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
         if (context instanceof BundleReference)
             return tryCreate(getBundleContext((BundleReference) context), serviceType);
         else
-            return Optional.ofNullable(LocalServiceReference.resolve(context, serviceType))
-                    .map(ServiceHolder::new);
+            return LocalServiceReference.resolve(context, serviceType).map(ServiceHolder::new);
     }
 
     private static BundleContext getBundleContext(final BundleReference bundleRef){
