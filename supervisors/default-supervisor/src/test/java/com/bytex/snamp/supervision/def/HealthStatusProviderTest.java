@@ -1,6 +1,5 @@
 package com.bytex.snamp.supervision.def;
 
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
@@ -97,7 +96,7 @@ public class HealthStatusProviderTest extends Assert {
         final TestHealthStatusProvider watcher = new TestHealthStatusProvider("myGroup");
         watcher.setupHealthCheck(watcherConfiguration.getHealthCheckConfig());
         final TestResourceConnector connector = new TestResourceConnector();
-        Aggregator.queryAndAccept(connector, AttributeSupport.class, attributes -> {
+        connector.queryObject(AttributeSupport.class).ifPresent(attributes -> {
             attributes.addAttribute("memory", AttributeDescriptor.EMPTY_DESCRIPTOR);
             attributes.addAttribute("CPU", AttributeDescriptor.EMPTY_DESCRIPTOR);
         });

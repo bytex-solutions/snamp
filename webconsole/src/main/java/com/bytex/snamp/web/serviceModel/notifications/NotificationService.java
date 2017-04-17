@@ -1,8 +1,5 @@
 package com.bytex.snamp.web.serviceModel.notifications;
 
-import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
@@ -29,6 +26,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
@@ -63,7 +61,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         }
     }
 
-    private static final class NotificationTypeAggregator extends HashSet<String> implements Acceptor<NotificationSupport, ExceptionPlaceholder>{
+    private static final class NotificationTypeAggregator extends HashSet<String> implements Consumer<NotificationSupport> {
         private static final long serialVersionUID = 2963785216575253227L;
 
         NotificationTypeAggregator(){
@@ -121,7 +119,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context))
             ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
                 try {
-                    Aggregator.queryAndAccept(client, NotificationSupport.class, notificationTypes);
+                    client.queryObject(NotificationSupport.class).ifPresent(notificationTypes);
                 } finally {
                     client.close();
                 }

@@ -1,6 +1,5 @@
-package com.bytex.snamp.web.serviceModel.health;
+package com.bytex.snamp.web.serviceModel.resourceGroups;
 
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.bytex.snamp.supervision.Supervisor;
 import com.bytex.snamp.supervision.SupervisorClient;
@@ -21,14 +20,18 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-final class HealthStatusEventHub extends AbstractStatefulFrameworkServiceTracker<Supervisor, SupervisorClient, Map<String, HealthStatusEventListener>> implements HealthStatusEventListener {
-    HealthStatusEventHub(){
+final class ResourceGroupEventHub extends AbstractStatefulFrameworkServiceTracker<Supervisor, SupervisorClient, Map<String, HealthStatusEventListener>> implements HealthStatusEventListener {
+    ResourceGroupEventHub(){
         super(Supervisor.class, new InternalState<>(ImmutableMap.of()));
     }
 
     @Override
     public void statusChanged(final HealthStatusChangedEvent event) {
         getConfiguration().values().forEach(listener -> listener.statusChanged(event));
+    }
+
+    private void addSupervisor(final String groupName, @WillNotClose final Supervisor supervisor){
+        supervisor.queryObject(HealthStatusProvider.class).ifPresent(provider -> provider.addHealthStatusEventListener(this));
     }
 
     /**
@@ -39,7 +42,12 @@ final class HealthStatusEventHub extends AbstractStatefulFrameworkServiceTracker
     @Override
     protected synchronized void addService(@WillNotClose final SupervisorClient serviceClient) {
         if (!trackedServices.contains(getServiceId(serviceClient)))
-            Aggregator.queryAndAccept(serviceClient, HealthStatusProvider.class, provider -> provider.addHealthStatusEventListener(this));
+            addSupervisor(getServiceId(serviceClient), serviceClient);
+    }
+
+    private void removeSupervisor(final String groupName,
+                                  @WillNotClose final Supervisor supervisor){
+        supervisor.queryObject(HealthStatusProvider.class).ifPresent(provider -> provider.removeHealthStatusEventListener(this));
     }
 
     /**
@@ -50,7 +58,7 @@ final class HealthStatusEventHub extends AbstractStatefulFrameworkServiceTracker
     @Override
     protected synchronized void removeService(@WillNotClose final SupervisorClient serviceClient) {
         if (trackedServices.contains(getServiceId(serviceClient)))
-            Aggregator.queryAndAccept(serviceClient, HealthStatusProvider.class, provider -> provider.removeHealthStatusEventListener(this));
+            removeSupervisor(getServiceId(serviceClient), serviceClient);
     }
 
     @Nonnull

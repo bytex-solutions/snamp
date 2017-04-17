@@ -1,6 +1,7 @@
 package com.bytex.snamp.supervision.def;
 
 import com.bytex.snamp.concurrent.WeakRepeater;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
@@ -61,9 +62,17 @@ public class DefaultSupervisor extends AbstractSupervisor {
     @Aggregation
     private DefaultResourceDiscoveryService discoveryService;
     private HealthStatusUpdater updater;
+    private final ConfigurationManager configurationManager;
 
-    public DefaultSupervisor(final String groupName){
+    public DefaultSupervisor(@Nonnull final String groupName){
         super(groupName);
+        this.configurationManager = null;
+    }
+
+    protected DefaultSupervisor(@Nonnull final String groupName,
+                                @Nonnull final ConfigurationManager configManager){
+        super(groupName);
+        this.configurationManager = configManager;
     }
 
     protected final void setCheckerFactory(@Nonnull final AttributeCheckerFactory value){
@@ -171,6 +180,11 @@ public class DefaultSupervisor extends AbstractSupervisor {
         setHealthStatusProvider(new DefaultHealthStatusProvider(groupName));
         setTriggerFactory(new TriggerFactory());
         setupHealthCheck(configuration.getHealthCheckConfig());
+        if (configurationManager == null) {
+            getLogger().warning("Configuration manager is not available. Default discovery service is disabled");
+        } else {
+            setDiscoveryService(new DefaultResourceDiscoveryService(groupName, configurationManager));
+        }
         //start updater thread
         updater = new HealthStatusUpdater(getCheckPeriod(configuration), this);
         updater.run();

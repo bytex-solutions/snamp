@@ -9,7 +9,7 @@ import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
 import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
-import com.bytex.snamp.web.serviceModel.health.HealthStatusWatcher;
+import com.bytex.snamp.web.serviceModel.resourceGroups.ResourceGroupWatcherService;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
 import com.bytex.snamp.web.serviceModel.notifications.NotificationService;
 import org.osgi.framework.BundleContext;
@@ -58,20 +58,20 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class GroupWatcherServiceProvider extends ProvidedService<WebConsoleService, HealthStatusWatcher>{
+    private static final class GroupWatcherServiceProvider extends ProvidedService<WebConsoleService, ResourceGroupWatcherService>{
         private GroupWatcherServiceProvider(){
             super(WebConsoleService.class);
         }
 
         @Override
-        protected HealthStatusWatcher activateService(final Map<String, Object> identity) {
-            identity.put(WebConsoleService.NAME, HealthStatusWatcher.NAME);
-            identity.put(WebConsoleService.URL_CONTEXT, HealthStatusWatcher.URL_CONTEXT);
-            return new HealthStatusWatcher();
+        protected ResourceGroupWatcherService activateService(final Map<String, Object> identity) {
+            identity.put(WebConsoleService.NAME, ResourceGroupWatcherService.NAME);
+            identity.put(WebConsoleService.URL_CONTEXT, ResourceGroupWatcherService.URL_CONTEXT);
+            return new ResourceGroupWatcherService();
         }
 
         @Override
-        protected void cleanupService(final HealthStatusWatcher serviceInstance, final boolean stopBundle) throws Exception {
+        protected void cleanupService(final ResourceGroupWatcherService serviceInstance, final boolean stopBundle) throws Exception {
             serviceInstance.close();
         }
     }

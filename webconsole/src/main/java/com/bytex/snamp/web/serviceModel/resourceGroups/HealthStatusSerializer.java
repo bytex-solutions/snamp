@@ -1,4 +1,4 @@
-package com.bytex.snamp.web.serviceModel.health;
+package com.bytex.snamp.web.serviceModel.resourceGroups;
 
 import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.json.ThreadLocalJsonFactory;

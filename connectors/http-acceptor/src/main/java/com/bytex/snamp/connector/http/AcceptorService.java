@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.http;
 
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
@@ -116,13 +115,19 @@ public final class AcceptorService {
         Response response;
         if (client.isPresent())
             try (final ManagedResourceConnectorClient connector = client.get()) {
-                response = Aggregator.queryAndAccept(connector, DataStreamConnector.class, acceptor -> acceptor.dispatch(wrapHeaders(headers), measurement)) ?
-                        Response.noContent().build() :
-                        Response.status(Response.Status.BAD_REQUEST).entity("Resource %s is not data stream processor").build();
-            } catch (final Exception e) {
-                response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString()).build();
+                response = connector.queryObject(DataStreamConnector.class)
+                        .map(acceptor -> {
+                            try {
+                                acceptor.dispatch(wrapHeaders(headers), measurement);
+                            } catch (final Exception e) {
+                                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString()).build();
+                            }
+                            return Response.noContent().build();
+                        })
+                        .orElseGet(() -> Response.status(Response.Status.BAD_REQUEST).entity("Resource %s is not data stream processor").build());
             }
-        else response = Response.status(Response.Status.NOT_FOUND).build();
+        else
+            response = Response.status(Response.Status.NOT_FOUND).build();
         return response;
     }
 

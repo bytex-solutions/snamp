@@ -84,7 +84,7 @@ final class DefaultTopologyAnalyzer extends AbstractFrameworkServiceTracker<Mana
             getLogger().info(String.format("Resource %s is already attached to the topology analyzer", resourceName));
         } else {
             graph.add(connector.getGroupName());
-            Aggregator.queryAndAccept(connector, NotificationSupport.class, this::addNotificationListener);
+            connector.queryObject(NotificationSupport.class).ifPresent(this::addNotificationListener);
         }
     }
 
@@ -92,7 +92,7 @@ final class DefaultTopologyAnalyzer extends AbstractFrameworkServiceTracker<Mana
     protected synchronized void removeService(@WillNotClose final ManagedResourceConnectorClient connector) {
         final String resourceName = getServiceId(connector);
         if (trackedServices.contains(resourceName)) {
-            Aggregator.queryAndAccept(connector, NotificationSupport.class, this::removeNotificationListener);
+            connector.queryObject(NotificationSupport.class).ifPresent(this::removeNotificationListener);
             graph.remove(connector.getGroupName());
         } else {
             getLogger().info(String.format("Resource %s is already detached from the topology analyzer", resourceName));

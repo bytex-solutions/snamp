@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.concurrent.LazyStrongReference;
@@ -161,17 +160,14 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             );
         }
 
-        private void updateFeatures(final TConnector connector,
+        private static void updateFeatures(final ManagedResourceConnector connector,
                             final ManagedResourceConfiguration configuration) throws Exception {
-            Aggregator.queryAndAccept(connector,
-                    AttributeSupport.class,
-                    attributeSupport -> updateAttributes(attributeSupport, configuration.getAttributes()));
-            Aggregator.queryAndAccept(connector,
-                    NotificationSupport.class,
-                    notificationSupport -> updateEvents(notificationSupport, configuration.getEvents()));
-            Aggregator.queryAndAccept(connector,
-                    OperationSupport.class,
-                    operationSupport -> updateOperations(operationSupport, configuration.getOperations()));
+            connector.queryObject(AttributeSupport.class)
+                    .ifPresent(attributeSupport -> updateAttributes(attributeSupport, configuration.getAttributes()));
+            connector.queryObject(NotificationSupport.class)
+                    .ifPresent(notificationSupport -> updateEvents(notificationSupport, configuration.getEvents()));
+            connector.queryObject(OperationSupport.class)
+                    .ifPresent(operationSupport -> updateOperations(operationSupport, configuration.getOperations()));
             //expansion should be the last instruction in this method because updating procedure
             //may remove all automatically added attributes
             connector.expandAll();

@@ -87811,7 +87811,7 @@ var REST = (function () {
     REST.CURRENT_CONFIG = REST.ROOT_PATH + "/configuration";
     REST.WATCHERS_LIST = REST.CFG_PATH + "/supervisor";
     // watchers statuses
-    REST.WATCHERS_STATUS = "/snamp/web/api/health-watcher/groups/status";
+    REST.WATCHERS_STATUS = "/snamp/web/api/resource-group-watcher/groups/status";
     // notification settings
     REST.NOTIFICATIONS_SETTINGS = "/snamp/web/api/notifications/settings";
     REST.NOTIFICATIONS_TYPES = "/snamp/web/api/notifications/types";

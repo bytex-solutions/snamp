@@ -402,10 +402,10 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void healthWatcherTest() throws IOException {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        JsonNode result = httpGet("/health-watcher/groups", authenticationToken);
+        JsonNode result = httpGet("/resource-group-watcher/groups", authenticationToken);
         assertEquals(1, result.size());
         assertEquals(GROUP_NAME, result.get(0).asText());
-        result = httpGet("/health-watcher/groups/status", authenticationToken);
+        result = httpGet("/resource-group-watcher/groups/status", authenticationToken);
         assertNotNull(result);
     }
 

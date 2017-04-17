@@ -66,11 +66,4 @@ public interface Aggregator {
 
         return new AggregatorComposition();
     }
-
-    static <I, E extends Throwable> boolean queryAndAccept(final Aggregator a, final Class<I> type, final Acceptor<? super I, E> processing) throws E {
-        final Optional<I> obj = a.queryObject(type);
-        if (obj.isPresent())
-            processing.accept(obj.get());
-        return obj.isPresent();
-    }
 }

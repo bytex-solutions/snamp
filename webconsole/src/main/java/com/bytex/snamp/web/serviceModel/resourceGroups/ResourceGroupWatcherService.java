@@ -1,4 +1,4 @@
-package com.bytex.snamp.web.serviceModel.health;
+package com.bytex.snamp.web.serviceModel.resourceGroups;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
@@ -29,8 +29,8 @@ import java.util.logging.Level;
  * @version 2.0
  */
 @Path("/")
-public final class HealthStatusWatcher extends AbstractWebConsoleService implements HealthStatusEventListener {
-    public static final String NAME = "health-watcher";
+public final class ResourceGroupWatcherService extends AbstractWebConsoleService implements HealthStatusEventListener {
+    public static final String NAME = "resource-group-watcher";
     public static final String URL_CONTEXT = '/' + NAME;
 
     @JsonTypeName("healthStatusChanged")
@@ -77,10 +77,10 @@ public final class HealthStatusWatcher extends AbstractWebConsoleService impleme
         }
     }
 
-    private final HealthStatusEventHub hub;
+    private final ResourceGroupEventHub hub;
 
-    public HealthStatusWatcher(){
-        hub = new HealthStatusEventHub();
+    public ResourceGroupWatcherService(){
+        hub = new ResourceGroupEventHub();
     }
 
     @Override
