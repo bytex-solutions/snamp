@@ -25,14 +25,12 @@ export class SnampLogSettingsComponent implements OnInit {
         this.http.get(REST.NOTIFICATIONS_SETTINGS)
             .map((res:Response) => res.json())
             .subscribe((data) => {
-                console.log("Current notification settings are: ", data);
                 this.level = data["severity"];
                 this.allowedTypes = data["notificationTypes"];
                 this.selectedAllTypes = (this.allowedTypes.length == 0);
                 if (!this.selectedAllTypes) {
                     this.initSelect2();
                     $("#typesSelect").fadeIn("fast");
-                    //$("#typesSelect").val(this.allowedTypes).trigger('change');
                 }
             });
         this.http.get(REST.NOTIFICATIONS_TYPES)
@@ -45,8 +43,6 @@ export class SnampLogSettingsComponent implements OnInit {
     private initSelect2():void {
         let _select:any = $("#typesSelect");
         let _thisReference:any = this;
-        //_select.val(this.allowedTypes);
-        //console.log(_select.val());
         _select.select2({
             placeholder: "Select types of notifications from the dropdown",
             allowClear: true

@@ -37564,7 +37564,6 @@ var SnampLogSettingsComponent = (function () {
         this.http.get(app_restClient_1.REST.NOTIFICATIONS_SETTINGS)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
-            console.log("Current notification settings are: ", data);
             _this.level = data["severity"];
             _this.allowedTypes = data["notificationTypes"];
             _this.selectedAllTypes = (_this.allowedTypes.length == 0);
@@ -37582,8 +37581,6 @@ var SnampLogSettingsComponent = (function () {
     SnampLogSettingsComponent.prototype.initSelect2 = function () {
         var _select = $("#typesSelect");
         var _thisReference = this;
-        //_select.val(this.allowedTypes);
-        //console.log(_select.val());
         _select.select2({
             placeholder: "Select types of notifications from the dropdown",
             allowClear: true
