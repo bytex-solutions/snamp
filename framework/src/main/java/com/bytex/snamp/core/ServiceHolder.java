@@ -116,9 +116,11 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      *         otherwise.
      *  @since 1.2
      */
-    public final boolean release(final ClassLoader context){
-        if(context instanceof BundleReference)
-            return release(getBundleContext((BundleReference)context));
+    public final boolean release(final ClassLoader context) {
+        if (context instanceof BundleReference)
+            return release(getBundleContext((BundleReference) context));
+        else if (serviceImpl == null)
+            return false;
         else {
             serviceImpl = null;
             return true;
