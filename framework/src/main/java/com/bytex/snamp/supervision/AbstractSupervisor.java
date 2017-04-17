@@ -1,5 +1,6 @@
 package com.bytex.snamp.supervision;
 
+import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
@@ -9,6 +10,7 @@ import com.bytex.snamp.core.FrameworkServiceState;
 import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.WillNotClose;
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;
@@ -60,11 +62,13 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
 
     protected final String groupName;
     protected final String supervisorType;
+    private final WeakEventListenerList<SupervisionEventListener, SupervisionEvent> listeners;
 
     protected AbstractSupervisor(final String groupName) {
         super(ManagedResourceConnector.class, new SupervisorInternalState());
         this.groupName = nullToEmpty(groupName);
         supervisorType = Supervisor.getSupervisorType(getClass());
+        listeners = WeakEventListenerList.create(SupervisionEventListener::handle);
     }
 
     /**
@@ -88,7 +92,10 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
         return client.getManagedResourceName();
     }
 
-    protected abstract void addResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector);
+    @OverridingMethodsMustInvokeSuper
+    protected void addResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector){
+        listeners.fire(GroupCompositionChanged.resourceAdded(this, resourceName, groupName));
+    }
 
     /**
      * Invoked when new service is detected.
@@ -104,7 +111,10 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
             addResource(resourceName, serviceClient);
     }
 
-    protected abstract void removeResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector);
+    @OverridingMethodsMustInvokeSuper
+    protected void removeResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector){
+        listeners.fire(GroupCompositionChanged.resourceRemoved(this, resourceName, groupName));
+    }
 
     /**
      * Invoked when service is removed from OSGi Service registry.
@@ -118,6 +128,16 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
             removeResource(resourceName, serviceClient);
         else
             getLogger().info(String.format("Resource %s is already detached from supervisor %s", resourceName, groupName));
+    }
+
+    @Override
+    public final void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public final void removeSupervisionEventListener(@Nonnull final SupervisionEventListener listener) {
+        listeners.remove(listener);
     }
 
     /**
@@ -144,6 +164,8 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
             throw e;
         } catch (final Exception e) {
             throw new IOException(String.format("Unable to terminate supervisor %s", toString()), e);
+        } finally {
+            listeners.clear();
         }
     }
 }

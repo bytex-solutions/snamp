@@ -39,7 +39,7 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
              final OutputStream out = new FileOutputStream(outFile);
              final OutputStream err = new FileOutputStream(errFile)) {
 
-            final CommandSession session = processorRef.getService().createSession(input, new PrintStream(out), new PrintStream(err));
+            final CommandSession session = processorRef.get().createSession(input, new PrintStream(out), new PrintStream(err));
             final Object result = session.execute(command);
             session.close();
             return result;

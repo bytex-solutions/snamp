@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanFeatureInfo;
-import java.util.Objects;
 
 /**
  * Indicates that the feature provided by managed resource was modified.
@@ -14,7 +14,7 @@ public abstract class FeatureModifiedEvent<F extends MBeanFeatureInfo> extends R
      * Represents modification type.
      * @since 2.0
      */
-    public enum ModificationType{
+    public enum Modifier {
         /**
          * Indicates that feature was added.
          */
@@ -26,22 +26,22 @@ public abstract class FeatureModifiedEvent<F extends MBeanFeatureInfo> extends R
     }
     private static final long serialVersionUID = -4019967787362487363L;
     private final F feature;
-    private final ModificationType modification;
+    private final Modifier modification;
 
-    protected FeatureModifiedEvent(final Object sender,
+    protected FeatureModifiedEvent(@Nonnull final Object sender,
                          final String resourceName,
-                         final F feature,
-                         final ModificationType type) {
+                         @Nonnull final F feature,
+                         @Nonnull final Modifier type) {
         super(sender, resourceName);
-        this.feature = Objects.requireNonNull(feature);
-        modification = Objects.requireNonNull(type);
+        this.feature = feature;
+        modification = type;
     }
 
     /**
      * Gets modification type.
      * @return Modification type.
      */
-    public final ModificationType getType(){
+    public final Modifier getModifier(){
         return modification;
     }
 

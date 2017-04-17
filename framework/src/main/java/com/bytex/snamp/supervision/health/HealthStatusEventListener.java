@@ -1,5 +1,6 @@
 package com.bytex.snamp.supervision.health;
 
+import javax.annotation.Nonnull;
 import java.util.EventListener;
 
 /**
@@ -10,5 +11,5 @@ import java.util.EventListener;
  */
 @FunctionalInterface
 public interface HealthStatusEventListener extends EventListener {
-    void statusChanged(final HealthStatusChangedEvent event);
+    void statusChanged(@Nonnull final HealthStatusChangedEvent event);
 }

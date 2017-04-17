@@ -203,7 +203,7 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
         final BundleContext context = getBundleContext();
         try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(context, resourceName)
                 .orElseThrow(() -> new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName)))) {
-            acceptor.accept(client.getService());
+            acceptor.accept(client.get());
         }
     }
 

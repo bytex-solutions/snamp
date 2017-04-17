@@ -119,6 +119,10 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     }
 
+    protected void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups){
+
+    }
+
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events){
 
     }
@@ -126,6 +130,8 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations){
 
     }
+
+
 
     public final void stopResourceConnector(final TestName testName,
                                               final String connectorType,
@@ -193,6 +199,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         fillAttributes(targetConfig.getAttributes());
         fillEvents(targetConfig.getEvents());
         fillOperations(targetConfig.getOperations());
+        fillGroups(config.getResourceGroups());
     }
 
     protected final <T> void testAttribute(final String attributeName,

@@ -1,0 +1,93 @@
+package com.bytex.snamp.core;
+
+import com.bytex.snamp.SafeCloseable;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+
+import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
+import javax.management.InstanceNotFoundException;
+import java.util.Arrays;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.Objects;
+import java.util.function.Supplier;
+
+/**
+ * Represents point of service registration on OSGi Service Registry.
+ * @author Roman Sakno
+ * @version 2.0
+ * @since 2.0
+ */
+public class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T>, SafeCloseable {
+    private final ServiceRegistration<?> registration;
+    private T serviceInstance;
+
+    @SafeVarargs
+    protected ServiceRegistrationHolder(@Nonnull final BundleContext context,
+                              @Nonnull final T service,
+                              @Nonnull final Dictionary<String, ?> identity,
+                              final Class<? super S>... serviceContracts) {
+        if(serviceContracts.length < 1)
+            throw new IllegalArgumentException("Expecting at least one service contract");
+        serviceInstance = Objects.requireNonNull(service);
+        final String[] serviceContractNames = Arrays.stream(serviceContracts).map(Class::getName).toArray(String[]::new);
+        registration = context.registerService(serviceContractNames, service, identity);
+    }
+
+    @Override
+    public final void setProperties(final Dictionary<String, ?> properties) {
+        registration.setProperties(properties);
+    }
+
+    final Hashtable<String, ?> dumpProperties() {
+        final String[] propertyNames = registration.getReference().getPropertyKeys();
+        final Hashtable<String, Object> result = new Hashtable<>(propertyNames.length * 2);
+        for (final String propertyName : propertyNames)
+            result.put(propertyName, registration.getReference().getProperty(propertyName));
+        return result;
+    }
+
+    @Override
+    public T get() {
+        return serviceInstance;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public ServiceReference<S> getReference() {
+        return (ServiceReference<S>) registration.getReference();
+    }
+
+    public final ServiceHolder<S> createReferenceHolder(final BundleContext context) throws InstanceNotFoundException {
+        return new ServiceHolder<>(context, getReference());
+    }
+
+    @Override
+    public final void unregister() {
+        close();
+    }
+
+    /**
+     * Releases all resources associated with this object.
+     */
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    public void close() {
+        try {
+            registration.unregister();
+        } finally {
+            serviceInstance = null;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return registration.toString();
+    }
+
+    final boolean isUnregistered() {
+        return serviceInstance == null;
+    }
+}

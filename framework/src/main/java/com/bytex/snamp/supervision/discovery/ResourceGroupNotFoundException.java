@@ -1,4 +1,4 @@
-package com.bytex.snamp.supervision.discovery.rest;
+package com.bytex.snamp.supervision.discovery;
 
 import javax.annotation.Nonnull;
 
@@ -13,8 +13,8 @@ public final class ResourceGroupNotFoundException extends ResourceDiscoveryExcep
     private static final long serialVersionUID = 5583332904377594876L;
     private final String groupName;
 
-    ResourceGroupNotFoundException(@Nonnull final String groupName){
-        super(String.format("Groupof resources with name %s doesn't exist", groupName));
+    public ResourceGroupNotFoundException(@Nonnull final String groupName){
+        super(String.format("Group of resources with name %s doesn't exist", groupName));
         this.groupName = groupName;
     }
 

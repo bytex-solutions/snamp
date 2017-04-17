@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  * @version 2.0
  * @since 2.0
  */
-@Path(WebAuthenticator.PATH)
+@Path('/' + WebAuthenticator.PATH)
 public final class WebAuthenticator extends JWTAuthenticator {
     private static final Pattern HOST_NAME_PATTERN = Pattern.compile("(?<hn>([\\p{IsAlphabetic}\\d.\\-;@]+)|(\\[.+]))(:[0-9]+)?");
 

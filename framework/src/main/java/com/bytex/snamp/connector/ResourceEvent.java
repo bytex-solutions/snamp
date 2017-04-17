@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector;
 
+import javax.annotation.Nonnull;
 import java.util.EventObject;
 
 /**
@@ -12,7 +13,7 @@ public abstract class ResourceEvent extends EventObject {
     private static final long serialVersionUID = -5789097108681245831L;
     private final String resourceName;
 
-    ResourceEvent(final Object sender, final String resourceName){
+    ResourceEvent(@Nonnull final Object sender, final String resourceName){
         super(sender);
         this.resourceName = resourceName;
     }

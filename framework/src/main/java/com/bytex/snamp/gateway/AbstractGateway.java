@@ -146,7 +146,7 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
 
     private <F extends MBeanFeatureInfo> void featureModified(final FeatureModifiedEvent<F> event){
         final FeatureAccessor<F> accessor;
-        switch (event.getType()) {
+        switch (event.getModifier()) {
             case ADDED:
                 accessor = addFeatureImpl(event.getResourceName(), event.getFeature());
                 break;
@@ -167,7 +167,7 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
      * @see com.bytex.snamp.connector.FeatureModifiedEvent
      */
     @Override
-    public final void handle(final ResourceEvent event) {
+    public final void resourceModified(final ResourceEvent event) {
         if (event instanceof AttributeModifiedEvent)
             featureModified((AttributeModifiedEvent) event);
         else if (event instanceof OperationModifiedEvent)

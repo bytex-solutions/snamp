@@ -228,14 +228,15 @@ public final class Utils {
     public static void closeAll(final AutoCloseable... resources) throws Exception {
         Exception e = null;
         for (final AutoCloseable closeable : resources)
-            try {
-                closeable.close();
-            } catch (final Exception inner) {
-                if (e == null)
-                    e = inner;
-                else
-                    e.addSuppressed(inner);
-            }
+            if (closeable != null)
+                try {
+                    closeable.close();
+                } catch (final Exception inner) {
+                    if (e == null)
+                        e = inner;
+                    else
+                        e.addSuppressed(inner);
+                }
         if (e != null)
             throw e;
     }

@@ -1,19 +1,22 @@
 package com.bytex.snamp.web.serviceModel.resourceGroups;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.supervision.GroupCompositionChanged;
+import com.bytex.snamp.supervision.SupervisionEvent;
 import com.bytex.snamp.supervision.Supervisor;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
-import com.bytex.snamp.supervision.health.HealthStatusEventListener;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -29,7 +32,7 @@ import java.util.logging.Level;
  * @version 2.0
  */
 @Path("/")
-public final class ResourceGroupWatcherService extends AbstractWebConsoleService implements HealthStatusEventListener {
+public final class ResourceGroupWatcherService extends AbstractWebConsoleService implements EventAcceptor {
     public static final String NAME = "resource-group-watcher";
     public static final String URL_CONTEXT = '/' + NAME;
 
@@ -46,24 +49,50 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
             this.groupName = event.getGroupName();
         }
 
-        @JsonProperty
+        @JsonProperty("groupName")
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public String getGroupName(){
             return groupName;
         }
 
-        @JsonProperty
+        @JsonProperty("previousStatus")
         @JsonSerialize(using = HealthStatusSerializer.class)
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public HealthStatus getPreviousStatus(){
             return previousStatus;
         }
 
-        @JsonProperty
+        @JsonProperty("newStatus")
         @JsonSerialize(using = HealthStatusSerializer.class)
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public HealthStatus getNewStatus(){
             return newStatus;
+        }
+    }
+
+    @JsonTypeName("groupCompositionChanged")
+    public final class GroupCompositionChangedMessage extends WebConsoleServiceMessage{
+        private static final long serialVersionUID = 469376947661340798L;
+        private final GroupCompositionChanged event;
+
+        private GroupCompositionChangedMessage(@Nonnull final GroupCompositionChanged event){
+            this.event = event;
+        }
+
+        @JsonProperty("modifier")
+        @JsonSerialize(using = ModifierSerializer.class)
+        public GroupCompositionChanged.Modifier getModifier(){
+            return event.getModifier();
+        }
+
+        @JsonProperty("resourceName")
+        public String getResourceName(){
+            return event.getResourceName();
+        }
+
+        @JsonProperty("groupName")
+        public String getGroupName(){
+            return event.getGroupName();
         }
     }
 
@@ -113,7 +142,14 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     }
 
     @Override
-    public void statusChanged(final HealthStatusChangedEvent event) {
+    public void handle(@Nonnull final SupervisionEvent event) {
+        Convert.toType(event, GroupCompositionChanged.class)
+                .map(GroupCompositionChangedMessage::new)
+                .ifPresent(this::sendBroadcastMessage);
+    }
+
+    @Override
+    public void statusChanged(@Nonnull final HealthStatusChangedEvent event) {
         sendBroadcastMessage(new GroupStatusChangedMessage(event));
     }
 

@@ -1,4 +1,4 @@
-package com.bytex.snamp.supervision.discovery.rest;
+package com.bytex.snamp.supervision.discovery;
 
 /**
  * Indicates that the resource cannot be registered or removed
@@ -7,14 +7,14 @@ package com.bytex.snamp.supervision.discovery.rest;
  * @version 2.0
  * @since 2.0
  */
-public class ResourceDiscoveryException extends Exception {
+public abstract class ResourceDiscoveryException extends Exception {
     private static final long serialVersionUID = 1109867715185456334L;
 
-    ResourceDiscoveryException(final String message){
+    protected ResourceDiscoveryException(final String message){
         super(message);
     }
 
-    ResourceDiscoveryException(final String message, final Throwable cause){
+    protected ResourceDiscoveryException(final String message, final Throwable cause){
         super(message, cause);
     }
 }

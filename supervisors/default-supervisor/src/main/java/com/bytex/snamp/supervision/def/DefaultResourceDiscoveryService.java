@@ -1,11 +1,16 @@
-package com.bytex.snamp.supervision.discovery.rest;
+package com.bytex.snamp.supervision.def;
 
-import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.supervision.discovery.AbstractResourceDiscoveryService;
-import com.bytex.snamp.supervision.discovery.ResourceAddedEvent;
-import com.bytex.snamp.supervision.discovery.ResourceDiscoveryEvent;
-import com.bytex.snamp.supervision.discovery.ResourceRemovedEvent;
+import com.bytex.snamp.BooleanBox;
+import com.bytex.snamp.BoxFactory;
+import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
+import com.bytex.snamp.supervision.SupervisionEvent;
+import com.bytex.snamp.supervision.discovery.InvalidResourceGroupException;
+import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
+import com.bytex.snamp.supervision.discovery.ResourceDiscoveryService;
+import com.bytex.snamp.supervision.discovery.ResourceGroupNotFoundException;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -19,10 +24,10 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  * @since 2.0
  */
-public class DefaultResourceDiscoveryService extends AbstractResourceDiscoveryService {
+public class DefaultResourceDiscoveryService implements ResourceDiscoveryService {
     private Object discoveryEventSource;
     private final ConfigurationManager configurationManager;
-    private final String groupName;
+    protected final String groupName;
 
     public DefaultResourceDiscoveryService(@Nonnull final String groupName,
                                            @Nonnull final ConfigurationManager configManager){
@@ -32,44 +37,31 @@ public class DefaultResourceDiscoveryService extends AbstractResourceDiscoverySe
     }
 
     /**
-     * Overrides source for all outbound events of type {@link ResourceDiscoveryEvent}.
+     * Overrides source for all outbound events of type {@link SupervisionEvent}.
      * @param eventSource A new event source.
      */
-    public final void setSource(@Nonnull final Object eventSource){
+    protected final void setSource(@Nonnull final Object eventSource){
         discoveryEventSource = eventSource;
     }
 
     /**
-     * Gets source of all outbound events of type {@link ResourceDiscoveryEvent}.
+     * Gets source of all outbound events of type {@link SupervisionEvent}.
      * @return Source of all outbound discovery events.
      */
-    protected final Object getSource(){
+    private Object getSource(){
         return firstNonNull(discoveryEventSource, this);
     }
 
-    /**
-     * Used for detecting new resources via {@link com.bytex.snamp.supervision.AbstractSupervisor#addResource(String, ManagedResourceConnector)}
-     * @param resourceName Name of the added resource.
-     * @implSpec This method just raises an event.
-     */
-    public final void resourceRegistered(final String resourceName){
-        fireDiscoveryEvent(new ResourceAddedEvent(getSource(), resourceName));
-    }
-
-    /**
-     * Used for removing existing resources via {@link com.bytex.snamp.supervision.AbstractSupervisor#removeResource(String, ManagedResourceConnector)}
-     * @param resourceName Name of the removed resource.
-     * @implSpec This method just raises an event.
-     */
-    public final void resourceRemoved(final String resourceName) {
-        fireDiscoveryEvent(new ResourceRemovedEvent(getSource(), resourceName));
+    protected boolean processResource(final String resourceName,
+                                       final ManagedResourceConfiguration resourceConfig) throws ResourceDiscoveryException{
+        return true;
     }
 
     private boolean registerResource(final EntityMap<? extends ManagedResourceConfiguration> resources,
                                         final ManagedResourceGroupConfiguration groupConfig,
                                         final String resourceName,
                                         final String connectionString,
-                                        final Map<String, String> parameters) throws InvalidResourceGroupException {
+                                        final Map<String, String> parameters) throws ResourceDiscoveryException {
         ManagedResourceConfiguration resourceConfig;
         if (resources.containsKey(resourceName)) {
             resourceConfig = resources.get(resourceName);
@@ -80,11 +72,7 @@ public class DefaultResourceDiscoveryService extends AbstractResourceDiscoverySe
         resourceConfig.setGroupName(groupName);
         resourceConfig.setConnectionString(connectionString);
         resourceConfig.putAll(parameters);
-        return true;
-    }
-
-    private static ResourceDiscoveryException configurationCrashed(final IOException e){
-        return new ResourceDiscoveryException("Configuration subsystem crashed", e);
+        return processResource(resourceName, resourceConfig);
     }
 
     private void checkGroupName(final String resourceName,
@@ -115,8 +103,13 @@ public class DefaultResourceDiscoveryService extends AbstractResourceDiscoverySe
                     throw new ResourceGroupNotFoundException(groupName);
             });
         } catch (final IOException e) {
-            throw configurationCrashed(e);
+            throw new ResourceDiscoveryIOException(e);
         }
+    }
+
+    protected boolean removeResource(final String resourceName,
+                                     final ManagedResourceConfiguration resourceConfig) throws ResourceDiscoveryException{
+        return true;
     }
 
     /**
@@ -124,19 +117,25 @@ public class DefaultResourceDiscoveryService extends AbstractResourceDiscoverySe
      * @param resourceName Name of the resource to remove.
      * @throws ResourceDiscoveryException Unable to remove resource.
      */
-    public final void removeResource(@Nonnull final String resourceName) throws ResourceDiscoveryException {
+    public final boolean removeResource(@Nonnull final String resourceName) throws ResourceDiscoveryException {
+        final BooleanBox result = BoxFactory.createForBoolean(false);
         try {
             configurationManager.processConfiguration(config -> {
                 final ManagedResourceConfiguration resourceConfig = config.getResources().get(resourceName);
+                final boolean saveChanges;
                 if (resourceConfig == null)
-                    return false;
-                else
+                    saveChanges = false;
+                else {
                     checkGroupName(resourceName, resourceConfig);
-                return config.getResources().remove(resourceName) != null;
+                    saveChanges = removeResource(resourceName, resourceConfig) && config.getResources().remove(resourceName) != null;
+                }
+                result.set(saveChanges);
+                return saveChanges;
             });
         } catch (final IOException e) {
-            throw configurationCrashed(e);
+            throw new ResourceDiscoveryIOException(e);
         }
+        return result.getAsBoolean();
     }
 
     /**
@@ -147,15 +146,22 @@ public class DefaultResourceDiscoveryService extends AbstractResourceDiscoverySe
         try {
             configurationManager.processConfiguration(config -> {
                 final Set<String> resourcesToRemove = new HashSet<>(10);
-                config.getResources().forEach((resourceName, resourceConfig) -> {
-                    if (Objects.equals(resourceConfig.getGroupName(), groupName))
-                        resourcesToRemove.add(resourceName);
-                });
-                resourcesToRemove.forEach(config.getResources()::remove);
-                return !resourcesToRemove.isEmpty();
+                for (final Map.Entry<String, ? extends ManagedResourceConfiguration> entry : config.getResources().entrySet())
+                    if (Objects.equals(entry.getValue().getGroupName(), groupName) && removeResource(entry.getKey(), entry.getValue()))
+                        resourcesToRemove.add(entry.getKey());
+                //!!do not replace with config.getResources().keySet().removeAll(resourcesToRemove)
+                //because modification tracking is based on map, not on sets produced by map
+                //see ModifiableMap
+                if (resourcesToRemove.isEmpty())
+                    return false;
+                else {
+                    resourcesToRemove.forEach(config.getResources()::remove);
+                    resourcesToRemove.clear();  //help GC
+                    return true;
+                }
             });
         } catch (final IOException e) {
-            throw configurationCrashed(e);
+            throw new ResourceDiscoveryIOException(e);
         }
     }
 }

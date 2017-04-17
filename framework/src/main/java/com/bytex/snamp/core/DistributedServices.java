@@ -118,7 +118,7 @@ public final class DistributedServices {
                                             final Supplier<S> def) {
         return ServiceHolder.tryCreate(context, ClusterMember.class).map(holder -> {
             try {
-                return processor.apply(holder.getService());
+                return processor.apply(holder.get());
             } finally {
                 holder.release(context);
             }

@@ -90,6 +90,14 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
         }
     }
 
+    @Test
+    public void serviceDiscoveryTest(){
+        try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
+                .orElseThrow(AssertionError::new)) {
+        
+        }
+    }
+
     @Override
     protected String getGroupName() {
         return GROUP_NAME;
@@ -104,6 +112,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             throw new UncheckedIOException(e);
         }
         watchers.addAndConsume(GROUP_NAME, watcher -> {
+            watcher.put("discoveryOverHttp", "false");
             watcher.getHealthCheckConfig().getAttributeCheckers().addAndConsume("3.0", scriptlet -> {
                 final ColoredAttributeChecker checker = new ColoredAttributeChecker();
                 checker.setGreenPredicate(new NumberComparatorPredicate(NumberComparatorPredicate.Operator.LESS_THAN, 1000D));
@@ -116,6 +125,14 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             });
             watcher.getHealthCheckConfig().getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
             watcher.getHealthCheckConfig().getTrigger().setScript(groovyTrigger);
+        });
+    }
+
+    @Override
+    protected void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups) {
+        groups.addAndConsume(GROUP_NAME, groupConfig -> {
+            groupConfig.setType(CONNECTOR_NAME);
+            fillAttributes(groupConfig.getAttributes());
         });
     }
 

@@ -1,7 +1,7 @@
 package com.bytex.snamp.web;
 
 import com.bytex.snamp.ImportClass;
-import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.core.ServiceRegistrationHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
@@ -12,7 +12,6 @@ import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitia
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
 
 import javax.management.InstanceNotFoundException;
 import javax.servlet.Servlet;
@@ -28,16 +27,30 @@ import java.util.Objects;
  */
 @ImportClass(JerseyServletContainerInitializer.class)
 final class WebConsoleServiceServlet extends ServletContainer implements WebConsoleServiceReference {
+    private static final class ServletRegistrationHolder extends ServiceRegistrationHolder<Servlet, ServletContainer>{
+        private ServletRegistrationHolder(final BundleContext context,
+                                          final ServletContainer container,
+                                          final String servletContext) {
+            super(context, container, identity(servletContext), Servlet.class);
+        }
+
+        private static Hashtable<String, ?> identity(final String servletContext){
+            final Hashtable<String, String> identity = new Hashtable<>();
+            identity.put("alias", servletContext);
+            return identity;
+        }
+    }
+
     private static final String ROOT_CONTEXT = "/snamp/web/api";
     private static final long serialVersionUID = -5668618198214458448L;
-    private transient final ServiceHolder<WebConsoleService> serviceHolder;
+    private transient final WebConsoleServiceHolder serviceHolder;
     private final String servletContext;
     private final String serviceName;
-    private transient ServiceRegistration<Servlet> registration;
+    private ServletRegistrationHolder registration;
 
-    private WebConsoleServiceServlet(final ServiceHolder<WebConsoleService> serviceReference,
+    private WebConsoleServiceServlet(final WebConsoleServiceHolder serviceReference,
                                      final WebSecurityFilter securityFilter) {
-        super(createConfig(serviceReference.getService(), securityFilter));
+        super(createConfig(serviceReference.get(), securityFilter));
         this.serviceHolder = serviceReference;
         servletContext = ROOT_CONTEXT + serviceReference.getProperty(WebConsoleService.URL_CONTEXT);
         serviceName = Objects.toString(serviceReference.getProperty(WebConsoleService.NAME));
@@ -45,7 +58,7 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
 
     WebConsoleServiceServlet(final BundleContext context, final ServiceReference<WebConsoleService> serviceReference,
                              final WebSecurityFilter securityFilter) throws InstanceNotFoundException {
-        this(new ServiceHolder<>(context, serviceReference), securityFilter);
+        this(new WebConsoleServiceHolder(context, serviceReference), securityFilter);
     }
 
     private BundleContext getBundleContext(){
@@ -54,14 +67,12 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
 
     @Override
     public void activate() {
-        final Hashtable<String, String> identity = new Hashtable<>();
-        identity.put("alias", servletContext);
-        registration = getBundleContext().registerService(Servlet.class, this, identity);
+        registration = new ServletRegistrationHolder(getBundleContext(), this, servletContext);
     }
 
     @Override
     public WebConsoleService get(){
-        return serviceHolder.getService();
+        return serviceHolder.get();
     }
 
     @Override
@@ -80,24 +91,15 @@ final class WebConsoleServiceServlet extends ServletContainer implements WebCons
 
     @Override
     public void addWebEventListener(final WebConsoleSession listener) {
-        final WebConsoleService service = serviceHolder.getService();
-        if (service != null)
-            service.attachSession(listener);
-    }
-
-    private void unregister(){
-        if (registration != null) {
-            registration.unregister();
-            registration = null;
-        }
-    }
-
-    private void releaseService(){
-        serviceHolder.release(getBundleContext());
+        serviceHolder.addWebEventListener(listener);
     }
 
     @Override
     public void close() throws Exception {
-        Utils.closeAll(this::unregister, this::releaseService, this::destroy);
+        try {
+            Utils.closeAll(registration, serviceHolder, this::destroy);
+        } finally {
+            registration = null;
+        }
     }
 }

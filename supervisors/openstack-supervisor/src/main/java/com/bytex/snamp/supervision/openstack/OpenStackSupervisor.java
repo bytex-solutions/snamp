@@ -8,8 +8,6 @@ import org.openstack4j.api.exceptions.OS4JException;
 import org.openstack4j.api.types.ServiceType;
 import org.openstack4j.openstack.OSFactory;
 
-import java.time.Duration;
-
 /**
  * Represents supervisor for OpenStack.
  * @author Roman Sakno
@@ -23,8 +21,8 @@ final class OpenStackSupervisor extends DefaultSupervisor {
     }
 
     @Override
-    protected Duration getCheckPeriod(final SupervisorInfo configuration) {
-        return OpenStackSupervisorDescriptionProvider.getInstance().parseCheckPeriod(configuration);
+    protected OpenStackSupervisorDescriptionProvider getDescriptionProvider() {
+        return OpenStackSupervisorDescriptionProvider.getInstance();
     }
 
     private static boolean isClusteringSupported(final OSClientV3 client){
@@ -42,7 +40,7 @@ final class OpenStackSupervisor extends DefaultSupervisor {
      */
     @Override
     protected void start(final SupervisorInfo configuration) throws Exception {
-        final OpenStackSupervisorDescriptionProvider parser = OpenStackSupervisorDescriptionProvider.getInstance();
+        final OpenStackSupervisorDescriptionProvider parser = getDescriptionProvider();
         final OSClientV3 openStackClient = OSFactory.builderV3()
                 .provider(parser.parseCloudProvider(configuration))
                 .endpoint(parser.parseApiEndpoint(configuration))

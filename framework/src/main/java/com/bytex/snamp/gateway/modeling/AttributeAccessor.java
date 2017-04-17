@@ -97,7 +97,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     @Override
     public final boolean processEvent(final FeatureModifiedEvent<MBeanAttributeInfo> event) {
         assert event.getSource() instanceof AttributeSupport;
-        switch (event.getType()) {
+        switch (event.getModifier()) {
             case ADDED:
                 connect((AttributeSupport) event.getSource());
                 return true;

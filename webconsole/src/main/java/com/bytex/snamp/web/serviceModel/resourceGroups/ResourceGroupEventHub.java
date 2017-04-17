@@ -4,8 +4,8 @@ import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.bytex.snamp.supervision.Supervisor;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.SupervisorFilterBuilder;
+import com.bytex.snamp.supervision.SupervisionEvent;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
-import com.bytex.snamp.supervision.health.HealthStatusEventListener;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.ServiceReference;
@@ -20,18 +20,24 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-final class ResourceGroupEventHub extends AbstractStatefulFrameworkServiceTracker<Supervisor, SupervisorClient, Map<String, HealthStatusEventListener>> implements HealthStatusEventListener {
+final class ResourceGroupEventHub extends AbstractStatefulFrameworkServiceTracker<Supervisor, SupervisorClient, Map<String, EventAcceptor>> implements EventAcceptor {
     ResourceGroupEventHub(){
         super(Supervisor.class, new InternalState<>(ImmutableMap.of()));
     }
 
     @Override
-    public void statusChanged(final HealthStatusChangedEvent event) {
+    public void statusChanged(@Nonnull final HealthStatusChangedEvent event) {
         getConfiguration().values().forEach(listener -> listener.statusChanged(event));
+    }
+
+    @Override
+    public void handle(@Nonnull final SupervisionEvent event) {
+        getConfiguration().values().forEach(listener -> listener.handle(event));
     }
 
     private void addSupervisor(final String groupName, @WillNotClose final Supervisor supervisor){
         supervisor.queryObject(HealthStatusProvider.class).ifPresent(provider -> provider.addHealthStatusEventListener(this));
+        supervisor.addSupervisionEventListener(this);
     }
 
     /**
@@ -46,7 +52,8 @@ final class ResourceGroupEventHub extends AbstractStatefulFrameworkServiceTracke
     }
 
     private void removeSupervisor(final String groupName,
-                                  @WillNotClose final Supervisor supervisor){
+                                  @WillNotClose final Supervisor supervisor) {
+        supervisor.removeSupervisionEventListener(this);
         supervisor.queryObject(HealthStatusProvider.class).ifPresent(provider -> provider.removeHealthStatusEventListener(this));
     }
 
@@ -97,11 +104,11 @@ final class ResourceGroupEventHub extends AbstractStatefulFrameworkServiceTracke
      * @throws Exception Unable to start tracking.
      */
     @Override
-    protected void start(final Map<String, HealthStatusEventListener> configuration) throws Exception {
+    protected void start(final Map<String, EventAcceptor> configuration) throws Exception {
 
     }
 
-    void startTracking(@Nonnull final HealthStatusEventListener destination) throws Exception {
+    void startTracking(@Nonnull final EventAcceptor destination) throws Exception {
         update(ImmutableMap.of("destination", destination));
     }
 }

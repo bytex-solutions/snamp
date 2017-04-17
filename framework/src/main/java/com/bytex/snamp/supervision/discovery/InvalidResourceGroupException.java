@@ -1,4 +1,4 @@
-package com.bytex.snamp.supervision.discovery.rest;
+package com.bytex.snamp.supervision.discovery;
 
 import javax.annotation.Nonnull;
 
@@ -12,7 +12,7 @@ public final class InvalidResourceGroupException extends ResourceDiscoveryExcept
     private static final long serialVersionUID = -7000587336289333690L;
     private final String resourceName, actualGroup, expectedGroup;
 
-    InvalidResourceGroupException(@Nonnull final String resourceName,
+    public InvalidResourceGroupException(@Nonnull final String resourceName,
                                   @Nonnull final String actualGroupName,
                                   @Nonnull final String expectedGroupName){
         super(String.format("Unable to override resource group for resource %s. Actual: %s. Expected: %s", resourceName, actualGroupName, expectedGroupName));

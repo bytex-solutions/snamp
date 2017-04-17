@@ -263,7 +263,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
-        return Optional.ofNullable(get()).flatMap(connector -> connector.queryObject(objectType));
+        return getService().flatMap(connector -> connector.queryObject(objectType));
     }
 
     /**
@@ -275,9 +275,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public void addResourceEventListener(final ResourceEventListener listener) {
-        final ManagedResourceConnector connector = getService();
-        if(connector != null)
-            connector.addResourceEventListener(listener);
+        getService().ifPresent(connector -> connector.addResourceEventListener(listener));
     }
 
     /**
@@ -287,9 +285,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        final ManagedResourceConnector connector = getService();
-        if(connector != null)
-            connector.removeResourceEventListener(listener);
+        getService().ifPresent(connector -> connector.removeResourceEventListener(listener));
     }
 
     /**
@@ -300,8 +296,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     @Nonnull
     @Override
     public ManagedResourceInfo getConfiguration() {
-        final ManagedResourceConnector connector = getService();
-        return connector == null ? EMPTY_CONFIGURATION : connector.getConfiguration();
+        return getService().map(ManagedResourceConnector::getConfiguration).orElse(EMPTY_CONFIGURATION);
     }
 
     @Override
@@ -319,19 +314,19 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public void update(final ManagedResourceInfo configuration) throws Exception {
-        final ManagedResourceConnector connector = getService();
-        if (connector != null)
-            connector.update(configuration);
+        final Optional<ManagedResourceConnector> connector = getService();
+        if (connector.isPresent())
+            connector.get().update(configuration);
     }
 
     @Override
     public boolean canExpand(final Class<? extends MBeanFeatureInfo> featureType) {
-        return Optional.ofNullable(getService()).map(connector -> connector.canExpand(featureType)).orElse(false);
+        return getService().map(connector -> connector.canExpand(featureType)).orElse(false);
     }
 
     @Override
     public Collection<? extends MBeanFeatureInfo> expandAll() {
-        return Optional.ofNullable(getService()).map(ManagedResourceConnector::expandAll).orElse(Collections.emptyList());
+        return getService().map(ManagedResourceConnector::expandAll).orElse(Collections.emptyList());
     }
 
     /**
@@ -346,7 +341,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        return getService().getAttribute(attribute);
+        return get().getAttribute(attribute);
     }
 
     /**
@@ -362,7 +357,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        getService().setAttribute(attribute);
+        get().setAttribute(attribute);
     }
 
     /**
@@ -374,7 +369,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public AttributeList getAttributes(final String[] attributes) {
-        return getService().getAttributes(attributes);
+        return get().getAttributes(attributes);
     }
 
     /**
@@ -387,7 +382,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public AttributeList setAttributes(final AttributeList attributes) {
-        return getService().setAttributes(attributes);
+        return get().setAttributes(attributes);
     }
 
     /**
@@ -406,7 +401,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
-        return getService().invoke(actionName, params, signature);
+        return get().invoke(actionName, params, signature);
     }
 
     /**
@@ -417,7 +412,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      */
     @Override
     public MBeanInfo getMBeanInfo() {
-        return getService().getMBeanInfo();
+        return get().getMBeanInfo();
     }
 
     /**

@@ -12,7 +12,6 @@ import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.AbstractSupervisor;
-import com.bytex.snamp.supervision.discovery.rest.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 
 import javax.annotation.Nonnull;
@@ -87,8 +86,8 @@ public class DefaultSupervisor extends AbstractSupervisor {
         healthStatusProvider = value;
     }
 
-    protected final void setDiscoveryService(@Nonnull final DefaultResourceDiscoveryService discoveryService){
-        this.discoveryService = discoveryService;
+    protected final void setDiscoveryService(@Nonnull final DefaultResourceDiscoveryService value){
+        discoveryService = value;
     }
 
     private void updateHealthStatus() {
@@ -108,21 +107,12 @@ public class DefaultSupervisor extends AbstractSupervisor {
     }
 
     @Override
-    protected void addResource(final String resourceName, final ManagedResourceConnector connector) {
-        final DefaultResourceDiscoveryService discoveryService = this.discoveryService;
-        if (discoveryService != null)
-            discoveryService.resourceRegistered(resourceName);
-    }
-
-    @Override
     @OverridingMethodsMustInvokeSuper
     protected void removeResource(final String resourceName, final ManagedResourceConnector connector) {
         final DefaultHealthStatusProvider provider = healthStatusProvider;
         if (provider != null)
             provider.removeResource(resourceName);
-        final DefaultResourceDiscoveryService discoveryService = this.discoveryService;
-        if(discoveryService != null)
-            discoveryService.resourceRemoved(resourceName);
+        super.removeResource(resourceName, connector);
     }
 
     /**
@@ -135,7 +125,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
     @Override
     protected void stop() throws Exception {
         try {
-            Utils.closeAll(updater::terminate, healthStatusProvider, discoveryService);
+            Utils.closeAll(updater::terminate, healthStatusProvider);
         } finally {
             updater = null;
             healthStatusProvider = null;
@@ -143,10 +133,6 @@ public class DefaultSupervisor extends AbstractSupervisor {
             checkerFactory = null;
             discoveryService = null;
         }
-    }
-
-    protected Duration getCheckPeriod(final SupervisorInfo configuration) {
-        return new DefaultSupervisorConfigurationDescriptionProvider().parseCheckPeriod(configuration);
     }
 
     /**
@@ -165,6 +151,10 @@ public class DefaultSupervisor extends AbstractSupervisor {
             healthStatusProvider.addChecker(attributeChecker.getKey(), checkerFactory.compile(attributeChecker.getValue()));
     }
 
+    protected DefaultSupervisorConfigurationDescriptionProvider getDescriptionProvider(){
+        return new DefaultSupervisorConfigurationDescriptionProvider();
+    }
+
     /**
      * Starts the tracking resources.
      * <p>
@@ -176,6 +166,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
      */
     @Override
     protected void start(final SupervisorInfo configuration) throws Exception {
+        final DefaultSupervisorConfigurationDescriptionProvider parser = getDescriptionProvider();
         setCheckerFactory(new AttributeCheckerFactory());
         setHealthStatusProvider(new DefaultHealthStatusProvider(groupName));
         setTriggerFactory(new TriggerFactory());
@@ -183,10 +174,12 @@ public class DefaultSupervisor extends AbstractSupervisor {
         if (configurationManager == null) {
             getLogger().warning("Configuration manager is not available. Default discovery service is disabled");
         } else {
-            setDiscoveryService(new DefaultResourceDiscoveryService(groupName, configurationManager));
+            final DefaultResourceDiscoveryService discoveryService = new DefaultResourceDiscoveryService(groupName, configurationManager);
+            discoveryService.setSource(this);
+            setDiscoveryService(discoveryService);
         }
         //start updater thread
-        updater = new HealthStatusUpdater(getCheckPeriod(configuration), this);
+        updater = new HealthStatusUpdater(parser.parseCheckPeriod(configuration), this);
         updater.run();
     }
 }

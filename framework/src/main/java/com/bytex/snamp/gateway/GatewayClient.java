@@ -1,13 +1,15 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
@@ -16,11 +18,11 @@ import javax.management.MBeanFeatureInfo;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.concurrent.SpinWait.untilNull;
-import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 
 /**
  * Represents a client of resource connector that can be used by gateway consumers.
@@ -29,7 +31,7 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
  * @version 2.0
  * @since 1.0
  */
-public final class GatewayClient extends ServiceHolder<Gateway> implements SafeCloseable {
+public final class GatewayClient extends ServiceHolder<Gateway> implements Gateway {
     private final BundleContext context;
 
     /**
@@ -203,6 +205,63 @@ public final class GatewayClient extends ServiceHolder<Gateway> implements SafeC
             for (final FeatureBindingInfo<M> bindingInfo : features.get(resourceName))
                 if (!reader.accept(resourceName, bindingInfo)) return false;
         return !features.isEmpty();
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the requested object.
+     * @return An instance of the aggregated object.
+     */
+    @Override
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        return getService().flatMap(gateway -> gateway.queryObject(objectType));
+    }
+
+    /**
+     * Gets configuration of this gateway.
+     *
+     * @return Configuration of this gateway.
+     */
+    @Nonnull
+    @Override
+    public Map<String, String> getConfiguration() {
+        return getService().map(Gateway::getConfiguration).orElseGet(ImmutableMap::of);
+    }
+
+    /**
+     * Updates configuration of this gateway.
+     *
+     * @param configuration A new configuration to update
+     * @throws Exception Unable to update this gateway.
+     */
+    @Override
+    public void update(@Nonnull final Map<String, String> configuration) throws Exception {
+        get().update(configuration);
+    }
+
+    /**
+     * Gets state of this instance.
+     *
+     * @return The state of this instance.
+     */
+    @Override
+    public FrameworkServiceState getState() {
+        return getService().map(Gateway::getState).orElse(FrameworkServiceState.CLOSED);
+    }
+
+    /**
+     * Gets a collection of features contained in this instance of the gateway.
+     *
+     * @param featureType Type of the feature.
+     * @return A collection of features associated with resource name.
+     * @see FeatureBindingInfo
+     */
+    @Override
+    public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        return getService()
+                .<Multimap<String, ? extends FeatureBindingInfo<M>>>map(gateway -> gateway.getBindings(featureType))
+                .orElseGet(() -> Multimaps.forMap(ImmutableMap.of()));
     }
 
     /**

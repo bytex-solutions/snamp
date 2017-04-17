@@ -82,17 +82,18 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * Gets a strong reference to the service.
      * @return A strong reference to the service; or {@literal null}, if reference is released.
      */
-    public final S getService(){
-        return get();
+    protected final Optional<S> getService(){
+        return Optional.ofNullable(serviceImpl);
     }
 
     /**
      * Gets a strong reference to the service.
      * @return A strong reference to the service; or {@literal null}, if reference is released.
+     * @throws IllegalStateException This reference is released.
      */
     @Override
     public final S get() {
-        return serviceImpl;
+        return getService().orElseThrow(IllegalStateException::new);
     }
 
     /**

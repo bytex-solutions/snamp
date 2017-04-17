@@ -168,8 +168,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
      */
     @Override
     public FrameworkServiceState getState() {
-        final Supervisor service = get();
-        return service == null ? FrameworkServiceState.CLOSED : service.getState();
+        return getService().map(Supervisor::getState).orElse(FrameworkServiceState.CLOSED);
     }
 
     /**
@@ -180,8 +179,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
     @Nonnull
     @Override
     public Set<String> getResources() {
-        final Supervisor service = get();
-        return service == null ? ImmutableSet.of() : service.getResources();
+        return getService().map(Supervisor::getResources).orElseGet(ImmutableSet::of);
     }
 
     /**
@@ -194,6 +192,16 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
     @Override
     public SupervisorInfo getConfiguration() {
         return get().getConfiguration();
+    }
+
+    @Override
+    public void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener) {
+        getService().ifPresent(supervisor -> supervisor.addSupervisionEventListener(listener));
+    }
+
+    @Override
+    public void removeSupervisionEventListener(@Nonnull final SupervisionEventListener listener) {
+        getService().ifPresent(supervisor -> supervisor.removeSupervisionEventListener(listener));
     }
 
     @Override
@@ -211,7 +219,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
      */
     @Override
     public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
-        return Optional.ofNullable(get()).flatMap(supervisor -> supervisor.queryObject(objectType));
+        return getService().flatMap(supervisor -> supervisor.queryObject(objectType));
     }
 
     @Override

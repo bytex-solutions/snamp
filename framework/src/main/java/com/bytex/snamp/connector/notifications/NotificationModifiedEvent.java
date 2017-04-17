@@ -16,7 +16,7 @@ public class NotificationModifiedEvent extends FeatureModifiedEvent<MBeanNotific
     protected NotificationModifiedEvent(final NotificationSupport sender,
                                         final String resourceName,
                                         final MBeanNotificationInfo feature,
-                                        final ModificationType type) {
+                                        final Modifier type) {
         super(sender, resourceName, feature, type);
     }
 
@@ -33,12 +33,12 @@ public class NotificationModifiedEvent extends FeatureModifiedEvent<MBeanNotific
     public static NotificationModifiedEvent notificationAdded(final NotificationSupport sender,
                                                               final String resourceName,
                                                               final MBeanNotificationInfo feature){
-        return new NotificationModifiedEvent(sender, resourceName, feature, ModificationType.ADDED);
+        return new NotificationModifiedEvent(sender, resourceName, feature, Modifier.ADDED);
     }
 
     public static NotificationModifiedEvent notificationRemoving(final NotificationSupport sender,
                                                               final String resourceName,
                                                               final MBeanNotificationInfo feature){
-        return new NotificationModifiedEvent(sender, resourceName, feature, ModificationType.REMOVING);
+        return new NotificationModifiedEvent(sender, resourceName, feature, Modifier.REMOVING);
     }
 }

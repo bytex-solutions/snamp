@@ -28,7 +28,7 @@ public final class ResignOperation extends OpenMBean.OpenOperation<Boolean, Simp
         return ServiceHolder.tryCreate(context, ClusterMember.class)
                 .map(nodeService -> {
                     try {
-                        nodeService.getService().resign();
+                        nodeService.get().resign();
                         return true;
                     } catch (final IllegalArgumentException e) {
                         return false;

@@ -13,7 +13,7 @@ import javax.management.MBeanOperationInfo;
 public class OperationModifiedEvent extends FeatureModifiedEvent<MBeanOperationInfo> {
     private static final long serialVersionUID = 188103517392485039L;
 
-    protected OperationModifiedEvent(final OperationSupport sender, final String resourceName, final MBeanOperationInfo feature, final ModificationType type) {
+    protected OperationModifiedEvent(final OperationSupport sender, final String resourceName, final MBeanOperationInfo feature, final Modifier type) {
         super(sender, resourceName, feature, type);
     }
 
@@ -28,10 +28,10 @@ public class OperationModifiedEvent extends FeatureModifiedEvent<MBeanOperationI
     }
 
     public static OperationModifiedEvent operationAdded(final OperationSupport sender, final String resourceName, final MBeanOperationInfo feature){
-        return new OperationModifiedEvent(sender, resourceName, feature, ModificationType.ADDED);
+        return new OperationModifiedEvent(sender, resourceName, feature, Modifier.ADDED);
     }
 
     public static OperationModifiedEvent operationRemoving(final OperationSupport sender, final String resourceName, final MBeanOperationInfo feature){
-        return new OperationModifiedEvent(sender, resourceName, feature, ModificationType.REMOVING);
+        return new OperationModifiedEvent(sender, resourceName, feature, Modifier.REMOVING);
     }
 }

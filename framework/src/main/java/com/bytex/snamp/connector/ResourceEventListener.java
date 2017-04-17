@@ -13,8 +13,7 @@ public interface ResourceEventListener extends EventListener {
     /**
      * Handles resource event.
      * @param event An event to handle.
-     * @see com.bytex.snamp.connector.FeatureAddedEvent
-     * @see FeatureRemovingEvent
+     * @see FeatureModifiedEvent
      */
-    void handle(final ResourceEvent event);
+    void resourceModified(final ResourceEvent event);
 }

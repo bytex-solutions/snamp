@@ -31,7 +31,7 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
     @Override
     public final boolean processEvent(final FeatureModifiedEvent<MBeanNotificationInfo> event) {
         assert event.getSource() instanceof NotificationSupport;
-        switch (event.getType()) {
+        switch (event.getModifier()) {
             case ADDED:
                 connect((NotificationSupport) event.getSource());
                 return true;

@@ -16,7 +16,7 @@ public class AttributeModifiedEvent extends FeatureModifiedEvent<MBeanAttributeI
     protected AttributeModifiedEvent(final AttributeSupport sender,
                                      final String resourceName,
                                      final MBeanAttributeInfo feature,
-                                     final ModificationType type) {
+                                     final Modifier type) {
         super(sender, resourceName, feature, type);
     }
 
@@ -33,12 +33,12 @@ public class AttributeModifiedEvent extends FeatureModifiedEvent<MBeanAttributeI
     public static AttributeModifiedEvent attributedAdded(final AttributeSupport sender,
                                                          final String resourceName,
                                                          final MBeanAttributeInfo feature){
-        return new AttributeModifiedEvent(sender, resourceName, feature, ModificationType.ADDED);
+        return new AttributeModifiedEvent(sender, resourceName, feature, Modifier.ADDED);
     }
 
     public static AttributeModifiedEvent attributedRemoving(final AttributeSupport sender,
                                                          final String resourceName,
                                                          final MBeanAttributeInfo feature){
-        return new AttributeModifiedEvent(sender, resourceName, feature, ModificationType.REMOVING);
+        return new AttributeModifiedEvent(sender, resourceName, feature, Modifier.REMOVING);
     }
 }
