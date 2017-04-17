@@ -43,7 +43,7 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceType The requested service type. Cannot be {@literal null}.
      * @param <S> Type of service interface.
-     * @return A reference to OSGi service; or {@literal null}, if service was not registered.
+     * @return Optional reference to OSGi service.
      * @since 1.2
      */
     public static <S> Optional<ServiceHolder<S>> tryCreate(@Nonnull final BundleContext context, @Nonnull final Class<S> serviceType) {
@@ -63,7 +63,7 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @param context The class loader which holds this reference. Cannot be {@literal null}.
      * @param serviceType The requested service type. Cannot be {@literal null}.
      * @param <S> Type of service interface.
-     * @return A reference to OSGi or local service; or {@literal null}, if service was not registered.
+     * @return Optional reference to OSGi or local service.
      * @since 1.2
      */
     public static <S> Optional<ServiceHolder<S>> tryCreate(@Nonnull final ClassLoader context, @Nonnull final Class<S> serviceType) {
