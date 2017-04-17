@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -18,7 +18,7 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
 
-import { NgGrid, NgGridItem, NgGridConfig, NgGridItemConfig, NgGridItemEvent } from '../controls/nggrid/main';
+import { NgGridConfig, NgGridItemEvent } from '../controls/nggrid/main';
 
 import 'smartwizard';
 import 'select2';
@@ -88,7 +88,6 @@ export class Dashboard {
     constructor(apiClient: ApiClient,
           overlay: Overlay,
           vcRef: ViewContainerRef,
-          private modal: Modal,
           private _chartService:ChartService,
           private route: ActivatedRoute) {
 
@@ -153,7 +152,7 @@ export class Dashboard {
 
    ngAfterViewInit():void {
         console.log("ng on init view for chart dashboard... ");
-        var _thisReference = this;
+        let _thisReference:any = this;
         this.route.params
              .map(params => params['groupName'])
              .subscribe((gn) => {
@@ -180,7 +179,7 @@ export class Dashboard {
             transitionEffect: 'fade'
         });
 
-        var _thisReference = this;
+        let _thisReference:any = this;
 
         $(this.getSmartWizardIdentifier()).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
             if (stepNumber == 3) {
@@ -261,13 +260,13 @@ export class Dashboard {
             if (data && data.length > 0) {
                 this.selectedMetric = data[0];
             }
-        })
+        });
          $('#overlay').fadeOut();
    }
 
    triggerShowInstances(event:any):void {
-        var _select = $("#instancesSelect");
-        var _thisReference = this;
+        let _select:any = $("#instancesSelect");
+        let _thisReference:any = this;
         if (event == false) {
             _select.select2({
                 placeholder: "Select instances from the dropdown",
@@ -301,7 +300,7 @@ export class Dashboard {
         this._charts = this._chartService.getChartsByGroupName(this.groupName);
         $("#addChartModal").modal("hide");
 
-         var _thisReference = this;
+         let _thisReference:any = this;
          setTimeout(function() {
             chart.draw();
             _thisReference._chartService.saveDashboard();
@@ -320,6 +319,10 @@ export class Dashboard {
 
     ngOnDestroy() {
         clearInterval(this.timerId);
+    }
+
+    isInstanceSelected(instance:string):boolean {
+        return (this.selectedInstances.indexOf(instance) >= 0);
     }
 }
 

@@ -75,7 +75,7 @@
                   </ui-switch>
                   <br/>
                   <select class="select2_multiple form-control" id="instancesSelect" style="display: none;" multiple="multiple">
-                    <option *ngFor="let instance of instances | async">{{instance}}</option>
+                    <option *ngFor="let instance of instances | async" [attr.selected]="isInstanceSelected(instance) ? true : null">{{instance}}</option>
                   </select>
                 </div>
               </div>
