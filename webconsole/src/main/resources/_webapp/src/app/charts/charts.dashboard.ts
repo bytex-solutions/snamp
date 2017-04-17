@@ -3,7 +3,6 @@ import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Overlay } from 'angular2-modal';
-import { Modal } from 'angular2-modal/plugins/vex';
 import { AttributeInformation } from './model/attribute';
 
 import { ChartService } from '../services/app.chartService';
@@ -186,6 +185,12 @@ export class Dashboard {
                 _thisReference.updateChartName();
             } else if (stepNumber == 2) {
                 _thisReference.loadMetricsOnInstancesSelected();
+            } else if (stepNumber == 1) {
+                if (stepDirection == "forward") {
+                    _thisReference.selectedAllInstances = true;
+                    _thisReference.selectedInstances = [];
+                }
+                _thisReference.triggerShowInstances(_thisReference.selectedAllInstances);
             }
         });
    }
@@ -277,9 +282,11 @@ export class Dashboard {
              });
             _select.fadeIn("fast");
         } else {
-            _select.fadeOut("fast", function(){
-                _select.select2("destroy");
-            });
+            if (_select.data('select2')) {
+                _select.fadeOut("fast", function(){
+                    _select.select2("destroy");
+                });
+            }
         }
    }
 

@@ -5,14 +5,10 @@ import { LocalStorageService } from 'angular-2-local-storage';
 import { Subject } from 'rxjs/Subject';
 import { ApiClient, REST } from './app.restClient';
 
-import { $WebSocket } from 'angular2-websocket/angular2-websocket';
-
 import { Dashboard } from '../charts/model/dashboard';
 import { AbstractChart } from '../charts/model/abstract.chart';
 import { Factory } from '../charts/model/objectFactory';
 import { ChartData } from '../charts/model/chart.data';
-
-import { ActivatedRoute } from '@angular/router';
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
@@ -20,20 +16,15 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
 
-import { Router } from '@angular/router';
-
 @Injectable()
 export class ChartService {
-    private MAX_SIZE:number = 10000;
-    private SPLICE_COUNT:number = 30; // h  ow many elements will we delete from the end of the array
-    private RECENT_COUNT:number = 15; // default count of the recent message
     private KEY_DATA:string = "snampChartData";
     private _dashboard:Dashboard;
     private chartSubjects:{ [key:string]: Subject<ChartData> } = {};
 
     private groups:Observable<string[]>;
 
-    constructor(private localStorageService: LocalStorageService, private _http:ApiClient, private _router: Router) {
+    constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
           this.loadDashboard();
           if (this.localStorageService.get(this.KEY_DATA) == undefined) {
                this.localStorageService.set(this.KEY_DATA, {});

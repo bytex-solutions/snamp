@@ -87370,15 +87370,10 @@ __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
 __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
 __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
-var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var ChartService = (function () {
-    function ChartService(localStorageService, _http, _router) {
+    function ChartService(localStorageService, _http) {
         this.localStorageService = localStorageService;
         this._http = _http;
-        this._router = _router;
-        this.MAX_SIZE = 10000;
-        this.SPLICE_COUNT = 30; // h  ow many elements will we delete from the end of the array
-        this.RECENT_COUNT = 15; // default count of the recent message
         this.KEY_DATA = "snampChartData";
         this.chartSubjects = {};
         this.loadDashboard();
@@ -87570,10 +87565,10 @@ var ChartService = (function () {
     };
     ChartService = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object, (typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object, (typeof (_c = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _c) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object, (typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object])
     ], ChartService);
     return ChartService;
-    var _a, _b, _c;
+    var _a, _b;
 }());
 exports.ChartService = ChartService;
 

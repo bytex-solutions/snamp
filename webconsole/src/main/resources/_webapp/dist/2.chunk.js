@@ -162,6 +162,13 @@ var Dashboard = (function () {
             else if (stepNumber == 2) {
                 _thisReference.loadMetricsOnInstancesSelected();
             }
+            else if (stepNumber == 1) {
+                if (stepDirection == "forward") {
+                    _thisReference.selectedAllInstances = true;
+                    _thisReference.selectedInstances = [];
+                }
+                _thisReference.triggerShowInstances(_thisReference.selectedAllInstances);
+            }
         });
     };
     Dashboard.prototype.onComponentSelect = function (event) {
@@ -248,9 +255,11 @@ var Dashboard = (function () {
             _select.fadeIn("fast");
         }
         else {
-            _select.fadeOut("fast", function () {
-                _select.select2("destroy");
-            });
+            if (_select.data('select2')) {
+                _select.fadeOut("fast", function () {
+                    _select.select2("destroy");
+                });
+            }
         }
     };
     Dashboard.prototype.getSmartWizardIdentifier = function () {
