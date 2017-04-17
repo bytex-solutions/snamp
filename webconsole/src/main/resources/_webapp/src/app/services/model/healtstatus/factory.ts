@@ -48,4 +48,27 @@ export class StatusFactory {
         }
         return _value;
     }
+
+    public static healthStatusFromObject(json:any):HealthStatus {
+        let _value:HealthStatus = undefined;
+        switch(json["innerType"]) {
+            case HealthStatus.OK_TYPE:
+                _value = Object.assign(new OkStatus, json);
+                break;
+            case HealthStatus.RESOURCE_NA_TYPE:
+                _value = Object.assign(new ResourceIsNotAvailable(), json);
+                break;
+
+            case HealthStatus.CONNECTION_PROBLEM_TYPE:
+                _value = Object.assign(new ConnectionProblem(), json);
+                break;
+
+            case HealthStatus.ATTRIBUTE_VALUE_PROBLEM_TYPE:
+                _value = Object.assign(new InvalidAttributeValue(), json);
+                break;
+            default:
+                throw new Error("Cannot recognize type of health status: " + json["innerType"]);
+        }
+        return _value;
+    }
 }

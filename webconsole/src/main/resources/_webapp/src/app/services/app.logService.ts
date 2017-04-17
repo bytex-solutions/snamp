@@ -4,6 +4,7 @@ import { LocalStorageService } from 'angular-2-local-storage';
 import { Subject } from 'rxjs/Subject';
 import { AbstractNotification } from "./model/notifications/abstract.notification";
 import { LogNotification } from "./model/notifications/log.notification";
+import { NotificationFactory } from "./model/notifications/factory";
 
 @Injectable()
 export class SnampLogService {
@@ -33,7 +34,12 @@ export class SnampLogService {
                logArray.splice((-1) * this.SPLICE_COUNT, this.SPLICE_COUNT);
                this.localStorageService.set(this.KEY, logArray);
          }
-         return logArray;
+         // we should make real js object from its json representation, because local storage contains serialized data
+         let _retArray:AbstractNotification[] = [];
+         for (let i = 0; i < logArray.length; i++) {
+             _retArray.push(NotificationFactory.makeFromInnerObject(logArray[i]));
+         }
+         return _retArray;
     }
 
     ngOnInit() {
@@ -57,6 +63,10 @@ export class SnampLogService {
         } else {
             return logArray.slice((-1) * _count);
         }
+    }
+
+    public getAllLogs():AbstractNotification[] {
+        return this.getArray();
     }
 
     public getAllLogsJSON():any {

@@ -48,6 +48,10 @@ export abstract class AbstractNotification {
         this._type = value;
     }
 
+    set timestamp(value: Date) {
+        this._timestamp = value;
+    }
+
     constructor() {
         this._id = AbstractNotification.newGuid();
         this._message = "No message available";

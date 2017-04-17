@@ -87584,6 +87584,7 @@ var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
 var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
 var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
+var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
 var SnampLogService = (function () {
     function SnampLogService(localStorageService) {
         this.localStorageService = localStorageService;
@@ -87608,7 +87609,12 @@ var SnampLogService = (function () {
             logArray.splice((-1) * this.SPLICE_COUNT, this.SPLICE_COUNT);
             this.localStorageService.set(this.KEY, logArray);
         }
-        return logArray;
+        // we should make real js object from its json representation, because local storage contains serialized data
+        var _retArray = [];
+        for (var i = 0; i < logArray.length; i++) {
+            _retArray.push(factory_1.NotificationFactory.makeFromInnerObject(logArray[i]));
+        }
+        return _retArray;
     };
     SnampLogService.prototype.ngOnInit = function () {
         var welcomeMessage = new log_notification_1.LogNotification();
@@ -87630,6 +87636,9 @@ var SnampLogService = (function () {
         else {
             return logArray.slice((-1) * _count);
         }
+    };
+    SnampLogService.prototype.getAllLogs = function () {
+        return this.getArray();
     };
     SnampLogService.prototype.getAllLogsJSON = function () {
         return this.getArray().reverse();
@@ -88021,6 +88030,26 @@ var StatusFactory = (function () {
         }
         return _value;
     };
+    StatusFactory.healthStatusFromObject = function (json) {
+        var _value = undefined;
+        switch (json["innerType"]) {
+            case health_status_1.HealthStatus.OK_TYPE:
+                _value = Object.assign(new ok_status_1.OkStatus, json);
+                break;
+            case health_status_1.HealthStatus.RESOURCE_NA_TYPE:
+                _value = Object.assign(new resource_na_status_1.ResourceIsNotAvailable(), json);
+                break;
+            case health_status_1.HealthStatus.CONNECTION_PROBLEM_TYPE:
+                _value = Object.assign(new connection_problem_status_1.ConnectionProblem(), json);
+                break;
+            case health_status_1.HealthStatus.ATTRIBUTE_VALUE_PROBLEM_TYPE:
+                _value = Object.assign(new invalid_attribute_value_status_1.InvalidAttributeValue(), json);
+                break;
+            default:
+                throw new Error("Cannot recognize type of health status: " + json["innerType"]);
+        }
+        return _value;
+    };
     return StatusFactory;
 }());
 exports.StatusFactory = StatusFactory;
@@ -88210,6 +88239,9 @@ var AbstractNotification = (function () {
         get: function () {
             return this._timestamp;
         },
+        set: function (value) {
+            this._timestamp = value;
+        },
         enumerable: true,
         configurable: true
     });
@@ -88291,6 +88323,7 @@ exports.AbstractNotification = AbstractNotification;
 var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
 var health_status_notification_1 = __webpack_require__("./src/app/services/model/notifications/health.status.notification.ts");
 var resource_notification_1 = __webpack_require__("./src/app/services/model/notifications/resource.notification.ts");
+var factory_1 = __webpack_require__("./src/app/services/model/healtstatus/factory.ts");
 var NotificationFactory = (function () {
     function NotificationFactory() {
     }
@@ -88313,6 +88346,31 @@ var NotificationFactory = (function () {
         _notification.type = _json['@messageType'];
         return _notification;
     };
+    NotificationFactory.makeFromInnerObject = function (_json) {
+        var _notification;
+        switch (_json['_type']) {
+            case "log":
+                _notification = Object.assign(new log_notification_1.LogNotification(), _json);
+                break;
+            case "healthStatusChanged":
+                _notification = Object.assign(new health_status_notification_1.HealthStatusNotification(), _json);
+                _notification.prevStatus = factory_1.StatusFactory.healthStatusFromObject(_json['_prevStatus']);
+                _notification.currentStatus = factory_1.StatusFactory.healthStatusFromObject(_json['_currentStatus']);
+                break;
+            case "resourceNotification":
+                _notification = Object.assign(new resource_notification_1.ResourceNotification(), _json);
+                break;
+            default:
+                throw new Error("Could not recognize notification of type: " + _json['_type']);
+        }
+        // restoring Date object from its string representation
+        _notification.timestamp = new Date(_json['_timestamp']);
+        // saving call results for usage by 3rd party's components
+        _notification.savedMessage = _notification.shortDescription();
+        _notification.savedDetails = _notification.htmlDetails();
+        _notification.savedTimestamp = _notification.timestamp.getTime();
+        return _notification;
+    };
     return NotificationFactory;
 }());
 exports.NotificationFactory = NotificationFactory;
@@ -88332,25 +88390,45 @@ var HealthStatusNotification = (function (_super) {
     __extends(HealthStatusNotification, _super);
     function HealthStatusNotification() {
         _super.call(this);
-        this.prevStatus = new ok_status_1.OkStatus;
-        this.currentStatus = new ok_status_1.OkStatus;
+        this._prevStatus = new ok_status_1.OkStatus;
+        this._currentStatus = new ok_status_1.OkStatus;
     }
     HealthStatusNotification.prototype.htmlDetails = function () {
         var _details = "The status before: <br/>";
-        _details += this.prevStatus.htmlDetails();
+        _details += this._prevStatus.htmlDetails();
         _details += "Current status: <br/>";
-        _details += this.currentStatus.htmlDetails();
+        _details += this._currentStatus.htmlDetails();
         return _details;
     };
+    Object.defineProperty(HealthStatusNotification.prototype, "prevStatus", {
+        get: function () {
+            return this._prevStatus;
+        },
+        set: function (value) {
+            this._prevStatus = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(HealthStatusNotification.prototype, "currentStatus", {
+        get: function () {
+            return this._currentStatus;
+        },
+        set: function (value) {
+            this._currentStatus = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
     HealthStatusNotification.prototype.shortDescription = function () {
-        return "Previous status: " + this.prevStatus.innerType + " , current status: " + this.currentStatus.innerType;
+        return "Previous status: " + this._prevStatus.innerType + " , current status: " + this._currentStatus.innerType;
     };
     HealthStatusNotification.prototype.fillFromJson = function (_json) {
         if (_json["previousStatus"] != undefined) {
-            this.prevStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["previousStatus"]['@type'], _json["previousStatus"]);
+            this._prevStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["previousStatus"]['@type'], _json["previousStatus"]);
         }
         if (_json["newStatus"] != undefined) {
-            this.currentStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["newStatus"]['@type'], _json["newStatus"]);
+            this._currentStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["newStatus"]['@type'], _json["newStatus"]);
         }
         this.level = "WARN"; // always make it quite important (because no level is being received from backend)
     };

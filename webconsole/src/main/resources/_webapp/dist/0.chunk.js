@@ -37691,17 +37691,13 @@ var SnampLogViewComponent = (function () {
     }
     SnampLogViewComponent.prototype.ngOnInit = function () {
         var _this = this;
+        this.source = new ng2_smart_table_1.LocalDataSource(this._snampLogService.getAllLogs());
         this._snampLogService.getLogObs()
             .subscribe(function (newLog) {
             newLog.savedMessage = newLog.shortDescription();
             newLog.savedDetails = newLog.htmlDetails();
             newLog.savedTimestamp = newLog.timestamp.getTime();
-            if (_this.source == undefined) {
-                _this.source = new ng2_smart_table_1.LocalDataSource(new Array(newLog));
-            }
-            else {
-                _this.source.add(newLog);
-            }
+            _this.source.add(newLog);
             _this.source.refresh();
         });
     };

@@ -52,16 +52,13 @@ export class SnampLogViewComponent implements OnInit {
     constructor(private _snampLogService:SnampLogService) {}
 
     ngOnInit() {
+        this.source = new LocalDataSource(this._snampLogService.getAllLogs());
         this._snampLogService.getLogObs()
              .subscribe((newLog:AbstractNotification) => {
                  newLog.savedMessage = newLog.shortDescription();
                  newLog.savedDetails = newLog.htmlDetails();
                  newLog.savedTimestamp = newLog.timestamp.getTime();
-                 if (this.source == undefined) {
-                     this.source = new LocalDataSource(new Array(newLog));
-                 } else {
-                     this.source.add(newLog);
-                 }
+                 this.source.add(newLog);
                  this.source.refresh();
            });
      }
