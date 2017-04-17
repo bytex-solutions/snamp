@@ -46,7 +46,7 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @return A reference to OSGi service; or {@literal null}, if service was not registered.
      * @since 1.2
      */
-    public static <S> Optional<ServiceHolder<S>> tryCreate(@Nonnull final BundleContext context, final Class<S> serviceType) {
+    public static <S> Optional<ServiceHolder<S>> tryCreate(@Nonnull final BundleContext context, @Nonnull final Class<S> serviceType) {
         return Optional.ofNullable(context.getServiceReference(serviceType))
                 .map(ref -> {
                     try {
@@ -66,7 +66,7 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @return A reference to OSGi or local service; or {@literal null}, if service was not registered.
      * @since 1.2
      */
-    public static <S> Optional<ServiceHolder<S>> tryCreate(final ClassLoader context, final Class<S> serviceType) {
+    public static <S> Optional<ServiceHolder<S>> tryCreate(@Nonnull final ClassLoader context, @Nonnull final Class<S> serviceType) {
         if (context instanceof BundleReference)
             return tryCreate(getBundleContext((BundleReference) context), serviceType);
         else
