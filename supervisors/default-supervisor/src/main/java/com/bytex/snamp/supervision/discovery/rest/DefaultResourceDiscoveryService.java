@@ -9,9 +9,7 @@ import com.bytex.snamp.supervision.discovery.ResourceRemovedEvent;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
@@ -75,8 +73,7 @@ public class DefaultResourceDiscoveryService extends AbstractResourceDiscoverySe
         ManagedResourceConfiguration resourceConfig;
         if (resources.containsKey(resourceName)) {
             resourceConfig = resources.get(resourceName);
-            if (!Objects.equals(groupName, resourceConfig.getGroupName()))
-                throw new InvalidResourceGroupException(resourceName, resourceConfig.getGroupName(), groupName);
+            checkGroupName(resourceName, resourceConfig);
         } else
             resourceConfig = resources.getOrAdd(resourceName);
         groupConfig.fillResourceConfig(resourceConfig);
@@ -84,6 +81,16 @@ public class DefaultResourceDiscoveryService extends AbstractResourceDiscoverySe
         resourceConfig.setConnectionString(connectionString);
         resourceConfig.putAll(parameters);
         return true;
+    }
+
+    private static ResourceDiscoveryException configurationCrashed(final IOException e){
+        return new ResourceDiscoveryException("Configuration subsystem crashed", e);
+    }
+
+    private void checkGroupName(final String resourceName,
+                                final ManagedResourceConfiguration resourceConfig) throws InvalidResourceGroupException{
+        if(!Objects.equals(groupName, resourceConfig.getGroupName()))
+            throw new InvalidResourceGroupException(resourceName, resourceConfig.getGroupName(), groupName);
     }
 
     /**
@@ -108,11 +115,47 @@ public class DefaultResourceDiscoveryService extends AbstractResourceDiscoverySe
                     throw new ResourceGroupNotFoundException(groupName);
             });
         } catch (final IOException e) {
-            throw new ResourceDiscoveryException("Configuration subsystem is not available", e);
+            throw configurationCrashed(e);
         }
     }
 
-    public final void removeResource(@Nonnull final String resourceName){
+    /**
+     * Removes the specified resource from the group.
+     * @param resourceName Name of the resource to remove.
+     * @throws ResourceDiscoveryException Unable to remove resource.
+     */
+    public final void removeResource(@Nonnull final String resourceName) throws ResourceDiscoveryException {
+        try {
+            configurationManager.processConfiguration(config -> {
+                final ManagedResourceConfiguration resourceConfig = config.getResources().get(resourceName);
+                if (resourceConfig == null)
+                    return false;
+                else
+                    checkGroupName(resourceName, resourceConfig);
+                return config.getResources().remove(resourceName) != null;
+            });
+        } catch (final IOException e) {
+            throw configurationCrashed(e);
+        }
+    }
 
+    /**
+     * Removes all resources from the group.
+     * @throws ResourceDiscoveryException Unable to remove resources.
+     */
+    public final void removeAllResources() throws ResourceDiscoveryException {
+        try {
+            configurationManager.processConfiguration(config -> {
+                final Set<String> resourcesToRemove = new HashSet<>(10);
+                config.getResources().forEach((resourceName, resourceConfig) -> {
+                    if (Objects.equals(resourceConfig.getGroupName(), groupName))
+                        resourcesToRemove.add(resourceName);
+                });
+                resourcesToRemove.forEach(config.getResources()::remove);
+                return !resourcesToRemove.isEmpty();
+            });
+        } catch (final IOException e) {
+            throw configurationCrashed(e);
+        }
     }
 }

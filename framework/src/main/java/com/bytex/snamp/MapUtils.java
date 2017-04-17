@@ -113,11 +113,4 @@ public final class MapUtils {
                                                          final Collection<? extends K> keys){
         return new FixedKeysMap<>(keyGetter, Objects.requireNonNull(keySetter), ImmutableSet.copyOf(keys));
     }
-
-    public static <K, V> boolean putIf(final Map<K, ? super V> map, final K key, final V value, final Predicate<? super V> condition) {
-        final boolean success;
-        if (success = condition.test(value))
-            map.put(key, value);
-        return success;
-    }
 }
