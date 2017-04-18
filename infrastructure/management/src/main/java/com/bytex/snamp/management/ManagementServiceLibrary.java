@@ -1,7 +1,6 @@
 package com.bytex.snamp.management;
 
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.core.SnampManager;
@@ -13,19 +12,16 @@ import com.bytex.snamp.management.jmx.SnampCoreMBean;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
 import javax.annotation.Nonnull;
 import javax.management.JMException;
+import javax.servlet.Servlet;
 import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.bytex.snamp.internal.Utils.withContextClassLoader;
 
 /**
  * Represents activator for SNAMP Management Library.
@@ -37,7 +33,6 @@ import static com.bytex.snamp.internal.Utils.withContextClassLoader;
 public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final String USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY = "com.bytex.snamp.management.usePlatformMBean";
     private static final ActivationProperty<Boolean> USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY = defineActivationProperty(Boolean.class, false);
-    private static final ActivationProperty<HttpService> HTTP_SERVICE_ACTIVATION_PROPERTY = defineActivationProperty(HttpService.class);
 
     private static final class SnampManagerProvider extends ProvidedService<SnampManager, DefaultSnampManager>{
 
@@ -153,12 +148,31 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
+    private static final class ManagementServletProvider extends ProvidedService<Servlet, ManagementServlet>{
+        private ManagementServletProvider(){
+            super(Servlet.class);
+        }
+
+        @Nonnull
+        @Override
+        protected ManagementServlet activateService(final Map<String, Object> identity) {
+            identity.put("alias", ManagementServlet.CONTEXT);
+            return new ManagementServlet();
+        }
+
+        @Override
+        protected void cleanupService(final ManagementServlet servlet, final boolean stopBundle) {
+            servlet.destroy();
+        }
+    }
+
     private final LogListener listener;
 
     public ManagementServiceLibrary() throws InvalidSyntaxException {
         super(new SnampManagerProvider(),
                 new SnampClusterNodeMBeanServiceProvider(),
-                new SnampCoreMBeanServiceProvider());
+                new SnampCoreMBeanServiceProvider(),
+                new ManagementServletProvider());
         this.listener = new LogEntryRouter();
     }
 
@@ -167,41 +181,15 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
      *
      * @param context                 The execution context of the bundle being started.
      * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
-     * @throws Exception An exception occurred during starting.
      */
     @Override
-    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) {
         bundleLevelDependencies.add(new LogReaderServiceDependency(listener));
-        bundleLevelDependencies.add(HttpService.class);
     }
 
     @Override
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
         activationProperties.publish(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
-        final HttpService httpService = dependencies.getDependency(HttpService.class).orElseThrow(AssertionError::new);
-        try (final SafeCloseable ignored = withContextClassLoader(getClass().getClassLoader())) {
-            httpService.registerServlet(ManagementServlet.CONTEXT, new ManagementServlet(), new Hashtable<>(), null);
-        }
-        activationProperties.publish(HTTP_SERVICE_ACTIVATION_PROPERTY, httpService);
         super.activate(context, activationProperties, dependencies);
-    }
-
-    /**
-     * Deactivates this library.
-     * <p>
-     * This method will be invoked when at least one dependency was lost.
-     * </p>
-     *
-     * @param context              The execution context of the library being deactivated.
-     * @param activationProperties A collection of library activation properties to read.
-     * @throws Exception Deactivation error.
-     */
-    @Override
-    protected void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        try {
-            activationProperties.getProperty(HTTP_SERVICE_ACTIVATION_PROPERTY).unregister(ManagementServlet.CONTEXT);
-        } finally {
-            super.deactivate(context, activationProperties);
-        }
     }
 }

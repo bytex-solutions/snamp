@@ -294,14 +294,20 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             super(contract, dependencies);
         }
 
+        protected SupportServiceManager(final Class<S> contract,
+                                        final RequiredService<?>[] dependencies,
+                                        final Class<? super S> contracts){
+            super(contract, dependencies, contracts);
+        }
+
         @Nonnull
-        abstract T activateService() throws Exception;
+        protected abstract T createService(final Map<String, Object> identity) throws Exception;
 
         @Override
         @Nonnull
         protected final T activateService(final Map<String, Object> identity) throws Exception {
             identity.putAll(new ManagedResourceFilterBuilder().setConnectorType(getConnectorType()));
-            return activateService();
+            return createService(identity);
         }
 
         final Logger getLogger(){
@@ -313,17 +319,17 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @return The name of the underlying resource connector.
          * @see #getState()
          */
-        private String getConnectorType() {
+        protected final String getConnectorType() {
             return getActivationPropertyValue(CONNECTOR_TYPE_HOLDER);
         }
 
-        private static <S extends SupportService, T extends S> SupportServiceManager<S, T> create(final Class<S> contract,
+        static <S extends SupportService, T extends S> SupportServiceManager<S, T> create(final Class<S> contract,
                                                                                                   final SupportServiceFactory<T> activator,
                                                                                                   final RequiredService<?>... dependencies){
             return new SupportServiceManager<S, T>(contract, dependencies) {
-                @Override
                 @Nonnull
-                T activateService() throws Exception {
+                @Override
+                protected T createService(final Map<String, Object> identity) throws Exception {
                     return activator.activateService(super.dependencies);
                 }
             };
@@ -394,9 +400,9 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                 super(ManagedResourceConnectorFactoryService.class, connectorDependencies);
             }
 
-            @Override
             @Nonnull
-            ManagedResourceConnectorFactoryServiceImpl activateService() {
+            @Override
+            protected ManagedResourceConnectorFactoryServiceImpl createService(final Map<String, Object> identity) {
                 return new ManagedResourceConnectorFactoryServiceImpl(dependencies);
             }
         }

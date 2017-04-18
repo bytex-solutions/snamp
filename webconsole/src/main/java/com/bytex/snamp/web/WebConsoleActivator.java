@@ -9,12 +9,11 @@ import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
 import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
-import com.bytex.snamp.web.serviceModel.resourceGroups.ResourceGroupWatcherService;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
 import com.bytex.snamp.web.serviceModel.notifications.NotificationService;
+import com.bytex.snamp.web.serviceModel.resourceGroups.ResourceGroupWatcherService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.service.http.HttpService;
 
 import javax.annotation.Nonnull;
 import javax.servlet.Servlet;
@@ -185,6 +184,5 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
     @Override
     protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) {
-        bundleLevelDependencies.add(HttpService.class);
     }
 }

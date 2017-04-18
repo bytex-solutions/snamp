@@ -28,8 +28,8 @@ public final class RESTDiscoveryServiceActivator extends AbstractServiceLibrary 
         }
 
         @Override
-        protected void cleanupService(final DiscoveryServiceServlet serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.destroy();
+        protected void cleanupService(final DiscoveryServiceServlet servlet, final boolean stopBundle) throws Exception {
+            servlet.destroy();
         }
     }
 

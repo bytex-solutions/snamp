@@ -751,6 +751,10 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         return result;
     }
 
+    protected static RequiredService<?>[] emptyDependencies(){
+        return ArrayUtils.emptyArray(RequiredService[].class);
+    }
+
     /**
      * Gets properties of the service that is represented by the specified reference.
      * <p>
