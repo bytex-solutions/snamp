@@ -310,6 +310,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @param identity A dictionary of properties that uniquely identifies service instance.
          * @return A new instance of the service.
          */
+        @Nonnull
         protected abstract T activateService(final Map<String, Object> identity) throws Exception;
     }
 
@@ -431,6 +432,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @return A new instance of the service.
          */
         @Override
+        @Nonnull
         protected final ManagedServiceFactoryImpl<TService> activateService(final Map<String, Object> identity) throws Exception {
             final String factoryPID = getCachedFactoryPID();
             identity.put(Constants.SERVICE_PID, factoryPID);

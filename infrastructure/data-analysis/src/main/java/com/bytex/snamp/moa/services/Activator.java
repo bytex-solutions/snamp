@@ -33,6 +33,7 @@ public final class Activator extends AbstractServiceLibrary {
                                     final ImmutableMap<String, String> configuration) throws Exception;
 
         @Override
+        @Nonnull
         protected final T activateService(final Map<String, Object> identity) throws Exception {
             final ConfigurationManager manager = dependencies.getDependency(ConfigurationManager.class)
                     .orElseThrow(AssertionError::new);

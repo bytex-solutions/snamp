@@ -272,6 +272,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      */
     @FunctionalInterface
     protected interface SupportServiceFactory<T extends SupportService>{
+        @Nonnull
         T activateService(final DependencyManager dependencies) throws Exception;
     }
 
@@ -293,9 +294,11 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             super(contract, dependencies);
         }
 
+        @Nonnull
         abstract T activateService() throws Exception;
 
         @Override
+        @Nonnull
         protected final T activateService(final Map<String, Object> identity) throws Exception {
             identity.putAll(new ManagedResourceFilterBuilder().setConnectorType(getConnectorType()));
             return activateService();
@@ -319,6 +322,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                                                                                                   final RequiredService<?>... dependencies){
             return new SupportServiceManager<S, T>(contract, dependencies) {
                 @Override
+                @Nonnull
                 T activateService() throws Exception {
                     return activator.activateService(super.dependencies);
                 }
@@ -391,6 +395,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             }
 
             @Override
+            @Nonnull
             ManagedResourceConnectorFactoryServiceImpl activateService() {
                 return new ManagedResourceConnectorFactoryServiceImpl(dependencies);
             }

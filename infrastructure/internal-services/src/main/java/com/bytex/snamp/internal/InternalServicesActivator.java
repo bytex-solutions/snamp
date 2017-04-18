@@ -14,8 +14,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ManagedService;
-import org.osgi.service.http.HttpService;
 
+import javax.annotation.Nonnull;
 import javax.management.JMException;
 import javax.servlet.Servlet;
 import javax.xml.bind.JAXBException;
@@ -37,6 +37,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         }
 
         @Override
+        @Nonnull
         protected PersistentConfigurationManager activateService(final Map<String, Object> identity) {
             return new PersistentConfigurationManager(dependencies.getDependency(ConfigurationAdmin.class).orElseThrow(AssertionError::new));
         }
@@ -47,8 +48,8 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
             super(ClusterMember.class, simpleDependencies(HazelcastInstance.class));
         }
 
-        @SuppressWarnings("unchecked")
         @Override
+        @Nonnull
         protected GridMember activateService(final Map<String, Object> identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
             final HazelcastInstance hazelcast = dependencies.getDependency(HazelcastInstance.class).orElseThrow(AssertionError::new);
             final GridMember member = new GridMember(hazelcast);
@@ -68,8 +69,8 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
             super(ThreadPoolRepository.class, simpleDependencies(), ManagedService.class);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
+        @Nonnull
         protected ThreadPoolRepositoryImpl activateService(final Map<String, Object> identity) {
             identity.put(Constants.SERVICE_PID, ThreadPoolRepositoryImpl.PID);
             return new ThreadPoolRepositoryImpl();
@@ -83,10 +84,11 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
 
     private static final class SecurityServletProvider extends ProvidedService<Servlet, SecurityServlet>{
         private SecurityServletProvider(){
-            super(Servlet.class, simpleDependencies(HttpService.class));
+            super(Servlet.class);
         }
 
         @Override
+        @Nonnull
         protected SecurityServlet activateService(final Map<String, Object> identity) {
             identity.put("alias", SecurityServlet.CONTEXT);
             return new SecurityServlet();

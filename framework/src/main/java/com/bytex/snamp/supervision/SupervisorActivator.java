@@ -160,6 +160,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         }
 
         @Override
+        @Nonnull
         protected T activateService(final Map<String, Object> identity) throws Exception {
             identity.putAll(new SupervisorFilterBuilder().setSupervisorType(getSupervisorType()));
             return activator.activateService(dependencies);

@@ -18,6 +18,7 @@ import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
+import javax.annotation.Nonnull;
 import javax.management.JMException;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -45,6 +46,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
 
         @Override
+        @Nonnull
         protected DefaultSnampManager activateService(final Map<String, Object> identity) {
             return new DefaultSnampManager();
         }

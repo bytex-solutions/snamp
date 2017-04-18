@@ -16,6 +16,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.http.HttpService;
 
+import javax.annotation.Nonnull;
 import javax.servlet.Servlet;
 import java.io.IOException;
 import java.util.Map;
@@ -32,6 +33,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
+        @Nonnull
         protected WebConsoleEngineImpl activateService(final Map<String, Object> identity) throws InvalidSyntaxException {
             final WebConsoleEngineImpl registry = new WebConsoleEngineImpl();
             identity.put("alias", WebConsoleEngineImpl.CONTEXT);
@@ -51,6 +53,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
+        @Nonnull
         protected NotificationService activateService(final Map<String, Object> identity) throws Exception {
             identity.put(WebConsoleService.NAME, NotificationService.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, NotificationService.URL_CONTEXT);
@@ -64,6 +67,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
+        @Nonnull
         protected ResourceGroupWatcherService activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, ResourceGroupWatcherService.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, ResourceGroupWatcherService.URL_CONTEXT);
@@ -82,6 +86,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
+        @Nonnull
         protected E2EDataSource activateService(final Map<String, Object> identity) throws IOException {
             identity.put(WebConsoleService.NAME, E2EDataSource.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, E2EDataSource.URL_CONTEXT);
@@ -100,6 +105,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
+        @Nonnull
         protected ChartDataSource activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, ChartDataSource.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, ChartDataSource.URL_CONTEXT);
@@ -118,6 +124,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
+        @Nonnull
         protected ManagedResourceInformationService activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, ManagedResourceInformationService.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, ManagedResourceInformationService.URL_CONTEXT);
@@ -136,6 +143,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
+        @Nonnull
         protected VersionResource activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, VersionResource.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, VersionResource.URL_CONTEXT);
@@ -149,6 +157,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Override
+        @Nonnull
         protected LogNotifier activateService(final Map<String, Object> identity) {
             identity.put(WebConsoleService.NAME, LogNotifier.NAME);
             identity.put(WebConsoleService.URL_CONTEXT, LogNotifier.URL_CONTEXT);
@@ -175,7 +184,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     @Override
-    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) {
         bundleLevelDependencies.add(HttpService.class);
     }
 }

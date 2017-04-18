@@ -1,5 +1,6 @@
 package com.bytex.snamp.jmx;
 
+import javax.annotation.Nonnull;
 import javax.management.JMException;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
@@ -54,6 +55,7 @@ public abstract class OpenMBeanServiceProvider<T extends OpenMBean & FrameworkMB
      * @throws javax.management.JMException Unable to instantiate MBean.
      */
     @Override
+    @Nonnull
     protected T activateService(final Map<String, Object> identity) throws JMException {
         final ObjectName objectName = new ObjectName(this.objectName);
         createIdentity(identity, objectName);

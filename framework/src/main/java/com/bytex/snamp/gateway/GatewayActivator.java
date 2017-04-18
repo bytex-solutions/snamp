@@ -181,6 +181,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         }
 
         @Override
+        @Nonnull
         protected T activateService(final Map<String, Object> identity) throws Exception {
             identity.putAll(new GatewayFilterBuilder().setGatewayType(getGatewayType()));
             return activator.activateService(dependencies);
