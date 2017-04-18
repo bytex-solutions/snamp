@@ -15,7 +15,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -121,8 +120,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         private WeakServiceListener dependencyTracker;   //weak reference to avoid leak of service listener inside of OSGi container
         private BundleContext activationContext;
 
-        private ProvidedService(final Supplier<Class<? super S>[]> contracts, final RequiredService<?>... dependencies) {
-            serviceContracts = contracts.get();
+        private ProvidedService(@Nonnull final Class<? super S>[] contracts, final RequiredService<?>... dependencies) {
+            serviceContracts = contracts;
             this.dependencies = new DependencyManager(dependencies);
             registration = null;
             properties = EMPTY_ACTIVATION_PROPERTY_READER;
@@ -134,13 +133,18 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @param dependencies A collection of service dependencies.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        protected ProvidedService(final Class<S> contract, final RequiredService<?>... dependencies) {
-            this(() -> new Class[]{contract}, dependencies);
+        protected ProvidedService(@Nonnull final Class<S> contract, final RequiredService<?>... dependencies) {
+            this(toArray(contract), dependencies);
         }
 
         @SafeVarargs
         protected ProvidedService(final Class<S> mainContract, final RequiredService<?>[] dependencies, final Class<? super S>... subContracts){
-            this(() -> ObjectArrays.concat(mainContract, subContracts), dependencies);
+            this(ObjectArrays.concat(mainContract, subContracts), dependencies);
+        }
+
+        @SafeVarargs
+        private static <T> T[] toArray(final T... items){
+            return items;
         }
 
         /**
