@@ -2,7 +2,6 @@ import { Entity, KeyValue } from './model.entity';
 import { ApiClient, REST } from '../../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { Binding } from './model.binding';
 import { ParamDescriptor } from './model.paramDescriptor';
 
 export abstract class TypedEntity extends Entity {
