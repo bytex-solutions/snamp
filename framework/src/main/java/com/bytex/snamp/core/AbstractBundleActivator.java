@@ -8,6 +8,7 @@ import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -294,12 +295,13 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
     }
 
+    @NotThreadSafe
     static final class DependencyListeningFilterBuilder {
         private int appendCalledTimes = 0;
         private final StringBuilder filter = new StringBuilder(64);
 
-        void append(final RequiredService<?> dependency){
-            filter.append(String.format("(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName()));
+        void append(final RequiredService<?> dependency) {
+            filter.append('(').append(Constants.OBJECTCLASS).append('=').append(dependency.dependencyContract.getName()).append(')');
             appendCalledTimes += 1;
         }
 
@@ -313,11 +315,13 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
         @Override
         public String toString() {
-            switch (appendCalledTimes){
-                case 0: return "";
-                case 1: return filter.toString();
+            switch (appendCalledTimes) {
+                case 0:
+                    return "";
+                case 1:
+                    return filter.toString();
                 default:
-                    return String.format("(|%s)", filter);
+                    return "(|" + filter + ')';
             }
         }
     }
