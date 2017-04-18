@@ -24,7 +24,7 @@ final class NotificationRateAttribute extends MetricAttribute<RateRecorder> impl
     NotificationRateAttribute(final String name,
                               final AttributeDescriptor descriptor) {
         super(name, TYPE, DESCRIPTION, descriptor, RateRecorder::new);
-        notificationType = descriptor.getName(name);
+        notificationType = descriptor.getAlternativeName().orElse(name);
     }
 
     @Override

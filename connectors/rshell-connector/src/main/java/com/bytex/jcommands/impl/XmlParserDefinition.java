@@ -979,7 +979,7 @@ public class XmlParserDefinition {
         }
     }
 
-    public final <E extends Exception> void exportTableOrDictionaryType(final EntryReader<String, XmlParsingResultType, E> reader) throws E {
+    public final <E extends Exception> void exportTableOrDictionaryType(final EntryReader<? super String, ? super XmlParsingResultType, E> reader) throws E {
         for (final Object templateFragment : getParsingTemplate())
             if (templateFragment instanceof TableColumnParsingRule) {
                 final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;

@@ -145,30 +145,9 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Featu
     public final boolean hasField(final String fieldName){
         return DescriptorUtils.hasField(this, fieldName);
     }
-
-    @Override
-    public final String getAlternativeName(){
-        return getName((String) null);
-    }
-
-    public final String getName(final String defName){
-        return DescriptorUtils.getField(this, EventConfiguration.NAME_KEY, Objects::toString).orElse(defName);
-    }
-
+    
     public static String getName(final MBeanNotificationInfo metadata) {
-        return DescriptorUtils.getField(metadata.getDescriptor(),
-                EventConfiguration.NAME_KEY,
-                Objects::toString)
+        return FeatureDescriptor.getName(metadata.getDescriptor())
                 .orElseGet(() -> ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new));
-    }
-
-    /**
-     * Indicating that the notification with this descriptor will be added automatically by connector itself.
-     * This can be happened because connector is in Smart mode.
-     * @return {@literal true}, if the attribute with this notification will be added automatically by connector itself; otherwise, {@literal false}.
-     */
-    @Override
-    public final boolean isAutomaticallyAdded(){
-        return hasField(EventConfiguration.AUTOMATICALLY_ADDED_KEY);
     }
 }

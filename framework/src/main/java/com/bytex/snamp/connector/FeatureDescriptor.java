@@ -1,10 +1,15 @@
 package com.bytex.snamp.connector;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.jmx.CopyOnWriteDescriptor;
+import com.bytex.snamp.jmx.DescriptorUtils;
 
+import javax.annotation.Nonnull;
 import javax.management.Descriptor;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents configuration entity descriptor.
@@ -49,12 +54,22 @@ public interface FeatureDescriptor<E extends FeatureConfiguration> extends CopyO
      * @return Alternative name of the feature.
      * @see FeatureConfiguration#NAME_KEY
      */
-    String getAlternativeName();
+    default Optional<String> getAlternativeName(){
+        return getName(this);
+    }
+
+    static Optional<String> getName(@Nonnull final Descriptor descriptor) {
+        return DescriptorUtils.getField(descriptor, AttributeConfiguration.NAME_KEY, Objects::toString);
+    }
 
     /**
      * Determines whether this descriptor is automatically generated.
      * @return {@literal true}, if this descriptor is automatically generated; otherwise, {@literal false}.
      * @see FeatureConfiguration#AUTOMATICALLY_ADDED_KEY
      */
-    boolean isAutomaticallyAdded();
+    default boolean isAutomaticallyAdded() {
+        return DescriptorUtils.getField(this, FeatureConfiguration.AUTOMATICALLY_ADDED_KEY, Objects::toString)
+                .map(Boolean::parseBoolean)
+                .orElse(false);
+    }
 }

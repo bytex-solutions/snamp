@@ -52,7 +52,7 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
     }
 
     final GroovyAttribute createAttribute(final String name, final AttributeDescriptor descriptor) throws AttributeNotFoundException {
-        final GroovyAttributeBuilder builder = attributes.get(descriptor.getName(name));
+        final GroovyAttributeBuilder builder = attributes.get(descriptor.getAlternativeName().orElse(name));
         if(builder == null)
             throw JMExceptionUtils.attributeNotFound(name);
         else
@@ -60,7 +60,7 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
     }
 
     final GroovyEvent createEvent(final String name, final NotificationDescriptor descriptor) throws MBeanException{
-        final GroovyEventBuilder builder = events.get(descriptor.getName(name));
+        final GroovyEventBuilder builder = events.get(descriptor.getAlternativeName().orElse(name));
         if(builder == null)
             throw new MBeanException(new IllegalArgumentException(String.format("Event %s is not supported", name)));
         else
@@ -68,7 +68,7 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
     }
 
     final GroovyOperation createOperation(final String name, final OperationDescriptor descriptor) throws OperationsException {
-        final GroovyOperationBuilder builder = operations.get(descriptor.getName(name));
+        final GroovyOperationBuilder builder = operations.get(descriptor.getAlternativeName().orElse(name));
         if(builder == null)
             throw JMExceptionUtils.operationNotFound(name);
         else

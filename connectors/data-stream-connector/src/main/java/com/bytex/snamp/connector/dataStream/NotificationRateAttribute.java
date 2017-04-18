@@ -36,9 +36,9 @@ final class NotificationRateAttribute extends MetricHolderAttribute<RateRecorder
 
     @Override
     protected boolean isNotificationEnabled(final Notification notification) {
-        if(notification instanceof MeasurementNotification<?>)
+        if (notification instanceof MeasurementNotification<?>)
             return representsMeasurement((MeasurementNotification<?>) notification);
-        final String notifType = getDescriptor().getName(getName());
-        return notification.getType().equals(notifType);
+        else
+            return notification.getType().equals(AttributeDescriptor.getName(this));
     }
 }

@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.rshell;
 import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.impl.TypeTokens;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
-import com.bytex.jcommands.impl.XmlParserDefinition;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
@@ -16,7 +15,9 @@ import com.bytex.snamp.connector.operations.AbstractOpenOperationInfo;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.jmx.*;
+import com.bytex.snamp.jmx.DescriptorUtils;
+import com.bytex.snamp.jmx.OpenMBeanParameterInfoSupplier;
+import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
 
 import javax.management.MBeanOperationInfo;
@@ -26,7 +27,6 @@ import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,9 +53,8 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
             commandProfile = profile;
         }
 
-        private static String getDescription(final OperationDescriptor descriptor){
-            final String result = descriptor.getAlternativeName();
-            return result == null || result.isEmpty() ? "RShell Operation" : result;
+        private static String getDescription(final OperationDescriptor descriptor) {
+            return descriptor.getAlternativeName().orElse("RShell Operation");
         }
 
         private static OpenMBeanParameterInfoSupplier<?>[] getSignature(final XmlCommandLineToolProfile profile,
@@ -108,39 +107,18 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
                                    final XmlCommandLineToolProfile profile,
                                    final OperationDescriptor descriptor) throws OpenDataException{
             super(operationName,
-                    getTabularType(operationName, descriptor, profile.getReaderTemplate().getCommandOutputParser()),
+                    OpenTypeHelpers.createTabularType(operationName,
+                            descriptor,
+                            profile.getReaderTemplate().getCommandOutputParser(),
+                            RShellOperationInfo::getDescription),
                     profile,
                     descriptor);
-        }
-
-        private static TabularType getTabularType(final String attributeName,
-                                                  final OperationDescriptor descriptor,
-                                                  final XmlParserDefinition definition) throws OpenDataException{
-            final TabularTypeBuilder builder = new TabularTypeBuilder();
-            builder.addColumn(INDEX_COLUMN, "The index of the row", SimpleType.INTEGER, true);
-            definition.exportTableOrDictionaryType((index, value) -> {
-                builder.addColumn(index, index, value.getOpenType(), false);
-                return true;
-            });
-            builder.setTypeName(String.format("%sTabularType", descriptor.getName(attributeName)), true);
-            builder.setDescription(RShellOperationInfo.getDescription(descriptor), true);
-            return builder.build();
-        }
-
-        private TabularData convert(final List<? extends Map<String, ?>> rows) throws OpenDataException{
-            final TabularDataSupport result = new TabularDataSupport((TabularType)getReturnOpenType());
-            for(int index = 0; index < rows.size(); index++){
-                final Map<String, Object> row = new HashMap<>(rows.get(index));
-                row.put(INDEX_COLUMN, index);
-                result.put(new CompositeDataSupport(result.getTabularType().getRowType(), row));
-            }
-            return result;
         }
 
         @Override
         protected Object invoke(CommandExecutionChannel channel, Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
             final List<? extends Map<String, ?>> rows = toTypeToken(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN);
-            return rows != null ? convert(rows) : null;
+            return rows != null ? OpenTypeHelpers.toTabularData((TabularType) getReturnOpenType(), rows) : null;
         }
     }
 
@@ -152,22 +130,12 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
                                         final XmlCommandLineToolProfile profile,
                                         final OperationDescriptor descriptor) throws OpenDataException {
             super(operationName,
-                    getCompositeType(operationName, descriptor, profile.getReaderTemplate().getCommandOutputParser()),
+                    OpenTypeHelpers.createCompositeType(operationName,
+                            descriptor,
+                            profile.getReaderTemplate().getCommandOutputParser(),
+                            RShellOperationInfo::getDescription),
                     profile,
                     descriptor);
-        }
-
-        private static CompositeType getCompositeType(final String attributeName,
-                                                      final OperationDescriptor descriptor,
-                                                      final XmlParserDefinition definition) throws OpenDataException{
-            final CompositeTypeBuilder builder = new CompositeTypeBuilder();
-            definition.exportTableOrDictionaryType((index, value) -> {
-                builder.addItem(index, index, value.getOpenType());
-                return true;
-            });
-            builder.setTypeName(String.format("%sCompositeType", descriptor.getName(attributeName)));
-            builder.setDescription(RShellOperationInfo.getDescription(descriptor));
-            return builder.build();
         }
 
         private CompositeData convert(final Map<String, ?> value) throws OpenDataException{
@@ -249,38 +217,18 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
                                    final AttributeDescriptor descriptor) throws OpenDataException{
             super(attributeName,
                     profile,
-                    getTabularType(attributeName, descriptor, profile.getReaderTemplate().getCommandOutputParser()),
+                    OpenTypeHelpers.createTabularType(attributeName,
+                            descriptor,
+                            profile.getReaderTemplate().getCommandOutputParser(),
+                            RShellAttributeInfo::getDescription),
                     descriptor);
         }
 
-        private static TabularType getTabularType(final String attributeName,
-                                                    final AttributeDescriptor descriptor,
-                                                      final XmlParserDefinition definition) throws OpenDataException{
-            final TabularTypeBuilder builder = new TabularTypeBuilder();
-            builder.addColumn(INDEX_COLUMN, "The index of the row", SimpleType.INTEGER, true);
-            definition.exportTableOrDictionaryType((index, value) -> {
-                builder.addColumn(index, index, value.getOpenType(), false);
-                return true;
-            });
-            builder.setTypeName(String.format("%sTabularType", descriptor.getName(attributeName)), true);
-            builder.setDescription(RShellAttributeInfo.getDescription(descriptor), true);
-            return builder.build();
-        }
-
-        private TabularData convert(final List<? extends Map<String, ?>> rows) throws OpenDataException{
-            final TabularDataSupport result = new TabularDataSupport((TabularType)getOpenType());
-            for(int index = 0; index < rows.size(); index++){
-                final Map<String, Object> row = new HashMap<>(rows.get(index));
-                row.put(INDEX_COLUMN, index);
-                result.put(new CompositeDataSupport(result.getTabularType().getRowType(), row));
-            }
-            return result;
-        }
 
         @Override
         protected Object getValue(final CommandExecutionChannel channel, final Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
             final List<? extends Map<String, ?>> rows = toTypeToken(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN);
-            return rows != null ? convert(rows) : null;
+            return rows != null ? OpenTypeHelpers.toTabularData((TabularType) getOpenType(), rows) : null;
         }
 
         @Override
@@ -300,21 +248,11 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
                                         final AttributeDescriptor descriptor) throws OpenDataException {
             super(attributeName,
                     profile,
-                    getCompositeType(attributeName, descriptor, profile.getReaderTemplate().getCommandOutputParser()),
+                    OpenTypeHelpers.createCompositeType(attributeName,
+                            descriptor,
+                            profile.getReaderTemplate().getCommandOutputParser(),
+                            RShellAttributeInfo::getDescription),
                     descriptor);
-        }
-
-        private static CompositeType getCompositeType(final String attributeName,
-                                                      final AttributeDescriptor descriptor,
-                                                    final XmlParserDefinition definition) throws OpenDataException{
-            final CompositeTypeBuilder builder = new CompositeTypeBuilder();
-            definition.exportTableOrDictionaryType((index, value) -> {
-                builder.addItem(index, index, value.getOpenType());
-                return true;
-            });
-            builder.setTypeName(String.format("%sCompositeType", descriptor.getName(attributeName)));
-            builder.setDescription(RShellAttributeInfo.getDescription(descriptor));
-            return builder.build();
         }
 
         private CompositeData convert(final Map<String, ?> value) throws OpenDataException{
@@ -351,7 +289,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
         @Override
         protected RShellAttributeInfo connectAttribute(final String attributeName,
                                                        final AttributeDescriptor descriptor) throws Exception {
-            final String commandProfileFilePath = descriptor.getName(attributeName);
+            final String commandProfileFilePath = descriptor.getAlternativeName().orElse(attributeName);
             final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
             if (profile != null) {
                 profile.setScriptManager(scriptEngineManager);
@@ -406,8 +344,8 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
             }
 
             @Override
-            protected RShellOperationInfo connectOperation(String operationName, OperationDescriptor descriptor) throws Exception {
-                final String commandProfileFilePath = descriptor.getName(operationName);
+            protected RShellOperationInfo connectOperation(final String operationName, final OperationDescriptor descriptor) throws Exception {
+                final String commandProfileFilePath = descriptor.getAlternativeName().orElse(operationName);
                 final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
                 if (profile != null) {
                     profile.setScriptManager(scriptEngineManager);

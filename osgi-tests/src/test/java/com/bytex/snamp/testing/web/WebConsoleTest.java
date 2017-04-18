@@ -20,6 +20,9 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.json.JsonUtils;
+import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
+import com.bytex.snamp.supervision.discovery.ResourceDiscoveryService;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.PropagateSystemProperties;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -530,13 +533,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     }
 
-    /**
-     * Dummy test.
-     *
-     * @throws InterruptedException the interrupted exception
-     */
     @Test
-    public void dummyTest() throws InterruptedException, URISyntaxException, IOException {
+    public void dummyTest() throws InterruptedException, URISyntaxException, IOException, ResourceDiscoveryException, TimeoutException {
         Assume.assumeTrue("Dummy test for webconsole is disabled. Please check the profile if needed",
                 Boolean.getBoolean("com.bytex.snamp.testing.webconsole.dummy.test"));
         final Random rnd = new Random(248284792L);
@@ -544,13 +542,28 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         reporter.setAsynchronous(false);
         final MetricRegistry registry = new MetricRegistry(reporter);
         while (!Thread.interrupted()) {
+            //1. generate random values for attributes
             beanMap.values().forEach(bean -> {
                 bean.setInt32((int) Math.round(Math.abs(rnd.nextGaussian())) * 100);
                 bean.setBigInt(BigInteger.valueOf(1000 * rnd.nextInt(1000)));
                 bean.setFloat(rnd.nextFloat() * 100F);
                 // append new int for third attribute changer pls
             });
+            //2. generate spans for correct topology
             TestTopology.ONE_TO_MANY.sendTestSpans(registry, rnd::nextInt);
+            //3. generate resources through resource discovery
+            try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
+                    .orElseThrow(AssertionError::new)) {
+                final ResourceDiscoveryService discoveryService =
+                        supervisor.queryObject(ResourceDiscoveryService.class).orElseThrow(AssertionError::new);
+                final String NEW_RESOURCE_NAME = "newResource";
+                discoveryService.registerResource(NEW_RESOURCE_NAME,
+                        AbstractJmxConnectorTest.getConnectionString(),
+                        ImmutableMap.of());
+                AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
+                assertTrue(discoveryService.removeResource(NEW_RESOURCE_NAME));
+                AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
+            }
         }
         registry.close();
     }
@@ -638,7 +651,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         client = null;
     }
 
-    private void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+    private static void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
         GatewayConfiguration adapter = gateways.getOrAdd(ADAPTER_INSTANCE_NAME);
         adapter.setType(HTTP_ACCEPTOR_TYPE);
         adapter.put(TEST_PARAMETER, "parameter");
@@ -664,10 +677,13 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         fillSupervisors(config.getSupervisors());
     }
 
-    private void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups) {
+    private static void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups) {
         ManagedResourceGroupConfiguration group = groups.getOrAdd(GROUP_NAME);
         group.setType(JMX_CONNECTOR_TYPE);
         fillJmxAttributes(group.getAttributes());
+        fillJmxEvents(group.getEvents());
+        group.put("objectName", FIRST_BEAN_NAME);
+        group.putAll(AbstractJmxConnectorTest.DEFAULT_PARAMS);
 
         group = groups.getOrAdd(GROUP2_NAME);
         group.setType(HTTP_ACCEPTOR_TYPE);
@@ -675,7 +691,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         fillSpanEvents(group.getEvents());
     }
 
-    private void fillSupervisors(final EntityMap<? extends SupervisorConfiguration> watchers){
+    private static void fillSupervisors(final EntityMap<? extends SupervisorConfiguration> watchers){
         final String groovyTrigger;
         try {
             groovyTrigger = IOUtils.toString(DefaultSupervisorTest.class.getResourceAsStream("GroovyTrigger.groovy"));
@@ -698,31 +714,21 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         });
     }
 
-    private void fillManagedResources(final EntityMap<? extends ManagedResourceConfiguration> resources){
+    private static void fillManagedResources(final EntityMap<? extends ManagedResourceConfiguration> resources){
         ManagedResourceConfiguration resource = resources.getOrAdd(FIRST_RESOURCE_NAME);
-        resource.put("objectName", FIRST_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.putAll(AbstractJmxConnectorTest.DEFAULT_PARAMS);
-        fillJmxAttributes(resource.getAttributes());
-        fillJmxEvents(resource.getEvents());
 
         resource = resources.getOrAdd(SECOND_RESOURCE_NAME);
         resource.put("objectName", SECOND_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.putAll(AbstractJmxConnectorTest.DEFAULT_PARAMS);
-        fillJmxAttributes(resource.getAttributes());
-        fillJmxEvents(resource.getEvents());
-
+        
         resource = resources.getOrAdd(THIRD_RESOURCE_NAME);
         resource.put("objectName", THIRD_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.putAll(AbstractJmxConnectorTest.DEFAULT_PARAMS);
-        fillJmxAttributes(resource.getAttributes());
-        fillJmxEvents(resource.getEvents());
-
+        
         resource = resources.getOrAdd(FOURTH_RESOURCE_NAME);
         resource.setGroupName(GROUP1_NAME);
         resource.setType(HTTP_ACCEPTOR_TYPE);

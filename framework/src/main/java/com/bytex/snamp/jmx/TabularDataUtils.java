@@ -28,14 +28,14 @@ public final class TabularDataUtils {
         private static final long serialVersionUID = 2584942280684733271L;
         private final TabularType type;
 
-        private RowList(final int size, final TabularType type){
+        RowList(final int size, final TabularType type){
             super(size + 5);
             this.type = Objects.requireNonNull(type);
         }
     }
 
     private TabularDataUtils(){
-
+        throw new InstantiationError();
     }
 
     public static <R extends CompositeDataBean> RowList<R> convert(final Class<R> rowType,

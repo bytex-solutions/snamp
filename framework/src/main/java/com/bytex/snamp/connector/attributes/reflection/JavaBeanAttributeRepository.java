@@ -60,10 +60,10 @@ public abstract class JavaBeanAttributeRepository extends AbstractAttributeRepos
     protected JavaBeanAttributeInfo connectAttribute(final String attributeName,
                                                      final AttributeDescriptor descriptor) throws AttributeNotFoundException, ReflectionException {
         for (final PropertyDescriptor property : getProperties())
-            if (Objects.equals(property.getName(), descriptor.getName(attributeName)))
+            if (Objects.equals(property.getName(), descriptor.getAlternativeName().orElse(attributeName)))
                 return createAttribute(attributeName, property, descriptor);
 
-        throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
+        throw JMExceptionUtils.attributeNotFound(descriptor.getAlternativeName().orElse(attributeName));
     }
 
     /**

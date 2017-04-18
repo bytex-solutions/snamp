@@ -150,9 +150,8 @@ public abstract class SyntheticAttribute extends AbstractOpenAttributeInfo {
         return new MBeanException(new UnsupportedOperationException(String.format("Attribute '%s' cannot be modified", attribute)));
     }
 
-    protected final boolean representsMeasurement(final Measurement measurement){
-        final String measurementName = getDescriptor().getName(getName());
-        return measurement.getName().equals(measurementName);
+    protected final boolean representsMeasurement(final Measurement measurement) {
+        return AttributeDescriptor.getName(this).equals(measurement.getName());
     }
 
     protected final boolean representsMeasurement(final MeasurementNotification<?> measurement){

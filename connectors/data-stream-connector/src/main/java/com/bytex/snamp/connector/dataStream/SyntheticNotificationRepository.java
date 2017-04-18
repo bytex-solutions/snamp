@@ -78,7 +78,7 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
     @Override
     protected SyntheticNotificationInfo connectNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
         final SyntheticNotificationInfo result;
-        switch (metadata.getName(notifType)) {
+        switch (metadata.getAlternativeName().orElse(notifType)) {
             case AttributeChangeNotification.ATTRIBUTE_CHANGE:
                 result = new AttributeChangeNotificationInfo(metadata);
                 break;

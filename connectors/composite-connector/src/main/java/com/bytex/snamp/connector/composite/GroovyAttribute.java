@@ -26,7 +26,7 @@ final class GroovyAttribute extends ProcessingAttribute {
     }
 
     GroovyAttribute(final String name, final ScriptLoader loader, final AttributeDescriptor descriptor) throws ScriptException, ResourceException, AbsentCompositeConfigurationParameterException, IOException {
-        this(name, loader.createScript(descriptor.getName(name), null), descriptor);
+        this(name, loader.createScript(descriptor.getAlternativeName().orElse(name), null), descriptor);
     }
 
     @Override

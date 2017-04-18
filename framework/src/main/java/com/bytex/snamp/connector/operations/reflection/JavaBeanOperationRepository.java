@@ -36,10 +36,10 @@ public abstract class JavaBeanOperationRepository extends AbstractOperationRepos
     protected JavaBeanOperationInfo connectOperation(final String operationName,
                                                      final OperationDescriptor descriptor) throws ReflectionException, MBeanException {
         for (final MethodDescriptor method : getMethods())
-            if (Objects.equals(method.getName(), descriptor.getName(operationName)) && JavaBeanOperationInfo.isValidDescriptor(method)) {
+            if (Objects.equals(method.getName(), descriptor.getAlternativeName().orElse(operationName)) && JavaBeanOperationInfo.isValidDescriptor(method)) {
                 return new JavaBeanOperationInfo(operationName, method, descriptor);
             }
-        throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", descriptor.getName(operationName))));
+        throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", descriptor.getAlternativeName().orElse(operationName))));
     }
 
     private ClassLoader getClassLoader() {

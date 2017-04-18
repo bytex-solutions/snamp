@@ -190,26 +190,6 @@ public class AttributeDescriptor extends ImmutableDescriptor implements FeatureD
     }
 
     /**
-     * Indicating that the attribute with this descriptor will be added automatically by connector itself.
-     * This can be happened because connector is in Smart mode.
-     * @return {@literal true}, if the attribute with this descriptor will be added automatically by connector itself; otherwise, {@literal false}.
-     */
-    @Override
-    public final boolean isAutomaticallyAdded(){
-        return hasField(AttributeConfiguration.AUTOMATICALLY_ADDED_KEY);
-    }
-
-    public final String getName(final String defName){
-        return DescriptorUtils.getField(this, AttributeConfiguration.NAME_KEY, Objects::toString).orElse(defName);
-    }
-
-
-    @Override
-    public final String getAlternativeName() {
-        return getName((String) null);
-    }
-
-    /**
      * Gets unit of measurement for this attribute.
      * @return UOM.
      */
@@ -218,9 +198,6 @@ public class AttributeDescriptor extends ImmutableDescriptor implements FeatureD
     }
 
     public static String getName(final MBeanAttributeInfo metadata) {
-        return DescriptorUtils.getField(metadata.getDescriptor(),
-                AttributeConfiguration.NAME_KEY,
-                Objects::toString)
-                .orElseGet(metadata::getName);
+        return FeatureDescriptor.getName(metadata.getDescriptor()).orElseGet(metadata::getName);
     }
 }

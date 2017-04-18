@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 
 /**
@@ -137,19 +138,19 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                                 final NotificationDescriptor metadata) throws IllegalArgumentException {
             //find the suitable notification type
             final ManagementNotificationType<?> type = notifTypes.stream()
-                    .filter(type1 -> Objects.equals(type1.getCategory(), metadata.getName(category)))
+                    .filter(type1 -> Objects.equals(type1.getCategory(), metadata.getAlternativeName().orElse(category)))
                     .findFirst()
-                    .orElseGet(() -> null);
+                    .orElseGet(null);
             if (type != null) {
                 String description = type.toString(Locale.getDefault());
-                if (description == null || description.isEmpty()) {
+                if (isNullOrEmpty(description)) {
                     description = metadata.getDescription();
-                    if (description == null || description.isEmpty())
+                    if (isNullOrEmpty(description))
                         description = type.getCategory();
                 }
                 return new AbstractNotificationInfo(category, description, metadata.setUserDataType(type.getUserDataType()));
             } else
-                throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getName(category)));
+                throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getAlternativeName().orElse(category)));
         }
 
         private boolean fire(final ManagementNotificationType<?> category, final String message, final Object userData) {

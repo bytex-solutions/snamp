@@ -35,7 +35,8 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
 
         @Override
         protected ModbusAttributeInfo<?> connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws AttributeNotFoundException, OpenDataException {
-            switch (descriptor.getName(attributeName)) {
+
+            switch (descriptor.getAlternativeName().orElse(attributeName)) {
                 case CoilAttribute.NAME:
                     if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
                         return new CoilSetAttribute(attributeName, descriptor);
@@ -59,7 +60,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
                 case FileAttribute.NAME:
                     return new FileAttribute(attributeName, descriptor);
                 default:
-                    throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
+                    throw JMExceptionUtils.attributeNotFound(descriptor.getAlternativeName().orElse(attributeName));
             }
         }
 

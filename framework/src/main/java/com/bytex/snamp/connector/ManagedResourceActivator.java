@@ -203,10 +203,12 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                     //previous version of connector will be closed automatically using cleanupService
                     connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
                 }
+                updateFeatures(connector, newConfig.getValue());
+                getLogger().info(String.format("Connector %s for resource %s is updated", getConnectorType(), newConfig.getKey()));
             }
-            //but we should always update resource features
-            updateFeatures(connector, newConfig.getValue());
-            getLogger().info(String.format("Connector %s for resource %s is updated", getConnectorType(), newConfig.getKey()));
+            else{
+                getLogger().info(String.format("Connector %s for resource %s was not changed", getConnectorType(), newConfig.getKey()));
+            }
             return connector;
         }
 

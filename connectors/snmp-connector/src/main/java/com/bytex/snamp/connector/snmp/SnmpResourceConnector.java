@@ -4,6 +4,7 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
+import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
@@ -61,10 +62,12 @@ import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
 final class SnmpResourceConnector extends AbstractManagedResourceConnector {
     private static final class SnmpNotificationInfo extends AbstractNotificationInfo {
         private static final long serialVersionUID = -4792879013459588079L;
+        private final LazyStrongReference<OID> notificationID;
 
         private SnmpNotificationInfo(final String listID,
                                      final NotificationDescriptor descriptor){
             super(listID, getDescription(descriptor), descriptor);
+            notificationID = new LazyStrongReference<>();
         }
 
         private static String getDescription(final NotificationDescriptor descriptor){
@@ -72,10 +75,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             return result.isEmpty() ? "SNMP Trap" : result;
         }
 
-        private OID getNotificationID(){
-            return new OID(getDescriptor().getName(ArrayUtils.getFirst(getNotifTypes()).orElseThrow(AssertionError::new)));
+        OID getNotificationID(){
+            return notificationID.lazyGet(this, metadata -> new OID(NotificationDescriptor.getName(metadata)));
         }
-
     }
 
     private static final class SnmpNotificationRepository extends AccurateNotificationRepository<SnmpNotificationInfo> implements CommandResponder{
@@ -180,7 +182,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                 message = String.join(System.lineSeparator(), (CharSequence[]) bindings.stream().map(VariableBinding::toString).toArray(String[]::new));
                 bindings.clear();
             }
-            fire(notificationInfo.getDescriptor().getName(ArrayUtils.getFirst(notificationInfo.getNotifTypes()).orElseThrow(AssertionError::new)),
+            fire(NotificationDescriptor.getName(notificationInfo),
                     message,
                     bindings);
         }
@@ -235,6 +237,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
     private static abstract class SnmpAttributeInfo<V extends Variable> extends AbstractOpenAttributeInfo implements SnmpObjectConverter<V> {
         private static final long serialVersionUID = 4948510436343027716L;
+        private final LazyStrongReference<OID> attributeID;
 
         private SnmpAttributeInfo(final String attributeID,
                                   final OpenType<?> openType,
@@ -254,11 +257,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                     getDescription(descriptor),
                     specifier,
                     descriptor);
+            this.attributeID = new LazyStrongReference<>();
         }
 
         private static String getDescription(final AttributeDescriptor descriptor){
-            final String result = descriptor.getDescription();
-            return result == null || result.isEmpty() ? "SNMP Object" : result;
+            return descriptor.getAlternativeName().orElse("SNMP Object");
         }
 
         final InvalidAttributeValueException invalidAttribute(final Object value,
@@ -266,8 +269,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             return new InvalidAttributeValueException(String.format("Unable convert %s to SNMP %s", value, snmpType));
         }
 
-        private OID getAttributeID(){
-            return new OID(getDescriptor().getName(getName()));
+        OID getAttributeID() {
+            return attributeID.lazyGet(this, metadata -> new OID(AttributeDescriptor.getName(metadata)));
         }
     }
 
@@ -529,8 +532,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         @Override
         protected SnmpAttributeInfo connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
             final Duration responseTimeout = SnmpConnectorDescriptionProvider.getResponseTimeout(descriptor);
-            final Variable value = client.read(client -> client.get(new OID(descriptor.getName(attributeName)), responseTimeout));
-            if(value == null) throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
+            final OID attributeID = new OID(descriptor.getAlternativeName().orElse(attributeName));
+            final Variable value = client.read(client -> client.get(attributeID, responseTimeout));
+            if(value == null) throw JMExceptionUtils.attributeNotFound(attributeID.toDottedString());
             else switch (value.getSyntax()){
                 case SMIConstants.SYNTAX_INTEGER32:
                     return new Integer32AttributeInfo(attributeName, descriptor);

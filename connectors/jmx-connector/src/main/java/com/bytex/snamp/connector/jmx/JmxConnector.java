@@ -80,7 +80,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
 
         @Override
         public final String getAlias(){
-            return getDescriptor().getName(getName());
+            return OperationDescriptor.getName(this);
         }
 
         @Override
@@ -185,13 +185,13 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
                 return connectOperation(connectionManager, operationName, descriptor, connectionManager.resolveName(owner), false);
             final MBeanOperationInfo metadata = connectionManager.handleConnection(connection -> {
                 for(final MBeanOperationInfo candidate: connection.getMBeanInfo(owner).getOperations())
-                    if(Objects.equals(descriptor.getName(operationName), candidate.getName()) && checkSignature(descriptor, candidate.getSignature()))
+                    if(Objects.equals(descriptor.getAlternativeName().orElse(operationName), candidate.getName()) && checkSignature(descriptor, candidate.getSignature()))
                         return candidate;
                 return null;
             });
             if(metadata != null)
                 return new JmxProxyOperation(operationName, metadata, owner, descriptor);
-            else throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist in '%s' object", descriptor.getName(operationName), owner)));
+            else throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist in '%s' object", descriptor.getAlternativeName().orElse(operationName), owner)));
 
         }
 
@@ -211,7 +211,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
         @Override
         protected JmxOperationInfo connectOperation(final String userDefinedName,
                                                     final OperationDescriptor descriptor) throws Exception {
-            switch (descriptor.getName(userDefinedName)){
+            switch (descriptor.getAlternativeName().orElse(userDefinedName)){
                 case JmxSimulateConnectionAbort.NAME:
                     return new JmxSimulateConnectionAbort(userDefinedName, descriptor);
                 default:
@@ -279,7 +279,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
 
         @Override
         public String getAlias() {
-            return getDescriptor().getName(getName());
+            return NotificationDescriptor.getName(this);
         }
 
         @Override
@@ -308,7 +308,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
             //extracts JMX attribute metadata
             final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(connection -> {
                 for (final MBeanAttributeInfo attr : connection.getMBeanInfo(namespace).getAttributes())
-                    if (Objects.equals(attr.getName(), metadata.getName(attributeName))) return attr;
+                    if (Objects.equals(attr.getName(), metadata.getAlternativeName().orElse(attributeName))) return attr;
                 return null;
             });
             if(targetAttr == null) throw new AttributeNotFoundException(attributeName);
@@ -483,7 +483,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
             final JmxNotificationInfo eventData = connectionManager.handleConnection(connection -> {
                 for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(owner).getNotifications())
                     for (final String notifType : notificationInfo.getNotifTypes())
-                        if (Objects.equals(notifType, metadata.getName(category)))
+                        if (Objects.equals(notifType, metadata.getAlternativeName().orElse(category)))
                             return new JmxNotificationInfo(category,
                                     notificationInfo,
                                     owner,
@@ -644,7 +644,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
 
         @Override
         public String getAlias(){
-            return getDescriptor().getName(getName());
+            return AttributeDescriptor.getName(this);
         }
 
         private static Object getValue(final JmxConnectionManager connectionManager,

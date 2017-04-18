@@ -123,33 +123,9 @@ public class OperationDescriptor extends ImmutableDescriptor implements FeatureD
         return getInvocationTimeout(this);
     }
 
-    /**
-     * Indicating that the operation with this descriptor will be added automatically by connector itself.
-     * This can be happened because connector is in Smart mode.
-     * @return {@literal true}, if the operation with this descriptor will be added automatically by connector itself; otherwise, {@literal false}.
-     */
-    @Override
-    public final boolean isAutomaticallyAdded(){
-        return hasField(OperationConfiguration.AUTOMATICALLY_ADDED_KEY);
-    }
-
-    /**
-     * Gets alternative name of the feature.
-     *
-     * @return Alternative name of the feature.
-     * @see OperationConfiguration#NAME_KEY
-     */
-    @Override
-    public final String getAlternativeName() {
-        return getName((String) null);
-    }
-
-    public final String getName(final String defName){
-        return DescriptorUtils.getField(this, OperationConfiguration.NAME_KEY, Objects::toString).orElse(defName);
-    }
 
     public static String getName(final MBeanOperationInfo metadata){
-        return DescriptorUtils.getField(metadata.getDescriptor(), OperationConfiguration.NAME_KEY, Objects::toString).orElseGet(metadata::getName);
+        return FeatureDescriptor.getName(metadata.getDescriptor()).orElseGet(metadata::getName);
     }
 
     public static WellKnownType getReturnType(final MBeanOperationInfo operationInfo) {
