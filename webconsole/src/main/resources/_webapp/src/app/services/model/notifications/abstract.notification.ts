@@ -1,5 +1,10 @@
 export abstract class AbstractNotification {
 
+    public static HEALTH_STATUS:string = "healthStatusChanged";
+    public static LOG:string = "log";
+    public static RESOURCE:string = "resourceNotification";
+    public static COMPOSITION:string = "groupCompositionChanged";
+
     private _level:string;
     private _timestamp:Date;
     private _message:string;

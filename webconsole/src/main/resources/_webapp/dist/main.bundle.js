@@ -88305,6 +88305,10 @@ var AbstractNotification = (function () {
             return v.toString(16);
         });
     };
+    AbstractNotification.HEALTH_STATUS = "healthStatusChanged";
+    AbstractNotification.LOG = "log";
+    AbstractNotification.RESOURCE = "resourceNotification";
+    AbstractNotification.COMPOSITION = "groupCompositionChanged";
     return AbstractNotification;
 }());
 exports.AbstractNotification = AbstractNotification;
@@ -88317,25 +88321,29 @@ exports.AbstractNotification = AbstractNotification;
 
 "use strict";
 "use strict";
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
 var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
 var health_status_notification_1 = __webpack_require__("./src/app/services/model/notifications/health.status.notification.ts");
 var resource_notification_1 = __webpack_require__("./src/app/services/model/notifications/resource.notification.ts");
 var factory_1 = __webpack_require__("./src/app/services/model/healthstatus/factory.ts");
+var group_composition_changed_notification_1 = __webpack_require__("./src/app/services/model/notifications/group.composition.changed.notification.ts");
 var NotificationFactory = (function () {
     function NotificationFactory() {
     }
     NotificationFactory.makeFromJson = function (_json) {
         var _notification;
         switch (_json['@messageType']) {
-            case "log":
+            case abstract_notification_1.AbstractNotification.LOG:
                 _notification = new log_notification_1.LogNotification();
                 break;
-            case "healthStatusChanged":
+            case abstract_notification_1.AbstractNotification.HEALTH_STATUS:
                 _notification = new health_status_notification_1.HealthStatusNotification();
                 break;
-            case "resourceNotification":
+            case abstract_notification_1.AbstractNotification.RESOURCE:
                 _notification = new resource_notification_1.ResourceNotification();
                 break;
+            case abstract_notification_1.AbstractNotification.COMPOSITION:
+                _notification = new group_composition_changed_notification_1.GroupCompositionChangedMessage();
             default:
                 throw new Error("Could not recognize notification of type: " + _json['@messageType']);
         }
@@ -88346,17 +88354,19 @@ var NotificationFactory = (function () {
     NotificationFactory.makeFromInnerObject = function (_json) {
         var _notification;
         switch (_json['_type']) {
-            case "log":
+            case abstract_notification_1.AbstractNotification.LOG:
                 _notification = Object.assign(new log_notification_1.LogNotification(), _json);
                 break;
-            case "healthStatusChanged":
+            case abstract_notification_1.AbstractNotification.HEALTH_STATUS:
                 _notification = Object.assign(new health_status_notification_1.HealthStatusNotification(), _json);
                 _notification.prevStatus = factory_1.StatusFactory.healthStatusFromObject(_json['_prevStatus']);
                 _notification.currentStatus = factory_1.StatusFactory.healthStatusFromObject(_json['_currentStatus']);
                 break;
-            case "resourceNotification":
+            case abstract_notification_1.AbstractNotification.RESOURCE:
                 _notification = Object.assign(new resource_notification_1.ResourceNotification(), _json);
                 break;
+            case abstract_notification_1.AbstractNotification.COMPOSITION:
+                _notification = Object.assign(new group_composition_changed_notification_1.GroupCompositionChangedMessage(), _json);
             default:
                 throw new Error("Could not recognize notification of type: " + _json['_type']);
         }
@@ -88375,6 +88385,49 @@ exports.NotificationFactory = NotificationFactory;
 
 /***/ },
 
+/***/ "./src/app/services/model/notifications/group.composition.changed.notification.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
+var GroupCompositionChangedMessage = (function (_super) {
+    __extends(GroupCompositionChangedMessage, _super);
+    function GroupCompositionChangedMessage() {
+        _super.call(this);
+        this.modifier = "unknown";
+        this.resourceName = "n/a";
+        this.groupName = "n/a";
+    }
+    GroupCompositionChangedMessage.prototype.htmlDetails = function () {
+        var _details = "<strong>Group composition has been changed</strong><br/>";
+        _details += "<strong>Timestamp: </strong>" + this.timestamp + "<br/>";
+        _details += "<strong>Modifier: </strong>" + this.modifier + "<br/>";
+        _details += "<strong>Resource name: </strong>" + this.resourceName + "<br/>";
+        _details += "<strong>Group name: </strong>" + this.groupName + "<br/>";
+        return _details;
+    };
+    GroupCompositionChangedMessage.prototype.shortDescription = function () {
+        return "Resource " + this.resourceName + " has been " + this.modifier;
+    };
+    GroupCompositionChangedMessage.prototype.fillFromJson = function (_json) {
+        if (_json["modifier"] != undefined) {
+            this.modifier = _json["modifier"];
+        }
+        if (_json["resourceName"] != undefined) {
+            this.resourceName = _json["resourceName"];
+        }
+        if (_json["groupName"] != undefined) {
+            this.groupName = _json["groupName"];
+        }
+    };
+    return GroupCompositionChangedMessage;
+}(abstract_notification_1.AbstractNotification));
+exports.GroupCompositionChangedMessage = GroupCompositionChangedMessage;
+
+
+/***/ },
+
 /***/ "./src/app/services/model/notifications/health.status.notification.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -88387,14 +88440,14 @@ var HealthStatusNotification = (function (_super) {
     __extends(HealthStatusNotification, _super);
     function HealthStatusNotification() {
         _super.call(this);
-        this._prevStatus = new ok_status_1.OkStatus;
-        this._currentStatus = new ok_status_1.OkStatus;
+        this.prevStatus = new ok_status_1.OkStatus;
+        this.currentStatus = new ok_status_1.OkStatus;
     }
     HealthStatusNotification.prototype.htmlDetails = function () {
         var _details = "The status before: <br/>";
-        _details += this._prevStatus.htmlDetails();
+        _details += this.prevStatus.htmlDetails();
         _details += "Current status: <br/>";
-        _details += this._currentStatus.htmlDetails();
+        _details += this.currentStatus.htmlDetails();
         return _details;
     };
     Object.defineProperty(HealthStatusNotification.prototype, "prevStatus", {
@@ -88418,14 +88471,14 @@ var HealthStatusNotification = (function (_super) {
         configurable: true
     });
     HealthStatusNotification.prototype.shortDescription = function () {
-        return "Previous status: " + this._prevStatus.innerType + " , current status: " + this._currentStatus.innerType;
+        return "Previous status: " + this.prevStatus.innerType + " , current status: " + this.currentStatus.innerType;
     };
     HealthStatusNotification.prototype.fillFromJson = function (_json) {
         if (_json["previousStatus"] != undefined) {
-            this._prevStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["previousStatus"]['@type'], _json["previousStatus"]);
+            this.prevStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["previousStatus"]['@type'], _json["previousStatus"]);
         }
         if (_json["newStatus"] != undefined) {
-            this._currentStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["newStatus"]['@type'], _json["newStatus"]);
+            this.currentStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["newStatus"]['@type'], _json["newStatus"]);
         }
         this.level = "WARN"; // always make it quite important (because no level is being received from backend)
     };

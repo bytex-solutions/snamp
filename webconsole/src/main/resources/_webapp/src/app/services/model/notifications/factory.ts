@@ -3,20 +3,23 @@ import { LogNotification } from "./log.notification";
 import { HealthStatusNotification } from "./health.status.notification";
 import { ResourceNotification } from "./resource.notification";
 import { StatusFactory } from "../healthstatus/factory";
+import { GroupCompositionChangedMessage } from "./group.composition.changed.notification";
 
 export class NotificationFactory {
     public static makeFromJson(_json:any):AbstractNotification {
         let _notification:AbstractNotification;
         switch (_json['@messageType']) {
-            case "log":
+            case AbstractNotification.LOG:
                 _notification = new LogNotification();
                 break;
-            case "healthStatusChanged":
+            case AbstractNotification.HEALTH_STATUS:
                 _notification = new HealthStatusNotification();
                 break;
-            case "resourceNotification":
+            case AbstractNotification.RESOURCE:
                 _notification = new ResourceNotification();
                 break;
+            case AbstractNotification.COMPOSITION:
+                _notification = new GroupCompositionChangedMessage();
             default:
                 throw new Error("Could not recognize notification of type: " + _json['@messageType']);
         }
@@ -28,17 +31,19 @@ export class NotificationFactory {
     public static makeFromInnerObject(_json:any):AbstractNotification {
         let _notification:AbstractNotification;
         switch (_json['_type']) {
-            case "log":
+            case AbstractNotification.LOG:
                 _notification = Object.assign(new LogNotification(), _json);
                 break;
-            case "healthStatusChanged":
+            case AbstractNotification.HEALTH_STATUS:
                 _notification = Object.assign(new HealthStatusNotification(), _json);
                 (<HealthStatusNotification>_notification).prevStatus = StatusFactory.healthStatusFromObject(_json['_prevStatus']);
                 (<HealthStatusNotification>_notification).currentStatus = StatusFactory.healthStatusFromObject(_json['_currentStatus']);
                 break;
-            case "resourceNotification":
+            case AbstractNotification.RESOURCE:
                 _notification = Object.assign(new ResourceNotification(), _json);
                 break;
+            case AbstractNotification.COMPOSITION:
+                _notification = Object.assign(new GroupCompositionChangedMessage(), _json);
             default:
                 throw new Error("Could not recognize notification of type: " + _json['_type']);
         }
