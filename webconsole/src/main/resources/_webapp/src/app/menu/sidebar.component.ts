@@ -46,20 +46,19 @@ export class Sidebar {
 
                 // handle click event for main menu buttons (with icons)
                 $('a.clickableAnchor').click(function() {
-                    $(this).parents('li').siblings().find('ul.child_menu').slideUp(); // close all li except this
-                    $(this).parents('li').find('ul.child_menu').slideToggle();
+                    let _parents = $(this).parents('li');
+                    _parents.siblings().find('ul.child_menu').slideUp(); // close all li except this
+                    _parents.find('ul.child_menu').slideToggle();
                 });
 
                 // handle click event on the child menu nodes
                 $('ul.child_menu li').click(function() {
+                    let _parents = $(this).parents('li');
                     if ($('body').hasClass('nav-sm')) {
-                        $(this).parents('li').addClass('active-sm');
-                        $(this).parents('li').siblings().removeClass('active-sm');
-                        $(this).parents('li').find('ul').slideUp();
-                    } else {
-                        $(this).parents('li').siblings().removeClass('active');
-                        $(this).parents('li').addClass('active');
+                        _parents.find('ul').slideUp();
                     }
+                    _parents.siblings().removeClass('active-sm active');
+                    _parents.addClass('active-sm active');
                 });
             }, 500);
         });
