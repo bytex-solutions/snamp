@@ -21,6 +21,7 @@ import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.json.JsonUtils;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
+import com.bytex.snamp.testing.PropagateSystemProperties;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
@@ -42,6 +43,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
+import org.junit.Assume;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -90,6 +92,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
         SnampFeature.JMX_CONNECTOR,
         SnampFeature.HTTP_ACCEPTOR
 })
+@PropagateSystemProperties("com.bytex.snamp.testing.webconsole.dummy.test")
 public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     private static final ObjectMapper FORMATTER = new ObjectMapper();
 
@@ -534,6 +537,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
      */
     @Test
     public void dummyTest() throws InterruptedException, URISyntaxException, IOException {
+        Assume.assumeTrue("Dummy test for webconsole is disabled. Please check the profile if needed",
+                Boolean.getBoolean("com.bytex.snamp.testing.webconsole.dummy.test"));
         final Random rnd = new Random(248284792L);
         final HttpReporter reporter = new HttpReporter("http://localhost:8181/", ImmutableMap.of());
         reporter.setAsynchronous(false);

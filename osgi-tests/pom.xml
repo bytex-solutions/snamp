@@ -13,6 +13,7 @@
   <properties>
     <exam.version>4.10.0</exam.version>
     <remote.debugging>false</remote.debugging>
+    <infinite.dummy.test>false</infinite.dummy.test>
   </properties>
   <dependencies>
     <dependency>
@@ -402,6 +403,7 @@
             <mavenLocalRepository>${settings.localRepository}</mavenLocalRepository>
             <com.bytex.snamp.testing.project.dir>${project.parent.basedir}</com.bytex.snamp.testing.project.dir>
             <com.bytex.snamp.testing.debug>${remote.debugging}</com.bytex.snamp.testing.debug>
+            <com.bytex.snamp.testing.webconsole.dummy.test>${infinite.dummy.test}</com.bytex.snamp.testing.webconsole.dummy.test>
           </systemPropertyVariables>
         </configuration>
       </plugin>
@@ -413,6 +415,13 @@
       <activation />
       <properties>
         <remote.debugging>true</remote.debugging>
+      </properties>
+    </profile>
+    <profile>
+      <id>Webconsole live test</id>
+      <activation />
+      <properties>
+        <infinite.dummy.test>true</infinite.dummy.test>
       </properties>
     </profile>
   </profiles>
