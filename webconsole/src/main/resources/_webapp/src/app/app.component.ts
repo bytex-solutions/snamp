@@ -1,26 +1,19 @@
-import { Component, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import 'style!css!less!font-awesome-webpack/font-awesome-styles.loader!font-awesome-webpack/font-awesome.config.js';
+
+import { Component, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import { SnampLogService } from './services/app.logService';
 import { Title }  from '@angular/platform-browser';
-
 import { $WebSocket } from 'angular2-websocket/angular2-websocket';
 import { Router } from '@angular/router';
-
-var PNotify = require("pnotify/src/pnotify.js");
-require("pnotify/src/pnotify.mobile.js");
-require("pnotify/src/pnotify.buttons.js");
-require("pnotify/src/pnotify.desktop.js");
-
 import { Overlay } from 'angular2-modal';
-import {
-  Modal,
-  OneButtonPresetBuilder,
-  TwoButtonPresetBuilder,
-  PromptPresetBuilder
-} from 'angular2-modal/plugins/bootstrap/index';
+import { Modal } from 'angular2-modal/plugins/bootstrap';
 import { AbstractNotification } from "./services/model/notifications/abstract.notification";
 import { NotificationFactory } from "./services/model/notifications/factory";
 
+const PNotify = require("pnotify/src/pnotify.js");
+require("pnotify/src/pnotify.mobile.js");
+require("pnotify/src/pnotify.buttons.js");
+require("pnotify/src/pnotify.desktop.js");
 
 @Component({
   selector: 'app',
@@ -90,12 +83,11 @@ export class App {
               }
           },
           (msg)=> {
-              console.log("error", msg);
+              console.log("Error occurred while listening to the socket: ", msg);
           },
           ()=> {
-              console.log("complete");
+              console.log("Socket connection has been completed");
           }
        );
     }
-
 }

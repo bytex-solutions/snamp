@@ -84138,19 +84138,19 @@ module.exports = "<side-bar></side-bar>\r\n<topnav-bar></topnav-bar>\r\n<router-
 
 "use strict";
 "use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 __webpack_require__("./node_modules/style-loader/index.js!./node_modules/css-loader/index.js!./node_modules/less-loader/index.js!./node_modules/font-awesome-webpack/font-awesome-styles.loader.js!./node_modules/font-awesome-webpack/font-awesome.config.js");
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
 var platform_browser_1 = __webpack_require__("./node_modules/@angular/platform-browser/index.js");
 var angular2_websocket_1 = __webpack_require__("./node_modules/angular2-websocket/angular2-websocket.js");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
+var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
+var bootstrap_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
+var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
 var PNotify = __webpack_require__("./node_modules/pnotify/src/pnotify.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.mobile.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.buttons.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.desktop.js");
-var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
-var index_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
-var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
 var App = (function () {
     function App(overlay, title, vcRef, modal, _snampLogService, _router) {
         this.modal = modal;
@@ -84200,9 +84200,9 @@ var App = (function () {
                 _this.notificationCount++;
             }
         }, function (msg) {
-            console.log("error", msg);
+            console.log("Error occurred while listening to the socket: ", msg);
         }, function () {
-            console.log("complete");
+            console.log("Socket connection has been completed");
         });
     };
     App = __decorate([
@@ -84213,7 +84213,7 @@ var App = (function () {
             template: __webpack_require__("./src/app/app.component.html"),
             providers: [platform_browser_1.Title]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof platform_browser_1.Title !== 'undefined' && platform_browser_1.Title) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof index_1.Modal !== 'undefined' && index_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _e) || Object, (typeof (_f = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _f) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof platform_browser_1.Title !== 'undefined' && platform_browser_1.Title) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof bootstrap_1.Modal !== 'undefined' && bootstrap_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _e) || Object, (typeof (_f = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _f) || Object])
     ], App);
     return App;
     var _a, _b, _c, _d, _e, _f;
@@ -87679,7 +87679,7 @@ var ApiClient = (function () {
         headers.append('Content-type', 'application/json');
         return headers;
     };
-    ApiClient.prototype.handleError = function (error) {
+    ApiClient.handleError = function (error) {
         $('#overlay').fadeOut();
         // In a real world app, we might use a remote logging infrastructure
         var errMsg;
@@ -87688,14 +87688,14 @@ var ApiClient = (function () {
             window.location.href = "login.html?tokenExpired=true";
         }
         else {
-            console.log("Error occured: ", error);
+            console.log("Error occurred: ", error);
             return Observable_1.Observable.empty();
         }
     };
     ApiClient.prototype.get = function (url) {
         return this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }).catch(this.handleError);
+        }).catch(ApiClient.handleError);
     };
     ApiClient.prototype.getIgnoreErrors = function (url) {
         return this.http.get(url, {
@@ -87705,17 +87705,17 @@ var ApiClient = (function () {
     ApiClient.prototype.put = function (url, data) {
         return this.http.put(url, data, {
             headers: this.createAuthorizationHeader()
-        }).catch(this.handleError);
+        }).catch(ApiClient.handleError);
     };
     ApiClient.prototype.post = function (url, data) {
         return this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }).catch(this.handleError);
+        }).catch(ApiClient.handleError);
     };
     ApiClient.prototype.delete = function (url) {
         return this.http.delete(url, {
             headers: this.createAuthorizationHeader()
-        }).catch(this.handleError);
+        }).catch(ApiClient.handleError);
     };
     ApiClient = __decorate([
         core_1.Injectable(), 
@@ -87773,17 +87773,19 @@ var REST = (function () {
     REST.RESOURCE_SUBENTITY = function (resourceName, entityType) {
         return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/description";
     };
+    //
     REST.CHART_INSTANCES = function (componentName) {
-        return "/snamp/web/api/managedResources?component=" + encodeURIComponent(componentName);
+        return REST.ROOT_WEB_API_PATH + "/managedResources?component=" + encodeURIComponent(componentName);
     };
     REST.CHART_METRICS_BY_COMPONENT = function (componentName) {
-        return "/snamp/web/api/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";
+        return REST.ROOT_WEB_API_PATH + "/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";
     };
     REST.CHART_METRICS_BY_INSTANCE = function (instanceName) {
-        return "/snamp/web/api/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
+        return REST.ROOT_WEB_API_PATH + "/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
     };
+    // endpoint for certain supervisor
     REST.WATCHER_BY_NAME = function (name) {
-        return REST.WATCHERS_LIST + "/" + name;
+        return REST.SUPERVISORS_CONFIG + "/" + name;
     };
     REST.ROOT_PATH = "/snamp/management";
     REST.CFG_PATH = REST.ROOT_PATH + "/configuration";
@@ -87794,24 +87796,30 @@ var REST = (function () {
     REST.AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/components/connectors";
     REST.AVAILABLE_COMPONENT_LIST = REST.ROOT_PATH + "/components";
     REST.RGROUP_LIST = REST.RGROUP_CONFIG + "/list";
+    // SNAMP WEB API SECTION (belongs to webconsole module)
+    REST.ROOT_WEB_API_PATH = "/snamp/web/api";
     // web console api (chart related and others)
-    REST.CHART_DASHBOARD = "/snamp/web/api/charts/settings";
+    REST.CHART_DASHBOARD = REST.ROOT_WEB_API_PATH + "/charts/settings";
     // web console api (chart related and others)
-    REST.CHARTS_COMPUTE = "/snamp/web/api/charts/compute";
-    REST.CHART_COMPONENTS = "/snamp/web/api/managedResources/components";
+    REST.CHARTS_COMPUTE = REST.ROOT_WEB_API_PATH + "/charts/compute";
+    // receiving all groups of managed resources
+    REST.CHART_COMPONENTS = REST.ROOT_WEB_API_PATH + "/managedResources/components";
     // web console api (view related and others)
-    REST.VIEWS_DASHBOARD = "/snamp/web/api/e2e/settings";
+    REST.VIEWS_DASHBOARD = REST.ROOT_WEB_API_PATH + "/e2e/settings";
     // compute e2e view
-    REST.COMPUTE_VIEW = "/snamp/web/api/e2e/compute";
+    REST.COMPUTE_VIEW = REST.ROOT_WEB_API_PATH + "/e2e/compute";
     // reset e2e view
-    REST.RESET_VIEW = "/snamp/web/api/e2e/reset";
+    REST.RESET_VIEW = REST.ROOT_WEB_API_PATH + "/e2e/reset";
+    // path for storing/receiving full snamp configuration as a json
     REST.CURRENT_CONFIG = REST.ROOT_PATH + "/configuration";
-    REST.WATCHERS_LIST = REST.CFG_PATH + "/supervisor";
-    // watchers statuses
-    REST.WATCHERS_STATUS = "/snamp/web/api/resource-group-watcher/groups/status";
+    // configuration path for supervisors
+    REST.SUPERVISORS_CONFIG = REST.CFG_PATH + "/supervisor";
+    // all supervisors statuses
+    REST.WATCHERS_STATUS = REST.ROOT_WEB_API_PATH + "/resource-group-watcher/groups/status";
     // notification settings
-    REST.NOTIFICATIONS_SETTINGS = "/snamp/web/api/notifications/settings";
-    REST.NOTIFICATIONS_TYPES = "/snamp/web/api/notifications/types";
+    REST.NOTIFICATIONS_SETTINGS = REST.ROOT_WEB_API_PATH + "/notifications/settings";
+    // list of the available notifications types
+    REST.NOTIFICATIONS_TYPES = REST.ROOT_WEB_API_PATH + "/notifications/types";
     return REST;
 }());
 exports.REST = REST;

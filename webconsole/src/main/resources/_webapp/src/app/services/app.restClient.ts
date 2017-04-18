@@ -19,7 +19,7 @@ constructor(private http: Http, private _cookieService:CookieService) {}
     return headers;
   }
 
-    private handleError (error: Response | any) {
+    private static handleError(error: Response | any) {
       $('#overlay').fadeOut();
       // In a real world app, we might use a remote logging infrastructure
       let errMsg: string;
@@ -27,7 +27,7 @@ constructor(private http: Http, private _cookieService:CookieService) {}
             console.log("Auth is not working.", error);
             window.location.href = "login.html?tokenExpired=true";
       } else {
-         console.log("Error occured: ", error);
+         console.log("Error occurred: ", error);
          return Observable.empty();
       }
     }
@@ -35,7 +35,7 @@ constructor(private http: Http, private _cookieService:CookieService) {}
   get(url) {
     return this.http.get(url, {
       headers: this.createAuthorizationHeader()
-    }).catch(this.handleError)
+    }).catch(ApiClient.handleError)
   }
 
   getIgnoreErrors(url) {
@@ -46,19 +46,19 @@ constructor(private http: Http, private _cookieService:CookieService) {}
   put(url, data) {
     return this.http.put(url, data, {
       headers: this.createAuthorizationHeader()
-    }).catch(this.handleError);
+    }).catch(ApiClient.handleError);
   }
 
   post(url, data) {
     return this.http.post(url, data, {
       headers: this.createAuthorizationHeader()
-    }).catch(this.handleError);
+    }).catch(ApiClient.handleError);
   }
 
   delete(url) {
     return this.http.delete(url, {
       headers: this.createAuthorizationHeader()
-    }).catch(this.handleError);
+    }).catch(ApiClient.handleError);
   }
 }
 
@@ -140,47 +140,57 @@ export class REST {
         return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/description";
     }
 
-    // web console api (chart related and others)
-    public static CHART_DASHBOARD:string = "/snamp/web/api/charts/settings";
+    // SNAMP WEB API SECTION (belongs to webconsole module)
+    public static ROOT_WEB_API_PATH:string = "/snamp/web/api";
 
     // web console api (chart related and others)
-    public static CHARTS_COMPUTE:string = "/snamp/web/api/charts/compute";
+    public static CHART_DASHBOARD:string = REST.ROOT_WEB_API_PATH + "/charts/settings";
 
-    public static CHART_COMPONENTS:string = "/snamp/web/api/managedResources/components";
+    // web console api (chart related and others)
+    public static CHARTS_COMPUTE:string = REST.ROOT_WEB_API_PATH + "/charts/compute";
 
+    // receiving all groups of managed resources
+    public static CHART_COMPONENTS:string = REST.ROOT_WEB_API_PATH + "/managedResources/components";
+
+    //
     public static CHART_INSTANCES(componentName:string):string {
-        return "/snamp/web/api/managedResources?component=" + encodeURIComponent(componentName);
+        return REST.ROOT_WEB_API_PATH + "/managedResources?component=" + encodeURIComponent(componentName);
     }
 
     public static CHART_METRICS_BY_COMPONENT(componentName:string):string {
-        return "/snamp/web/api/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";
+        return REST.ROOT_WEB_API_PATH + "/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";
     }
 
     public static CHART_METRICS_BY_INSTANCE(instanceName:string):string {
-        return "/snamp/web/api/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
+        return REST.ROOT_WEB_API_PATH + "/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
     }
 
     // web console api (view related and others)
-    public static VIEWS_DASHBOARD:string = "/snamp/web/api/e2e/settings";
+    public static VIEWS_DASHBOARD:string = REST.ROOT_WEB_API_PATH + "/e2e/settings";
 
     // compute e2e view
-    public static COMPUTE_VIEW:string = "/snamp/web/api/e2e/compute";
+    public static COMPUTE_VIEW:string = REST.ROOT_WEB_API_PATH + "/e2e/compute";
 
     // reset e2e view
-    public static RESET_VIEW:string = "/snamp/web/api/e2e/reset";
+    public static RESET_VIEW:string = REST.ROOT_WEB_API_PATH + "/e2e/reset";
 
+    // path for storing/receiving full snamp configuration as a json
     public static CURRENT_CONFIG:string = REST.ROOT_PATH + "/configuration";
 
-    public static WATCHERS_LIST:string = REST.CFG_PATH + "/supervisor";
+    // configuration path for supervisors
+    public static SUPERVISORS_CONFIG:string = REST.CFG_PATH + "/supervisor";
 
+    // endpoint for certain supervisor
     public static WATCHER_BY_NAME(name:string):string {
-        return REST.WATCHERS_LIST + "/" + name;
+        return REST.SUPERVISORS_CONFIG + "/" + name;
     }
 
-    // watchers statuses
-    public static WATCHERS_STATUS:string = "/snamp/web/api/resource-group-watcher/groups/status";
+    // all supervisors statuses
+    public static WATCHERS_STATUS:string = REST.ROOT_WEB_API_PATH + "/resource-group-watcher/groups/status";
 
     // notification settings
-    public static NOTIFICATIONS_SETTINGS:string = "/snamp/web/api/notifications/settings";
-    public static NOTIFICATIONS_TYPES:string = "/snamp/web/api/notifications/types";
+    public static NOTIFICATIONS_SETTINGS:string = REST.ROOT_WEB_API_PATH + "/notifications/settings";
+
+    // list of the available notifications types
+    public static NOTIFICATIONS_TYPES:string = REST.ROOT_WEB_API_PATH + "/notifications/types";
 }

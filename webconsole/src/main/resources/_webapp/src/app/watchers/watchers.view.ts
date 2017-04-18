@@ -67,7 +67,7 @@ export class MainComponent implements OnInit {
 
    ngOnInit():void {
         // load the list of watchers
-        this.http.get(REST.WATCHERS_LIST)
+        this.http.get(REST.SUPERVISORS_CONFIG)
             .map((res:Response) => res.json())
             .subscribe((data) => {
                 this.watchers = Factory.watchersArrayFromJSON(data);

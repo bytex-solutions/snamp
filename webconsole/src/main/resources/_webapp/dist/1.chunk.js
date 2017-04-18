@@ -964,7 +964,7 @@ var MainComponent = (function () {
     MainComponent.prototype.ngOnInit = function () {
         var _this = this;
         // load the list of watchers
-        this.http.get(app_restClient_1.REST.WATCHERS_LIST)
+        this.http.get(app_restClient_1.REST.SUPERVISORS_CONFIG)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
             _this.watchers = factory_1.Factory.watchersArrayFromJSON(data);
