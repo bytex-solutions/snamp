@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector;
 
+import javax.annotation.Nonnull;
 import java.util.EventListener;
 
 /**
@@ -15,5 +16,5 @@ public interface ResourceEventListener extends EventListener {
      * @param event An event to handle.
      * @see FeatureModifiedEvent
      */
-    void resourceModified(final ResourceEvent event);
+    void resourceModified(@Nonnull final ResourceEvent event);
 }

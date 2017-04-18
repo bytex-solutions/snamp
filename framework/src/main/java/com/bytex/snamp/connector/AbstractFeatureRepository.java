@@ -7,6 +7,7 @@ import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.metrics.Metric;
 import com.google.common.collect.Sets;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.management.MBeanFeatureInfo;
 import java.util.Collection;
@@ -32,12 +33,12 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
         }
 
         @Override
-        protected void invoke(final ResourceEventListener listener, final ResourceEvent event) {
+        protected void invoke(@Nonnull final ResourceEventListener listener, @Nonnull final ResourceEvent event) {
             listener.resourceModified(event);
         }
 
         @Override
-        public void resourceModified(final ResourceEvent event) {
+        public void resourceModified(@Nonnull final ResourceEvent event) {
             invoke(event);
         }
     }

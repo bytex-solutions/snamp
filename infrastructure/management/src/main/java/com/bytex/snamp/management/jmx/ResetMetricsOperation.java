@@ -24,7 +24,7 @@ final class ResetMetricsOperation extends OpenOperation<Void, SimpleType<Void>> 
     }
 
     private static void invoke(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
-        MetricsAttribute.getMetrics(resourceName, context).ifPresent(MetricsSupport::resetAll);
+        MetricsAttribute.getMetrics(resourceName, context).ifPresent(MetricsSupport::reset);
     }
 
     @Override

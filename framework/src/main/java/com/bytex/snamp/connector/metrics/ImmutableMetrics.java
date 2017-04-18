@@ -73,7 +73,7 @@ public class ImmutableMetrics implements MetricsSupport {
      * Resets all metrics.
      */
     @Override
-    public final void resetAll() {
+    public final void reset() {
         metrics.values().forEach(Metric::reset);
     }
 

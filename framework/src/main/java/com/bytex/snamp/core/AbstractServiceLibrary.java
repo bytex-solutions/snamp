@@ -3,6 +3,7 @@ package com.bytex.snamp.core;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ObjectArrays;
@@ -10,6 +11,7 @@ import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
@@ -82,6 +84,22 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * Service is published.
          */
         PUBLISHED
+    }
+
+    private static final class WeakServiceListener extends WeakEventListener<ServiceListener, ServiceEvent> implements ServiceListener {
+        WeakServiceListener(@Nonnull final ServiceListener listener){
+            super(listener);
+        }
+
+        @Override
+        protected void invoke(@Nonnull final ServiceListener listener, @Nonnull final ServiceEvent event) {
+            listener.serviceChanged(event);
+        }
+
+        @Override
+        public void serviceChanged(final ServiceEvent event) {
+            invoke(event);
+        }
     }
 
     /**

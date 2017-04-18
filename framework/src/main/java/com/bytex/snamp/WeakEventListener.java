@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import javax.annotation.Nonnull;
 import java.lang.ref.WeakReference;
 import java.util.EventListener;
 import java.util.EventObject;
@@ -22,8 +23,8 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
      * Initializes a new weak reference to the event listener.
      * @param listener A listener to be wrapped into weak reference. Cannot be {@literal null}.
      */
-    protected WeakEventListener(final L listener) {
-        super(Objects.requireNonNull(listener));
+    protected WeakEventListener(@Nonnull final L listener) {
+        super(listener);
         this.listenerHashCode = listener.hashCode();
     }
 
@@ -32,7 +33,7 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
      * @param event Event state object to be handled by listener.
      * @return {@literal true}, if reference to listener still alive; {@literal false}, if listener is garbage collected.
      */
-    public final boolean invoke(final E event){
+    public final boolean invoke(@Nonnull final E event){
         final L listener = get();
         if(listener == null)
             return false;
@@ -45,12 +46,12 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
      * @param listener A listener used to handle event. Cannot be {@literal null}.
      * @param event Event state object to be handled by listener.
      */
-    protected abstract void invoke(final L listener, final E event);
+    protected abstract void invoke(@Nonnull final L listener, @Nonnull final E event);
 
     public static <L extends EventListener, E extends EventObject> WeakEventListener<L, E> create(final L listener, final BiConsumer<? super L, ? super E> handler){
         return new WeakEventListener<L, E>(listener) {
             @Override
-            protected void invoke(final L listener, final E event) {
+            protected void invoke(@Nonnull final L listener, @Nonnull final E event) {
                 handler.accept(listener, event);
             }
         };

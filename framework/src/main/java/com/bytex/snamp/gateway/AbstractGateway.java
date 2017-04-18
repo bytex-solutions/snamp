@@ -167,7 +167,7 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
      * @see com.bytex.snamp.connector.FeatureModifiedEvent
      */
     @Override
-    public final void resourceModified(final ResourceEvent event) {
+    public final void resourceModified(@Nonnull final ResourceEvent event) {
         if (event instanceof AttributeModifiedEvent)
             featureModified((AttributeModifiedEvent) event);
         else if (event instanceof OperationModifiedEvent)
