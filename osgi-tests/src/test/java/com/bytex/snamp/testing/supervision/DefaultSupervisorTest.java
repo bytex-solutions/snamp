@@ -11,6 +11,7 @@ import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.InvalidAttributeValue;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.io.IOUtils;
+import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import com.bytex.snamp.supervision.GroupCompositionChanged;
 import com.bytex.snamp.supervision.SupervisionEventListener;
 import com.bytex.snamp.supervision.SupervisorClient;
@@ -23,13 +24,18 @@ import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 import org.junit.Test;
 
 import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
@@ -38,23 +44,24 @@ import java.util.concurrent.TimeoutException;
  * @version 2.0
  * @since 2.0
  */
-@SnampDependencies(SnampFeature.STANDARD_TOOLS)
+@SnampDependencies({SnampFeature.STANDARD_TOOLS, SnampFeature.INTEGRATION_TOOLS})
 public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String GROUP_NAME = "trip-manager";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public DefaultSupervisorTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
     @Test
-    public void defaultSupervisorConfigTest() {
+    public void defaultSupervisorConfig() {
         final ConfigurationEntityDescription<SupervisorConfiguration> description =
                 SupervisorClient.getConfigurationDescriptor(getTestBundleContext(), SupervisorConfiguration.DEFAULT_TYPE);
         testConfigurationDescriptor(description, "checkPeriod");
     }
 
     @Test
-    public void coloredCheckerTest() throws JMException, InterruptedException {
+    public void coloredChecker() throws JMException, InterruptedException {
         try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                 .orElseThrow(AssertionError::new)) {
             assertTrue(supervisor.get().getResources().contains(TEST_RESOURCE_NAME));
@@ -81,7 +88,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
     }
 
     @Test
-    public void groovyCheckerTest() throws JMException, InterruptedException {
+    public void groovyChecker() throws JMException, InterruptedException {
         try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                 .orElseThrow(AssertionError::new)) {
             assertTrue(supervisor.get().getResources().contains(TEST_RESOURCE_NAME));
@@ -101,7 +108,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
     }
 
     @Test
-    public void serviceDiscoveryTest() throws ResourceDiscoveryException, TimeoutException, InterruptedException {
+    public void serviceDiscovery() throws ResourceDiscoveryException, TimeoutException, InterruptedException {
         try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                 .orElseThrow(AssertionError::new)) {
             final Box<String> addedResource = BoxFactory.create("");
@@ -120,6 +127,46 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             assertTrue(discoveryService.removeResource(NEW_RESOURCE_NAME));
             waitForNoConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
         }
+    }
+
+    private static void registerResource(final String resourceName) throws IOException {
+        final URL query = new URL("http://localhost:8181" + ResourceDiscoveryService.HTTP_ENDPOINT + '/' + GROUP_NAME + '/' + resourceName);
+        final HttpURLConnection connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON);
+        final ObjectNode announcement = ThreadLocalJsonFactory.getFactory().objectNode();
+        announcement.put("connectionString", getConnectionString());
+        announcement.put("parameters", ThreadLocalJsonFactory.getFactory().objectNode());
+        MAPPER.writeValue(connection.getOutputStream(), announcement);
+        connection.connect();
+        try {
+            assertEquals(201, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private static void unregisterResource(final String resourceName) throws IOException {
+        final URL query = new URL("http://localhost:8181" + ResourceDiscoveryService.HTTP_ENDPOINT + '/' + GROUP_NAME + '/' + resourceName);
+        final HttpURLConnection connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("DELETE");
+        connection.connect();
+        try {
+            assertEquals(204, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    @Test
+    public void serviceDiscoveryOverHttp() throws IOException, TimeoutException, InterruptedException{
+        //trying to achieve the same goals as in serviceDiscovery test but over HTTP
+        final String NEW_RESOURCE_NAME = "newResource";
+        registerResource(NEW_RESOURCE_NAME);
+        waitForConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
+        unregisterResource(NEW_RESOURCE_NAME);
+        waitForNoConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
     }
 
     @Override

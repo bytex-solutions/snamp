@@ -18,5 +18,6 @@
     <module>wrapped-libs-for-tests</module>
     <module>connectors-pack</module>
     <module>gateways-pack</module>
+    <module>integration-pack</module>
   </modules>
 </project>

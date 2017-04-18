@@ -113,10 +113,11 @@ public final class RESTDiscoveryService {
     @POST
     @Path("/{resourceName}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void registerResource(@PathParam("groupName") final String groupName,
+    public Response registerResource(@PathParam("groupName") final String groupName,
                                  @PathParam("resourceName") final String resourceName,
                                  final ResourceAnnouncement announcement) throws ResourceDiscoveryException {
         withDiscoveryService(groupName, discoveryService -> registerResource(discoveryService, resourceName, announcement));
+        return Response.status(Response.Status.CREATED).build();
     }
 
     private static void removeResource(final ResourceDiscoveryService discoveryService,
@@ -136,14 +137,16 @@ public final class RESTDiscoveryService {
 
     @DELETE
     @Path("/{resourceName}")
-    public void removeResource(@PathParam("groupName") final String groupName,
+    public Response removeResource(@PathParam("groupName") final String groupName,
                                @PathParam("resourceName") final String resourceName) throws ResourceDiscoveryException {
         withDiscoveryService(groupName, discoveryService -> removeResource(discoveryService, resourceName));
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
     @DELETE
     @Path("/")
-    public void removeAllResources(@PathParam("groupName") final String groupName) throws ResourceDiscoveryException {
+    public Response removeAllResources(@PathParam("groupName") final String groupName) throws ResourceDiscoveryException {
         withDiscoveryService(groupName, ResourceDiscoveryService::removeAllResources);
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 }

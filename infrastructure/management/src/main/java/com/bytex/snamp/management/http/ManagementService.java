@@ -11,6 +11,7 @@ import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.management.DefaultSnampManager;
 import com.bytex.snamp.management.ManagementUtils;
 import com.bytex.snamp.management.http.model.AgentDataObject;
+import com.bytex.snamp.supervision.SupervisorActivator;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleContext;
@@ -170,12 +171,8 @@ public final class ManagementService extends AbstractManagementService {
     @GET
     @Path("/restart")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response restartAllTheSystem() {
-        try {
-            DefaultSnampManager.restart(getBundleContext());
-        } catch (final BundleException e) {
-            throw new WebApplicationException(e);
-        }
+    public Response restartAllTheSystem() throws BundleException {
+        DefaultSnampManager.restart(getBundleContext());
         return Response.noContent().build();
     }
 
@@ -189,12 +186,8 @@ public final class ManagementService extends AbstractManagementService {
     @Path("/components/connectors/{type}/disable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public boolean disableConnector(@PathParam("type") final String connectorType)  {
-        try {
-            return ManagedResourceActivator.disableConnector(getBundleContext(), connectorType);
-        } catch (final BundleException e) {
-            throw new WebApplicationException(e);
-        }
+    public boolean disableConnector(@PathParam("type") final String connectorType) throws BundleException {
+        return ManagedResourceActivator.disableConnector(getBundleContext(), connectorType);
     }
 
     /**
@@ -207,14 +200,45 @@ public final class ManagementService extends AbstractManagementService {
     @Path("/components/connectors/{type}/enable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public boolean enableConnector(@PathParam("type") final String connectorType)  {
-        try {
-            return ManagedResourceActivator.enableConnector(getBundleContext(), connectorType);
-        } catch (final BundleException e) {
-            throw new WebApplicationException(e);
+    public boolean enableConnector(@PathParam("type") final String connectorType) throws BundleException {
+        return ManagedResourceActivator.enableConnector(getBundleContext(), connectorType);
+    }
+
+    /**
+     * Stop supervisor.
+     *
+     * @param supervisorType the name
+     * @return the boolean
+     */
+    @POST
+    @Path("/components/supervisors/{type}/disable")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public boolean disableSupervisor(@PathParam("type") final String supervisorType) throws BundleException {
+        switch (supervisorType) {
+            case SupervisorConfiguration.DEFAULT_TYPE:
+                throw new WebApplicationException(Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity(String.format("Supervisor %s is reserved and cannot be stopped", supervisorType))
+                        .build());
+            default:
+                return SupervisorActivator.disableSupervsior(getBundleContext(), supervisorType);
         }
     }
 
+    /**
+     * Start supervisor.
+     *
+     * @param supervisorType the name
+     * @return the boolean
+     */
+    @POST
+    @Path("/components/supervisors/{type}/enable")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public boolean enableSupervisor(@PathParam("type") final String supervisorType) throws BundleException {
+        return SupervisorActivator.enableSupervisor(getBundleContext(), supervisorType);
+    }
 
     /**
      * Stop gateway.
@@ -226,12 +250,8 @@ public final class ManagementService extends AbstractManagementService {
     @Path("/components/gateways/{type}/disable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public boolean disableGateway(@PathParam("type") final String gatewayType)  {
-        try {
-            return GatewayActivator.disableGateway(getBundleContext(), gatewayType);
-        } catch (final BundleException e) {
-            throw new WebApplicationException(e);
-        }
+    public boolean disableGateway(@PathParam("type") final String gatewayType) throws BundleException {
+        return GatewayActivator.disableGateway(getBundleContext(), gatewayType);
     }
 
     /**
@@ -244,12 +264,8 @@ public final class ManagementService extends AbstractManagementService {
     @Path("/components/gateways/{type}/enable")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public boolean enableGateway(@PathParam("type") final String gatewayType)  {
-        try {
-            return GatewayActivator.enableGateway(getBundleContext(), gatewayType);
-        } catch (final BundleException e) {
-            throw new WebApplicationException(e);
-        }
+    public boolean enableGateway(@PathParam("type") final String gatewayType) throws BundleException {
+        return GatewayActivator.enableGateway(getBundleContext(), gatewayType);
     }
 
     private <T extends EntityConfiguration> Collection<Map<String, String>> getDescription(final String componentName,
