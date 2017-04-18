@@ -703,8 +703,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.put("objectName", FIRST_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
-        resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
+        resource.putAll(AbstractJmxConnectorTest.DEFAULT_PARAMS);
         fillJmxAttributes(resource.getAttributes());
         fillJmxEvents(resource.getEvents());
 
@@ -712,8 +711,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.put("objectName", SECOND_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
-        resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
+        resource.putAll(AbstractJmxConnectorTest.DEFAULT_PARAMS);
         fillJmxAttributes(resource.getAttributes());
         fillJmxEvents(resource.getEvents());
 
@@ -721,8 +719,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.put("objectName", THIRD_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
-        resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
-        resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
+        resource.putAll(AbstractJmxConnectorTest.DEFAULT_PARAMS);
         fillJmxAttributes(resource.getAttributes());
         fillJmxEvents(resource.getEvents());
 

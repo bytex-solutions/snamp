@@ -13,7 +13,6 @@ import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
@@ -321,7 +320,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final Collection<AttributeConfiguration> discoveredAttributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
                 getConnectionString(),
-                ImmutableMap.of("login", AbstractJmxConnectorTest.JMX_LOGIN, "password", AbstractJmxConnectorTest.JMX_PASSWORD),
+                AbstractJmxConnectorTest.DEFAULT_PARAMS,
                 AttributeConfiguration.class);
         assertTrue(discoveredAttributes.size() > 30);
         for(final AttributeConfiguration config: discoveredAttributes) {
@@ -335,7 +334,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final Collection<EventConfiguration> discoveredEvents = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
                 getConnectionString(),
-                ImmutableMap.of("login", AbstractJmxConnectorTest.JMX_LOGIN, "password", AbstractJmxConnectorTest.JMX_PASSWORD),
+                AbstractJmxConnectorTest.DEFAULT_PARAMS,
                 EventConfiguration.class);
         assertTrue(discoveredEvents.size() > 2);
         for(final EventConfiguration config: discoveredEvents) {

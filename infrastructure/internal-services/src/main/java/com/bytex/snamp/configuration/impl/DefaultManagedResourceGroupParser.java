@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 /**
  * @author Roman Sakno
@@ -13,7 +14,7 @@ final class DefaultManagedResourceGroupParser extends SerializableConfigurationP
     private static final LazySoftReference<DefaultManagedResourceGroupParser> INSTANCE = new LazySoftReference<>();
 
     private DefaultManagedResourceGroupParser() {
-        super(SerializableAgentConfiguration::getResourceGroups, PID, SerializableManagedResourceGroupConfiguration.class);
+        super(SerializableAgentConfiguration::getResourceGroups, PID, SerializableManagedResourceGroupConfiguration.class, ManagedResourceConfiguration.GROUP_NAME_PROPERTY);
     }
 
     static DefaultManagedResourceGroupParser getInstance(){

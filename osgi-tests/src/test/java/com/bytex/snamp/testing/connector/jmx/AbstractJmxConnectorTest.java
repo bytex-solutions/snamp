@@ -27,9 +27,10 @@ public abstract class AbstractJmxConnectorTest<MBean> extends AbstractResourceCo
     public static final String JMX_PASSWORD = "karaf";
     private static final int JMX_KARAF_PORT = 1099; // Located in KARAF_ROOT/etc/org.apache.karaf.management.cfg; property name is rmiRegistryPort
     private static final String JMX_RMI_CONNECTION_STRING = "service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root";
+    public static final ImmutableMap<String, String> DEFAULT_PARAMS = ImmutableMap.of("login", JMX_LOGIN, "password", JMX_PASSWORD);
 
     protected AbstractJmxConnectorTest(final MBean beanInstance, final ObjectName beanName){
-        super(CONNECTOR_NAME, getConnectionString(), ImmutableMap.of("login", JMX_LOGIN, "password", JMX_PASSWORD, "group", ""));
+        super(CONNECTOR_NAME, getConnectionString(), DEFAULT_PARAMS);
         this.beanName = beanName;
         this.beanInstance = beanInstance;
     }

@@ -24,8 +24,7 @@ public final class AddRemoveConnectorTest extends AbstractSnampIntegrationTest {
             final ManagedResourceConfiguration resource = config.getResources().getOrAdd("dummyResource");
             resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
             resource.setType(AbstractJmxConnectorTest.CONNECTOR_NAME);
-            resource.put("login", AbstractJmxConnectorTest.JMX_LOGIN);
-            resource.put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
+            resource.putAll(AbstractJmxConnectorTest.DEFAULT_PARAMS);
             return true;
         });
         Thread.sleep(1000);

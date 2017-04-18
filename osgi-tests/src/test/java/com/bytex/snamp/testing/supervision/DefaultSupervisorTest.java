@@ -9,11 +9,14 @@ import com.bytex.snamp.connector.health.InvalidAttributeValue;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
+import com.bytex.snamp.supervision.discovery.ResourceDiscoveryService;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
@@ -22,6 +25,8 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
@@ -91,10 +96,16 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
     }
 
     @Test
-    public void serviceDiscoveryTest(){
+    public void serviceDiscoveryTest() throws ResourceDiscoveryException, TimeoutException, InterruptedException {
         try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                 .orElseThrow(AssertionError::new)) {
-        
+            final ResourceDiscoveryService discoveryService =
+                    supervisor.queryObject(ResourceDiscoveryService.class).orElseThrow(AssertionError::new);
+            final String NEW_RESOURCE_NAME = "newResource";
+            discoveryService.registerResource(NEW_RESOURCE_NAME, getConnectionString(), ImmutableMap.of());
+            waitForConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
+            assertTrue(discoveryService.removeResource(NEW_RESOURCE_NAME));
+            waitForNoConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
         }
     }
 
@@ -132,6 +143,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
     protected void fillGroups(final EntityMap<? extends ManagedResourceGroupConfiguration> groups) {
         groups.addAndConsume(GROUP_NAME, groupConfig -> {
             groupConfig.setType(CONNECTOR_NAME);
+            groupConfig.putAll(DEFAULT_PARAMS);
             fillAttributes(groupConfig.getAttributes());
         });
     }

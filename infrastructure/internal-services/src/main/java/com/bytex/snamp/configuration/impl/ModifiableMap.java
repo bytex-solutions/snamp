@@ -10,6 +10,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 
 abstract class ModifiableMap<K, V> extends HashMap<K, V> implements Externalizable, Modifiable, Stateful, SerializableMap<K, V> {
@@ -29,6 +30,36 @@ abstract class ModifiableMap<K, V> extends HashMap<K, V> implements Externalizab
         return removedValue;
     }
 
+    @Override
+    public final boolean remove(final Object key, final Object value) {
+        final boolean removed;
+        if (removed = super.remove(key, value))
+            markAsModified();
+        return removed;
+    }
+
+    @Override
+    public final boolean replace(final K key, final V oldValue, final V newValue) {
+        final boolean replaced;
+        if(replaced = super.replace(key, oldValue, newValue))
+            markAsModified();
+        return replaced;
+    }
+
+    @Override
+    public final V replace(final K key, final V value) {
+        final V replaced = super.replace(key, value);
+        if(replaced != null)
+            markAsModified();
+        return replaced;
+    }
+
+    @Override
+    public final void replaceAll(final BiFunction<? super K, ? super V, ? extends V> function) {
+        super.replaceAll(function);
+        markAsModified();
+    }
+
     final void markAsModified(){
         modified = true;
     }
@@ -37,6 +68,14 @@ abstract class ModifiableMap<K, V> extends HashMap<K, V> implements Externalizab
     public void clear() {
         markAsModified();
         super.clear();
+    }
+
+    @Override
+    public final V putIfAbsent(final K key, final V value) {
+        final V result = super.putIfAbsent(key, value);
+        if(result == null)
+            markAsModified();
+        return result;
     }
 
     @Override
