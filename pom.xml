@@ -16,7 +16,7 @@
     <module>bundlized-libs</module>
     <module>instrumentation/java</module>
     <module>infrastructure/json-helpers</module>
-    <module>infrastructure/analysis-and-operations</module>
+    <module>infrastructure/data-analysis</module>
     <module>supervisors</module>
     <module>connectors</module>
     <module>gateways</module>
@@ -36,6 +36,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <snamp.version>2.0.0</snamp.version>
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
+    <snamp.analysis.version>2.0.0</snamp.analysis.version>
     <junit.version>4.12</junit.version>
     <snmp4j.version>2.5.3</snmp4j.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
@@ -74,7 +75,6 @@
     <osgi.version>5.0.0</osgi.version>
     <hazelcast.version>3.7.2</hazelcast.version>
     <jsr305.version>3.0.1</jsr305.version>
-    <snamp.ops.version>2.0.0</snamp.ops.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <slf4j.api.version>1.7.13</slf4j.api.version>
     <jline.version>2.14.1</jline.version>

@@ -9,8 +9,8 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>analysis-and-operations</artifactId>
-    <version>${snamp.ops.version}</version>
+    <artifactId>data-analysis</artifactId>
+    <version>${snamp.analysis.version}</version>
     <name>Data Analysis and Operations</name>
     <description>Module for real-time data analysis, elasticity management and operations</description>
     <packaging>bundle</packaging>

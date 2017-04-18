@@ -74,7 +74,7 @@
     <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
     <snamp.security.version>2.0.0</snamp.security.version>
-    <snamp.ops.version>2.0.0</snamp.ops.version>
+    <snamp.analysis.version>2.0.0</snamp.analysis.version>
   </properties>
   <version>${snamp.version}</version>
   <organization>
@@ -413,7 +413,7 @@
     <module>bundlized-libs</module>
     <module>instrumentation/java</module>
     <module>infrastructure/json-helpers</module>
-    <module>infrastructure/analysis-and-operations</module>
+    <module>infrastructure/data-analysis</module>
 
     <module>supervisors</module>
     <module>connectors</module>
