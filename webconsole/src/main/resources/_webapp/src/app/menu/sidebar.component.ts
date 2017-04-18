@@ -1,10 +1,8 @@
 import { Component, ViewEncapsulation } from '@angular/core';
 import { ViewService } from '../services/app.viewService';
 import { ChartService } from '../services/app.chartService';
-import { Observable } from 'rxjs/Observable';
 import { Router } from '@angular/router';
 import 'rxjs/add/observable/of';
-import { overlayConfigFactory } from "angular2-modal";
 import {
   VEXBuiltInThemes,
   Modal,
@@ -38,21 +36,17 @@ export class Sidebar {
         });
     }
 
-    ngAfterViewInit() {
-    }
-
-    anchorClicked(event: MouseEvent) {
-        var target = event.target || event.srcElement || event.currentTarget;
-        var idAttr = $(target).attr("id");
-        var $li = $('#' + idAttr.replace("chevron","li")).parent();
+    linkClicked(idAttr:string):void {
+        let $li = $('#' + idAttr + "chevron").closest('li');
+        let $sd = $('#sidebar-menu');
         if ($li.is('.active')) {
             $li.removeClass('active active-sm');
                 $('ul:first', $li).slideUp();
             } else {
                 // prevent closing menu if we are on child menu
                 if (!$li.parent().is('.child_menu')) {
-                    $('#sidebar-menu').find('li').removeClass('active active-sm');
-                    $('#sidebar-menu').find('li ul').slideUp();
+                    $sd.find('li').removeClass('active active-sm');
+                    $sd.find('li ul').slideUp();
                 }
                 $li.addClass('active');
                 $('ul:first', $li).slideDown();

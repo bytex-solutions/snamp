@@ -38,9 +38,9 @@ export class TopNavBar {
     }
 
     toggleClicked(event: MouseEvent) {
-        var target = event.srcElement.id;
-        var body = $('body');
-        var menu = $('#sidebar-menu');
+        let target = event.srcElement.id;
+        let body = $('body');
+        let menu = $('#sidebar-menu');
         if (body.hasClass('nav-md')) {
             menu.find('li.active ul').hide();
             menu.find('li.active').addClass('active-sm').removeClass('active');
@@ -67,7 +67,7 @@ export class TopNavBar {
     }
 
     removeMessage(log:AbstractNotification) {
-        var liElement = $("#" + log.id);
+        let liElement:any = $("#" + log.id);
         let _thisReference = this;
         liElement.slideUp("slow", function() {
           for (let i = 0; i < _thisReference.logs.length; i++) {

@@ -6995,7 +6995,7 @@ module.exports = g;
 	                    Object.defineProperty(error, 'stack', descriptor);
 	                }
 	                else {
-	                    error.stack = renderLongStackTrace(parentTask.data && parentTask.data[creationTrace], error.stack);
+                        Object.defineProperty(error, 'stack', renderLongStackTrace(parentTask.data && parentTask.data[creationTrace], error.stack));
 	                }
 	            }
 	            return parentZoneDelegate.handleError(targetZone, error);
