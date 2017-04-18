@@ -1,5 +1,8 @@
 package com.bytex.snamp.testing.supervision;
 
+import com.bytex.snamp.Box;
+import com.bytex.snamp.BoxFactory;
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
@@ -8,6 +11,8 @@ import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.InvalidAttributeValue;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.io.IOUtils;
+import com.bytex.snamp.supervision.GroupCompositionChanged;
+import com.bytex.snamp.supervision.SupervisionEventListener;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryService;
@@ -99,11 +104,19 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
     public void serviceDiscoveryTest() throws ResourceDiscoveryException, TimeoutException, InterruptedException {
         try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                 .orElseThrow(AssertionError::new)) {
+            final Box<String> addedResource = BoxFactory.create("");
+            final SupervisionEventListener listener = event ->
+                Convert.toType(event, GroupCompositionChanged.class).ifPresent(changed -> {
+                    addedResource.set(changed.getResourceName());
+                });
+            supervisor.addSupervisionEventListener(listener);
             final ResourceDiscoveryService discoveryService =
                     supervisor.queryObject(ResourceDiscoveryService.class).orElseThrow(AssertionError::new);
             final String NEW_RESOURCE_NAME = "newResource";
             discoveryService.registerResource(NEW_RESOURCE_NAME, getConnectionString(), ImmutableMap.of());
             waitForConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
+            supervisor.removeSupervisionEventListener(listener);
+            assertEquals(NEW_RESOURCE_NAME, addedResource.get());
             assertTrue(discoveryService.removeResource(NEW_RESOURCE_NAME));
             waitForNoConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
         }

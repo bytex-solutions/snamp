@@ -563,6 +563,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
                 assertTrue(discoveryService.removeResource(NEW_RESOURCE_NAME));
                 AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(3), NEW_RESOURCE_NAME, getTestBundleContext());
+                Thread.sleep(5_000L);
             }
         }
         registry.close();

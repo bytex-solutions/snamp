@@ -109,24 +109,16 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             return getParser().getFactoryPersistentID(getConnectorType());
         }
 
-        private static void setFeatureNameIfNecessary(final FeatureConfiguration feature,
-                                                         final String name) {
-            if (!feature.containsKey(FeatureConfiguration.NAME_KEY))
-                feature.put(FeatureConfiguration.NAME_KEY, name);
-        }
-
         private static <I extends FeatureConfiguration, O extends MBeanFeatureInfo> void updateFeatures(final BiFunction<String, I, O> featureAdder,
                                                                                                         final Function<O, String> nameResolver,
                                                                                                         final Consumer<Set<String>> retainer,
                                                                                                         final Map<String, ? extends I> features) {
-            final Set<String> addedFeatures = features.entrySet().stream()
-                    .map(entry -> {
-                        setFeatureNameIfNecessary(entry.getValue(), entry.getKey());
-                        return featureAdder.apply(entry.getKey(), entry.getValue());
-                    })
+            final Set<String> addedFeatures = new HashSet<>(10);
+            features.entrySet().stream()
+                    .map(entry -> featureAdder.apply(entry.getKey(), entry.getValue()))
                     .filter(Objects::nonNull)
                     .map(nameResolver)
-                    .collect(Collectors.toSet());
+                    .forEach(addedFeatures::add);
             retainer.accept(addedFeatures);
         }
 
