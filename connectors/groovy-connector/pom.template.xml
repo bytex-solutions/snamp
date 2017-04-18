@@ -74,10 +74,6 @@
             <classifier>indy</classifier>
             <type>jar</type>
         </dependency>
-        <dependency>
-            <groupId>org.apache.ivy</groupId>
-            <artifactId>ivy</artifactId>
-        </dependency>
         <!--Test dependencies-->
         <dependency>
             <groupId>com.bytex.snamp</groupId>

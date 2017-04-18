@@ -3,22 +3,15 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp.gateways</groupId>
-    <artifactId>gateways</artifactId>
+    <groupId>com.bytex.snamp.integration</groupId>
+    <artifactId>integration</artifactId>
     <version>2.0.0</version>
   </parent>
-  <artifactId>nagios</artifactId>
-  <version>2.0.0</version>
+  <artifactId>discovery-over-http</artifactId>
   <packaging>bundle</packaging>
-  <name>Nagios ActiveCheck Gateway</name>
-  <description>SNAMP Gateway for Nagios active check</description>
+  <name>Discovery API over HTTP</name>
+  <description>Exposes SNAMP Resource Discovery functionality through HTTP</description>
   <dependencies>
-    <dependency>
-      <groupId>com.bytex.snamp</groupId>
-      <artifactId>framework</artifactId>
-      <version>2.0.0</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.core</artifactId>
@@ -28,27 +21,34 @@
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
+      <groupId>com.bytex.snamp</groupId>
+      <artifactId>framework</artifactId>
+      <version>2.0.0</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-servlet</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
     </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
   </dependencies>
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
@@ -56,10 +56,9 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>snamp-${project.artifactId}-gateway</Bundle-SymbolicName>
-            <Bundle-Activator>com.bytex.snamp.gateway.nagios.NagiosGatewayActivator</Bundle-Activator>
-            <Export-Package />
-            <Provide-Capability>com.bytex.snamp.gateway; type=nagios</Provide-Capability>
+            <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
+            <Export-Package>com.bytex.snamp.supervision.discovery.http.*</Export-Package>
+            <Bundle-Activator>com.bytex.snamp.web.WebConsoleActivator</Bundle-Activator>
           </instructions>
         </configuration>
       </plugin>

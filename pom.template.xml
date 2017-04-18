@@ -75,6 +75,7 @@
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
     <snamp.security.version>2.0.0</snamp.security.version>
     <snamp.analysis.version>2.0.0</snamp.analysis.version>
+    <snamp.integration.version>2.0.0</snamp.integration.version>
   </properties>
   <version>${snamp.version}</version>
   <organization>
@@ -184,10 +185,9 @@
             <version>${jsr305.version}</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
+            <artifactId>jersey-core</artifactId>
             <version>${jersey.version}</version>
             <scope>provided</scope>
         </dependency>
@@ -197,19 +197,6 @@
             <version>${jersey.version}</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-            <version>${jersey.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-json</artifactId>
-            <version>${jersey.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!--Aligned with Jersey JSON dependencies-->
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
@@ -249,26 +236,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>${jetty.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>${jetty.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-server</artifactId>
-            <version>${jetty.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-continuation</artifactId>
             <version>${jetty.version}</version>
             <scope>provided</scope>
         </dependency>
@@ -303,22 +272,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>jline</groupId>
-            <artifactId>jline</artifactId>
-            <version>${jline.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>${groovy.version}</version>
-            <classifier>indy</classifier>
-            <type>jar</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-json</artifactId>
             <version>${groovy.version}</version>
             <classifier>indy</classifier>
             <type>jar</type>
@@ -330,36 +285,6 @@
             <version>${groovy.version}</version>
             <classifier>indy</classifier>
             <type>jar</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.ivy</groupId>
-            <artifactId>ivy</artifactId>
-            <version>${apache.ivy.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast</artifactId>
-            <version>${hazelcast.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.i2p.crypto</groupId>
-            <artifactId>eddsa</artifactId>
-            <version>${eddsa.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.orientechnologies</groupId>
-            <artifactId>orientdb-server</artifactId>
-            <version>${orientdb.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.orientechnologies</groupId>
-            <artifactId>orientdb-distributed</artifactId>
-            <version>${orientdb.version}</version>
             <scope>provided</scope>
         </dependency>
         <!--OSGi Framework-->
@@ -376,28 +301,10 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.karaf.jaas</groupId>
-            <artifactId>org.apache.karaf.jaas.config</artifactId>
-            <version>${karaf.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.karaf.shell</groupId>
             <artifactId>org.apache.karaf.shell.console</artifactId>
             <scope>provided</scope>
             <version>${karaf.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.karaf.jaas</groupId>
-            <artifactId>org.apache.karaf.jaas.command</artifactId>
-            <version>${karaf.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.karaf.jaas</groupId>
-            <artifactId>org.apache.karaf.jaas.boot</artifactId>
-            <version>${karaf.version}</version>
-            <scope>provided</scope>
         </dependency>
         <!--Test Dependencies-->
         <dependency>
@@ -423,6 +330,7 @@
     <module>infrastructure/security</module>
     <module>infrastructure/scripting</module>
     <module>infrastructure/groovy-xml-bridge</module>
+      <module>integration</module>
     <module>webconsole</module>
     <module>features</module>
     <module>osgi-tests</module>

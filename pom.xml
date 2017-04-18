@@ -25,6 +25,7 @@
     <module>infrastructure/security</module>
     <module>infrastructure/scripting</module>
     <module>infrastructure/groovy-xml-bridge</module>
+    <module>integration</module>
     <module>webconsole</module>
     <module>features</module>
     <module>osgi-tests</module>
@@ -71,6 +72,7 @@
     <cellar.version>4.0.3</cellar.version>
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
     <snamp.json.version>2.0.0</snamp.json.version>
+    <snamp.integration.version>2.0.0</snamp.integration.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
     <osgi.version>5.0.0</osgi.version>
     <hazelcast.version>3.7.2</hazelcast.version>
@@ -120,25 +122,13 @@
       </dependency>
       <dependency>
         <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-server</artifactId>
-        <version>${jersey.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-servlet</artifactId>
-        <version>${jersey.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
         <artifactId>jersey-core</artifactId>
         <version>${jersey.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-json</artifactId>
+        <artifactId>jersey-servlet</artifactId>
         <version>${jersey.version}</version>
         <scope>provided</scope>
       </dependency>
@@ -179,26 +169,8 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlet</artifactId>
-        <version>${jetty.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-server</artifactId>
-        <version>${jetty.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
         <groupId>org.eclipse.jetty.websocket</groupId>
         <artifactId>websocket-server</artifactId>
-        <version>${jetty.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-continuation</artifactId>
         <version>${jetty.version}</version>
         <scope>provided</scope>
       </dependency>
@@ -233,21 +205,8 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>jline</groupId>
-        <artifactId>jline</artifactId>
-        <version>${jline.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
         <groupId>org.codehaus.groovy</groupId>
         <artifactId>groovy</artifactId>
-        <version>${groovy.version}</version>
-        <classifier>indy</classifier>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.groovy</groupId>
-        <artifactId>groovy-json</artifactId>
         <version>${groovy.version}</version>
         <classifier>indy</classifier>
         <scope>provided</scope>
@@ -257,36 +216,6 @@
         <artifactId>groovy-xml</artifactId>
         <version>${groovy.version}</version>
         <classifier>indy</classifier>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.ivy</groupId>
-        <artifactId>ivy</artifactId>
-        <version>${apache.ivy.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.hazelcast</groupId>
-        <artifactId>hazelcast</artifactId>
-        <version>${hazelcast.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>net.i2p.crypto</groupId>
-        <artifactId>eddsa</artifactId>
-        <version>${eddsa.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.orientechnologies</groupId>
-        <artifactId>orientdb-server</artifactId>
-        <version>${orientdb.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.orientechnologies</groupId>
-        <artifactId>orientdb-distributed</artifactId>
-        <version>${orientdb.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
@@ -302,26 +231,8 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>org.apache.karaf.jaas</groupId>
-        <artifactId>org.apache.karaf.jaas.config</artifactId>
-        <version>${karaf.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
         <groupId>org.apache.karaf.shell</groupId>
         <artifactId>org.apache.karaf.shell.console</artifactId>
-        <version>${karaf.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.karaf.jaas</groupId>
-        <artifactId>org.apache.karaf.jaas.command</artifactId>
-        <version>${karaf.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.karaf.jaas</groupId>
-        <artifactId>org.apache.karaf.jaas.boot</artifactId>
         <version>${karaf.version}</version>
         <scope>provided</scope>
       </dependency>

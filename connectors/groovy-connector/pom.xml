@@ -41,10 +41,6 @@
       <classifier>indy</classifier>
     </dependency>
     <dependency>
-      <groupId>org.apache.ivy</groupId>
-      <artifactId>ivy</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.bytex.snamp</groupId>
       <artifactId>internal-services</artifactId>
       <version>2.0.0</version>
