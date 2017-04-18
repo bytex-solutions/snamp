@@ -20,6 +20,7 @@ export class NotificationFactory {
                 break;
             case AbstractNotification.COMPOSITION:
                 _notification = new GroupCompositionChangedMessage();
+                break;
             default:
                 throw new Error("Could not recognize notification of type: " + _json['@messageType']);
         }
@@ -44,6 +45,7 @@ export class NotificationFactory {
                 break;
             case AbstractNotification.COMPOSITION:
                 _notification = Object.assign(new GroupCompositionChangedMessage(), _json);
+                break;
             default:
                 throw new Error("Could not recognize notification of type: " + _json['_type']);
         }
