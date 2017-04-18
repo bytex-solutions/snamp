@@ -528,6 +528,10 @@ a:hover, a:focus {
   background: #009c38;
 }
 
+.nav-sm ul.nav.child_menu li.activeLi {
+  background: #009c38;
+}
+
 .nav-md ul.nav.child_menu li:before {
   background: #425668;
   bottom: auto;

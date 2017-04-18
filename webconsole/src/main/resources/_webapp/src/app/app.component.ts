@@ -46,21 +46,11 @@ export class App {
   stack_bottomright:any = {"dir1": "up", "dir2": "left", "firstpos1": 25, "firstpos2": 25};
 
   ngAfterViewInit() {
-
-    $(document).ready(function(){
-        // open the current active element on the left side panel
-        setTimeout(function() {
-          $('li.activeLi').parents('li').addClass('active');
-          $('li.activeLi').parents("ul").slideDown("slow");
-         }, 500)
-     });
-
     this.ws = new $WebSocket("ws://localhost:8181/snamp/console/events", [],
         {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true});
 
     this.ws.getDataStream()
-        .map((msg) => { console.log(msg); return JSON.parse(msg.data); })
-        //.filter((msg) => (msg['@messageType'] == 'log' || msg['@messageType'] == 'healthStatusChanged'))
+        .map((msg) => { return JSON.parse(msg.data); })
         .subscribe(
           (msg)=> {
               let _log:AbstractNotification = NotificationFactory.makeFromJson(msg);
@@ -74,7 +64,7 @@ export class App {
                     PNotify.removeAll();
                     this.notificationCount = 0;
                   }
-                  var notice = new PNotify({
+                  let notice = new PNotify({
                        title: _log.level,
                        text: _log.shortDescription()  + "<a class='details'>Details</a>",
                        type: _log.level,
@@ -85,7 +75,7 @@ export class App {
                        stack: this.stack_bottomright
                    });
 
-                   var _thisReference = this;
+                  let _thisReference = this;
                    notice.get().find('a.details').on('click', function() {
                        _thisReference.modal.alert()
                                .size('lg')

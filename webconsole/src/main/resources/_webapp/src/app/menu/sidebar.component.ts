@@ -36,21 +36,33 @@ export class Sidebar {
         });
     }
 
-    linkClicked(idAttr:string):void {
-        let $li = $('#' + idAttr + "chevron").closest('li');
-        let $sd = $('#sidebar-menu');
-        if ($li.is('.active')) {
-            $li.removeClass('active active-sm');
-                $('ul:first', $li).slideUp();
-            } else {
-                // prevent closing menu if we are on child menu
-                if (!$li.parent().is('.child_menu')) {
-                    $sd.find('li').removeClass('active active-sm');
-                    $sd.find('li ul').slideUp();
-                }
-                $li.addClass('active');
-                $('ul:first', $li).slideDown();
-            }
+    ngAfterViewInit() {
+        $(document).ready(function () {
+            setTimeout(function () {
+                // open the current active element on the left side panel
+                let activeLi = $('li.activeLi');
+                activeLi.parents('li').addClass('active active-sm');
+                activeLi.parents("ul").slideDown();
+
+                // handle click event for main menu buttons (with icons)
+                $('a.clickableAnchor').click(function() {
+                    $(this).parents('li').siblings().find('ul.child_menu').slideUp(); // close all li except this
+                    $(this).parents('li').find('ul.child_menu').slideToggle();
+                });
+
+                // handle click event on the child menu nodes
+                $('ul.child_menu li').click(function() {
+                    if ($('body').hasClass('nav-sm')) {
+                        $(this).parents('li').addClass('active-sm');
+                        $(this).parents('li').siblings().removeClass('active-sm');
+                        $(this).parents('li').find('ul').slideUp();
+                    } else {
+                        $(this).parents('li').siblings().removeClass('active');
+                        $(this).parents('li').addClass('active');
+                    }
+                });
+            }, 500);
+        });
     }
 
     newDashboard():void {
@@ -61,9 +73,9 @@ export class Sidebar {
             .open()
              .then(dialog => dialog.result)
              .then(result => {
-                console.log("result",result);
                 this._chartService.addNewGroup(result);
                 this._router.navigateByUrl('/charts/' + result);
              })
+            .catch(() => {});
     }
 }
