@@ -185,7 +185,7 @@ export class MainComponent implements OnInit {
              .then((resultPromise) => {
                 return (<Promise<boolean>>resultPromise.result)
                   .then((response) => {
-                     this.http.delete(REST.WATCHER_BY_NAME(watcher.name))
+                     this.http.delete(REST.SUPERVISOR_BY_NAME(watcher.name))
                          .map((res:Response) => res.text())
                          .subscribe(data => {
                             console.log("watcher has been removed: ", data);
@@ -265,7 +265,7 @@ export class MainComponent implements OnInit {
 
     public saveActiveWatcher():void {
         console.log("Saving selected watcher: ", this.activeWatcher, ", json is: ", this.activeWatcher.toJSON());
-        this.http.put(REST.WATCHER_BY_NAME(this.activeWatcher.name), this.activeWatcher.toJSON())
+        this.http.put(REST.SUPERVISOR_BY_NAME(this.activeWatcher.name), this.activeWatcher.toJSON())
              .map((res:Response) => res.text())
              .subscribe(data => {
                 console.log("watcher has been saved: ", data);

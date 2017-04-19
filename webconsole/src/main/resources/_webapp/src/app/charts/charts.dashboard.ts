@@ -210,7 +210,7 @@ export class Dashboard {
    private loadMetricsOnInstancesSelected():void {
         $('#overlay').fadeIn();
         let _instanceForSearchMetrics:string = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
-        let _obsComponents = this.http.getIgnoreErrors(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
+        let _obsComponents = this.http.getWithErrors(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
              .map((res:Response) => {
                  let _data:any = res.json();
                  let _values:AttributeInformation[] = [];
@@ -220,7 +220,7 @@ export class Dashboard {
                  return _values;
              }).catch((res:Response) => Observable.of([])).cache();
 
-        let _obsInstances = this.http.getIgnoreErrors(REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
+        let _obsInstances = this.http.getWithErrors(REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
             .map((res:Response) => {
                 let _data:any = res.json();
                 let _values:AttributeInformation[] = [];

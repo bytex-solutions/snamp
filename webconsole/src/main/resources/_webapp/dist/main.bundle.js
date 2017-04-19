@@ -86704,6 +86704,7 @@ var UsernameComponent = (function () {
             // until we got the very first authenticated response from the service -
             // all the layout will be hided with overlay
             $('#overlay').fadeOut();
+            $('#mainBodyContainer').fadeIn();
         }, function (err) {
             if (err.status == 500) {
                 window.location.href = "login.html?tokenExpired=true";
@@ -87254,7 +87255,7 @@ module.exports = "<div class=\"top_nav\">\r\n  <div class=\"nav_menu\">\r\n    <
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
 var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
-var index_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
+var bootstrap_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var TopNavBar = (function () {
     function TopNavBar(overlay, vcRef, _cookieService, _snampLogService, cd, modal) {
@@ -87270,7 +87271,6 @@ var TopNavBar = (function () {
         this._snampLogService.clear();
     };
     TopNavBar.prototype.toggleClicked = function (event) {
-        var target = event.srcElement.id;
         var body = $('body');
         var menu = $('#sidebar-menu');
         if (body.hasClass('nav-md')) {
@@ -87323,7 +87323,7 @@ var TopNavBar = (function () {
             template: __webpack_require__("./src/app/menu/topnavbar.component.html"),
             encapsulation: core_1.ViewEncapsulation.None
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _b) || Object, (typeof (_c = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _c) || Object, (typeof (_d = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _e) || Object, (typeof (_f = typeof index_1.Modal !== 'undefined' && index_1.Modal) === 'function' && _f) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _b) || Object, (typeof (_c = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _c) || Object, (typeof (_d = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _e) || Object, (typeof (_f = typeof bootstrap_1.Modal !== 'undefined' && bootstrap_1.Modal) === 'function' && _f) || Object])
     ], TopNavBar);
     return TopNavBar;
     var _a, _b, _c, _d, _e, _f;
@@ -87674,48 +87674,57 @@ var ApiClient = (function () {
     }
     ApiClient.prototype.createAuthorizationHeader = function () {
         var headers = new http_1.Headers();
-        headers.append('Authorization', 'Bearer ' +
-            this._cookieService.get("snamp-auth-token"));
+        headers.append('Authorization', 'Bearer ' + this._cookieService.get("snamp-auth-token"));
         headers.append('Content-type', 'application/json');
         return headers;
     };
-    ApiClient.handleError = function (error) {
-        $('#overlay').fadeOut();
-        // In a real world app, we might use a remote logging infrastructure
-        var errMsg;
-        if (error instanceof http_1.Response && error.status == 401) {
-            console.log("Auth is not working.", error);
-            window.location.href = "login.html?tokenExpired=true";
-        }
-        else {
+    // Functional part of code to log and doing some actions
+    ApiClient.attachProcessing = function (response, emptyfyIfError) {
+        return response
+            .catch(function (error) {
+            if (error instanceof http_1.Response && error.status == 401) {
+                console.log("Auth is not working.", error);
+                window.location.href = "login.html?tokenExpired=true";
+            }
+            return emptyfyIfError ? Observable_1.Observable.empty() : error;
+        }).do((function (data) {
+            console.debug("Received data: ", data);
+        }), (function (error) {
             console.log("Error occurred: ", error);
-            return Observable_1.Observable.empty();
-        }
+            $("#overlay").fadeOut();
+        }), (function () {
+            $("#overlay").fadeOut();
+        }));
     };
     ApiClient.prototype.get = function (url) {
-        return this.http.get(url, {
+        return ApiClient.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }).catch(ApiClient.handleError);
-    };
-    ApiClient.prototype.getIgnoreErrors = function (url) {
-        return this.http.get(url, {
-            headers: this.createAuthorizationHeader()
-        });
+        }), true);
     };
     ApiClient.prototype.put = function (url, data) {
-        return this.http.put(url, data, {
+        return ApiClient.attachProcessing(this.http.put(url, data, {
             headers: this.createAuthorizationHeader()
-        }).catch(ApiClient.handleError);
+        }), true);
     };
     ApiClient.prototype.post = function (url, data) {
-        return this.http.post(url, data, {
+        return ApiClient.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }).catch(ApiClient.handleError);
+        }), true);
     };
     ApiClient.prototype.delete = function (url) {
-        return this.http.delete(url, {
+        return ApiClient.attachProcessing(this.http.delete(url, {
             headers: this.createAuthorizationHeader()
-        }).catch(ApiClient.handleError);
+        }), true);
+    };
+    ApiClient.prototype.getWithErrors = function (url) {
+        return ApiClient.attachProcessing(this.http.get(url, {
+            headers: this.createAuthorizationHeader()
+        }));
+    };
+    ApiClient.prototype.postWithErrors = function (url, data) {
+        return ApiClient.attachProcessing(this.http.post(url, data, {
+            headers: this.createAuthorizationHeader()
+        }));
     };
     ApiClient = __decorate([
         core_1.Injectable(), 
@@ -87729,13 +87738,13 @@ var REST = (function () {
     function REST() {
     }
     REST.AVAILABLE_ENTITIES_BY_TYPE = function (entityType) {
-        return REST.ROOT_PATH + "/" + "components/" + encodeURIComponent(entityType) + "s";
+        return REST.COMPONENTS_MANAGEMENT + "/" + encodeURIComponent(entityType) + "s";
     };
     REST.ENABLE_COMPONENT = function (componentClass, componentType) {
-        return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/enable";
+        return REST.COMPONENTS_MANAGEMENT + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/enable";
     };
     REST.DISABLE_COMPONENT = function (componentClass, componentType) {
-        return REST.ROOT_PATH + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/disable";
+        return REST.COMPONENTS_MANAGEMENT + "/" + encodeURIComponent(componentClass) + "/" + encodeURIComponent(componentType) + "/disable";
     };
     REST.GATEWAY_BY_NAME = function (name) {
         return REST.GATEWAY_CONFIG + "/" + encodeURIComponent(name);
@@ -87750,10 +87759,10 @@ var REST = (function () {
         return REST.RESOURCE_BY_NAME(name) + "/type";
     };
     REST.ENTITY_PARAMETERS_DESCRIPTION = function (entityClass, entityType) {
-        return REST.ROOT_PATH + "/components/" + encodeURIComponent(entityClass) + "s/" + encodeURIComponent(entityType) + "/description";
+        return REST.COMPONENTS_MANAGEMENT + "/" + encodeURIComponent(entityClass) + "s/" + encodeURIComponent(entityType) + "/description";
     };
     REST.SUBENTITY_PARAMETERS_DESCRIPTION = function (entityType, entityClass) {
-        return REST.ROOT_PATH + "/components/connectors/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/description";
+        return REST.COMPONENTS_MANAGEMENT + "/connectors/" + encodeURIComponent(entityType) + "/" + encodeURIComponent(entityClass) + "/description";
     };
     REST.BINDINGS = function (gatewayName, bindingEntityType) {
         return REST.GATEWAY_BY_NAME(gatewayName) + "/" + encodeURIComponent(bindingEntityType) + "/bindings";
@@ -87784,7 +87793,7 @@ var REST = (function () {
         return REST.ROOT_WEB_API_PATH + "/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
     };
     // endpoint for certain supervisor
-    REST.WATCHER_BY_NAME = function (name) {
+    REST.SUPERVISOR_BY_NAME = function (name) {
         return REST.SUPERVISORS_CONFIG + "/" + name;
     };
     REST.ROOT_PATH = "/snamp/management";
@@ -87792,9 +87801,9 @@ var REST = (function () {
     REST.GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";
     REST.RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
     REST.RGROUP_CONFIG = REST.CFG_PATH + "/resourceGroup";
-    REST.AVAILABLE_GATEWAY_LIST = REST.ROOT_PATH + "/components/gateways";
-    REST.AVAILABLE_RESOURCE_LIST = REST.ROOT_PATH + "/components/connectors";
-    REST.AVAILABLE_COMPONENT_LIST = REST.ROOT_PATH + "/components";
+    REST.COMPONENTS_MANAGEMENT = REST.ROOT_PATH + "/components";
+    REST.AVAILABLE_GATEWAY_LIST = REST.COMPONENTS_MANAGEMENT + "/gateways";
+    REST.AVAILABLE_RESOURCE_LIST = REST.COMPONENTS_MANAGEMENT + "/connectors";
     REST.RGROUP_LIST = REST.RGROUP_CONFIG + "/list";
     // SNAMP WEB API SECTION (belongs to webconsole module)
     REST.ROOT_WEB_API_PATH = "/snamp/web/api";
@@ -87815,7 +87824,7 @@ var REST = (function () {
     // configuration path for supervisors
     REST.SUPERVISORS_CONFIG = REST.CFG_PATH + "/supervisor";
     // all supervisors statuses
-    REST.WATCHERS_STATUS = REST.ROOT_WEB_API_PATH + "/resource-group-watcher/groups/status";
+    REST.SUPERVISORS_STATUS = REST.ROOT_WEB_API_PATH + "/resource-group-watcher/groups/status";
     // notification settings
     REST.NOTIFICATIONS_SETTINGS = REST.ROOT_WEB_API_PATH + "/notifications/settings";
     // list of the available notifications types

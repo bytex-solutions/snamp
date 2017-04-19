@@ -37,7 +37,7 @@ export class WatcherDashboard implements OnInit {
         var _thisReference = this;
         // load the list of watchers
          this.timerId = setInterval(function(){
-              _thisReference.http.get(REST.WATCHERS_STATUS)
+              _thisReference.http.get(REST.SUPERVISORS_STATUS)
                  .map((res:Response) => res.json())
                  .subscribe((data) => {
                     _thisReference.statuses = StatusFactory.parseAllStatuses(data);

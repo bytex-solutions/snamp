@@ -15,7 +15,7 @@
         <a *ngFor="let component of components"
            class="grid-item-link pointerElement"
            (click)="selectComponent(component)"
-           [class.active]="component == selectedComponent"
+           [class.active]="isComponentSelected(component)"
           >
           <div [class.activeBundle]="component.state == 'ACTIVE'" class="grid-item">
             <h5 class="name">{{component.name}}</h5>

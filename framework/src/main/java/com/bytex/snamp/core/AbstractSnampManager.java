@@ -11,6 +11,7 @@ import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.gateway.GatewayFilterBuilder;
+import com.bytex.snamp.supervision.Supervisor;
 import com.bytex.snamp.supervision.SupervisorActivator;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.SupervisorFilterBuilder;
@@ -188,15 +189,6 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         @Override
         public String toString() {
             return getType();
-        }
-
-        /**
-         * Returns component type holder.
-         * @see com.bytex.snamp.core.SnampComponentDescriptor class constants.
-         * @return One of the defined constants for possible component type
-         */
-        public final String getComponentTypeHolder() {
-            return this.componentTypeHolder;
         }
     }
 
@@ -468,7 +460,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @return {@literal true}, if the specified bundle is a part of SNAMP; otherwise, {@literal false}.
      */
     public static boolean isSnampComponent(final Bundle bnd){
-        if(Gateway.isGatewayBundle(bnd) ||
+        if(Gateway.isGatewayBundle(bnd) || Supervisor.isSupervisorBundle(bnd) ||
                 ManagedResourceConnector.isResourceConnectorBundle(bnd)) return false;
         final String importPackages = bnd.getHeaders().get(Constants.IMPORT_PACKAGE);
         if(importPackages == null) return false;

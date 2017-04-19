@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
-
 import { Overlay } from 'angular2-modal';
-import { Modal } from 'angular2-modal/plugins/vex';
+import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
+import { Observable } from "rxjs";
 
 @Component({
     moduleId: module.id,
@@ -22,8 +22,8 @@ export class SnampCfgComponent implements OnInit {
         overlay.defaultViewContainer = vcRef;
     }
 
-    ngOnInit() {
-        this.http.get(REST.AVAILABLE_COMPONENT_LIST)
+    ngOnInit():void {
+        this.http.get(REST.COMPONENTS_MANAGEMENT)
             .map((res:Response) => res.json())
             .subscribe(data => {
                 for (let i = 0; i < data.length; i++) {
@@ -35,50 +35,74 @@ export class SnampCfgComponent implements OnInit {
             });
     }
 
-    selectComponent(selected:SnampComponent) {
+    selectComponent(selected:SnampComponent):void {
         this.selectedComponent = selected;
     }
 
-    startComponent(selected:SnampComponent) {
+    startComponent(selected:SnampComponent):void {
         $('#overlay').fadeIn();
-        this.http.post(REST.ENABLE_COMPONENT(selected._class, selected.type), "")
+        this.http.postWithErrors(REST.ENABLE_COMPONENT(selected._class, selected.type), "")
             .map((res:Response) => res.text())
+            //.catch((error:any) => Observable.throw(new Error(error.status)))
             .subscribe(data => {
-                console.log("started " + selected.type + " component. result from server is " + data);
-                if (data == "true") {
-                    selected.state = "ACTIVE";
-                    for (let i = 0; i < this.components.length; i++) {
-                        if (this.components[i].type == selected.type) {
-                            this.components[i] = selected;
-                            break;
+                    console.log("Started " + selected.type + " " + selected._class + " component. Result from server is " + data);
+                    if (data == "true") {
+                        selected.state = "ACTIVE";
+                        for (let i = 0; i < this.components.length; i++) {
+                            if (this.components[i].equals(selected)) {
+                                this.components[i] = selected;
+                                break;
+                            }
                         }
+                    } else {
+                        console.log("Could not start component " + selected.type + " - server responded false");
                     }
-                } else {
-                    console.log("Could not start component " + selected.type + " - server responded false");
-                }
-                $('#overlay').fadeOut();
-            })
+                    $('#overlay').fadeOut();
+                },
+                (err) => {
+                    let errorText:string = "Could not start  " + selected._class + " " + selected.type + ".";
+                    if (err.status == 400) {
+                        errorText += "Wrong entity might selected."
+                    }
+                    this.showModalMessage(errorText);
+                })
     }
 
-    stopComponent(selected:SnampComponent) {
+    stopComponent(selected:SnampComponent):void {
         $('#overlay').fadeIn();
-        this.http.post(REST.DISABLE_COMPONENT(selected._class, selected.type), "")
+        this.http.postWithErrors(REST.DISABLE_COMPONENT(selected._class, selected.type), "")
             .map((res:Response) => res.text())
+            //.catch((error:any) => Observable.throw(new Error(error.status)))
             .subscribe(data => {
-                console.log("stopped " + selected.type + " component. result from server is " + data);
-                if (data == "true") {
-                    selected.state = "RESOLVED";
-                    for (let i = 0; i < this.components.length; i++) {
-                        if (this.components[i].type == selected.type) {
-                            this.components[i] = selected;
-                            break;
+                    console.log("Stopped " + selected.type + " " + selected._class + " component. Result from server is " + data);
+                    if (data == "true") {
+                        selected.state = "RESOLVED";
+                        for (let i = 0; i < this.components.length; i++) {
+                            if (this.components[i].equals(selected)) {
+                                this.components[i] = selected;
+                                break;
+                            }
                         }
+                    } else {
+                        console.log("Could not stop component " + selected.type + " - server responded false");
                     }
-                } else {
-                    console.log("Could not stop component " + selected.type + " - server responded false");
-                }
-                $('#overlay').fadeOut();
-            })
+                    $('#overlay').fadeOut();
+                },
+                (err) => {
+                    let errorText:string = "Could not stop  " + selected._class + " " + selected.type + ".";
+                    if (err.status == 400) {
+                        errorText += "Wrong entity might selected."
+                    }
+                    this.showModalMessage(errorText);
+                });
+    }
+
+    isComponentSelected(component:SnampComponent):boolean {
+        return component.equals(this.selectedComponent);
+    }
+
+    private showModalMessage(message:string):void {
+        this.modal.alert().className(<VEXBuiltInThemes>'default').message(message).open().catch(() => {});
     }
 }
 
@@ -107,11 +131,11 @@ class SnampComponent {
             this.type = parameters["type"];
         }
         if (parameters["class"] != undefined) {
-            this._class = SnampComponent.typeToResourceClassName(parameters["class"]) + "s";
+            this._class = parameters["class"];
         }
     }
 
-    private static typeToResourceClassName(type:string):string {
-        return type.substring(0, type.indexOf("Type")).toLowerCase();
+    equals(component:SnampComponent):boolean {
+        return (component._class == this._class) && (component.name == this.name) && (component.type == this.type);
     }
 }

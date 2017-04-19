@@ -764,7 +764,7 @@ var WatcherDashboard = (function () {
         var _thisReference = this;
         // load the list of watchers
         this.timerId = setInterval(function () {
-            _thisReference.http.get(app_restClient_1.REST.WATCHERS_STATUS)
+            _thisReference.http.get(app_restClient_1.REST.SUPERVISORS_STATUS)
                 .map(function (res) { return res.json(); })
                 .subscribe(function (data) {
                 _thisReference.statuses = factory_1.StatusFactory.parseAllStatuses(data);
@@ -1071,7 +1071,7 @@ var MainComponent = (function () {
             .then(function (resultPromise) {
             return resultPromise.result
                 .then(function (response) {
-                _this.http.delete(app_restClient_1.REST.WATCHER_BY_NAME(watcher.name))
+                _this.http.delete(app_restClient_1.REST.SUPERVISOR_BY_NAME(watcher.name))
                     .map(function (res) { return res.text(); })
                     .subscribe(function (data) {
                     console.log("watcher has been removed: ", data);
@@ -1137,7 +1137,7 @@ var MainComponent = (function () {
     };
     MainComponent.prototype.saveActiveWatcher = function () {
         console.log("Saving selected watcher: ", this.activeWatcher, ", json is: ", this.activeWatcher.toJSON());
-        this.http.put(app_restClient_1.REST.WATCHER_BY_NAME(this.activeWatcher.name), this.activeWatcher.toJSON())
+        this.http.put(app_restClient_1.REST.SUPERVISOR_BY_NAME(this.activeWatcher.name), this.activeWatcher.toJSON())
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
             console.log("watcher has been saved: ", data);

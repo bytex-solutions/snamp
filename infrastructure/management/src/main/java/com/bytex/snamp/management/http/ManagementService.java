@@ -66,6 +66,17 @@ public final class ManagementService extends AbstractManagementService {
                 .build();
     }
 
+    private static String getComponentSystemType(final SnampComponentDescriptor component){
+        if(component.containsKey(SnampComponentDescriptor.CONNECTOR_TYPE_PROPERTY))
+            return "connectors";
+        else if(component.containsKey(SnampComponentDescriptor.GATEWAY_TYPE_PROPERTY))
+            return "gateways";
+        else if(component.containsKey(SnampComponentDescriptor.SUPERVISOR_TYPE_PROPERTY))
+            return "supervisors";
+        else
+            return INTERNAL_COMPONENT_TYPE_NAME;
+    }
+
     private <T extends SnampComponentDescriptor> void fillInstalledComponents(final Function<? super AbstractSnampManager, Collection<? extends T>> componentInfoProvider,
                                                                               final Function<? super T, String> typeResolver,
                                                                               final Collection<Map<String, String>> output) {
@@ -77,7 +88,7 @@ public final class ManagementService extends AbstractManagementService {
                         .put("description", entry.toString(Locale.getDefault()))
                         .put("state", ManagementUtils.getStateString(entry))
                         .put("version", entry.getVersion().toString())
-                        .put("class", ManagementUtils.getComponentSystemType(entry, INTERNAL_COMPONENT_TYPE_NAME))
+                        .put("class", getComponentSystemType(entry))
                         .put("type", typeResolver.apply(entry))
                         .build())
                 .forEach(output::add);

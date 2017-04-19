@@ -1,6 +1,5 @@
 package com.bytex.snamp.management;
 
-import com.bytex.snamp.core.AbstractSnampManager;
 import com.bytex.snamp.core.SnampComponentDescriptor;
 import org.osgi.framework.Bundle;
 
@@ -36,17 +35,6 @@ public final class ManagementUtils {
      */
     public static String getStateString(final SnampComponentDescriptor component){
         return getStateString(component.getState());
-    }
-
-    /**
-     * Get state string string.
-     *
-     * @param component the component
-     * @return the string
-     */
-    public static String getComponentSystemType(final SnampComponentDescriptor component, final String defaultType){
-        return component instanceof AbstractSnampManager.TypedComponentDescriptor ?
-                ((AbstractSnampManager.TypedComponentDescriptor) component).getComponentTypeHolder() : defaultType;
     }
 
     /**

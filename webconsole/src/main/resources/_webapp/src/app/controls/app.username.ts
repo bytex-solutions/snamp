@@ -1,7 +1,6 @@
 import { Component} from '@angular/core';
 import { ApiClient } from '../services/app.restClient';
 import { Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
@@ -21,6 +20,7 @@ export class UsernameComponent  {
                 // until we got the very first authenticated response from the service -
                 // all the layout will be hided with overlay
                 $('#overlay').fadeOut();
+                $('#mainBodyContainer').fadeIn();
               },
               err => {
                 if (err.status == 500) {

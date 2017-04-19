@@ -38214,7 +38214,7 @@ var SnampCfgComponent = (function () {
     }
     SnampCfgComponent.prototype.ngOnInit = function () {
         var _this = this;
-        this.http.get(app_restClient_1.REST.AVAILABLE_COMPONENT_LIST)
+        this.http.get(app_restClient_1.REST.COMPONENTS_MANAGEMENT)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
             for (var i = 0; i < data.length; i++) {
@@ -38231,14 +38231,14 @@ var SnampCfgComponent = (function () {
     SnampCfgComponent.prototype.startComponent = function (selected) {
         var _this = this;
         $('#overlay').fadeIn();
-        this.http.post(app_restClient_1.REST.ENABLE_COMPONENT(selected._class, selected.type), "")
+        this.http.postWithErrors(app_restClient_1.REST.ENABLE_COMPONENT(selected._class, selected.type), "")
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            console.log("started " + selected.type + " component. result from server is " + data);
+            console.log("Started " + selected.type + " " + selected._class + " component. Result from server is " + data);
             if (data == "true") {
                 selected.state = "ACTIVE";
                 for (var i = 0; i < _this.components.length; i++) {
-                    if (_this.components[i].type == selected.type) {
+                    if (_this.components[i].equals(selected)) {
                         _this.components[i] = selected;
                         break;
                     }
@@ -38248,19 +38248,25 @@ var SnampCfgComponent = (function () {
                 console.log("Could not start component " + selected.type + " - server responded false");
             }
             $('#overlay').fadeOut();
+        }, function (err) {
+            var errorText = "Could not start  " + selected._class + " " + selected.type + ".";
+            if (err.status == 400) {
+                errorText += "Wrong entity might selected.";
+            }
+            _this.showModalMessage(errorText);
         });
     };
     SnampCfgComponent.prototype.stopComponent = function (selected) {
         var _this = this;
         $('#overlay').fadeIn();
-        this.http.post(app_restClient_1.REST.DISABLE_COMPONENT(selected._class, selected.type), "")
+        this.http.postWithErrors(app_restClient_1.REST.DISABLE_COMPONENT(selected._class, selected.type), "")
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            console.log("stopped " + selected.type + " component. result from server is " + data);
+            console.log("Stopped " + selected.type + " " + selected._class + " component. Result from server is " + data);
             if (data == "true") {
                 selected.state = "RESOLVED";
                 for (var i = 0; i < _this.components.length; i++) {
-                    if (_this.components[i].type == selected.type) {
+                    if (_this.components[i].equals(selected)) {
                         _this.components[i] = selected;
                         break;
                     }
@@ -38270,7 +38276,19 @@ var SnampCfgComponent = (function () {
                 console.log("Could not stop component " + selected.type + " - server responded false");
             }
             $('#overlay').fadeOut();
+        }, function (err) {
+            var errorText = "Could not stop  " + selected._class + " " + selected.type + ".";
+            if (err.status == 400) {
+                errorText += "Wrong entity might selected.";
+            }
+            _this.showModalMessage(errorText);
         });
+    };
+    SnampCfgComponent.prototype.isComponentSelected = function (component) {
+        return component.equals(this.selectedComponent);
+    };
+    SnampCfgComponent.prototype.showModalMessage = function (message) {
+        this.modal.alert().className('default').message(message).open().catch(function () { });
     };
     SnampCfgComponent = __decorate([
         core_1.Component({
@@ -38308,11 +38326,11 @@ var SnampComponent = (function () {
             this.type = parameters["type"];
         }
         if (parameters["class"] != undefined) {
-            this._class = SnampComponent.typeToResourceClassName(parameters["class"]) + "s";
+            this._class = parameters["class"];
         }
     }
-    SnampComponent.typeToResourceClassName = function (type) {
-        return type.substring(0, type.indexOf("Type")).toLowerCase();
+    SnampComponent.prototype.equals = function (component) {
+        return (component._class == this._class) && (component.name == this.name) && (component.type == this.type);
     };
     return SnampComponent;
 }());
@@ -38473,7 +38491,7 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949
 /***/ "./src/app/configuration/templates/snampcfg.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Component configuration</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'Installed components'\" [column]=\"'5'\" *ngIf=\"components && components.length > 0\">\r\n\r\n        <a *ngFor=\"let component of components\"\r\n           class=\"grid-item-link pointerElement\"\r\n           (click)=\"selectComponent(component)\"\r\n           [class.active]=\"component == selectedComponent\"\r\n          >\r\n          <div [class.activeBundle]=\"component.state == 'ACTIVE'\" class=\"grid-item\">\r\n            <h5 class=\"name\">{{component.name}}</h5>\r\n            <p class=\"symbol\">{{component.type}}</p>\r\n            <p class=\"weight\">v.{{component.version}}</p>\r\n          </div>\r\n        </a>\r\n      </panel>\r\n\r\n      <panel\r\n          [header]=\"selectedComponent.name\"\r\n          [column]=\"'6'\"\r\n          *ngIf=\"selectedComponent != undefined\">\r\n        <form class=\"form-horizontal form-label-left\" action=\"javascript:void(0);\">\r\n\r\n          <div class=\"form-group\">\r\n            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Name</label>\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n              <input type=\"text\" class=\"form-control\" readonly=\"readonly\" [attr.placeholder]=\"selectedComponent.name\">\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group\">\r\n            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Type</label>\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n              <input type=\"text\" class=\"form-control\" readonly=\"readonly\" [attr.placeholder]=\"selectedComponent.type\">\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group\">\r\n            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Version</label>\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n              <input type=\"text\" class=\"form-control\" readonly=\"readonly\" [attr.placeholder]=\"selectedComponent.version\">\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group\">\r\n            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">State</label>\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n              <input type=\"text\" class=\"form-control\" readonly=\"readonly\" [attr.placeholder]=\"selectedComponent.state\">\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group\">\r\n            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">\r\n              Description\r\n            </label>\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n              <textarea class=\"form-control\" rows=\"3\" placeholder=\"No description is available\">{{selectedComponent.description}}</textarea>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"ln_solid\"></div>\r\n\r\n          <div class=\"form-group\" *ngIf=\"selectedComponent.type != 'Internal component'\">\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12 col-md-offset-3\">\r\n              <a class=\"btn btn-app\"\r\n                 [class.disabled]=\"selectedComponent.state == 'ACTIVE'\"\r\n                 (click)=\"startComponent(selectedComponent)\">\r\n                <i class=\"fa fa-play\"></i> Start\r\n              </a>\r\n              <a class=\"btn btn-app\"\r\n                 [class.disabled]=\"selectedComponent.state != 'ACTIVE'\"\r\n                 (click)=\"stopComponent(selectedComponent)\">\r\n                <i class=\"fa fa-pause\"></i> Pause\r\n              </a>\r\n            </div>\r\n          </div>\r\n\r\n        </form>\r\n\r\n      </panel>\r\n\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Component configuration</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'Installed components'\" [column]=\"'5'\" *ngIf=\"components && components.length > 0\">\r\n\r\n        <a *ngFor=\"let component of components\"\r\n           class=\"grid-item-link pointerElement\"\r\n           (click)=\"selectComponent(component)\"\r\n           [class.active]=\"isComponentSelected(component)\"\r\n          >\r\n          <div [class.activeBundle]=\"component.state == 'ACTIVE'\" class=\"grid-item\">\r\n            <h5 class=\"name\">{{component.name}}</h5>\r\n            <p class=\"symbol\">{{component.type}}</p>\r\n            <p class=\"weight\">v.{{component.version}}</p>\r\n          </div>\r\n        </a>\r\n      </panel>\r\n\r\n      <panel\r\n          [header]=\"selectedComponent.name\"\r\n          [column]=\"'6'\"\r\n          *ngIf=\"selectedComponent != undefined\">\r\n        <form class=\"form-horizontal form-label-left\" action=\"javascript:void(0);\">\r\n\r\n          <div class=\"form-group\">\r\n            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Name</label>\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n              <input type=\"text\" class=\"form-control\" readonly=\"readonly\" [attr.placeholder]=\"selectedComponent.name\">\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group\">\r\n            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Type</label>\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n              <input type=\"text\" class=\"form-control\" readonly=\"readonly\" [attr.placeholder]=\"selectedComponent.type\">\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group\">\r\n            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Version</label>\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n              <input type=\"text\" class=\"form-control\" readonly=\"readonly\" [attr.placeholder]=\"selectedComponent.version\">\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group\">\r\n            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">State</label>\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n              <input type=\"text\" class=\"form-control\" readonly=\"readonly\" [attr.placeholder]=\"selectedComponent.state\">\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group\">\r\n            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">\r\n              Description\r\n            </label>\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n              <textarea class=\"form-control\" rows=\"3\" placeholder=\"No description is available\">{{selectedComponent.description}}</textarea>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"ln_solid\"></div>\r\n\r\n          <div class=\"form-group\" *ngIf=\"selectedComponent.type != 'Internal component'\">\r\n            <div class=\"col-md-9 col-sm-9 col-xs-12 col-md-offset-3\">\r\n              <a class=\"btn btn-app\"\r\n                 [class.disabled]=\"selectedComponent.state == 'ACTIVE'\"\r\n                 (click)=\"startComponent(selectedComponent)\">\r\n                <i class=\"fa fa-play\"></i> Start\r\n              </a>\r\n              <a class=\"btn btn-app\"\r\n                 [class.disabled]=\"selectedComponent.state != 'ACTIVE'\"\r\n                 (click)=\"stopComponent(selectedComponent)\">\r\n                <i class=\"fa fa-pause\"></i> Pause\r\n              </a>\r\n            </div>\r\n          </div>\r\n\r\n        </form>\r\n\r\n      </panel>\r\n\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 

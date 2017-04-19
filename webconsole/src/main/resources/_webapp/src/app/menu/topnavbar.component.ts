@@ -1,14 +1,7 @@
 import { Component, ChangeDetectorRef, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import { CookieService } from 'angular2-cookie/core';
 import { SnampLogService } from '../services/app.logService';
-
-import {
-  Modal,
-  OneButtonPresetBuilder,
-  TwoButtonPresetBuilder,
-  PromptPresetBuilder
-} from 'angular2-modal/plugins/bootstrap/index';
-
+import { Modal } from 'angular2-modal/plugins/bootstrap';
 import { Overlay } from 'angular2-modal';
 import { AbstractNotification } from "../services/model/notifications/abstract.notification";
 
@@ -38,7 +31,6 @@ export class TopNavBar {
     }
 
     toggleClicked(event: MouseEvent) {
-        let target = event.srcElement.id;
         let body = $('body');
         let menu = $('#sidebar-menu');
         if (body.hasClass('nav-md')) {
@@ -49,7 +41,6 @@ export class TopNavBar {
             menu.find('li.active-sm').addClass('active').removeClass('active-sm');
         }
         body.toggleClass('nav-md nav-sm');
-
     }
 
     clearAlerts() {
